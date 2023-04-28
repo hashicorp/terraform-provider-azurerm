@@ -49,7 +49,7 @@ func (c CreatorsClient) ListByAccount(ctx context.Context, id AccountId) (result
 	}
 
 	var values struct {
-		Values *[]Creator `json:"values"`
+		Values *[]Creator `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

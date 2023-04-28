@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -199,7 +199,7 @@ func (s HealthCareFhirV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (s HealthCareFhirV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.FhirServiceIDInsensitively(oldId)
+		newId, err := fhirservices.ParseFhirServiceIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

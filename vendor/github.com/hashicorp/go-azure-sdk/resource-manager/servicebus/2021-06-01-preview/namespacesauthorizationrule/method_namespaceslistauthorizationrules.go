@@ -49,7 +49,7 @@ func (c NamespacesAuthorizationRuleClient) NamespacesListAuthorizationRules(ctx 
 	}
 
 	var values struct {
-		Values *[]SBAuthorizationRule `json:"values"`
+		Values *[]SBAuthorizationRule `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

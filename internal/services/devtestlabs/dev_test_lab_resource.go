@@ -5,7 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/labs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -14,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
-	keyvaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -197,7 +198,7 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		if props := model.Properties; props != nil {
 			if !features.FourPointOhBeta() {
-				d.Set("storage_type", props.LabStorageType)
+				d.Set("storage_type", string(pointer.From(props.LabStorageType)))
 			}
 			// Computed fields
 			d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
@@ -206,7 +207,7 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			kvId := ""
 			if props.VaultName != nil {
-				id, err := keyvaultParse.VaultIDInsensitively(*props.VaultName)
+				id, err := commonids.ParseKeyVaultIDInsensitively(*props.VaultName)
 				if err != nil {
 					return fmt.Errorf("parsing %q: %+v", *props.VaultName, err)
 				}

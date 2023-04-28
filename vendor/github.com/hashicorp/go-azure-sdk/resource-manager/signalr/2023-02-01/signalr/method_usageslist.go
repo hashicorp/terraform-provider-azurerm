@@ -49,7 +49,7 @@ func (c SignalRClient) UsagesList(ctx context.Context, id LocationId) (result Us
 	}
 
 	var values struct {
-		Values *[]SignalRUsage `json:"values"`
+		Values *[]SignalRUsage `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

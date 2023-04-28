@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,7 +31,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 		Delete: resourceMonitorScheduledQueryRulesAlertDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ScheduledQueryRulesID(id)
+			_, err := scheduledqueryrules.ParseScheduledQueryRuleID(id)
 			return err
 		}),
 
@@ -163,11 +163,6 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"metric_column": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
 									"metric_trigger_type": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -191,6 +186,11 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeFloat,
 										Required:     true,
 										ValidateFunc: validate.ScheduledQueryRulesAlertThreshold,
+									},
+									"metric_column": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -228,7 +228,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewScheduledQueryRulesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := scheduledqueryrules.NewScheduledQueryRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	frequency := d.Get("frequency").(int)
 	timeWindow := d.Get("time_window").(int)
@@ -247,14 +247,14 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ScheduledQueryRuleName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules_alert", id.ID())
 		}
 	}
@@ -263,9 +263,9 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	description := d.Get("description").(string)
 	enabledRaw := d.Get("enabled").(bool)
 
-	enabled := insights.EnabledTrue
+	enabled := scheduledqueryrules.EnabledTrue
 	if !enabledRaw {
-		enabled = insights.EnabledFalse
+		enabled = scheduledqueryrules.EnabledFalse
 	}
 
 	location := azure.NormalizeLocation(d.Get("location"))
@@ -273,22 +273,21 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	source := expandMonitorScheduledQueryRulesCommonSource(d)
 
 	t := d.Get("tags").(map[string]interface{})
-	expandedTags := tags.Expand(t)
 
-	parameters := insights.LogSearchRuleResource{
-		Location: utils.String(location),
-		LogSearchRule: &insights.LogSearchRule{
+	parameters := scheduledqueryrules.LogSearchRuleResource{
+		Location: location,
+		Properties: scheduledqueryrules.LogSearchRule{
 			Description:  utils.String(description),
-			Enabled:      enabled,
+			Enabled:      pointer.To(enabled),
 			Source:       source,
 			Schedule:     schedule,
 			Action:       action,
 			AutoMitigate: utils.Bool(autoMitigate),
 		},
-		Tags: expandedTags,
+		Tags: utils.ExpandPtrMapStringString(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ScheduledQueryRuleName, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating or updating Monitor %s: %+v", id, err)
 	}
 
@@ -302,15 +301,15 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ScheduledQueryRulesID(d.Id())
+	id, err := scheduledqueryrules.ParseScheduledQueryRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ScheduledQueryRuleName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q", id.ScheduledQueryRuleName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found", *id)
 			d.SetId("")
 			return nil
 		}
@@ -318,59 +317,53 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 	}
 
 	d.Set("name", id.ScheduledQueryRuleName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("auto_mitigation_enabled", resp.AutoMitigate)
-	d.Set("description", resp.Description)
-	if resp.Enabled == insights.EnabledTrue {
-		d.Set("enabled", true)
-	} else {
-		d.Set("enabled", false)
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", azure.NormalizeLocation(model.Location))
 
-	action, ok := resp.Action.(insights.AlertingAction)
-	if !ok {
-		return fmt.Errorf("wrong action type in %s: %T", *id, resp.Action)
-	}
-	if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
-		return fmt.Errorf("setting `action`: %+v", err)
-	}
-	severity, err := strconv.Atoi(string(action.Severity))
-	if err != nil {
-		return fmt.Errorf("converting action.Severity %q to int in %s: %+v", action.Severity, *id, err)
-	}
-	d.Set("severity", severity)
-	d.Set("throttling", action.ThrottlingInMin)
-	if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
-		return fmt.Errorf("setting `trigger`: %+v", err)
-	}
-
-	if schedule := resp.Schedule; schedule != nil {
-		if schedule.FrequencyInMinutes != nil {
-			d.Set("frequency", schedule.FrequencyInMinutes)
+		props := model.Properties
+		d.Set("auto_mitigation_enabled", props.AutoMitigate)
+		d.Set("description", props.Description)
+		if props.Enabled != nil && *props.Enabled == scheduledqueryrules.EnabledTrue {
+			d.Set("enabled", true)
+		} else {
+			d.Set("enabled", false)
 		}
-		if schedule.TimeWindowInMinutes != nil {
+
+		action, ok := props.Action.(scheduledqueryrules.AlertingAction)
+		if !ok {
+			return fmt.Errorf("wrong action type in %s: %T", *id, props.Action)
+		}
+		if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
+			return fmt.Errorf("setting `action`: %+v", err)
+		}
+		severity, err := strconv.Atoi(string(action.Severity))
+		if err != nil {
+			return fmt.Errorf("converting action.Severity %q to int in %s: %+v", action.Severity, *id, err)
+		}
+		d.Set("severity", severity)
+		d.Set("throttling", action.ThrottlingInMin)
+		if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
+			return fmt.Errorf("setting `trigger`: %+v", err)
+		}
+
+		if schedule := props.Schedule; schedule != nil {
+			d.Set("frequency", schedule.FrequencyInMinutes)
 			d.Set("time_window", schedule.TimeWindowInMinutes)
 		}
+
+		d.Set("authorized_resource_ids", utils.FlattenStringSlice(props.Source.AuthorizedResources))
+		d.Set("data_source_id", props.Source.DataSourceId)
+		d.Set("query", props.Source.Query)
+		d.Set("query_type", string(pointer.From(props.Source.QueryType)))
+
+		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+			return err
+		}
 	}
 
-	if source := resp.Source; source != nil {
-		if source.AuthorizedResources != nil {
-			d.Set("authorized_resource_ids", utils.FlattenStringSlice(source.AuthorizedResources))
-		}
-		if source.DataSourceID != nil {
-			d.Set("data_source_id", source.DataSourceID)
-		}
-		if source.Query != nil {
-			d.Set("query", source.Query)
-		}
-		d.Set("query_type", string(source.QueryType))
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceMonitorScheduledQueryRulesAlertDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -378,13 +371,13 @@ func resourceMonitorScheduledQueryRulesAlertDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ScheduledQueryRulesID(d.Id())
+	id, err := scheduledqueryrules.ParseScheduledQueryRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.ResourceGroup, id.ScheduledQueryRuleName); err != nil {
-		if !response.WasNotFound(resp.Response) {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting Monitor %s: %+v", *id, err)
 		}
 	}
@@ -392,7 +385,7 @@ func resourceMonitorScheduledQueryRulesAlertDelete(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *insights.AlertingAction {
+func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *scheduledqueryrules.AlertingAction {
 	alertActionRaw := d.Get("action").([]interface{})
 	alertAction := expandMonitorScheduledQueryRulesAlertAction(alertActionRaw)
 	severityRaw := d.Get("severity").(int)
@@ -401,22 +394,21 @@ func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *
 	triggerRaw := d.Get("trigger").([]interface{})
 	trigger := expandMonitorScheduledQueryRulesAlertTrigger(triggerRaw)
 
-	action := insights.AlertingAction{
+	action := scheduledqueryrules.AlertingAction{
 		AznsAction: alertAction,
-		Severity:   insights.AlertSeverity(severity),
+		Severity:   scheduledqueryrules.AlertSeverity(severity),
 		Trigger:    trigger,
-		OdataType:  insights.OdataTypeBasicActionOdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction,
 	}
 
 	if throttling, ok := d.Get("throttling").(int); ok && throttling != 0 {
-		action.ThrottlingInMin = utils.Int32(int32(throttling))
+		action.ThrottlingInMin = utils.Int64(int64(throttling))
 	}
 
 	return &action
 }
 
-func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *insights.AzNsActionGroup {
-	result := insights.AzNsActionGroup{}
+func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *scheduledqueryrules.AzNsActionGroup {
+	result := scheduledqueryrules.AzNsActionGroup{}
 
 	if len(input) == 0 {
 		return &result
@@ -441,12 +433,12 @@ func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *insights.
 	return &result
 }
 
-func expandMonitorScheduledQueryRulesAlertMetricTrigger(input []interface{}) *insights.LogMetricTrigger {
+func expandMonitorScheduledQueryRulesAlertMetricTrigger(input []interface{}) *scheduledqueryrules.LogMetricTrigger {
 	if len(input) == 0 {
 		return nil
 	}
 
-	result := insights.LogMetricTrigger{}
+	result := scheduledqueryrules.LogMetricTrigger{}
 	for _, item := range input {
 		if item == nil {
 			continue
@@ -455,31 +447,31 @@ func expandMonitorScheduledQueryRulesAlertMetricTrigger(input []interface{}) *in
 		if !ok {
 			continue
 		}
-		result.ThresholdOperator = insights.ConditionalOperator(v["operator"].(string))
+		result.ThresholdOperator = pointer.To(scheduledqueryrules.ConditionalOperator(v["operator"].(string)))
 		result.Threshold = utils.Float(v["threshold"].(float64))
-		result.MetricTriggerType = insights.MetricTriggerType(v["metric_trigger_type"].(string))
+		result.MetricTriggerType = pointer.To(scheduledqueryrules.MetricTriggerType(v["metric_trigger_type"].(string)))
 		result.MetricColumn = utils.String(v["metric_column"].(string))
 	}
 
 	return &result
 }
 
-func expandMonitorScheduledQueryRulesAlertSchedule(d *pluginsdk.ResourceData) *insights.Schedule {
+func expandMonitorScheduledQueryRulesAlertSchedule(d *pluginsdk.ResourceData) *scheduledqueryrules.Schedule {
 	frequency := d.Get("frequency").(int)
 	timeWindow := d.Get("time_window").(int)
 
-	schedule := insights.Schedule{
-		FrequencyInMinutes:  utils.Int32(int32(frequency)),
-		TimeWindowInMinutes: utils.Int32(int32(timeWindow)),
+	schedule := scheduledqueryrules.Schedule{
+		FrequencyInMinutes:  int64(frequency),
+		TimeWindowInMinutes: int64(timeWindow),
 	}
 
 	return &schedule
 }
 
-func expandMonitorScheduledQueryRulesAlertTrigger(input []interface{}) *insights.TriggerCondition {
-	result := insights.TriggerCondition{}
+func expandMonitorScheduledQueryRulesAlertTrigger(input []interface{}) scheduledqueryrules.TriggerCondition {
+	result := scheduledqueryrules.TriggerCondition{}
 	if len(input) == 0 {
-		return &result
+		return result
 	}
 
 	for _, item := range input {
@@ -492,10 +484,10 @@ func expandMonitorScheduledQueryRulesAlertTrigger(input []interface{}) *insights
 		}
 		metricTriggerRaw := v["metric_trigger"].([]interface{})
 
-		result.ThresholdOperator = insights.ConditionalOperator(v["operator"].(string))
-		result.Threshold = utils.Float(v["threshold"].(float64))
+		result.ThresholdOperator = scheduledqueryrules.ConditionalOperator(v["operator"].(string))
+		result.Threshold = v["threshold"].(float64)
 		result.MetricTrigger = expandMonitorScheduledQueryRulesAlertMetricTrigger(metricTriggerRaw)
 	}
 
-	return &result
+	return result
 }

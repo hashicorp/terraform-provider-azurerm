@@ -114,18 +114,16 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basic(data acceptance.TestData)
 %s
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  display_name               = "UEBA Anomalous Sign In"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Potential data staging"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
   display_name               = "acctest duplicate rule"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true
   mode                       = "Flighting"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
@@ -135,14 +133,13 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basicWithThresholdObservation(d
 %s
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "UEBA Anomalous Sign In"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
   display_name               = "acctest duplicate rule"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true
   mode                       = "Flighting"
@@ -152,7 +149,6 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
     value = "0.6"
   }
 
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
@@ -162,14 +158,13 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basicWithSingleSelectObservatio
 %s
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  display_name               = "(Preview) Unusual web traffic detected with IP in URL path"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Unusual web traffic detected with IP in URL path"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
-  display_name               = "acctest duplicate (Preview) Unusual web traffic detected with IP in URL path"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  display_name               = "acctest duplicate Unusual web traffic detected with IP in URL path"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true
   mode                       = "Flighting"
@@ -178,8 +173,6 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
     name  = "Device vendor"
     value = "Zscaler"
   }
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
@@ -189,14 +182,13 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basicWithMultiSelectObservation
 %s
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  display_name               = "(Preview) Anomalous scanning activity"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Anomalous scanning activity"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
-  display_name               = "acctest duplicate (Preview) Anomalous scanning activity"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  display_name               = "acctest duplicate Anomalous scanning activity"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true
   mode                       = "Flighting"
@@ -205,8 +197,6 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
     name   = "Device action"
     values = ["accept"]
   }
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
@@ -215,14 +205,13 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basicWithPrioritizeExcludeObser
 %s
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  display_name               = "(Preview) Anomalous web request activity"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Anomalous web request activity"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
-  display_name               = "acctest duplicate (Preview) Anomalous web request activity"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  display_name               = "acctest duplicate Anomalous web request activity"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true
   mode                       = "Flighting"
@@ -237,8 +226,6 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
     exclude = "test.com"
   }
 
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }

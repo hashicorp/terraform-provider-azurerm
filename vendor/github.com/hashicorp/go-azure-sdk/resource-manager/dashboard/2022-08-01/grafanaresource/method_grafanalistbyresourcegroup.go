@@ -50,7 +50,7 @@ func (c GrafanaResourceClient) GrafanaListByResourceGroup(ctx context.Context, i
 	}
 
 	var values struct {
-		Values *[]ManagedGrafana `json:"values"`
+		Values *[]ManagedGrafana `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

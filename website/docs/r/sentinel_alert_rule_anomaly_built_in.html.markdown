@@ -36,12 +36,12 @@ resource "azurerm_security_insights_sentinel_onboarding" "example" {
 
 data "azurerm_sentinel_alert_rule_anomaly" "example" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
-  display_name               = "UEBA Anomalous Sign In"
+  display_name               = "Potential data staging"
   depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.example]
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_built_in" "example" {
-  display_name               = "UEBA Anomalous Sign In"
+  display_name               = "Potential data staging"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
   mode                       = "Production"
   enabled                    = false

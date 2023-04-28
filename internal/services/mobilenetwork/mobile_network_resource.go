@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type MobileNetworkModel struct {
+type MobileNetworkResourceModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
@@ -34,7 +34,7 @@ func (r MobileNetworkResource) ResourceType() string {
 }
 
 func (r MobileNetworkResource) ModelObject() interface{} {
-	return &MobileNetworkModel{}
+	return &MobileNetworkResourceModel{}
 }
 
 func (r MobileNetworkResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -89,7 +89,7 @@ func (r MobileNetworkResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model MobileNetworkModel
+			var model MobileNetworkResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -107,7 +107,7 @@ func (r MobileNetworkResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := &mobilenetwork.MobileNetwork{
+			payload := mobilenetwork.MobileNetwork{
 				Location: location.Normalize(model.Location),
 				Properties: mobilenetwork.MobileNetworkPropertiesFormat{
 					PublicLandMobileNetworkIdentifier: mobilenetwork.PlmnId{
@@ -118,7 +118,7 @@ func (r MobileNetworkResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -139,8 +139,8 @@ func (r MobileNetworkResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model MobileNetworkModel
-			if err := metadata.Decode(&model); err != nil {
+			var state MobileNetworkResourceModel
+			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -149,23 +149,23 @@ func (r MobileNetworkResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			properties := resp.Model
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			model := resp.Model
+			if model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
 			if metadata.ResourceData.HasChange("mobile_country_code") || metadata.ResourceData.HasChange("mobile_network_code") {
-				properties.Properties.PublicLandMobileNetworkIdentifier = mobilenetwork.PlmnId{
-					Mcc: model.MobileCountryCode,
-					Mnc: model.MobileNetworkCode,
+				model.Properties.PublicLandMobileNetworkIdentifier = mobilenetwork.PlmnId{
+					Mcc: state.MobileCountryCode,
+					Mnc: state.MobileNetworkCode,
 				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				properties.Tags = &model.Tags
+				model.Tags = &state.Tags
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -194,25 +194,23 @@ func (r MobileNetworkResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			state := MobileNetworkModel{
+			state := MobileNetworkResourceModel{
 				Name:              id.MobileNetworkName,
 				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-				MobileCountryCode: model.Properties.PublicLandMobileNetworkIdentifier.Mcc,
-				MobileNetworkCode: model.Properties.PublicLandMobileNetworkIdentifier.Mnc,
 			}
 
-			if model.Properties.ServiceKey != nil {
-				state.ServiceKey = *model.Properties.ServiceKey
-			}
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.MobileCountryCode = model.Properties.PublicLandMobileNetworkIdentifier.Mcc
+				state.MobileNetworkCode = model.Properties.PublicLandMobileNetworkIdentifier.Mnc
 
-			if model.Tags != nil {
-				state.Tags = *model.Tags
+				if model.Properties.ServiceKey != nil {
+					state.ServiceKey = *model.Properties.ServiceKey
+				}
+
+				if model.Tags != nil {
+					state.Tags = *model.Tags
+				}
 			}
 
 			return metadata.Encode(&state)

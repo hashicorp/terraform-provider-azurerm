@@ -50,7 +50,7 @@ func (c AccountsClient) ListBySubscription(ctx context.Context, id commonids.Sub
 	}
 
 	var values struct {
-		Values *[]MapsAccount `json:"values"`
+		Values *[]MapsAccount `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

@@ -73,29 +73,25 @@ func (c *Authorizer) BearerAuthorizerCallback() *autorest.BearerAuthorizerCallba
 			return nil, fmt.Errorf("obtaining token: %v", err)
 		}
 
-		return autorest.NewBearerAuthorizer(&servicePrincipalTokenWrapper{
+		return autorest.NewBearerAuthorizer(&adalTokenProvider{
 			tokenType:  "Bearer",
 			tokenValue: token.AccessToken,
 		}), nil
 	})
 }
 
-type servicePrincipalTokenWrapper struct {
+type adalTokenProvider struct {
 	tokenType  string
 	tokenValue string
 }
 
-func (s *servicePrincipalTokenWrapper) OAuthToken() string {
+func (s *adalTokenProvider) OAuthToken() string {
 	return s.tokenValue
 }
 
-func (s *servicePrincipalTokenWrapper) Token() adal.Token {
+func (s *adalTokenProvider) Token() adal.Token {
 	return adal.Token{
 		AccessToken: s.tokenValue,
 		Type:        s.tokenType,
 	}
-}
-
-type ServicePrincipalToken interface {
-	Token() adal.Token
 }

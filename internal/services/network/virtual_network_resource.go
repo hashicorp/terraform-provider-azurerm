@@ -87,7 +87,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					"id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: validate.DdosProtectionPlanID,
 					},
 
 					"enable": {

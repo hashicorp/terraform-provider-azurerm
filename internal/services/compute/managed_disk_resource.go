@@ -7,10 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -21,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -123,7 +126,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true, // Not supported by disk update
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"image_reference_id": {
@@ -219,7 +222,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/14192
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+				ValidateFunc:     diskaccesses.ValidateDiskAccessID,
 			},
 
 			"public_network_access_enabled": {
@@ -970,13 +973,13 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 			d.Set("disk_iops_read_only", props.DiskIOPSReadOnly)
 			d.Set("disk_mbps_read_only", props.DiskMBpsReadOnly)
-			d.Set("os_type", props.OsType)
+			d.Set("os_type", string(pointer.From(props.OsType)))
 			d.Set("tier", props.Tier)
 			d.Set("max_shares", props.MaxShares)
-			d.Set("hyper_v_generation", props.HyperVGeneration)
+			d.Set("hyper_v_generation", string(pointer.From(props.HyperVGeneration)))
 
 			if networkAccessPolicy := props.NetworkAccessPolicy; *networkAccessPolicy != disks.NetworkAccessPolicyAllowAll {
-				d.Set("network_access_policy", props.NetworkAccessPolicy)
+				d.Set("network_access_policy", string(pointer.From(props.NetworkAccessPolicy)))
 			}
 			d.Set("disk_access_id", props.DiskAccessId)
 

@@ -131,6 +131,10 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
+* `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Function App.
+			
+~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
+
 ---
 
 An `active_directory` block supports the following:
@@ -732,6 +736,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_hostname` - The default hostname of the Linux Function App.
+
+* `hosting_environment_id` - The ID of the App Service Environment used by Function App.
 
 * `identity` - An `identity` block as defined below.
 

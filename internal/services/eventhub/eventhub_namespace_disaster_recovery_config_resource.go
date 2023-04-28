@@ -60,7 +60,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 			"partner_namespace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 		},
 	}

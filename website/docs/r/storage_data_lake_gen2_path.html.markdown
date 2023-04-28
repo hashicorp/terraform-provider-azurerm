@@ -81,7 +81,7 @@ More details on ACLs can be found here: <https://docs.microsoft.com/azure/storag
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Lake Gen2 File System.
 

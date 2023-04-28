@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -24,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -159,7 +161,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
-										ValidateFunc:     azure.ValidateResourceID,
+										ValidateFunc:     networkValidate.SubnetID,
 										DiffSuppressFunc: suppress.CaseDifference,
 									},
 
@@ -569,10 +571,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				publicNetworkAccess = false
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccess)
-
-			if props.MinimumTlsVersion != nil {
-				d.Set("minimum_tls_version", *props.MinimumTlsVersion)
-			}
+			d.Set("minimum_tls_version", string(pointer.From(props.MinimumTlsVersion)))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

@@ -317,7 +317,7 @@ A `dapr` block supports the following:
 
 * `app_id` - (Required) The Dapr Application Identifier.
 
-* `app_port` - (Required) The port which the application is listening on. This is the same as the `ingress` port.
+* `app_port` - (Optional) The port which the application is listening on. This is the same as the `ingress` port.
 
 * `app_protocol` - (Optional) The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.
 

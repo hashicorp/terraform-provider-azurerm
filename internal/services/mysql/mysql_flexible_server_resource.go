@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover"
@@ -169,7 +170,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+			"identity": commonschema.UserAssignedIdentityOptional(),
 
 			"maintenance_window": {
 				Type:     pluginsdk.TypeList,
@@ -483,7 +484,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 		if props := model.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin)
 			d.Set("zone", props.AvailabilityZone)
-			d.Set("version", props.Version)
+			d.Set("version", string(pointer.From(props.Version)))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
 			if network := props.Network; network != nil {
@@ -500,11 +501,11 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
-			id, err := flattenFlexibleServerIdentity(model.Identity)
+			identity, err := flattenFlexibleServerIdentity(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
-			if err := d.Set("identity", id); err != nil {
+			if err := d.Set("identity", identity); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
@@ -524,7 +525,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
 				return fmt.Errorf("setting `high_availability`: %+v", err)
 			}
-			d.Set("replication_role", props.ReplicationRole)
+			d.Set("replication_role", string(pointer.From(props.ReplicationRole)))
 			d.Set("replica_capacity", props.ReplicaCapacity)
 		}
 		sku, err := flattenFlexibleServerSku(model.Sku)
@@ -999,13 +1000,13 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 
 func expandFlexibleServerIdentity(input []interface{}) (*servers.Identity, error) {
 	expanded, err := identity.ExpandUserAssignedMap(input)
-	if err != nil || expanded.Type != identity.TypeUserAssigned {
+	if err != nil {
 		return nil, err
 	}
 
-	idUserAssigned := servers.ManagedServiceIdentityTypeUserAssigned
+	identityType := servers.ManagedServiceIdentityType(string(expanded.Type))
 	out := servers.Identity{
-		Type: &idUserAssigned,
+		Type: &identityType,
 	}
 	if expanded.Type == identity.TypeUserAssigned {
 		ids := make(map[string]interface{})

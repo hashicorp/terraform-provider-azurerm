@@ -101,7 +101,7 @@ A `cors` block supports the following:
 
 * `allowed_origins` - (Required) A set of origins to be allowed via CORS.
 * `allowed_headers` - (Required) A set of headers to be allowed via CORS.
-* `allowed_methods` - (Required) The methods to be allowed via CORS. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
+* `allowed_methods` - (Required) The methods to be allowed via CORS. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PATCH` and `PUT`.
 * `max_age_in_seconds` - (Optional) The max age to be allowed via CORS.
 * `credentials_allowed` - (Optional) If credentials are allowed via CORS.
 
@@ -125,7 +125,7 @@ A `oci_artifact` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Healthcare FHIR Service.
 

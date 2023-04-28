@@ -8,19 +8,21 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -41,7 +43,7 @@ func resourceHPCCache() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CacheID(id)
+			_, err := caches.ParseCacheID(id)
 			return err
 		}),
 
@@ -61,17 +63,17 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewCacheID(subscriptionId, resourceGroup, name)
+	id := caches.NewCacheID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing HPC Cache %q: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_hpc_cache", id.ID())
 		}
 	}
@@ -93,16 +95,18 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("Incompatible cache size chosen. 21623, 43246 and 86491 are reserved for Read Only resources.")
 	}
 
-	var accessPolicies []storagecache.NfsAccessPolicy
+	var accessPolicies []caches.NfsAccessPolicy
 	if !d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving existing HPC Cache %q: %v", id, err)
 		}
-		if prop := existing.CacheProperties; prop != nil {
-			if settings := existing.SecuritySettings; settings != nil {
-				if policies := settings.AccessPolicies; policies != nil {
-					accessPolicies = *policies
+		if model := existing.Model; model != nil {
+			if prop := model.Properties; prop != nil {
+				if settings := prop.SecuritySettings; settings != nil {
+					if policies := settings.AccessPolicies; policies != nil {
+						accessPolicies = *policies
+					}
 				}
 			}
 		}
@@ -118,27 +122,27 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	directorySetting := expandStorageCacheDirectorySettings(d)
 
-	identity, err := expandStorageCacheIdentity(d.Get("identity").([]interface{}))
+	i, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	cache := &storagecache.Cache{
-		Name:     utils.String(name),
-		Location: utils.String(location),
-		CacheProperties: &storagecache.CacheProperties{
-			CacheSizeGB:     utils.Int32(int32(cacheSize)),
-			Subnet:          utils.String(subnet),
+	cache := caches.Cache{
+		Name:     pointer.To(name),
+		Location: pointer.To(location),
+		Properties: &caches.CacheProperties{
+			CacheSizeGB:     utils.Int64(int64(cacheSize)),
+			Subnet:          pointer.To(subnet),
 			NetworkSettings: expandStorageCacheNetworkSettings(d),
-			SecuritySettings: &storagecache.CacheSecuritySettings{
+			SecuritySettings: &caches.CacheSecuritySettings{
 				AccessPolicies: &accessPolicies,
 			},
 			DirectoryServicesSettings: directorySetting,
 		},
-		Sku: &storagecache.CacheSku{
-			Name: utils.String(skuName),
+		Sku: &caches.CacheSku{
+			Name: pointer.To(skuName),
 		},
-		Identity: identity,
+		Identity: i,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -176,46 +180,40 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("validating Key Vault %q (Resource Group %q) for HPC Cache: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 		}
 
-		cache.CacheProperties.EncryptionSettings = &storagecache.CacheEncryptionSettings{
-			KeyEncryptionKey: &storagecache.KeyVaultKeyReference{
-				KeyURL: utils.String(keyVaultKeyId),
-				SourceVault: &storagecache.KeyVaultKeyReferenceSourceVault{
-					ID: utils.String(keyVaultDetails.keyVaultId),
+		cache.Properties.EncryptionSettings = &caches.CacheEncryptionSettings{
+			KeyEncryptionKey: &caches.KeyVaultKeyReference{
+				KeyUrl: keyVaultKeyId,
+				SourceVault: caches.KeyVaultKeyReferenceSourceVault{
+					Id: pointer.To(keyVaultDetails.keyVaultId),
 				},
 			},
-			RotationToLatestKeyVersionEnabled: utils.Bool(autoKeyRotationEnabled),
+			RotationToLatestKeyVersionEnabled: pointer.To(autoKeyRotationEnabled),
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, cache); err != nil {
 		return fmt.Errorf("creating/updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for HPC Cache %q (Resource Group %q) to finish provisioning: %+v", name, resourceGroup, err)
-	}
-
 	if requireAdditionalUpdate {
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache)
-		if err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, cache); err != nil {
 			return fmt.Errorf("Updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for updating of HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	// If any directory setting is set, we'll further check either the `usernameDownloaded` (for LDAP/Flat File), or the `domainJoined` (for AD) in response to ensure the configuration is correct, and the cache is functional.
 	// There are situations that the LRO succeeded, whilst ends up with a non-functional cache (e.g. providing some invalid flat file setting).
 	if directorySetting != nil {
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		prop := resp.CacheProperties
+		model := resp.Model
+		if model == nil {
+			return fmt.Errorf("Unepxected nil `cacheProperties` in response")
+		}
+		prop := model.Properties
 		if prop == nil {
 			return fmt.Errorf("Unepxected nil `cacheProperties` in response")
 		}
@@ -227,19 +225,19 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 		// In case the user uses active directory service, we
 		if directorySetting.ActiveDirectory != nil {
 			ad := ds.ActiveDirectory
-			if ad == nil {
+			if ad == nil || ad.DomainJoined == nil {
 				return fmt.Errorf("Unexpected nil `activeDirectory` in response")
 			}
-			if ad.DomainJoined != storagecache.DomainJoinedTypeYes {
-				return fmt.Errorf("failed to join domain, current status: %s", ad.DomainJoined)
+			if *ad.DomainJoined != caches.DomainJoinedTypeYes {
+				return fmt.Errorf("failed to join domain, current status: %s", *ad.DomainJoined)
 			}
 		} else {
 			ud := ds.UsernameDownload
-			if ud == nil {
+			if ud == nil || ud.UsernameDownloaded == nil {
 				return fmt.Errorf("Unexpected nil `usernameDownload` in response")
 			}
-			if ud.UsernameDownloaded != storagecache.UsernameDownloadedTypeYes {
-				return fmt.Errorf("failed to download directory info, current status: %s", ud.UsernameDownloaded)
+			if *ud.UsernameDownloaded != caches.UsernameDownloadedTypeYes {
+				return fmt.Errorf("failed to download directory info, current status: %s", *ud.UsernameDownloaded)
 			}
 		}
 	}
@@ -248,8 +246,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	// wait for HPC Cache provision state to be succeeded. or further operations with it may fail.
 	cacheClient := meta.(*clients.Client).HPCCache.CachesClient
-	_, err = resourceHPCCacheWaitForCreating(ctx, cacheClient, resourceGroup, name, d)
-	if err != nil {
+	if _, err = resourceHPCCacheWaitForCreating(ctx, cacheClient, id, d); err != nil {
 		return fmt.Errorf("waiting for the HPC Cache provision state %s (Resource Group: %s) : %+v", name, resourceGroup, err)
 	}
 
@@ -261,15 +258,15 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CacheID(d.Id())
+	id, err := caches.ParseCacheID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] HPC Cache %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] HPC Cache was not found in - removing from state! (%s)", id)
 			d.SetId("")
 			return nil
 		}
@@ -277,82 +274,86 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving HPC Cache %q: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", resp.Location)
+	d.Set("name", id.CacheName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.CacheProperties; props != nil {
-		d.Set("cache_size_in_gb", props.CacheSizeGB)
-		d.Set("subnet_id", props.Subnet)
-		d.Set("mount_addresses", utils.FlattenStringSlice(props.MountAddresses))
-
-		mtu, ntpServer, dnsSetting := flattenStorageCacheNetworkSettings(props.NetworkSettings)
-		d.Set("mtu", mtu)
-		d.Set("ntp_server", ntpServer)
-		if err := d.Set("dns", dnsSetting); err != nil {
-			return fmt.Errorf("setting `dns`: %v", err)
+	if m := resp.Model; m != nil {
+		if sku := m.Sku; sku != nil {
+			d.Set("sku_name", sku.Name)
 		}
 
-		ad, flatFile, ldap, err := flattenStorageCacheDirectorySettings(d, props.DirectoryServicesSettings)
-		if err != nil {
-			return err
-		}
+		if props := m.Properties; props != nil {
+			d.Set("location", azure.NormalizeLocation(pointer.From(m.Location)))
+			d.Set("cache_size_in_gb", props.CacheSizeGB)
+			d.Set("subnet_id", props.Subnet)
+			d.Set("mount_addresses", utils.FlattenStringSlice(props.MountAddresses))
 
-		if err := d.Set("directory_active_directory", ad); err != nil {
-			return fmt.Errorf("setting `directory_active_directory`: %v", err)
-		}
+			mtu, ntpServer, dnsSetting := flattenStorageCacheNetworkSettings(props.NetworkSettings)
+			d.Set("mtu", mtu)
+			d.Set("ntp_server", ntpServer)
+			if err := d.Set("dns", dnsSetting); err != nil {
+				return fmt.Errorf("setting `dns`: %v", err)
+			}
 
-		if err := d.Set("directory_flat_file", flatFile); err != nil {
-			return fmt.Errorf("setting `directory_flat_file`: %v", err)
-		}
+			ad, flatFile, ldap, err := flattenStorageCacheDirectorySettings(d, props.DirectoryServicesSettings)
+			if err != nil {
+				return err
+			}
 
-		if err := d.Set("directory_ldap", ldap); err != nil {
-			return fmt.Errorf("setting `directory_ldap`: %v", err)
-		}
+			if err := d.Set("directory_active_directory", ad); err != nil {
+				return fmt.Errorf("setting `directory_active_directory`: %v", err)
+			}
 
-		if securitySettings := props.SecuritySettings; securitySettings != nil {
-			if securitySettings.AccessPolicies != nil {
-				defaultPolicy := CacheGetAccessPolicyByName(*securitySettings.AccessPolicies, "default")
-				if defaultPolicy != nil {
-					defaultAccessPolicy, err := flattenStorageCacheNfsDefaultAccessPolicy(*defaultPolicy)
-					if err != nil {
-						return err
-					}
-					if err := d.Set("default_access_policy", defaultAccessPolicy); err != nil {
-						return fmt.Errorf("setting `default_access_policy`: %v", err)
+			if err := d.Set("directory_flat_file", flatFile); err != nil {
+				return fmt.Errorf("setting `directory_flat_file`: %v", err)
+			}
+
+			if err := d.Set("directory_ldap", ldap); err != nil {
+				return fmt.Errorf("setting `directory_ldap`: %v", err)
+			}
+
+			if securitySettings := props.SecuritySettings; securitySettings != nil {
+				if securitySettings.AccessPolicies != nil {
+					defaultPolicy := CacheGetAccessPolicyByName(*securitySettings.AccessPolicies, "default")
+					if defaultPolicy != nil {
+						defaultAccessPolicy, err := flattenStorageCacheNfsDefaultAccessPolicy(*defaultPolicy)
+						if err != nil {
+							return err
+						}
+						if err := d.Set("default_access_policy", defaultAccessPolicy); err != nil {
+							return fmt.Errorf("setting `default_access_policy`: %v", err)
+						}
 					}
 				}
 			}
-		}
-	}
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-	}
+			keyVaultKeyId := ""
+			autoKeyRotationEnabled := false
+			if eprops := props.EncryptionSettings; eprops != nil {
+				if eprops.KeyEncryptionKey != nil {
+					keyVaultKeyId = eprops.KeyEncryptionKey.KeyUrl
+				}
 
-	identity, err := flattenStorageCacheIdentity(resp.Identity)
-	if err != nil {
-		return err
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	keyVaultKeyId := ""
-	autoKeyRotationEnabled := false
-	if props := resp.EncryptionSettings; props != nil {
-		if props.KeyEncryptionKey != nil && props.KeyEncryptionKey.KeyURL != nil {
-			keyVaultKeyId = *props.KeyEncryptionKey.KeyURL
+				if eprops.RotationToLatestKeyVersionEnabled != nil {
+					autoKeyRotationEnabled = *eprops.RotationToLatestKeyVersionEnabled
+				}
+			}
+			d.Set("key_vault_key_id", keyVaultKeyId)
+			d.Set("automatically_rotate_key_to_latest_enabled", autoKeyRotationEnabled)
 		}
 
-		if props.RotationToLatestKeyVersionEnabled != nil {
-			autoKeyRotationEnabled = *props.RotationToLatestKeyVersionEnabled
+		i, err := identity.FlattenSystemAndUserAssignedMap(m.Identity)
+		if err != nil {
+			return err
 		}
-	}
-	d.Set("key_vault_key_id", keyVaultKeyId)
-	d.Set("automatically_rotate_key_to_latest_enabled", autoKeyRotationEnabled)
+		if err := d.Set("identity", i); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+		return tags.FlattenAndSet(d, m.Tags)
+	}
+
+	return nil
 }
 
 func resourceHPCCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -360,35 +361,30 @@ func resourceHPCCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CacheID(d.Id())
+	id, err := caches.ParseCacheID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting HPC Cache %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of HPC Cache %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting HPC Cache %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandStorageCacheDefaultAccessPolicy(input []interface{}) *storagecache.NfsAccessPolicy {
+func expandStorageCacheDefaultAccessPolicy(input []interface{}) *caches.NfsAccessPolicy {
 	if len(input) == 0 {
 		return nil
 	}
 
-	return &storagecache.NfsAccessPolicy{
-		Name:        utils.String("default"),
+	return &caches.NfsAccessPolicy{
+		Name:        "default",
 		AccessRules: expandStorageCacheNfsAccessRules(input[0].(map[string]interface{})["access_rule"].(*pluginsdk.Set).List()),
 	}
 }
 
-func flattenStorageCacheNfsDefaultAccessPolicy(input storagecache.NfsAccessPolicy) ([]interface{}, error) {
+func flattenStorageCacheNfsDefaultAccessPolicy(input caches.NfsAccessPolicy) ([]interface{}, error) {
 	rules, err := flattenStorageCacheNfsAccessRules(input.AccessRules)
 	if err != nil {
 		return nil, err
@@ -401,50 +397,27 @@ func flattenStorageCacheNfsDefaultAccessPolicy(input storagecache.NfsAccessPolic
 	}, nil
 }
 
-func expandStorageCacheNfsAccessRules(input []interface{}) *[]storagecache.NfsAccessRule {
-	var out []storagecache.NfsAccessRule
+func expandStorageCacheNfsAccessRules(input []interface{}) []caches.NfsAccessRule {
+	var out []caches.NfsAccessRule
 	for _, accessRuleRaw := range input {
 		b := accessRuleRaw.(map[string]interface{})
-		out = append(out, storagecache.NfsAccessRule{
-			Scope:          storagecache.NfsAccessRuleScope(b["scope"].(string)),
-			Access:         storagecache.NfsAccessRuleAccess(b["access"].(string)),
-			Filter:         utils.String(b["filter"].(string)),
-			Suid:           utils.Bool(b["suid_enabled"].(bool)),
-			SubmountAccess: utils.Bool(b["submount_access_enabled"].(bool)),
-			RootSquash:     utils.Bool(b["root_squash_enabled"].(bool)),
-			AnonymousUID:   utils.String(strconv.Itoa(b["anonymous_uid"].(int))),
-			AnonymousGID:   utils.String(strconv.Itoa(b["anonymous_gid"].(int))),
+		out = append(out, caches.NfsAccessRule{
+			Scope:          caches.NfsAccessRuleScope(b["scope"].(string)),
+			Access:         caches.NfsAccessRuleAccess(b["access"].(string)),
+			Filter:         pointer.To(b["filter"].(string)),
+			Suid:           pointer.To(b["suid_enabled"].(bool)),
+			SubmountAccess: pointer.To(b["submount_access_enabled"].(bool)),
+			RootSquash:     pointer.To(b["root_squash_enabled"].(bool)),
+			AnonymousUID:   pointer.To(strconv.Itoa(b["anonymous_uid"].(int))),
+			AnonymousGID:   pointer.To(strconv.Itoa(b["anonymous_gid"].(int))),
 		})
 	}
-	return &out
+	return out
 }
 
-func flattenStorageCacheNfsAccessRules(input *[]storagecache.NfsAccessRule) ([]interface{}, error) {
-	if input == nil {
-		return nil, nil
-	}
-
+func flattenStorageCacheNfsAccessRules(input []caches.NfsAccessRule) ([]interface{}, error) {
 	var rules []interface{}
-	for _, accessRule := range *input {
-		filter := ""
-		if accessRule.Filter != nil {
-			filter = *accessRule.Filter
-		}
-
-		suidEnabled := false
-		if accessRule.Suid != nil {
-			suidEnabled = *accessRule.Suid
-		}
-
-		submountAccessEnabled := false
-		if accessRule.SubmountAccess != nil {
-			submountAccessEnabled = *accessRule.SubmountAccess
-		}
-
-		rootSquashEnabled := false
-		if accessRule.RootSquash != nil {
-			rootSquashEnabled = *accessRule.RootSquash
-		}
+	for _, accessRule := range input {
 
 		anonymousUID := 0
 		if accessRule.AnonymousUID != nil {
@@ -467,10 +440,10 @@ func flattenStorageCacheNfsAccessRules(input *[]storagecache.NfsAccessRule) ([]i
 		rules = append(rules, map[string]interface{}{
 			"scope":                   accessRule.Scope,
 			"access":                  accessRule.Access,
-			"filter":                  filter,
-			"suid_enabled":            suidEnabled,
-			"submount_access_enabled": submountAccessEnabled,
-			"root_squash_enabled":     rootSquashEnabled,
+			"filter":                  pointer.From(accessRule.Filter),
+			"suid_enabled":            pointer.From(accessRule.Suid),
+			"submount_access_enabled": pointer.From(accessRule.SubmountAccess),
+			"root_squash_enabled":     pointer.From(accessRule.RootSquash),
 			"anonymous_uid":           anonymousUID,
 			"anonymous_gid":           anonymousGID,
 		})
@@ -479,55 +452,43 @@ func flattenStorageCacheNfsAccessRules(input *[]storagecache.NfsAccessRule) ([]i
 	return rules, nil
 }
 
-func expandStorageCacheNetworkSettings(d *pluginsdk.ResourceData) *storagecache.CacheNetworkSettings {
-	out := &storagecache.CacheNetworkSettings{
-		Mtu:       utils.Int32(int32(d.Get("mtu").(int))),
-		NtpServer: utils.String(d.Get("ntp_server").(string)),
+func expandStorageCacheNetworkSettings(d *pluginsdk.ResourceData) *caches.CacheNetworkSettings {
+	out := &caches.CacheNetworkSettings{
+		Mtu:       utils.Int64(int64(d.Get("mtu").(int))),
+		NtpServer: pointer.To(d.Get("ntp_server").(string)),
 	}
 
 	if dnsSetting, ok := d.GetOk("dns"); ok {
 		dnsSetting := dnsSetting.([]interface{})[0].(map[string]interface{})
-		out.DNSServers = utils.ExpandStringSlice(dnsSetting["servers"].([]interface{}))
+		out.DnsServers = utils.ExpandStringSlice(dnsSetting["servers"].([]interface{}))
 		searchDomain := dnsSetting["search_domain"].(string)
 		if searchDomain != "" {
-			out.DNSSearchDomain = &searchDomain
+			out.DnsSearchDomain = &searchDomain
 		}
 	}
 	return out
 }
 
-func flattenStorageCacheNetworkSettings(settings *storagecache.CacheNetworkSettings) (mtu int, ntpServer string, dnsSetting []interface{}) {
+func flattenStorageCacheNetworkSettings(settings *caches.CacheNetworkSettings) (mtu int, ntpServer string, dnsSetting []interface{}) {
 	if settings == nil {
 		return
 	}
 
-	if settings.Mtu != nil {
-		mtu = int(*settings.Mtu)
-	}
+	mtu = int(pointer.From(settings.Mtu))
+	ntpServer = pointer.From(settings.NtpServer)
 
-	if settings.NtpServer != nil {
-		ntpServer = *settings.NtpServer
-	}
-
-	if settings.DNSServers != nil {
-		dnsServers := utils.FlattenStringSlice(settings.DNSServers)
-
-		searchDomain := ""
-		if settings.DNSSearchDomain != nil {
-			searchDomain = *settings.DNSSearchDomain
-		}
-
+	if settings.DnsServers != nil {
 		dnsSetting = []interface{}{
 			map[string]interface{}{
-				"servers":       dnsServers,
-				"search_domain": searchDomain,
+				"servers":       utils.FlattenStringSlice(settings.DnsServers),
+				"search_domain": pointer.From(settings.DnsSearchDomain),
 			},
 		}
 	}
 	return
 }
 
-func expandStorageCacheDirectorySettings(d *pluginsdk.ResourceData) *storagecache.CacheDirectorySettings {
+func expandStorageCacheDirectorySettings(d *pluginsdk.ResourceData) *caches.CacheDirectorySettings {
 	if raw := d.Get("directory_active_directory").([]interface{}); len(raw) != 0 {
 		b := raw[0].(map[string]interface{})
 
@@ -536,20 +497,20 @@ func expandStorageCacheDirectorySettings(d *pluginsdk.ResourceData) *storagecach
 			secondaryDNSPtr = &secondaryDNS
 		}
 
-		return &storagecache.CacheDirectorySettings{
-			UsernameDownload: &storagecache.CacheUsernameDownloadSettings{
-				ExtendedGroups: utils.Bool(true),
-				UsernameSource: storagecache.UsernameSourceAD,
+		return &caches.CacheDirectorySettings{
+			UsernameDownload: &caches.CacheUsernameDownloadSettings{
+				ExtendedGroups: pointer.To(true),
+				UsernameSource: pointer.To(caches.UsernameSourceAD),
 			},
-			ActiveDirectory: &storagecache.CacheActiveDirectorySettings{
-				PrimaryDNSIPAddress:   utils.String(b["dns_primary_ip"].(string)),
-				SecondaryDNSIPAddress: secondaryDNSPtr,
-				DomainName:            utils.String(b["domain_name"].(string)),
-				CacheNetBiosName:      utils.String(b["cache_netbios_name"].(string)),
-				DomainNetBiosName:     utils.String(b["domain_netbios_name"].(string)),
-				Credentials: &storagecache.CacheActiveDirectorySettingsCredentials{
-					Username: utils.String(b["username"].(string)),
-					Password: utils.String(b["password"].(string)),
+			ActiveDirectory: &caches.CacheActiveDirectorySettings{
+				PrimaryDnsIPAddress:   b["dns_primary_ip"].(string),
+				SecondaryDnsIPAddress: secondaryDNSPtr,
+				DomainName:            b["domain_name"].(string),
+				CacheNetBiosName:      b["cache_netbios_name"].(string),
+				DomainNetBiosName:     b["domain_netbios_name"].(string),
+				Credentials: &caches.CacheActiveDirectorySettingsCredentials{
+					Username: b["username"].(string),
+					Password: b["password"].(string),
 				},
 			},
 		}
@@ -557,12 +518,12 @@ func expandStorageCacheDirectorySettings(d *pluginsdk.ResourceData) *storagecach
 
 	if raw := d.Get("directory_flat_file").([]interface{}); len(raw) != 0 {
 		b := raw[0].(map[string]interface{})
-		return &storagecache.CacheDirectorySettings{
-			UsernameDownload: &storagecache.CacheUsernameDownloadSettings{
-				ExtendedGroups: utils.Bool(true),
-				UsernameSource: storagecache.UsernameSourceFile,
-				GroupFileURI:   utils.String(b["group_file_uri"].(string)),
-				UserFileURI:    utils.String(b["password_file_uri"].(string)),
+		return &caches.CacheDirectorySettings{
+			UsernameDownload: &caches.CacheUsernameDownloadSettings{
+				ExtendedGroups: pointer.To(true),
+				UsernameSource: pointer.To(caches.UsernameSourceFile),
+				GroupFileURI:   pointer.To(b["group_file_uri"].(string)),
+				UserFileURI:    pointer.To(b["password_file_uri"].(string)),
 			},
 		}
 	}
@@ -574,15 +535,15 @@ func expandStorageCacheDirectorySettings(d *pluginsdk.ResourceData) *storagecach
 		if certValidationUri != "" {
 			certValidationUriPtr = &certValidationUri
 		}
-		return &storagecache.CacheDirectorySettings{
-			UsernameDownload: &storagecache.CacheUsernameDownloadSettings{
-				ExtendedGroups:          utils.Bool(true),
-				UsernameSource:          storagecache.UsernameSourceLDAP,
-				LdapServer:              utils.String(b["server"].(string)),
-				LdapBaseDN:              utils.String(b["base_dn"].(string)),
-				EncryptLdapConnection:   utils.Bool(b["encrypted"].(bool)),
-				RequireValidCertificate: utils.Bool(certValidationUriPtr != nil),
-				AutoDownloadCertificate: utils.Bool(b["download_certificate_automatically"].(bool)),
+		return &caches.CacheDirectorySettings{
+			UsernameDownload: &caches.CacheUsernameDownloadSettings{
+				ExtendedGroups:          pointer.To(true),
+				UsernameSource:          pointer.To(caches.UsernameSourceLDAP),
+				LdapServer:              pointer.To(b["server"].(string)),
+				LdapBaseDN:              pointer.To(b["base_dn"].(string)),
+				EncryptLdapConnection:   pointer.To(b["encrypted"].(bool)),
+				RequireValidCertificate: pointer.To(certValidationUriPtr != nil),
+				AutoDownloadCertificate: pointer.To(b["download_certificate_automatically"].(bool)),
 				CaCertificateURI:        certValidationUriPtr,
 				Credentials:             expandStorageCacheDirectoryLdapBind(b["bind"].([]interface{})),
 			},
@@ -592,14 +553,14 @@ func expandStorageCacheDirectorySettings(d *pluginsdk.ResourceData) *storagecach
 	return nil
 }
 
-func flattenStorageCacheDirectorySettings(d *pluginsdk.ResourceData, input *storagecache.CacheDirectorySettings) (ad, flatFile, ldap []interface{}, err error) {
-	if input == nil || input.UsernameDownload == nil || input.UsernameDownload.UsernameSource == storagecache.UsernameSourceNone {
+func flattenStorageCacheDirectorySettings(d *pluginsdk.ResourceData, input *caches.CacheDirectorySettings) (ad, flatFile, ldap []interface{}, err error) {
+	if input == nil || input.UsernameDownload == nil || *input.UsernameDownload.UsernameSource == caches.UsernameSourceNone {
 		return nil, nil, nil, nil
 	}
 
 	ud := input.UsernameDownload
-	switch ud.UsernameSource {
-	case storagecache.UsernameSourceAD:
+	switch *ud.UsernameSource {
+	case caches.UsernameSourceAD:
 		var (
 			primaryDNS        string
 			domainName        string
@@ -611,21 +572,11 @@ func flattenStorageCacheDirectorySettings(d *pluginsdk.ResourceData, input *stor
 		)
 
 		if ad := input.ActiveDirectory; ad != nil {
-			if ad.PrimaryDNSIPAddress != nil {
-				primaryDNS = *ad.PrimaryDNSIPAddress
-			}
-			if ad.DomainName != nil {
-				domainName = *ad.DomainName
-			}
-			if ad.CacheNetBiosName != nil {
-				cacheNetBiosName = *ad.CacheNetBiosName
-			}
-			if ad.DomainNetBiosName != nil {
-				domainNetBiosName = *ad.DomainNetBiosName
-			}
-			if ad.SecondaryDNSIPAddress != nil {
-				secondaryDNS = *ad.SecondaryDNSIPAddress
-			}
+			primaryDNS = ad.PrimaryDnsIPAddress
+			domainName = ad.DomainName
+			cacheNetBiosName = ad.CacheNetBiosName
+			domainNetBiosName = ad.DomainNetBiosName
+			secondaryDNS = pointer.From(ad.SecondaryDnsIPAddress)
 		}
 		// Since the credentials are never returned from response. We will set whatever specified in the config back to state as the best effort.
 		ad := d.Get("directory_active_directory").([]interface{})
@@ -647,61 +598,26 @@ func flattenStorageCacheDirectorySettings(d *pluginsdk.ResourceData, input *stor
 			},
 		}, nil, nil, nil
 
-	case storagecache.UsernameSourceFile:
-		var groupFileUri string
-		if ud.GroupFileURI != nil {
-			groupFileUri = *ud.GroupFileURI
-		}
-
-		var passwdFileUri string
-		if ud.UserFileURI != nil {
-			passwdFileUri = *ud.UserFileURI
-		}
-
+	case caches.UsernameSourceFile:
 		return nil, []interface{}{
 			map[string]interface{}{
-				"group_file_uri":    groupFileUri,
-				"password_file_uri": passwdFileUri,
+				"group_file_uri":    pointer.From(ud.GroupFileURI),
+				"password_file_uri": pointer.From(ud.UserFileURI),
 			},
 		}, nil, nil
-	case storagecache.UsernameSourceLDAP:
-		var server string
-		if ud.LdapServer != nil {
-			server = *ud.LdapServer
-		}
-
-		var baseDn string
-		if ud.LdapBaseDN != nil {
-			baseDn = *ud.LdapBaseDN
-		}
-
-		var connEncrypted bool
-		if ud.EncryptLdapConnection != nil {
-			connEncrypted = *ud.EncryptLdapConnection
-		}
-
-		var certValidationUri string
-		if ud.CaCertificateURI != nil {
-			certValidationUri = *ud.CaCertificateURI
-		}
-
-		var downloadCert bool
-		if ud.AutoDownloadCertificate != nil {
-			downloadCert = *ud.AutoDownloadCertificate
-		}
-
+	case caches.UsernameSourceLDAP:
 		return nil, nil, []interface{}{
 			map[string]interface{}{
-				"server":                             server,
-				"base_dn":                            baseDn,
-				"encrypted":                          connEncrypted,
-				"certificate_validation_uri":         certValidationUri,
-				"download_certificate_automatically": downloadCert,
+				"server":                             pointer.From(ud.LdapServer),
+				"base_dn":                            pointer.From(ud.LdapBaseDN),
+				"encrypted":                          pointer.From(ud.EncryptLdapConnection),
+				"certificate_validation_uri":         pointer.From(ud.CaCertificateURI),
+				"download_certificate_automatically": pointer.From(ud.AutoDownloadCertificate),
 				"bind":                               flattenStorageCacheDirectoryLdapBind(d),
 			},
 		}, nil
 	default:
-		return nil, nil, nil, fmt.Errorf("source type %q is not supported", ud.UsernameSource)
+		return nil, nil, nil, fmt.Errorf("source type %q is not supported", *ud.UsernameSource)
 	}
 }
 
@@ -711,61 +627,20 @@ func flattenStorageCacheDirectoryLdapBind(d *pluginsdk.ResourceData) []interface
 	if len(ldap) == 0 {
 		return nil
 	}
+
 	return ldap[0].(map[string]interface{})["bind"].([]interface{})
 }
 
-func expandStorageCacheDirectoryLdapBind(input []interface{}) *storagecache.CacheUsernameDownloadSettingsCredentials {
+func expandStorageCacheDirectoryLdapBind(input []interface{}) *caches.CacheUsernameDownloadSettingsCredentials {
 	if len(input) == 0 {
 		return nil
 	}
+
 	b := input[0].(map[string]interface{})
-	return &storagecache.CacheUsernameDownloadSettingsCredentials{
-		BindDn:       utils.String(b["dn"].(string)),
-		BindPassword: utils.String(b["password"].(string)),
+	return &caches.CacheUsernameDownloadSettingsCredentials{
+		BindDn:       pointer.To(b["dn"].(string)),
+		BindPassword: pointer.To(b["password"].(string)),
 	}
-}
-
-func expandStorageCacheIdentity(input []interface{}) (*storagecache.CacheIdentity, error) {
-	config, err := identity.ExpandUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	identity := storagecache.CacheIdentity{
-		Type: storagecache.CacheIdentityType(config.Type),
-	}
-
-	if len(config.IdentityIds) != 0 {
-		identityIds := make(map[string]*storagecache.CacheIdentityUserAssignedIdentitiesValue, len(config.IdentityIds))
-		for id := range config.IdentityIds {
-			identityIds[id] = &storagecache.CacheIdentityUserAssignedIdentitiesValue{}
-		}
-		identity.UserAssignedIdentities = identityIds
-	}
-
-	return &identity, nil
-}
-
-func flattenStorageCacheIdentity(input *storagecache.CacheIdentity) (*[]interface{}, error) {
-	var config *identity.UserAssignedMap
-
-	if input != nil {
-		identityIds := map[string]identity.UserAssignedIdentityDetails{}
-		for id := range input.UserAssignedIdentities {
-			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(id)
-			if err != nil {
-				return nil, err
-			}
-			identityIds[parsedId.ID()] = identity.UserAssignedIdentityDetails{}
-		}
-
-		config = &identity.UserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: identityIds,
-		}
-	}
-
-	return identity.FlattenUserAssignedMap(config)
 }
 
 type storageCacheKeyVault struct {
@@ -790,12 +665,12 @@ func storageCacheRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.C
 		return nil, fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultKeyId.KeyVaultBaseUrl)
 	}
 
-	parsedKeyVaultID, err := keyVaultParse.VaultID(*keyVaultID)
+	parsedKeyVaultID, err := commonids.ParseKeyVaultID(*keyVaultID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := keyVaultsClient.VaultsClient.Get(ctx, parsedKeyVaultID.ResourceGroup, parsedKeyVaultID.Name)
+	resp, err := keyVaultsClient.VaultsClient.Get(ctx, parsedKeyVaultID.ResourceGroupName, parsedKeyVaultID.VaultName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *parsedKeyVaultID, err)
 	}
@@ -820,8 +695,8 @@ func storageCacheRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.C
 
 	return &storageCacheKeyVault{
 		keyVaultId:             *keyVaultID,
-		resourceGroupName:      parsedKeyVaultID.ResourceGroup,
-		keyVaultName:           parsedKeyVaultID.Name,
+		resourceGroupName:      parsedKeyVaultID.ResourceGroupName,
+		keyVaultName:           parsedKeyVaultID.VaultName,
 		location:               location,
 		purgeProtectionEnabled: purgeProtectionEnabled,
 		softDeleteEnabled:      softDeleteEnabled,
@@ -861,7 +736,7 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			ValidateFunc: validate.SubnetID,
 		},
 
 		"sku_name": {
@@ -1066,9 +941,9 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										string(storagecache.NfsAccessRuleScopeDefault),
-										string(storagecache.NfsAccessRuleScopeNetwork),
-										string(storagecache.NfsAccessRuleScopeHost),
+										string(caches.NfsAccessRuleScopeDefault),
+										string(caches.NfsAccessRuleScopeNetwork),
+										string(caches.NfsAccessRuleScopeHost),
 									}, false),
 								},
 
@@ -1076,9 +951,9 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										string(storagecache.NfsAccessRuleAccessRw),
-										string(storagecache.NfsAccessRuleAccessRo),
-										string(storagecache.NfsAccessRuleAccessNo),
+										string(caches.NfsAccessRuleAccessRw),
+										string(caches.NfsAccessRuleAccessRo),
+										string(caches.NfsAccessRuleAccessNo),
 									}, false),
 								},
 
@@ -1142,6 +1017,6 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{"key_vault_key_id"},
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }

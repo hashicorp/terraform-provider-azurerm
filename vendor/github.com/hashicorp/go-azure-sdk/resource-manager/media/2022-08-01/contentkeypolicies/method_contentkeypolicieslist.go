@@ -85,7 +85,7 @@ func (c ContentKeyPoliciesClient) ContentKeyPoliciesList(ctx context.Context, id
 	}
 
 	var values struct {
-		Values *[]ContentKeyPolicy `json:"values"`
+		Values *[]ContentKeyPolicy `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

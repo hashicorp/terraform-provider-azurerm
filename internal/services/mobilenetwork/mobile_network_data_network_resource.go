@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type DataNetworkModel struct {
-	Name                         string            `tfschema:"name"`
-	MobileNetworkMobileNetworkId string            `tfschema:"mobile_network_id"`
-	Description                  string            `tfschema:"description"`
-	Location                     string            `tfschema:"location"`
-	Tags                         map[string]string `tfschema:"tags"`
+type DataNetworkResourceModel struct {
+	Name            string            `tfschema:"name"`
+	MobileNetworkId string            `tfschema:"mobile_network_id"`
+	Description     string            `tfschema:"description"`
+	Location        string            `tfschema:"location"`
+	Tags            map[string]string `tfschema:"tags"`
 }
 
 type DataNetworkResource struct{}
@@ -33,7 +33,7 @@ func (r DataNetworkResource) ResourceType() string {
 }
 
 func (r DataNetworkResource) ModelObject() interface{} {
-	return &DataNetworkModel{}
+	return &DataNetworkResourceModel{}
 }
 
 func (r DataNetworkResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -76,13 +76,13 @@ func (r DataNetworkResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model DataNetworkModel
+			var model DataNetworkResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			client := metadata.Client.MobileNetwork.DataNetworkClient
-			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkMobileNetworkId)
+			mobileNetworkId, err := mobilenetwork.ParseMobileNetworkID(model.MobileNetworkId)
 			if err != nil {
 				return err
 			}
@@ -128,7 +128,7 @@ func (r DataNetworkResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model DataNetworkModel
+			var model DataNetworkResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -181,9 +181,9 @@ func (r DataNetworkResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := DataNetworkModel{
-				Name:                         id.DataNetworkName,
-				MobileNetworkMobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
+			state := DataNetworkResourceModel{
+				Name:            id.DataNetworkName,
+				MobileNetworkId: mobilenetwork.NewMobileNetworkID(id.SubscriptionId, id.ResourceGroupName, id.MobileNetworkName).ID(),
 			}
 
 			if model := resp.Model; model != nil {
