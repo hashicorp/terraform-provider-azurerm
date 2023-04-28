@@ -9,29 +9,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = CommunicationServiceResource{}
-var _ sdk.ResourceWithStateMigration = CommunicationServiceResource{}
+var _ sdk.Resource = EmailCommunicationServiceResource{}
 
-type CommunicationServiceResource struct{}
+type EmailCommunicationServiceResource struct{}
 
-func (CommunicationServiceResource) StateUpgraders() sdk.StateUpgradeData {
-	return sdk.StateUpgradeData{
-		SchemaVersion: 1,
-		Upgraders: map[int]pluginsdk.StateUpgrade{
-			0: migration.ServiceV0ToV1{},
-		},
-	}
-}
-
-func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
+func (EmailCommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -43,11 +32,9 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"data_location": {
-			Type: pluginsdk.TypeString,
-			// TODO: should this become Required and remove the default in 4.0?
-			Optional: true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 			ForceNew: true,
-			Default:  "United States",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Africa",
 				"Asia Pacific",
@@ -72,46 +59,26 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (CommunicationServiceResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"primary_connection_string": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"secondary_connection_string": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"primary_key": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"secondary_key": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+func (EmailCommunicationServiceResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
-func (CommunicationServiceResource) ModelObject() interface{} {
+func (EmailCommunicationServiceResource) ModelObject() interface{} {
 	return nil
 }
 
-func (CommunicationServiceResource) ResourceType() string {
-	return "azurerm_communication_service"
+func (EmailCommunicationServiceResource) ResourceType() string {
+	return "azurerm_email_communication_service"
 }
 
-func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
+func (r EmailCommunicationServiceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			client := metadata.Client.Communication.ServiceClient
+			client := metadata.Client.Communication.EmailServicesClient
 
-			id := communicationservices.NewCommunicationServiceID(subscriptionId, metadata.ResourceData.Get("resource_group_name").(string), metadata.ResourceData.Get("name").(string))
+			id := emailservices.NewEmailServiceID(subscriptionId, metadata.ResourceData.Get("resource_group_name").(string), metadata.ResourceData.Get("name").(string))
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -121,15 +88,15 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			param := communicationservices.CommunicationServiceResource{
+			param := emailservices.EmailServiceResource{
 				// The location is always `global` from the Azure Portal
 				Location: location.Normalize("global"),
-				Properties: &communicationservices.CommunicationServiceProperties{
+				Properties: &emailservices.EmailServiceProperties{
 					DataLocation: metadata.ResourceData.Get("data_location").(string),
 				},
 				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
 			}
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -139,21 +106,21 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r CommunicationServiceResource) Update() sdk.ResourceFunc {
+func (r EmailCommunicationServiceResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Communication.ServiceClient
+			client := metadata.Client.Communication.EmailServicesClient
 
-			id, err := communicationservices.ParseCommunicationServiceID(metadata.ResourceData.Id())
+			id, err := emailservices.ParseEmailServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			param := communicationservices.CommunicationServiceResource{
+			param := emailservices.EmailServiceResource{
 				// The location is always `global` from the Azure Portal
 				Location: location.Normalize("global"),
-				Properties: &communicationservices.CommunicationServiceProperties{
+				Properties: &emailservices.EmailServiceProperties{
 					DataLocation: metadata.ResourceData.Get("data_location").(string),
 				},
 				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
@@ -169,13 +136,13 @@ func (r CommunicationServiceResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (CommunicationServiceResource) Read() sdk.ResourceFunc {
+func (EmailCommunicationServiceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Communication.ServiceClient
+			client := metadata.Client.Communication.EmailServicesClient
 
-			id, err := communicationservices.ParseCommunicationServiceID(metadata.ResourceData.Id())
+			id, err := emailservices.ParseEmailServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -188,13 +155,7 @@ func (CommunicationServiceResource) Read() sdk.ResourceFunc {
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-
-			keysResp, err := client.ListKeys(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("listing keys for %s: %+v", *id, err)
-			}
-
-			metadata.ResourceData.Set("name", id.CommunicationServiceName)
+			metadata.ResourceData.Set("name", id.EmailServiceName)
 			metadata.ResourceData.Set("resource_group_name", id.ResourceGroupName)
 
 			if model := resp.Model; model != nil {
@@ -207,25 +168,18 @@ func (CommunicationServiceResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			if model := keysResp.Model; model != nil {
-				metadata.ResourceData.Set("primary_connection_string", model.PrimaryConnectionString)
-				metadata.ResourceData.Set("secondary_connection_string", model.SecondaryConnectionString)
-				metadata.ResourceData.Set("primary_key", model.PrimaryKey)
-				metadata.ResourceData.Set("secondary_key", model.SecondaryKey)
-			}
-
 			return nil
 		},
 	}
 }
 
-func (CommunicationServiceResource) Delete() sdk.ResourceFunc {
+func (EmailCommunicationServiceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Communication.ServiceClient
+			client := metadata.Client.Communication.EmailServicesClient
 
-			id, err := communicationservices.ParseCommunicationServiceID(metadata.ResourceData.Id())
+			id, err := emailservices.ParseEmailServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -239,6 +193,6 @@ func (CommunicationServiceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (CommunicationServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return communicationservices.ValidateCommunicationServiceID
+func (EmailCommunicationServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return emailservices.ValidateEmailServiceID
 }
