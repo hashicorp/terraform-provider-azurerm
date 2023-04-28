@@ -288,37 +288,37 @@ func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func resourceManagerDeploymentWaitForDeleted(ctx context.Context, client *network.ManagerDeploymentStatusClient, ManagerDeploymentId *parse.ManagerDeploymentId, d *pluginsdk.ResourceData) (network.ManagerDeploymentStatusListResult, error) {
+func resourceManagerDeploymentWaitForDeleted(ctx context.Context, client *network.ManagerDeploymentStatusClient, managerDeploymentId *parse.ManagerDeploymentId, d *pluginsdk.ResourceData) (network.ManagerDeploymentStatusListResult, error) {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"NotStarted", "Deploying", "Deployed", "Failed"},
 		Target:     []string{"NotFound"},
-		Refresh:    resourceManagerDeploymentResultRefreshFunc(ctx, client, ManagerDeploymentId),
+		Refresh:    resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId),
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
 	resp, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return resp.(network.ManagerDeploymentStatusListResult), fmt.Errorf("waiting for the Deployment %s: %+v", *ManagerDeploymentId, err)
+		return resp.(network.ManagerDeploymentStatusListResult), fmt.Errorf("waiting for the Deployment %s: %+v", *managerDeploymentId, err)
 	}
 
 	return resp.(network.ManagerDeploymentStatusListResult), nil
 }
 
-func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *network.ManagerDeploymentStatusClient, ManagerDeploymentId *parse.ManagerDeploymentId, d *pluginsdk.ResourceData) error {
+func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *network.ManagerDeploymentStatusClient, managerDeploymentId *parse.ManagerDeploymentId, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"NotStarted", "Deploying"},
 		Target:     []string{"Deployed"},
-		Refresh:    resourceManagerDeploymentResultRefreshFunc(ctx, client, ManagerDeploymentId),
+		Refresh:    resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId),
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
 	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf("waiting for the Deployment %s: %+v", *ManagerDeploymentId, err)
+		return fmt.Errorf("waiting for the Deployment %s: %+v", *managerDeploymentId, err)
 	}
 
 	return nil
