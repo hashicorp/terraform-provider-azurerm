@@ -41,7 +41,7 @@ func TestAccDataSourceKubernetesSnapshot_basic(t *testing.T) {
 					}
 					_, err = client.CreateOrUpdate(ctx, id, snapshot)
 					if err != nil {
-						return fmt.Errorf("creating Snapshot %q: %+v", id, err)
+						return fmt.Errorf("creating %s: %+v", id, err)
 					}
 					return nil
 				}, "azurerm_kubernetes_cluster_node_pool.source"),
@@ -65,7 +65,7 @@ func TestAccDataSourceKubernetesSnapshot_basic(t *testing.T) {
 					id := snapshots.NewSnapshotID(poolId.SubscriptionId, poolId.ResourceGroupName, data.RandomString)
 					_, err = client.Delete(ctx, id)
 					if err != nil {
-						return fmt.Errorf("creating Snapshot %q: %+v", id, err)
+						return fmt.Errorf("creating %s: %+v", id, err)
 					}
 					return nil
 				}, "azurerm_kubernetes_cluster_node_pool.source"),

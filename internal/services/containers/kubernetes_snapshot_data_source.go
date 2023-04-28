@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/snapshots"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -82,21 +84,18 @@ func (r KubernetesSnapshotDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			state.Name = id.SnapshotName
 
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
+			if model := resp.Model; model != nil {
+				state.Tags = pointer.From(model.Tags)
 
-			if properties := model.Properties; properties != nil {
-				if properties.CreationData != nil {
-					if properties.CreationData.SourceResourceId != nil {
-						state.SourceResourceId = *properties.CreationData.SourceResourceId
+				if props := model.Properties; props != nil {
+					if props.CreationData != nil && props.CreationData.SourceResourceId != nil {
+						nodePoolId, err := agentpools.ParseAgentPoolIDInsensitively(*props.CreationData.SourceResourceId)
+						if err != nil {
+							return err
+						}
+						state.SourceResourceId = nodePoolId.ID()
 					}
 				}
 			}
