@@ -175,6 +175,10 @@ func (r ManagerDeploymentResource) Read() sdk.ResourceFunc {
 				return metadata.MarkAsGone(id)
 			}
 
+			if len(*resp.Value) > 1 {
+				return fmt.Errorf("found more than one deployment with id %s", *id)
+			}
+
 			deployment := (*resp.Value)[0]
 			return metadata.Encode(&ManagerDeploymentModel{
 				NetworkManagerId: parse.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName).ID(),
@@ -216,6 +220,10 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 			if resp.Value == nil || len(*resp.Value) == 0 || *(*resp.Value)[0].ConfigurationIds == nil || len(*(*resp.Value)[0].ConfigurationIds) == 0 {
 				metadata.Logger.Infof("%s was not found - removing from state!", *id)
 				return metadata.MarkAsGone(id)
+			}
+
+			if len(*resp.Value) > 1 {
+				return fmt.Errorf("found more than one deployment with id %s", *id)
 			}
 
 			deployment := (*resp.Value)[0]
@@ -340,6 +348,10 @@ func resourceManagerDeploymentResultRefreshFunc(ctx context.Context, client *net
 
 		if resp.Value == nil || len(*resp.Value) == 0 || *(*resp.Value)[0].ConfigurationIds == nil || len(*(*resp.Value)[0].ConfigurationIds) == 0 {
 			return resp, "NotFound", nil
+		}
+
+		if len(*resp.Value) > 1 {
+			return resp, "Error", fmt.Errorf("found more than one deployment with id %s", *id)
 		}
 
 		deploymentStatus := string((*resp.Value)[0].DeploymentStatus)
