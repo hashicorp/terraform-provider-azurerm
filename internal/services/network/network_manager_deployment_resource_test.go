@@ -15,11 +15,11 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
-type ManagerCommitResource struct{}
+type ManagerDeploymentResource struct{}
 
-func testAccNetworkManagerCommit_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_manager_commit", "test")
-	r := ManagerCommitResource{}
+func testAccNetworkManagerDeployment_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
+	r := ManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -31,9 +31,9 @@ func testAccNetworkManagerCommit_basic(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerCommit_basicAdmin(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_manager_commit", "test")
-	r := ManagerCommitResource{}
+func testAccNetworkManagerDeployment_basicAdmin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
+	r := ManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAdmin(data),
@@ -45,9 +45,9 @@ func testAccNetworkManagerCommit_basicAdmin(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerCommit_withTriggers(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_manager_commit", "test")
-	r := ManagerCommitResource{}
+func testAccNetworkManagerDeployment_withTriggers(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
+	r := ManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTriggers(data),
@@ -61,9 +61,9 @@ func testAccNetworkManagerCommit_withTriggers(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerCommit_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_manager_commit", "test")
-	r := ManagerCommitResource{}
+func testAccNetworkManagerDeployment_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
+	r := ManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -75,9 +75,9 @@ func testAccNetworkManagerCommit_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerCommit_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_manager_commit", "test")
-	r := ManagerCommitResource{}
+func testAccNetworkManagerDeployment_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
+	r := ManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -89,9 +89,9 @@ func testAccNetworkManagerCommit_complete(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerCommit_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_manager_commit", "test")
-	r := ManagerCommitResource{}
+func testAccNetworkManagerDeployment_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager_deployment", "test")
+	r := ManagerDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -110,8 +110,8 @@ func testAccNetworkManagerCommit_update(t *testing.T) {
 	})
 }
 
-func (r ManagerCommitResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NetworkManagerCommitID(state.ID)
+func (r ManagerDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.NetworkManagerDeploymentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (r ManagerCommitResource) Exists(ctx context.Context, clients *clients.Clie
 	return utils.Bool(resp.Value != nil && len(*resp.Value) != 0 && *(*resp.Value)[0].ConfigurationIds != nil && len(*(*resp.Value)[0].ConfigurationIds) != 0), nil
 }
 
-func (r ManagerCommitResource) template(data acceptance.TestData) string {
+func (r ManagerDeploymentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -185,12 +185,12 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ManagerCommitResource) basic(data acceptance.TestData) string {
+func (r ManagerDeploymentResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_network_manager_commit" "test" {
+resource "azurerm_network_manager_deployment" "test" {
   network_manager_id = azurerm_network_manager.test.id
   location           = "eastus"
   scope_access       = "Connectivity"
@@ -199,7 +199,7 @@ resource "azurerm_network_manager_commit" "test" {
 `, template)
 }
 
-func (r ManagerCommitResource) basicAdmin(data acceptance.TestData) string {
+func (r ManagerDeploymentResource) basicAdmin(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -235,7 +235,7 @@ resource "azurerm_network_manager_admin_rule" "test" {
   }
 }
 
-resource "azurerm_network_manager_commit" "test" {
+resource "azurerm_network_manager_deployment" "test" {
   network_manager_id = azurerm_network_manager.test.id
   location           = "eastus"
   scope_access       = "SecurityAdmin"
@@ -245,21 +245,21 @@ resource "azurerm_network_manager_commit" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerCommitResource) requiresImport(data acceptance.TestData) string {
+func (r ManagerDeploymentResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_network_manager_commit" "import" {
-  network_manager_id = azurerm_network_manager_commit.test.network_manager_id
-  location           = azurerm_network_manager_commit.test.location
-  scope_access       = azurerm_network_manager_commit.test.scope_access
-  configuration_ids  = azurerm_network_manager_commit.test.configuration_ids
+resource "azurerm_network_manager_deployment" "import" {
+  network_manager_id = azurerm_network_manager_deployment.test.network_manager_id
+  location           = azurerm_network_manager_deployment.test.location
+  scope_access       = azurerm_network_manager_deployment.test.scope_access
+  configuration_ids  = azurerm_network_manager_deployment.test.configuration_ids
 }
 `, config)
 }
 
-func (r ManagerCommitResource) complete(data acceptance.TestData) string {
+func (r ManagerDeploymentResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -278,7 +278,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test2" {
   }
 }
 
-resource "azurerm_network_manager_commit" "test" {
+resource "azurerm_network_manager_deployment" "test" {
   network_manager_id = azurerm_network_manager.test.id
   location           = "eastus"
   scope_access       = "Connectivity"
@@ -290,7 +290,7 @@ resource "azurerm_network_manager_commit" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerCommitResource) withTriggers(data acceptance.TestData) string {
+func (r ManagerDeploymentResource) withTriggers(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -326,7 +326,7 @@ resource "azurerm_network_manager_admin_rule" "test" {
   }
 }
 
-resource "azurerm_network_manager_commit" "test" {
+resource "azurerm_network_manager_deployment" "test" {
   network_manager_id = azurerm_network_manager.test.id
   location           = "eastus"
   scope_access       = "SecurityAdmin"
@@ -340,7 +340,7 @@ resource "azurerm_network_manager_commit" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r ManagerCommitResource) update(data acceptance.TestData) string {
+func (r ManagerDeploymentResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -359,7 +359,7 @@ resource "azurerm_network_manager_connectivity_configuration" "test2" {
   }
 }
 
-resource "azurerm_network_manager_commit" "test" {
+resource "azurerm_network_manager_deployment" "test" {
   network_manager_id = azurerm_network_manager.test.id
   location           = "eastus"
   scope_access       = "Connectivity"

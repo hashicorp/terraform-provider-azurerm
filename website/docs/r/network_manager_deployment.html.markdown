@@ -1,16 +1,16 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_network_manager_commit"
+page_title: "Azure Resource Manager: azurerm_network_manager_deployment"
 description: |-
-  Manages a Network Manager Commit.
+  Manages a Network Manager Deployment.
 ---
 
-# azurerm_network_manager_commit
+# azurerm_network_manager_deployment
 
-Manages a Network Manager Commit.
+Manages a Network Manager Deployment.
 
-~> **NOTE Using Network Manager Commit to deploy Connectivity Configuration may modify or delete existing Virtual Network Peering. At this time you should not use [Network Peering resource](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network_peering) in conjunction with Network Manager Commit. Doing so may cause a conflict of Peering configurations.
+~> **NOTE on Virtual Network Peering:** Using Network Manager Deployment to deploy Connectivity Configuration may modify or delete existing Virtual Network Peering. At this time you should not use [Network Peering resource](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network_peering) in conjunction with Network Manager Deployment. Doing so may cause a conflict of Peering configurations.
 
 ## Example Usage
 
@@ -61,7 +61,7 @@ resource "azurerm_network_manager_connectivity_configuration" "example" {
   }
 }
 
-resource "azurerm_network_manager_commit" "example" {
+resource "azurerm_network_manager_deployment" "example" {
   network_manager_id = azurerm_network_manager.example.id
   location           = "eastus"
   scope_access       = "Connectivity"
@@ -135,7 +135,7 @@ resource "azurerm_network_manager_admin_rule" "example" {
   }
 }
 
-resource "azurerm_network_manager_commit" "example" {
+resource "azurerm_network_manager_deployment" "example" {
   network_manager_id = azurerm_network_manager.example.id
   location           = "eastus"
   scope_access       = "SecurityAdmin"
@@ -151,11 +151,11 @@ resource "azurerm_network_manager_commit" "example" {
 
 The following arguments are supported:
 
-* `network_manager_id` - (Required) Specifies the ID of the Network Manager. Changing this forces a new Network Manager Commit to be created.
+* `network_manager_id` - (Required) Specifies the ID of the Network Manager. Changing this forces a new Network Manager Deployment to be created.
 
-* `location` - (Required) Specifies the location which the configurations will be deployed to. Changing this forces a new Network Manager Commit to be created.
+* `location` - (Required) Specifies the location which the configurations will be deployed to. Changing this forces a new Network Manager Deployment to be created.
 
-* `scope_access` - (Required) Specifies the configuration deployment type. Possible values are `Connectivity` and `SecurityAdmin`. Changing this forces a new Network Manager Commit to be created.
+* `scope_access` - (Required) Specifies the configuration deployment type. Possible values are `Connectivity` and `SecurityAdmin`. Changing this forces a new Network Manager Deployment to be created.
 
 * `configuration_ids` - (Required) A list of Network Manager Configuration IDs which should be aligned with `scope_access`.
 
@@ -171,15 +171,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 2 hours) Used when creating the Network Manager Commit.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Network Manager Commit.
-* `update` - (Defaults to 2 hours) Used when updating the Network Manager Commit.
-* `delete` - (Defaults to 1 hour) Used when deleting the Network Manager Commit.
+* `create` - (Defaults to 2 hours) Used when creating the Network Manager Deployment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Manager Deployment.
+* `update` - (Defaults to 2 hours) Used when updating the Network Manager Deployment.
+* `delete` - (Defaults to 1 hour) Used when deleting the Network Manager Deployment.
 
 ## Import
 
-Network Manager Commit can be imported using the `resource id`, e.g.
+Network Manager Deployment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_manager_commit.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/networkManagers/networkManager1/commit|eastus|Connectivity
+terraform import azurerm_network_manager_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/networkManagers/networkManager1/commit|eastus|Connectivity
 ```
