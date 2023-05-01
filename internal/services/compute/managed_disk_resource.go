@@ -715,7 +715,8 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 					return fmt.Errorf("determining if the Virtual Machine the Disk is attached to supports no-downtime-resize: %+v", err)
 				}
 
-				shouldDetach = determineIfDataDiskShouldDetach(oldSize.(int), newSize.(int))
+				// If a disk is 4 TiB or less, you can't expand it beyond 4 TiB without detaching it from the VM.
+				shouldDetach = oldSize.(int) < 4096 && newSize.(int) >= 4096
 
 				canBeResizedWithoutDowntime = *vmSkuSupportsNoDowntimeResize && *diskSupportsNoDowntimeResize
 			}
@@ -1115,13 +1116,4 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	return nil
-}
-
-func determineIfDataDiskShouldDetach(oldSizeGb, newSizeGb int) bool {
-	// If a disk is 4 TiB or less, you can't expand it beyond 4 TiB without detaching it from the VM.
-	if oldSizeGb < 4096 && newSizeGb >= 4096 {
-		return true
-	}
-
-	return false
 }
