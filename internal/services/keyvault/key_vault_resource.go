@@ -688,8 +688,8 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		// the Azure API is inconsistent here, so rewrite this into the casing we expect
 		// TODO: this can be removed when the new base layer is enabled?
 		for _, v := range vaults.PossibleValuesForSkuName() {
-			if strings.EqualFold(string(v), string(model.Properties.Sku.Name)) {
-				skuName = string(v)
+			if strings.EqualFold(v, string(model.Properties.Sku.Name)) {
+				skuName = v
 			}
 		}
 		d.Set("sku_name", skuName)

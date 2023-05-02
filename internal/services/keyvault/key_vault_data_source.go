@@ -2,15 +2,15 @@ package keyvault
 
 import (
 	"fmt"
+	"strings"
 	"time"
-
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/vaults"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -206,9 +206,15 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			meta.(*clients.Client).KeyVault.AddToCache(id, *props.VaultUri)
 		}
 
-		if err := d.Set("sku_name", string(props.Sku.Name)); err != nil {
-			return fmt.Errorf("setting `sku_name`: %+v", err)
+		skuName := ""
+		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		// TODO: this can be removed when the new base layer is enabled?
+		for _, v := range vaults.PossibleValuesForSkuName() {
+			if strings.EqualFold(v, string(model.Properties.Sku.Name)) {
+				skuName = v
+			}
 		}
+		d.Set("sku_name", skuName)
 
 		flattenedPolicies := flattenAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
