@@ -4,6 +4,7 @@ BUG FIXES:
 
 * `azurerm_virtual_machine` - fixing a regression when parsing the OS Disk ID from the Azure API [GH-21606]
 * `azurerm_virtual_machine` - fixing a regression when parsing the Data Disk ID from the Azure API [GH-21606]
+* Data Source: `azurerm_healthcare_fhir_service` - identity schema now includes identity_ids [GH-21594]
 
 
 ## 3.54.0 (April 27, 2023)
