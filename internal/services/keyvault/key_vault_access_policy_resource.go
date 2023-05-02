@@ -224,7 +224,76 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, vaults.AccessPolicyUpdateKindReplace)
+	client := meta.(*clients.Client).KeyVault.VaultsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.AccessPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+	keyVaultId := id.KeyVaultId()
+
+	// Locking to prevent parallel changes causing issues
+	locks.ByName(keyVaultId.VaultName, keyVaultResourceName)
+	defer locks.UnlockByName(keyVaultId.VaultName, keyVaultResourceName)
+
+	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
+	certPermissions := expandCertificatePermissions(certPermissionsRaw)
+
+	keyPermissionsRaw := d.Get("key_permissions").([]interface{})
+	keyPermissions := expandKeyPermissions(keyPermissionsRaw)
+
+	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
+	secretPermissions := expandSecretPermissions(secretPermissionsRaw)
+
+	storagePermissionsRaw := d.Get("storage_permissions").([]interface{})
+	storagePermissions := expandStoragePermissions(storagePermissionsRaw)
+
+	accessPolicy := vaults.AccessPolicyEntry{
+		ObjectId: id.ObjectID(),
+		TenantId: d.Get("tenant_id").(string),
+		Permissions: vaults.Permissions{
+			Certificates: certPermissions,
+			Keys:         keyPermissions,
+			Secrets:      secretPermissions,
+			Storage:      storagePermissions,
+		},
+	}
+	if id.ApplicationId() != "" {
+		accessPolicy.ApplicationId = pointer.To(id.ApplicationId())
+	}
+
+	parameters := vaults.VaultAccessPolicyParameters{
+		Name: utils.String(keyVaultId.VaultName),
+		Properties: vaults.VaultAccessPolicyProperties{
+			AccessPolicies: []vaults.AccessPolicyEntry{
+				accessPolicy,
+			},
+		},
+	}
+
+	updateId := vaults.NewOperationKindID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, vaults.AccessPolicyUpdateKindReplace)
+	if _, err = client.UpdateAccessPolicy(ctx, updateId, parameters); err != nil {
+		return fmt.Errorf("updating Access Policy (Object ID %q / Application ID %q) for %s: %+v", id.ObjectID(), id.ApplicationId(), keyVaultId, err)
+	}
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"notfound", "vaultnotfound"},
+		Target:                    []string{"found"},
+		Refresh:                   accessPolicyRefreshFunc(ctx, client, keyVaultId, id.ObjectID(), id.ApplicationId()),
+		Delay:                     5 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   time.Until(deadline),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("failed waiting for update of Access Policy (Object ID: %q) for %s: %+v", id.ObjectID(), keyVaultId, err)
+	}
+
+	return nil
 }
 
 func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
