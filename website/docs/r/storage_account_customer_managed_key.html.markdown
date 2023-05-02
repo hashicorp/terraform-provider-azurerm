@@ -38,12 +38,12 @@ resource "azurerm_key_vault_access_policy" "storage" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_storage_account.example.identity.0.principal_id
 
-  key_permissions    = [
+  secret_permissions = ["Get"]
+  key_permissions = [
     "Get",
     "UnwrapKey",
     "WrapKey"
   ]
-  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -51,24 +51,24 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = [
+  secret_permissions = ["Get"]
+  key_permissions = [
     "Get",
-    "Create", 
-    "Delete", 
-    "List", 
-    "Restore", 
-    "Recover", 
-    "UnwrapKey", 
-    "WrapKey", 
-    "Purge", 
-    "Encrypt", 
-    "Decrypt", 
-    "Sign", 
-    "Verify", 
-    "GetRotationPolicy", 
+    "Create",
+    "Delete",
+    "List",
+    "Restore",
+    "Recover",
+    "UnwrapKey",
+    "WrapKey",
+    "Purge",
+    "Encrypt",
+    "Decrypt",
+    "Sign",
+    "Verify",
+    "GetRotationPolicy",
     "SetRotationPolicy"
   ]
-  secret_permissions = ["Get"]
 }
 
 
@@ -77,18 +77,18 @@ resource "azurerm_key_vault_key" "example" {
   key_vault_id = azurerm_key_vault.example.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = [
+  key_opts = [
     "decrypt",
     "encrypt",
     "sign",
     "unwrapKey",
     "verify",
     "wrapKey"
-    ]
+  ]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
-    azurerm_key_vault_access_policy.storage,
+    azurerm_key_vault_access_policy.storage
   ]
 }
 
@@ -103,7 +103,7 @@ resource "azurerm_storage_account" "example" {
   identity {
     type = "SystemAssigned"
   }
-  
+
   lifecycle {
     ignore_changes = [
       customer_managed_key
