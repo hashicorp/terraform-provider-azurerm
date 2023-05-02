@@ -2,10 +2,10 @@
 
 BUG FIXES:
 
+* Data Source: `azurerm_healthcare_fhir_service` - `identity` now exports both `SystemAssigned` and `UserAssigned` identities [GH-21594]
+* `azurerm_local_network_gateway` - validating that `address_space` isn't set to an empty string [GH-21566]
 * `azurerm_virtual_machine` - fixing a regression when parsing the OS Disk ID from the Azure API [GH-21606]
 * `azurerm_virtual_machine` - fixing a regression when parsing the Data Disk ID from the Azure API [GH-21606]
-* Data Source: `azurerm_healthcare_fhir_service` - identity schema now includes identity_ids [GH-21594]
-
 
 ## 3.54.0 (April 27, 2023)
 
