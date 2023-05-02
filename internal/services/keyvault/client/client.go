@@ -1,20 +1,20 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type Client struct {
-	ManagedHsmClient *keyvault.ManagedHsmsClient
+	ManagedHsmClient *managedhsms.ManagedHsmsClient
 	ManagementClient *dataplane.BaseClient
 	VaultsClient     *vaults.VaultsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	managedHsmClient := keyvault.NewManagedHsmsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	managedHsmClient := managedhsms.NewManagedHsmsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&managedHsmClient.Client, o.ResourceManagerAuthorizer)
 
 	managementClient := dataplane.New()
