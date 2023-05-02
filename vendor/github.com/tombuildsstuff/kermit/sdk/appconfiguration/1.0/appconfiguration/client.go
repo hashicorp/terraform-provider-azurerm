@@ -1,4 +1,6 @@
 // Package appconfiguration implements the Azure ARM Appconfiguration service API version 1.0.
+//
+//
 package appconfiguration
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -37,96 +39,6 @@ func NewWithoutDefaults(syncToken string, endpoint string) BaseClient {
 	}
 }
 
-// CheckKeys sends the check keys request.
-// Parameters:
-// name - a filter for the name of the returned keys.
-// after - instructs the server to return elements that appear after the element referred to by the specified
-// token.
-// acceptDatetime - requests the server to respond with the state of the resource at the specified time.
-func (client BaseClient) CheckKeys(ctx context.Context, name string, after string, acceptDatetime string) (result autorest.Response, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckKeys")
-		defer func() {
-			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.CheckKeysPreparer(ctx, name, after, acceptDatetime)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "CheckKeys", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.CheckKeysSender(req)
-	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "CheckKeys", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.CheckKeysResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "CheckKeys", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// CheckKeysPreparer prepares the CheckKeys request.
-func (client BaseClient) CheckKeysPreparer(ctx context.Context, name string, after string, acceptDatetime string) (*http.Request, error) {
-	urlParameters := map[string]interface{}{
-
-		"endpoint": client.Endpoint,
-	}
-
-	const APIVersion = "1.0"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if len(name) > 0 {
-		queryParameters["name"] = autorest.Encode("query", name)
-	}
-	if len(after) > 0 {
-		queryParameters["After"] = autorest.Encode("query", after)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsHead(),
-		autorest.WithCustomBaseURL("{endpoint}", urlParameters),
-		autorest.WithPath("/keys"),
-		autorest.WithQueryParameters(queryParameters))
-	if len(client.SyncToken) > 0 {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithHeader("Sync-Token", autorest.String(client.SyncToken)))
-	}
-	if len(acceptDatetime) > 0 {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithHeader("Accept-Datetime", autorest.String(acceptDatetime)))
-	}
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// CheckKeysSender sends the CheckKeys request. The method will close the
-// http.Response Body if it receives an error.
-func (client BaseClient) CheckKeysSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-}
-
-// CheckKeysResponder handles the response to the CheckKeys request. The method always
-// closes the http.Response Body.
-func (client BaseClient) CheckKeysResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result.Response = resp
-	return
-}
-
 // CheckKeyValue sends the check key value request.
 // Parameters:
 // key - the key of the key-value to retrieve.
@@ -136,7 +48,7 @@ func (client BaseClient) CheckKeysResponder(resp *http.Response) (result autores
 // ifNoneMatch - used to perform an operation only if the targeted resource's etag does not match the value
 // provided.
 // selectParameter - used to select what fields are present in the returned resource(s).
-func (client BaseClient) CheckKeyValue(ctx context.Context, key string, label string, acceptDatetime string, ifMatch string, ifNoneMatch string, selectParameter []string) (result autorest.Response, err error) {
+func (client BaseClient) CheckKeyValue(ctx context.Context, key string, label string, acceptDatetime string, ifMatch string, ifNoneMatch string, selectParameter []KeyValueFields) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckKeyValue")
 		defer func() {
@@ -170,7 +82,7 @@ func (client BaseClient) CheckKeyValue(ctx context.Context, key string, label st
 }
 
 // CheckKeyValuePreparer prepares the CheckKeyValue request.
-func (client BaseClient) CheckKeyValuePreparer(ctx context.Context, key string, label string, acceptDatetime string, ifMatch string, ifNoneMatch string, selectParameter []string) (*http.Request, error) {
+func (client BaseClient) CheckKeyValuePreparer(ctx context.Context, key string, label string, acceptDatetime string, ifMatch string, ifNoneMatch string, selectParameter []KeyValueFields) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
 		"endpoint": client.Endpoint,
 	}
@@ -239,7 +151,7 @@ func (client BaseClient) CheckKeyValueResponder(resp *http.Response) (result aut
 // token.
 // acceptDatetime - requests the server to respond with the state of the resource at the specified time.
 // selectParameter - used to select what fields are present in the returned resource(s).
-func (client BaseClient) CheckKeyValues(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (result autorest.Response, err error) {
+func (client BaseClient) CheckKeyValues(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []KeyValueFields) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckKeyValues")
 		defer func() {
@@ -273,9 +185,8 @@ func (client BaseClient) CheckKeyValues(ctx context.Context, key string, label s
 }
 
 // CheckKeyValuesPreparer prepares the CheckKeyValues request.
-func (client BaseClient) CheckKeyValuesPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
+func (client BaseClient) CheckKeyValuesPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []KeyValueFields) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-
 		"endpoint": client.Endpoint,
 	}
 
@@ -329,6 +240,95 @@ func (client BaseClient) CheckKeyValuesResponder(resp *http.Response) (result au
 	return
 }
 
+// CheckKeys sends the check keys request.
+// Parameters:
+// name - a filter for the name of the returned keys.
+// after - instructs the server to return elements that appear after the element referred to by the specified
+// token.
+// acceptDatetime - requests the server to respond with the state of the resource at the specified time.
+func (client BaseClient) CheckKeys(ctx context.Context, name string, after string, acceptDatetime string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckKeys")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.CheckKeysPreparer(ctx, name, after, acceptDatetime)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "CheckKeys", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.CheckKeysSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "CheckKeys", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.CheckKeysResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "CheckKeys", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// CheckKeysPreparer prepares the CheckKeys request.
+func (client BaseClient) CheckKeysPreparer(ctx context.Context, name string, after string, acceptDatetime string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"endpoint": client.Endpoint,
+	}
+
+	const APIVersion = "1.0"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(name) > 0 {
+		queryParameters["name"] = autorest.Encode("query", name)
+	}
+	if len(after) > 0 {
+		queryParameters["After"] = autorest.Encode("query", after)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsHead(),
+		autorest.WithCustomBaseURL("{endpoint}", urlParameters),
+		autorest.WithPath("/keys"),
+		autorest.WithQueryParameters(queryParameters))
+	if len(client.SyncToken) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("Sync-Token", autorest.String(client.SyncToken)))
+	}
+	if len(acceptDatetime) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("Accept-Datetime", autorest.String(acceptDatetime)))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CheckKeysSender sends the CheckKeys request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) CheckKeysSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// CheckKeysResponder handles the response to the CheckKeys request. The method always
+// closes the http.Response Body.
+func (client BaseClient) CheckKeysResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // CheckLabels sends the check labels request.
 // Parameters:
 // name - a filter for the name of the returned labels.
@@ -336,7 +336,7 @@ func (client BaseClient) CheckKeyValuesResponder(resp *http.Response) (result au
 // token.
 // acceptDatetime - requests the server to respond with the state of the resource at the specified time.
 // selectParameter - used to select what fields are present in the returned resource(s).
-func (client BaseClient) CheckLabels(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []string) (result autorest.Response, err error) {
+func (client BaseClient) CheckLabels(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []LabelFields) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckLabels")
 		defer func() {
@@ -370,9 +370,8 @@ func (client BaseClient) CheckLabels(ctx context.Context, name string, after str
 }
 
 // CheckLabelsPreparer prepares the CheckLabels request.
-func (client BaseClient) CheckLabelsPreparer(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
+func (client BaseClient) CheckLabelsPreparer(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []LabelFields) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-
 		"endpoint": client.Endpoint,
 	}
 
@@ -431,7 +430,7 @@ func (client BaseClient) CheckLabelsResponder(resp *http.Response) (result autor
 // token.
 // acceptDatetime - requests the server to respond with the state of the resource at the specified time.
 // selectParameter - used to select what fields are present in the returned resource(s).
-func (client BaseClient) CheckRevisions(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (result autorest.Response, err error) {
+func (client BaseClient) CheckRevisions(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []KeyValueFields) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckRevisions")
 		defer func() {
@@ -465,9 +464,8 @@ func (client BaseClient) CheckRevisions(ctx context.Context, key string, label s
 }
 
 // CheckRevisionsPreparer prepares the CheckRevisions request.
-func (client BaseClient) CheckRevisionsPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
+func (client BaseClient) CheckRevisionsPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []KeyValueFields) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-
 		"endpoint": client.Endpoint,
 	}
 
@@ -562,7 +560,6 @@ func (client BaseClient) DeleteKeyValue(ctx context.Context, key string, label s
 // DeleteKeyValuePreparer prepares the DeleteKeyValue request.
 func (client BaseClient) DeleteKeyValuePreparer(ctx context.Context, key string, label string, ifMatch string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-
 		"endpoint": client.Endpoint,
 	}
 
@@ -655,7 +652,6 @@ func (client BaseClient) DeleteLock(ctx context.Context, key string, label strin
 // DeleteLockPreparer prepares the DeleteLock request.
 func (client BaseClient) DeleteLockPreparer(ctx context.Context, key string, label string, ifMatch string, ifNoneMatch string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-
 		"endpoint": client.Endpoint,
 	}
 
@@ -709,6 +705,251 @@ func (client BaseClient) DeleteLockResponder(resp *http.Response) (result KeyVal
 	return
 }
 
+// GetKeyValue sends the get key value request.
+// Parameters:
+// key - the key of the key-value to retrieve.
+// label - the label of the key-value to retrieve.
+// acceptDatetime - requests the server to respond with the state of the resource at the specified time.
+// ifMatch - used to perform an operation only if the targeted resource's etag matches the value provided.
+// ifNoneMatch - used to perform an operation only if the targeted resource's etag does not match the value
+// provided.
+// selectParameter - used to select what fields are present in the returned resource(s).
+func (client BaseClient) GetKeyValue(ctx context.Context, key string, label string, acceptDatetime string, ifMatch string, ifNoneMatch string, selectParameter []KeyValueFields) (result KeyValue, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeyValue")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetKeyValuePreparer(ctx, key, label, acceptDatetime, ifMatch, ifNoneMatch, selectParameter)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValue", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetKeyValueSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValue", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetKeyValueResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValue", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetKeyValuePreparer prepares the GetKeyValue request.
+func (client BaseClient) GetKeyValuePreparer(ctx context.Context, key string, label string, acceptDatetime string, ifMatch string, ifNoneMatch string, selectParameter []KeyValueFields) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"endpoint": client.Endpoint,
+	}
+
+	pathParameters := map[string]interface{}{
+		"key": autorest.Encode("path", key),
+	}
+
+	const APIVersion = "1.0"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(label) > 0 {
+		queryParameters["label"] = autorest.Encode("query", label)
+	}
+	if selectParameter != nil && len(selectParameter) > 0 {
+		queryParameters["$Select"] = autorest.Encode("query", selectParameter, ",")
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{endpoint}", urlParameters),
+		autorest.WithPathParameters("/kv/{key}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	if len(client.SyncToken) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("Sync-Token", autorest.String(client.SyncToken)))
+	}
+	if len(acceptDatetime) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("Accept-Datetime", autorest.String(acceptDatetime)))
+	}
+	if len(ifMatch) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("If-Match", autorest.String(ifMatch)))
+	}
+	if len(ifNoneMatch) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("If-None-Match", autorest.String(ifNoneMatch)))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetKeyValueSender sends the GetKeyValue request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetKeyValueSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetKeyValueResponder handles the response to the GetKeyValue request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetKeyValueResponder(resp *http.Response) (result KeyValue, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetKeyValues sends the get key values request.
+// Parameters:
+// key - a filter used to match keys.
+// label - a filter used to match labels
+// after - instructs the server to return elements that appear after the element referred to by the specified
+// token.
+// acceptDatetime - requests the server to respond with the state of the resource at the specified time.
+// selectParameter - used to select what fields are present in the returned resource(s).
+func (client BaseClient) GetKeyValues(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []KeyValueFields) (result KeyValueListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeyValues")
+		defer func() {
+			sc := -1
+			if result.kvlr.Response.Response != nil {
+				sc = result.kvlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.getKeyValuesNextResults
+	req, err := client.GetKeyValuesPreparer(ctx, key, label, after, acceptDatetime, selectParameter)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValues", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetKeyValuesSender(req)
+	if err != nil {
+		result.kvlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValues", resp, "Failure sending request")
+		return
+	}
+
+	result.kvlr, err = client.GetKeyValuesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValues", resp, "Failure responding to request")
+		return
+	}
+	if result.kvlr.hasNextLink() && result.kvlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// GetKeyValuesPreparer prepares the GetKeyValues request.
+func (client BaseClient) GetKeyValuesPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []KeyValueFields) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"endpoint": client.Endpoint,
+	}
+
+	const APIVersion = "1.0"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(key) > 0 {
+		queryParameters["key"] = autorest.Encode("query", key)
+	}
+	if len(label) > 0 {
+		queryParameters["label"] = autorest.Encode("query", label)
+	}
+	if len(after) > 0 {
+		queryParameters["After"] = autorest.Encode("query", after)
+	}
+	if selectParameter != nil && len(selectParameter) > 0 {
+		queryParameters["$Select"] = autorest.Encode("query", selectParameter, ",")
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithCustomBaseURL("{endpoint}", urlParameters),
+		autorest.WithPath("/kv"),
+		autorest.WithQueryParameters(queryParameters))
+	if len(client.SyncToken) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("Sync-Token", autorest.String(client.SyncToken)))
+	}
+	if len(acceptDatetime) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("Accept-Datetime", autorest.String(acceptDatetime)))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetKeyValuesSender sends the GetKeyValues request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) GetKeyValuesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetKeyValuesResponder handles the response to the GetKeyValues request. The method always
+// closes the http.Response Body.
+func (client BaseClient) GetKeyValuesResponder(resp *http.Response) (result KeyValueListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// getKeyValuesNextResults retrieves the next set of results, if any.
+func (client BaseClient) getKeyValuesNextResults(ctx context.Context, lastResults KeyValueListResult) (result KeyValueListResult, err error) {
+	req, err := lastResults.keyValueListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "getKeyValuesNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.GetKeyValuesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "getKeyValuesNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.GetKeyValuesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "getKeyValuesNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// GetKeyValuesComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BaseClient) GetKeyValuesComplete(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []KeyValueFields) (result KeyValueListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeyValues")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.GetKeyValues(ctx, key, label, after, acceptDatetime, selectParameter)
+	return
+}
+
 // GetKeys sends the get keys request.
 // Parameters:
 // name - a filter for the name of the returned keys.
@@ -756,7 +997,6 @@ func (client BaseClient) GetKeys(ctx context.Context, name string, after string,
 // GetKeysPreparer prepares the GetKeys request.
 func (client BaseClient) GetKeysPreparer(ctx context.Context, name string, after string, acceptDatetime string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-
 		"endpoint": client.Endpoint,
 	}
 
@@ -842,253 +1082,6 @@ func (client BaseClient) GetKeysComplete(ctx context.Context, name string, after
 	return
 }
 
-// GetKeyValue sends the get key value request.
-// Parameters:
-// key - the key of the key-value to retrieve.
-// label - the label of the key-value to retrieve.
-// acceptDatetime - requests the server to respond with the state of the resource at the specified time.
-// ifMatch - used to perform an operation only if the targeted resource's etag matches the value provided.
-// ifNoneMatch - used to perform an operation only if the targeted resource's etag does not match the value
-// provided.
-// selectParameter - used to select what fields are present in the returned resource(s).
-func (client BaseClient) GetKeyValue(ctx context.Context, key string, label string, acceptDatetime string, ifMatch string, ifNoneMatch string, selectParameter []string) (result KeyValue, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeyValue")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.GetKeyValuePreparer(ctx, key, label, acceptDatetime, ifMatch, ifNoneMatch, selectParameter)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValue", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetKeyValueSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValue", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetKeyValueResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValue", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// GetKeyValuePreparer prepares the GetKeyValue request.
-func (client BaseClient) GetKeyValuePreparer(ctx context.Context, key string, label string, acceptDatetime string, ifMatch string, ifNoneMatch string, selectParameter []string) (*http.Request, error) {
-	urlParameters := map[string]interface{}{
-
-		"endpoint": client.Endpoint,
-	}
-
-	pathParameters := map[string]interface{}{
-		"key": autorest.Encode("path", key),
-	}
-
-	const APIVersion = "1.0"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if len(label) > 0 {
-		queryParameters["label"] = autorest.Encode("query", label)
-	}
-	if selectParameter != nil && len(selectParameter) > 0 {
-		queryParameters["$Select"] = autorest.Encode("query", selectParameter, ",")
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithCustomBaseURL("{endpoint}", urlParameters),
-		autorest.WithPathParameters("/kv/{key}", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	if len(client.SyncToken) > 0 {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithHeader("Sync-Token", autorest.String(client.SyncToken)))
-	}
-	if len(acceptDatetime) > 0 {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithHeader("Accept-Datetime", autorest.String(acceptDatetime)))
-	}
-	if len(ifMatch) > 0 {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithHeader("If-Match", autorest.String(ifMatch)))
-	}
-	if len(ifNoneMatch) > 0 {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithHeader("If-None-Match", autorest.String(ifNoneMatch)))
-	}
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetKeyValueSender sends the GetKeyValue request. The method will close the
-// http.Response Body if it receives an error.
-func (client BaseClient) GetKeyValueSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-}
-
-// GetKeyValueResponder handles the response to the GetKeyValue request. The method always
-// closes the http.Response Body.
-func (client BaseClient) GetKeyValueResponder(resp *http.Response) (result KeyValue, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// GetKeyValues sends the get key values request.
-// Parameters:
-// key - a filter used to match keys.
-// label - a filter used to match labels
-// after - instructs the server to return elements that appear after the element referred to by the specified
-// token.
-// acceptDatetime - requests the server to respond with the state of the resource at the specified time.
-// selectParameter - used to select what fields are present in the returned resource(s).
-func (client BaseClient) GetKeyValues(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (result KeyValueListResultPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeyValues")
-		defer func() {
-			sc := -1
-			if result.kvlr.Response.Response != nil {
-				sc = result.kvlr.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.fn = client.getKeyValuesNextResults
-	req, err := client.GetKeyValuesPreparer(ctx, key, label, after, acceptDatetime, selectParameter)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValues", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetKeyValuesSender(req)
-	if err != nil {
-		result.kvlr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValues", resp, "Failure sending request")
-		return
-	}
-
-	result.kvlr, err = client.GetKeyValuesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "GetKeyValues", resp, "Failure responding to request")
-		return
-	}
-	if result.kvlr.hasNextLink() && result.kvlr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-		return
-	}
-
-	return
-}
-
-// GetKeyValuesPreparer prepares the GetKeyValues request.
-func (client BaseClient) GetKeyValuesPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
-	urlParameters := map[string]interface{}{
-
-		"endpoint": client.Endpoint,
-	}
-
-	const APIVersion = "1.0"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if len(key) > 0 {
-		queryParameters["key"] = autorest.Encode("query", key)
-	}
-	if len(label) > 0 {
-		queryParameters["label"] = autorest.Encode("query", label)
-	}
-	if len(after) > 0 {
-		queryParameters["After"] = autorest.Encode("query", after)
-	}
-	if selectParameter != nil && len(selectParameter) > 0 {
-		queryParameters["$Select"] = autorest.Encode("query", selectParameter, ",")
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithCustomBaseURL("{endpoint}", urlParameters),
-		autorest.WithPath("/kv"),
-		autorest.WithQueryParameters(queryParameters))
-	if len(client.SyncToken) > 0 {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithHeader("Sync-Token", autorest.String(client.SyncToken)))
-	}
-	if len(acceptDatetime) > 0 {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithHeader("Accept-Datetime", autorest.String(acceptDatetime)))
-	}
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetKeyValuesSender sends the GetKeyValues request. The method will close the
-// http.Response Body if it receives an error.
-func (client BaseClient) GetKeyValuesSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-}
-
-// GetKeyValuesResponder handles the response to the GetKeyValues request. The method always
-// closes the http.Response Body.
-func (client BaseClient) GetKeyValuesResponder(resp *http.Response) (result KeyValueListResult, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// getKeyValuesNextResults retrieves the next set of results, if any.
-func (client BaseClient) getKeyValuesNextResults(ctx context.Context, lastResults KeyValueListResult) (result KeyValueListResult, err error) {
-	req, err := lastResults.keyValueListResultPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "getKeyValuesNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.GetKeyValuesSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "getKeyValuesNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.GetKeyValuesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "appconfiguration.BaseClient", "getKeyValuesNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// GetKeyValuesComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) GetKeyValuesComplete(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (result KeyValueListResultIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeyValues")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.GetKeyValues(ctx, key, label, after, acceptDatetime, selectParameter)
-	return
-}
-
 // GetLabels sends the get labels request.
 // Parameters:
 // name - a filter for the name of the returned labels.
@@ -1096,7 +1089,7 @@ func (client BaseClient) GetKeyValuesComplete(ctx context.Context, key string, l
 // token.
 // acceptDatetime - requests the server to respond with the state of the resource at the specified time.
 // selectParameter - used to select what fields are present in the returned resource(s).
-func (client BaseClient) GetLabels(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []string) (result LabelListResultPage, err error) {
+func (client BaseClient) GetLabels(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []LabelFields) (result LabelListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetLabels")
 		defer func() {
@@ -1135,9 +1128,8 @@ func (client BaseClient) GetLabels(ctx context.Context, name string, after strin
 }
 
 // GetLabelsPreparer prepares the GetLabels request.
-func (client BaseClient) GetLabelsPreparer(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
+func (client BaseClient) GetLabelsPreparer(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []LabelFields) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-
 		"endpoint": client.Endpoint,
 	}
 
@@ -1211,7 +1203,7 @@ func (client BaseClient) getLabelsNextResults(ctx context.Context, lastResults L
 }
 
 // GetLabelsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) GetLabelsComplete(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []string) (result LabelListResultIterator, err error) {
+func (client BaseClient) GetLabelsComplete(ctx context.Context, name string, after string, acceptDatetime string, selectParameter []LabelFields) (result LabelListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetLabels")
 		defer func() {
@@ -1234,7 +1226,7 @@ func (client BaseClient) GetLabelsComplete(ctx context.Context, name string, aft
 // token.
 // acceptDatetime - requests the server to respond with the state of the resource at the specified time.
 // selectParameter - used to select what fields are present in the returned resource(s).
-func (client BaseClient) GetRevisions(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (result KeyValueListResultPage, err error) {
+func (client BaseClient) GetRevisions(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []KeyValueFields) (result KeyValueListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetRevisions")
 		defer func() {
@@ -1273,9 +1265,8 @@ func (client BaseClient) GetRevisions(ctx context.Context, key string, label str
 }
 
 // GetRevisionsPreparer prepares the GetRevisions request.
-func (client BaseClient) GetRevisionsPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (*http.Request, error) {
+func (client BaseClient) GetRevisionsPreparer(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []KeyValueFields) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-
 		"endpoint": client.Endpoint,
 	}
 
@@ -1352,7 +1343,7 @@ func (client BaseClient) getRevisionsNextResults(ctx context.Context, lastResult
 }
 
 // GetRevisionsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BaseClient) GetRevisionsComplete(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (result KeyValueListResultIterator, err error) {
+func (client BaseClient) GetRevisionsComplete(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []KeyValueFields) (result KeyValueListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetRevisions")
 		defer func() {
@@ -1411,7 +1402,6 @@ func (client BaseClient) PutKeyValue(ctx context.Context, key string, label stri
 // PutKeyValuePreparer prepares the PutKeyValue request.
 func (client BaseClient) PutKeyValuePreparer(ctx context.Context, key string, label string, entity *KeyValue, ifMatch string, ifNoneMatch string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-
 		"endpoint": client.Endpoint,
 	}
 
@@ -1513,7 +1503,6 @@ func (client BaseClient) PutLock(ctx context.Context, key string, label string, 
 // PutLockPreparer prepares the PutLock request.
 func (client BaseClient) PutLockPreparer(ctx context.Context, key string, label string, ifMatch string, ifNoneMatch string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-
 		"endpoint": client.Endpoint,
 	}
 

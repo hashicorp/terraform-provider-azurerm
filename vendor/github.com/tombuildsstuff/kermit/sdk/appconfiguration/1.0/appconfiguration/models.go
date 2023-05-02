@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/appconfiguration/1.0/appconfiguration"
+const fqdn = "home/runner/work/kermit/kermit/sdk/appconfiguration/1.0/appconfiguration"
 
 // Error azure App Configuration error object.
 type Error struct {
