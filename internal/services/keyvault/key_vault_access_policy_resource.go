@@ -76,118 +76,90 @@ func resourceKeyVaultAccessPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta interface{}, operationKind vaults.AccessPolicyUpdateKind) error {
+func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	vaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
-	if err != nil {
-		return err
-	}
-
-	// Locking to prevent parallel changes causing issues
-	locks.ByName(vaultId.VaultName, keyVaultResourceName)
-	defer locks.UnlockByName(vaultId.VaultName, keyVaultResourceName)
 
 	tenantId := d.Get("tenant_id").(string)
 	objectId := d.Get("object_id").(string)
 	applicationId := d.Get("application_id").(string)
 
-	id := parse.NewAccessPolicyId(*vaultId, objectId, applicationId)
-
-	keyVault, err := client.Get(ctx, *vaultId)
+	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
-		// If the key vault does not exist but this is not a new resource, the policy
-		// which previously existed was deleted with the key vault, so reflect that in
-		// state. If this is a new resource and key vault does not exist, it's likely
-		// a bad ID was given.
-		if response.WasNotFound(keyVault.HttpResponse) && !d.IsNewResource() {
-			log.Printf("[DEBUG] Parent %s was not found - removing from state!", *vaultId)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving parent %s: %+v", *vaultId, err)
+		return err
 	}
 
-	if d.IsNewResource() {
-		if model := keyVault.Model; model != nil {
-			// we don't reuse FindKeyVaultAccessPolicy since we're also checking the Tenant ID
-			if model.Properties.AccessPolicies != nil {
-				for _, policy := range *model.Properties.AccessPolicies {
-					tenantIdMatches := policy.TenantId == tenantId
-					objectIdMatches := policy.ObjectId == objectId
+	id := parse.NewAccessPolicyId(*keyVaultId, objectId, applicationId)
 
-					appId := ""
-					if policy.ApplicationId != nil {
-						appId = *policy.ApplicationId
-					}
-					applicationIdMatches := appId == applicationId
-					if tenantIdMatches && objectIdMatches && applicationIdMatches {
-						return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
-					}
+	// Locking to prevent parallel changes causing issues
+	locks.ByName(keyVaultId.VaultName, keyVaultResourceName)
+	defer locks.UnlockByName(keyVaultId.VaultName, keyVaultResourceName)
+
+	keyVault, err := client.Get(ctx, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("retrieving parent %s: %+v", *keyVaultId, err)
+	}
+
+	if model := keyVault.Model; model != nil {
+		// we don't reuse findKeyVaultAccessPolicy since we're also checking the Tenant ID
+		if model.Properties.AccessPolicies != nil {
+			for _, policy := range *model.Properties.AccessPolicies {
+				tenantIdMatches := policy.TenantId == tenantId
+				objectIdMatches := policy.ObjectId == objectId
+
+				appId := ""
+				if policy.ApplicationId != nil {
+					appId = *policy.ApplicationId
+				}
+				applicationIdMatches := appId == applicationId
+				if tenantIdMatches && objectIdMatches && applicationIdMatches {
+					return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
 				}
 			}
 		}
 	}
 
 	var accessPolicy vaults.AccessPolicyEntry
-	switch operationKind {
-	case vaults.AccessPolicyUpdateKindRemove:
-		// To remove a policy correctly, we need to send it with all permissions in the correct case which may have drifted
-		// in config over time so we read it back from the vault by objectId
-		var accessPolicyRaw *vaults.AccessPolicyEntry
-		if model := keyVault.Model; model != nil {
-			accessPolicyRaw = FindKeyVaultAccessPolicy(model.Properties.AccessPolicies, objectId, applicationId)
-		}
-		if accessPolicyRaw == nil {
-			return fmt.Errorf("unable to find Access Policy (Object ID %q / Application ID %q) on %s", id.ObjectID(), id.ApplicationId(), *vaultId)
-		}
-		accessPolicy = *accessPolicyRaw
+	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
+	certPermissions := expandCertificatePermissions(certPermissionsRaw)
 
-	default:
-		certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
-		certPermissions := expandCertificatePermissions(certPermissionsRaw)
+	keyPermissionsRaw := d.Get("key_permissions").([]interface{})
+	keyPermissions := expandKeyPermissions(keyPermissionsRaw)
 
-		keyPermissionsRaw := d.Get("key_permissions").([]interface{})
-		keyPermissions := expandKeyPermissions(keyPermissionsRaw)
+	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
+	secretPermissions := expandSecretPermissions(secretPermissionsRaw)
 
-		secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
-		secretPermissions := expandSecretPermissions(secretPermissionsRaw)
+	storagePermissionsRaw := d.Get("storage_permissions").([]interface{})
+	storagePermissions := expandStoragePermissions(storagePermissionsRaw)
 
-		storagePermissionsRaw := d.Get("storage_permissions").([]interface{})
-		storagePermissions := expandStoragePermissions(storagePermissionsRaw)
-
-		accessPolicy = vaults.AccessPolicyEntry{
-			ObjectId: objectId,
-			TenantId: tenantId,
-			Permissions: vaults.Permissions{
-				Certificates: certPermissions,
-				Keys:         keyPermissions,
-				Secrets:      secretPermissions,
-				Storage:      storagePermissions,
-			},
-		}
+	accessPolicy = vaults.AccessPolicyEntry{
+		ObjectId: objectId,
+		TenantId: tenantId,
+		Permissions: vaults.Permissions{
+			Certificates: certPermissions,
+			Keys:         keyPermissions,
+			Secrets:      secretPermissions,
+			Storage:      storagePermissions,
+		},
 	}
 
 	if applicationId != "" {
 		accessPolicy.ApplicationId = pointer.To(applicationId)
 	}
 
-	accessPolicies := []vaults.AccessPolicyEntry{accessPolicy}
-
 	parameters := vaults.VaultAccessPolicyParameters{
-		Name: utils.String(vaultId.VaultName),
+		Name: utils.String(keyVaultId.VaultName),
 		Properties: vaults.VaultAccessPolicyProperties{
-			AccessPolicies: accessPolicies,
+			AccessPolicies: []vaults.AccessPolicyEntry{
+				accessPolicy,
+			},
 		},
 	}
 
-	keyVaultId := id.KeyVaultId()
-	updateId := vaults.NewOperationKindID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, operationKind)
+	updateId := vaults.NewOperationKindID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, vaults.AccessPolicyUpdateKindAdd)
 	if _, err = client.UpdateAccessPolicy(ctx, updateId, parameters); err != nil {
-		return fmt.Errorf("updating Access Policy (Object ID %q / Application ID %q) for %s: %+v", objectId, applicationId, *vaultId, err)
+		return fmt.Errorf("creating Access Policy (Object ID %q / Application ID %q) within %s: %+v", objectId, applicationId, *keyVaultId, err)
 	}
 	deadline, ok := ctx.Deadline()
 	if !ok {
@@ -196,31 +168,17 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta 
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"notfound", "vaultnotfound"},
 		Target:                    []string{"found"},
-		Refresh:                   accessPolicyRefreshFunc(ctx, client, *vaultId, objectId, applicationId),
+		Refresh:                   accessPolicyRefreshFunc(ctx, client, *keyVaultId, objectId, applicationId),
 		Delay:                     5 * time.Second,
 		ContinuousTargetOccurence: 3,
 		Timeout:                   time.Until(deadline),
 	}
-
-	if operationKind == vaults.AccessPolicyUpdateKindRemove {
-		stateConf.Target = []string{"notfound"}
-		stateConf.Pending = []string{"found", "vaultnotfound"}
-	}
-
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("failed waiting for Key Vault Access Policy (Object ID: %q) to apply: %+v", objectId, err)
+		return fmt.Errorf("creating Access Policy (Object ID: %q) within %s: %+v", objectId, keyVaultId, err)
 	}
 
-	if d.IsNewResource() {
-		d.SetId(id.ID())
-	}
-
+	d.SetId(id.ID())
 	return nil
-}
-
-func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	// TODO: split/simplify these
-	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, vaults.AccessPolicyUpdateKindAdd)
 }
 
 func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -320,7 +278,7 @@ func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{
 	}
 	var accessPolicy *vaults.AccessPolicyEntry
 	if model := resp.Model; model != nil {
-		accessPolicy = FindKeyVaultAccessPolicy(model.Properties.AccessPolicies, id.ObjectID(), id.ApplicationId())
+		accessPolicy = findKeyVaultAccessPolicy(model.Properties.AccessPolicies, id.ObjectID(), id.ApplicationId())
 	}
 	if accessPolicy == nil {
 		log.Printf("[ERROR] Access Policy (Object ID %q / Application ID %q) was not found in %s - removing from state", id.ObjectID(), id.ApplicationId(), vaultId)
@@ -381,7 +339,7 @@ func resourceKeyVaultAccessPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 	// in config over time so we read it back from the vault by objectId
 	var accessPolicyRaw *vaults.AccessPolicyEntry
 	if model := keyVault.Model; model != nil {
-		accessPolicyRaw = FindKeyVaultAccessPolicy(model.Properties.AccessPolicies, id.ObjectID(), id.ApplicationId())
+		accessPolicyRaw = findKeyVaultAccessPolicy(model.Properties.AccessPolicies, id.ObjectID(), id.ApplicationId())
 	}
 	if accessPolicyRaw == nil {
 		return fmt.Errorf("unable to find Access Policy (Object ID %q / Application ID %q) on %s", id.ObjectID(), id.ApplicationId(), vaultId)
@@ -423,7 +381,7 @@ func resourceKeyVaultAccessPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func FindKeyVaultAccessPolicy(policies *[]vaults.AccessPolicyEntry, objectId string, applicationId string) *vaults.AccessPolicyEntry {
+func findKeyVaultAccessPolicy(policies *[]vaults.AccessPolicyEntry, objectId string, applicationId string) *vaults.AccessPolicyEntry {
 	if policies == nil {
 		return nil
 	}
@@ -457,7 +415,7 @@ func accessPolicyRefreshFunc(ctx context.Context, client *vaults.VaultsClient, k
 
 		var accessPolicy *vaults.AccessPolicyEntry
 		if model := read.Model; model != nil {
-			accessPolicy = FindKeyVaultAccessPolicy(model.Properties.AccessPolicies, objectId, applicationId)
+			accessPolicy = findKeyVaultAccessPolicy(model.Properties.AccessPolicies, objectId, applicationId)
 		}
 
 		if accessPolicy != nil {
