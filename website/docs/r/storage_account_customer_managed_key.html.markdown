@@ -77,7 +77,14 @@ resource "azurerm_key_vault_key" "example" {
   key_vault_id = azurerm_key_vault.example.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+  key_opts     = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey"
+    ]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
@@ -101,6 +108,7 @@ resource "azurerm_storage_account" "example" {
     ignore_changes = [
       customer_managed_key
     ]
+  }
 }
 
 resource "azurerm_storage_account_customer_managed_key" "example" {
