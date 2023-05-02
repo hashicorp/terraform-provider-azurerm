@@ -1,5 +1,9 @@
 ## 3.55.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `appconfiguration`: refactoring to use `tombuildsstuff/kermit` rather than an embedded SDK [GH-21623]
+
 BUG FIXES:
 
 * Data Source: `azurerm_healthcare_fhir_service` - `identity` now exports both `SystemAssigned` and `UserAssigned` identities [GH-21594]
