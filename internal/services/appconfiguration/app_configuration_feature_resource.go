@@ -15,12 +15,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 const (
@@ -225,7 +225,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", featureKey, err)
 			}
 
-			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []string{})
+			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
@@ -288,7 +288,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			kv, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []string{})
+			kv, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
@@ -398,7 +398,7 @@ func (k FeatureResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			kv, err := client.GetKeyValues(ctx, nestedItemId.Key, nestedItemId.Label, "", "", []string{})
+			kv, err := client.GetKeyValues(ctx, nestedItemId.Key, nestedItemId.Label, "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				return fmt.Errorf("while checking for feature's %q existence: %+v", nestedItemId.Key, err)
 			}
