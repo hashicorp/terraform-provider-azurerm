@@ -2,8 +2,9 @@ package keyvault
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/vaults"
 	"time"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/vaults"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"

@@ -9,11 +9,12 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"log"
 	"math/big"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"

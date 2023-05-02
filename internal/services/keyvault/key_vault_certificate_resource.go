@@ -6,11 +6,12 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"log"
 	"math"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"

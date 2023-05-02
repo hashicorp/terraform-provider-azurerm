@@ -3,11 +3,12 @@ package hpccache
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"log"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
