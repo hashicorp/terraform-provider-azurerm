@@ -58,7 +58,28 @@ func TestAccHealthcareApiFhirService_updateIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateIdentity(data),
+			Config: r.updateIdentitySystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateIdentityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateIdentitySystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -171,7 +192,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthcareApiFhirServiceResource) updateIdentity(data acceptance.TestData) string {
+func (r HealthcareApiFhirServiceResource) updateIdentitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_healthcare_fhir_service" "test" {
@@ -191,6 +212,38 @@ resource "azurerm_healthcare_fhir_service" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r HealthcareApiFhirServiceResource) updateIdentityUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_healthcare_fhir_service" "test" {
+  name                = "fhir%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_healthcare_workspace.test.id
+  kind                = "fhir-R4"
+
+  authentication {
+    authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
+    audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
+  }
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r HealthcareApiFhirServiceResource) requiresImport(data acceptance.TestData) string {

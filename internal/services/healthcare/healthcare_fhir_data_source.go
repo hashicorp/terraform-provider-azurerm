@@ -77,7 +77,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"container_registry_login_server_url": {
 				Type:     pluginsdk.TypeList,
