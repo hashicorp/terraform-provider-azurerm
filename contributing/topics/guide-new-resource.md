@@ -327,6 +327,8 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
             }
 			
 			// at this point we can set information about this Resource Group into the State
+			// identifier fields such as the name, resource group name to name a few need to be sourced
+			// from the Resource ID instead of the API response
 			metadata.ResourceData.Set("name", id.ResourceGroup)
 			
 			// the SDK will return a Model as well as a nested Properties object for the resource
@@ -353,7 +355,9 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
                             
                             // (as above) Tags are a little different, so we have a dedicated helper function
                             // to flatten these consistently across the Provider
-                            return tags.FlattenAndSet(metadata.ResourceData, model.Tags)
+							if err := tags.FlattenAndSet(metadata.ResourceData, model.Tags); err != nil {
+                                return fmt.Errorf("setting `tags`: %+v", err)
+                            }
                         }       
 			return nil
 		},

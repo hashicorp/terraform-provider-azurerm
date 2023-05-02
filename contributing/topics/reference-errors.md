@@ -57,7 +57,7 @@ if err != nil {
 
 # Internal Errors
 
-Internal errors that occur within the provider should be prefixed with `internal-error`, for example:
+Internal errors, which are entirely outside the users control (such as failed expectations) that occur within the provider should be prefixed with `internal-error`, for example:
 
 ```go
 deadline, ok := ctx.Deadline()

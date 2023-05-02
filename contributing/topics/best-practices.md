@@ -10,11 +10,23 @@ Migration to `terraform-plugin-framework` will see the use of `ignore_changes` b
 
 ## Typed vs. Untyped Resources
 
-To facilitate migration over to `terraform-plugin-framework` and to ease the transition towards generated resources we ask that all new resources that are added to the provider be typed instead of the former untyped resources.
+At this point in time the Provider supports Data Sources and Resources built using either the Typed SDK, or `hashicorp/terraform-plugin-sdk` (which we call `Untyped`). Whilst both of these output Terraform Data Sources and Resources, we're gradually moving from using Untyped Data Sources and Resources to Typed Resources since there's a number of advantages in doing so. We currently recommend using the [internal sdk package](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk#should-i-use-this-package-to-build-resources) to build Typed Resources.
 
-What is meant by this is best explained by way of an example of each type.
+An example of both Typed and Untyped Resources can be found below - however as a general rule:
 
-Untyped resources rely on interfaces and methods within the `pluginsdk` package to build the resource - they look roughly like this:
+* When the Resource imports `"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"` - it's using the Typed SDK.
+* When the Resource doesn't import `"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"` - then it's an Untyped Resource, which is backed by `hashicorp/terraform-plugin-sdk`.
+
+Data Sources and Resources built using the Typed SDK have a number of benefits over those using `hashicorp/terraform-plugin-sdk` directly:
+
+* The Typed SDK requires that a number of Azure specific behaviours are present in each Data Source/Resource. For example, the `interface` defining the Typed SDK includes a `IDValidationFunc()` function, which is used during `terraform import` to ensure the Resource ID being specified matches what we're expecting. Whilst this is possible using the Untyped SDK, it's more work to do so, as such using the Typed SDK ensures that these behaviours become common across the provider.
+* The Typed SDK exposes an `Encode()` and `Decode()` method, allowing the marshalling/unmarshalling of the Terraform Configuration into a Go Object - which both:
+    1. Avoids logic errors when an incorrect key is used in `d.Get` and `d.Set`, since we can (TODO: https://github.com/hashicorp/terraform-provider-azurerm/blob/5652afa601d33368ebefb4a549584e214e9729cb/internal/sdk/wrapper_validate.go#L21) validate that each of the HCL keys used for the models (to get and set these from the Terraform Config) is present within the Schema via a unit test, rather than failing during the `Read` function, which takes considerably longer.
+    2. Default values can be implied for fields, rather than requiring an explicit `d.Set` in the Read function for every field - this allows us to ensure that an empty value/list is set for a field, rather than being `null` and thus unreferenceable in user configs.
+* Using the Typed SDK allows Data Sources and Resources to (in the future) be migrated across to using `hashicorp/terraform-plugin-framework` rather than `hashicorp/terraform-plugin-sdk` without rewriting the resource - which will unlock a number of benefits to end-users, but does involve some configuration changes (and as such will need to be done in a major release).
+* Using the Typed SDK means that these Data Sources/Resources can be more easily swapped out for generated versions down the line (since the code changes will be far smaller).
+  
+To facilitate the migration across to Typed Resources, we ask that any new Data Source or Resource which is added to the Provider is added as a Typed Data Source/Resource. Enhancements to existing Data Sources/Resources which are Untyped Resources can remain as Untyped Resources, however these will need to be migrated across in the future.
 
 ```go
 package someservice
@@ -29,7 +41,7 @@ func someResource() *pluginsdk.Resource {
 		Delete: someResourceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SomeResourceID(id)
+			_, err := someresource.ParseSomeResourceID(id)
 			return err
 		}),
 
