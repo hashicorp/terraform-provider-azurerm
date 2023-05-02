@@ -15,7 +15,6 @@ Manages a Customer Managed Key for a Storage Account.
 ## Example Usage
 
 ```hcl
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
