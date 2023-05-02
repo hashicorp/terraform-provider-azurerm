@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -133,12 +134,17 @@ func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.KeyVaultId().ResourceGroupName, id.KeyVaultId().VaultName)
+	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.KeyVaultId())
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault (%s): %+v", id, err)
 	}
 
-	return utils.Bool(keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, id.ObjectID(), id.ApplicationId()) != nil), nil
+	var accessPolicies *[]vaults.AccessPolicyEntry
+	if model := resp.Model; model != nil {
+		accessPolicies = model.Properties.AccessPolicies
+	}
+
+	return utils.Bool(keyvault.FindKeyVaultAccessPolicy(accessPolicies, id.ObjectID(), id.ApplicationId()) != nil), nil
 }
 
 func (r KeyVaultAccessPolicyResource) basic(data acceptance.TestData) string {

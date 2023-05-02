@@ -119,24 +119,18 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 	if err != nil {
 		return err
 	}
-
-	// If the Keyvault is in another subscription we need to update the client
-	if keyVaultID.SubscriptionId != vaultsClient.SubscriptionID {
-		vaultsClient = meta.(*clients.Client).KeyVault.KeyVaultClientForSubscription(keyVaultID.SubscriptionId)
-	}
-
-	keyVault, err := vaultsClient.Get(ctx, keyVaultID.ResourceGroupName, keyVaultID.VaultName)
+	keyVault, err := vaultsClient.Get(ctx, *keyVaultID)
 	if err != nil {
 		return fmt.Errorf("retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.VaultName, keyVaultID.ResourceGroupName, err)
 	}
 
 	softDeleteEnabled := false
 	purgeProtectionEnabled := false
-	if props := keyVault.Properties; props != nil {
-		if esd := props.EnableSoftDelete; esd != nil {
+	if model := keyVault.Model; model != nil {
+		if esd := model.Properties.EnableSoftDelete; esd != nil {
 			softDeleteEnabled = *esd
 		}
-		if epp := props.EnablePurgeProtection; epp != nil {
+		if epp := model.Properties.EnablePurgeProtection; epp != nil {
 			purgeProtectionEnabled = *epp
 		}
 	}
@@ -146,7 +140,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 
 	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
 	if err != nil {
-		return fmt.Errorf("looking up Key Vault URI from Key Vault %q (Resource Group %q) (Subscription %q): %+v", keyVaultID.VaultName, keyVaultID.ResourceGroupName, keyVaultsClient.VaultsClient.SubscriptionID, err)
+		return fmt.Errorf("looking up Key Vault URI from %s: %+v", *keyVaultID, err)
 	}
 
 	keyName := d.Get("key_name").(string)
