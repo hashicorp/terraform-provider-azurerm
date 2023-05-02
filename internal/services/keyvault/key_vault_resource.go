@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -149,16 +148,16 @@ func resourceKeyVault() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.NetworkRuleActionAllow),
-								string(keyvault.NetworkRuleActionDeny),
+								string(vaults.NetworkRuleActionAllow),
+								string(vaults.NetworkRuleActionDeny),
 							}, false),
 						},
 						"bypass": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.NetworkRuleBypassOptionsNone),
-								string(keyvault.NetworkRuleBypassOptionsAzureServices),
+								string(vaults.NetworkRuleBypassOptionsNone),
+								string(vaults.NetworkRuleBypassOptionsAzureServices),
 							}, false),
 						},
 						"ip_rules": {
@@ -688,7 +687,7 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		skuName := ""
 		// the Azure API is inconsistent here, so rewrite this into the casing we expect
 		// TODO: this can be removed when the new base layer is enabled?
-		for _, v := range keyvault.PossibleSkuNameValues() {
+		for _, v := range vaults.PossibleValuesForSkuName() {
 			if strings.EqualFold(string(v), string(model.Properties.Sku.Name)) {
 				skuName = string(v)
 			}
