@@ -287,7 +287,6 @@ const (
 	SearchServiceStatusError        SearchServiceStatus = "error"
 	SearchServiceStatusProvisioning SearchServiceStatus = "provisioning"
 	SearchServiceStatusRunning      SearchServiceStatus = "running"
-	SearchServiceStatusStopped      SearchServiceStatus = "stopped"
 )
 
 func PossibleValuesForSearchServiceStatus() []string {
@@ -298,7 +297,6 @@ func PossibleValuesForSearchServiceStatus() []string {
 		string(SearchServiceStatusError),
 		string(SearchServiceStatusProvisioning),
 		string(SearchServiceStatusRunning),
-		string(SearchServiceStatusStopped),
 	}
 }
 
@@ -310,7 +308,6 @@ func parseSearchServiceStatus(input string) (*SearchServiceStatus, error) {
 		"error":        SearchServiceStatusError,
 		"provisioning": SearchServiceStatusProvisioning,
 		"running":      SearchServiceStatusRunning,
-		"stopped":      SearchServiceStatusStopped,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
