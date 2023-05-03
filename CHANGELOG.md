@@ -1,8 +1,13 @@
 ## 3.55.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_kubernetes_snapshot` [GH-21511]
+
 ENHANCEMENTS:
 
 * `appconfiguration`: refactoring to use `tombuildsstuff/kermit` rather than an embedded SDK [GH-21623]
+* `azurerm_kubernetes_cluster_node_pool` - support for the `snapshot_id` property [GH-21511]
 
 BUG FIXES:
 
