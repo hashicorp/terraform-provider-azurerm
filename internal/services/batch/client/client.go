@@ -22,26 +22,38 @@ type Client struct {
 	BatchManagementAuthorizer autorest.Authorizer
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	accountClient := batchaccount.NewBatchAccountClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	accountClient, err := batchaccount.NewBatchAccountClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Account client: %+v", err)
+	}
+	o.Configure(accountClient.Client, o.Authorizers.ResourceManager)
 
-	applicationClient := application.NewApplicationClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&applicationClient.Client, o.ResourceManagerAuthorizer)
+	applicationClient, err := application.NewApplicationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Application client: %+v", err)
+	}
+	o.Configure(applicationClient.Client, o.Authorizers.ResourceManager)
 
-	certificateClient := certificate.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&certificateClient.Client, o.ResourceManagerAuthorizer)
+	certificateClient, err := certificate.NewCertificateClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Certificate client: %+v", err)
+	}
+	o.Configure(certificateClient.Client, o.Authorizers.ResourceManager)
 
-	poolClient := pool.NewPoolClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&poolClient.Client, o.ResourceManagerAuthorizer)
+	poolClient, err := pool.NewPoolClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Pool client: %+v", err)
+	}
+	o.Configure(poolClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AccountClient:             &accountClient,
-		ApplicationClient:         &applicationClient,
-		CertificateClient:         &certificateClient,
-		PoolClient:                &poolClient,
+		AccountClient:             accountClient,
+		ApplicationClient:         applicationClient,
+		CertificateClient:         certificateClient,
+		PoolClient:                poolClient,
 		BatchManagementAuthorizer: o.BatchManagementAuthorizer,
-	}
+	}, nil
 }
 
 func (r *Client) JobClient(ctx context.Context, accountId batchaccount.BatchAccountId) (*batchDataplane.JobClient, error) {
