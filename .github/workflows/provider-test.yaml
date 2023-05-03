@@ -69,11 +69,12 @@ jobs:
 
       - name: Add waiting-response on fail
         if: failure()
-        uses: actions-ecosystem/action-add-labels@v1
+        uses: actions/github-script@v6
         with:
-          labels: waiting-response
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          number: ${{ github.event.number }}
-          repo: ${{ github.event.repository.full_name }}
-
-# vim: set ts=2 sts=2 sw=2 et:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["waiting-response"]
+            })

@@ -10,8 +10,8 @@ on:
     types: ['opened', 'synchronize']
     paths:
       - '.github/workflows/gradually-deprecated.yaml'
-      - '**.go'
       - './scripts/run-gradually-deprecated.sh'
+      - '**.go'
 
 jobs:
   test:
@@ -26,9 +26,12 @@ jobs:
       - run: bash ./scripts/run-gradually-deprecated.sh
       - name: Add waiting-response on fail
         if: failure()
-        uses: actions-ecosystem/action-add-labels@v1
+        uses: actions/github-script@v6
         with:
-          labels: waiting-response
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          number: ${{ github.event.number }}
-          repo: ${{ github.event.repository.full_name }}
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["waiting-response"]
+            })
