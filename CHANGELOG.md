@@ -13,6 +13,8 @@ BUG FIXES:
 
 * Data Source: `azurerm_healthcare_fhir_service` - `identity` now exports both `SystemAssigned` and `UserAssigned` identities [GH-21594]
 * `azurerm_local_network_gateway` - validating that `address_space` isn't set to an empty string [GH-21566]
+* `azurerm_log_analytics_cluster` -  Add locks and remove unneeded WaitForState checks [GH-21631]
+* `azurerm_log_analytics_cluster_customer_managed_key` - Add locks and remove unneeded WaitForState checks [GH-21631]
 * `azurerm_virtual_machine` - fixing a regression when parsing the OS Disk ID from the Azure API [GH-21606]
 * `azurerm_virtual_machine` - fixing a regression when parsing the Data Disk ID from the Azure API [GH-21606]
 
