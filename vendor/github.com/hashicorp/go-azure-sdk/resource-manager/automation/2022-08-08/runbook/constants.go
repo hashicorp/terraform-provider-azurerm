@@ -1,6 +1,10 @@
 package runbook
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -15,6 +19,19 @@ func PossibleValuesForRunbookProvisioningState() []string {
 	return []string{
 		string(RunbookProvisioningStateSucceeded),
 	}
+}
+
+func (s *RunbookProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRunbookProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRunbookProvisioningState(input string) (*RunbookProvisioningState, error) {
@@ -44,6 +61,19 @@ func PossibleValuesForRunbookState() []string {
 		string(RunbookStateNew),
 		string(RunbookStatePublished),
 	}
+}
+
+func (s *RunbookState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRunbookState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRunbookState(input string) (*RunbookState, error) {
@@ -85,6 +115,19 @@ func PossibleValuesForRunbookTypeEnum() []string {
 		string(RunbookTypeEnumPythonTwo),
 		string(RunbookTypeEnumScript),
 	}
+}
+
+func (s *RunbookTypeEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRunbookTypeEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRunbookTypeEnum(input string) (*RunbookTypeEnum, error) {

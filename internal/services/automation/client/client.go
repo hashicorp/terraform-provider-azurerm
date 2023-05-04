@@ -1,10 +1,11 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/dscconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/connection"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworker"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworkergroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbookdraft"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -35,8 +38,7 @@ type Client struct {
 	JobScheduleClient           *jobschedule.JobScheduleClient
 	ModuleClient                *module.ModuleClient
 	RunbookClient               *runbook.RunbookClient
-	RunbookClientHack           *automation.RunbookClient
-	RunbookDraftClient          *automation.RunbookDraftClient
+	RunbookDraftClient          *runbookdraft.RunbookDraftClient
 	RunBookWgClient             *hybridrunbookworkergroup.HybridRunbookWorkerGroupClient
 	RunbookWorkerClient         *hybridrunbookworker.HybridRunbookWorkerClient
 	ScheduleClient              *schedule.ScheduleClient
@@ -47,7 +49,7 @@ type Client struct {
 	WebhookClient               *webhook.WebhookClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	accountClient := automationaccount.NewAutomationAccountClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
 
@@ -78,14 +80,17 @@ func NewClient(o *common.ClientOptions) *Client {
 	moduleClient := module.NewModuleClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&moduleClient.Client, o.ResourceManagerAuthorizer)
 
-	runbookClient2 := automation.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&runbookClient2.Client, o.ResourceManagerAuthorizer)
+	runbookClient, err := runbook.NewRunbookClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Runbook client: %+v", err)
+	}
+	o.Configure(runbookClient.Client, o.Authorizers.ResourceManager)
 
-	runbookClient := runbook.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&runbookClient.Client, o.ResourceManagerAuthorizer)
-
-	runbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&runbookDraftClient.Client, o.ResourceManagerAuthorizer)
+	runbookDraftClient, err := runbookdraft.NewRunbookDraftClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building RunbookDraft client: %+v", err)
+	}
+	o.Configure(runbookDraftClient.Client, o.Authorizers.ResourceManager)
 
 	runbookWgClient := hybridrunbookworkergroup.NewHybridRunbookWorkerGroupClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&runbookWgClient.Client, o.ResourceManagerAuthorizer)
@@ -122,9 +127,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		DscNodeConfigurationClient:  &dscNodeConfigurationClient,
 		JobScheduleClient:           &jobScheduleClient,
 		ModuleClient:                &moduleClient,
-		RunbookClient:               &runbookClient,
-		RunbookClientHack:           &runbookClient2,
-		RunbookDraftClient:          &runbookDraftClient,
+		RunbookClient:               runbookClient,
+		RunbookDraftClient:          runbookDraftClient,
 		RunBookWgClient:             &runbookWgClient,
 		RunbookWorkerClient:         &runbookWorkerClient,
 		ScheduleClient:              &scheduleClient,
@@ -133,5 +137,5 @@ func NewClient(o *common.ClientOptions) *Client {
 		VariableClient:              &variableClient,
 		WatcherClient:               &watcherClient,
 		WebhookClient:               &webhookClient,
-	}
+	}, nil
 }

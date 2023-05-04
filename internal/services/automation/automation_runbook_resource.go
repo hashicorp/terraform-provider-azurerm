@@ -1,9 +1,8 @@
 package automation
 
 import (
-	"bytes"
 	"fmt"
-	"io"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbookdraft"
 	"log"
 	"time"
 
@@ -11,8 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbook"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -306,11 +305,9 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
-		reader := io.NopCloser(bytes.NewBufferString(content))
 
-		// need to use preview version DraftClient
-		// move to stable RunbookDraftClient once this issue fixed: https://github.com/Azure/azure-sdk-for-go/issues/17591#issuecomment-1233676539
-		_, err := autoCli.RunbookDraftClient.ReplaceContent(ctx, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName, reader)
+		draftId := runbookdraft.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
+		_, err := autoCli.RunbookDraftClient.ReplaceContent(ctx, draftId, []byte(content))
 		if err != nil {
 			return fmt.Errorf("setting the draft for %s: %+v", id, err)
 		}
@@ -319,12 +316,8 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		// 	return fmt.Errorf("waiting for set the draft for %s: %+v", id, err)
 		// }
 
-		f2, err := client.Publish(ctx, id)
-		if err != nil {
+		if err := client.PublishThenPoll(ctx, id); err != nil {
 			return fmt.Errorf("publishing the updated %s: %+v", id, err)
-		}
-		if err := f2.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting for publish the updated %s: %+v", id, err)
 		}
 	}
 
@@ -407,23 +400,17 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("log_activity_trace_level", props.LogActivityTrace)
 	}
 
-	// GetContent need to use preview version client RunbookClientHack
-	// move to stable RunbookClient once this issue fixed: https://github.com/Azure/azure-sdk-for-go/issues/17591#issuecomment-1233676539
-	contentResp, err := autoCli.RunbookClientHack.GetContent(ctx, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
+	contentResp, err := autoCli.RunbookClient.GetContent(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(contentResp.Response) {
+		if response.WasNotFound(contentResp.HttpResponse) {
 			d.Set("content", "")
 		} else {
 			return fmt.Errorf("retrieving content for Automation Runbook %s: %+v", id, err)
 		}
 	}
 
-	if v := contentResp.Value; v != nil && *v != nil {
-		buf := new(bytes.Buffer)
-		if _, err := buf.ReadFrom(*v); err != nil {
-			return fmt.Errorf("reading from Automation Runbook buffer %q: %+v", id.RunbookName, err)
-		}
-		content := buf.String()
+	if v := contentResp.Model; v != nil && *v != nil {
+		content := string(*v)
 		d.Set("content", content)
 	}
 
