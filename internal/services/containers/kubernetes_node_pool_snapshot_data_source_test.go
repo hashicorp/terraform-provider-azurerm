@@ -50,7 +50,7 @@ func TestAccDataSourceKubernetesNodePoolSnapshot_basic(t *testing.T) {
 		{
 			Config: r.snapshotRestore(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("source_resource_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("source_node_pool_id").IsNotEmpty(),
 			),
 		},
 		{
