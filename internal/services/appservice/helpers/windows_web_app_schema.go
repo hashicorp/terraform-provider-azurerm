@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
@@ -654,60 +655,55 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) ([]SiteConfigWindows, error) {
-	if appSiteConfig == nil {
-		return nil, nil
-	}
-
-	siteConfig := SiteConfigWindows{
-		AlwaysOn:                 pointer.From(appSiteConfig.AlwaysOn),
-		AppCommandLine:           pointer.From(appSiteConfig.AppCommandLine),
-		AutoHeal:                 pointer.From(appSiteConfig.AutoHealEnabled),
-		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteConfig.AutoHealRules),
-		ContainerRegistryUserMSI: pointer.From(appSiteConfig.AcrUserManagedIdentityID),
-		Cors:                     FlattenCorsSettings(appSiteConfig.Cors),
-		DetailedErrorLogging:     pointer.From(appSiteConfig.DetailedErrorLoggingEnabled),
-		FtpsState:                string(appSiteConfig.FtpsState),
-		HealthCheckPath:          pointer.From(appSiteConfig.HealthCheckPath),
-		HealthCheckEvictionTime:  pointer.From(healthCheckCount),
-		Http2Enabled:             pointer.From(appSiteConfig.HTTP20Enabled),
-		IpRestriction:            FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions),
-		LoadBalancing:            string(appSiteConfig.LoadBalancing),
-		LocalMysql:               pointer.From(appSiteConfig.LocalMySQLEnabled),
-		ManagedPipelineMode:      string(appSiteConfig.ManagedPipelineMode),
-		MinTlsVersion:            string(appSiteConfig.MinTLSVersion),
-		WorkerCount:              int(pointer.From(appSiteConfig.NumberOfWorkers)),
-		RemoteDebugging:          pointer.From(appSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:   strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion)),
-		ScmIpRestriction:         FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions),
-		ScmMinTlsVersion:         string(appSiteConfig.ScmMinTLSVersion),
-		ScmType:                  string(appSiteConfig.ScmType),
-		ScmUseMainIpRestriction:  pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		Use32BitWorker:           pointer.From(appSiteConfig.Use32BitWorkerProcess),
-		UseManagedIdentityACR:    pointer.From(appSiteConfig.AcrUseManagedIdentityCreds),
-		VirtualApplications:      flattenVirtualApplications(appSiteConfig.VirtualApplications),
-		WebSockets:               pointer.From(appSiteConfig.WebSocketsEnabled),
-		VnetRouteAllEnabled:      pointer.From(appSiteConfig.VnetRouteAllEnabled),
+func (s *SiteConfigWindows) Flatten(appSiteConfig *web.SiteConfig, currentStack string) error {
+	if appSiteConfig != nil {
+		s.AlwaysOn = pointer.From(appSiteConfig.AlwaysOn)
+		s.AppCommandLine = pointer.From(appSiteConfig.AppCommandLine)
+		s.AutoHeal = pointer.From(appSiteConfig.AutoHealEnabled)
+		s.AutoHealSettings = flattenAutoHealSettingsWindows(appSiteConfig.AutoHealRules)
+		s.ContainerRegistryUserMSI = pointer.From(appSiteConfig.AcrUserManagedIdentityID)
+		s.Cors = FlattenCorsSettings(appSiteConfig.Cors)
+		s.DetailedErrorLogging = pointer.From(appSiteConfig.DetailedErrorLoggingEnabled)
+		s.FtpsState = string(appSiteConfig.FtpsState)
+		s.HealthCheckPath = pointer.From(appSiteConfig.HealthCheckPath)
+		s.Http2Enabled = pointer.From(appSiteConfig.HTTP20Enabled)
+		s.IpRestriction = FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
+		s.LoadBalancing = string(appSiteConfig.LoadBalancing)
+		s.LocalMysql = pointer.From(appSiteConfig.LocalMySQLEnabled)
+		s.ManagedPipelineMode = string(appSiteConfig.ManagedPipelineMode)
+		s.MinTlsVersion = string(appSiteConfig.MinTLSVersion)
+		s.WorkerCount = int(pointer.From(appSiteConfig.NumberOfWorkers))
+		s.RemoteDebugging = pointer.From(appSiteConfig.RemoteDebuggingEnabled)
+		s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion))
+		s.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
+		s.ScmMinTlsVersion = string(appSiteConfig.ScmMinTLSVersion)
+		s.ScmType = string(appSiteConfig.ScmType)
+		s.ScmUseMainIpRestriction = pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain)
+		s.Use32BitWorker = pointer.From(appSiteConfig.Use32BitWorkerProcess)
+		s.UseManagedIdentityACR = pointer.From(appSiteConfig.AcrUseManagedIdentityCreds)
+		s.VirtualApplications = flattenVirtualApplications(appSiteConfig.VirtualApplications)
+		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
+		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 	}
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
 		apiId, err := parse.ApiIDInsensitively(*appSiteConfig.APIManagementConfig.ID)
 		if err != nil {
-			return nil, fmt.Errorf("could not parse API Management ID: %+v", err)
+			return fmt.Errorf("could not parse API Management ID: %+v", err)
 		}
-		siteConfig.ApiManagementConfigId = apiId.ID()
+		s.ApiManagementConfigId = apiId.ID()
 	}
 
 	if appSiteConfig.APIDefinition != nil && appSiteConfig.APIDefinition.URL != nil {
-		siteConfig.ApiDefinition = *appSiteConfig.APIDefinition.URL
+		s.ApiDefinition = *appSiteConfig.APIDefinition.URL
 	}
 
 	if appSiteConfig.DefaultDocuments != nil {
-		siteConfig.DefaultDocuments = *appSiteConfig.DefaultDocuments
+		s.DefaultDocuments = *appSiteConfig.DefaultDocuments
 	}
 
 	if appSiteConfig.NumberOfWorkers != nil {
-		siteConfig.WorkerCount = int(*appSiteConfig.NumberOfWorkers)
+		s.WorkerCount = int(*appSiteConfig.NumberOfWorkers)
 	}
 
 	var winAppStack ApplicationStackWindows
@@ -731,10 +727,11 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		winAppStack.JavaEmbeddedServer = true
 	}
 
-	siteConfig.WindowsFxVersion = pointer.From(appSiteConfig.WindowsFxVersion)
-	if siteConfig.WindowsFxVersion != "" {
+	s.WindowsFxVersion = pointer.From(appSiteConfig.WindowsFxVersion)
+	if s.WindowsFxVersion != "" {
+		// TODO - These are deprecated and will be removed in 4.0, need to wrap in feature flag
 		// Decode the string to docker values
-		parts := strings.Split(strings.TrimPrefix(siteConfig.WindowsFxVersion, "DOCKER|"), ":")
+		parts := strings.Split(strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|"), ":")
 		if len(parts) == 2 {
 			winAppStack.DockerContainerTag = parts[1]
 			path := strings.Split(parts[0], "/")
@@ -746,9 +743,51 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 			}
 		}
 	}
+
 	winAppStack.CurrentStack = currentStack
 
-	siteConfig.ApplicationStack = []ApplicationStackWindows{winAppStack}
+	s.ApplicationStack = []ApplicationStackWindows{winAppStack}
 
-	return []SiteConfigWindows{siteConfig}, nil
+	return nil
+}
+
+func (s *SiteConfigWindows) SetHealthCheckEvictionTime(input map[string]string) {
+	if v, ok := input["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"]; ok && v != "" {
+		// Discarding the error here as an invalid value should result in `0`
+		s.HealthCheckEvictionTime, _ = strconv.Atoi(v)
+	}
+}
+
+func (s *SiteConfigWindows) DecodeDockerAppStack(input map[string]string) {
+	applicationStack := ApplicationStackWindows{}
+
+	if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
+		applicationStack.DockerRegistryUrl = v
+	}
+
+	if v, ok := input["DOCKER_REGISTRY_SERVER_USERNAME"]; ok {
+		applicationStack.DockerRegistryUsername = v
+	}
+
+	if v, ok := input["DOCKER_REGISTRY_SERVER_PASSWORD"]; ok {
+		applicationStack.DockerRegistryPassword = v
+	}
+
+	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+	dockerString := strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|")
+	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost)
+
+	s.ApplicationStack = []ApplicationStackWindows{applicationStack}
+}
+
+func (s *SiteConfigWindows) ParseNodeVersion(input map[string]string) map[string]string {
+	if nodeVer, ok := input["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
+		if s.ApplicationStack == nil {
+			s.ApplicationStack = make([]ApplicationStackWindows, 0)
+		}
+		s.ApplicationStack[0].NodeVersion = nodeVer
+		delete(input, "WEBSITE_NODE_DEFAULT_VERSION")
+	}
+
+	return input
 }

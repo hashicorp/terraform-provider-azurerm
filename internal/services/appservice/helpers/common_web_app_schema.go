@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
@@ -1242,9 +1241,12 @@ func ExpandAppSettingsForCreate(settings map[string]string) *[]web.NameValuePair
 	return nil
 }
 
-func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int, error) {
+func FilterUnmanagedAppSettings(input map[string]string) map[string]string {
 	maxPingFailures := "WEBSITE_HEALTHCHECK_MAXPINGFAILURES"
 	unmanagedSettings := []string{
+		"DOCKER_REGISTRY_SERVER_URL",
+		"DOCKER_REGISTRY_SERVER_USERNAME",
+		"DOCKER_REGISTRY_SERVER_PASSWORD",
 		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
 		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
 		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
@@ -1255,23 +1257,11 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int, er
 		"spring.datasource.username",
 		maxPingFailures,
 	}
-
-	var healthCheckCount *int
-	appSettings := FlattenWebStringDictionary(input)
-	if v, ok := appSettings[maxPingFailures]; ok {
-		h, err := strconv.Atoi(v)
-		if err != nil {
-			return nil, nil, fmt.Errorf("could not convert max ping failures to int")
-		}
-		healthCheckCount = &h
-	}
-
-	// Remove the settings the service adds for legacy reasons.
 	for _, v := range unmanagedSettings { //nolint:typecheck
-		delete(appSettings, v)
+		delete(input, v)
 	}
 
-	return appSettings, healthCheckCount, nil
+	return input
 }
 
 func flattenVirtualApplications(appVirtualApplications *[]web.VirtualApplication) []VirtualApplication {

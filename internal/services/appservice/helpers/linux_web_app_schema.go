@@ -898,62 +898,81 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinux {
-	if appSiteConfig == nil {
-		return []SiteConfigLinux{}
+func (s *SiteConfigLinux) Flatten(appSiteConfig *web.SiteConfig) {
+	if appSiteConfig != nil {
+		s.AlwaysOn = pointer.From(appSiteConfig.AlwaysOn)
+		s.AppCommandLine = pointer.From(appSiteConfig.AppCommandLine)
+		s.AutoHeal = pointer.From(appSiteConfig.AutoHealEnabled)
+		s.AutoHealSettings = flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules)
+		s.ContainerRegistryMSI = pointer.From(appSiteConfig.AcrUserManagedIdentityID)
+		s.DetailedErrorLogging = pointer.From(appSiteConfig.DetailedErrorLoggingEnabled)
+		s.DefaultDocuments = pointer.From(appSiteConfig.DefaultDocuments)
+		s.Http2Enabled = pointer.From(appSiteConfig.HTTP20Enabled)
+		s.IpRestriction = FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
+		s.ManagedPipelineMode = string(appSiteConfig.ManagedPipelineMode)
+		s.ScmType = string(appSiteConfig.ScmType)
+		s.FtpsState = string(appSiteConfig.FtpsState)
+		s.HealthCheckPath = pointer.From(appSiteConfig.HealthCheckPath)
+		s.LoadBalancing = string(appSiteConfig.LoadBalancing)
+		s.LocalMysql = pointer.From(appSiteConfig.LocalMySQLEnabled)
+		s.MinTlsVersion = string(appSiteConfig.MinTLSVersion)
+		s.NumberOfWorkers = int(pointer.From(appSiteConfig.NumberOfWorkers))
+		s.RemoteDebugging = pointer.From(appSiteConfig.RemoteDebuggingEnabled)
+		s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion))
+		s.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
+		s.ScmMinTlsVersion = string(appSiteConfig.ScmMinTLSVersion)
+		s.ScmUseMainIpRestriction = pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain)
+		s.Use32BitWorker = pointer.From(appSiteConfig.Use32BitWorkerProcess)
+		s.UseManagedIdentityACR = pointer.From(appSiteConfig.AcrUseManagedIdentityCreds)
+		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
+		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
+		s.Cors = FlattenCorsSettings(appSiteConfig.Cors)
+
+		if appSiteConfig.APIManagementConfig != nil {
+			s.ApiManagementConfigId = pointer.From(appSiteConfig.APIManagementConfig.ID)
+		}
+
+		if appSiteConfig.APIDefinition != nil {
+			s.ApiDefinition = pointer.From(appSiteConfig.APIDefinition.URL)
+		}
+
+		if appSiteConfig.LinuxFxVersion != nil {
+			var linuxAppStack ApplicationStackLinux
+			s.LinuxFxVersion = pointer.From(appSiteConfig.LinuxFxVersion)
+
+			linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
+			s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
+		}
+	}
+}
+
+func (s *SiteConfigLinux) SetHealthCheckEvictionTime(input map[string]string) {
+	if v, ok := input["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"]; ok && v != "" {
+		// Discarding the error here as an invalid value should result in `0`
+		s.HealthCheckEvictionTime, _ = strconv.Atoi(v)
+	}
+}
+
+func (s *SiteConfigLinux) DecodeDockerAppStack(input map[string]string) {
+	applicationStack := ApplicationStackLinux{}
+
+	if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
+		applicationStack.DockerRegistryUrl = v
 	}
 
-	siteConfig := SiteConfigLinux{
-		AlwaysOn:                pointer.From(appSiteConfig.AlwaysOn),
-		AppCommandLine:          pointer.From(appSiteConfig.AppCommandLine),
-		AutoHeal:                pointer.From(appSiteConfig.AutoHealEnabled),
-		AutoHealSettings:        flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules),
-		ContainerRegistryMSI:    pointer.From(appSiteConfig.AcrUserManagedIdentityID),
-		DetailedErrorLogging:    pointer.From(appSiteConfig.DetailedErrorLoggingEnabled),
-		Http2Enabled:            pointer.From(appSiteConfig.HTTP20Enabled),
-		IpRestriction:           FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions),
-		ManagedPipelineMode:     string(appSiteConfig.ManagedPipelineMode),
-		ScmType:                 string(appSiteConfig.ScmType),
-		FtpsState:               string(appSiteConfig.FtpsState),
-		HealthCheckPath:         pointer.From(appSiteConfig.HealthCheckPath),
-		HealthCheckEvictionTime: pointer.From(healthCheckCount),
-		LoadBalancing:           string(appSiteConfig.LoadBalancing),
-		LocalMysql:              pointer.From(appSiteConfig.LocalMySQLEnabled),
-		MinTlsVersion:           string(appSiteConfig.MinTLSVersion),
-		NumberOfWorkers:         int(pointer.From(appSiteConfig.NumberOfWorkers)),
-		RemoteDebugging:         pointer.From(appSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:  strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion)),
-		ScmIpRestriction:        FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions),
-		ScmMinTlsVersion:        string(appSiteConfig.ScmMinTLSVersion),
-		ScmUseMainIpRestriction: pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		Use32BitWorker:          pointer.From(appSiteConfig.Use32BitWorkerProcess),
-		UseManagedIdentityACR:   pointer.From(appSiteConfig.AcrUseManagedIdentityCreds),
-		WebSockets:              pointer.From(appSiteConfig.WebSocketsEnabled),
-		VnetRouteAllEnabled:     pointer.From(appSiteConfig.VnetRouteAllEnabled),
-		Cors:                    FlattenCorsSettings(appSiteConfig.Cors),
+	if v, ok := input["DOCKER_REGISTRY_SERVER_USERNAME"]; ok {
+		applicationStack.DockerRegistryUsername = v
 	}
 
-	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
-		siteConfig.ApiManagementConfigId = *appSiteConfig.APIManagementConfig.ID
+	if v, ok := input["DOCKER_REGISTRY_SERVER_PASSWORD"]; ok {
+		applicationStack.DockerRegistryPassword = v
 	}
 
-	if appSiteConfig.APIDefinition != nil && appSiteConfig.APIDefinition.URL != nil {
-		siteConfig.ApiDefinition = *appSiteConfig.APIDefinition.URL
-	}
+	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+	dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
+	applicationStack.DockerImage = strings.TrimPrefix(dockerString, registryHost)
 
-	if appSiteConfig.DefaultDocuments != nil {
-		siteConfig.DefaultDocuments = *appSiteConfig.DefaultDocuments
-	}
-
-	if appSiteConfig.LinuxFxVersion != nil {
-		var linuxAppStack ApplicationStackLinux
-		siteConfig.LinuxFxVersion = *appSiteConfig.LinuxFxVersion
-		// Decode the string to docker values
-		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion)
-		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
-	}
-
-	return []SiteConfigLinux{siteConfig}
+	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
 }
 
 func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.AutoHealRules {

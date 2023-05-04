@@ -438,11 +438,6 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
 
-			props := webAppSlot.SiteProperties
-			if props == nil {
-				return fmt.Errorf("reading properties of Linux %s", id)
-			}
-
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
 			webAppSiteConfig, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
@@ -502,24 +497,47 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Publishing Credential information for Linux %s: %+v", id, err)
 			}
 
-			state := LinuxWebAppSlotModel{
-				Name:                        id.SlotName,
-				AppServiceId:                parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				ClientAffinityEnabled:       pointer.From(props.ClientAffinityEnabled),
-				ClientCertEnabled:           pointer.From(props.ClientCertEnabled),
-				ClientCertMode:              string(props.ClientCertMode),
-				ClientCertExclusionPaths:    pointer.From(props.ClientCertExclusionPaths),
-				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
-				DefaultHostname:             pointer.From(props.DefaultHostName),
-				Kind:                        pointer.From(webAppSlot.Kind),
-				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
-				Enabled:                     pointer.From(props.Enabled),
-				HttpsOnly:                   pointer.From(props.HTTPSOnly),
-				Tags:                        tags.ToTypedObject(webAppSlot.Tags),
-			}
+			state := LinuxWebAppSlotModel{}
+			if props := webAppSlot.SiteProperties; props != nil {
+				state = LinuxWebAppSlotModel{
+					Name:                          id.SlotName,
+					AppServiceId:                  parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
+					ClientAffinityEnabled:         pointer.From(props.ClientAffinityEnabled),
+					ClientCertEnabled:             pointer.From(props.ClientCertEnabled),
+					ClientCertMode:                string(props.ClientCertMode),
+					ClientCertExclusionPaths:      pointer.From(props.ClientCertExclusionPaths),
+					CustomDomainVerificationId:    pointer.From(props.CustomDomainVerificationID),
+					DefaultHostname:               pointer.From(props.DefaultHostName),
+					Kind:                          pointer.From(webAppSlot.Kind),
+					KeyVaultReferenceIdentityID:   pointer.From(props.KeyVaultReferenceIdentity),
+					Enabled:                       pointer.From(props.Enabled),
+					HttpsOnly:                     pointer.From(props.HTTPSOnly),
+					OutboundIPAddresses:           pointer.From(props.OutboundIPAddresses),
+					OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
+					PossibleOutboundIPAddresses:   pointer.From(props.PossibleOutboundIPAddresses),
+					PossibleOutboundIPAddressList: strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ","),
+					Tags:                          tags.ToTypedObject(webAppSlot.Tags),
+				}
 
-			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				state.HostingEnvId = pointer.From(hostingEnv.ID)
+				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+					state.HostingEnvId = pointer.From(hostingEnv.ID)
+				}
+
+				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
+					state.VirtualNetworkSubnetID = subnetId
+				}
+
+				parentAppFarmId, err := parse.ServicePlanIDInsensitively(*webAppSlot.SiteProperties.ServerFarmID)
+				if err != nil {
+					return err
+				}
+				if slotPlanId := props.ServerFarmID; slotPlanId != nil && parentAppFarmId.ID() != *slotPlanId {
+					state.ServicePlanID = *slotPlanId
+				}
+
+				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
+					state.VirtualNetworkSubnetID = subnetId
+				}
 			}
 
 			webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
@@ -529,33 +547,10 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
 				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
 			}
-			parentAppFarmId, err := parse.ServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
-			if err != nil {
-				return err
-			}
 
-			if slotPlanId := props.ServerFarmID; slotPlanId != nil && parentAppFarmId.ID() != *slotPlanId {
-				state.ServicePlanID = *slotPlanId
-			}
-
-			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
-				state.VirtualNetworkSubnetID = subnetId
-			}
-
-			var healthCheckCount *int
-			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
+			state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
 			if err != nil {
 				return fmt.Errorf("flattening app settings for Linux %s: %+v", id, err)
-			}
-
-			if v := props.OutboundIPAddresses; v != nil {
-				state.OutboundIPAddresses = *v
-				state.OutboundIPAddressList = strings.Split(*v, ",")
-			}
-
-			if v := props.PossibleOutboundIPAddresses; v != nil {
-				state.PossibleOutboundIPAddresses = *v
-				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
 			}
 
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
@@ -566,7 +561,18 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			state.SiteConfig = helpers.FlattenSiteConfigLinuxWebAppSlot(webAppSiteConfig.SiteConfig, healthCheckCount)
+			siteConfig := helpers.SiteConfigLinuxWebAppSlot{}
+			siteConfig.Flatten(webAppSiteConfig.SiteConfig)
+			siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
+
+			if strings.HasPrefix(siteConfig.LinuxFxVersion, "DOCKER") {
+				siteConfig.DecodeDockerAppStack(state.AppSettings)
+			}
+
+			state.SiteConfig = []helpers.SiteConfigLinuxWebAppSlot{siteConfig}
+
+			// Filter out all settings we've consumed above
+			state.AppSettings = helpers.FilterUnmanagedAppSettings(state.AppSettings)
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 

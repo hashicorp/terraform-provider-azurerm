@@ -458,11 +458,6 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
 
-			props := webApp.SiteProperties
-			if props == nil {
-				return fmt.Errorf("reading properties of Linux %s", id)
-			}
-
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
 			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
@@ -527,48 +522,41 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Publishing Credential information for Linux %s: %+v", id, err)
 			}
 
-			state := LinuxWebAppModel{
-				Name:                        id.SiteName,
-				ResourceGroup:               id.ResourceGroup,
-				Location:                    location.NormalizeNilable(webApp.Location),
-				ServicePlanId:               pointer.From(props.ServerFarmID),
-				ClientAffinityEnabled:       pointer.From(props.ClientAffinityEnabled),
-				ClientCertEnabled:           pointer.From(props.ClientCertEnabled),
-				ClientCertMode:              string(props.ClientCertMode),
-				ClientCertExclusionPaths:    pointer.From(props.ClientCertExclusionPaths),
-				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
-				DefaultHostname:             pointer.From(props.DefaultHostName),
-				Kind:                        pointer.From(webApp.Kind),
-				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
-				Enabled:                     pointer.From(props.Enabled),
-				HttpsOnly:                   pointer.From(props.HTTPSOnly),
-				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
-				Tags:                        tags.ToTypedObject(webApp.Tags),
+			state := LinuxWebAppModel{}
+			if props := webApp.SiteProperties; props != nil {
+				state = LinuxWebAppModel{
+					Name:                          id.SiteName,
+					ResourceGroup:                 id.ResourceGroup,
+					Location:                      location.NormalizeNilable(webApp.Location),
+					ServicePlanId:                 pointer.From(props.ServerFarmID),
+					ClientAffinityEnabled:         pointer.From(props.ClientAffinityEnabled),
+					ClientCertEnabled:             pointer.From(props.ClientCertEnabled),
+					ClientCertMode:                string(props.ClientCertMode),
+					ClientCertExclusionPaths:      pointer.From(props.ClientCertExclusionPaths),
+					CustomDomainVerificationId:    pointer.From(props.CustomDomainVerificationID),
+					DefaultHostname:               pointer.From(props.DefaultHostName),
+					Kind:                          pointer.From(webApp.Kind),
+					KeyVaultReferenceIdentityID:   pointer.From(props.KeyVaultReferenceIdentity),
+					Enabled:                       pointer.From(props.Enabled),
+					HttpsOnly:                     pointer.From(props.HTTPSOnly),
+					StickySettings:                helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
+					OutboundIPAddresses:           pointer.From(props.OutboundIPAddresses),
+					OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
+					PossibleOutboundIPAddresses:   pointer.From(props.PossibleOutboundIPAddresses),
+					PossibleOutboundIPAddressList: strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ","),
+					Tags:                          tags.ToTypedObject(webApp.Tags),
+				}
+
+				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+					state.HostingEnvId = pointer.From(hostingEnv.ID)
+				}
+
+				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
+					state.VirtualNetworkSubnetID = subnetId
+				}
 			}
 
-			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				state.HostingEnvId = pointer.From(hostingEnv.ID)
-			}
-
-			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
-				state.VirtualNetworkSubnetID = subnetId
-			}
-
-			var healthCheckCount *int
-			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
-			if err != nil {
-				return fmt.Errorf("flattening app settings for Linux %s: %+v", id, err)
-			}
-
-			if v := props.OutboundIPAddresses; v != nil {
-				state.OutboundIPAddresses = *v
-				state.OutboundIPAddressList = strings.Split(*v, ",")
-			}
-
-			if v := props.PossibleOutboundIPAddresses; v != nil {
-				state.PossibleOutboundIPAddresses = *v
-				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
-			}
+			state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
 
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
 
@@ -578,7 +566,18 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount)
+			siteConfig := helpers.SiteConfigLinux{}
+			siteConfig.Flatten(webAppSiteConfig.SiteConfig)
+			siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
+
+			if strings.HasPrefix(siteConfig.LinuxFxVersion, "DOCKER") {
+				siteConfig.DecodeDockerAppStack(state.AppSettings)
+			}
+
+			state.SiteConfig = []helpers.SiteConfigLinux{siteConfig}
+
+			// Filter out all settings we've consumed above
+			state.AppSettings = helpers.FilterUnmanagedAppSettings(state.AppSettings)
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 

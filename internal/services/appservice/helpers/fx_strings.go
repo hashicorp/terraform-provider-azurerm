@@ -75,7 +75,11 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 	case "RUBY":
 		result.RubyVersion = parts[1]
 
-	default: // DOCKER is the expected default here as "custom" images require it
+	case "COMPOSE":
+		// TODO
+	case "DOCKER":
+		// Deprecated / bugged - to be removed post 4.0
+		// new docker parsing is done later
 		if dockerParts := strings.Split(parts[1], ":"); len(dockerParts) == 2 {
 			result.DockerImage = dockerParts[0]
 			result.DockerImageTag = dockerParts[1]

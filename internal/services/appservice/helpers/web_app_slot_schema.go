@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
@@ -715,6 +716,86 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 	return expanded, nil
 }
 
+func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *web.SiteConfig) {
+	s.AlwaysOn = pointer.From(appSiteSlotConfig.AlwaysOn)
+	s.AppCommandLine = pointer.From(appSiteSlotConfig.AppCommandLine)
+	s.AutoHeal = pointer.From(appSiteSlotConfig.AutoHealEnabled)
+	s.AutoHealSettings = flattenAutoHealSettingsLinux(appSiteSlotConfig.AutoHealRules)
+	s.AutoSwapSlotName = pointer.From(appSiteSlotConfig.AutoSwapSlotName)
+	s.ContainerRegistryMSI = pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID)
+	s.Cors = FlattenCorsSettings(appSiteSlotConfig.Cors)
+	s.DetailedErrorLogging = pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled)
+	s.Http2Enabled = pointer.From(appSiteSlotConfig.HTTP20Enabled)
+	s.IpRestriction = FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions)
+	s.ManagedPipelineMode = string(appSiteSlotConfig.ManagedPipelineMode)
+	s.ScmType = string(appSiteSlotConfig.ScmType)
+	s.FtpsState = string(appSiteSlotConfig.FtpsState)
+	s.HealthCheckPath = pointer.From(appSiteSlotConfig.HealthCheckPath)
+	s.LoadBalancing = string(appSiteSlotConfig.LoadBalancing)
+	s.LocalMysql = pointer.From(appSiteSlotConfig.LocalMySQLEnabled)
+	s.MinTlsVersion = string(appSiteSlotConfig.MinTLSVersion)
+	s.WorkerCount = int(pointer.From(appSiteSlotConfig.NumberOfWorkers))
+	s.RemoteDebugging = pointer.From(appSiteSlotConfig.RemoteDebuggingEnabled)
+	s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteSlotConfig.RemoteDebuggingVersion))
+	s.ScmIpRestriction = FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions)
+	s.ScmMinTlsVersion = string(appSiteSlotConfig.ScmMinTLSVersion)
+	s.ScmUseMainIpRestriction = pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsUseMain)
+	s.Use32BitWorker = pointer.From(appSiteSlotConfig.Use32BitWorkerProcess)
+	s.UseManagedIdentityACR = pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds)
+	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
+	s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
+
+	if appSiteSlotConfig.APIManagementConfig != nil && appSiteSlotConfig.APIManagementConfig.ID != nil {
+		s.ApiManagementConfigId = *appSiteSlotConfig.APIManagementConfig.ID
+	}
+
+	if appSiteSlotConfig.APIDefinition != nil && appSiteSlotConfig.APIDefinition.URL != nil {
+		s.ApiDefinition = *appSiteSlotConfig.APIDefinition.URL
+	}
+
+	if appSiteSlotConfig.DefaultDocuments != nil {
+		s.DefaultDocuments = *appSiteSlotConfig.DefaultDocuments
+	}
+
+	if appSiteSlotConfig.LinuxFxVersion != nil {
+		var linuxAppStack ApplicationStackLinux
+		s.LinuxFxVersion = *appSiteSlotConfig.LinuxFxVersion
+		// Decode the string to docker values
+		linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
+		s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
+	}
+
+}
+
+func (s *SiteConfigLinuxWebAppSlot) SetHealthCheckEvictionTime(input map[string]string) {
+	if v, ok := input["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"]; ok && v != "" {
+		// Discarding the error here as an invalid value should result in `0`
+		s.HealthCheckEvictionTime, _ = strconv.Atoi(v)
+	}
+}
+
+func (s *SiteConfigLinuxWebAppSlot) DecodeDockerAppStack(input map[string]string) {
+	applicationStack := ApplicationStackLinux{}
+
+	if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
+		applicationStack.DockerRegistryUrl = v
+	}
+
+	if v, ok := input["DOCKER_REGISTRY_SERVER_USERNAME"]; ok {
+		applicationStack.DockerRegistryUsername = v
+	}
+
+	if v, ok := input["DOCKER_REGISTRY_SERVER_PASSWORD"]; ok {
+		applicationStack.DockerRegistryPassword = v
+	}
+
+	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+	dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
+	applicationStack.DockerImage = strings.TrimPrefix(dockerString, registryHost)
+
+	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
+}
+
 func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinuxWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
@@ -1001,57 +1082,54 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindowsWebAppSlot {
+func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *web.SiteConfig, currentStack string) {
 	if appSiteSlotConfig == nil {
-		return nil
+		return
 	}
 
-	siteConfig := SiteConfigWindowsWebAppSlot{
-		AlwaysOn:                 pointer.From(appSiteSlotConfig.AlwaysOn),
-		AppCommandLine:           pointer.From(appSiteSlotConfig.AppCommandLine),
-		AutoHeal:                 pointer.From(appSiteSlotConfig.AutoHealEnabled),
-		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteSlotConfig.AutoHealRules),
-		AutoSwapSlotName:         pointer.From(appSiteSlotConfig.AutoSwapSlotName),
-		ContainerRegistryUserMSI: pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID),
-		Cors:                     FlattenCorsSettings(appSiteSlotConfig.Cors),
-		DetailedErrorLogging:     pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled),
-		FtpsState:                string(appSiteSlotConfig.FtpsState),
-		HealthCheckPath:          pointer.From(appSiteSlotConfig.HealthCheckPath),
-		HealthCheckEvictionTime:  pointer.From(healthCheckCount),
-		Http2Enabled:             pointer.From(appSiteSlotConfig.HTTP20Enabled),
-		IpRestriction:            FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions),
-		LoadBalancing:            string(appSiteSlotConfig.LoadBalancing),
-		LocalMysql:               pointer.From(appSiteSlotConfig.LocalMySQLEnabled),
-		ManagedPipelineMode:      string(appSiteSlotConfig.ManagedPipelineMode),
-		MinTlsVersion:            string(appSiteSlotConfig.MinTLSVersion),
-		WorkerCount:              int(pointer.From(appSiteSlotConfig.NumberOfWorkers)),
-		RemoteDebugging:          pointer.From(appSiteSlotConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:   strings.ToUpper(pointer.From(appSiteSlotConfig.RemoteDebuggingVersion)),
-		ScmIpRestriction:         FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions),
-		ScmMinTlsVersion:         string(appSiteSlotConfig.ScmMinTLSVersion),
-		ScmType:                  string(appSiteSlotConfig.ScmType),
-		ScmUseMainIpRestriction:  pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsUseMain),
-		Use32BitWorker:           pointer.From(appSiteSlotConfig.Use32BitWorkerProcess),
-		UseManagedIdentityACR:    pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds),
-		VirtualApplications:      flattenVirtualApplications(appSiteSlotConfig.VirtualApplications),
-		WebSockets:               pointer.From(appSiteSlotConfig.WebSocketsEnabled),
-		VnetRouteAllEnabled:      pointer.From(appSiteSlotConfig.VnetRouteAllEnabled),
-	}
+	s.AlwaysOn = pointer.From(appSiteSlotConfig.AlwaysOn)
+	s.AppCommandLine = pointer.From(appSiteSlotConfig.AppCommandLine)
+	s.AutoHeal = pointer.From(appSiteSlotConfig.AutoHealEnabled)
+	s.AutoHealSettings = flattenAutoHealSettingsWindows(appSiteSlotConfig.AutoHealRules)
+	s.AutoSwapSlotName = pointer.From(appSiteSlotConfig.AutoSwapSlotName)
+	s.ContainerRegistryUserMSI = pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID)
+	s.Cors = FlattenCorsSettings(appSiteSlotConfig.Cors)
+	s.DetailedErrorLogging = pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled)
+	s.FtpsState = string(appSiteSlotConfig.FtpsState)
+	s.HealthCheckPath = pointer.From(appSiteSlotConfig.HealthCheckPath)
+	s.Http2Enabled = pointer.From(appSiteSlotConfig.HTTP20Enabled)
+	s.IpRestriction = FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions)
+	s.LoadBalancing = string(appSiteSlotConfig.LoadBalancing)
+	s.LocalMysql = pointer.From(appSiteSlotConfig.LocalMySQLEnabled)
+	s.ManagedPipelineMode = string(appSiteSlotConfig.ManagedPipelineMode)
+	s.MinTlsVersion = string(appSiteSlotConfig.MinTLSVersion)
+	s.WorkerCount = int(pointer.From(appSiteSlotConfig.NumberOfWorkers))
+	s.RemoteDebugging = pointer.From(appSiteSlotConfig.RemoteDebuggingEnabled)
+	s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteSlotConfig.RemoteDebuggingVersion))
+	s.ScmIpRestriction = FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions)
+	s.ScmMinTlsVersion = string(appSiteSlotConfig.ScmMinTLSVersion)
+	s.ScmType = string(appSiteSlotConfig.ScmType)
+	s.ScmUseMainIpRestriction = pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsUseMain)
+	s.Use32BitWorker = pointer.From(appSiteSlotConfig.Use32BitWorkerProcess)
+	s.UseManagedIdentityACR = pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds)
+	s.VirtualApplications = flattenVirtualApplications(appSiteSlotConfig.VirtualApplications)
+	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
+	s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
 
 	if appSiteSlotConfig.APIManagementConfig != nil && appSiteSlotConfig.APIManagementConfig.ID != nil {
-		siteConfig.ApiManagementConfigId = *appSiteSlotConfig.APIManagementConfig.ID
+		s.ApiManagementConfigId = *appSiteSlotConfig.APIManagementConfig.ID
 	}
 
 	if appSiteSlotConfig.APIDefinition != nil && appSiteSlotConfig.APIDefinition.URL != nil {
-		siteConfig.ApiDefinition = *appSiteSlotConfig.APIDefinition.URL
+		s.ApiDefinition = *appSiteSlotConfig.APIDefinition.URL
 	}
 
 	if appSiteSlotConfig.DefaultDocuments != nil {
-		siteConfig.DefaultDocuments = *appSiteSlotConfig.DefaultDocuments
+		s.DefaultDocuments = *appSiteSlotConfig.DefaultDocuments
 	}
 
 	if appSiteSlotConfig.NumberOfWorkers != nil {
-		siteConfig.WorkerCount = int(*appSiteSlotConfig.NumberOfWorkers)
+		s.WorkerCount = int(*appSiteSlotConfig.NumberOfWorkers)
 	}
 
 	winAppStack := ApplicationStackWindows{}
@@ -1074,10 +1152,10 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 		winAppStack.JavaEmbeddedServer = true
 	}
 
-	siteConfig.WindowsFxVersion = pointer.From(appSiteSlotConfig.WindowsFxVersion)
-	if siteConfig.WindowsFxVersion != "" {
+	s.WindowsFxVersion = pointer.From(appSiteSlotConfig.WindowsFxVersion)
+	if s.WindowsFxVersion != "" {
 		// Decode the string to docker values
-		parts := strings.Split(strings.TrimPrefix(siteConfig.WindowsFxVersion, "DOCKER|"), ":")
+		parts := strings.Split(strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|"), ":")
 		if len(parts) == 2 {
 			winAppStack.DockerContainerTag = parts[1]
 			path := strings.Split(parts[0], "/")
@@ -1091,7 +1169,47 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 	}
 	winAppStack.CurrentStack = currentStack
 
-	siteConfig.ApplicationStack = []ApplicationStackWindows{winAppStack}
+	s.ApplicationStack = []ApplicationStackWindows{winAppStack}
 
-	return []SiteConfigWindowsWebAppSlot{siteConfig}
+}
+
+func (s *SiteConfigWindowsWebAppSlot) SetHealthCheckEvictionTime(input map[string]string) {
+	if v, ok := input["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"]; ok && v != "" {
+		// Discarding the error here as an invalid value should result in `0`
+		s.HealthCheckEvictionTime, _ = strconv.Atoi(v)
+	}
+}
+
+func (s *SiteConfigWindowsWebAppSlot) ParseNodeVersion(input map[string]string) map[string]string {
+	if nodeVer, ok := input["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
+		if s.ApplicationStack == nil {
+			s.ApplicationStack = make([]ApplicationStackWindows, 0)
+		}
+		s.ApplicationStack[0].NodeVersion = nodeVer
+		delete(input, "WEBSITE_NODE_DEFAULT_VERSION")
+	}
+
+	return input
+}
+
+func (s *SiteConfigWindowsWebAppSlot) DecodeDockerAppStack(input map[string]string) {
+	applicationStack := ApplicationStackWindows{}
+
+	if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
+		applicationStack.DockerRegistryUrl = v
+	}
+
+	if v, ok := input["DOCKER_REGISTRY_SERVER_USERNAME"]; ok {
+		applicationStack.DockerRegistryUsername = v
+	}
+
+	if v, ok := input["DOCKER_REGISTRY_SERVER_PASSWORD"]; ok {
+		applicationStack.DockerRegistryPassword = v
+	}
+
+	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+	dockerString := strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|")
+	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost)
+
+	s.ApplicationStack = []ApplicationStackWindows{applicationStack}
 }

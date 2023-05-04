@@ -475,10 +475,6 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %+v", id, err)
 			}
 
-			if webApp.SiteProperties == nil {
-				return fmt.Errorf("reading properties of Windows %s", id)
-			}
-
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
 			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
@@ -548,57 +544,49 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
-			props := webApp.SiteProperties
+			state := WindowsWebAppModel{}
+			if props := webApp.SiteProperties; props != nil {
+				state = WindowsWebAppModel{
+					Name:                          id.SiteName,
+					ResourceGroup:                 id.ResourceGroup,
+					ServicePlanId:                 pointer.From(props.ServerFarmID),
+					Location:                      location.NormalizeNilable(webApp.Location),
+					AuthSettings:                  helpers.FlattenAuthSettings(auth),
+					AuthV2Settings:                helpers.FlattenAuthV2Settings(authV2),
+					Backup:                        helpers.FlattenBackupConfig(backup),
+					ClientAffinityEnabled:         pointer.From(props.ClientAffinityEnabled),
+					ClientCertEnabled:             pointer.From(props.ClientCertEnabled),
+					ClientCertMode:                string(props.ClientCertMode),
+					ClientCertExclusionPaths:      pointer.From(props.ClientCertExclusionPaths),
+					ConnectionStrings:             helpers.FlattenConnectionStrings(connectionStrings),
+					CustomDomainVerificationId:    pointer.From(props.CustomDomainVerificationID),
+					DefaultHostname:               pointer.From(props.DefaultHostName),
+					Enabled:                       pointer.From(props.Enabled),
+					HttpsOnly:                     pointer.From(props.HTTPSOnly),
+					KeyVaultReferenceIdentityID:   pointer.From(props.KeyVaultReferenceIdentity),
+					Kind:                          pointer.From(webApp.Kind),
+					LogsConfig:                    helpers.FlattenLogsConfig(logsConfig),
+					SiteCredentials:               helpers.FlattenSiteCredentials(siteCredentials),
+					StorageAccounts:               helpers.FlattenStorageAccounts(storageAccounts),
+					StickySettings:                helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
+					OutboundIPAddresses:           pointer.From(props.OutboundIPAddresses),
+					OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
+					PossibleOutboundIPAddresses:   pointer.From(props.PossibleOutboundIPAddresses),
+					PossibleOutboundIPAddressList: strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ","),
+					Tags:                          tags.ToTypedObject(webApp.Tags),
+				}
 
-			state := WindowsWebAppModel{
-				Name:                        id.SiteName,
-				ResourceGroup:               id.ResourceGroup,
-				ServicePlanId:               pointer.From(props.ServerFarmID),
-				Location:                    location.NormalizeNilable(webApp.Location),
-				AuthSettings:                helpers.FlattenAuthSettings(auth),
-				AuthV2Settings:              helpers.FlattenAuthV2Settings(authV2),
-				Backup:                      helpers.FlattenBackupConfig(backup),
-				ClientAffinityEnabled:       pointer.From(props.ClientAffinityEnabled),
-				ClientCertEnabled:           pointer.From(props.ClientCertEnabled),
-				ClientCertMode:              string(props.ClientCertMode),
-				ClientCertExclusionPaths:    pointer.From(props.ClientCertExclusionPaths),
-				ConnectionStrings:           helpers.FlattenConnectionStrings(connectionStrings),
-				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
-				DefaultHostname:             pointer.From(props.DefaultHostName),
-				Enabled:                     pointer.From(props.Enabled),
-				HttpsOnly:                   pointer.From(props.HTTPSOnly),
-				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
-				Kind:                        pointer.From(webApp.Kind),
-				LogsConfig:                  helpers.FlattenLogsConfig(logsConfig),
-				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
-				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
-				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
-				Tags:                        tags.ToTypedObject(webApp.Tags),
+				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+					state.HostingEnvId = pointer.From(hostingEnv.ID)
+				}
+
+				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
+					state.VirtualNetworkSubnetID = subnetId
+				}
+
 			}
 
-			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				state.HostingEnvId = pointer.From(hostingEnv.ID)
-			}
-
-			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
-				state.VirtualNetworkSubnetID = subnetId
-			}
-
-			var healthCheckCount *int
-			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
-			if err != nil {
-				return fmt.Errorf("flattening app settings for Windows %s: %+v", id, err)
-			}
-
-			if v := props.OutboundIPAddresses; v != nil {
-				state.OutboundIPAddresses = *v
-				state.OutboundIPAddressList = strings.Split(*v, ",")
-			}
-
-			if v := props.PossibleOutboundIPAddresses; v != nil {
-				state.PossibleOutboundIPAddresses = *v
-				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
-			}
+			state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
 
 			currentStack := ""
 			currentStackPtr, ok := siteMetadata.Properties["CURRENT_STACK"]
@@ -606,17 +594,19 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				currentStack = *currentStackPtr
 			}
 
-			state.SiteConfig, err = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
-			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
+			siteConfig := helpers.SiteConfigWindows{}
+			siteConfig.Flatten(webAppSiteConfig.SiteConfig, currentStack)
+			siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
+			state.AppSettings = siteConfig.ParseNodeVersion(state.AppSettings)
+
+			if strings.HasPrefix(siteConfig.WindowsFxVersion, "DOCKER") {
+				siteConfig.DecodeDockerAppStack(state.AppSettings)
 			}
-			if nodeVer, ok := state.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
-				if state.SiteConfig[0].ApplicationStack == nil {
-					state.SiteConfig[0].ApplicationStack = make([]helpers.ApplicationStackWindows, 0)
-				}
-				state.SiteConfig[0].ApplicationStack[0].NodeVersion = nodeVer
-				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION")
-			}
+
+			state.SiteConfig = []helpers.SiteConfigWindows{siteConfig}
+
+			// Filter out all settings we've consumed above
+			state.AppSettings = helpers.FilterUnmanagedAppSettings(state.AppSettings)
 
 			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {

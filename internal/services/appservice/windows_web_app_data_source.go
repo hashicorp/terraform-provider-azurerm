@@ -286,12 +286,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
-			var healthCheckCount *int
-			webApp.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
-			if err != nil {
-				return fmt.Errorf("flattening app settings for Windows %s: %+v", id, err)
-			}
-
+			webApp.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
 			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
@@ -339,10 +334,20 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			if ok {
 				currentStack = *currentStackPtr
 			}
-			webApp.SiteConfig, err = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+
+			siteConfig := helpers.SiteConfigWindows{}
+			err = siteConfig.Flatten(webAppSiteConfig.SiteConfig, currentStack)
 			if err != nil {
-				return fmt.Errorf("reading API Management ID for %s: %+v", id, err)
+				return err
 			}
+
+			webApp.AppSettings = siteConfig.ParseNodeVersion(webApp.AppSettings)
+
+			siteConfig.SetHealthCheckEvictionTime(webApp.AppSettings)
+			if strings.HasPrefix(siteConfig.WindowsFxVersion, "DOCKER") {
+				siteConfig.DecodeDockerAppStack(webApp.AppSettings)
+			}
+
 			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
 
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)

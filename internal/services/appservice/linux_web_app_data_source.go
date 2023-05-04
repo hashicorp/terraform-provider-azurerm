@@ -296,12 +296,8 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Publishing Credential information for Linux %s: %+v", id, err)
 			}
 
-			var healthCheckCount *int
-			webApp.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
-			if err != nil {
-				return fmt.Errorf("flattening app settings for Linux %s: %+v", id, err)
-			}
-			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
+			webApp.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
+			webApp.Kind = pointer.From(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
 			if props := existing.SiteProperties; props != nil {
@@ -312,24 +308,24 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 					webApp.ClientCertEnabled = *props.ClientCertEnabled
 				}
 				webApp.ClientCertMode = string(props.ClientCertMode)
-				webApp.ClientCertExclusionPaths = utils.NormalizeNilableString(props.ClientCertExclusionPaths)
-				webApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
-				webApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
+				webApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
+				webApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationID)
+				webApp.DefaultHostname = pointer.From(props.DefaultHostName)
 				if props.Enabled != nil {
 					webApp.Enabled = *props.Enabled
 				}
 				if props.HTTPSOnly != nil {
 					webApp.HttpsOnly = *props.HTTPSOnly
 				}
-				webApp.ServicePlanId = utils.NormalizeNilableString(props.ServerFarmID)
-				webApp.OutboundIPAddresses = utils.NormalizeNilableString(props.OutboundIPAddresses)
+				webApp.ServicePlanId = pointer.From(props.ServerFarmID)
+				webApp.OutboundIPAddresses = pointer.From(props.OutboundIPAddresses)
 				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
-				webApp.PossibleOutboundIPAddresses = utils.NormalizeNilableString(props.PossibleOutboundIPAddresses)
+				webApp.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
 				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
 				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 					webApp.HostingEnvId = pointer.From(hostingEnv.ID)
 				}
-				if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
 					webApp.VirtualNetworkSubnetID = subnetId
 				}
 			}
@@ -342,7 +338,18 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 
 			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			webApp.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount)
+			siteConfig := helpers.SiteConfigLinux{}
+			siteConfig.Flatten(webAppSiteConfig.SiteConfig)
+			siteConfig.SetHealthCheckEvictionTime(webApp.AppSettings)
+
+			if strings.HasPrefix(siteConfig.LinuxFxVersion, "DOCKER") {
+				siteConfig.DecodeDockerAppStack(webApp.AppSettings)
+			}
+
+			webApp.SiteConfig = []helpers.SiteConfigLinux{siteConfig}
+
+			// Filter out all settings we've consumed above
+			webApp.AppSettings = helpers.FilterUnmanagedAppSettings(webApp.AppSettings)
 
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
