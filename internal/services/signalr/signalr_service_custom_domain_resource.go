@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -84,6 +85,10 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 			}
 
 			id := signalr.NewCustomDomainID(signalRServiceId.SubscriptionId, signalRServiceId.ResourceGroupName, signalRServiceId.SignalRName, metadata.ResourceData.Get("name").(string))
+
+			locks.ByID(signalRServiceId.ID())
+			defer locks.UnlockByID(signalRServiceId.ID())
+
 			if _, err := signalr.ParseCustomCertificateIDInsensitively(customDomainSignalrServiceModel.SignalrCustomCertificateId); err != nil {
 				return fmt.Errorf("parsing custom certificate for %s: %+v", id, err)
 			}
@@ -104,8 +109,30 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 					},
 				},
 			}
-			if err := client.CustomDomainsCreateOrUpdateThenPoll(ctx, id, customDomainObj); err != nil {
+			if _, err := client.CustomDomainsCreateOrUpdate(ctx, id, customDomainObj); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{
+					string(signalr.ProvisioningStateUpdating),
+					string(signalr.ProvisioningStateCreating),
+					string(signalr.ProvisioningStateMoving),
+					string(signalr.ProvisioningStateRunning),
+				},
+				Target:                    []string{string(signalr.ProvisioningStateSucceeded)},
+				Refresh:                   signalrServiceCustomDomainProvisioningStateRefreshFunc(ctx, client, id),
+				Timeout:                   time.Until(deadline),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 5,
+			}
+
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return err
 			}
 
 			metadata.SetID(id)
@@ -171,9 +198,8 @@ func (r CustomDomainSignalrServiceResource) Delete() sdk.ResourceFunc {
 
 			signalrId := signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName)
 
-			if err := waitForSignalrServiceStatusToBeReady(ctx, client, signalrId); err != nil {
-				return fmt.Errorf("waiting for signalR service %s state to be ready error: %+v", signalrId, err)
-			}
+			locks.ByID(signalrId.ID())
+			defer locks.UnlockByID(signalrId.ID())
 
 			if err := client.CustomDomainsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
@@ -188,31 +214,9 @@ func (r CustomDomainSignalrServiceResource) IDValidationFunc() pluginsdk.SchemaV
 	return signalr.ValidateCustomDomainID
 }
 
-func waitForSignalrServiceStatusToBeReady(ctx context.Context, client *signalr.SignalRClient, id signalr.SignalRId) error {
-	deadline, _ := ctx.Deadline()
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			string(signalr.ProvisioningStateUpdating),
-			string(signalr.ProvisioningStateCreating),
-			string(signalr.ProvisioningStateMoving),
-			string(signalr.ProvisioningStateRunning),
-		},
-		Target:                    []string{string(signalr.ProvisioningStateSucceeded)},
-		Refresh:                   signalrServiceProvisioningStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 5,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return err
-	}
-	return nil
-}
-
-func signalrServiceProvisioningStateRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.SignalRId) pluginsdk.StateRefreshFunc {
+func signalrServiceCustomDomainProvisioningStateRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.CustomDomainId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
+		res, err := client.CustomDomainsGet(ctx, id)
 
 		provisioningState := "Pending"
 		if err != nil {

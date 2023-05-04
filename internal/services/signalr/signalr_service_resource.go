@@ -1,7 +1,9 @@
 package signalr
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"log"
 	"strconv"
 	"strings"
@@ -17,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	signalrValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -62,6 +65,10 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	id := signalr.NewSignalRID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -155,8 +162,30 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, resourceType); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, resourceType); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(webpubsub.ProvisioningStateUpdating),
+			string(webpubsub.ProvisioningStateCreating),
+			string(webpubsub.ProvisioningStateMoving),
+			string(webpubsub.ProvisioningStateRunning),
+		},
+		Target:                    []string{string(webpubsub.ProvisioningStateSucceeded)},
+		Refresh:                   signalrServiceProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return err
 	}
 
 	d.SetId(id.ID())
@@ -323,6 +352,9 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	resourceType := signalr.SignalRResource{}
 
 	existing, err := client.Get(ctx, *id)
@@ -458,6 +490,9 @@ func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// @tombuildsstuff: we can't use DeleteThenPoll here since the API returns a 404 on the Future in time
 	future, err := client.Delete(ctx, *id)
@@ -988,5 +1023,25 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
+	}
+}
+
+func signalrServiceProvisioningStateRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.SignalRId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+
+		provisioningState := "Pending"
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return res, provisioningState, nil
+			}
+			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
+		}
+
+		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
+			provisioningState = string(*res.Model.Properties.ProvisioningState)
+		}
+
+		return res, provisioningState, nil
 	}
 }

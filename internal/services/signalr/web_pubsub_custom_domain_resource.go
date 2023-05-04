@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -84,6 +85,10 @@ func (r CustomDomainWebPubsubResource) Create() sdk.ResourceFunc {
 			}
 
 			id := webpubsub.NewCustomDomainID(webPubsubId.SubscriptionId, webPubsubId.ResourceGroupName, webPubsubId.WebPubSubName, metadata.ResourceData.Get("name").(string))
+
+			locks.ByID(webPubsubId.ID())
+			defer locks.UnlockByID(webPubsubId.ID())
+
 			if _, err := webpubsub.ParseCustomCertificateIDInsensitively(customDomainWebPubsubModel.WebPubsubCustomCertificateId); err != nil {
 				return fmt.Errorf("parsing custom certificate for %s: %+v", id, err)
 			}
@@ -104,8 +109,30 @@ func (r CustomDomainWebPubsubResource) Create() sdk.ResourceFunc {
 					},
 				},
 			}
-			if err := client.CustomDomainsCreateOrUpdateThenPoll(ctx, id, customDomainObj); err != nil {
+			if _, err := client.CustomDomainsCreateOrUpdate(ctx, id, customDomainObj); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{
+					string(webpubsub.ProvisioningStateUpdating),
+					string(webpubsub.ProvisioningStateCreating),
+					string(webpubsub.ProvisioningStateMoving),
+					string(webpubsub.ProvisioningStateRunning),
+				},
+				Target:                    []string{string(webpubsub.ProvisioningStateSucceeded)},
+				Refresh:                   webPubsubCustomDomainProvisioningStateRefreshFunc(ctx, client, id),
+				Timeout:                   time.Until(deadline),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 5,
+			}
+
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return err
 			}
 
 			metadata.SetID(id)
@@ -171,9 +198,9 @@ func (r CustomDomainWebPubsubResource) Delete() sdk.ResourceFunc {
 
 			webPubsubId := webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName)
 
-			if err := waitForWebPubsubStatusToBeReady(ctx, client, webPubsubId); err != nil {
-				return fmt.Errorf("waiting for web pubsub %s state to be ready error: %+v", webPubsubId, err)
-			}
+			locks.ByID(webPubsubId.ID())
+			defer locks.UnlockByID(webPubsubId.ID())
+
 			if err := client.CustomDomainsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
@@ -187,31 +214,9 @@ func (r CustomDomainWebPubsubResource) IDValidationFunc() pluginsdk.SchemaValida
 	return webpubsub.ValidateCustomDomainID
 }
 
-func waitForWebPubsubStatusToBeReady(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.WebPubSubId) error {
-	deadline, _ := ctx.Deadline()
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			string(webpubsub.ProvisioningStateUpdating),
-			string(webpubsub.ProvisioningStateCreating),
-			string(webpubsub.ProvisioningStateMoving),
-			string(webpubsub.ProvisioningStateRunning),
-		},
-		Target:                    []string{string(webpubsub.ProvisioningStateSucceeded)},
-		Refresh:                   webPubsubProvisioningStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 5,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return err
-	}
-	return nil
-}
-
-func webPubsubProvisioningStateRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.WebPubSubId) pluginsdk.StateRefreshFunc {
+func webPubsubCustomDomainProvisioningStateRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.CustomDomainId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
+		res, err := client.CustomDomainsGet(ctx, id)
 
 		provisioningState := "Pending"
 		if err != nil {
