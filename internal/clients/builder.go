@@ -3,6 +3,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"strings"
 
@@ -157,8 +158,12 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	if features.EnhancedValidationEnabled() {
+		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
+
 		location.CacheSupportedLocations(ctx, *resourceManagerEndpoint)
-		resourceproviders.CacheSupportedProviders(ctx, client.Resource.ProvidersClient)
+		if err := resourceproviders.CacheSupportedProviders(ctx, client.Resource.ResourceProvidersClient, subscriptionId); err != nil {
+			log.Printf("[DEBUG] error retrieving providers: %s. Enhanced validation will be unavailable", err)
+		}
 	}
 
 	return &client, nil
