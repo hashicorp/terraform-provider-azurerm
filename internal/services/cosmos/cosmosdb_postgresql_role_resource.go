@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosDbPostgreSQLRoleModel struct {
+type CosmosDbPostgreSQLRoleResourceModel struct {
 	Name      string `tfschema:"name"`
 	ClusterId string `tfschema:"cluster_id"`
 	Password  string `tfschema:"password"`
@@ -27,7 +27,7 @@ func (r CosmosDbPostgreSQLRoleResource) ResourceType() string {
 }
 
 func (r CosmosDbPostgreSQLRoleResource) ModelObject() interface{} {
-	return &CosmosDbPostgreSQLRoleModel{}
+	return &CosmosDbPostgreSQLRoleResourceModel{}
 }
 
 func (r CosmosDbPostgreSQLRoleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -68,7 +68,7 @@ func (r CosmosDbPostgreSQLRoleResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model CosmosDbPostgreSQLRoleModel
+			var model CosmosDbPostgreSQLRoleResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -89,13 +89,13 @@ func (r CosmosDbPostgreSQLRoleResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			parameters := &roles.Role{
+			parameters := roles.Role{
 				Properties: roles.RoleProperties{
 					Password: model.Password,
 				},
 			}
 
-			if err := client.CreateThenPoll(ctx, id, *parameters); err != nil {
+			if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -130,7 +130,7 @@ func (r CosmosDbPostgreSQLRoleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := CosmosDbPostgreSQLRoleModel{
+			state := CosmosDbPostgreSQLRoleResourceModel{
 				Name:      id.RoleName,
 				ClusterId: roles.NewServerGroupsv2ID(id.SubscriptionId, id.ResourceGroupName, id.ServerGroupsv2Name).ID(),
 				Password:  metadata.ResourceData.Get("password").(string),
