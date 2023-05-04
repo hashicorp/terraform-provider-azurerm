@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -12,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ManagerDeploymentResource struct{}
@@ -116,20 +117,26 @@ func (r ManagerDeploymentResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	client := clients.Network.ManagerDeploymentStatusClient
-	listParam := network.ManagerDeploymentStatusParameter{
+	client := clients.Network.ManagerDeploymentsClient
+	listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
 		Regions:         &[]string{azure.NormalizeLocation(id.Location)},
-		DeploymentTypes: &[]network.ConfigurationType{network.ConfigurationType(id.ScopeAccess)},
+		DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(id.ScopeAccess)},
 	}
-	resp, err := client.List(ctx, listParam, id.ResourceGroup, id.NetworkManagerName, nil)
+	networkManagerId := networkmanagers.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName)
+
+	resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Value != nil && len(*resp.Value) != 0 && *(*resp.Value)[0].ConfigurationIds != nil && len(*(*resp.Value)[0].ConfigurationIds) != 0), nil
+	if resp.Model == nil {
+		return nil, fmt.Errorf("unexpected null model %s", *id)
+	}
+
+	return utils.Bool(resp.Model.Value != nil && len(*resp.Model.Value) != 0 && *(*resp.Model.Value)[0].ConfigurationIds != nil && len(*(*resp.Model.Value)[0].ConfigurationIds) != 0), nil
 }
 
 func (r ManagerDeploymentResource) template(data acceptance.TestData) string {

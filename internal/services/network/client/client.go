@@ -1,6 +1,9 @@
 package client
 
 import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
@@ -29,9 +32,8 @@ type Client struct {
 	ManagersClient                           *network.ManagersClient
 	ManagerAdminRulesClient                  *network.AdminRulesClient
 	ManagerAdminRuleCollectionsClient        *network.AdminRuleCollectionsClient
-	ManagerDeploymentsClient                 *network.ManagerCommitsClient
+	ManagerDeploymentsClient                 *networkmanagers.NetworkManagersClient
 	ManagerConnectivityConfigurationsClient  *network.ConnectivityConfigurationsClient
-	ManagerDeploymentStatusClient            *network.ManagerDeploymentStatusClient
 	ManagerManagementGroupConnectionsClient  *network.ManagementGroupNetworkManagerConnectionsClient
 	ManagerNetworkGroupsClient               *network.GroupsClient
 	ManagerScopeConnectionsClient            *network.ScopeConnectionsClient
@@ -78,7 +80,7 @@ type Client struct {
 	ResourceNavigationLinkClient             *network.ResourceNavigationLinksClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	ApplicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ApplicationGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
@@ -151,8 +153,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	ManagerConnectivityConfigurationsClient := network.NewConnectivityConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerConnectivityConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
-	ManagerDeploymentsClient := network.NewManagerCommitsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagerDeploymentsClient.Client, o.ResourceManagerAuthorizer)
+	ManagerDeploymentsClient, err := networkmanagers.NewNetworkManagersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building deployment client: %+v", err)
+	}
+	o.Configure(ManagerDeploymentsClient.Client, o.Authorizers.ResourceManager)
 
 	ManagerDeploymentStatusClient := network.NewManagerDeploymentStatusClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagerDeploymentStatusClient.Client, o.ResourceManagerAuthorizer)
@@ -314,8 +319,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ManagerAdminRulesClient:                  &ManagerAdminRulesClient,
 		ManagerAdminRuleCollectionsClient:        &ManagerAdminRuleCollectionsClient,
 		ManagerConnectivityConfigurationsClient:  &ManagerConnectivityConfigurationsClient,
-		ManagerDeploymentsClient:                 &ManagerDeploymentsClient,
-		ManagerDeploymentStatusClient:            &ManagerDeploymentStatusClient,
+		ManagerDeploymentsClient:                 ManagerDeploymentsClient,
 		ManagerManagementGroupConnectionsClient:  &ManagerManagementGroupConnectionsClient,
 		ManagerNetworkGroupsClient:               &ManagerNetworkGroupsClient,
 		ManagerScopeConnectionsClient:            &ManagerScopeConnectionsClient,
@@ -360,5 +364,5 @@ func NewClient(o *common.ClientOptions) *Client {
 		PrivateLinkServiceClient:                 &PrivateLinkServiceClient,
 		ServiceAssociationLinkClient:             &ServiceAssociationLinkClient,
 		ResourceNavigationLinkClient:             &ResourceNavigationLinkClient,
-	}
+	}, nil
 }
