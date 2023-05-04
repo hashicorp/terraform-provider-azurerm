@@ -160,7 +160,7 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 
 	pricing := pricings_v2023_01_01.Pricing{
 		Properties: &pricings_v2023_01_01.PricingProperties{
-			PricingTier: pricings_v2023_01_01.PricingTier(pricings_v2023_01_01.PricingTierFree),
+			PricingTier: pricings_v2023_01_01.PricingTierFree,
 		},
 	}
 
