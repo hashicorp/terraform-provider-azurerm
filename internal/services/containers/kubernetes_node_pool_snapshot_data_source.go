@@ -16,30 +16,30 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type KubernetesSnapshotDataSourceModel struct {
+type KubernetesNodePoolSnapshotDataSourceModel struct {
 	Name             string            `tfschema:"name"`
 	ResourceGroup    string            `tfschema:"resource_group_name"`
-	SourceResourceId string            `tfschema:"source_resource_id"`
+	SourceNodePoolId string            `tfschema:"source_node_pool_id"`
 	Tags             map[string]string `tfschema:"tags"`
 }
 
-type KubernetesSnapshotDataSource struct{}
+type KubernetesNodePoolSnapshotDataSource struct{}
 
-var _ sdk.DataSource = KubernetesSnapshotDataSource{}
+var _ sdk.DataSource = KubernetesNodePoolSnapshotDataSource{}
 
-func (r KubernetesSnapshotDataSource) ResourceType() string {
-	return "azurerm_kubernetes_snapshot"
+func (r KubernetesNodePoolSnapshotDataSource) ResourceType() string {
+	return "azurerm_kubernetes_node_pool_snapshot"
 }
 
-func (r KubernetesSnapshotDataSource) ModelObject() interface{} {
-	return &KubernetesSnapshotDataSourceModel{}
+func (r KubernetesNodePoolSnapshotDataSource) ModelObject() interface{} {
+	return &KubernetesNodePoolSnapshotDataSourceModel{}
 }
 
-func (r KubernetesSnapshotDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r KubernetesNodePoolSnapshotDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return snapshots.ValidateSnapshotID
 }
 
-func (r KubernetesSnapshotDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r KubernetesNodePoolSnapshotDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -51,9 +51,9 @@ func (r KubernetesSnapshotDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r KubernetesSnapshotDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r KubernetesNodePoolSnapshotDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"source_resource_id": {
+		"source_node_pool_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -62,14 +62,14 @@ func (r KubernetesSnapshotDataSource) Attributes() map[string]*pluginsdk.Schema 
 	}
 }
 
-func (r KubernetesSnapshotDataSource) Read() sdk.ResourceFunc {
+func (r KubernetesNodePoolSnapshotDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.SnapshotClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var state KubernetesSnapshotDataSourceModel
+			var state KubernetesNodePoolSnapshotDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -90,12 +90,14 @@ func (r KubernetesSnapshotDataSource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
-					if props.CreationData != nil && props.CreationData.SourceResourceId != nil {
-						nodePoolId, err := agentpools.ParseAgentPoolIDInsensitively(*props.CreationData.SourceResourceId)
-						if err != nil {
-							return err
+					if snapshotType := props.SnapshotType; snapshotType != nil && *snapshotType == snapshots.SnapshotTypeNodePool {
+						if props.CreationData != nil && props.CreationData.SourceResourceId != nil {
+							nodePoolId, err := agentpools.ParseAgentPoolIDInsensitively(*props.CreationData.SourceResourceId)
+							if err != nil {
+								return err
+							}
+							state.SourceNodePoolId = nodePoolId.ID()
 						}
-						state.SourceResourceId = nodePoolId.ID()
 					}
 				}
 			}

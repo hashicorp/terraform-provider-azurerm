@@ -2672,7 +2672,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "source" {
   vm_size               = "Standard_D2s_v3"
 }
 
-data "azurerm_kubernetes_snapshot" "test" {
+data "azurerm_kubernetes_node_pool_snapshot" "test" {
   name                = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -2682,7 +2682,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
-  snapshot_id           = data.azurerm_kubernetes_snapshot.test.id
+  snapshot_id           = data.azurerm_kubernetes_node_pool_snapshot.test.id
   depends_on = [
     azurerm_kubernetes_cluster_node_pool.source
   ]

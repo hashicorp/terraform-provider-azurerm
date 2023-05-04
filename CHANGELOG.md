@@ -2,7 +2,7 @@
 
 FEATURES:
 
-* **New Data Source:** `azurerm_kubernetes_snapshot` [GH-21511]
+* **New Data Source:** `azurerm_kubernetes_node_pool_snapshot` [GH-21511]
 
 ENHANCEMENTS:
 

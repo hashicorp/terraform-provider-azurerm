@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KubernetesSnapshotDataSource struct{}
+type KubernetesNodePoolSnapshotDataSource struct{}
 
-func TestAccDataSourceKubernetesSnapshot_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_snapshot", "test")
-	r := KubernetesSnapshotDataSource{}
+func TestAccDataSourceKubernetesNodePoolSnapshot_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_node_pool_snapshot", "test")
+	r := KubernetesNodePoolSnapshotDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDataSourceKubernetesSnapshot_basic(t *testing.T) {
 		{
 			Config: r.snapshotRestore(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("source_resource_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("source_node_pool_id").IsNotEmpty(),
 			),
 		},
 		{
@@ -74,7 +74,7 @@ func TestAccDataSourceKubernetesSnapshot_basic(t *testing.T) {
 	})
 }
 
-func (KubernetesSnapshotDataSource) snapshotSource(data acceptance.TestData) string {
+func (KubernetesNodePoolSnapshotDataSource) snapshotSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -108,7 +108,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "source" {
  `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (KubernetesSnapshotDataSource) snapshotRestore(data acceptance.TestData) string {
+func (KubernetesNodePoolSnapshotDataSource) snapshotRestore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -141,7 +141,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "source" {
 }
 
 
-data "azurerm_kubernetes_snapshot" "test" {
+data "azurerm_kubernetes_node_pool_snapshot" "test" {
   name                = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
 }
