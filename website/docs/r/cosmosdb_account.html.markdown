@@ -66,6 +66,42 @@ resource "azurerm_cosmosdb_account" "db" {
 }
 ```
 
+## User Assigned Identity Example Usage
+
+```hcl
+resource "azurerm_user_assigned_identity" "example" {
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  name                = "example-resource"
+}
+
+resource "azurerm_cosmosdb_account" "example" {
+  name                  = "example-resource"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  default_identity_type = join("=", ["UserAssignedIdentity", azurerm_user_assigned_identity.example.id])
+  offer_type            = "Standard"
+  kind                  = "MongoDB"
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  geo_location {
+    location          = "westus"
+    failover_priority = 0
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.example.id]
+  }
+}
+```
 ## Argument Reference
 
 The following arguments are supported:
@@ -88,7 +124,9 @@ The following arguments are supported:
 
 ~> **NOTE:** `create_mode` only works when `backup.type` is `Continuous`.
 
-* `default_identity_type` - (Optional) The default identity for accessing Key Vault. Possible values are `FirstPartyIdentity`, `SystemAssignedIdentity` or start with `UserAssignedIdentity`.
+* `default_identity_type` - (Optional) The default identity for accessing Key Vault. Possible values are `FirstPartyIdentity`, `SystemAssignedIdentity` or `UserAssignedIdentity`.
+
+~> **NOTE:** When `default_identity_type` is a `UserAssignedIdentity` it must include the User Assigned Identity ID in the following format: `UserAssignedIdentity=/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{userAssignedIdentityName}`.
 
 * `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB`, `MongoDB` and `Parse`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
 
@@ -253,7 +291,7 @@ A `database` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The CosmosDB Account ID.
 

@@ -6,13 +6,18 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/subaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -32,7 +37,7 @@ func resourceLogzSubAccount() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.LogzSubAccountID(id)
+			_, err := subaccount.ParseAccountID(id)
 			return err
 		}),
 
@@ -48,10 +53,46 @@ func resourceLogzSubAccount() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogzMonitorID,
+				ValidateFunc: monitors.ValidateMonitorID,
 			},
 
-			"user": SchemaUserInfo(),
+			"user": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"email": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"first_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringLenBetween(1, 50),
+						},
+
+						"last_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringLenBetween(1, 50),
+						},
+
+						"phone_number": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringLenBetween(1, 40),
+						},
+					},
+				},
+			},
 
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -59,63 +100,61 @@ func resourceLogzSubAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 func resourceLogzSubAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logz.SubAccountClient
+	monitorClient := meta.(*clients.Client).Logz.MonitorClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	monitorId, err := parse.LogzMonitorID(d.Get("logz_monitor_id").(string))
+	monitorId, err := monitors.ParseMonitorID(d.Get("logz_monitor_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewLogzSubAccountID(monitorId.SubscriptionId, monitorId.ResourceGroup, monitorId.MonitorName, d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.AccountName)
+	id := subaccount.NewAccountID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_logz_sub_account", id.ID())
 	}
 
-	monitoringStatus := logz.MonitoringStatusDisabled
+	monitoringStatus := subaccount.MonitoringStatusDisabled
 	if d.Get("enabled").(bool) {
-		monitoringStatus = logz.MonitoringStatusEnabled
+		monitoringStatus = subaccount.MonitoringStatusEnabled
 	}
 
-	monitorClient := meta.(*clients.Client).Logz.MonitorClient
-	resp, err := monitorClient.Get(ctx, monitorId.ResourceGroup, monitorId.MonitorName)
+	parentMonitor, err := monitorClient.Get(ctx, *monitorId)
 	if err != nil {
-		return fmt.Errorf("checking for existing %s: %+v", monitorId, err)
+		return fmt.Errorf("retrieving parent %s: %+v", *monitorId, err)
+	}
+	if parentMonitor.Model == nil {
+		return fmt.Errorf("retrieving parent %s: model was nil", *monitorId)
 	}
 
-	props := logz.MonitorResource{
-		Location: resp.Location,
-		Properties: &logz.MonitorProperties{
-			UserInfo:         expandUserInfo(d.Get("user").([]interface{})),
-			MonitoringStatus: monitoringStatus,
+	payload := subaccount.LogzMonitorResource{
+		Location: location.Normalize(parentMonitor.Model.Location),
+		Properties: &subaccount.MonitorProperties{
+			UserInfo:         expandSubAccountUserInfo(d.Get("user").([]interface{})),
+			MonitoringStatus: pointer.To(monitoringStatus),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if properties := resp.Properties; properties != nil {
-		props.Properties.PlanData = properties.PlanData
+	if props := parentMonitor.Model.Properties; props != nil {
+		payload.Properties.PlanData = mapMonitorPlanDataToSubAccountPlanData(props.PlanData)
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, &props)
-	if err != nil {
+	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of the %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -127,32 +166,38 @@ func resourceLogzSubAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogzSubAccountID(d.Id())
+	id, err := subaccount.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.AccountName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] logz %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.AccountName)
-	d.Set("logz_monitor_id", parse.NewLogzMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName).ID())
+	d.Set("logz_monitor_id", monitors.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName).ID())
 
-	if props := resp.Properties; props != nil {
-		d.Set("enabled", props.MonitoringStatus == logz.MonitoringStatusEnabled)
-		if err := d.Set("user", flattenUserInfo(expandUserInfo(d.Get("user").([]interface{})))); err != nil {
-			return fmt.Errorf("setting `user`: %+v", err)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("enabled", props.MonitoringStatus != nil && *props.MonitoringStatus == subaccount.MonitoringStatusEnabled)
+			// Whilst `props.UserInfo` exists, at this point in time the API doesn't return these values
+			// Azure API issue: https://github.com/Azure/azure-rest-api-specs/issues/23461#issuecomment-1510728888
+			// so we'll skip setting it for now.
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceLogzSubAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -160,28 +205,28 @@ func resourceLogzSubAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogzSubAccountID(d.Id())
+	id, err := subaccount.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	props := logz.MonitorResourceUpdateParameters{
-		Properties: &logz.MonitorUpdateProperties{},
-	}
+	payload := subaccount.LogzMonitorResourceUpdateParameters{}
 
 	if d.HasChange("enabled") {
-		monitoringStatus := logz.MonitoringStatusDisabled
+		monitoringStatus := subaccount.MonitoringStatusDisabled
 		if d.Get("enabled").(bool) {
-			monitoringStatus = logz.MonitoringStatusEnabled
+			monitoringStatus = subaccount.MonitoringStatusEnabled
 		}
-		props.Properties.MonitoringStatus = monitoringStatus
+		payload.Properties = &subaccount.MonitorUpdateProperties{
+			MonitoringStatus: pointer.To(monitoringStatus),
+		}
 	}
 
 	if d.HasChange("tags") {
-		props.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, &props); err != nil {
+	if _, err := client.Update(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -193,18 +238,13 @@ func resourceLogzSubAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogzSubAccountID(d.Id())
+	id, err := subaccount.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName, id.AccountName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of the %s: %+v", id, err)
 	}
 
 	// API has bug, which appears to be eventually consistent. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/18572
@@ -230,11 +270,11 @@ func resourceLogzSubAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func subAccountDeletedRefreshFunc(ctx context.Context, client *logz.SubAccountClient, id parse.LogzSubAccountId) pluginsdk.StateRefreshFunc {
+func subAccountDeletedRefreshFunc(ctx context.Context, client *subaccount.SubAccountClient, id subaccount.AccountId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.AccountName)
+		res, err := client.Get(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
+			if response.WasNotFound(res.HttpResponse) {
 				return "NotFound", "NotFound", nil
 			}
 
@@ -242,5 +282,32 @@ func subAccountDeletedRefreshFunc(ctx context.Context, client *logz.SubAccountCl
 		}
 
 		return res, "Exists", nil
+	}
+}
+
+func expandSubAccountUserInfo(input []interface{}) *subaccount.UserInfo {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &subaccount.UserInfo{
+		FirstName:    utils.String(v["first_name"].(string)),
+		LastName:     utils.String(v["last_name"].(string)),
+		EmailAddress: utils.String(v["email"].(string)),
+		PhoneNumber:  utils.String(v["phone_number"].(string)),
+	}
+}
+
+func mapMonitorPlanDataToSubAccountPlanData(input *monitors.PlanData) *subaccount.PlanData {
+	if input == nil {
+		return nil
+	}
+
+	return &subaccount.PlanData{
+		BillingCycle:  input.BillingCycle,
+		EffectiveDate: input.EffectiveDate,
+		PlanDetails:   input.PlanDetails,
+		UsageType:     input.UsageType,
 	}
 }

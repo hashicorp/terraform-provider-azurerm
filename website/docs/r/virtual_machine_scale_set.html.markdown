@@ -585,7 +585,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The virtual machine scale set ID.
 

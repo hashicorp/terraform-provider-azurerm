@@ -6,16 +6,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/autoscalesettings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,7 +30,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 		Delete: resourceMonitorAutoScaleSettingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AutoscaleSettingID(id)
+			_, err := autoscalesettings.ParseAutoScaleSettingID(id)
 			return err
 		}),
 
@@ -139,10 +138,10 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(insights.MetricStatisticTypeAverage),
-														string(insights.MetricStatisticTypeMax),
-														string(insights.MetricStatisticTypeMin),
-														string(insights.MetricStatisticTypeSum),
+														string(autoscalesettings.MetricStatisticTypeAverage),
+														string(autoscalesettings.MetricStatisticTypeMax),
+														string(autoscalesettings.MetricStatisticTypeMin),
+														string(autoscalesettings.MetricStatisticTypeSum),
 													}, false),
 												},
 												"time_window": {
@@ -154,24 +153,24 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(insights.TimeAggregationTypeAverage),
-														string(insights.TimeAggregationTypeCount),
-														string(insights.TimeAggregationTypeMaximum),
-														string(insights.TimeAggregationTypeMinimum),
-														string(insights.TimeAggregationTypeTotal),
-														string(insights.TimeAggregationTypeLast),
+														string(autoscalesettings.TimeAggregationTypeAverage),
+														string(autoscalesettings.TimeAggregationTypeCount),
+														string(autoscalesettings.TimeAggregationTypeMaximum),
+														string(autoscalesettings.TimeAggregationTypeMinimum),
+														string(autoscalesettings.TimeAggregationTypeTotal),
+														string(autoscalesettings.TimeAggregationTypeLast),
 													}, false),
 												},
 												"operator": {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(insights.ComparisonOperationTypeEquals),
-														string(insights.ComparisonOperationTypeGreaterThan),
-														string(insights.ComparisonOperationTypeGreaterThanOrEqual),
-														string(insights.ComparisonOperationTypeLessThan),
-														string(insights.ComparisonOperationTypeLessThanOrEqual),
-														string(insights.ComparisonOperationTypeNotEquals),
+														string(autoscalesettings.ComparisonOperationTypeEquals),
+														string(autoscalesettings.ComparisonOperationTypeGreaterThan),
+														string(autoscalesettings.ComparisonOperationTypeGreaterThanOrEqual),
+														string(autoscalesettings.ComparisonOperationTypeLessThan),
+														string(autoscalesettings.ComparisonOperationTypeLessThanOrEqual),
+														string(autoscalesettings.ComparisonOperationTypeNotEquals),
 													}, false),
 												},
 												"threshold": {
@@ -205,8 +204,8 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 																Type:     pluginsdk.TypeString,
 																Required: true,
 																ValidateFunc: validation.StringInSlice([]string{
-																	string(insights.ScaleRuleMetricDimensionOperationTypeEquals),
-																	string(insights.ScaleRuleMetricDimensionOperationTypeNotEquals),
+																	string(autoscalesettings.ScaleRuleMetricDimensionOperationTypeEquals),
+																	string(autoscalesettings.ScaleRuleMetricDimensionOperationTypeNotEquals),
 																}, false),
 															},
 
@@ -234,18 +233,18 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(insights.ScaleDirectionDecrease),
-														string(insights.ScaleDirectionIncrease),
+														string(autoscalesettings.ScaleDirectionDecrease),
+														string(autoscalesettings.ScaleDirectionIncrease),
 													}, false),
 												},
 												"type": {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(insights.ScaleTypeChangeCount),
-														string(insights.ScaleTypeExactCount),
-														string(insights.ScaleTypePercentChangeCount),
-														string(insights.ScaleTypeServiceAllowedNextValue),
+														string(autoscalesettings.ScaleTypeChangeCount),
+														string(autoscalesettings.ScaleTypeExactCount),
+														string(autoscalesettings.ScaleTypePercentChangeCount),
+														string(autoscalesettings.ScaleTypeServiceAllowedNextValue),
 													}, false),
 												},
 												"value": {
@@ -412,17 +411,17 @@ func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAutoscaleSettingID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := autoscalesettings.NewAutoScaleSettingID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_monitor_autoscale_setting", id.ID())
 		}
 	}
@@ -441,20 +440,19 @@ func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	t := d.Get("tags").(map[string]interface{})
-	expandedTags := tags.Expand(t)
 
-	parameters := insights.AutoscaleSettingResource{
-		Location: utils.String(location),
-		AutoscaleSetting: &insights.AutoscaleSetting{
+	parameters := autoscalesettings.AutoscaleSettingResource{
+		Location: location,
+		Properties: autoscalesettings.AutoscaleSetting{
 			Enabled:           &enabled,
 			Profiles:          profiles,
 			Notifications:     notifications,
-			TargetResourceURI: &targetResourceId,
+			TargetResourceUri: &targetResourceId,
 		},
-		Tags: expandedTags,
+		Tags: utils.ExpandPtrMapStringString(t),
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating Monitor %s: %+v", id, err)
 	}
 
@@ -468,15 +466,15 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutoscaleSettingID(d.Id())
+	id, err := autoscalesettings.ParseAutoScaleSettingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] AutoScale Setting %q (Resource Group %q) was not found - removing from state!", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
@@ -484,31 +482,38 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("reading Monitor %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.AutoScaleSettingName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("enabled", resp.Enabled)
-	d.Set("target_resource_id", resp.TargetResourceURI)
+	if model := resp.Model; model != nil {
+		props := model.Properties
 
-	profile, err := flattenAzureRmMonitorAutoScaleSettingProfile(resp.Profiles)
-	if err != nil {
-		return fmt.Errorf("flattening `profile` of %s: %+v", *id, err)
-	}
-	if err = d.Set("profile", profile); err != nil {
-		return fmt.Errorf("setting `profile` of %s: %+v", *id, err)
-	}
+		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("enabled", props.Enabled)
+		d.Set("target_resource_id", props.TargetResourceUri)
 
-	notifications := flattenAzureRmMonitorAutoScaleSettingNotification(resp.Notifications)
-	if err = d.Set("notification", notifications); err != nil {
-		return fmt.Errorf("setting `notification` of %s: %+v", *id, err)
-	}
+		profile, err := flattenAzureRmMonitorAutoScaleSettingProfile(props.Profiles)
+		if err != nil {
+			return fmt.Errorf("flattening `profile` of %s: %+v", *id, err)
+		}
+		if err = d.Set("profile", profile); err != nil {
+			return fmt.Errorf("setting `profile` of %s: %+v", *id, err)
+		}
 
-	// Return a new tag map filtered by the specified tag names.
-	tagMap := tags.Filter(resp.Tags, "$type")
-	return tags.FlattenAndSet(d, tagMap)
+		notifications := flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)
+		if err = d.Set("notification", notifications); err != nil {
+			return fmt.Errorf("setting `notification` of %s: %+v", *id, err)
+		}
+
+		// Return a new tag map filtered by the specified tag names.
+		tagMap := tags.Filter(model.Tags, "$type")
+
+		if err = d.Set("tags", utils.FlattenPtrMapStringString(tagMap)); err != nil {
+			return err
+		}
+
+	}
+	return nil
 }
 
 func resourceMonitorAutoScaleSettingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -516,14 +521,14 @@ func resourceMonitorAutoScaleSettingDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutoscaleSettingID(d.Id())
+	id, err := autoscalesettings.ParseAutoScaleSettingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting Monitor %s: %+v", *id, err)
 		}
 	}
@@ -531,8 +536,8 @@ func resourceMonitorAutoScaleSettingDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandAzureRmMonitorAutoScaleSettingProfile(input []interface{}) (*[]insights.AutoscaleProfile, error) {
-	results := make([]insights.AutoscaleProfile, 0)
+func expandAzureRmMonitorAutoScaleSettingProfile(input []interface{}) ([]autoscalesettings.AutoscaleProfile, error) {
+	results := make([]autoscalesettings.AutoscaleProfile, 0)
 
 	for _, v := range input {
 		raw := v.(map[string]interface{})
@@ -542,10 +547,10 @@ func expandAzureRmMonitorAutoScaleSettingProfile(input []interface{}) (*[]insigh
 		// this is Required, so we don't need to check for optionals here
 		capacitiesRaw := raw["capacity"].([]interface{})
 		capacityRaw := capacitiesRaw[0].(map[string]interface{})
-		capacity := insights.ScaleCapacity{
-			Minimum: utils.String(strconv.Itoa(capacityRaw["minimum"].(int))),
-			Maximum: utils.String(strconv.Itoa(capacityRaw["maximum"].(int))),
-			Default: utils.String(strconv.Itoa(capacityRaw["default"].(int))),
+		capacity := autoscalesettings.ScaleCapacity{
+			Minimum: strconv.Itoa(capacityRaw["minimum"].(int)),
+			Maximum: strconv.Itoa(capacityRaw["maximum"].(int)),
+			Default: strconv.Itoa(capacityRaw["default"].(int)),
 		}
 
 		recurrencesRaw := raw["recurrence"].([]interface{})
@@ -560,9 +565,9 @@ func expandAzureRmMonitorAutoScaleSettingProfile(input []interface{}) (*[]insigh
 			return nil, fmt.Errorf("expanding `fixed_date`: %+v", err)
 		}
 
-		result := insights.AutoscaleProfile{
-			Name:       utils.String(name),
-			Capacity:   &capacity,
+		result := autoscalesettings.AutoscaleProfile{
+			Name:       name,
+			Capacity:   capacity,
 			FixedDate:  fixedDate,
 			Recurrence: recurrence,
 			Rules:      rules,
@@ -570,52 +575,52 @@ func expandAzureRmMonitorAutoScaleSettingProfile(input []interface{}) (*[]insigh
 		results = append(results, result)
 	}
 
-	return &results, nil
+	return results, nil
 }
 
-func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) *[]insights.ScaleRule {
-	rules := make([]insights.ScaleRule, 0)
+func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) []autoscalesettings.ScaleRule {
+	rules := make([]autoscalesettings.ScaleRule, 0)
 
 	for _, v := range input {
 		ruleRaw := v.(map[string]interface{})
 
 		triggersRaw := ruleRaw["metric_trigger"].([]interface{})
 		triggerRaw := triggersRaw[0].(map[string]interface{})
-		metricTrigger := insights.MetricTrigger{
-			MetricName:        utils.String(triggerRaw["metric_name"].(string)),
+		metricTrigger := autoscalesettings.MetricTrigger{
+			MetricName:        triggerRaw["metric_name"].(string),
 			MetricNamespace:   utils.String(triggerRaw["metric_namespace"].(string)),
-			MetricResourceURI: utils.String(triggerRaw["metric_resource_id"].(string)),
-			TimeGrain:         utils.String(triggerRaw["time_grain"].(string)),
-			Statistic:         insights.MetricStatisticType(triggerRaw["statistic"].(string)),
-			TimeWindow:        utils.String(triggerRaw["time_window"].(string)),
-			TimeAggregation:   insights.TimeAggregationType(triggerRaw["time_aggregation"].(string)),
-			Operator:          insights.ComparisonOperationType(triggerRaw["operator"].(string)),
-			Threshold:         utils.Float(triggerRaw["threshold"].(float64)),
+			MetricResourceUri: triggerRaw["metric_resource_id"].(string),
+			TimeGrain:         triggerRaw["time_grain"].(string),
+			Statistic:         autoscalesettings.MetricStatisticType(triggerRaw["statistic"].(string)),
+			TimeWindow:        triggerRaw["time_window"].(string),
+			TimeAggregation:   autoscalesettings.TimeAggregationType(triggerRaw["time_aggregation"].(string)),
+			Operator:          autoscalesettings.ComparisonOperationType(triggerRaw["operator"].(string)),
+			Threshold:         triggerRaw["threshold"].(float64),
 			Dimensions:        expandAzureRmMonitorAutoScaleSettingRuleDimensions(triggerRaw["dimensions"].([]interface{})),
 			DividePerInstance: utils.Bool(triggerRaw["divide_by_instance_count"].(bool)),
 		}
 
 		actionsRaw := ruleRaw["scale_action"].([]interface{})
 		actionRaw := actionsRaw[0].(map[string]interface{})
-		scaleAction := insights.ScaleAction{
-			Direction: insights.ScaleDirection(actionRaw["direction"].(string)),
-			Type:      insights.ScaleType(actionRaw["type"].(string)),
+		scaleAction := autoscalesettings.ScaleAction{
+			Direction: autoscalesettings.ScaleDirection(actionRaw["direction"].(string)),
+			Type:      autoscalesettings.ScaleType(actionRaw["type"].(string)),
 			Value:     utils.String(strconv.Itoa(actionRaw["value"].(int))),
-			Cooldown:  utils.String(actionRaw["cooldown"].(string)),
+			Cooldown:  actionRaw["cooldown"].(string),
 		}
 
-		rule := insights.ScaleRule{
-			MetricTrigger: &metricTrigger,
-			ScaleAction:   &scaleAction,
+		rule := autoscalesettings.ScaleRule{
+			MetricTrigger: metricTrigger,
+			ScaleAction:   scaleAction,
 		}
 
 		rules = append(rules, rule)
 	}
 
-	return &rules
+	return rules
 }
 
-func expandAzureRmMonitorAutoScaleSettingFixedDate(input []interface{}) (*insights.TimeWindow, error) {
+func expandAzureRmMonitorAutoScaleSettingFixedDate(input []interface{}) (*autoscalesettings.TimeWindow, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -625,28 +630,26 @@ func expandAzureRmMonitorAutoScaleSettingFixedDate(input []interface{}) (*insigh
 	startString := raw["start"].(string)
 	startTime, err := date.ParseTime(time.RFC3339, startString)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse `start` time %q as an RFC3339 date: %+v", startString, err)
+		return nil, fmt.Errorf("failed to parse `start` time %q as an RFC3339 date: %+v", startString, err)
 	}
 	endString := raw["end"].(string)
 	endTime, err := date.ParseTime(time.RFC3339, endString)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse `end` time %q as an RFC3339 date: %+v", endString, err)
+		return nil, fmt.Errorf("failed to parse `end` time %q as an RFC3339 date: %+v", endString, err)
 	}
 
 	timeZone := raw["timezone"].(string)
-	timeWindow := insights.TimeWindow{
+	timeWindow := autoscalesettings.TimeWindow{
 		TimeZone: utils.String(timeZone),
-		Start: &date.Time{
-			Time: startTime,
-		},
-		End: &date.Time{
-			Time: endTime,
-		},
 	}
+
+	timeWindow.SetStartAsTime(startTime)
+	timeWindow.SetEndAsTime(endTime)
+
 	return &timeWindow, nil
 }
 
-func expandAzureRmMonitorAutoScaleSettingRecurrence(input []interface{}) *insights.Recurrence {
+func expandAzureRmMonitorAutoScaleSettingRecurrence(input []interface{}) *autoscalesettings.Recurrence {
 	if len(input) == 0 {
 		return nil
 	}
@@ -659,30 +662,30 @@ func expandAzureRmMonitorAutoScaleSettingRecurrence(input []interface{}) *insigh
 		days = append(days, dayItem.(string))
 	}
 
-	hours := make([]int32, 0)
+	hours := make([]int64, 0)
 	for _, hourItem := range recurrenceRaw["hours"].([]interface{}) {
-		hours = append(hours, int32(hourItem.(int)))
+		hours = append(hours, int64(hourItem.(int)))
 	}
 
-	minutes := make([]int32, 0)
+	minutes := make([]int64, 0)
 	for _, minuteItem := range recurrenceRaw["minutes"].([]interface{}) {
-		minutes = append(minutes, int32(minuteItem.(int)))
+		minutes = append(minutes, int64(minuteItem.(int)))
 	}
 
-	return &insights.Recurrence{
+	return &autoscalesettings.Recurrence{
 		// API docs say this has to be `Week`.
-		Frequency: insights.RecurrenceFrequencyWeek,
-		Schedule: &insights.RecurrentSchedule{
-			TimeZone: utils.String(timeZone),
-			Days:     &days,
-			Hours:    &hours,
-			Minutes:  &minutes,
+		Frequency: autoscalesettings.RecurrenceFrequencyWeek,
+		Schedule: autoscalesettings.RecurrentSchedule{
+			TimeZone: timeZone,
+			Days:     days,
+			Hours:    hours,
+			Minutes:  minutes,
 		},
 	}
 }
 
-func expandAzureRmMonitorAutoScaleSettingNotifications(input []interface{}) *[]insights.AutoscaleNotification {
-	notifications := make([]insights.AutoscaleNotification, 0)
+func expandAzureRmMonitorAutoScaleSettingNotifications(input []interface{}) *[]autoscalesettings.AutoscaleNotification {
+	notifications := make([]autoscalesettings.AutoscaleNotification, 0)
 
 	for _, v := range input {
 		notificationRaw := v.(map[string]interface{})
@@ -690,9 +693,9 @@ func expandAzureRmMonitorAutoScaleSettingNotifications(input []interface{}) *[]i
 		configsRaw := notificationRaw["webhook"].([]interface{})
 		webhooks := expandAzureRmMonitorAutoScaleSettingNotificationWebhook(configsRaw)
 
-		notification := insights.AutoscaleNotification{
-			Operation: utils.String("scale"),
-			Webhooks:  webhooks,
+		notification := autoscalesettings.AutoscaleNotification{
+			Operation: "scale",
+			WebHooks:  webhooks,
 		}
 
 		emailsRaw := notificationRaw["email"].([]interface{})
@@ -706,7 +709,7 @@ func expandAzureRmMonitorAutoScaleSettingNotifications(input []interface{}) *[]i
 	return &notifications
 }
 
-func expandAzureRmMonitorAutoScaleSettingNotificationEmail(input map[string]interface{}) *insights.EmailNotification {
+func expandAzureRmMonitorAutoScaleSettingNotificationEmail(input map[string]interface{}) *autoscalesettings.EmailNotification {
 	customEmails := make([]string, 0)
 	if v, ok := input["custom_emails"]; ok {
 		for _, item := range v.([]interface{}) {
@@ -714,7 +717,7 @@ func expandAzureRmMonitorAutoScaleSettingNotificationEmail(input map[string]inte
 		}
 	}
 
-	email := insights.EmailNotification{
+	email := autoscalesettings.EmailNotification{
 		CustomEmails:                       &customEmails,
 		SendToSubscriptionAdministrator:    utils.Bool(input["send_to_subscription_administrator"].(bool)),
 		SendToSubscriptionCoAdministrators: utils.Bool(input["send_to_subscription_co_administrator"].(bool)),
@@ -723,8 +726,8 @@ func expandAzureRmMonitorAutoScaleSettingNotificationEmail(input map[string]inte
 	return &email
 }
 
-func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}) *[]insights.WebhookNotification {
-	webhooks := make([]insights.WebhookNotification, 0)
+func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}) *[]autoscalesettings.WebhookNotification {
+	webhooks := make([]autoscalesettings.WebhookNotification, 0)
 
 	for _, v := range input {
 		if v == nil {
@@ -732,17 +735,17 @@ func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}
 		}
 		webhookRaw := v.(map[string]interface{})
 
-		webhook := insights.WebhookNotification{
-			ServiceURI: utils.String(webhookRaw["service_uri"].(string)),
+		webhook := autoscalesettings.WebhookNotification{
+			ServiceUri: utils.String(webhookRaw["service_uri"].(string)),
 		}
 
 		if props, ok := webhookRaw["properties"]; ok {
-			properties := make(map[string]*string)
+			properties := make(map[string]string)
 			for key, value := range props.(map[string]interface{}) {
-				properties[key] = utils.String(value.(string))
+				properties[key] = value.(string)
 			}
 
-			webhook.Properties = properties
+			webhook.Properties = &properties
 		}
 
 		webhooks = append(webhooks, webhook)
@@ -751,8 +754,8 @@ func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}
 	return &webhooks
 }
 
-func expandAzureRmMonitorAutoScaleSettingRuleDimensions(input []interface{}) *[]insights.ScaleRuleMetricDimension {
-	dimensions := make([]insights.ScaleRuleMetricDimension, 0)
+func expandAzureRmMonitorAutoScaleSettingRuleDimensions(input []interface{}) *[]autoscalesettings.ScaleRuleMetricDimension {
+	dimensions := make([]autoscalesettings.ScaleRuleMetricDimension, 0)
 
 	for _, v := range input {
 		if v == nil {
@@ -760,10 +763,10 @@ func expandAzureRmMonitorAutoScaleSettingRuleDimensions(input []interface{}) *[]
 		}
 		dimensionRaw := v.(map[string]interface{})
 
-		dimension := insights.ScaleRuleMetricDimension{
-			DimensionName: utils.String(dimensionRaw["name"].(string)),
-			Operator:      insights.ScaleRuleMetricDimensionOperationType(dimensionRaw["operator"].(string)),
-			Values:        utils.ExpandStringSlice(dimensionRaw["values"].([]interface{})),
+		dimension := autoscalesettings.ScaleRuleMetricDimension{
+			DimensionName: dimensionRaw["name"].(string),
+			Operator:      autoscalesettings.ScaleRuleMetricDimensionOperationType(dimensionRaw["operator"].(string)),
+			Values:        expandStringValues(dimensionRaw["values"].([]interface{})),
 		}
 
 		dimensions = append(dimensions, dimension)
@@ -772,18 +775,16 @@ func expandAzureRmMonitorAutoScaleSettingRuleDimensions(input []interface{}) *[]
 	return &dimensions
 }
 
-func flattenAzureRmMonitorAutoScaleSettingProfile(profiles *[]insights.AutoscaleProfile) ([]interface{}, error) {
+func flattenAzureRmMonitorAutoScaleSettingProfile(profiles []autoscalesettings.AutoscaleProfile) ([]interface{}, error) {
 	if profiles == nil {
 		return []interface{}{}, nil
 	}
 
 	results := make([]interface{}, 0)
-	for _, profile := range *profiles {
+	for _, profile := range profiles {
 		result := make(map[string]interface{})
 
-		if name := profile.Name; name != nil {
-			result["name"] = *name
-		}
+		result["name"] = profile.Name
 
 		capacity, err := flattenAzureRmMonitorAutoScaleSettingCapacity(profile.Capacity)
 		if err != nil {
@@ -805,120 +806,85 @@ func flattenAzureRmMonitorAutoScaleSettingProfile(profiles *[]insights.Autoscale
 	return results, nil
 }
 
-func flattenAzureRmMonitorAutoScaleSettingCapacity(input *insights.ScaleCapacity) ([]interface{}, error) {
-	if input == nil {
-		return []interface{}{}, nil
-	}
+func flattenAzureRmMonitorAutoScaleSettingCapacity(input autoscalesettings.ScaleCapacity) ([]interface{}, error) {
 
 	result := make(map[string]interface{})
 
-	if minStr := input.Minimum; minStr != nil {
-		min, err := strconv.Atoi(*minStr)
-		if err != nil {
-			return nil, fmt.Errorf("converting Minimum Scale Capacity %q to an int: %+v", *minStr, err)
-		}
-		result["minimum"] = min
+	min, err := strconv.Atoi(input.Minimum)
+	if err != nil {
+		return nil, fmt.Errorf("converting Minimum Scale Capacity %q to an int: %+v", input.Minimum, err)
 	}
+	result["minimum"] = min
 
-	if maxStr := input.Maximum; maxStr != nil {
-		max, err := strconv.Atoi(*maxStr)
-		if err != nil {
-			return nil, fmt.Errorf("converting Maximum Scale Capacity %q to an int: %+v", *maxStr, err)
-		}
-		result["maximum"] = max
+	max, err := strconv.Atoi(input.Maximum)
+	if err != nil {
+		return nil, fmt.Errorf("converting Maximum Scale Capacity %q to an int: %+v", input.Maximum, err)
 	}
+	result["maximum"] = max
 
-	if defaultCapacityStr := input.Default; defaultCapacityStr != nil {
-		defaultCapacity, err := strconv.Atoi(*defaultCapacityStr)
-		if err != nil {
-			return nil, fmt.Errorf("converting Default Scale Capacity %q to an int: %+v", *defaultCapacityStr, err)
-		}
-		result["default"] = defaultCapacity
+	defaultCapacity, err := strconv.Atoi(input.Default)
+	if err != nil {
+		return nil, fmt.Errorf("converting Default Scale Capacity %q to an int: %+v", input.Default, err)
 	}
+	result["default"] = defaultCapacity
 
 	return []interface{}{result}, nil
 }
 
-func flattenAzureRmMonitorAutoScaleSettingRules(input *[]insights.ScaleRule) ([]interface{}, error) {
+func flattenAzureRmMonitorAutoScaleSettingRules(input []autoscalesettings.ScaleRule) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
 
 	results := make([]interface{}, 0)
-	for _, rule := range *input {
+	for _, rule := range input {
 		result := make(map[string]interface{})
 
 		metricTriggers := make([]interface{}, 0)
-		if trigger := rule.MetricTrigger; trigger != nil {
-			var metricName, metricNamespace, metricId, timeGrain, timeWindow string
-			var dividePerInstance bool
-			var threshold float64
-			if trigger.MetricName != nil {
-				metricName = *trigger.MetricName
-			}
+		var metricNamespace string
+		var dividePerInstance bool
 
-			if v := trigger.MetricNamespace; v != nil {
-				metricNamespace = *v
-			}
-
-			if trigger.MetricResourceURI != nil {
-				metricId = *trigger.MetricResourceURI
-			}
-
-			if trigger.TimeGrain != nil {
-				timeGrain = *trigger.TimeGrain
-			}
-
-			if trigger.TimeWindow != nil {
-				timeWindow = *trigger.TimeWindow
-			}
-
-			if trigger.Threshold != nil {
-				threshold = *trigger.Threshold
-			}
-
-			if trigger.DividePerInstance != nil {
-				dividePerInstance = *trigger.DividePerInstance
-			}
-
-			metricTriggers = append(metricTriggers, map[string]interface{}{
-				"metric_name":              metricName,
-				"metric_namespace":         metricNamespace,
-				"metric_resource_id":       metricId,
-				"time_grain":               timeGrain,
-				"statistic":                string(trigger.Statistic),
-				"time_window":              timeWindow,
-				"time_aggregation":         string(trigger.TimeAggregation),
-				"operator":                 string(trigger.Operator),
-				"threshold":                threshold,
-				"dimensions":               flattenAzureRmMonitorAutoScaleSettingRulesDimensions(trigger.Dimensions),
-				"divide_by_instance_count": dividePerInstance,
-			})
+		if v := rule.MetricTrigger.MetricNamespace; v != nil {
+			metricNamespace = *v
 		}
+
+		if rule.MetricTrigger.DividePerInstance != nil {
+			dividePerInstance = *rule.MetricTrigger.DividePerInstance
+		}
+
+		metricTriggers = append(metricTriggers, map[string]interface{}{
+			"metric_name":              rule.MetricTrigger.MetricName,
+			"metric_namespace":         metricNamespace,
+			"metric_resource_id":       rule.MetricTrigger.MetricResourceUri,
+			"time_grain":               rule.MetricTrigger.TimeGrain,
+			"statistic":                string(rule.MetricTrigger.Statistic),
+			"time_window":              rule.MetricTrigger.TimeWindow,
+			"time_aggregation":         string(rule.MetricTrigger.TimeAggregation),
+			"operator":                 string(rule.MetricTrigger.Operator),
+			"threshold":                rule.MetricTrigger.Threshold,
+			"dimensions":               flattenAzureRmMonitorAutoScaleSettingRulesDimensions(rule.MetricTrigger.Dimensions),
+			"divide_by_instance_count": dividePerInstance,
+		})
 
 		result["metric_trigger"] = metricTriggers
 
 		scaleActions := make([]interface{}, 0)
-		if v := rule.ScaleAction; v != nil {
-			action := make(map[string]interface{})
+		v := rule.ScaleAction
+		action := make(map[string]interface{})
 
-			action["direction"] = string(v.Direction)
-			action["type"] = string(v.Type)
+		action["direction"] = string(v.Direction)
+		action["type"] = string(v.Type)
+		action["cooldown"] = v.Cooldown
 
-			if v.Cooldown != nil {
-				action["cooldown"] = *v.Cooldown
+		if val := v.Value; val != nil && *val != "" {
+			i, err := strconv.Atoi(*val)
+			if err != nil {
+				return nil, fmt.Errorf("`value` %q was not convertable to an int: %s", *val, err)
 			}
-
-			if val := v.Value; val != nil && *val != "" {
-				i, err := strconv.Atoi(*val)
-				if err != nil {
-					return nil, fmt.Errorf("`value` %q was not convertable to an int: %s", *val, err)
-				}
-				action["value"] = i
-			}
-
-			scaleActions = append(scaleActions, action)
+			action["value"] = i
 		}
+
+		scaleActions = append(scaleActions, action)
 
 		result["scale_action"] = scaleActions
 
@@ -928,7 +894,7 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input *[]insights.ScaleRule) ([]
 	return results, nil
 }
 
-func flattenAzureRmMonitorAutoScaleSettingFixedDate(input *insights.TimeWindow) []interface{} {
+func flattenAzureRmMonitorAutoScaleSettingFixedDate(input *autoscalesettings.TimeWindow) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -938,57 +904,48 @@ func flattenAzureRmMonitorAutoScaleSettingFixedDate(input *insights.TimeWindow) 
 	if timezone := input.TimeZone; timezone != nil {
 		result["timezone"] = *timezone
 	}
-
-	if start := input.Start; start != nil {
-		result["start"] = start.String()
-	}
-
-	if end := input.End; end != nil {
-		result["end"] = end.String()
-	}
+	result["start"] = input.Start
+	result["end"] = input.End
 
 	return []interface{}{result}
 }
 
-func flattenAzureRmMonitorAutoScaleSettingRecurrence(input *insights.Recurrence) []interface{} {
+func flattenAzureRmMonitorAutoScaleSettingRecurrence(input *autoscalesettings.Recurrence) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	result := make(map[string]interface{})
 
-	if schedule := input.Schedule; schedule != nil {
-		if timezone := schedule.TimeZone; timezone != nil {
-			result["timezone"] = *timezone
-		}
+	schedule := input.Schedule
+	result["timezone"] = schedule.TimeZone
 
-		days := make([]string, 0)
-		if s := schedule.Days; s != nil {
-			days = *s
-		}
-		result["days"] = days
-
-		hours := make([]int, 0)
-		if schedule.Hours != nil {
-			for _, v := range *schedule.Hours {
-				hours = append(hours, int(v))
-			}
-		}
-		result["hours"] = hours
-
-		minutes := make([]int, 0)
-		if schedule.Minutes != nil {
-			for _, v := range *schedule.Minutes {
-				minutes = append(minutes, int(v))
-			}
-		}
-		result["minutes"] = minutes
+	days := make([]string, 0)
+	if s := schedule.Days; s != nil {
+		days = s
 	}
+	result["days"] = days
+
+	hours := make([]int, 0)
+	if schedule.Hours != nil {
+		for _, v := range schedule.Hours {
+			hours = append(hours, int(v))
+		}
+	}
+	result["hours"] = hours
+
+	minutes := make([]int, 0)
+	if schedule.Minutes != nil {
+		for _, v := range schedule.Minutes {
+			minutes = append(minutes, int(v))
+		}
+	}
+	result["minutes"] = minutes
 
 	return []interface{}{result}
 }
 
-func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]insights.AutoscaleNotification) []interface{} {
+func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]autoscalesettings.AutoscaleNotification) []interface{} {
 	results := make([]interface{}, 0)
 
 	if notifications == nil {
@@ -1023,22 +980,23 @@ func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]insights
 		result["email"] = emails
 
 		webhooks := make([]interface{}, 0)
-		if hooks := notification.Webhooks; hooks != nil {
+		if hooks := notification.WebHooks; hooks != nil {
 			for _, v := range *hooks {
 				hook := make(map[string]interface{})
 
-				if v.ServiceURI != nil {
-					hook["service_uri"] = *v.ServiceURI
+				if v.ServiceUri != nil {
+					hook["service_uri"] = *v.ServiceUri
 				}
 
 				props := make(map[string]string)
-				for key, value := range v.Properties {
-					if value != nil {
-						props[key] = *value
+				if webHookProps := v.Properties; webHookProps != nil {
+					for key, value := range *v.Properties {
+						props[key] = value
+
 					}
+					hook["properties"] = props
+					webhooks = append(webhooks, hook)
 				}
-				hook["properties"] = props
-				webhooks = append(webhooks, hook)
 			}
 		}
 
@@ -1049,7 +1007,7 @@ func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]insights
 	return results
 }
 
-func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]insights.ScaleRuleMetricDimension) []interface{} {
+func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]autoscalesettings.ScaleRuleMetricDimension) []interface{} {
 	results := make([]interface{}, 0)
 
 	if dimensions == nil {
@@ -1057,16 +1015,11 @@ func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]insights
 	}
 
 	for _, dimension := range *dimensions {
-		var name string
-
-		if v := dimension.DimensionName; v != nil {
-			name = *v
-		}
 
 		results = append(results, map[string]interface{}{
-			"name":     name,
+			"name":     dimension.DimensionName,
 			"operator": string(dimension.Operator),
-			"values":   utils.FlattenStringSlice(dimension.Values),
+			"values":   dimension.Values,
 		})
 	}
 	return results

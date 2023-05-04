@@ -26,12 +26,12 @@ func TestAccSentinelAlertRuleAnomalyDataSource_basicWithThreshold(t *testing.T) 
 				check.That(data.ResourceName).Key("description").Exists(),
 				check.That(data.ResourceName).Key("enabled").Exists(),
 				check.That(data.ResourceName).Key("frequency").Exists(),
-				check.That(data.ResourceName).Key("required_data_connector.#").HasValue("2"),
+				check.That(data.ResourceName).Key("required_data_connector.#").HasValue("1"),
 				check.That(data.ResourceName).Key("mode").Exists(),
 				check.That(data.ResourceName).Key("settings_definition_id").Exists(),
 				check.That(data.ResourceName).Key("tactics.#").HasValue("1"),
 				check.That(data.ResourceName).Key("techniques.#").HasValue("1"),
-				check.That(data.ResourceName).Key("threshold_observation.#").HasValue("1"),
+				check.That(data.ResourceName).Key("threshold_observation.#").HasValue("2"),
 			),
 		},
 	})
@@ -123,9 +123,8 @@ func (SentinelAlertRuleAnomalyDataSource) basic_withThreshold(data acceptance.Te
 %s
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  display_name               = "UEBA Anomalous Sign In"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Potential data staging"
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
@@ -135,9 +134,8 @@ func (SentinelAlertRuleAnomalyDataSource) basic_withSingleSelect(data acceptance
 %s
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  display_name               = "(Preview) Suspicious geography change in Palo Alto GlobalProtect account logins"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Suspicious geography change in Palo Alto GlobalProtect account logins"
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
@@ -147,9 +145,8 @@ func (SentinelAlertRuleAnomalyDataSource) basic_withMultiSelect(data acceptance.
 %s
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  display_name               = "(Preview) Attempted user account bruteforce per logon type"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Attempted user account bruteforce per logon type"
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
@@ -159,9 +156,8 @@ func (SentinelAlertRuleAnomalyDataSource) basic_withPrioritizeExclude(data accep
 %s
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  display_name               = "(Preview) Anomalous web request activity"
-  depends_on                 = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Anomalous web request activity"
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }

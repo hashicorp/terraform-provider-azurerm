@@ -100,7 +100,7 @@ A `security_rule` block support:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Network Security Group.
 

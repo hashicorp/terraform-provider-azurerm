@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -416,12 +416,12 @@ func TestAccKeyVault_deletePolicy(t *testing.T) {
 }
 
 func (KeyVaultResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VaultID(state.ID)
+	id, err := commonids.ParseKeyVaultID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.ResourceGroupName, id.VaultName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault (%s): %+v", id, err)
 	}
@@ -430,12 +430,12 @@ func (KeyVaultResource) Exists(ctx context.Context, clients *clients.Client, sta
 }
 
 func (KeyVaultResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VaultID(state.ID)
+	id, err := commonids.ParseKeyVaultID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err := client.KeyVault.VaultsClient.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	if _, err := client.KeyVault.VaultsClient.Delete(ctx, id.ResourceGroupName, id.VaultName); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

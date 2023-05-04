@@ -153,7 +153,7 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutDelete), func() *pluginsdk.RetryError {
 		future, err := client.ClustersDelete(ctx, *id)
 		if err != nil {
-			if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") || response.WasStatusCode(future.HttpResponse, http.StatusTooManyRequests) {
+			if strings.Contains(err.Error(), "ClusterMoratoriumInEffect") || response.WasBadRequest(future.HttpResponse) || response.WasStatusCode(future.HttpResponse, http.StatusTooManyRequests) {
 				return pluginsdk.RetryableError(fmt.Errorf("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
 			}
 			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))

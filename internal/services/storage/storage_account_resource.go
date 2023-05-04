@@ -2349,7 +2349,7 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 	if keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("unexpected nil Key Vault ID retrieved at URL %s", keyId.KeyVaultBaseUrl)
 	}
-	keyVaultId, err := keyVaultParse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -2359,7 +2359,7 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 		vaultsClient = keyVaultClient.KeyVaultClientForSubscription(keyVaultId.SubscriptionId)
 	}
 
-	keyVault, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
+	keyVault, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroupName, keyVaultId.VaultName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
 	}

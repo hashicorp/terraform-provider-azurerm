@@ -80,7 +80,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ~> **NOTE:** This property only has a value when `infrastructure_subnet_id` is configured and will be a value within the CIDR of the Subnet.
 
-* `static_ip_address` - The Static IP of the Environment.
+* `static_ip_address` - The Static IP address of the Environment.
 
 ~> **NOTE:** This will be a Public IP unless `internal_load_balancer_enabled` is set to `true`, in which case an IP in the Internal Subnet will be reserved. 
 

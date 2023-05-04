@@ -1236,10 +1236,32 @@ func (r WindowsVirtualMachineScaleSetResource) otherEdgeZone(data acceptance.Tes
 	data.Locations.Primary = "westus"
 
 	return fmt.Sprintf(`
-%[1]s
+locals {
+  vm_name = "%[1]s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[3]d"
+  location = "%[2]s"
+}
 
 data "azurerm_extended_locations" "test" {
   location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[3]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1275,7 +1297,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data))
+`, r.vmName(data), data.Locations.Primary, data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherUserData(data acceptance.TestData, userData string) string {
@@ -2190,8 +2212,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherWinRMHTTPS(data acceptance.TestData) string {
-	// key vault name can only be up to 24 chars
-	trimmedName := fmt.Sprintf("%d", data.RandomInteger)[0:5]
 	return fmt.Sprintf(`
 %s
 
@@ -2356,7 +2376,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     protocol        = "Https"
   }
 }
-`, r.template(data), trimmedName)
+`, r.template(data), data.RandomString)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) updateLoadBalancerHealthProbeSKU(data acceptance.TestData, isStandardSku bool) string {

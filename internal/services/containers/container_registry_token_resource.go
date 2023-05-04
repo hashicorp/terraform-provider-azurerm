@@ -5,12 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/scopemaps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -25,7 +26,7 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 		Delete: resourceContainerRegistryTokenDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ContainerRegistryTokenID(id)
+			_, err := tokens.ParseTokenID(id)
 			return err
 		}),
 
@@ -56,7 +57,7 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 			"scope_map_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ContainerRegistryScopeMapID,
+				ValidateFunc: scopemaps.ValidateScopeMapID,
 			},
 
 			"enabled": {
@@ -69,51 +70,46 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 }
 
 func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.TokensClient
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewContainerRegistryTokenID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
+	id := tokens.NewTokenID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
 
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_container_registry_token", id.ID())
 		}
 	}
 
 	scopeMapID := d.Get("scope_map_id").(string)
 	enabled := d.Get("enabled").(bool)
-	status := containerregistry.TokenStatusEnabled
+	status := tokens.TokenStatusEnabled
 
 	if !enabled {
-		status = containerregistry.TokenStatusDisabled
+		status = tokens.TokenStatusDisabled
 	}
 
-	parameters := containerregistry.Token{
-		TokenProperties: &containerregistry.TokenProperties{
-			ScopeMapID: utils.String(scopeMapID),
-			Status:     status,
+	parameters := tokens.Token{
+		Properties: &tokens.TokenProperties{
+			ScopeMapId: utils.String(scopeMapID),
+			Status:     &status,
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.RegistryName, id.TokenName, parameters)
-	if err != nil {
+	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -122,12 +118,12 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.TokensClient
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry token update.")
-	id, err := parse.ContainerRegistryTokenID(d.Id())
+	id, err := tokens.ParseTokenID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -137,26 +133,21 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 
 	scopeMapID := d.Get("scope_map_id").(string)
 	enabled := d.Get("enabled").(bool)
-	status := containerregistry.TokenStatusEnabled
+	status := tokens.TokenStatusEnabled
 
 	if !enabled {
-		status = containerregistry.TokenStatusDisabled
+		status = tokens.TokenStatusDisabled
 	}
 
-	parameters := containerregistry.TokenUpdateParameters{
-		TokenUpdateProperties: &containerregistry.TokenUpdateProperties{
-			ScopeMapID: utils.String(scopeMapID),
-			Status:     status,
+	parameters := tokens.TokenUpdateParameters{
+		Properties: &tokens.TokenUpdateProperties{
+			ScopeMapId: utils.String(scopeMapID),
+			Status:     &status,
 		},
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.RegistryName, id.TokenName, parameters)
-	if err != nil {
+	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -165,46 +156,55 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.TokensClient
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ContainerRegistryTokenID(d.Id())
+	id, err := tokens.ParseTokenID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Token %q was not found in Container Registry %q in Resource Group %q", id.TokenName, id.RegistryName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on token %q in Azure Container Registry %q (Resource Group %q): %+v", id.TokenName, id.RegistryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	status := true
-	if resp.Status == containerregistry.TokenStatusDisabled {
-		status = false
-	}
-
-	d.Set("name", resp.Name)
+	d.Set("name", id.TokenName)
 	d.Set("container_registry_name", id.RegistryName)
-	d.Set("enabled", status)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("scope_map_id", resp.ScopeMapID)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			status := true
+			if v := props.Status; v != nil && *v == tokens.TokenStatusDisabled {
+				status = false
+			}
+			d.Set("enabled", status)
+
+			scopeMapId := ""
+			if v := props.ScopeMapId; v != nil {
+				scopeMapId = *v
+			}
+			d.Set("scope_map_id", scopeMapId)
+		}
+	}
 
 	return nil
 }
 
 func resourceContainerRegistryTokenDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.TokensClient
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ContainerRegistryTokenID(d.Id())
+	id, err := tokens.ParseTokenID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -212,13 +212,8 @@ func resourceContainerRegistryTokenDelete(d *pluginsdk.ResourceData, meta interf
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

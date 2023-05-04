@@ -133,7 +133,7 @@ func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.KeyVaultId().ResourceGroup, id.KeyVaultId().Name)
+	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.KeyVaultId().ResourceGroupName, id.KeyVaultId().VaultName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault (%s): %+v", id, err)
 	}
