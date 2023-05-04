@@ -1,19 +1,19 @@
 ---
 subcategory: "Container"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_kubernetes_snapshot"
+page_title: "Azure Resource Manager: azurerm_kubernetes_node_pool_snapshot"
 description: |-
   Gets information about an existing Kubernetes Snapshot
 ---
 
-# Data Source: azurerm_kubernetes_snapshot
+# Data Source: azurerm_kubernetes_node_pool_snapshot
 
 Use this data source to access information about an existing Kubernetes Snapshot.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_kubernetes_snapshot" "example" {
+data "azurerm_kubernetes_node_pool_snapshot" "example" {
   name                = "example"
   resource_group_name = "example-resources"
 }

@@ -19,7 +19,7 @@ import (
 type KubernetesSnapshotDataSourceModel struct {
 	Name             string            `tfschema:"name"`
 	ResourceGroup    string            `tfschema:"resource_group_name"`
-	SourceResourceId string            `tfschema:"source_resource_id"`
+	SourceNodePoolId string            `tfschema:"source_node_pool_id"`
 	Tags             map[string]string `tfschema:"tags"`
 }
 
@@ -28,7 +28,7 @@ type KubernetesSnapshotDataSource struct{}
 var _ sdk.DataSource = KubernetesSnapshotDataSource{}
 
 func (r KubernetesSnapshotDataSource) ResourceType() string {
-	return "azurerm_kubernetes_snapshot"
+	return "azurerm_kubernetes_node_pool_snapshot"
 }
 
 func (r KubernetesSnapshotDataSource) ModelObject() interface{} {
@@ -53,7 +53,7 @@ func (r KubernetesSnapshotDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r KubernetesSnapshotDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"source_resource_id": {
+		"source_node_pool_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -90,12 +90,14 @@ func (r KubernetesSnapshotDataSource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
-					if props.CreationData != nil && props.CreationData.SourceResourceId != nil {
-						nodePoolId, err := agentpools.ParseAgentPoolIDInsensitively(*props.CreationData.SourceResourceId)
-						if err != nil {
-							return err
+					if snapshotType := props.SnapshotType; snapshotType != nil && *snapshotType == snapshots.SnapshotTypeNodePool {
+						if props.CreationData != nil && props.CreationData.SourceResourceId != nil {
+							nodePoolId, err := agentpools.ParseAgentPoolIDInsensitively(*props.CreationData.SourceResourceId)
+							if err != nil {
+								return err
+							}
+							state.SourceNodePoolId = nodePoolId.ID()
 						}
-						state.SourceResourceId = nodePoolId.ID()
 					}
 				}
 			}
