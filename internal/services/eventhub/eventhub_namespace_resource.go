@@ -503,20 +503,6 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	/*
-		deadline, _ := ctx.Deadline()
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending:      []string{"Activating", "ActivatingIdentity", "Updating", "Pending"},
-			Target:       []string{"Succeeded"},
-			Refresh:      eventHubNamespaceProvisioningStateRefreshFunc(ctx, client, id),
-			Timeout:      time.Until(deadline),
-			PollInterval: 10 * time.Second,
-		}
-
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for %s to be updated: %+v", id, err)
-		}*/
-
 	return resourceEventHubNamespaceRead(d, meta)
 }
 
