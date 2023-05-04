@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `appconfiguration`: refactoring to use `tombuildsstuff/kermit` rather than an embedded SDK [GH-21623]
+* `recoveryservicesbackup` - updating to use API Version `2023-02-01` [GH-21575]
 * `azurerm_kubernetes_cluster_node_pool` - support for the `snapshot_id` property [GH-21511]
 
 BUG FIXES:
