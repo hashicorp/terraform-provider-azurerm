@@ -3,6 +3,7 @@ package resource
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -52,6 +53,10 @@ func dataSourceResources() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"resource_group_name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -159,6 +164,12 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 				resID = *res.ID
 			}
 
+			resResourceGroupName := ""
+			if res.ID != nil {
+				re := regexp.MustCompile(`.+/resourceGroups/([^/]+).?`)
+				resResourceGroupName = string(re.FindSubmatch([]byte(*res.ID))[1])
+			}
+
 			resType := ""
 			if res.Type != nil {
 				resType = *res.Type
@@ -180,11 +191,12 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 			}
 
 			result = append(result, map[string]interface{}{
-				"name":     resName,
-				"id":       resID,
-				"type":     resType,
-				"location": resLocation,
-				"tags":     resTags,
+				"name":                resName,
+				"id":                  resID,
+				"resource_group_name": resResourceGroupName,
+				"type":                resType,
+				"location":            resLocation,
+				"tags":                resTags,
 			})
 		} else {
 			log.Printf("[DEBUG] azurerm_resources - resources %q (id: %q) skipped as a required tag is not set or has the wrong value.", *res.Name, *res.ID)
