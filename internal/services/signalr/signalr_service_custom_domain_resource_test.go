@@ -72,22 +72,17 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-//resource "azurerm_signalr_service" "test" {
-// name                = "acctestSignalR-%d"
-// location            = azurerm_resource_group.test.location
-// resource_group_name = azurerm_resource_group.test.name
-// sku {
-//   name     = "Premium_P1"
-//   capacity = 1
-// }
-// identity {
-//   type = "SystemAssigned"
-// }
-//}
-
-data "azurerm_signalr_service" "test" {
-name = "xiaxintestSignalR-cd"
-resource_group_name = "xiaxintestRG-signalrcustomdomain"
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku {
+    name     = "Premium_P1"
+    capacity = 1
+  }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_key_vault" "test" {
@@ -119,7 +114,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = "bfadf672-f834-4ec0-925c-f6c59db498aa"
+    object_id = azurerm_signalr_service.test.identity.0.principal_id
     certificate_permissions = [
       "Create",
       "Delete",
@@ -149,14 +144,14 @@ resource "azurerm_key_vault_certificate" "test" {
 
 resource "azurerm_signalr_service_custom_certificate" "test" {
   name                  = "signalr-cert-%s"
-  signalr_service_id    = data.azurerm_signalr_service.test.id
+  signalr_service_id    = azurerm_signalr_service.test.id
   custom_certificate_id = azurerm_key_vault_certificate.test.id
   depends_on            = [azurerm_key_vault.test]
 }
 
 resource "azurerm_signalr_service_custom_domain" "test" {
   name                          = "signalr-custom-domain-%s"
-  signalr_service_id            = data.azurerm_signalr_service.test.id
+  signalr_service_id            = azurerm_signalr_service.test.id
   domain_name                   = "signalr.tftestzone.com"
   signalr_custom_certificate_id = azurerm_signalr_service_custom_certificate.test.id
 }
