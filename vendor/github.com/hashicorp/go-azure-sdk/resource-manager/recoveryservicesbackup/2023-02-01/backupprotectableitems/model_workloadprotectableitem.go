@@ -83,10 +83,10 @@ func unmarshalWorkloadProtectableItemImplementation(input []byte) (WorkloadProte
 		return out, nil
 	}
 
-	if strings.EqualFold(value, "SAPHanaHSR") {
-		var out AzureVMWorkloadSAPHanaHSR
+	if strings.EqualFold(value, "HanaHSRContainer") {
+		var out AzureVMWorkloadSAPHanaHSRProtectableItem
 		if err := json.Unmarshal(input, &out); err != nil {
-			return nil, fmt.Errorf("unmarshaling into AzureVMWorkloadSAPHanaHSR: %+v", err)
+			return nil, fmt.Errorf("unmarshaling into AzureVMWorkloadSAPHanaHSRProtectableItem: %+v", err)
 		}
 		return out, nil
 	}

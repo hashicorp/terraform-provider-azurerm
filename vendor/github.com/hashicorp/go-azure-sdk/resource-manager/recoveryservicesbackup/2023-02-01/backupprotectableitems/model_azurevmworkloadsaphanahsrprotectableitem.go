@@ -8,9 +8,9 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ WorkloadProtectableItem = AzureVMWorkloadSAPHanaHSR{}
+var _ WorkloadProtectableItem = AzureVMWorkloadSAPHanaHSRProtectableItem{}
 
-type AzureVMWorkloadSAPHanaHSR struct {
+type AzureVMWorkloadSAPHanaHSRProtectableItem struct {
 	IsAutoProtectable       *bool                `json:"isAutoProtectable,omitempty"`
 	IsAutoProtected         *bool                `json:"isAutoProtected,omitempty"`
 	ParentName              *string              `json:"parentName,omitempty"`
@@ -27,25 +27,25 @@ type AzureVMWorkloadSAPHanaHSR struct {
 	WorkloadType         *string           `json:"workloadType,omitempty"`
 }
 
-var _ json.Marshaler = AzureVMWorkloadSAPHanaHSR{}
+var _ json.Marshaler = AzureVMWorkloadSAPHanaHSRProtectableItem{}
 
-func (s AzureVMWorkloadSAPHanaHSR) MarshalJSON() ([]byte, error) {
-	type wrapper AzureVMWorkloadSAPHanaHSR
+func (s AzureVMWorkloadSAPHanaHSRProtectableItem) MarshalJSON() ([]byte, error) {
+	type wrapper AzureVMWorkloadSAPHanaHSRProtectableItem
 	wrapped := wrapper(s)
 	encoded, err := json.Marshal(wrapped)
 	if err != nil {
-		return nil, fmt.Errorf("marshaling AzureVMWorkloadSAPHanaHSR: %+v", err)
+		return nil, fmt.Errorf("marshaling AzureVMWorkloadSAPHanaHSRProtectableItem: %+v", err)
 	}
 
 	var decoded map[string]interface{}
 	if err := json.Unmarshal(encoded, &decoded); err != nil {
-		return nil, fmt.Errorf("unmarshaling AzureVMWorkloadSAPHanaHSR: %+v", err)
+		return nil, fmt.Errorf("unmarshaling AzureVMWorkloadSAPHanaHSRProtectableItem: %+v", err)
 	}
-	decoded["protectableItemType"] = "SAPHanaHSR"
+	decoded["protectableItemType"] = "HanaHSRContainer"
 
 	encoded, err = json.Marshal(decoded)
 	if err != nil {
-		return nil, fmt.Errorf("re-marshaling AzureVMWorkloadSAPHanaHSR: %+v", err)
+		return nil, fmt.Errorf("re-marshaling AzureVMWorkloadSAPHanaHSRProtectableItem: %+v", err)
 	}
 
 	return encoded, nil
