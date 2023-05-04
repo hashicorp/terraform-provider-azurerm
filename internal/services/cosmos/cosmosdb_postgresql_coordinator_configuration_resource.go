@@ -24,7 +24,7 @@ type CosmosDbPostgreSQLCoordinatorConfigurationResource struct{}
 var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLCoordinatorConfigurationResource{}
 
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ResourceType() string {
-	return "azurerm_cosmosdb_postgresql_coordinator_configuration"
+	return CosmosDbPostgreSQLClusterResourceName
 }
 
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ModelObject() interface{} {
@@ -83,13 +83,12 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Create() sdk.Resourc
 			locks.ByName(id.ServerGroupsv2Name, CosmosDbPostgreSQLClusterResourceName)
 			defer locks.UnlockByName(id.ServerGroupsv2Name, CosmosDbPostgreSQLClusterResourceName)
 
-			parameters := &configurations.ServerConfiguration{
+			parameters := configurations.ServerConfiguration{
 				Properties: &configurations.ServerConfigurationProperties{
 					Value: model.Value,
 				},
 			}
-
-			if err := client.UpdateOnCoordinatorThenPoll(ctx, id, *parameters); err != nil {
+			if err := client.UpdateOnCoordinatorThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -118,16 +117,16 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Update() sdk.Resourc
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := &configurations.ServerConfiguration{
-				Properties: &configurations.ServerConfigurationProperties{},
-			}
-
 			if metadata.ResourceData.HasChange("value") {
-				parameters.Properties.Value = model.Value
-			}
+				parameters := configurations.ServerConfiguration{
+					Properties: &configurations.ServerConfigurationProperties{
+						Value: model.Value,
+					},
+				}
 
-			if err := client.UpdateOnCoordinatorThenPoll(ctx, *id, *parameters); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
+				if err := client.UpdateOnCoordinatorThenPoll(ctx, *id, parameters); err != nil {
+					return fmt.Errorf("updating %s: %+v", *id, err)
+				}
 			}
 
 			return nil
@@ -155,18 +154,15 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Read() sdk.ResourceF
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			state := CosmosDbPostgreSQLCoordinatorConfigurationModel{
 				Name:      id.CoordinatorConfigurationName,
 				ClusterId: configurations.NewServerGroupsv2ID(id.SubscriptionId, id.ResourceGroupName, id.ServerGroupsv2Name).ID(),
 			}
 
-			if props := model.Properties; props != nil {
-				state.Value = props.Value
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.Value = props.Value
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -198,14 +194,14 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Delete() sdk.Resourc
 				defaultValue = *resp.Model.Properties.DefaultValue
 			}
 
-			parameters := &configurations.ServerConfiguration{
+			parameters := configurations.ServerConfiguration{
 				Properties: &configurations.ServerConfigurationProperties{
 					Value: defaultValue,
 				},
 			}
 
-			if err = client.UpdateOnCoordinatorThenPoll(ctx, *id, *parameters); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+			if err = client.UpdateOnCoordinatorThenPoll(ctx, *id, parameters); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
