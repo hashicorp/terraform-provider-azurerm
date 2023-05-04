@@ -83,13 +83,13 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Create() sdk.ResourceFunc {
 			locks.ByName(id.ServerGroupsv2Name, CosmosDbPostgreSQLClusterResourceName)
 			defer locks.UnlockByName(id.ServerGroupsv2Name, CosmosDbPostgreSQLClusterResourceName)
 
-			parameters := &configurations.ServerConfiguration{
+			parameters := configurations.ServerConfiguration{
 				Properties: &configurations.ServerConfigurationProperties{
 					Value: model.Value,
 				},
 			}
 
-			if err := client.UpdateOnNodeThenPoll(ctx, id, *parameters); err != nil {
+			if err := client.UpdateOnNodeThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -118,16 +118,16 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := &configurations.ServerConfiguration{
-				Properties: &configurations.ServerConfigurationProperties{},
-			}
-
 			if metadata.ResourceData.HasChange("value") {
-				parameters.Properties.Value = model.Value
-			}
+				parameters := configurations.ServerConfiguration{
+					Properties: &configurations.ServerConfigurationProperties{
+						Value: model.Value,
+					},
+				}
 
-			if err := client.UpdateOnNodeThenPoll(ctx, *id, *parameters); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
+				if err := client.UpdateOnNodeThenPoll(ctx, *id, parameters); err != nil {
+					return fmt.Errorf("updating %s: %+v", *id, err)
+				}
 			}
 
 			return nil
@@ -155,18 +155,15 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			state := CosmosDbPostgreSQLNodeConfigurationModel{
 				Name:      id.NodeConfigurationName,
 				ClusterId: configurations.NewServerGroupsv2ID(id.SubscriptionId, id.ResourceGroupName, id.ServerGroupsv2Name).ID(),
 			}
 
-			if props := model.Properties; props != nil {
-				state.Value = props.Value
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.Value = props.Value
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -198,14 +195,14 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) Delete() sdk.ResourceFunc {
 				defaultValue = *resp.Model.Properties.DefaultValue
 			}
 
-			parameters := &configurations.ServerConfiguration{
+			parameters := configurations.ServerConfiguration{
 				Properties: &configurations.ServerConfigurationProperties{
 					Value: defaultValue,
 				},
 			}
 
-			if err = client.UpdateOnNodeThenPoll(ctx, *id, *parameters); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+			if err = client.UpdateOnNodeThenPoll(ctx, *id, parameters); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
