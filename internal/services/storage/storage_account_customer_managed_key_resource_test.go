@@ -621,18 +621,25 @@ provider "azurerm-alt" {
   }
 }
 
+provider "azuread" {}
+
 provider "azuread" {
-  alias         = "alt"
+  alias			= "alt"
   tenant_id     = local.alt_tenant_id
   client_id     = local.alt_client_id
   client_secret = local.alt_client_secret
-  use_cli       = false
 }
 
 data "azurerm_client_config" "current" {}
 
 data "azurerm_client_config" "remote" {
   provider = azurerm-alt
+}
+
+data "azuread_client_config" "current" {}
+
+data "azuread_client_config" "remote" {
+  provider = azuread.alt
 }
 
 resource "azurerm_resource_group" "test" {
@@ -643,7 +650,7 @@ resource "azurerm_resource_group" "test" {
 resource "azuread_application" "test" {
   display_name     = "acctestsaapp${local.random_string}"
   sign_in_audience = "AzureADMultipleOrgs"
-  owners           = [data.azurerm_client_config.current.object_id]
+  owners           = [data.azuread_client_config.current.object_id]
 }
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -663,14 +670,13 @@ resource "azuread_application_federated_identity_credential" "test" {
 
 resource "azurerm_resource_group" "remotetest" {
   provider = azurerm-alt
-
   name     = "acctestRG-alt-${local.random_integer}"
   location = local.location
 }
 
 resource "azuread_service_principal" "remotetest" {
   provider       = azuread.alt
-  owners         = [data.azurerm_client_config.remote.object_id]
+  owners         = [data.azuread_client_config.remote.object_id]
   application_id = azuread_application.test.application_id
 }
 

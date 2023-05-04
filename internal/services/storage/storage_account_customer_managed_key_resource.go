@@ -63,6 +63,7 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
 				ExactlyOneOf: []string{"key_vault_id", "key_vault_uri"},
+				Computed:     true,
 			},
 
 			"key_name": {
@@ -263,7 +264,6 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 
 	userAssignedIdentity := ""
 	federatedIdentityClientID := ""
-
 	if props := encryption.EncryptionIdentity; props != nil {
 		if props.EncryptionUserAssignedIdentity != nil {
 			userAssignedIdentity = *props.EncryptionUserAssignedIdentity
