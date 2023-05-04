@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type CosmosDbPostgreSQLFirewallRuleModel struct {
+type CosmosDbPostgreSQLFirewallRuleResourceModel struct {
 	Name           string `tfschema:"name"`
 	ClusterId      string `tfschema:"cluster_id"`
 	EndIPAddress   string `tfschema:"end_ip_address"`
@@ -29,7 +29,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) ResourceType() string {
 }
 
 func (r CosmosDbPostgreSQLFirewallRuleResource) ModelObject() interface{} {
-	return &CosmosDbPostgreSQLFirewallRuleModel{}
+	return &CosmosDbPostgreSQLFirewallRuleResourceModel{}
 }
 
 func (r CosmosDbPostgreSQLFirewallRuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -74,7 +74,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model CosmosDbPostgreSQLFirewallRuleModel
+			var model CosmosDbPostgreSQLFirewallRuleResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -95,14 +95,14 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			parameters := &firewallrules.FirewallRule{
+			parameters := firewallrules.FirewallRule{
 				Properties: firewallrules.FirewallRuleProperties{
 					EndIPAddress:   model.EndIPAddress,
 					StartIPAddress: model.StartIPAddress,
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *parameters); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -123,7 +123,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model CosmosDbPostgreSQLFirewallRuleModel
+			var model CosmosDbPostgreSQLFirewallRuleResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -135,7 +135,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Update() sdk.ResourceFunc {
 
 			parameters := resp.Model
 			if parameters == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
 			if metadata.ResourceData.HasChange("end_ip_address") {
@@ -180,7 +180,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := CosmosDbPostgreSQLFirewallRuleModel{
+			state := CosmosDbPostgreSQLFirewallRuleResourceModel{
 				Name:      id.FirewallRuleName,
 				ClusterId: firewallrules.NewServerGroupsv2ID(id.SubscriptionId, id.ResourceGroupName, id.ServerGroupsv2Name).ID(),
 			}
