@@ -139,7 +139,6 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids
 github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata
 github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
-github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
 # github.com/hashicorp/go-azure-sdk v0.20230503.1140953
@@ -538,6 +537,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments
+github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/adminkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/querykeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services
