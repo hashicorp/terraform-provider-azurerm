@@ -694,10 +694,8 @@ resource "azurerm_key_vault" "remotetest" {
     tenant_id = data.azurerm_client_config.remote.tenant_id
     object_id = data.azurerm_client_config.remote.object_id
 
-    key_permissions = [
-      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt",
-      "Sign", "Verify"
-    ]
+    key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
+    secret_permissions = ["Get"]
   }
 
   access_policy {
