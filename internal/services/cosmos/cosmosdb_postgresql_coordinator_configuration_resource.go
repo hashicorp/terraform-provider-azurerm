@@ -24,7 +24,7 @@ type CosmosDbPostgreSQLCoordinatorConfigurationResource struct{}
 var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLCoordinatorConfigurationResource{}
 
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ResourceType() string {
-	return CosmosDbPostgreSQLClusterResourceName
+	return "azurerm_cosmosdb_postgresql_coordinator_configuration"
 }
 
 func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ModelObject() interface{} {
