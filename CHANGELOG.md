@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_kubernetes_node_pool_snapshot` [GH-21511]
+* **New Resource:** `azurerm_cosmosdb_postgresql_firewall_rule` [GH-21599]
 
 ENHANCEMENTS:
 
