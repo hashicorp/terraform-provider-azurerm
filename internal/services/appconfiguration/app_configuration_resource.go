@@ -551,8 +551,15 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		log.Printf("[DEBUG]  %q marked for purge - executing purge", id.ConfigurationStoreName)
-		if err := deletedConfigurationStoresClient.ConfigurationStoresPurgeDeletedThenPoll(ctx, deletedId); err != nil {
+		poller, err := deletedConfigurationStoresClient.ConfigurationStoresPurgeDeleted(ctx, deletedId)
+		if err != nil {
 			return fmt.Errorf("purging %s: %+v", *id, err)
+		}
+		// NOTE: the PurgeDeleted method is a POST which eventually returns a 404 from the LRO, so we need to handle that
+		if err := poller.Poller.PollUntilDone(ctx); err != nil {
+			if resp := poller.Poller.LatestResponse(); resp == nil || !response.WasNotFound(resp.Response) {
+				return fmt.Errorf("polling after purging for %s: %+v", *id, err)
+			}
 		}
 
 		// TODO: retry checkNameAvailability after deletion when SDK is ready, see https://github.com/Azure/AppConfiguration/issues/677
