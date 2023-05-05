@@ -172,7 +172,7 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 		if props := model.Properties; props != nil {
 			d.Set("log_verbose", props.LogVerbose)
 			d.Set("description", props.Description)
-			d.Set("state", props.State)
+			d.Set("state", string(pointer.From(props.State)))
 		}
 
 		if model.Tags != nil {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp Inc. All rights reserved.
+// Licensed under the MPL-2.0 License. See NOTICE.txt in the project root for license information.
+
 package azurecli
 
 import (
@@ -10,9 +13,6 @@ import (
 
 	"github.com/hashicorp/go-version"
 )
-
-// Copyright (c) HashiCorp Inc. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 // CheckAzVersion tries to determine the version of Azure CLI in the path and checks for a compatible version
 func CheckAzVersion(minVersion string, nextMajorVersion *string) error {

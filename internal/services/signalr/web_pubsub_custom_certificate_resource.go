@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -157,7 +158,7 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("getting key vault base uri from %s: %+v", id, err)
 			}
-			vaultId, err := keyVaultParse.VaultID(*keyVaultIdRaw)
+			vaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 			if err != nil {
 				return fmt.Errorf("parsing key vault %s: %+v", vaultId, err)
 			}

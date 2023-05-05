@@ -1,44 +1,43 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/dicomservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors"
+	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	HealthcareServiceClient                                *healthcareapis.ServicesClient
-	HealthcareWorkspaceClient                              *healthcareapis.WorkspacesClient
-	HealthcareWorkspaceDicomServiceClient                  *healthcareapis.DicomServicesClient
-	HealthcareWorkspaceFhirServiceClient                   *healthcareapis.FhirServicesClient
-	HealthcareWorkspaceMedTechServiceClient                *healthcareapis.IotConnectorsClient
-	HealthcareWorkspaceMedTechServiceFhirDestinationClient *healthcareapis.IotConnectorFhirDestinationClient
+	HealthcareServiceClient                *service.ResourceClient
+	HealthcareWorkspaceClient              *workspaces.WorkspacesClient
+	HealthcareWorkspaceDicomServiceClient  *dicomservices.DicomServicesClient
+	HealthcareWorkspaceFhirServiceClient   *fhirservices.FhirServicesClient
+	HealthcareWorkspaceIotConnectorsClient *iotconnectors.IotConnectorsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	HealthcareServiceClient := healthcareapis.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	HealthcareServiceClient := service.NewResourceClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&HealthcareServiceClient.Client, o.ResourceManagerAuthorizer)
 
-	HealthcareWorkspaceClient := healthcareapis.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	HealthcareWorkspaceClient := workspaces.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&HealthcareWorkspaceClient.Client, o.ResourceManagerAuthorizer)
 
-	HealthcareWorkspaceDicomServiceClient := healthcareapis.NewDicomServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	HealthcareWorkspaceDicomServiceClient := dicomservices.NewDicomServicesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&HealthcareWorkspaceDicomServiceClient.Client, o.ResourceManagerAuthorizer)
 
-	HealthcareWorkspaceFhirServiceClient := healthcareapis.NewFhirServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	HealthcareWorkspaceFhirServiceClient := fhirservices.NewFhirServicesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&HealthcareWorkspaceFhirServiceClient.Client, o.ResourceManagerAuthorizer)
 
-	HealthcareWorkspaceMedTechServiceClient := healthcareapis.NewIotConnectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HealthcareWorkspaceMedTechServiceClient.Client, o.ResourceManagerAuthorizer)
-
-	HealthcareWorkspaceMedTechServiceFhirDestinationClient := healthcareapis.NewIotConnectorFhirDestinationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HealthcareWorkspaceMedTechServiceFhirDestinationClient.Client, o.ResourceManagerAuthorizer)
+	HealthcareWorkspaceIotConnectorsClient := iotconnectors.NewIotConnectorsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&HealthcareWorkspaceIotConnectorsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		HealthcareServiceClient:                                &HealthcareServiceClient,
-		HealthcareWorkspaceClient:                              &HealthcareWorkspaceClient,
-		HealthcareWorkspaceDicomServiceClient:                  &HealthcareWorkspaceDicomServiceClient,
-		HealthcareWorkspaceFhirServiceClient:                   &HealthcareWorkspaceFhirServiceClient,
-		HealthcareWorkspaceMedTechServiceClient:                &HealthcareWorkspaceMedTechServiceClient,
-		HealthcareWorkspaceMedTechServiceFhirDestinationClient: &HealthcareWorkspaceMedTechServiceFhirDestinationClient,
+		HealthcareServiceClient:                &HealthcareServiceClient,
+		HealthcareWorkspaceClient:              &HealthcareWorkspaceClient,
+		HealthcareWorkspaceDicomServiceClient:  &HealthcareWorkspaceDicomServiceClient,
+		HealthcareWorkspaceFhirServiceClient:   &HealthcareWorkspaceFhirServiceClient,
+		HealthcareWorkspaceIotConnectorsClient: &HealthcareWorkspaceIotConnectorsClient,
 	}
 }
