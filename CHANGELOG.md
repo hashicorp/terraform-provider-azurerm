@@ -18,6 +18,7 @@ BUG FIXES:
 * `azurerm_log_analytics_cluster` -  Add locks and remove unneeded WaitForState checks [GH-21631]
 * `azurerm_log_analytics_cluster_customer_managed_key` - Add locks and remove unneeded WaitForState checks [GH-21631]
 * `azurerm_managed_disk` - now detaches when `disk_size_gb` increases from below `4095` to above `4095` [GH-21620]
+* Service `mssqlmanagedinstance` - add initialize of `client.MSSQLManagedInstance` to fix panic [GH-21657]
 * `azurerm_virtual_machine` - fixing a regression when parsing the OS Disk ID from the Azure API [GH-21606]
 * `azurerm_virtual_machine` - fixing a regression when parsing the Data Disk ID from the Azure API [GH-21606]
 
