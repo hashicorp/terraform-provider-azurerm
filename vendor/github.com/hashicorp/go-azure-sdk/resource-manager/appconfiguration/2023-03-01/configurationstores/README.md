@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores` Documentation
 
-The `configurationstores` SDK allows for interaction with the Azure Resource Manager Service `appconfiguration` (API Version `2022-05-01`).
+The `configurationstores` SDK allows for interaction with the Azure Resource Manager Service `appconfiguration` (API Version `2023-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 ```
 
 
