@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/azuresdkhacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type Client struct {
@@ -116,17 +116,23 @@ func (c Client) LinkWorkaroundDataPlaneClient(ctx context.Context, configuration
 	return &workaroundClient, nil
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	configurationStores := configurationstores.NewConfigurationStoresClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&configurationStores.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	configurationStores, err := configurationstores.NewConfigurationStoresClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ConfigurationStores client: %+v", err)
+	}
+	o.Configure(configurationStores.Client, o.Authorizers.ResourceManager)
 
-	deletedConfigurationStores := deletedconfigurationstores.NewDeletedConfigurationStoresClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&deletedConfigurationStores.Client, o.ResourceManagerAuthorizer)
+	deletedConfigurationStores, err := deletedconfigurationstores.NewDeletedConfigurationStoresClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DeletedConfigurationStores client: %+v", err)
+	}
+	o.Configure(deletedConfigurationStores.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ConfigurationStoresClient:        &configurationStores,
-		DeletedConfigurationStoresClient: &deletedConfigurationStores,
+		ConfigurationStoresClient:        configurationStores,
+		DeletedConfigurationStoresClient: deletedConfigurationStores,
 		authorizerFunc:                   o.Authorizers.AuthorizerFunc,
 		configureClientFunc:              o.ConfigureClient,
-	}
+	}, nil
 }

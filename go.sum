@@ -139,8 +139,8 @@ github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brv
 github.com/hashicorp/go-azure-helpers v0.12.0/go.mod h1:Zc3v4DNeX6PDdy7NljlYpnrdac1++qNW0I4U+ofGwpg=
 github.com/hashicorp/go-azure-helpers v0.55.0 h1:2A2KWPiaDC5kQWr6tYHTD/P1k9bO0HvflEb/Nc1yLeU=
 github.com/hashicorp/go-azure-helpers v0.55.0/go.mod h1:RQugkG8wEcNIjYmcBLHpuEI/u2mTJwO4r37rR/OKRpo=
-github.com/hashicorp/go-azure-sdk v0.20230412.1005112 h1:7Y6Uud/GzA6F9gU12GzJQ/c4aFc9HlvQ5B1BuSK8S1M=
-github.com/hashicorp/go-azure-sdk v0.20230412.1005112/go.mod h1:L9JXVUcnL0GjMizCnngYUlMp1lLhDBNgSTvn6Of/5O4=
+github.com/hashicorp/go-azure-sdk v0.20230503.1093249 h1:THUQtyGDjuNuLI/ljEBvTTUJogujY7iy1EyGkLp5B/A=
+github.com/hashicorp/go-azure-sdk v0.20230503.1093249/go.mod h1:L9JXVUcnL0GjMizCnngYUlMp1lLhDBNgSTvn6Of/5O4=
 github.com/hashicorp/go-checkpoint v0.5.0 h1:MFYpPZCnQqQTE18jFwSII6eUQrD/oxMFp3mlgcqk5mU=
 github.com/hashicorp/go-checkpoint v0.5.0/go.mod h1:7nfLNL10NsxqO4iWuW6tWW0HjZuDrwkBuEQsVcpCOgg=
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
@@ -272,8 +272,8 @@ github.com/stretchr/testify v1.7.2 h1:4jaiDzPyXQvSd7D0EjG45355tLlV3VOECpq10pLC+8
 github.com/stretchr/testify v1.7.2/go.mod h1:R6va5+xMeoiuVRoj+gSkQ7d3FALtqAAGI1FQKckRals=
 github.com/tombuildsstuff/giovanni v0.20.0 h1:IM/I/iNWMXnPYwcSq8uxV7TKDlv7Nejq0bRK9i6O/C0=
 github.com/tombuildsstuff/giovanni v0.20.0/go.mod h1:66KVLYma2whJhEdxPSPL3GQHkulhK+C5CluKfHGfPF4=
-github.com/tombuildsstuff/kermit v0.20230331.1120327 h1:Z50NTT+yEezhRSaIpbBNU+v8v5hog1nMkHkym+tdS64=
-github.com/tombuildsstuff/kermit v0.20230331.1120327/go.mod h1:YleYDYRKTGy5ihWHG9u3CwyVTr0l8dOLkYtVEPjnzGI=
+github.com/tombuildsstuff/kermit v0.20230424.1090808 h1:p4vmVTBAeZyERLf6J5C9BIwHJ2ty1y+4Dvdoxzo3rB0=
+github.com/tombuildsstuff/kermit v0.20230424.1090808/go.mod h1:YleYDYRKTGy5ihWHG9u3CwyVTr0l8dOLkYtVEPjnzGI=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 github.com/vmihailenco/msgpack v4.0.4+incompatible h1:dSLoQfGFAo3F6OoNhwUmLwVgaUXK79GlxNBwueZn0xI=
 github.com/vmihailenco/msgpack v4.0.4+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=

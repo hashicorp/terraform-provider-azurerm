@@ -14,6 +14,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,6 +25,11 @@ import (
 type ArcKubernetesClusterResource struct{}
 
 func TestAccArcKubernetesCluster_basic(t *testing.T) {
+	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
 	r := ArcKubernetesClusterResource{}
 	privateKey, publicKey, err := r.generateKey()
@@ -52,6 +58,11 @@ func TestAccArcKubernetesCluster_basic(t *testing.T) {
 }
 
 func TestAccArcKubernetesCluster_requiresImport(t *testing.T) {
+	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
 	r := ArcKubernetesClusterResource{}
 	privateKey, publicKey, err := r.generateKey()
@@ -74,6 +85,11 @@ func TestAccArcKubernetesCluster_requiresImport(t *testing.T) {
 }
 
 func TestAccArcKubernetesCluster_complete(t *testing.T) {
+	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
 	r := ArcKubernetesClusterResource{}
 	privateKey, publicKey, err := r.generateKey()

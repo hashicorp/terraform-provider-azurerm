@@ -1,10 +1,8 @@
 package netapp
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 
@@ -47,14 +45,14 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
+			"resource_group_name": commonschema.ResourceGroupName(),
+
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: netAppValidate.VolumeName,
 			},
-
-			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
 
@@ -720,182 +718,6 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func waitForVolumeCreateOrUpdate(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     10 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"204", "404"},
-		Target:                    []string{"200", "202"},
-		Refresh:                   netappVolumeStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to finish creating: %+v", id, err)
-	}
-
-	return nil
-}
-
-func waitForReplAuthorization(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     10 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"204", "404", "400"}, // TODO: Remove 400 when bug is fixed on RP side, where replicationStatus returns 400 at some point during authorization process
-		Target:                    []string{"200", "202"},
-		Refresh:                   netappVolumeReplicationStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for replication authorization %s to complete: %+v", id, err)
-	}
-
-	return nil
-}
-
-func waitForReplMirrorState(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId, desiredState string) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     10 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"200"}, // 200 means mirror state is still Mirrored
-		Target:                    []string{"204"}, // 204 means mirror state is <> than Mirrored
-		Refresh:                   netappVolumeReplicationMirrorStateRefreshFunc(ctx, client, id, desiredState),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be in the state %q: %+v", id, desiredState, err)
-	}
-
-	return nil
-}
-
-func waitForReplicationDeletion(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context had no deadline")
-	}
-
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     10 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"200", "202", "400"}, // TODO: Remove 400 when bug is fixed on RP side, where replicationStatus returns 400 while it is in "Deleting" state
-		Target:                    []string{"404"},
-		Refresh:                   netappVolumeReplicationStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Replication of %s to be deleted: %+v", id, err)
-	}
-
-	return nil
-}
-
-func waitForVolumeDeletion(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     10 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"200", "202"},
-		Target:                    []string{"204", "404"},
-		Refresh:                   netappVolumeStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
-	}
-
-	return nil
-}
-
-func netappVolumeStateRefreshFunc(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(res.HttpResponse) {
-				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
-			}
-		}
-
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-		return res, statusCode, nil
-	}
-}
-
-func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId, desiredState string) pluginsdk.StateRefreshFunc {
-	validStates := []string{"mirrored", "broken", "uninitialized"}
-
-	return func() (interface{}, string, error) {
-		// Possible Mirror States to be used as desiredStates:
-		// mirrored, broken or uninitialized
-		if !utils.SliceContainsValue(validStates, strings.ToLower(desiredState)) {
-			return nil, "", fmt.Errorf("Invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumesreplication.PossibleValuesForMirrorState())
-		}
-
-		res, err := client.VolumesReplicationStatus(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(res.HttpResponse) {
-				return nil, "", fmt.Errorf("retrieving replication status information from %s: %s", id, err)
-			}
-		}
-
-		// TODO: fix this refresh function to use strings instead of fake status codes
-		// Setting 200 as default response
-		response := 200
-		if res.Model != nil && res.Model.MirrorState != nil && strings.EqualFold(string(*res.Model.MirrorState), desiredState) {
-			// return 204 if state matches desired state
-			response = 204
-		}
-
-		return res, strconv.Itoa(response), nil
-	}
-}
-
-func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.VolumesReplicationStatus(ctx, id)
-		if err != nil {
-			if response.WasBadRequest(res.HttpResponse) && (strings.Contains(strings.ToLower(err.Error()), "deleting") || strings.Contains(strings.ToLower(err.Error()), "volume replication missing or deleted")) {
-				// This error can be ignored until a bug is fixed on RP side that it is returning 400 while the replication is in "Deleting" process
-				// TODO: remove this workaround when above bug is fixed
-			} else if !response.WasNotFound(res.HttpResponse) {
-				return nil, "", fmt.Errorf("retrieving replication status from %s: %s", id, err)
-			}
-		}
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-		return res, statusCode, nil
-	}
-}
-
 func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumePropertiesExportPolicy {
 	results := make([]volumes.ExportPolicyRule, 0)
 	for _, item := range input {
@@ -958,9 +780,9 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 			ruleIndex := int64(v["rule_index"].(int))
 			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
 
-			cifsEnabled := false
 			nfsv3Enabled := false
 			nfsv41Enabled := false
+			cifsEnabled := false
 
 			if vpe := v["protocols_enabled"]; vpe != nil {
 				protocolsEnabled := vpe.([]interface{})
@@ -1001,71 +823,6 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 
 	return &volumes.VolumePatchPropertiesExportPolicy{
 		Rules: &results,
-	}
-}
-
-func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.VolumePropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
-		return &volumes.VolumePropertiesDataProtection{}
-	}
-
-	replicationObject := volumes.ReplicationObject{}
-
-	replicationRaw := input[0].(map[string]interface{})
-
-	if v, ok := replicationRaw["endpoint_type"]; ok {
-		endpointType := volumes.EndpointType(v.(string))
-		replicationObject.EndpointType = &endpointType
-	}
-	if v, ok := replicationRaw["remote_volume_location"]; ok {
-		replicationObject.RemoteVolumeRegion = utils.String(v.(string))
-	}
-	if v, ok := replicationRaw["remote_volume_resource_id"]; ok {
-		replicationObject.RemoteVolumeResourceId = v.(string)
-	}
-	if v, ok := replicationRaw["replication_frequency"]; ok {
-		replicationSchedule := volumes.ReplicationSchedule(translateTFSchedule(v.(string)))
-		replicationObject.ReplicationSchedule = &replicationSchedule
-	}
-
-	return &volumes.VolumePropertiesDataProtection{
-		Replication: &replicationObject,
-	}
-}
-
-func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
-		return &volumes.VolumePropertiesDataProtection{}
-	}
-
-	snapshotObject := volumes.VolumeSnapshotProperties{}
-
-	snapshotRaw := input[0].(map[string]interface{})
-
-	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
-		snapshotObject.SnapshotPolicyId = utils.String(v.(string))
-	}
-
-	return &volumes.VolumePropertiesDataProtection{
-		Snapshot: &snapshotObject,
-	}
-}
-
-func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
-		return &volumes.VolumePatchPropertiesDataProtection{}
-	}
-
-	snapshotObject := volumes.VolumeSnapshotProperties{}
-
-	snapshotRaw := input[0].(map[string]interface{})
-
-	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
-		snapshotObject.SnapshotPolicyId = utils.String(v.(string))
-	}
-
-	return &volumes.VolumePatchPropertiesDataProtection{
-		Snapshot: &snapshotObject,
 	}
 }
 
@@ -1177,20 +934,4 @@ func flattenNetAppVolumeDataProtectionSnapshotPolicy(input *volumes.VolumeProper
 			"snapshot_policy_id": input.Snapshot.SnapshotPolicyId,
 		},
 	}
-}
-
-func translateTFSchedule(scheduleName string) string {
-	if strings.EqualFold(scheduleName, "10minutes") {
-		return "_10minutely"
-	}
-
-	return scheduleName
-}
-
-func translateSDKSchedule(scheduleName string) string {
-	if strings.EqualFold(scheduleName, "_10minutely") {
-		return "10minutes"
-	}
-
-	return scheduleName
 }

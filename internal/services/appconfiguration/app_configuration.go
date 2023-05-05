@@ -5,9 +5,9 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 func flattenAppConfigurationEncryption(input *configurationstores.EncryptionProperties) []interface{} {
@@ -24,7 +24,7 @@ func flattenAppConfigurationEncryption(input *configurationstores.EncryptionProp
 }
 func appConfigurationGetKeyRefreshFunc(ctx context.Context, client *appconfiguration.BaseClient, key, label string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.GetKeyValue(ctx, key, label, "", "", "", []string{})
+		res, err := client.GetKeyValue(ctx, key, label, "", "", "", []appconfiguration.KeyValueFields{})
 		if err != nil {
 			if v, ok := err.(autorest.DetailedError); ok {
 				if utils.ResponseWasForbidden(autorest.Response{Response: v.Response}) {
