@@ -1,3 +1,26 @@
+## 3.55.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_kubernetes_node_pool_snapshot` [GH-21511]
+* **New Resource:** `azurerm_cosmosdb_postgresql_firewall_rule` [GH-21599]
+
+ENHANCEMENTS:
+
+* `appconfiguration`: refactoring to use `tombuildsstuff/kermit` rather than an embedded SDK [GH-21623]
+* `recoveryservicesbackup` - updating to use API Version `2023-02-01` [GH-21575]
+* `azurerm_kubernetes_cluster_node_pool` - support for the `snapshot_id` property [GH-21511]
+
+BUG FIXES:
+
+* Data Source: `azurerm_healthcare_fhir_service` - `identity` now exports both `SystemAssigned` and `UserAssigned` identities [GH-21594]
+* `azurerm_local_network_gateway` - validating that `address_space` isn't set to an empty string [GH-21566]
+* `azurerm_log_analytics_cluster` -  Add locks and remove unneeded WaitForState checks [GH-21631]
+* `azurerm_log_analytics_cluster_customer_managed_key` - Add locks and remove unneeded WaitForState checks [GH-21631]
+* `azurerm_managed_disk` - now detaches when `disk_size_gb` increases from below `4095` to above `4095` [GH-21620]
+* `azurerm_virtual_machine` - fixing a regression when parsing the OS Disk ID from the Azure API [GH-21606]
+* `azurerm_virtual_machine` - fixing a regression when parsing the Data Disk ID from the Azure API [GH-21606]
+
 ## 3.54.0 (April 27, 2023)
 
 BREAKING CHANGES:

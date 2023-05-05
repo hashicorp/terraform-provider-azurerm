@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/snapshots"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -952,6 +954,65 @@ func TestAccKubernetesClusterNodePool_nodeIPTags(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.snapshotSource(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					client := clients.Containers.SnapshotClient
+					poolId, err := agentpools.ParseAgentPoolID(state.ID)
+					if err != nil {
+						return err
+					}
+					id := snapshots.NewSnapshotID(poolId.SubscriptionId, poolId.ResourceGroupName, data.RandomString)
+					snapshot := snapshots.Snapshot{
+						Location: data.Locations.Primary,
+						Properties: &snapshots.SnapshotProperties{
+							CreationData: &snapshots.CreationData{
+								SourceResourceId: utils.String(poolId.ID()),
+							},
+						},
+					}
+					_, err = client.CreateOrUpdate(ctx, id, snapshot)
+					if err != nil {
+						return fmt.Errorf("creating %s: %+v", id, err)
+					}
+					return nil
+				}, "azurerm_kubernetes_cluster_node_pool.source"),
+			),
+		},
+		{
+			Config: r.snapshotRestore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.snapshotSource(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					client := clients.Containers.SnapshotClient
+					poolId, err := agentpools.ParseAgentPoolID(state.ID)
+					if err != nil {
+						return err
+					}
+					id := snapshots.NewSnapshotID(poolId.SubscriptionId, poolId.ResourceGroupName, data.RandomString)
+					_, err = client.Delete(ctx, id)
+					if err != nil {
+						return fmt.Errorf("creating %s: %+v", id, err)
+					}
+					return nil
+				}, "azurerm_kubernetes_cluster_node_pool.source"),
+			),
+		},
 	})
 }
 
@@ -2543,4 +2604,88 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 }
  `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterNodePoolResource) snapshotSource(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "source" {
+  name                  = "source"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v3"
+}
+ `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterNodePoolResource) snapshotRestore(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "source" {
+  name                  = "source"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v3"
+}
+
+data "azurerm_kubernetes_node_pool_snapshot" "test" {
+  name                = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "new"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  snapshot_id           = data.azurerm_kubernetes_node_pool_snapshot.test.id
+  depends_on = [
+    azurerm_kubernetes_cluster_node_pool.source
+  ]
+}
+ `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

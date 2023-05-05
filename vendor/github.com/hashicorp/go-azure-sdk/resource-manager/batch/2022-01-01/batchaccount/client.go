@@ -1,18 +1,26 @@
 package batchaccount
 
-import "github.com/Azure/go-autorest/autorest"
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type BatchAccountClient struct {
-	Client  autorest.Client
-	baseUri string
+	Client *resourcemanager.Client
 }
 
-func NewBatchAccountClientWithBaseURI(endpoint string) BatchAccountClient {
-	return BatchAccountClient{
-		Client:  autorest.NewClientWithUserAgent(userAgent()),
-		baseUri: endpoint,
+func NewBatchAccountClientWithBaseURI(api environments.Api) (*BatchAccountClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(api, "batchaccount", defaultApiVersion)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating BatchAccountClient: %+v", err)
 	}
+
+	return &BatchAccountClient{
+		Client: client,
+	}, nil
 }
