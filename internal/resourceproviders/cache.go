@@ -15,7 +15,7 @@ var cachedResourceProviders *[]string
 var registeredResourceProviders *map[string]struct{}
 var unregisteredResourceProviders *map[string]struct{}
 
-var cacheLock = sync.Mutex{}
+var cacheLock = &sync.Mutex{}
 
 // CacheSupportedProviders attempts to retrieve the supported Resource Providers from the Resource Manager API
 // and caches them, for used in enhanced validation
