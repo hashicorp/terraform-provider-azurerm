@@ -26,6 +26,7 @@ func (r Registration) Resources() []sdk.Resource {
 		CosmosDbPostgreSQLCoordinatorConfigurationResource{},
 		CosmosDbPostgreSQLFirewallRuleResource{},
 		CosmosDbPostgreSQLNodeConfigurationResource{},
+		CosmosDbPostgreSQLRoleResource{},
 		CosmosDbSqlDedicatedGatewayResource{},
 	}
 }
