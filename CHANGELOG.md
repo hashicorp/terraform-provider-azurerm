@@ -8,6 +8,7 @@ ENHANCEMENTS:
 FEATURES:
 
 * **New Resource:**  `azurerm_cosmosdb_postgresql_coordinator_configuration` [GH-21595]
+* **New Resource:**  `azurerm_cosmosdb_postgresql_node_configuration` [GH-21596]
 
 ## 3.55.0 (May 04, 2023)
 
