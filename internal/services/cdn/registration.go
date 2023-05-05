@@ -37,6 +37,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_frontdoor_firewall_policy": dataSourceCdnFrontDoorFirewallPolicy(),
 		"azurerm_cdn_frontdoor_origin_group":    dataSourceCdnFrontDoorOriginGroup(),
 		"azurerm_cdn_frontdoor_profile":         dataSourceCdnFrontDoorProfile(),
+		"azurerm_cdn_frontdoor_route":           dataSourceCdnFrontDoorRoute(),
 		"azurerm_cdn_frontdoor_rule_set":        dataSourceCdnFrontDoorRuleSet(),
 		"azurerm_cdn_frontdoor_secret":          dataSourceCdnFrontDoorSecret(),
 	}
