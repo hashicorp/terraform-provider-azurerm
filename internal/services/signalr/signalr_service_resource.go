@@ -3,7 +3,6 @@ package signalr
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"log"
 	"strconv"
 	"strings"
@@ -172,12 +171,12 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
-			string(webpubsub.ProvisioningStateUpdating),
-			string(webpubsub.ProvisioningStateCreating),
-			string(webpubsub.ProvisioningStateMoving),
-			string(webpubsub.ProvisioningStateRunning),
+			string(signalr.ProvisioningStateUpdating),
+			string(signalr.ProvisioningStateCreating),
+			string(signalr.ProvisioningStateMoving),
+			string(signalr.ProvisioningStateRunning),
 		},
-		Target:                    []string{string(webpubsub.ProvisioningStateSucceeded)},
+		Target:                    []string{string(signalr.ProvisioningStateSucceeded)},
 		Refresh:                   signalrServiceProvisioningStateRefreshFunc(ctx, client, id),
 		Timeout:                   time.Until(deadline),
 		PollInterval:              10 * time.Second,
@@ -474,8 +473,30 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		resourceType.Tags = tags.Expand(tagsRaw)
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, resourceType); err != nil {
+	if _, err := client.Update(ctx, *id, resourceType); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(signalr.ProvisioningStateUpdating),
+			string(signalr.ProvisioningStateCreating),
+			string(signalr.ProvisioningStateMoving),
+			string(signalr.ProvisioningStateRunning),
+		},
+		Target:                    []string{string(signalr.ProvisioningStateSucceeded)},
+		Refresh:                   signalrServiceProvisioningStateRefreshFunc(ctx, client, *id),
+		Timeout:                   time.Until(deadline),
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return err
 	}
 
 	return resourceArmSignalRServiceRead(d, meta)
