@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type KeysDataSource struct{}
@@ -145,7 +146,7 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			iter, err := client.GetKeyValuesComplete(ctx, model.Key, model.Label, "", "", []string{})
+			iter, err := client.GetKeyValuesComplete(ctx, model.Key, model.Label, "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {

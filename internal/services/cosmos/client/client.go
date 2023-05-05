@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/firewallrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/roles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -15,6 +16,7 @@ type Client struct {
 	CassandraDatacentersClient       *documentdb.CassandraDataCentersClient
 	ClustersClient                   *clusters.ClustersClient
 	DatabaseClient                   *documentdb.DatabaseAccountsClient
+	FirewallRulesClient              *firewallrules.FirewallRulesClient
 	GremlinClient                    *documentdb.GremlinResourcesClient
 	MongoDbClient                    *documentdb.MongoDBResourcesClient
 	NotebookWorkspaceClient          *documentdb.NotebookWorkspacesClient
@@ -41,6 +43,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	databaseClient := documentdb.NewDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseClient.Client, o.ResourceManagerAuthorizer)
+
+	firewallRulesClient := firewallrules.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	gremlinClient := documentdb.NewGremlinResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gremlinClient.Client, o.ResourceManagerAuthorizer)
@@ -75,6 +80,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		CassandraDatacentersClient:       &cassandraDatacentersClient,
 		ClustersClient:                   &clustersClient,
 		DatabaseClient:                   &databaseClient,
+		FirewallRulesClient:              &firewallRulesClient,
 		GremlinClient:                    &gremlinClient,
 		MongoDbClient:                    &mongoDbClient,
 		NotebookWorkspaceClient:          &notebookWorkspaceClient,
