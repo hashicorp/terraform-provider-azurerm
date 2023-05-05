@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
@@ -36,7 +37,7 @@ type Client struct {
 	GalleryApplicationVersionsClient *galleryapplicationversions.GalleryApplicationVersionsClient
 	GalleryImagesClient              *compute.GalleryImagesClient
 	GalleryImageVersionsClient       *compute.GalleryImageVersionsClient
-	ImagesClient                     *compute.ImagesClient
+	ImagesClient                     *images.ImagesClient
 	MarketplaceAgreementsClient      *marketplaceordering.MarketplaceAgreementsClient
 	ProximityPlacementGroupsClient   *proximityplacementgroups.ProximityPlacementGroupsClient
 	SkusClient                       *skus.SkusClient
@@ -93,7 +94,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&galleryImageVersionsClient.Client, o.ResourceManagerAuthorizer)
 
-	imagesClient := compute.NewImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	imagesClient := images.NewImagesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&imagesClient.Client, o.ResourceManagerAuthorizer)
 
 	marketplaceAgreementsClient := marketplaceordering.NewMarketplaceAgreementsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

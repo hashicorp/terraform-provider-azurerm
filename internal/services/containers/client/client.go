@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -20,8 +22,10 @@ type Client struct {
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
 	KubernetesClustersClient                    *managedclusters.ManagedClustersClient
+	KubernetesExtensionsClient                  *extensions.ExtensionsClient
 	MaintenanceConfigurationsClient             *maintenanceconfigurations.MaintenanceConfigurationsClient
 	ServicesClient                              *containerservices.ContainerServicesClient
+	SnapshotClient                              *snapshots.SnapshotsClient
 	Environment                                 azure.Environment
 }
 
@@ -47,6 +51,9 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	kubernetesClustersClient := managedclusters.NewManagedClustersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&kubernetesClustersClient.Client, o.ResourceManagerAuthorizer)
 
+	kubernetesExtensionsClient := extensions.NewExtensionsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&kubernetesExtensionsClient.Client, o.ResourceManagerAuthorizer)
+
 	agentPoolsClient := agentpools.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&agentPoolsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -56,14 +63,19 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	servicesClient := containerservices.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
+	snapshotClient := snapshots.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&snapshotClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AgentPoolsClient:                            &agentPoolsClient,
 		ContainerInstanceClient:                     &containerInstanceClient,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		KubernetesClustersClient:                    &kubernetesClustersClient,
+		KubernetesExtensionsClient:                  &kubernetesExtensionsClient,
 		MaintenanceConfigurationsClient:             &maintenanceConfigurationsClient,
 		ServicesClient:                              &servicesClient,
+		SnapshotClient:                              &snapshotClient,
 		Environment:                                 o.AzureEnvironment,
 	}, nil
 }

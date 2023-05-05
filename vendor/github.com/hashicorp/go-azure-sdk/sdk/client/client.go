@@ -10,6 +10,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"net"
 	"net/http"
@@ -66,10 +67,9 @@ func RequestRetryAll(retryFuncs ...RequestRetryFunc) func(resp *http.Response, o
 	}
 }
 
-// RetryableErrorHandler ensures that the response is returned after exhausting retries for a request
-// We mustn't return an error here, or net/http will not return the response
-func RetryableErrorHandler(resp *http.Response, _ error, _ int) (*http.Response, error) {
-	return resp, nil
+// RetryableErrorHandler simply returns the resp and err, this is needed to makes the retryablehttp client's Do() return early with the response body not drained.
+func RetryableErrorHandler(resp *http.Response, err error, _ int) (*http.Response, error) {
+	return resp, err
 }
 
 // Request embeds *http.Request and adds useful metadata
@@ -315,6 +315,12 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 	var err error
 
+	// Ensure the Content-Lenght header is set for methods that define a meaning for enclosed content, i.e. POST and PUT.
+	// https://www.rfc-editor.org/rfc/rfc9110#section-8.6-5
+	if req.Method == "POST" || req.Method == "PUT" {
+		req.Header.Set("Content-Length", fmt.Sprintf("%d", req.ContentLength))
+	}
+
 	// Check we can read the request body and set a default empty body
 	var reqBody []byte
 	if req.Body != nil {
@@ -323,7 +329,6 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 			return nil, fmt.Errorf("reading request body: %v", err)
 		}
 		req.Body = io.NopCloser(bytes.NewBuffer(reqBody))
-		req.Header.Set("Content-Length", fmt.Sprintf("%d", req.ContentLength))
 	}
 
 	// Instantiate a RetryableHttp client and configure its CheckRetry func
@@ -535,7 +540,7 @@ func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retrya
 
 	r.CheckRetry = checkRetry
 	r.ErrorHandler = RetryableErrorHandler
-	r.Logger = nil
+	r.Logger = log.Default()
 
 	r.HTTPClient = &http.Client{
 		Transport: &http.Transport{

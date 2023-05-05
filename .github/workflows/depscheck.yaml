@@ -17,17 +17,20 @@ jobs:
   depscheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: make depscheck
       - name: Add waiting-response on fail
         if: failure()
-        uses: actions-ecosystem/action-add-labels@v1
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
-          labels: waiting-response
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          number: ${{ github.event.number }}
-          repo: ${{ github.event.repository.full_name }}
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["waiting-response"]
+            })
