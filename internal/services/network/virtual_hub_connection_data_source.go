@@ -57,9 +57,8 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"associated_route_table_id": {
-							Type:         pluginsdk.TypeString,
-							Computed:     true,
-							ValidateFunc: validate.HubRouteTableID,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 
 						"propagated_route_table": {
