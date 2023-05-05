@@ -392,6 +392,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Monitor = monitor.NewClient(o)
 	client.MobileNetwork = mobilenetwork.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
+	client.MSSQLManagedInstance = mssqlmanagedinstance.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
 	client.NetApp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
