@@ -14,6 +14,7 @@ FEATURES:
 
 BUG FIXES:
 
+* `azurerm_eventhub_namespace` - add locks and remove unneeded WaitForState functions [GH-21656]
 * `azurerm_monitor_metric_alert` - fix regression by using `ingleResourceMultiMetricCriteria` for new metric alerts  [GH-21658]
 
 ## 3.55.0 (May 04, 2023)
