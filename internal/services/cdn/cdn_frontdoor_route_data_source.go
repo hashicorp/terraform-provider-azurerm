@@ -21,16 +21,16 @@ func dataSourceCdnFrontDoorRoute() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"cdn_frontdoor_route_id": {
+			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorRouteID,
+				ValidateFunc: validate.FrontDoorRouteName,
 			},
 
 			"cdn_frontdoor_endpoint_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.FrontDoorEndpointID,
 			},
 
 			"cdn_frontdoor_origin_group_id": {
@@ -141,14 +141,17 @@ func dataSourceCdnFrontDoorRoute() *pluginsdk.Resource {
 
 func dataSourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	idRaw := d.Get("cdn_frontdoor_route_id").(string)
-	id, err := parse.FrontDoorRouteID(idRaw)
+	endpointIdRaw := d.Get("cdn_frontdoor_endpoint_id").(string)
+	endpointId, err := parse.FrontDoorEndpointID(endpointIdRaw)
 	if err != nil {
 		return err
 	}
+
+	id := parse.NewFrontDoorRouteID(subscriptionId, endpointId.ResourceGroup, endpointId.ProfileName, endpointId.AfdEndpointName, d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
@@ -161,7 +164,7 @@ func dataSourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("name", id.RouteName)
-	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontDoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
+	d.Set("cdn_frontdoor_endpoint_id", endpointId.ID())
 
 	if props := resp.RouteProperties; props != nil {
 		customDomains, err := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
