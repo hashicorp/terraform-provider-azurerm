@@ -50,5 +50,8 @@ func Default() UserFeatures {
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
 		},
+		SecurityCenter: SecurityCenterFeatures{
+			ResetToFreeOnDestroy: false,
+		},
 	}
 }

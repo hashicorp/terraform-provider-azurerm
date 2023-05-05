@@ -10,7 +10,9 @@ description: |-
 
 Manages the Pricing Tier for Azure Security Center in the current subscription.
 
-~> **NOTE:** Deletion of this resource will reset the pricing tier to `Free`
+~> **NOTE:** Deletion of this resource does not change or reset the pricing tier to `Free`
+
+~> **NOTE:** Deletion of this resource will reset the pricing tier to `Free` in version 4.0 by default. This feature can be enabled using the `features` block within the `provider` block, see [the provider documentation on the features block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features) for more information.
 
 ## Example Usage
 
