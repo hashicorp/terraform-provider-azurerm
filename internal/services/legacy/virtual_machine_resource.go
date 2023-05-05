@@ -1964,7 +1964,7 @@ func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *c
 	}
 
 	diskId := *disk.ID
-	id, err := disks.ParseDiskID(diskId)
+	id, err := disks.ParseDiskIDInsensitively(diskId)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Disk ID %q: %+v", diskId, err)
 	}

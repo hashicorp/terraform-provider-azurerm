@@ -280,8 +280,12 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Advisor = advisor.NewClient(o)
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
-	client.AppConfiguration = appConfiguration.NewClient(o)
-	client.AppInsights = applicationInsights.NewClient(o)
+	if client.AppConfiguration, err = appConfiguration.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AppConfiguration: %+v", err)
+	}
+	if client.AppInsights, err = applicationInsights.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ApplicationInsights: %+v", err)
+	}
 	client.AppPlatform = appPlatform.NewClient(o)
 	client.AppService = appService.NewClient(o)
 	client.ArcKubernetes = arckubernetes.NewClient(o)
@@ -291,11 +295,15 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Authorization = authorization.NewClient(o)
 	client.Automation = automation.NewClient(o)
 	client.AzureStackHCI = azureStackHCI.NewClient(o)
-	client.Batch = batch.NewClient(o)
+	if client.Batch, err = batch.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Batch: %+v", err)
+	}
 	client.Blueprints = blueprints.NewClient(o)
 	client.Bot = bot.NewClient(o)
 	client.Cdn = cdn.NewClient(o)
-	client.Cognitive = cognitiveServices.NewClient(o)
+	if client.Cognitive, err = cognitiveServices.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Cognitive: %+v", err)
+	}
 	if client.Communication, err = communication.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Communication: %+v", err)
 	}
