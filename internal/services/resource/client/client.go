@@ -1,7 +1,6 @@
 package client
 
 import (
-	resourcesProfile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs" // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2015-12-01/features"                      // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
@@ -22,9 +21,6 @@ type Client struct {
 	TagsClient                  *resources.TagsClient
 	TemplateSpecsVersionsClient *templatespecs.VersionsClient
 
-	// TODO: update usages of this to use `hashicorp/go-azure-sdk` (available as ResourceProvidersClient)
-	ProvidersClient *resourcesProfile.ProvidersClient
-
 	options *common.ClientOptions
 }
 
@@ -44,9 +40,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	locksClient := managementlocks.NewManagementLocksClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&locksClient.Client, o.ResourceManagerAuthorizer)
 
-	providersClient := resourcesProfile.NewProvidersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&providersClient.Client, o.ResourceManagerAuthorizer)
-
 	resourceProvidersClient := providers.NewProvidersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&resourceProvidersClient.Client, o.ResourceManagerAuthorizer)
 
@@ -65,7 +58,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		DeploymentScriptsClient:     &deploymentScriptsClient,
 		FeaturesClient:              &featuresClient,
 		LocksClient:                 &locksClient,
-		ProvidersClient:             &providersClient,
 		ResourceProvidersClient:     &resourceProvidersClient,
 		ResourcesClient:             &resourcesClient,
 		TagsClient:                  &tagsClient,
