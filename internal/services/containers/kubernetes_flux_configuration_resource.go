@@ -123,7 +123,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-z\\d]([-a-z\\d]{0,28}[a-z\\d])?$`),
+				regexp.MustCompile(`^[a-z\d]([-a-z\d]{0,28}[a-z\d])?$`),
 				"`name` must be between 1 and 30 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
 			),
 		},
@@ -145,7 +145,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringMatch(
-							regexp.MustCompile(`^[a-z\\d]([-a-z\\d]{0,28}[a-z\\d])?$`),
+							regexp.MustCompile(`^[a-z\d]([-a-z\d]{0,28}[a-z\d])?$`),
 							"`name` of `kustomizations` must be between 1 and 30 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
 						),
 					},
@@ -343,7 +343,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringMatch(
-							regexp.MustCompile(`^[a-z\\d]([-a-z\\d]{0,61}[a-z\\d])?$`),
+							regexp.MustCompile(`^[a-z\d]([-a-z\d]{0,61}[a-z\d])?$`),
 							"`bucket_name` must be between 1 and 63 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
 						),
 					},
@@ -374,7 +374,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringMatch(
-							regexp.MustCompile(`^[a-z\\d]([-a-z\\d]{0,61}[a-z\\d])?$`),
+							regexp.MustCompile(`^[a-z\d]([-a-z\d]{0,61}[a-z\d])?$`),
 							"`local_auth_ref` must be between 1 and 63 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
 						),
 						ExactlyOneOf: []string{"bucket.0.access_key", "bucket.0.local_auth_ref"},
@@ -461,7 +461,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringMatch(
-							regexp.MustCompile(`^[a-z\\d]([-a-z\\d]{0,61}[a-z\\d])?$`),
+							regexp.MustCompile(`^[a-z\d]([-a-z\d]{0,61}[a-z\d])?$`),
 							"`local_auth_ref` must be between 1 and 63 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
 						),
 						ConflictsWith: []string{"git_repository.0.https_user", "git_repository.0.ssh_private_key", "git_repository.0.ssh_known_hosts"},
@@ -502,7 +502,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 			Optional: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-z\\d]([-a-z\\d]{0,61}[a-z\\d])?$`),
+				regexp.MustCompile(`^[a-z\d]([-a-z\d]{0,61}[a-z\d])?$`),
 				"`name` must be between 1 and 63 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
 			),
 			Default: "default",
