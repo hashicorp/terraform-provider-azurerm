@@ -5,6 +5,10 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230503.1140953` of `github.com/hashicorp/go-azure-sdk` [GH-21467]
 * `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
 
+FEATURES:
+
+* **New Resource:**  `azurerm_cosmosdb_postgresql_coordinator_configuration` [GH-21595]
+
 ## 3.55.0 (May 04, 2023)
 
 FEATURES:
