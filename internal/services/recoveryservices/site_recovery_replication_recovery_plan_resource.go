@@ -6,7 +6,9 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -19,11 +21,12 @@ import (
 )
 
 type SiteRecoveryReplicationRecoveryPlanModel struct {
-	Name                   string               `tfschema:"name"`
-	RecoveryGroup          []RecoveryGroupModel `tfschema:"recovery_group"`
-	RecoveryVaultId        string               `tfschema:"recovery_vault_id"`
-	SourceRecoveryFabricId string               `tfschema:"source_recovery_fabric_id"`
-	TargetRecoveryFabricId string               `tfschema:"target_recovery_fabric_id"`
+	Name                   string                                         `tfschema:"name"`
+	RecoveryGroup          []RecoveryGroupModel                           `tfschema:"recovery_group"`
+	RecoveryVaultId        string                                         `tfschema:"recovery_vault_id"`
+	SourceRecoveryFabricId string                                         `tfschema:"source_recovery_fabric_id"`
+	TargetRecoveryFabricId string                                         `tfschema:"target_recovery_fabric_id"`
+	A2ASettings            []ReplicationRecoveryPlanA2ASpecificInputModel `tfschema:"azure_to_azure_settings"`
 }
 
 type RecoveryGroupModel struct {
@@ -42,6 +45,13 @@ type ActionModel struct {
 	Name                    string                                              `tfschema:"name"`
 	RunbookId               string                                              `tfschema:"runbook_id"`
 	ScriptPath              string                                              `tfschema:"script_path"`
+}
+
+type ReplicationRecoveryPlanA2ASpecificInputModel struct {
+	PrimaryZone      string `tfschema:"primary_zone"`
+	RecoveryZone     string `tfschema:"recovery_zone"`
+	PrimaryEdgeZone  string `tfschema:"primary_edge_zone"`
+	RecoveryEdgeZone string `tfschema:"recovery_edge_zone"`
 }
 
 type SiteRecoveryReplicationRecoveryPlanResource struct{}
@@ -116,20 +126,22 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 					"pre_action": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     schemaAction(),
+						Elem:     replicationRecoveryPlanActionSchema(),
 					},
 					"post_action": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						Elem:     schemaAction(),
+						Elem:     replicationRecoveryPlanActionSchema(),
 					},
 				},
 			},
 		},
+
+		"azure_to_azure_settings": replicationRecoveryPlanA2ASchema(),
 	}
 }
 
-func schemaAction() *pluginsdk.Resource {
+func replicationRecoveryPlanActionSchema() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -199,6 +211,53 @@ func schemaAction() *pluginsdk.Resource {
 	}
 }
 
+func replicationRecoveryPlanA2ASchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"primary_zone": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					RequiredWith: []string{"azure_to_azure_settings.0.recovery_zone"},
+				},
+
+				"recovery_zone": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					RequiredWith: []string{"azure_to_azure_settings.0.primary_zone"},
+				},
+
+				"primary_edge_zone": {
+					Type:             schema.TypeString,
+					Optional:         true,
+					ForceNew:         true,
+					ValidateFunc:     validation.StringIsNotEmpty,
+					StateFunc:        edgezones.StateFunc,
+					DiffSuppressFunc: edgezones.DiffSuppressFunc,
+					RequiredWith:     []string{"azure_to_azure_settings.0.recovery_edge_zone"},
+				},
+
+				"recovery_edge_zone": {
+					Type:             schema.TypeString,
+					Optional:         true,
+					ForceNew:         true,
+					ValidateFunc:     validation.StringIsNotEmpty,
+					StateFunc:        edgezones.StateFunc,
+					DiffSuppressFunc: edgezones.DiffSuppressFunc,
+					RequiredWith:     []string{"azure_to_azure_settings.0.primary_edge_zone"},
+				},
+			},
+		},
+	}
+}
+
 func (r SiteRecoveryReplicationRecoveryPlanResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
@@ -248,6 +307,17 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 					FailoverDeploymentModel: &deploymentModel,
 					Groups:                  groupValue,
 				},
+			}
+
+			if model.A2ASettings != nil && len(model.A2ASettings) == 1 {
+				parameters.Properties.ProviderSpecificInput = pointer.To([]replicationrecoveryplans.RecoveryPlanProviderSpecificInput{
+					replicationrecoveryplans.RecoveryPlanA2AInput{
+						PrimaryZone:              &model.A2ASettings[0].PrimaryZone,
+						RecoveryZone:             &model.A2ASettings[0].RecoveryZone,
+						PrimaryExtendedLocation:  expandEdgeZone(model.A2ASettings[0].PrimaryEdgeZone),
+						RecoveryExtendedLocation: expandEdgeZone(model.A2ASettings[0].RecoveryEdgeZone),
+					},
+				})
 			}
 
 			err = client.CreateThenPoll(ctx, id, parameters)
@@ -300,9 +370,21 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Read() sdk.ResourceFunc {
 				if prop.RecoveryFabricId != nil {
 					state.TargetRecoveryFabricId = handleAzureSdkForGoBug2824(*prop.RecoveryFabricId)
 				}
-
 				if group := prop.Groups; group != nil {
 					state.RecoveryGroup = flattenRecoveryGroups(*group)
+				}
+				if details := prop.ProviderSpecificDetails; details != nil && len(*details) > 0 {
+					detail := pointer.From(details)[0]
+					if a2a, ok := detail.(replicationrecoveryplans.RecoveryPlanA2ADetails); ok {
+						state.A2ASettings = []ReplicationRecoveryPlanA2ASpecificInputModel{
+							{
+								PrimaryZone:      pointer.From(a2a.PrimaryZone),
+								RecoveryZone:     pointer.From(a2a.RecoveryZone),
+								PrimaryEdgeZone:  flattenEdgeZone(a2a.PrimaryExtendedLocation),
+								RecoveryEdgeZone: flattenEdgeZone(a2a.RecoveryExtendedLocation),
+							},
+						}
+					}
 				}
 			}
 
