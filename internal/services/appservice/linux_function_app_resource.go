@@ -495,6 +495,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			if siteConfig.VnetRouteAllEnabled != nil {
+				siteEnvelope.SiteProperties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
+			}
+
 			if functionApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionApp.KeyVaultReferenceIdentityID)
 			}
@@ -961,6 +965,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config") {
 				existing.SiteConfig = siteConfig
+
+				if siteConfig.VnetRouteAllEnabled != nil {
+					existing.SiteProperties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
+				}
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {

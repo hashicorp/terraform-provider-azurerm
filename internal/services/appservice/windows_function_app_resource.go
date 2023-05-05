@@ -492,6 +492,10 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			if siteConfig.VnetRouteAllEnabled != nil {
+				siteEnvelope.SiteProperties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
+			}
+
 			if functionApp.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionApp.VirtualNetworkSubnetID)
 			}
@@ -964,6 +968,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config") {
 				existing.SiteConfig = siteConfig
+
+				if siteConfig.VnetRouteAllEnabled != nil {
+					existing.SiteProperties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
+				}
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)

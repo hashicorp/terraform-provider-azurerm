@@ -336,6 +336,11 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			// vnetroute setting is also added to siteproperty in 2022-09-01 api
+			if siteConfig.VnetRouteAllEnabled != nil {
+				siteEnvelope.SiteProperties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
+			}
+
 			if webApp.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = pointer.To(webApp.VirtualNetworkSubnetID)
 			}
@@ -719,6 +724,10 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 				}
 				existing.SiteConfig = siteConfig
+
+				if siteConfig.VnetRouteAllEnabled != nil {
+					existing.SiteProperties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
+				}
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {

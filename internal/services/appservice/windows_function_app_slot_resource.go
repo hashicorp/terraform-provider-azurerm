@@ -495,6 +495,10 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			if siteConfig.VnetRouteAllEnabled != nil {
+				siteEnvelope.SiteProperties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
+			}
+
 			if functionAppSlot.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = pointer.To(functionAppSlot.VirtualNetworkSubnetID)
 			}
@@ -911,6 +915,10 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
 				}
 				existing.SiteConfig = siteConfig
+
+				if siteConfig.VnetRouteAllEnabled != nil {
+					existing.SiteProperties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
+				}
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)

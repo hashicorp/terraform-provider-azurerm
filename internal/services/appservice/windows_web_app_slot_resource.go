@@ -324,6 +324,10 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			if siteConfig.VnetRouteAllEnabled != nil {
+				siteEnvelope.SiteProperties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
+			}
+
 			if webAppSlot.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = pointer.To(webAppSlot.KeyVaultReferenceIdentityID)
 			}
@@ -726,6 +730,10 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				}
 				currentStack = *stack
 				existing.SiteConfig = siteConfig
+
+				if siteConfig.VnetRouteAllEnabled != nil {
+					existing.SiteProperties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
+				}
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
