@@ -135,12 +135,14 @@ func resourceVirtualHub() *pluginsdk.Resource {
 			"virtual_router_auto_scale_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"min_capacity": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.IntAtLeast(2),
 						},
 					},
