@@ -1,3 +1,9 @@
+## 3.56.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
+
 ## 3.55.0 (May 04, 2023)
 
 FEATURES:
