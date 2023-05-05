@@ -1,26 +1,26 @@
-## 3.55.0 (Unreleased)
+## 3.55.0 (May 04, 2023)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_kubernetes_node_pool_snapshot` [GH-21511]
-* **New Resource:** `azurerm_cosmosdb_postgresql_firewall_rule` [GH-21599]
+* **New Data Source:** `azurerm_kubernetes_node_pool_snapshot` ([#21511](https://github.com/hashicorp/terraform-provider-azurerm/issues/21511))
+* **New Resource:** `azurerm_cosmosdb_postgresql_firewall_rule` ([#21599](https://github.com/hashicorp/terraform-provider-azurerm/issues/21599))
 
 ENHANCEMENTS:
 
-* `appconfiguration`: refactoring to use `tombuildsstuff/kermit` rather than an embedded SDK [GH-21623]
-* `recoveryservicesbackup` - updating to use API Version `2023-02-01` [GH-21575]
-* `azurerm_kubernetes_cluster_node_pool` - support for the `snapshot_id` property [GH-21511]
+* `appconfiguration`: refactoring to use `tombuildsstuff/kermit` rather than an embedded SDK ([#21623](https://github.com/hashicorp/terraform-provider-azurerm/issues/21623))
+* `recoveryservicesbackup` - updating to use API Version `2023-02-01` ([#21575](https://github.com/hashicorp/terraform-provider-azurerm/issues/21575))
+* `azurerm_kubernetes_cluster_node_pool` - support for the `snapshot_id` property ([#21511](https://github.com/hashicorp/terraform-provider-azurerm/issues/21511))
 
 BUG FIXES:
 
-* Data Source: `azurerm_healthcare_fhir_service` - `identity` now exports both `SystemAssigned` and `UserAssigned` identities [GH-21594]
-* `azurerm_local_network_gateway` - validating that `address_space` isn't set to an empty string [GH-21566]
-* `azurerm_log_analytics_cluster` -  Add locks and remove unneeded WaitForState checks [GH-21631]
-* `azurerm_log_analytics_cluster_customer_managed_key` - Add locks and remove unneeded WaitForState checks [GH-21631]
-* `azurerm_managed_disk` - now detaches when `disk_size_gb` increases from below `4095` to above `4095` [GH-21620]
-* Service `mssqlmanagedinstance` - add initialize of `client.MSSQLManagedInstance` to fix panic [GH-21657]
-* `azurerm_virtual_machine` - fixing a regression when parsing the OS Disk ID from the Azure API [GH-21606]
-* `azurerm_virtual_machine` - fixing a regression when parsing the Data Disk ID from the Azure API [GH-21606]
+* Data Source: `azurerm_healthcare_fhir_service` - `identity` now exports both `SystemAssigned` and `UserAssigned` identities ([#21594](https://github.com/hashicorp/terraform-provider-azurerm/issues/21594))
+* `azurerm_local_network_gateway` - validating that `address_space` isn't set to an empty string ([#21566](https://github.com/hashicorp/terraform-provider-azurerm/issues/21566))
+* `azurerm_log_analytics_cluster` -  Add locks and remove unneeded WaitForState checks ([#21631](https://github.com/hashicorp/terraform-provider-azurerm/issues/21631))
+* `azurerm_log_analytics_cluster_customer_managed_key` - Add locks and remove unneeded WaitForState checks ([#21631](https://github.com/hashicorp/terraform-provider-azurerm/issues/21631))
+* `azurerm_managed_disk` - now detaches when `disk_size_gb` increases from below `4095` to above `4095` ([#21620](https://github.com/hashicorp/terraform-provider-azurerm/issues/21620))
+* Service `mssqlmanagedinstance` - add initialize of `client.MSSQLManagedInstance` to fix panic ([#21657](https://github.com/hashicorp/terraform-provider-azurerm/issues/21657))
+* `azurerm_virtual_machine` - fixing a regression when parsing the OS Disk ID from the Azure API ([#21606](https://github.com/hashicorp/terraform-provider-azurerm/issues/21606))
+* `azurerm_virtual_machine` - fixing a regression when parsing the Data Disk ID from the Azure API ([#21606](https://github.com/hashicorp/terraform-provider-azurerm/issues/21606))
 
 ## 3.54.0 (April 27, 2023)
 
