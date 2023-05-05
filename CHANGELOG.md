@@ -12,6 +12,10 @@ FEATURES:
 * **New Resource:** `azurerm_monitor_workspace` [GH-21598]
 * **New Resource:** `azurerm_cosmosdb_postgresql_role` [GH-21597]
 
+BUG FIXES:
+
+* `azurerm_monitor_metric_alert` - fix regression by using `ingleResourceMultiMetricCriteria` for new metric alerts  [GH-21658]
+
 ## 3.55.0 (May 04, 2023)
 
 FEATURES:
