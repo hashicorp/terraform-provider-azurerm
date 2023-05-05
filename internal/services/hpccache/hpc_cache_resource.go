@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -670,34 +671,30 @@ func storageCacheRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.C
 		return nil, err
 	}
 
-	resp, err := keyVaultsClient.VaultsClient.Get(ctx, parsedKeyVaultID.ResourceGroupName, parsedKeyVaultID.VaultName)
+	resp, err := keyVaultsClient.VaultsClient.Get(ctx, *parsedKeyVaultID)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *parsedKeyVaultID, err)
 	}
 
+	loc := ""
 	purgeProtectionEnabled := false
 	softDeleteEnabled := false
-
-	if props := resp.Properties; props != nil {
-		if props.EnableSoftDelete != nil {
-			softDeleteEnabled = *props.EnableSoftDelete
+	if model := resp.Model; model != nil {
+		loc = location.NormalizeNilable(model.Location)
+		if model.Properties.EnableSoftDelete != nil {
+			softDeleteEnabled = *model.Properties.EnableSoftDelete
 		}
 
-		if props.EnablePurgeProtection != nil {
-			purgeProtectionEnabled = *props.EnablePurgeProtection
+		if model.Properties.EnablePurgeProtection != nil {
+			purgeProtectionEnabled = *model.Properties.EnablePurgeProtection
 		}
-	}
-
-	location := ""
-	if resp.Location != nil {
-		location = *resp.Location
 	}
 
 	return &storageCacheKeyVault{
 		keyVaultId:             *keyVaultID,
 		resourceGroupName:      parsedKeyVaultID.ResourceGroupName,
 		keyVaultName:           parsedKeyVaultID.VaultName,
-		location:               location,
+		location:               loc,
 		purgeProtectionEnabled: purgeProtectionEnabled,
 		softDeleteEnabled:      softDeleteEnabled,
 	}, nil

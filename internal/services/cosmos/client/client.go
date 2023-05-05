@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/firewallrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/roles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -15,6 +16,7 @@ type Client struct {
 	CassandraClustersClient          *managedcassandras.ManagedCassandrasClient
 	CassandraDatacentersClient       *documentdb.CassandraDataCentersClient
 	ClustersClient                   *clusters.ClustersClient
+	ConfigurationsClient             *configurations.ConfigurationsClient
 	DatabaseClient                   *documentdb.DatabaseAccountsClient
 	FirewallRulesClient              *firewallrules.FirewallRulesClient
 	GremlinClient                    *documentdb.GremlinResourcesClient
@@ -40,6 +42,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	clustersClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&clustersClient.Client, o.ResourceManagerAuthorizer)
+
+	configurationsClient := configurations.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
 
 	databaseClient := documentdb.NewDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseClient.Client, o.ResourceManagerAuthorizer)
@@ -79,6 +84,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		CassandraClustersClient:          &cassandraClustersClient,
 		CassandraDatacentersClient:       &cassandraDatacentersClient,
 		ClustersClient:                   &clustersClient,
+		ConfigurationsClient:             &configurationsClient,
 		DatabaseClient:                   &databaseClient,
 		FirewallRulesClient:              &firewallRulesClient,
 		GremlinClient:                    &gremlinClient,

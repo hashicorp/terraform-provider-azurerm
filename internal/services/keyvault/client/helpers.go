@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -49,27 +50,26 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.Ke
 		return &v.dataPlaneBaseUri, nil
 	}
 
-	vaultsClient := c.VaultsClient
-
-	if keyVaultId.SubscriptionId != c.VaultsClient.SubscriptionID {
-		vaultsClient = c.KeyVaultClientForSubscription(keyVaultId.SubscriptionId)
-	}
-
-	resp, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroupName, keyVaultId.VaultName)
+	resp, err := c.VaultsClient.Get(ctx, keyVaultId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("%s was not found", keyVaultId)
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", keyVaultId, err)
 	}
 
-	if resp.Properties == nil || resp.Properties.VaultURI == nil {
-		return nil, fmt.Errorf("`properties` was nil for %s", keyVaultId)
+	vaultUri := ""
+	if model := resp.Model; model != nil {
+		if model.Properties.VaultUri != nil {
+			vaultUri = *model.Properties.VaultUri
+		}
+	}
+	if vaultUri == "" {
+		return nil, fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", keyVaultId)
 	}
 
-	c.AddToCache(keyVaultId, *resp.Properties.VaultURI)
-
-	return resp.Properties.VaultURI, nil
+	c.AddToCache(keyVaultId, vaultUri)
+	return &vaultUri, nil
 }
 
 func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (bool, error) {
@@ -86,19 +86,24 @@ func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (b
 		return true, nil
 	}
 
-	resp, err := c.VaultsClient.Get(ctx, keyVaultId.ResourceGroupName, keyVaultId.VaultName)
+	resp, err := c.VaultsClient.Get(ctx, keyVaultId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return false, nil
 		}
 		return false, fmt.Errorf("retrieving %s: %+v", keyVaultId, err)
 	}
 
-	if resp.Properties == nil || resp.Properties.VaultURI == nil {
-		return false, fmt.Errorf("`properties` was nil for %s", keyVaultId)
+	vaultUri := ""
+	if model := resp.Model; model != nil {
+		if model.Properties.VaultUri != nil {
+			vaultUri = *model.Properties.VaultUri
+		}
 	}
-
-	c.AddToCache(keyVaultId, *resp.Properties.VaultURI)
+	if vaultUri == "" {
+		return false, fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", keyVaultId)
+	}
+	c.AddToCache(keyVaultId, vaultUri)
 
 	return true, nil
 }
@@ -142,15 +147,20 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 				continue
 			}
 
-			props, err := c.VaultsClient.Get(ctx, id.ResourceGroupName, id.VaultName)
+			resp, err := c.VaultsClient.Get(ctx, *id)
 			if err != nil {
 				return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if props.Properties == nil || props.Properties.VaultURI == nil {
-				return nil, fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", *id)
+			vaultUri := ""
+			if model := resp.Model; model != nil {
+				if model.Properties.VaultUri != nil {
+					vaultUri = *model.Properties.VaultUri
+				}
 			}
-
-			c.AddToCache(*id, *props.Properties.VaultURI)
+			if vaultUri == "" {
+				return nil, fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", id)
+			}
+			c.AddToCache(*id, vaultUri)
 			return utils.String(id.ID()), nil
 		}
 
