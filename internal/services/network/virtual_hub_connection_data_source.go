@@ -69,6 +69,9 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 									"labels": {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
 									},
 
 									"route_table_ids": {
