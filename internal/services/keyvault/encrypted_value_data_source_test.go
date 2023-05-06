@@ -21,6 +21,8 @@ func TestAccEncryptedValueDataSource_encryptAndDecrypt(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("encrypted_value").MatchesOtherKey(check.That("data.azurerm_key_vault_encrypted_value.encrypted").Key("encrypted_value")),
 				check.That(data.ResourceName).Key("plain_text_value").MatchesOtherKey(check.That("data.azurerm_key_vault_encrypted_value.encrypted").Key("plain_text_value")),
+				check.That("data.azurerm_key_vault_encrypted_value.decrypted_space").Key("encrypted_value").MatchesOtherKey(check.That("data.azurerm_key_vault_encrypted_value.encrypted_space").Key("encrypted_value")),
+				check.That("data.azurerm_key_vault_encrypted_value.decrypted_space").Key("plain_text_value").MatchesOtherKey(check.That("data.azurerm_key_vault_encrypted_value.encrypted_space").Key("plain_text_value")),
 			),
 		},
 	})
@@ -45,6 +47,18 @@ data "azurerm_key_vault_encrypted_value" "decrypted" {
   key_vault_key_id = azurerm_key_vault_key.test.id
   algorithm        = "RSA1_5"
   encrypted_data   = data.azurerm_key_vault_encrypted_value.encrypted.encrypted_data
+}
+
+data "azurerm_key_vault_encrypted_value" "encrypted_space" {
+  key_vault_key_id = azurerm_key_vault_key.test.id
+  algorithm        = "RSA1_5"
+  plain_text_value = "some encrypted value "
+}
+
+data "azurerm_key_vault_encrypted_value" "decrypted_space" {
+  key_vault_key_id = azurerm_key_vault_key.test.id
+  algorithm        = "RSA1_5"
+  encrypted_data   = data.azurerm_key_vault_encrypted_value.encrypted_space.encrypted_data
 }
 `, template)
 }

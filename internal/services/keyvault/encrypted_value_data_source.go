@@ -3,7 +3,9 @@ package keyvault
 import (
 	"context"
 	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -101,11 +103,17 @@ func (EncryptedValueDataSource) Read() sdk.ResourceFunc {
 				if result.Result == nil {
 					return fmt.Errorf("decrypting plain-text value using Key Vault Key ID %q: `result` was nil", model.KeyVaultKeyId)
 				}
-				model.PlainTextValue = *result.Result
+				if bytesResult, err := base64.RawURLEncoding.DecodeString(*result.Result); err != nil {
+					log.Printf("[DEBUG] decoding decrypt result as base64URL failed, use the API result as plainTextValue: %+v", err)
+					model.PlainTextValue = *result.Result
+				} else {
+					model.PlainTextValue = string(bytesResult)
+				}
 			} else {
+				encodedText := base64.RawURLEncoding.EncodeToString([]byte(model.PlainTextValue))
 				params := keyvault.KeyOperationsParameters{
 					Algorithm: keyvault.JSONWebKeyEncryptionAlgorithm(model.Algorithm),
-					Value:     utils.String(model.PlainTextValue),
+					Value:     utils.String(encodedText),
 				}
 				result, err := client.Encrypt(ctx, keyVaultKeyId.KeyVaultBaseUrl, keyVaultKeyId.Name, keyVaultKeyId.Version, params)
 				if err != nil {
