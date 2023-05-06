@@ -163,6 +163,7 @@ func dataSourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
 	d.Set("name", id.RouteName)
 	d.Set("cdn_frontdoor_endpoint_id", endpointId.ID())
 
