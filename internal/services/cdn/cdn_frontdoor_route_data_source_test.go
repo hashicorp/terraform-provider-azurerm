@@ -11,7 +11,7 @@ import (
 type CdnFrontDoorRouteDataSource struct{}
 
 func TestAccCdnFrontDoorRouteDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_profile", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_route", "test")
 	d := CdnFrontDoorRouteDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
