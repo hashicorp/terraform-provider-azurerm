@@ -50,7 +50,7 @@ func (c TenantsClient) ListBySubscription(ctx context.Context, id commonids.Subs
 	}
 
 	var values struct {
-		Values *[]Tenant `json:"values"`
+		Values *[]Tenant `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

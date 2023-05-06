@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp Inc. All rights reserved.
+// Licensed under the MPL-2.0 License. See NOTICE.txt in the project root for license information.
+
 package claims
 
 import (
@@ -9,12 +12,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// Copyright (c) HashiCorp Inc. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
-
 // Claims is used to unmarshall the claims from a JWT issued by the Microsoft Identity Platform.
 type Claims struct {
 	Audience          string   `json:"aud"`
+	IssuedAt          int64    `json:"iat"`
 	Issuer            string   `json:"iss"`
 	IdentityProvider  string   `json:"idp"`
 	ObjectId          string   `json:"oid"`

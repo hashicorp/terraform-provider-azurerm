@@ -1093,7 +1093,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 			d.Set("vm_size", props.VMSize)
-			d.Set("inter_node_communication", props.InterNodeCommunication)
+			d.Set("inter_node_communication", string(pointer.From(props.InterNodeCommunication)))
 
 			if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 				if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
@@ -1196,11 +1196,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					}
 
 					d.Set("storage_image_reference", flattenBatchPoolImageReference(&config.ImageReference))
-
-					if config.LicenseType != nil {
-						d.Set("license_type", *config.LicenseType)
-					}
-
+					d.Set("license_type", config.LicenseType)
 					d.Set("node_agent_sku_id", config.NodeAgentSkuId)
 
 					if config.NodePlacementConfiguration != nil {

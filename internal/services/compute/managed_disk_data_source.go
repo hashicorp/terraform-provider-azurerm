@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -203,7 +204,7 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("disk_size_gb", props.DiskSizeGB)
 			d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 			d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
-			d.Set("os_type", props.OsType)
+			d.Set("os_type", string(pointer.From(props.OsType)))
 
 			diskEncryptionSetId := ""
 			if props.Encryption != nil && props.Encryption.DiskEncryptionSetId != nil {

@@ -81,7 +81,7 @@ func (c RecordSetsClient) ListByDnsZone(ctx context.Context, id DnsZoneId, optio
 	}
 
 	var values struct {
-		Values *[]RecordSet `json:"values"`
+		Values *[]RecordSet `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

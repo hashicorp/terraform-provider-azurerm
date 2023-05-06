@@ -6,6 +6,7 @@ Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+ArcKubernetes
 Attestation
 Authorization
 Automation
@@ -24,7 +25,6 @@ Connections
 Consumption
 Container
 Container Apps
-Containers
 CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
@@ -89,10 +89,12 @@ Service Fabric
 Service Fabric Managed Clusters
 Spring Cloud
 Storage
+Storage Mover
 Stream Analytics
 Synapse
 Template
 Time Series Insights
 VMware (AVS)
 Video Analyzer
+Voice Services
 Web PubSub

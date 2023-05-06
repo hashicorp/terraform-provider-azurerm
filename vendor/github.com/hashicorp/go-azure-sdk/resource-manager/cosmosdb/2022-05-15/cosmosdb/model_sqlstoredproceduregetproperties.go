@@ -4,5 +4,5 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SqlStoredProcedureGetProperties struct {
-	Resource *SqlStoredProcedureGetProperties `json:"resource,omitempty"`
+	Resource *SqlStoredProcedureGetPropertiesResource `json:"resource,omitempty"`
 }

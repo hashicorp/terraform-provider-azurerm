@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosDbMongoUserDefinitionModel struct {
+type CosmosDbMongoUserDefinitionResourceModel struct {
 	AccountId          string   `tfschema:"account_id"`
 	DBName             string   `tfschema:"db_name"`
 	Username           string   `tfschema:"username"`
@@ -33,7 +33,7 @@ func (r CosmosDbMongoUserDefinitionResource) ResourceType() string {
 }
 
 func (r CosmosDbMongoUserDefinitionResource) ModelObject() interface{} {
-	return &CosmosDbMongoUserDefinitionModel{}
+	return &CosmosDbMongoUserDefinitionResourceModel{}
 }
 
 func (r CosmosDbMongoUserDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -95,7 +95,7 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model CosmosDbMongoUserDefinitionModel
+			var model CosmosDbMongoUserDefinitionResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -121,7 +121,7 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := &mongorbacs.MongoUserDefinitionCreateUpdateParameters{
+			properties := mongorbacs.MongoUserDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoUserDefinitionResource{
 					DatabaseName: &model.DBName,
 					Mechanisms:   utils.String("SCRAM-SHA-256"),
@@ -135,7 +135,7 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 				properties.Properties.CustomData = &v
 			}
 
-			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, id, *properties); err != nil {
+			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -159,7 +159,7 @@ func (r CosmosDbMongoUserDefinitionResource) Update() sdk.ResourceFunc {
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
-			var model CosmosDbMongoUserDefinitionModel
+			var model CosmosDbMongoUserDefinitionResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -217,21 +217,18 @@ func (r CosmosDbMongoUserDefinitionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			state := CosmosDbMongoUserDefinitionModel{
+			state := CosmosDbMongoUserDefinitionResourceModel{
 				AccountId: mongorbacs.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName).ID(),
 			}
 
-			if properties := model.Properties; properties != nil {
-				state.DBName = *properties.DatabaseName
-				state.Username = *properties.UserName
-				state.Password = metadata.ResourceData.Get("password").(string)
-				state.CustomData = metadata.ResourceData.Get("custom_data").(string)
-				state.InheritedRoleNames = flattenInheritedRole(properties.Roles)
+			if model := resp.Model; model != nil {
+				if properties := model.Properties; properties != nil {
+					state.DBName = *properties.DatabaseName
+					state.Username = *properties.UserName
+					state.Password = metadata.ResourceData.Get("password").(string)
+					state.CustomData = metadata.ResourceData.Get("custom_data").(string)
+					state.InheritedRoleNames = flattenInheritedRole(properties.Roles)
+				}
 			}
 
 			return metadata.Encode(&state)

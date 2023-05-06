@@ -23,6 +23,11 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		CosmosDbMongoUserDefinitionResource{},
+		CosmosDbPostgreSQLClusterResource{},
+		CosmosDbPostgreSQLCoordinatorConfigurationResource{},
+		CosmosDbPostgreSQLFirewallRuleResource{},
+		CosmosDbPostgreSQLNodeConfigurationResource{},
+		CosmosDbPostgreSQLRoleResource{},
 		CosmosDbSqlDedicatedGatewayResource{},
 	}
 }

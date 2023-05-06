@@ -51,12 +51,8 @@ func (r SentinelDataConnectorMicrosoftThreatIntelligence) basic(data acceptance.
 
 resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "test" {
   name                                         = "acctest-DC-MTI-%d"
-  log_analytics_workspace_id                   = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id                   = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   microsoft_emerging_threat_feed_lookback_date = "1970-01-01T00:00:00Z"
-
-  depends_on = [
-    azurerm_sentinel_log_analytics_workspace_onboarding.test
-  ]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -69,14 +65,10 @@ data "azurerm_client_config" "test" {}
 
 resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "test" {
   name                                         = "acctest-DC-MTI-%d"
-  log_analytics_workspace_id                   = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id                   = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   tenant_id                                    = data.azurerm_client_config.test.tenant_id
   microsoft_emerging_threat_feed_lookback_date = "1970-01-01T00:00:00Z"
   bing_safety_phishing_url_lookback_date       = "1970-01-01T00:00:00Z"
-
-  depends_on = [
-    azurerm_sentinel_log_analytics_workspace_onboarding.test
-  ]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -100,8 +92,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

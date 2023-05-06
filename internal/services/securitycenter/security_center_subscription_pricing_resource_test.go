@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	pricings_v2022_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-03-01/pricings"
+	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,6 +72,23 @@ func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	})
 }
 
+func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	// lintignore:AT001
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.tier("Standard", "CosmosDbs"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
@@ -91,7 +108,7 @@ func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T
 }
 
 func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := pricings_v2022_03_01.ParsePricingIDInsensitively(state.ID)
+	id, err := pricings_v2023_01_01.ParsePricingIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}

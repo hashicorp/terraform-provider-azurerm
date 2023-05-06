@@ -4,6 +4,6 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CassandraTableGetProperties struct {
-	Options  *OptionsResource             `json:"options,omitempty"`
-	Resource *CassandraTableGetProperties `json:"resource,omitempty"`
+	Options  *OptionsResource                     `json:"options,omitempty"`
+	Resource *CassandraTableGetPropertiesResource `json:"resource,omitempty"`
 }

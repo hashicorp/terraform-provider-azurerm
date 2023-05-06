@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -52,11 +52,7 @@ func resourceDataFactoryLinkedServiceKeyVault() *pluginsdk.Resource {
 				ValidateFunc: validate.DataFactoryID,
 			},
 
-			"key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
 
 			"description": {
 				Type:         pluginsdk.TypeString,
@@ -111,7 +107,7 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
-	keyVaultId, err := keyVaultParse.VaultID(d.Get("key_vault_id").(string))
+	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}

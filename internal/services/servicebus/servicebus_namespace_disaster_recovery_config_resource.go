@@ -56,7 +56,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 			"partner_namespace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty, // nolint: staticcheck
 			},
 
 			"alias_authorization_rule_id": {

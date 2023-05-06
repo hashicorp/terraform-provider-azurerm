@@ -104,6 +104,8 @@ An `ip_configuration` block supports the following:
 
 * `public_ip_address_id` - (Required) The ID of the Public IP Address associated with the firewall.
 
+-> **NOTE** When multiple `ip_configuration` blocks with `public_ip_address_id` are configured, `terraform apply` will raise an error when one or some of these `ip_configuration` blocks are removed. because the `public_ip_address_id` is still used by the `firewall` resource until the `firewall` resource is updated. and the destruction of `azurerm_public_ip` happens before the update of firewall by default. to destroy of `azurerm_public_ip` will cause the error. The workaround is to set `create_before_destroy=true` to the `azurerm_public_ip` resource `lifecycle` block. See more detail: [destroying.md#create-before-destroy](https://github.com/hashicorp/terraform/blob/main/docs/destroying.md#create-before-destroy)
+
 -> **NOTE** The Public IP must have a `Static` allocation and `Standard` SKU.
 
 ---
@@ -130,7 +132,7 @@ A `virtual_hub` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Azure Firewall.
 

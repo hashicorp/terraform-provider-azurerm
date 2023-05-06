@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -35,6 +35,72 @@ func TestAccSignalRService_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSignalRService_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSignalRService_propertyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSignalRService_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -455,6 +521,28 @@ func TestAccSignalRService_liveTrace(t *testing.T) {
 	})
 }
 
+func TestAccSignalRService_resourceLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.resourceLogs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.resourceLogsUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := signalr.ParseSignalRID(state.ID)
 	if err != nil {
@@ -489,6 +577,111 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Free_F1"
     capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+
+  public_network_access_enabled            = true
+  local_auth_enabled                       = false
+  aad_auth_enabled                         = false
+  tls_client_cert_enabled                  = false
+  serverless_connection_timeout_in_seconds = 5
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+
+  public_network_access_enabled            = true
+  local_auth_enabled                       = true
+  aad_auth_enabled                         = true
+  tls_client_cert_enabled                  = false
+  serverless_connection_timeout_in_seconds = 10
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+
+  public_network_access_enabled            = true
+  local_auth_enabled                       = false
+  aad_auth_enabled                         = false
+  tls_client_cert_enabled                  = false
+  serverless_connection_timeout_in_seconds = 5
+
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -813,6 +1006,61 @@ resource "azurerm_signalr_service" "test" {
     connectivity_logs_enabled = false
     http_request_logs_enabled = false
   }
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) resourceLogs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  messaging_logs_enabled    = false
+  connectivity_logs_enabled = true
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) resourceLogsUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  messaging_logs_enabled    = false
+  connectivity_logs_enabled = false
+  http_request_logs_enabled = true
 
   sku {
     name     = "Free_F1"

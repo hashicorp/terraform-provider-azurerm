@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -537,7 +536,7 @@ func expandAccessControl(d *pluginsdk.ResourceData) (*streamingendpoints.Streami
 				Identifier: utils.String(identifier),
 			}
 			if expirationRaw != "" {
-				expiration, err := date.ParseTime(time.RFC3339, expirationRaw)
+				expiration, err := time.Parse(time.RFC3339, expirationRaw)
 				if err != nil {
 					return nil, err
 				}

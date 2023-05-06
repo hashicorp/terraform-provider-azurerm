@@ -24,6 +24,30 @@ func TestAccLinuxFunctionApp_authV2AzureActiveDirectory(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_authV2AzureActiveDirectoryRemove(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2AzureActiveDirectory(data, SkuBasicPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxFunctionApp_authV2Apple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -174,7 +198,7 @@ func TestAccLinuxFunctionApp_authV2Update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standardComplete(data),
+			Config: r.authV2AzureActiveDirectory(data, SkuBasicPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -182,7 +206,7 @@ func TestAccLinuxFunctionApp_authV2Update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeAuthV2(data, SkuBasicPlan),
+			Config: r.authV2Google(data, SkuBasicPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -224,12 +248,19 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread" {}
+
 %s
 
 data "azurerm_client_config" "current" {}
 
+resource "azuread_group" "test" {
+  display_name     = "acctestspa-%d"
+  security_enabled = true
+}
+
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
+  name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -254,8 +285,12 @@ resource "azurerm_linux_function_app" "test" {
       client_id                  = data.azurerm_client_config.current.client_id
       client_secret_setting_name = "%[3]s"
       tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
+      allowed_groups             = [azuread_group.test.object_id]
     }
-    login {}
+
+    login {
+      token_store_enabled = true
+    }
   }
 }
 `, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue, data.Client().TenantID)

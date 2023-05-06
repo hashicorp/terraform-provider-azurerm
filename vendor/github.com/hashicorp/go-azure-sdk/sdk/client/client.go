@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -7,10 +10,12 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -63,10 +68,9 @@ func RequestRetryAll(retryFuncs ...RequestRetryFunc) func(resp *http.Response, o
 	}
 }
 
-// RetryableErrorHandler ensures that the response is returned after exhausting retries for a request
-// We mustn't return an error here, or net/http will not return the response
-func RetryableErrorHandler(resp *http.Response, _ error, _ int) (*http.Response, error) {
-	return resp, nil
+// RetryableErrorHandler simply returns the resp and err, this is needed to makes the retryablehttp client's Do() return early with the response body not drained.
+func RetryableErrorHandler(resp *http.Response, err error, _ int) (*http.Response, error) {
+	return resp, err
 }
 
 // Request embeds *http.Request and adds useful metadata
@@ -102,14 +106,15 @@ func (r *Request) Marshal(payload interface{}) error {
 		return nil
 	}
 
-	if strings.Contains(contentType, "application/octet-stream") {
-		v, ok := payload.([]byte)
+	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
+		v, ok := payload.(*[]byte)
 		if !ok {
-			return fmt.Errorf("internal-error: `payload` must be []byte but got %+v", payload)
+			return fmt.Errorf("internal-error: `payload` must be *[]byte but got %+v", payload)
 		}
 
-		r.ContentLength = int64(len(v))
-		r.Body = io.NopCloser(bytes.NewReader(v))
+		r.ContentLength = int64(len(*v))
+		r.Body = io.NopCloser(bytes.NewReader(*v))
+		return nil
 	}
 
 	return fmt.Errorf("internal-error: unimplemented marshal function for content type %q", contentType)
@@ -176,6 +181,7 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
+		return nil
 	}
 
 	if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
@@ -196,11 +202,12 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
+		return nil
 	}
 
-	if strings.Contains(contentType, "application/octet-stream") {
-		if _, ok := model.([]byte); !ok {
-			return fmt.Errorf("internal-error: `model` must be []byte but got %+v", model)
+	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
+		if _, ok := model.(**[]byte); !ok {
+			return fmt.Errorf("internal-error: `model` must be **[]byte but got %+v", model)
 		}
 
 		// Read the response body and close it
@@ -214,13 +221,14 @@ func (r *Response) Unmarshal(model interface{}) error {
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
 
 		// copy the byte stream across
-		model = respBody
+		reflect.ValueOf(model).Elem().Elem().SetBytes(respBody)
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
+		return nil
 	}
 
-	return nil
+	return fmt.Errorf("internal-error: unimplemented unmarshal function for content type %q", contentType)
 }
 
 // Client is a base client to be used by API-specific clients. It satisfies the BaseClient interface.
@@ -312,6 +320,12 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 	var err error
 
+	// Ensure the Content-Lenght header is set for methods that define a meaning for enclosed content, i.e. POST and PUT.
+	// https://www.rfc-editor.org/rfc/rfc9110#section-8.6-5
+	if req.Method == "POST" || req.Method == "PUT" {
+		req.Header.Set("Content-Length", fmt.Sprintf("%d", req.ContentLength))
+	}
+
 	// Check we can read the request body and set a default empty body
 	var reqBody []byte
 	if req.Body != nil {
@@ -320,7 +334,6 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 			return nil, fmt.Errorf("reading request body: %v", err)
 		}
 		req.Body = io.NopCloser(bytes.NewBuffer(reqBody))
-		req.Header.Set("Content-Length", fmt.Sprintf("%d", req.ContentLength))
 	}
 
 	// Instantiate a RetryableHttp client and configure its CheckRetry func
@@ -391,27 +404,23 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 		}
 	}
 
-	// Extract OData from response
-	var o *odata.OData
-	resp.OData, err = odata.FromResponse(resp.Response)
-	if err != nil {
-		return resp, err
-	}
-	if resp == nil {
-		return resp, fmt.Errorf("nil response received")
-	}
+	// Extract OData from response, intentionally ignoring any errors as it's not crucial to extract
+	// valid OData at this point (valid json can still error here, such as any non-object literal)
+	resp.OData, _ = odata.FromResponse(resp.Response)
 
 	// Determine whether response status is valid
 	if !containsStatusCode(req.ValidStatusCodes, resp.StatusCode) {
-		if f := req.ValidStatusFunc; f != nil && f(resp.Response, o) {
+		// The status code didn't match, but we also need to check the ValidStatusFUnc, if provided
+		// Note that the odata argument here is a best-effort and may be nil
+		if f := req.ValidStatusFunc; f != nil && f(resp.Response, resp.OData) {
 			return resp, nil
 		}
 
 		// Determine suitable error text
 		var errText string
 		switch {
-		case o != nil && o.Error != nil && o.Error.String() != "":
-			errText = fmt.Sprintf("error: %s", o.Error)
+		case resp.OData != nil && resp.OData.Error != nil && resp.OData.Error.String() != "":
+			errText = fmt.Sprintf("error: %s", resp.OData.Error)
 
 		default:
 			defer resp.Body.Close()
@@ -536,7 +545,7 @@ func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retrya
 
 	r.CheckRetry = checkRetry
 	r.ErrorHandler = RetryableErrorHandler
-	r.Logger = nil
+	r.Logger = log.Default()
 
 	r.HTTPClient = &http.Client{
 		Transport: &http.Transport{
