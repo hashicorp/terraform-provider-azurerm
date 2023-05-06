@@ -1503,11 +1503,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		opts.AccountPropertiesUpdateParameters.DefaultToOAuthAuthentication = &defaultToOAuthAuthentication
 	}
 
-	// During the update from v2 to v3 of the provider, users are able to set this newly introduced property to be `false` (was absent in v2 provider).
-	// The storage service differentiate this property being `false` or absent, while the d.HasChange regards both (`false` and `null`) are the same.
-	// This makes setting the property to be `false` ends up being absent at the remote end.
-	// Hence, we need to explicitly check for the null case here to make it update the property to `false` if user has set so (instead of skipping the if branch below).
-	if d.HasChange("cross_tenant_replication_enabled") || d.GetRawState().GetAttr("cross_tenant_replication_enabled").IsNull() {
+	if d.HasChange("cross_tenant_replication_enabled") {
 		crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
 		opts.AccountPropertiesUpdateParameters.AllowCrossTenantReplication = &crossTenantReplication
 	}
