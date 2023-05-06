@@ -4,6 +4,7 @@ package provider
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"

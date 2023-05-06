@@ -120,7 +120,7 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.55.0
+# github.com/hashicorp/go-azure-helpers v0.55.1-0.20230503124359-d9135268bdc1
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/lang/dates
@@ -383,8 +383,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/lab
 github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/labplan
 github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/schedule
 github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/user
-github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview
-github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview/loadtests
+github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01
+github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtest
+github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests
+github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/quotas
 github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountagreements
 github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountassemblies
 github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountbatchconfigurations

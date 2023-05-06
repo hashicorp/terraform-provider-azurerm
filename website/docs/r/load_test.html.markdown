@@ -6,8 +6,6 @@ description: |-
   Manages a Load Test.
 ---
 
-<!-- Note: This documentation is generated. Any manual changes will be overwritten -->
-
 # azurerm_load_test
 
 Manages a Load Test Service.
@@ -34,6 +32,8 @@ The following arguments are supported:
 
 * `description` - (Optional) Description of the resource. Changing this forces a new Load Test to be created.
 
+* `encryption` - (Optional) An `encryption` block as defined below. CMK Encryption property. Changing this forces a new Load Test to be created.
+
 * `identity` - (Optional) Specifies the Managed Identity which should be assigned to this Load Test.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Load Test.
@@ -48,7 +48,29 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
+## Blocks Reference
 
+### `encryption` Block
+
+The `encryption` block supports the following arguments:
+
+* `identity` - (Optional) An `identity` block as defined below. 
+
+* `key_url` - (Optional) Specify key encryption key URL, versioned.
+
+~> **NOTE**: Please assign the identity Get, Wrap and Unwrap permissions for the key vault
+
+---
+
+### `identity` Block
+
+The `identity` block supports the following arguments:
+
+* `resource_id` - (Optional) user assigned identity to use for accessing key encryption key Url.
+
+* `type` - (Optional) Possible values are `SystemAssigned` and `UserAssigned`.
+
+---
 
 ## Timeouts
 

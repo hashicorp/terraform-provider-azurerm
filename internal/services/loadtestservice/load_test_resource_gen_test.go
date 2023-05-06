@@ -1,6 +1,5 @@
 package loadtestservice_test
 
-// NOTE: this file is generated - manual changes will be overwritten.
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
@@ -8,7 +7,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview/loadtests"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -132,6 +131,74 @@ func (r LoadTestTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-${local.random_str}"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+      "SetRotationPolicy",
+      "GetRotationPolicy",
+      "Rotate",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get",
+      "WrapKey",
+      "UnwrapKey",
+      "GetRotationPolicy",
+      "Decrypt",
+      "Encrypt",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-${local.random_str}"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
 
 resource "azurerm_load_test" "test" {
   location            = azurerm_resource_group.test.location
@@ -139,8 +206,20 @@ resource "azurerm_load_test" "test" {
   resource_group_name = azurerm_resource_group.test.name
   description         = "foo"
 
+  encryption {
+
+    identity {
+      resource_id = azurerm_user_assigned_identity.test.id
+      type        = "UserAssigned"
+    }
+
+    key_url = azurerm_key_vault_key.test.id
+  }
+
+
   identity {
-    type = "SystemAssigned"
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   tags = {
@@ -160,6 +239,7 @@ provider "azurerm" {
 locals {
   random_integer   = %[1]d
   primary_location = %[2]q
+  random_str       = %[3]q
 }
 
 
@@ -167,5 +247,13 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestrg-${local.random_integer}"
   location = local.primary_location
 }
-`, data.RandomInteger, data.Locations.Primary)
+
+
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-${local.random_integer}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
