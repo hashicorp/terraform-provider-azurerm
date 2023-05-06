@@ -73,7 +73,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_signalr_service" "test" {
-  name                = "acctestSignalR-%d"
+  name                = "acctestSignalR-%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku {
@@ -83,6 +83,23 @@ resource "azurerm_signalr_service" "test" {
   identity {
     type = "SystemAssigned"
   }
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "tftestzone.com"
+  resource_group_name = azurerm_resource_group.test.name
+  depends_on = [
+    azurerm_signalr_service.test,
+    azurerm_signalr_service_custom_certificate.test
+  ]
+}
+
+resource "azurerm_dns_cname_record" "test" {
+  name                = "signalr"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
+  ttl                 = 3600
+  record              = azurerm_signalr_service.test.hostname
 }
 
 resource "azurerm_key_vault" "test" {
@@ -152,10 +169,10 @@ resource "azurerm_signalr_service_custom_certificate" "test" {
 resource "azurerm_signalr_service_custom_domain" "test" {
   name                          = "signalr-custom-domain-%s"
   signalr_service_id            = azurerm_signalr_service.test.id
-  domain_name                   = "signalr.tftestzone.com"
+  domain_name                   = "signalr.${azurerm_dns_zone.test.name}"
   signalr_custom_certificate_id = azurerm_signalr_service_custom_certificate.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(3), data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (r SignalrServiceCustomDomainResource) requiresImport(data acceptance.TestData) string {

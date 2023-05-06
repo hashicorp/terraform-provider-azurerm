@@ -218,18 +218,15 @@ func signalrServiceCustomDomainProvisioningStateRefreshFunc(ctx context.Context,
 	return func() (interface{}, string, error) {
 		res, err := client.CustomDomainsGet(ctx, id)
 
-		provisioningState := "Pending"
 		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, provisioningState, nil
-			}
 			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
 		}
 
-		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
-			provisioningState = string(*res.Model.Properties.ProvisioningState)
+		if model := res.Model; model != nil {
+			if model.Properties.ProvisioningState != nil {
+				return res, string(*model.Properties.ProvisioningState), nil
+			}
 		}
-
-		return res, provisioningState, nil
+		return nil, "", fmt.Errorf("unable to read provisioning state")
 	}
 }

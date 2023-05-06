@@ -65,9 +65,6 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := signalr.NewSignalRID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByID(id.ID())
-	defer locks.UnlockByID(id.ID())
-
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -161,30 +158,8 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, resourceType); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, resourceType); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			string(signalr.ProvisioningStateUpdating),
-			string(signalr.ProvisioningStateCreating),
-			string(signalr.ProvisioningStateMoving),
-			string(signalr.ProvisioningStateRunning),
-		},
-		Target:                    []string{string(signalr.ProvisioningStateSucceeded)},
-		Refresh:                   signalrServiceProvisioningStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 5,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return err
 	}
 
 	d.SetId(id.ID())
@@ -473,7 +448,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		resourceType.Tags = tags.Expand(tagsRaw)
 	}
 
-	if _, err := client.Update(ctx, *id, resourceType); err != nil {
+	if err := client.UpdateThenPoll(ctx, *id, resourceType); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -1050,19 +1025,16 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 func signalrServiceProvisioningStateRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.SignalRId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
-
-		provisioningState := "Pending"
 		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, provisioningState, nil
+			return nil, "", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
+		}
+
+		if model := res.Model; model != nil {
+			if model.Properties != nil && model.Properties.ProvisioningState != nil {
+				return res, string(*model.Properties.ProvisioningState), nil
 			}
-			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
 		}
 
-		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
-			provisioningState = string(*res.Model.Properties.ProvisioningState)
-		}
-
-		return res, provisioningState, nil
+		return nil, "", fmt.Errorf("unable to read provisioning state")
 	}
 }
