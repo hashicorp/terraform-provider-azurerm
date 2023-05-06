@@ -47,7 +47,7 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 			},
 
 			"internet_security_enabled": {
-				Type:     pluginsdk.TypeInt,
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
