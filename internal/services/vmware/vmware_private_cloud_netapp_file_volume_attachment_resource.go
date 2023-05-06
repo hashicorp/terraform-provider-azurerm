@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2021-12-01/datastores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -141,7 +141,7 @@ func (r NetappFileVolumeAttachmentResource) Read() sdk.ResourceFunc {
 				}
 			}
 			return metadata.Encode(&NetappFileVolumeAttachment{
-				Name:            id.DatastoreName,
+				Name:            id.DataStoreName,
 				NetAppVolumeId:  netAppVolumeId,
 				VmwareClusterId: clusterId.ID(),
 			})

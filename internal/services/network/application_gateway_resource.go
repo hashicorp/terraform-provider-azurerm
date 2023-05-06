@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 // See https://github.com/Azure/azure-sdk-for-go/blob/master/services/network/mgmt/2018-04-01/network/models.go
@@ -402,7 +402,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: networkValidate.SubnetID,
 						},
 
 						"id": {
@@ -539,7 +539,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"firewall_policy_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
 						},
 
 						"ssl_profile_name": {
@@ -598,7 +598,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
+										ValidateFunc: networkValidate.SubnetID,
 									},
 
 									"private_ip_address": {
@@ -1157,10 +1157,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"data": {
-							Type:      pluginsdk.TypeString,
-							Optional:  true,
-							Sensitive: true,
-							StateFunc: base64EncodedStateFunc,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							StateFunc:    base64EncodedStateFunc,
+							ValidateFunc: validation.StringIsBase64,
 						},
 
 						"password": {
@@ -1502,7 +1503,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"firewall_policy_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
 			},
 
 			"custom_error_configuration": {
@@ -2176,9 +2177,15 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `waf_configuration`: %+v", setErr)
 		}
 
-		if props.FirewallPolicy != nil {
-			d.Set("firewall_policy_id", props.FirewallPolicy.ID)
+		firewallPolicyId := ""
+		if props.FirewallPolicy != nil && props.FirewallPolicy.ID != nil {
+			firewallPolicyId = *props.FirewallPolicy.ID
+			policyId, err := parse.ApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(firewallPolicyId)
+			if err == nil {
+				firewallPolicyId = policyId.ID()
+			}
 		}
+		d.Set("firewall_policy_id", firewallPolicyId)
 	}
 
 	return tags.FlattenAndSet(d, applicationGateway.Tags)
@@ -2609,7 +2616,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 						continue
 					}
 
-					certId, err := parse.AuthenticationCertificateID(*cert.ID)
+					certId, err := parse.AuthenticationCertificateIDInsensitively(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2630,7 +2637,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 						continue
 					}
 
-					certId, err := parse.TrustedRootCertificateID(*cert.ID)
+					certId, err := parse.TrustedRootCertificateIDInsensitively(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2642,7 +2649,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 			if probe := props.Probe; probe != nil {
 				if probe.ID != nil {
-					id, err := parse.ProbeID(*probe.ID)
+					id, err := parse.ProbeIDInsensitively(*probe.ID)
 					if err != nil {
 						return results, err
 					}
@@ -2862,7 +2869,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 		if props := v.ApplicationGatewayHTTPListenerPropertiesFormat; props != nil {
 			if port := props.FrontendPort; port != nil {
 				if port.ID != nil {
-					portId, err := parse.FrontendPortID(*port.ID)
+					portId, err := parse.FrontendPortIDInsensitively(*port.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2873,7 +2880,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if feConfig := props.FrontendIPConfiguration; feConfig != nil {
 				if feConfig.ID != nil {
-					feConfigId, err := parse.FrontendIPConfigurationID(*feConfig.ID)
+					feConfigId, err := parse.FrontendIPConfigurationIDInsensitively(*feConfig.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2894,7 +2901,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if cert := props.SslCertificate; cert != nil {
 				if cert.ID != nil {
-					certId, err := parse.SslCertificateID(*cert.ID)
+					certId, err := parse.SslCertificateIDInsensitively(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2914,7 +2921,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if sslp := props.SslProfile; sslp != nil {
 				if sslp.ID != nil {
-					sslProfileId, err := parse.SslProfileID(*sslp.ID)
+					sslProfileId, err := parse.SslProfileIDInsensitively(*sslp.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -3178,7 +3185,7 @@ func flattenApplicationGatewayFrontendIPConfigurations(input *[]network.Applicat
 			}
 
 			if props.PrivateLinkConfiguration != nil && props.PrivateLinkConfiguration.ID != nil {
-				configurationID, err := parse.ApplicationGatewayPrivateLinkConfigurationID(*props.PrivateLinkConfiguration.ID)
+				configurationID, err := parse.ApplicationGatewayPrivateLinkConfigurationIDInsensitively(*props.PrivateLinkConfiguration.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -3551,7 +3558,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if pool := props.BackendAddressPool; pool != nil {
 				if pool.ID != nil {
-					poolId, err := parse.BackendAddressPoolID(*pool.ID)
+					poolId, err := parse.BackendAddressPoolIDInsensitively(*pool.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -3562,7 +3569,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if settings := props.BackendHTTPSettings; settings != nil {
 				if settings.ID != nil {
-					settingsId, err := parse.BackendHttpSettingsCollectionID(*settings.ID)
+					settingsId, err := parse.BackendHttpSettingsCollectionIDInsensitively(*settings.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -3574,7 +3581,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if listener := props.HTTPListener; listener != nil {
 				if listener.ID != nil {
-					listenerId, err := parse.HttpListenerID(*listener.ID)
+					listenerId, err := parse.HttpListenerIDInsensitively(*listener.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -3585,7 +3592,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if pathMap := props.URLPathMap; pathMap != nil {
 				if pathMap.ID != nil {
-					pathMapId, err := parse.UrlPathMapID(*pathMap.ID)
+					pathMapId, err := parse.UrlPathMapIDInsensitively(*pathMap.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -3596,7 +3603,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if redirect := props.RedirectConfiguration; redirect != nil {
 				if redirect.ID != nil {
-					redirectId, err := parse.RedirectConfigurationsID(*redirect.ID)
+					redirectId, err := parse.RedirectConfigurationsIDInsensitively(*redirect.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -3607,7 +3614,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if rewrite := props.RewriteRuleSet; rewrite != nil {
 				if rewrite.ID != nil {
-					rewriteId, err := parse.RewriteRuleSetID(*rewrite.ID)
+					rewriteId, err := parse.RewriteRuleSetIDInsensitively(*rewrite.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -3935,7 +3942,7 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 
 			if listener := props.TargetListener; listener != nil {
 				if listener.ID != nil {
-					listenerId, err := parse.HttpListenerID(*listener.ID)
+					listenerId, err := parse.HttpListenerIDInsensitively(*listener.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -4268,7 +4275,7 @@ func flattenApplicationGatewaySslProfiles(input *[]network.ApplicationGatewaySsl
 						continue
 					}
 
-					certId, err := parse.TrustedClientCertificateID(*cert.ID)
+					certId, err := parse.TrustedClientCertificateIDInsensitively(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -4306,7 +4313,10 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 
 			rulePaths := make([]string, 0)
 			for _, rulePath := range ruleConfigMap["paths"].([]interface{}) {
-				rulePaths = append(rulePaths, rulePath.(string))
+				p, ok := rulePath.(string)
+				if ok {
+					rulePaths = append(rulePaths, p)
+				}
 			}
 
 			rule := network.ApplicationGatewayPathRule{
@@ -4437,7 +4447,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 		if props := v.ApplicationGatewayURLPathMapPropertiesFormat; props != nil {
 			if backendPool := props.DefaultBackendAddressPool; backendPool != nil && backendPool.ID != nil {
-				poolId, err := parse.BackendAddressPoolID(*backendPool.ID)
+				poolId, err := parse.BackendAddressPoolIDInsensitively(*backendPool.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -4446,7 +4456,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 			}
 
 			if settings := props.DefaultBackendHTTPSettings; settings != nil && settings.ID != nil {
-				settingsId, err := parse.BackendHttpSettingsCollectionID(*settings.ID)
+				settingsId, err := parse.BackendHttpSettingsCollectionIDInsensitively(*settings.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -4455,7 +4465,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 			}
 
 			if redirect := props.DefaultRedirectConfiguration; redirect != nil && redirect.ID != nil {
-				redirectId, err := parse.RedirectConfigurationsID(*redirect.ID)
+				redirectId, err := parse.RedirectConfigurationsIDInsensitively(*redirect.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -4464,7 +4474,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 			}
 
 			if rewrite := props.DefaultRewriteRuleSet; rewrite != nil && rewrite.ID != nil {
-				rewriteId, err := parse.RewriteRuleSetID(*rewrite.ID)
+				rewriteId, err := parse.RewriteRuleSetIDInsensitively(*rewrite.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -4487,7 +4497,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
 						if pool := ruleProps.BackendAddressPool; pool != nil && pool.ID != nil {
-							poolId, err := parse.BackendAddressPoolID(*pool.ID)
+							poolId, err := parse.BackendAddressPoolIDInsensitively(*pool.ID)
 							if err != nil {
 								return nil, err
 							}
@@ -4496,7 +4506,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						}
 
 						if backend := ruleProps.BackendHTTPSettings; backend != nil && backend.ID != nil {
-							backendId, err := parse.BackendHttpSettingsCollectionID(*backend.ID)
+							backendId, err := parse.BackendHttpSettingsCollectionIDInsensitively(*backend.ID)
 							if err != nil {
 								return nil, err
 							}
@@ -4505,7 +4515,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						}
 
 						if redirect := ruleProps.RedirectConfiguration; redirect != nil && redirect.ID != nil {
-							redirectId, err := parse.RedirectConfigurationsID(*redirect.ID)
+							redirectId, err := parse.RedirectConfigurationsIDInsensitively(*redirect.ID)
 							if err != nil {
 								return nil, err
 							}
@@ -4514,7 +4524,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						}
 
 						if rewrite := ruleProps.RewriteRuleSet; rewrite != nil && rewrite.ID != nil {
-							rewriteId, err := parse.RewriteRuleSetID(*rewrite.ID)
+							rewriteId, err := parse.RewriteRuleSetIDInsensitively(*rewrite.ID)
 							if err != nil {
 								return nil, err
 							}

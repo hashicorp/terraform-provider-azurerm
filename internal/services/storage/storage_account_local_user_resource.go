@@ -84,7 +84,6 @@ func (r LocalUserResource) Arguments() map[string]*pluginsdk.Schema {
 		"ssh_authorized_key": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
-			ForceNew:     true,
 			RequiredWith: []string{"ssh_key_enabled"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -307,8 +306,8 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 			}
 
 			model := LocalUserModel{
-				Name:             id.Username,
-				StorageAccountId: parse.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
+				Name:             id.LocalUserName,
+				StorageAccountId: parse.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID(),
 				// Password is only accessible during creation
 				Password: state.Password,
 				// SshAuthorizedKey is only accessible during creation, whilst this should be returned as it is not a secret.
@@ -382,6 +381,10 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("ssh_key_enabled") {
 				props.HasSshKey = &plan.SshKeyEnabled
+			}
+
+			if metadata.ResourceData.HasChange("ssh_authorized_key") {
+				props.SshAuthorizedKeys = r.expandSSHAuthorizedKeys(plan.SshAuthorizedKey)
 			}
 
 			if metadata.ResourceData.HasChange("ssh_password_enabled") {

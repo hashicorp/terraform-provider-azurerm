@@ -90,6 +90,8 @@ The following arguments are supported:
 
 * `authentication` - (Required) The authentication info. An `authentication` block as defined below.
 
+-> **Note:** If a Managed Identity is used, this will need to be configured on the App Service.
+
 ---
 
 An `authentication` block supports the following:
@@ -113,6 +115,14 @@ An `authentication` block supports the following:
 * `client_type` - (Optional) The application client type. Possible values are `none`, `dotnet`, `java`, `python`, `go`, `php`, `ruby`, `django`, `nodejs` and `springBoot`.
 
 * `vnet_solution` - (Optional) The type of the VNet solution. Possible values are `serviceEndpoint`, `privateLink`.
+
+* `secret_store` - (Optional) An option to store secret value in secure place. An `secret_store` block as defined below.
+
+---
+
+An `secret_store` block supports the following:
+
+* `key_vault_id` - (required) The key vault id to store secret.
 
 ## Attribute Reference
 

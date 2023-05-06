@@ -63,9 +63,9 @@ func dataSourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.PolicyName)
+	d.Set("name", id.ReplicationPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("recovery_vault_name", id.ResourceName)
+	d.Set("recovery_vault_name", id.VaultName)
 
 	if model := resp.Model; model != nil {
 		a2APolicyDetails, isA2A := expandA2APolicyDetail(model)

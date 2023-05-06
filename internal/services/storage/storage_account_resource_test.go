@@ -246,6 +246,14 @@ func TestAccStorageAccount_isHnsEnabled(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_isHnsDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.isHnsEnabledFalse(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -253,6 +261,7 @@ func TestAccStorageAccount_isHnsEnabled(t *testing.T) {
 				check.That(data.ResourceName).Key("is_hns_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -547,6 +556,9 @@ func TestAccStorageAccount_networkRulesDeleted(t *testing.T) {
 func TestAccStorageAccount_privateLinkAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
+
+	// Not all regions support setting the private endpoint resource as the endpoint resource in network_rules.private_link_access in the storage account
+	data.Locations.Primary = "westeurope"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -888,6 +900,13 @@ func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.azureFilesAuthenticationAADKERB(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -1096,7 +1115,7 @@ func TestAccStorageAccount_defaultToOAuthAuthentication(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_encryptionKeyType(t *testing.T) {
+func TestAccStorageAccount_encryptionKeyType_Account(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1108,6 +1127,14 @@ func TestAccStorageAccount_encryptionKeyType(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_encryptionKeyType_Service(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.encryptionKeyType(data, "Service"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1118,7 +1145,7 @@ func TestAccStorageAccount_encryptionKeyType(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
+func TestAccStorageAccount_infrastructureEncryptionStorageV2_Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1131,6 +1158,14 @@ func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_infrastructureEncryptionStorageV2_Disabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.infrastructureEncryptionDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1139,15 +1174,36 @@ func TestAccStorageAccount_infrastructureEncryption(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_infrastructureEncryptionFileStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.infrastructureEncryptionForFileStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_infrastructureEncryptionBlockBlobStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.infrastructureEncryptionForBlockBlobStorage(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("infrastructure_encryption_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("account_tier").HasValue("Premium"),
-				check.That(data.ResourceName).Key("account_kind").HasValue("BlockBlobStorage"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -3199,6 +3255,35 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+func (r StorageAccountResource) azureFilesAuthenticationAADKERB(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  azure_files_authentication {
+    directory_type = "AADKERB"
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (r StorageAccountResource) routing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3680,6 +3765,30 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+func (r StorageAccountResource) infrastructureEncryptionForFileStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                          = azurerm_resource_group.test.location
+  account_kind                      = "FileStorage"
+  account_tier                      = "Premium"
+  account_replication_type          = "LRS"
+  infrastructure_encryption_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (r StorageAccountResource) infrastructureEncryptionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3750,7 +3859,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 
@@ -3780,6 +3889,11 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
+
+  # These need to be the same as in customerManagedKey, since they are all force new properties.
+  infrastructure_encryption_enabled = true
+  table_encryption_key_type         = "Account"
+  queue_encryption_key_type         = "Account"
 }
 `, r.cmkTemplate(data), data.RandomString)
 }
@@ -3843,7 +3957,7 @@ resource "azurerm_key_vault_access_policy" "clientupdate" {
   key_vault_id       = azurerm_key_vault.update.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = data.azurerm_client_config.current.object_id
-  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 
@@ -3880,8 +3994,9 @@ resource "azurerm_storage_account" "test" {
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
-  table_encryption_key_type = "Account"
-  queue_encryption_key_type = "Account"
+  infrastructure_encryption_enabled = true
+  table_encryption_key_type         = "Account"
+  queue_encryption_key_type         = "Account"
 
   tags = {
     environment = "production"
@@ -3974,7 +4089,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   key_vault_id       = azurerm_key_vault.remotetest.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = data.azurerm_client_config.current.object_id
-  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 

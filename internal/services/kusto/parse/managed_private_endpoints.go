@@ -36,7 +36,7 @@ func (id ManagedPrivateEndpointsId) String() string {
 }
 
 func (id ManagedPrivateEndpointsId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/ManagedPrivateEndpoints/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/clusters/%s/managedPrivateEndpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.ManagedPrivateEndpointName)
 }
 
@@ -60,10 +60,10 @@ func ManagedPrivateEndpointsID(input string) (*ManagedPrivateEndpointsId, error)
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ClusterName, err = id.PopSegment("Clusters"); err != nil {
+	if resourceId.ClusterName, err = id.PopSegment("clusters"); err != nil {
 		return nil, err
 	}
-	if resourceId.ManagedPrivateEndpointName, err = id.PopSegment("ManagedPrivateEndpoints"); err != nil {
+	if resourceId.ManagedPrivateEndpointName, err = id.PopSegment("managedPrivateEndpoints"); err != nil {
 		return nil, err
 	}
 
@@ -99,27 +99,27 @@ func ManagedPrivateEndpointsIDInsensitively(input string) (*ManagedPrivateEndpoi
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	// find the correct casing for the 'Clusters' segment
-	ClustersKey := "Clusters"
+	// find the correct casing for the 'clusters' segment
+	clustersKey := "clusters"
 	for key := range id.Path {
-		if strings.EqualFold(key, ClustersKey) {
-			ClustersKey = key
+		if strings.EqualFold(key, clustersKey) {
+			clustersKey = key
 			break
 		}
 	}
-	if resourceId.ClusterName, err = id.PopSegment(ClustersKey); err != nil {
+	if resourceId.ClusterName, err = id.PopSegment(clustersKey); err != nil {
 		return nil, err
 	}
 
-	// find the correct casing for the 'ManagedPrivateEndpoints' segment
-	ManagedPrivateEndpointsKey := "ManagedPrivateEndpoints"
+	// find the correct casing for the 'managedPrivateEndpoints' segment
+	managedPrivateEndpointsKey := "managedPrivateEndpoints"
 	for key := range id.Path {
-		if strings.EqualFold(key, ManagedPrivateEndpointsKey) {
-			ManagedPrivateEndpointsKey = key
+		if strings.EqualFold(key, managedPrivateEndpointsKey) {
+			managedPrivateEndpointsKey = key
 			break
 		}
 	}
-	if resourceId.ManagedPrivateEndpointName, err = id.PopSegment(ManagedPrivateEndpointsKey); err != nil {
+	if resourceId.ManagedPrivateEndpointName, err = id.PopSegment(managedPrivateEndpointsKey); err != nil {
 		return nil, err
 	}
 

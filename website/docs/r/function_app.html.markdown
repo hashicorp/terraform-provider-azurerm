@@ -311,6 +311,10 @@ The `site_config` block supports the following:
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
+* `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
+
+~> **NOTE:** This attribute is only used for slots.
+
 ---
 
 A `cors` block supports the following:
@@ -479,7 +483,7 @@ A `source_control` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Function App
 

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-05-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ManagerManagementGroupConnectionModel struct {
@@ -232,6 +232,35 @@ func (r ManagerManagementGroupConnectionResource) Delete() sdk.ResourceFunc {
 
 			if _, err := client.Delete(ctx, id.ManagementGroupName, id.NetworkManagerConnectionName); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+
+			// https://github.com/Azure/azure-rest-api-specs/issues/23188
+			// confirm the connection is fully deleted
+			stateChangeConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"Exists"},
+				Target:  []string{"NotFound"},
+				Refresh: func() (result interface{}, state string, err error) {
+					resp, err := client.Get(ctx, id.ManagementGroupName, id.NetworkManagerConnectionName)
+					if err != nil {
+						if utils.ResponseWasNotFound(resp.Response) {
+							return "NotFound", "NotFound", nil
+						}
+						return "Error", "Error", err
+					}
+					return resp, "Exists", nil
+				},
+				PollInterval:              3 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateChangeConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 			}
 
 			return nil

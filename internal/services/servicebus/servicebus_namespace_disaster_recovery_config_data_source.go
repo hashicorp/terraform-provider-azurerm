@@ -113,13 +113,12 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Alias)
+	d.Set("name", id.DisasterRecoveryConfigName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("namespace_name", id.NamespaceName)
 

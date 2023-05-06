@@ -41,6 +41,7 @@ func resourceApiManagementIdentityProviderTwitter() *pluginsdk.Resource {
 			"api_key": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 

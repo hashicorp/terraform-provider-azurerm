@@ -82,13 +82,14 @@ The following arguments are supported:
 
 -> **Note:** Azure Ultra Disk Storage is only available in a region that support availability zones and can only enabled on the following VM series: `ESv3`, `DSv3`, `FSv3`, `LSv2`, `M` and `Mv2`. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/azure/virtual-machines/windows/disks-enable-ultra-ssd).
 
-* `create_option` - (Required) The method to use when creating the managed disk. Changing this forces a new resource to be created. Possible values include:
-* `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`).
-* `Empty` - Create an empty managed disk.
-* `Copy` - Copy an existing managed disk or snapshot (specified with `source_resource_id`).
-* `FromImage` - Copy a Platform Image (specified with `image_reference_id`)
-* `Restore` - Set by Azure Backup or Site Recovery on a restored disk (specified with `source_resource_id`).
-* `Upload` - Upload a VHD disk with the help of SAS URL (to be used with `upload_size_bytes`).
+  * `create_option` - (Required) The method to use when creating the managed disk. Changing this forces a new resource to be created. Possible values include:
+  * `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`).
+  * `ImportSecure` - Securely import a VHD file in to the managed disk (VHD specified with `source_uri`).
+  * `Empty` - Create an empty managed disk.
+  * `Copy` - Copy an existing managed disk or snapshot (specified with `source_resource_id`).
+  * `FromImage` - Copy a Platform Image (specified with `image_reference_id`)
+  * `Restore` - Set by Azure Backup or Site Recovery on a restored disk (specified with `source_resource_id`).
+  * `Upload` - Upload a VHD disk with the help of SAS URL (to be used with `upload_size_bytes`).
 
 ---
 
@@ -114,13 +115,15 @@ The following arguments are supported:
 
 ~> **NOTE:** If No Downtime Resizing is not available, be aware that changing this value is disruptive if the disk is attached to a Virtual Machine. The VM will be shut down and de-allocated as required by Azure to action the change. Terraform will attempt to start the machine again after the update if it was in a `running` state when the apply was started.
 
+~> **NOTE:** When upgrading `disk_size_gb` from value less than 4095 to a value greater than 4095, the disk will be detached from its associated Virtual Machine as required by Azure to action the change. Terraform will attempt to reattach the disk again after the update.
+
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Disk should exist. Changing this forces a new Managed Disk to be created.
 
 * `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
 
 ~> **NOTE:** Removing `encryption_settings` forces a new resource to be created.
 
-* `hyper_v_generation` - (Optional) The HyperV Generation of the Disk when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Possible values are `V1` and `V2`. Changing this forces a new resource to be created.
+* `hyper_v_generation` - (Optional) The HyperV Generation of the Disk when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Possible values are `V1` and `V2`. For `ImportSecure` it must be set to `V2`. Changing this forces a new resource to be created.
 
 * `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`. This field cannot be specified if gallery_image_reference_id is specified. Changing this forces a new resource to be created.
 
@@ -130,13 +133,13 @@ The following arguments are supported:
 
 ~> **NOTE:** Setting logical sector size is supported only with `UltraSSD_LRS` disks and `PremiumV2_LRS` disks.
 
-* `os_type` - (Optional) Specify a value when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`.
+* `os_type` - (Optional) Specify a value when the source of an `Import`, `ImportSecure` or `Copy` operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`.
 
 * `source_resource_id` - (Optional) The ID of an existing Managed Disk or Snapshot to copy when `create_option` is `Copy` or the recovery point to restore when `create_option` is `Restore`. Changing this forces a new resource to be created.
 
-* `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import`. Changing this forces a new resource to be created.
+* `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import` or `ImportSecure`. Changing this forces a new resource to be created.
 
-* `storage_account_id` - (Optional) The ID of the Storage Account where the `source_uri` is located. Required when `create_option` is set to `Import`. Changing this forces a new resource to be created.
+* `storage_account_id` - (Optional) The ID of the Storage Account where the `source_uri` is located. Required when `create_option` is set to `Import` or `ImportSecure`. Changing this forces a new resource to be created.
 
 * `tier` - (Optional) The disk performance tier to use. Possible values are documented [here](https://docs.microsoft.com/azure/virtual-machines/disks-change-performance). This feature is currently supported only for premium SSDs.
 
@@ -151,6 +154,9 @@ The following arguments are supported:
 -> **Note:** Trusted Launch can only be enabled when `create_option` is `FromImage` or `Import`.
 
 * `security_type` - (Optional) Security Type of the Managed Disk when it is used for a Confidential VM. Possible values are `ConfidentialVM_VMGuestStateOnlyEncryptedWithPlatformKey`, `ConfidentialVM_DiskEncryptedWithPlatformKey` and `ConfidentialVM_DiskEncryptedWithCustomerKey`. Changing this forces a new resource to be created.
+
+~> **NOTE:** When `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey` the value of `create_option` must be one of `FromImage` or `ImportSecure`.
+
 
 ~> **NOTE:** `security_type` cannot be specified when `trusted_launch_enabled` is set to true.
 
@@ -206,7 +212,7 @@ The `key_encryption_key` block supports:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Managed Disk.
 

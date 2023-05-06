@@ -102,7 +102,7 @@ An `azuread_administrator` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - the Microsoft SQL Server ID.
 
@@ -112,7 +112,7 @@ The following attributes are exported:
 
 ---
 
-`identity` exports the following:
+A `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Server.
 

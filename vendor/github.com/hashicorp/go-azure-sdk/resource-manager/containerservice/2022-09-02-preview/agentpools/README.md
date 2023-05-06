@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
 
 read, err := client.AbortLatestOperation(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
 
 payload := agentpools.AgentPool{
 	// ...
@@ -57,7 +57,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
 
 if err := client.DeleteThenPoll(ctx, id, agentpools.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -69,7 +69,7 @@ if err := client.DeleteThenPoll(ctx, id, agentpools.DefaultDeleteOperationOption
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := agentpools.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
 
 read, err := client.GetAvailableAgentPoolVersions(ctx, id)
 if err != nil {
@@ -101,7 +101,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
 
 read, err := client.GetUpgradeProfile(ctx, id)
 if err != nil {
@@ -117,7 +117,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := agentpools.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -134,7 +134,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue", "agentPoolValue")
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue", "agentPoolValue")
 
 if err := client.UpgradeNodeImageVersionThenPoll(ctx, id); err != nil {
 	// handle the error

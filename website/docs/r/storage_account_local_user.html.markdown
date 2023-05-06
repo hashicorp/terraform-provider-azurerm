@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `permission_scope` - (Optional) One or more `permission_scope` blocks as defined below.
 
-* `ssh_authorized_key` - (Optional) One or more `ssh_authorized_key` blocks as defined below. Changing this forces a new Storage Account Local User to be created.
+* `ssh_authorized_key` - (Optional) One or more `ssh_authorized_key` blocks as defined below.
 
 * `ssh_key_enabled` - (Optional) Specifies whether SSH Key Authentication is enabled. Defaults to `false`.
 
@@ -111,8 +111,6 @@ A `permissions` block supports the following:
 A `ssh_authorized_key` block supports the following:
 
 * `key` - (Required) The public key value of this SSH authorized key.
-
----
 
 * `description` - (Optional) The description of this SSH authorized key.
 

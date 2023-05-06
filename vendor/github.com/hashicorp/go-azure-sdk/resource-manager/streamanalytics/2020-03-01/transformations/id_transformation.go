@@ -7,22 +7,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = TransformationId{}
 
 // TransformationId is a struct representing the Resource ID for a Transformation
 type TransformationId struct {
 	SubscriptionId     string
 	ResourceGroupName  string
-	JobName            string
+	StreamingJobName   string
 	TransformationName string
 }
 
 // NewTransformationID returns a new TransformationId struct
-func NewTransformationID(subscriptionId string, resourceGroupName string, jobName string, transformationName string) TransformationId {
+func NewTransformationID(subscriptionId string, resourceGroupName string, streamingJobName string, transformationName string) TransformationId {
 	return TransformationId{
 		SubscriptionId:     subscriptionId,
 		ResourceGroupName:  resourceGroupName,
-		JobName:            jobName,
+		StreamingJobName:   streamingJobName,
 		TransformationName: transformationName,
 	}
 }
@@ -46,8 +49,8 @@ func ParseTransformationID(input string) (*TransformationId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.JobName, ok = parsed.Parsed["jobName"]; !ok {
-		return nil, fmt.Errorf("the segment 'jobName' was not found in the resource id %q", input)
+	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
+		return nil, fmt.Errorf("the segment 'streamingJobName' was not found in the resource id %q", input)
 	}
 
 	if id.TransformationName, ok = parsed.Parsed["transformationName"]; !ok {
@@ -77,8 +80,8 @@ func ParseTransformationIDInsensitively(input string) (*TransformationId, error)
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.JobName, ok = parsed.Parsed["jobName"]; !ok {
-		return nil, fmt.Errorf("the segment 'jobName' was not found in the resource id %q", input)
+	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
+		return nil, fmt.Errorf("the segment 'streamingJobName' was not found in the resource id %q", input)
 	}
 
 	if id.TransformationName, ok = parsed.Parsed["transformationName"]; !ok {
@@ -106,7 +109,7 @@ func ValidateTransformationID(input interface{}, key string) (warnings []string,
 // ID returns the formatted Transformation ID
 func (id TransformationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StreamAnalytics/streamingJobs/%s/transformations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.JobName, id.TransformationName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.StreamingJobName, id.TransformationName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Transformation ID
@@ -119,7 +122,7 @@ func (id TransformationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStreamAnalytics", "Microsoft.StreamAnalytics", "Microsoft.StreamAnalytics"),
 		resourceids.StaticSegment("staticStreamingJobs", "streamingJobs", "streamingJobs"),
-		resourceids.UserSpecifiedSegment("jobName", "jobValue"),
+		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobValue"),
 		resourceids.StaticSegment("staticTransformations", "transformations", "transformations"),
 		resourceids.UserSpecifiedSegment("transformationName", "transformationValue"),
 	}
@@ -130,7 +133,7 @@ func (id TransformationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Job Name: %q", id.JobName),
+		fmt.Sprintf("Streaming Job Name: %q", id.StreamingJobName),
 		fmt.Sprintf("Transformation Name: %q", id.TransformationName),
 	}
 	return fmt.Sprintf("Transformation (%s)", strings.Join(components, "\n"))

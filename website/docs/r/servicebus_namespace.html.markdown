@@ -89,11 +89,13 @@ A `customer_managed_key` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ServiceBus Namespace ID.
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this ServiceBus Namespace.
+
+* `endpoint` - The URL to access the ServiceBus Namespace.
 
 ---
 
@@ -103,8 +105,9 @@ A `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
 
-The following attributes are exported only if there is an authorization rule named
-`RootManageSharedAccessKey` which is created automatically by Azure.
+---
+
+The following attributes are exported only if there is an authorization rule named `RootManageSharedAccessKey` which is created automatically by Azure.
 
 * `default_primary_connection_string` - The primary connection string for the authorization rule `RootManageSharedAccessKey`.
 
@@ -113,6 +116,14 @@ The following attributes are exported only if there is an authorization rule nam
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
 
 ## Timeouts
 

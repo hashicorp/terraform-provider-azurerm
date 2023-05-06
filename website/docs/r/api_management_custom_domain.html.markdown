@@ -98,12 +98,12 @@ resource "azurerm_api_management_custom_domain" "example" {
 
   gateway {
     host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.example.secret_id
+    key_vault_id = azurerm_key_vault_certificate.example.versionless_secret_id
   }
 
   developer_portal {
     host_name    = "portal.example.com"
-    key_vault_id = azurerm_key_vault_certificate.example.secret_id
+    key_vault_id = azurerm_key_vault_certificate.example.versionless_secret_id
   }
 }
 ```
@@ -176,10 +176,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 45 minutes) Used when creating the API Management Custom Domain.
+* `create` - (Defaults to 60 minutes) Used when creating the API Management Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Custom Domain.
-* `update` - (Defaults to 45 minutes) Used when updating the API Management Custom Domain.
-* `delete` - (Defaults to 45 minutes) Used when deleting the API Management Custom Domain.
+* `update` - (Defaults to 60 minutes) Used when updating the API Management Custom Domain.
+* `delete` - (Defaults to 60 minutes) Used when deleting the API Management Custom Domain.
 
 ## Import
 

@@ -74,6 +74,8 @@ The `ip_configuration` block supports:
     the associated subnet is named `GatewaySubnet`. Therefore, each virtual
     network can contain at most a single Virtual Network Gateway.
 
+* `private_ip_address` - The Private IP Address associated with the Virtual Network Gateway.
+
 * `public_ip_address_id` - The ID of the Public IP Address associated
     with the Virtual Network Gateway.
 
@@ -140,12 +142,6 @@ The `root_certificate` block supports:
 * `public_cert_data` - The public certificate of the root certificate
     authority. The certificate must be provided in Base-64 encoded X.509 format
     (PEM).
-
-The `root_revoked_certificate` block supports:
-
-* `name` - The user-defined name of the revoked certificate.
-
-* `public_cert_data` - The SHA1 thumbprint of the certificate to be revoked.
 
 ## Timeouts
 

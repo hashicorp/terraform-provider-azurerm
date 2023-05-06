@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created.
 
-* `sql_license_type` - (Required) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit), `DR` (Disaster Recovery), and `PAYG` (Pay-As-You-Go). Changing this forces a new resource to be created.
+* `sql_license_type` - (Optional) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit), `DR` (Disaster Recovery), and `PAYG` (Pay-As-You-Go). Changing this forces a new resource to be created.
 
 * `auto_backup` - (Optional) An `auto_backup` block as defined below. This block can be added to an existing resource, but removing this block forces a new resource to be created.
 
@@ -153,9 +153,9 @@ The `storage_configuration` block supports the following:
 
 * `storage_workload_type` - (Required) The type of storage workload. Valid values include `GENERAL`, `OLTP`, or `DW`.
 
-* `data_settings` - (Optional) An `storage_settings` as defined below.
+* `data_settings` - (Optional) A `storage_settings` block as defined below.
 
-* `log_settings` - (Optional) An `storage_settings` as defined below.
+* `log_settings` - (Optional) A `storage_settings` block as defined below.
 
 * `system_db_on_data_disk_enabled` - (Optional) Specifies whether to set system databases (except tempDb) location to newly created data storage. Possible values are `true` and `false`. Defaults to `false`.
 
@@ -213,7 +213,7 @@ The `schedule` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the SQL Virtual Machine.
 

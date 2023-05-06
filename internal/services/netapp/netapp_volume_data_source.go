@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -137,12 +138,12 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.SetId(id.ID())
 
 	d.Set("name", id.VolumeName)
-	d.Set("pool_name", id.PoolName)
-	d.Set("account_name", id.AccountName)
+	d.Set("pool_name", id.CapacityPoolName)
+	d.Set("account_name", id.NetAppAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		zone := ""
 		if model.Zones != nil {
@@ -154,9 +155,9 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		props := model.Properties
 		d.Set("volume_path", props.CreationToken)
-		d.Set("service_level", props.ServiceLevel)
+		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
 		d.Set("subnet_id", props.SubnetId)
-		d.Set("network_features", props.NetworkFeatures)
+		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
 
 		protocolTypes := make([]string, 0)
 		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {
@@ -164,7 +165,7 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("protocols", protocolTypes)
 
-		d.Set("security_style", props.SecurityStyle)
+		d.Set("security_style", string(pointer.From(props.SecurityStyle)))
 
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
 		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {

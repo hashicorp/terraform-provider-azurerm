@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/outputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
@@ -72,14 +72,14 @@ func resourceStreamAnalyticsOutputServiceBusQueue() *pluginsdk.Resource {
 
 			"shared_access_policy_key": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"shared_access_policy_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -148,19 +148,26 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 	}
 
 	systemPropertyColumns := d.Get("system_property_columns")
+
+	dataSourceProperties := &outputs.ServiceBusQueueOutputDataSourceProperties{
+		QueueName:             utils.String(queueName),
+		ServiceBusNamespace:   utils.String(serviceBusNamespace),
+		PropertyColumns:       utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+		SystemPropertyColumns: &systemPropertyColumns,
+		AuthenticationMode:    utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+	}
+
+	// Add shared access policy key/name only if required by authentication mode
+	if *dataSourceProperties.AuthenticationMode == outputs.AuthenticationModeConnectionString {
+		dataSourceProperties.SharedAccessPolicyName = utils.String(sharedAccessPolicyName)
+		dataSourceProperties.SharedAccessPolicyKey = utils.String(sharedAccessPolicyKey)
+	}
+
 	props := outputs.Output{
 		Name: utils.String(id.OutputName),
 		Properties: &outputs.OutputProperties{
 			Datasource: &outputs.ServiceBusQueueOutputDataSource{
-				Properties: &outputs.ServiceBusQueueOutputDataSourceProperties{
-					QueueName:              utils.String(queueName),
-					ServiceBusNamespace:    utils.String(serviceBusNamespace),
-					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
-					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
-					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
-					SystemPropertyColumns:  &systemPropertyColumns,
-					AuthenticationMode:     utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
-				},
+				Properties: dataSourceProperties,
 			},
 			Serialization: serialization,
 		},
@@ -204,7 +211,7 @@ func resourceStreamAnalyticsOutputServiceBusQueueRead(d *pluginsdk.ResourceData,
 	}
 
 	d.Set("name", id.OutputName)
-	d.Set("stream_analytics_job_name", id.JobName)
+	d.Set("stream_analytics_job_name", id.StreamingJobName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

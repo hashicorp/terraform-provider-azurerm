@@ -8,8 +8,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -167,7 +172,7 @@ func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsd
 		Optional:      true,
 		Computed:      true,
 		ConflictsWith: conflictsWith,
-		ValidateFunc:  azure.ValidateResourceID,
+		ValidateFunc:  eventhubs.ValidateEventhubID,
 	}
 }
 
@@ -177,7 +182,7 @@ func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *
 		Optional:      true,
 		Computed:      true,
 		ConflictsWith: conflictsWith,
-		ValidateFunc:  azure.ValidateResourceID,
+		ValidateFunc:  hybridconnections.ValidateHybridConnectionID,
 	}
 }
 
@@ -186,7 +191,7 @@ func eventSubscriptionSchemaServiceBusQueueEndpointID(conflictsWith []string) *p
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
 		ConflictsWith: conflictsWith,
-		ValidateFunc:  azure.ValidateResourceID,
+		ValidateFunc:  queues.ValidateQueueID,
 	}
 }
 
@@ -195,7 +200,7 @@ func eventSubscriptionSchemaServiceBusTopicEndpointID(conflictsWith []string) *p
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
 		ConflictsWith: conflictsWith,
-		ValidateFunc:  azure.ValidateResourceID,
+		ValidateFunc:  topics.ValidateTopicID,
 	}
 }
 
@@ -210,7 +215,7 @@ func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *plugin
 				"storage_account_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: storageValidate.StorageAccountID,
 				},
 				"queue_name": {
 					Type:         pluginsdk.TypeString,
@@ -733,7 +738,7 @@ func eventSubscriptionSchemaStorageBlobDeadletterDestination() *pluginsdk.Schema
 				"storage_account_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: storageValidate.StorageAccountID,
 				},
 				"storage_blob_container_name": {
 					Type:         pluginsdk.TypeString,

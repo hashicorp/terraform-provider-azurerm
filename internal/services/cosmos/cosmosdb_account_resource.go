@@ -45,36 +45,45 @@ var connStringPropertyMap = map[string]string{
 type databaseAccountCapabilities string
 
 const (
-	databaseAccountCapabilitiesEnableAggregationPipeline      databaseAccountCapabilities = "EnableAggregationPipeline"
-	databaseAccountCapabilitiesEnableCassandra                databaseAccountCapabilities = "EnableCassandra"
-	databaseAccountCapabilitiesEnableGremlin                  databaseAccountCapabilities = "EnableGremlin"
-	databaseAccountCapabilitiesEnableTable                    databaseAccountCapabilities = "EnableTable"
-	databaseAccountCapabilitiesEnableServerless               databaseAccountCapabilities = "EnableServerless"
-	databaseAccountCapabilitiesEnableMongo                    databaseAccountCapabilities = "EnableMongo"
-	databaseAccountCapabilitiesEnableMongo16MBDocumentSupport databaseAccountCapabilities = "EnableMongo16MBDocumentSupport"
-	databaseAccountCapabilitiesMongoDBv34                     databaseAccountCapabilities = "MongoDBv3.4"
-	databaseAccountCapabilitiesMongoEnableDocLevelTTL         databaseAccountCapabilities = "mongoEnableDocLevelTTL"
-	databaseAccountCapabilitiesDisableRateLimitingResponses   databaseAccountCapabilities = "DisableRateLimitingResponses"
-	databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36 databaseAccountCapabilities = "AllowSelfServeUpgradeToMongo36"
+	databaseAccountCapabilitiesEnableAggregationPipeline         databaseAccountCapabilities = "EnableAggregationPipeline"
+	databaseAccountCapabilitiesEnableCassandra                   databaseAccountCapabilities = "EnableCassandra"
+	databaseAccountCapabilitiesEnableGremlin                     databaseAccountCapabilities = "EnableGremlin"
+	databaseAccountCapabilitiesEnableTable                       databaseAccountCapabilities = "EnableTable"
+	databaseAccountCapabilitiesEnableServerless                  databaseAccountCapabilities = "EnableServerless"
+	databaseAccountCapabilitiesEnableMongo                       databaseAccountCapabilities = "EnableMongo"
+	databaseAccountCapabilitiesEnableMongo16MBDocumentSupport    databaseAccountCapabilities = "EnableMongo16MBDocumentSupport"
+	databaseAccountCapabilitiesMongoDBv34                        databaseAccountCapabilities = "MongoDBv3.4"
+	databaseAccountCapabilitiesMongoEnableDocLevelTTL            databaseAccountCapabilities = "mongoEnableDocLevelTTL"
+	databaseAccountCapabilitiesDisableRateLimitingResponses      databaseAccountCapabilities = "DisableRateLimitingResponses"
+	databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36    databaseAccountCapabilities = "AllowSelfServeUpgradeToMongo36"
+	databaseAccountCapabilitiesEnableMongoRetryableWrites        databaseAccountCapabilities = "EnableMongoRetryableWrites"
+	databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl databaseAccountCapabilities = "EnableMongoRoleBasedAccessControl"
+	databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs    databaseAccountCapabilities = "EnableUniqueCompoundNestedDocs"
 )
 
 /*
 	The mapping of capabilities and kinds of cosmosdb account confirmed by service team is as follows:
 
-EnableMongo :                    MongoDB
-EnableCassandra :                GlobalDocumentDB, Parse
-EnableGremlin :                  GlobalDocumentDB, Parse
-EnableTable :                    GlobalDocumentDB, Parse
-EnableAggregationPipeline :      GlobalDocumentDB, MongoDB, Parse
-EnableServerless :               GlobalDocumentDB, MongoDB, Parse
-MongoDBv3.4 :                    GlobalDocumentDB, MongoDB, Parse
-mongoEnableDocLevelTTL :         GlobalDocumentDB, MongoDB, Parse
-DisableRateLimitingResponses :   GlobalDocumentDB, MongoDB, Parse
-AllowSelfServeUpgradeToMongo36 : GlobalDocumentDB, MongoDB, Parse
+EnableMongo :                    	MongoDB
+EnableCassandra :                	GlobalDocumentDB, Parse
+EnableGremlin :                  	GlobalDocumentDB, Parse
+EnableTable :                    	GlobalDocumentDB, Parse
+EnableAggregationPipeline :      	GlobalDocumentDB, MongoDB, Parse
+EnableServerless :               	GlobalDocumentDB, MongoDB, Parse
+MongoDBv3.4 :                    	GlobalDocumentDB, MongoDB, Parse
+mongoEnableDocLevelTTL :         	GlobalDocumentDB, MongoDB, Parse
+DisableRateLimitingResponses :   	GlobalDocumentDB, MongoDB, Parse
+AllowSelfServeUpgradeToMongo36 : 	GlobalDocumentDB, MongoDB, Parse
+EnableMongoRetryableWrites :		MongoDB
+EnableMongoRoleBasedAccessControl : MongoDB
+EnableUniqueCompoundNestedDocs : 	MongoDB
 */
 var capabilitiesToKindMap = map[string]interface{}{
 	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo)):                    []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)):     []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)):     []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableCassandra)):                []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableGremlin)):                  []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableTable)):                    []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
@@ -234,7 +243,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.Any(
-					validation.StringMatch(regexp.MustCompile(`^UserAssignedIdentity(.)+$`), "It may start with `UserAssignedIdentity`"),
+					validation.StringMatch(regexp.MustCompile(`^UserAssignedIdentity(.)+$`), "user assigned identity must be in the format of: 'UserAssignedIdentity=/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{userAssignedIdentityName}'"),
 					validation.StringInSlice([]string{
 						"FirstPartyIdentity",
 						"SystemAssignedIdentity",
@@ -396,6 +405,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								string(databaseAccountCapabilitiesMongoEnableDocLevelTTL),
 								string(databaseAccountCapabilitiesDisableRateLimitingResponses),
 								string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36),
+								string(databaseAccountCapabilitiesEnableMongoRetryableWrites),
+								string(databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl),
+								string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs),
 							}, false),
 						},
 					},
@@ -1238,7 +1250,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		for i, v := range *connStringResp.ConnectionStrings {
 			connStrings[i] = *v.ConnectionString
 			if propertyName, propertyExists := connStringPropertyMap[*v.Description]; propertyExists {
-				d.Set(propertyName, *v.ConnectionString)
+				d.Set(propertyName, v.ConnectionString) // lintignore:R001
 			}
 		}
 	}
@@ -1854,18 +1866,22 @@ func flattenCosmosdbAccountDatabasesToRestore(input *[]documentdb.DatabaseRestor
 }
 
 func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]documentdb.Capability, newCapabilities *[]documentdb.Capability) bool {
-	// The feedback from service team : "DisableRateLimitingResponses", "AllowSelfServeUpgradeToMongo36","EnableAggregationPipeline","MongoDBv3.4"
-	// , "mongoEnableDocLevelTTL" and "EnableMongo16MBDocumentSupport" of capabilities can be added to an existing account, others can not.
+	// The feedback from service team : capabilities that can be added to an existing account
 	canBeAddedCaps := []string{
 		strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)),
 		strings.ToLower(string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnableAggregationPipeline)),
 		strings.ToLower(string(databaseAccountCapabilitiesMongoDBv34)),
 		strings.ToLower(string(databaseAccountCapabilitiesMongoEnableDocLevelTTL)),
-		strings.ToLower(string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport))}
+		strings.ToLower(string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)),
+	}
 
-	// The feedback from service team : only "DisableRateLimitingResponses" of capabilities can be removed to an existing account.
+	// The feedback from service team: capabilities that can be removed from an existing account
 	canBeRemovedCaps := []string{
+		strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)),
 		strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)),
 	}
 

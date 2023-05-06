@@ -5,21 +5,26 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datadog/mgmt/2021-03-01/datadog" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// @tombuildsstuff: in 4.0 consider inlining this within the `azurerm_datadog_monitors` resource
+// since this appears to be a 1:1 with it (given the name defaults to `default`)
+
 func resourceDatadogTagRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDatadogTagRulesCreateorUpdate,
+		Create: resourceDatadogTagRulesCreate,
 		Read:   resourceDatadogTagRulesRead,
-		Update: resourceDatadogTagRulesCreateorUpdate,
+		Update: resourceDatadogTagRulesUpdate,
 		Delete: resourceDatadogTagRulesDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -30,7 +35,7 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DatadogTagRulesID(id)
+			_, err := rules.ParseTagRuleID(id)
 			return err
 		}),
 
@@ -39,7 +44,7 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatadogMonitorID,
+				ValidateFunc: monitorsresource.ValidateMonitorID,
 			},
 
 			"name": {
@@ -82,12 +87,9 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 										Required: true,
 									},
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"Include",
-											"Exclude",
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForTagAction(), false),
 									},
 								},
 							},
@@ -115,12 +117,9 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 										Required: true,
 									},
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"Include",
-											"Exclude",
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForTagAction(), false),
 									},
 								},
 							},
@@ -132,120 +131,133 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 	}
 }
 
-func resourceDatadogTagRulesCreateorUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Datadog.TagRulesClient
+func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Datadog.Rules
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	datadogMonitorId := d.Get("datadog_monitor_id").(string)
-	ruleSetName := d.Get("name").(string)
-	id, err := parse.DatadogMonitorID(datadogMonitorId)
+	monitorId, err := monitorsresource.ParseMonitorID(d.Get("datadog_monitor_id").(string))
 	if err != nil {
 		return err
 	}
 
-	tagRulesid := parse.NewDatadogTagRulesID(id.SubscriptionId, id.ResourceGroup, id.MonitorName, ruleSetName).ID()
-
-	existing, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, ruleSetName)
+	id := rules.NewTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
+	existing, err := client.TagRulesGet(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing Datadog Monitor %q (Resource Group %q): %+v", id.ResourceGroup, id.MonitorName, err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for an existing %s: %+v", id, err)
 		}
 	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_datadog_monitor_tag_rule", id.ID())
+	}
 
-	body := datadog.MonitoringTagRules{
-		Properties: &datadog.MonitoringTagRulesProperties{
+	payload := rules.MonitoringTagRules{
+		Properties: &rules.MonitoringTagRulesProperties{
 			LogRules:    expandLogRules(d.Get("log").([]interface{})),
 			MetricRules: expandMetricRules(d.Get("metric").([]interface{})),
 		},
 	}
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, ruleSetName, &body); err != nil {
-		return fmt.Errorf("configuring Tag Rules on Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+	if _, err := client.TagRulesCreateOrUpdate(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(tagRulesid)
+	d.SetId(id.ID())
 	return resourceDatadogTagRulesRead(d, meta)
 }
 
 func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Datadog.TagRulesClient
+	client := meta.(*clients.Client).Datadog.Rules
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatadogTagRulesID(d.Id())
+	id, err := rules.ParseTagRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+	resp, err := client.TagRulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Datadog monitor %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 	}
 
-	monitorId := parse.NewDatadogMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName)
+	monitorId := monitorsresource.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
 	d.Set("datadog_monitor_id", monitorId.ID())
 	d.Set("name", id.TagRuleName)
 
-	if props := resp.Properties; props != nil {
-		if err := d.Set("log", flattenLogRules(props.LogRules)); err != nil {
-			return fmt.Errorf("setting `log`: %+v", err)
-		}
-		if err := d.Set("metric", flattenMetricRules(props.MetricRules)); err != nil {
-			return fmt.Errorf("setting `metric`: %+v", err)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if err := d.Set("log", flattenLogRules(props.LogRules)); err != nil {
+				return fmt.Errorf("setting `log`: %+v", err)
+			}
+			if err := d.Set("metric", flattenMetricRules(props.MetricRules)); err != nil {
+				return fmt.Errorf("setting `metric`: %+v", err)
+			}
 		}
 	}
 
 	return nil
 }
 
-func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Datadog.TagRulesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+func resourceDatadogTagRulesUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Datadog.Rules
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatadogTagRulesID(d.Id())
+	id, err := rules.ParseTagRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] datadog %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-	}
-
-	d.Set("log", nil)
-	d.Set("metric", nil)
-
-	body := datadog.MonitoringTagRules{
-		Properties: &datadog.MonitoringTagRulesProperties{
+	payload := rules.MonitoringTagRules{
+		Properties: &rules.MonitoringTagRulesProperties{
 			LogRules:    expandLogRules(d.Get("log").([]interface{})),
 			MetricRules: expandMetricRules(d.Get("metric").([]interface{})),
 		},
 	}
+	if _, err := client.TagRulesCreateOrUpdate(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName, &body); err != nil {
-		return fmt.Errorf("removing Tag Rules configuration from Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+	return resourceDatadogTagRulesRead(d, meta)
+}
+
+func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Datadog.Rules
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := rules.ParseTagRuleID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	// Tag Rules can't be removed on their own, they can only be nil'd out
+	payload := rules.MonitoringTagRules{
+		Properties: &rules.MonitoringTagRulesProperties{
+			LogRules:    expandLogRules(d.Get("log").([]interface{})),
+			MetricRules: expandMetricRules(d.Get("metric").([]interface{})),
+		},
+	}
+	if _, err := client.TagRulesCreateOrUpdate(ctx, *id, payload); err != nil {
+		return fmt.Errorf("removing %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandLogRules(input []interface{}) *datadog.LogRules {
+func expandLogRules(input []interface{}) *rules.LogRules {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
 	filteringTag := v["filter"].([]interface{})
 
-	return &datadog.LogRules{
+	return &rules.LogRules{
 		SendAadLogs:          utils.Bool(v["aad_log_enabled"].(bool)),
 		SendSubscriptionLogs: utils.Bool(v["subscription_log_enabled"].(bool)),
 		SendResourceLogs:     utils.Bool(v["resource_log_enabled"].(bool)),
@@ -253,97 +265,98 @@ func expandLogRules(input []interface{}) *datadog.LogRules {
 	}
 }
 
-func expandMetricRules(input []interface{}) *datadog.MetricRules {
+func expandMetricRules(input []interface{}) *rules.MetricRules {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
 	filteringTag := v["filter"].([]interface{})
 
-	return &datadog.MetricRules{
+	return &rules.MetricRules{
 		FilteringTags: expandFilteringTag(filteringTag),
 	}
 }
 
-func expandFilteringTag(input []interface{}) *[]datadog.FilteringTag {
-	filteringTags := make([]datadog.FilteringTag, 0)
+func expandFilteringTag(input []interface{}) *[]rules.FilteringTag {
+	filteringTags := make([]rules.FilteringTag, 0)
 
 	for _, v := range input {
 		config := v.(map[string]interface{})
-		name := config["name"].(string)
-		value := config["value"].(string)
-		action := config["action"].(string)
 
-		filteringTag := datadog.FilteringTag{
-			Name:   utils.String(name),
-			Value:  utils.String(value),
-			Action: datadog.TagAction(action),
-		}
-
-		filteringTags = append(filteringTags, filteringTag)
+		filteringTags = append(filteringTags, rules.FilteringTag{
+			Name:   utils.String(config["name"].(string)),
+			Value:  utils.String(config["value"].(string)),
+			Action: pointer.To(rules.TagAction(config["action"].(string))),
+		})
 	}
 
 	return &filteringTags
 }
 
-func flattenLogRules(input *datadog.LogRules) []interface{} {
+func flattenLogRules(input *rules.LogRules) []interface{} {
 	results := make([]interface{}, 0)
+
+	if input != nil {
+		aadLogEnabled := false
+		if input.SendAadLogs != nil {
+			aadLogEnabled = *input.SendAadLogs
+		}
+
+		subscriptionLogEnabled := false
+		if input.SendSubscriptionLogs != nil {
+			subscriptionLogEnabled = *input.SendSubscriptionLogs
+		}
+
+		resourceLogEnabled := false
+		if input.SendResourceLogs != nil {
+			resourceLogEnabled = *input.SendResourceLogs
+		}
+
+		results = append(results, map[string]interface{}{
+			"aad_log_enabled":          aadLogEnabled,
+			"filter":                   flattenFilteringTags(input.FilteringTags),
+			"resource_log_enabled":     resourceLogEnabled,
+			"subscription_log_enabled": subscriptionLogEnabled,
+		})
+	}
+
+	return results
+}
+
+func flattenMetricRules(input *rules.MetricRules) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	result := make(map[string]interface{})
-
-	if input.SendAadLogs != nil {
-		result["aad_log_enabled"] = *input.SendAadLogs
+	return []interface{}{
+		map[string]interface{}{
+			"filter": flattenFilteringTags(input.FilteringTags),
+		},
 	}
-
-	if input.SendSubscriptionLogs != nil {
-		result["subscription_log_enabled"] = *input.SendSubscriptionLogs
-	}
-
-	if input.SendResourceLogs != nil {
-		result["resource_log_enabled"] = *input.SendResourceLogs
-	}
-
-	result["filter"] = flattenFilteringTags(input.FilteringTags)
-	return append(results, result)
 }
 
-func flattenMetricRules(input *datadog.MetricRules) []interface{} {
+func flattenFilteringTags(input *[]rules.FilteringTag) []interface{} {
 	results := make([]interface{}, 0)
-
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-	result := make(map[string]interface{})
-
-	result["filter"] = flattenFilteringTags(input.FilteringTags)
-	return append(results, result)
-}
-
-func flattenFilteringTags(input *[]datadog.FilteringTag) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	var t datadog.TagAction
-
-	for _, filteringTagRules := range *input {
-		result := make(map[string]interface{})
-
-		if filteringTagRules.Name != nil {
-			result["name"] = *filteringTagRules.Name
+	if input != nil {
+		for _, filteringTagRules := range *input {
+			action := ""
+			if filteringTagRules.Action != nil {
+				action = string(*filteringTagRules.Action)
+			}
+			name := ""
+			if filteringTagRules.Name != nil {
+				name = *filteringTagRules.Name
+			}
+			value := ""
+			if filteringTagRules.Value != nil {
+				value = *filteringTagRules.Value
+			}
+			results = append(results, map[string]interface{}{
+				"action": action,
+				"name":   name,
+				"value":  value,
+			})
 		}
-		if filteringTagRules.Value != nil {
-			result["value"] = *filteringTagRules.Value
-		}
-		if filteringTagRules.Action != "" {
-			t = filteringTagRules.Action
-			result["action"] = t
-		}
-		results = append(results, result)
 	}
 	return results
 }

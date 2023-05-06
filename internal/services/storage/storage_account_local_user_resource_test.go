@@ -7,11 +7,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/localusers"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -21,10 +20,10 @@ func TestAccLocalUser_passwordOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
 	r := LocalUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.passwordOnly(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +35,24 @@ func TestAccLocalUser_sshKeyOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
 	r := LocalUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sshKeyOnly(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ssh_authorized_key"),
+		{
+			Config: r.sshKeyOnlyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ssh_authorized_key"),
+		{
+			Config: r.sshKeyOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +64,10 @@ func TestAccLocalUser_passwordAndSSHKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
 	r := LocalUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.passwordAndSSHKey(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("password").IsNotEmpty(),
 			),
@@ -62,7 +75,7 @@ func TestAccLocalUser_passwordAndSSHKey(t *testing.T) {
 		data.ImportStep("password", "ssh_authorized_key"),
 		{
 			Config: r.passwordAndSSHKeyMoreAuthKeys(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("password").IsNotEmpty(),
 			),
@@ -70,12 +83,19 @@ func TestAccLocalUser_passwordAndSSHKey(t *testing.T) {
 		data.ImportStep("password", "ssh_authorized_key"),
 		{
 			Config: r.sshKeyOnly(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("password").IsEmpty(),
 			),
 		},
 		data.ImportStep("ssh_authorized_key"),
+		{
+			Config: r.passwordOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
 	})
 }
 
@@ -83,17 +103,17 @@ func TestAccLocalUser_homeDirectory(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
 	r := LocalUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.homeDirectory(data, "foo"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("password"),
 		{
 			Config: r.homeDirectory(data, "bar"),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -105,24 +125,24 @@ func TestAccLocalUser_permissionScope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
 	r := LocalUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.noPermissionScope(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("password"),
 		{
 			Config: r.permissionScope(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("password"),
 		{
 			Config: r.permissionScopeUpdate(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -134,10 +154,10 @@ func TestAccLocalUser_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
 	r := LocalUserResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.passwordOnly(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -145,7 +165,7 @@ func TestAccLocalUser_requiresImport(t *testing.T) {
 	})
 }
 
-func (r LocalUserResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r LocalUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Storage.LocalUsersClient
 
 	id, err := localusers.ParseLocalUserID(state.ID)
@@ -187,6 +207,27 @@ resource "azurerm_storage_account_local_user" "test" {
   ssh_key_enabled    = true
   ssh_authorized_key {
     description = "key1"
+    key         = local.first_public_key
+  }
+}
+`, template)
+}
+
+func (r LocalUserResource) sshKeyOnlyUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_local_user" "test" {
+  name               = "user"
+  storage_account_id = azurerm_storage_account.test.id
+  ssh_key_enabled    = true
+  ssh_authorized_key {
+    description = "key1"
+    key         = local.first_public_key
+  }
+  ssh_authorized_key {
+    description = "key2"
     key         = local.first_public_key
   }
 }

@@ -4,35 +4,36 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/dataconnections" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func importDataConnection(kind kusto.KindBasicDataConnection) pluginsdk.ImporterFunc {
+func importDataConnection(kind string) pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
-		id, err := parse.DataConnectionID(d.Id())
+		id, err := dataconnections.ParseDataConnectionID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, err
 		}
 
 		client := meta.(*clients.Client).Kusto.DataConnectionsClient
-		dataConnection, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
+		dataConnection, err := client.Get(ctx, *id)
 		if err != nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Kusto Data Connection %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving Kusto Data Connection %q (Resource Group %q): %+v", id.DataConnectionName, id.ResourceGroupName, err)
 		}
 
-		if _, ok := dataConnection.Value.AsEventHubDataConnection(); ok && kind != kusto.KindBasicDataConnectionKindEventHub {
-			return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%s", got "%s"`, kind, kusto.KindBasicDataConnectionKindEventHub)
-		}
+		if dataConnection.Model != nil {
+			if dataCon, ok := (*dataConnection.Model).(dataconnections.EventHubDataConnection); ok && kind != "EventHub" {
+				return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%T", got "%T"`, kind, dataCon)
+			}
 
-		if _, ok := dataConnection.Value.AsIotHubDataConnection(); ok && kind != kusto.KindBasicDataConnectionKindIotHub {
-			return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%s", got "%s"`, kind, kusto.KindBasicDataConnectionKindIotHub)
-		}
+			if dataCon, ok := (*dataConnection.Model).(dataconnections.IotHubDataConnection); ok && kind != "IotHub" {
+				return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%T", got "%T"`, kind, dataCon)
+			}
 
-		if _, ok := dataConnection.Value.AsEventGridDataConnection(); ok && kind != kusto.KindBasicDataConnectionKindEventGrid {
-			return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%s", got "%s"`, kind, kusto.KindBasicDataConnectionKindEventGrid)
+			if dataCon, ok := (*dataConnection.Model).(dataconnections.EventGridDataConnection); ok && kind != "EventGrid" {
+				return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%T", got "%T"`, kind, dataCon)
+			}
 		}
 
 		return []*pluginsdk.ResourceData{d}, nil

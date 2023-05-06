@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = MaintenanceConfigurationId{}
 
 // MaintenanceConfigurationId is a struct representing the Resource ID for a Maintenance Configuration
 type MaintenanceConfigurationId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ResourceName      string
+	SubscriptionId               string
+	ResourceGroupName            string
+	MaintenanceConfigurationName string
 }
 
 // NewMaintenanceConfigurationID returns a new MaintenanceConfigurationId struct
-func NewMaintenanceConfigurationID(subscriptionId string, resourceGroupName string, resourceName string) MaintenanceConfigurationId {
+func NewMaintenanceConfigurationID(subscriptionId string, resourceGroupName string, maintenanceConfigurationName string) MaintenanceConfigurationId {
 	return MaintenanceConfigurationId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
+		SubscriptionId:               subscriptionId,
+		ResourceGroupName:            resourceGroupName,
+		MaintenanceConfigurationName: maintenanceConfigurationName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParseMaintenanceConfigurationID(input string) (*MaintenanceConfigurationId,
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.MaintenanceConfigurationName, ok = parsed.Parsed["maintenanceConfigurationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'maintenanceConfigurationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParseMaintenanceConfigurationIDInsensitively(input string) (*MaintenanceCon
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.MaintenanceConfigurationName, ok = parsed.Parsed["maintenanceConfigurationName"]; !ok {
+		return nil, fmt.Errorf("the segment 'maintenanceConfigurationName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidateMaintenanceConfigurationID(input interface{}, key string) (warnings
 // ID returns the formatted Maintenance Configuration ID
 func (id MaintenanceConfigurationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Maintenance/maintenanceConfigurations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.MaintenanceConfigurationName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Maintenance Configuration ID
@@ -109,7 +112,7 @@ func (id MaintenanceConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMaintenance", "Microsoft.Maintenance", "Microsoft.Maintenance"),
 		resourceids.StaticSegment("staticMaintenanceConfigurations", "maintenanceConfigurations", "maintenanceConfigurations"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("maintenanceConfigurationName", "maintenanceConfigurationValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id MaintenanceConfigurationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Maintenance Configuration Name: %q", id.MaintenanceConfigurationName),
 	}
 	return fmt.Sprintf("Maintenance Configuration (%s)", strings.Join(components, "\n"))
 }

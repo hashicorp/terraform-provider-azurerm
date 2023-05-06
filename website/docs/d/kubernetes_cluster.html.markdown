@@ -56,6 +56,8 @@ The following attributes are exported:
 
 * `ingress_application_gateway` - An `ingress_application_gateway` block as documented below.
 
+* `key_management_service` - A `key_management_service` block as documented below.
+
 * `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as documented below.
 
 * `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
@@ -95,6 +97,8 @@ The following attributes are exported:
 * `network_profile` - A `network_profile` block as documented below.
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
+
+* `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.
 
 * `role_based_access_control_enabled` - Is Role Based Access Control enabled for this managed Kubernetes Cluster?
 
@@ -178,6 +182,14 @@ A `upgrade_settings` block exports the following:
 
 ---
 
+A `key_management_service` block supports the following:
+
+* `key_vault_key_id` - Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details.
+
+* `key_vault_network_access` - Network access of the key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link.
+
+---
+
 A `key_vault_secrets_provider` block exports the following:
 
 * `secret_rotation_enabled` - Is secret rotation enabled?
@@ -258,6 +270,8 @@ A `network_profile` block exports the following:
 An `oms_agent` block exports the following:
 
 * `log_analytics_workspace_id` - The ID of the Log Analytics Workspace to which the OMS Agent should send data.
+
+* `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
 
 * `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
 

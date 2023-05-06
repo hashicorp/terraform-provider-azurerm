@@ -52,11 +52,9 @@ The following arguments are supported:
 
 * `partner_namespace_id` - (Required) The ID of the EventHub Namespace to replicate to.
 
-* `wait_for_replication` - (Optional) Should the resource wait for replication upon creation? Defaults to `false`.
-
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The EventHub Namespace Disaster Recovery Config ID.
 

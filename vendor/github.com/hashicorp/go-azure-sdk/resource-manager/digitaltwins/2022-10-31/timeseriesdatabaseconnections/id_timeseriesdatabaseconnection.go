@@ -7,22 +7,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = TimeSeriesDatabaseConnectionId{}
 
 // TimeSeriesDatabaseConnectionId is a struct representing the Resource ID for a Time Series Database Connection
 type TimeSeriesDatabaseConnectionId struct {
 	SubscriptionId                   string
 	ResourceGroupName                string
-	ResourceName                     string
+	DigitalTwinsInstanceName         string
 	TimeSeriesDatabaseConnectionName string
 }
 
 // NewTimeSeriesDatabaseConnectionID returns a new TimeSeriesDatabaseConnectionId struct
-func NewTimeSeriesDatabaseConnectionID(subscriptionId string, resourceGroupName string, resourceName string, timeSeriesDatabaseConnectionName string) TimeSeriesDatabaseConnectionId {
+func NewTimeSeriesDatabaseConnectionID(subscriptionId string, resourceGroupName string, digitalTwinsInstanceName string, timeSeriesDatabaseConnectionName string) TimeSeriesDatabaseConnectionId {
 	return TimeSeriesDatabaseConnectionId{
 		SubscriptionId:                   subscriptionId,
 		ResourceGroupName:                resourceGroupName,
-		ResourceName:                     resourceName,
+		DigitalTwinsInstanceName:         digitalTwinsInstanceName,
 		TimeSeriesDatabaseConnectionName: timeSeriesDatabaseConnectionName,
 	}
 }
@@ -46,8 +49,8 @@ func ParseTimeSeriesDatabaseConnectionID(input string) (*TimeSeriesDatabaseConne
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.DigitalTwinsInstanceName, ok = parsed.Parsed["digitalTwinsInstanceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'digitalTwinsInstanceName' was not found in the resource id %q", input)
 	}
 
 	if id.TimeSeriesDatabaseConnectionName, ok = parsed.Parsed["timeSeriesDatabaseConnectionName"]; !ok {
@@ -77,8 +80,8 @@ func ParseTimeSeriesDatabaseConnectionIDInsensitively(input string) (*TimeSeries
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.DigitalTwinsInstanceName, ok = parsed.Parsed["digitalTwinsInstanceName"]; !ok {
+		return nil, fmt.Errorf("the segment 'digitalTwinsInstanceName' was not found in the resource id %q", input)
 	}
 
 	if id.TimeSeriesDatabaseConnectionName, ok = parsed.Parsed["timeSeriesDatabaseConnectionName"]; !ok {
@@ -106,7 +109,7 @@ func ValidateTimeSeriesDatabaseConnectionID(input interface{}, key string) (warn
 // ID returns the formatted Time Series Database Connection ID
 func (id TimeSeriesDatabaseConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances/%s/timeSeriesDatabaseConnections/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName, id.TimeSeriesDatabaseConnectionName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DigitalTwinsInstanceName, id.TimeSeriesDatabaseConnectionName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Time Series Database Connection ID
@@ -119,7 +122,7 @@ func (id TimeSeriesDatabaseConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDigitalTwins", "Microsoft.DigitalTwins", "Microsoft.DigitalTwins"),
 		resourceids.StaticSegment("staticDigitalTwinsInstances", "digitalTwinsInstances", "digitalTwinsInstances"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("digitalTwinsInstanceName", "digitalTwinsInstanceValue"),
 		resourceids.StaticSegment("staticTimeSeriesDatabaseConnections", "timeSeriesDatabaseConnections", "timeSeriesDatabaseConnections"),
 		resourceids.UserSpecifiedSegment("timeSeriesDatabaseConnectionName", "timeSeriesDatabaseConnectionValue"),
 	}
@@ -130,7 +133,7 @@ func (id TimeSeriesDatabaseConnectionId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Digital Twins Instance Name: %q", id.DigitalTwinsInstanceName),
 		fmt.Sprintf("Time Series Database Connection Name: %q", id.TimeSeriesDatabaseConnectionName),
 	}
 	return fmt.Sprintf("Time Series Database Connection (%s)", strings.Join(components, "\n"))

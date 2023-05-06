@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = NginxDeploymentId{}
 
 // NginxDeploymentId is a struct representing the Resource ID for a Nginx Deployment
 type NginxDeploymentId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	DeploymentName    string
+	SubscriptionId      string
+	ResourceGroupName   string
+	NginxDeploymentName string
 }
 
 // NewNginxDeploymentID returns a new NginxDeploymentId struct
-func NewNginxDeploymentID(subscriptionId string, resourceGroupName string, deploymentName string) NginxDeploymentId {
+func NewNginxDeploymentID(subscriptionId string, resourceGroupName string, nginxDeploymentName string) NginxDeploymentId {
 	return NginxDeploymentId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		DeploymentName:    deploymentName,
+		SubscriptionId:      subscriptionId,
+		ResourceGroupName:   resourceGroupName,
+		NginxDeploymentName: nginxDeploymentName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParseNginxDeploymentID(input string) (*NginxDeploymentId, error) {
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.DeploymentName, ok = parsed.Parsed["deploymentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'deploymentName' was not found in the resource id %q", input)
+	if id.NginxDeploymentName, ok = parsed.Parsed["nginxDeploymentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'nginxDeploymentName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParseNginxDeploymentIDInsensitively(input string) (*NginxDeploymentId, erro
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.DeploymentName, ok = parsed.Parsed["deploymentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'deploymentName' was not found in the resource id %q", input)
+	if id.NginxDeploymentName, ok = parsed.Parsed["nginxDeploymentName"]; !ok {
+		return nil, fmt.Errorf("the segment 'nginxDeploymentName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidateNginxDeploymentID(input interface{}, key string) (warnings []string
 // ID returns the formatted Nginx Deployment ID
 func (id NginxDeploymentId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Nginx.NginxPlus/nginxDeployments/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DeploymentName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Nginx Deployment ID
@@ -109,7 +112,7 @@ func (id NginxDeploymentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticNginxNginxPlus", "Nginx.NginxPlus", "Nginx.NginxPlus"),
 		resourceids.StaticSegment("staticNginxDeployments", "nginxDeployments", "nginxDeployments"),
-		resourceids.UserSpecifiedSegment("deploymentName", "deploymentValue"),
+		resourceids.UserSpecifiedSegment("nginxDeploymentName", "nginxDeploymentValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id NginxDeploymentId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Deployment Name: %q", id.DeploymentName),
+		fmt.Sprintf("Nginx Deployment Name: %q", id.NginxDeploymentName),
 	}
 	return fmt.Sprintf("Nginx Deployment (%s)", strings.Join(components, "\n"))
 }

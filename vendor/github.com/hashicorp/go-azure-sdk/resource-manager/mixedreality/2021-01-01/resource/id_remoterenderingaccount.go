@@ -7,21 +7,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = RemoteRenderingAccountId{}
 
 // RemoteRenderingAccountId is a struct representing the Resource ID for a Remote Rendering Account
 type RemoteRenderingAccountId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	AccountName       string
+	SubscriptionId             string
+	ResourceGroupName          string
+	RemoteRenderingAccountName string
 }
 
 // NewRemoteRenderingAccountID returns a new RemoteRenderingAccountId struct
-func NewRemoteRenderingAccountID(subscriptionId string, resourceGroupName string, accountName string) RemoteRenderingAccountId {
+func NewRemoteRenderingAccountID(subscriptionId string, resourceGroupName string, remoteRenderingAccountName string) RemoteRenderingAccountId {
 	return RemoteRenderingAccountId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		AccountName:       accountName,
+		SubscriptionId:             subscriptionId,
+		ResourceGroupName:          resourceGroupName,
+		RemoteRenderingAccountName: remoteRenderingAccountName,
 	}
 }
 
@@ -44,8 +47,8 @@ func ParseRemoteRenderingAccountID(input string) (*RemoteRenderingAccountId, err
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.RemoteRenderingAccountName, ok = parsed.Parsed["remoteRenderingAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'remoteRenderingAccountName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -71,8 +74,8 @@ func ParseRemoteRenderingAccountIDInsensitively(input string) (*RemoteRenderingA
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+	if id.RemoteRenderingAccountName, ok = parsed.Parsed["remoteRenderingAccountName"]; !ok {
+		return nil, fmt.Errorf("the segment 'remoteRenderingAccountName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -96,7 +99,7 @@ func ValidateRemoteRenderingAccountID(input interface{}, key string) (warnings [
 // ID returns the formatted Remote Rendering Account ID
 func (id RemoteRenderingAccountId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.MixedReality/remoteRenderingAccounts/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.AccountName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.RemoteRenderingAccountName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Remote Rendering Account ID
@@ -109,7 +112,7 @@ func (id RemoteRenderingAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMixedReality", "Microsoft.MixedReality", "Microsoft.MixedReality"),
 		resourceids.StaticSegment("staticRemoteRenderingAccounts", "remoteRenderingAccounts", "remoteRenderingAccounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("remoteRenderingAccountName", "remoteRenderingAccountValue"),
 	}
 }
 
@@ -118,7 +121,7 @@ func (id RemoteRenderingAccountId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Account Name: %q", id.AccountName),
+		fmt.Sprintf("Remote Rendering Account Name: %q", id.RemoteRenderingAccountName),
 	}
 	return fmt.Sprintf("Remote Rendering Account (%s)", strings.Join(components, "\n"))
 }

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceContainerRegistry() *pluginsdk.Resource {
@@ -28,55 +28,58 @@ func dataSourceContainerRegistry() *pluginsdk.Resource {
 }
 
 func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.RegistriesClient
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Registries
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewRegistryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := registries.NewRegistryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.RegistryName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	if props := resp.RegistryProperties; props != nil {
-		d.Set("admin_enabled", resp.AdminUserEnabled)
-		d.Set("login_server", resp.LoginServer)
-		d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
-	}
-
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", string(sku.Tier))
-	}
-
-	if *resp.AdminUserEnabled {
-		credsResp, err := client.ListCredentials(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("making Read request on %s: %s", id, err)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		if model.Sku.Tier != nil {
+			d.Set("sku", string(*model.Sku.Tier))
 		}
 
-		d.Set("admin_username", credsResp.Username)
-		for _, v := range *credsResp.Passwords {
-			d.Set("admin_password", v.Value)
-			break
-		}
-	} else {
-		d.Set("admin_username", "")
-		d.Set("admin_password", "")
-	}
+		if props := model.Properties; props != nil {
+			d.Set("admin_enabled", props.AdminUserEnabled)
+			d.Set("login_server", props.LoginServer)
+			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+			if *props.AdminUserEnabled {
+				credsResp, err := client.ListCredentials(ctx, id)
+				if err != nil {
+					return fmt.Errorf("retrieving credentials for %s: %s", id, err)
+				}
+
+				if credsModel := credsResp.Model; credsModel != nil {
+					d.Set("admin_username", credsModel.Username)
+					for _, v := range *credsModel.Passwords {
+						d.Set("admin_password", v.Value)
+						break
+					}
+				} else {
+					d.Set("admin_username", "")
+					d.Set("admin_password", "")
+				}
+			}
+		}
+		return tags.FlattenAndSet(d, model.Tags)
+	}
+	return nil
 }
 
 func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
@@ -121,6 +124,6 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 	}
 }

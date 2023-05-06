@@ -201,6 +201,8 @@ A `site_config` block supports the following:
 
 * `app_command_line` - (Optional) App command line to launch, e.g. `/sbin/myserver -b 0.0.0.0`.
 
+* `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
+
 * `cors` - (Optional) A `cors` block as defined below.
 
 * `default_documents` - (Optional) The ordering of default documents to load, if an address isn't specified.
@@ -343,6 +345,14 @@ A `google` block supports the following:
 
 ---
 
+A `twitter` block supports the following:
+
+* `consumer_key` - (Required) The consumer key of the Twitter app used for login
+
+* `consumer_secret` - (Required) The consumer secret of the Twitter app used for login.
+
+---
+
 A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
@@ -445,7 +455,7 @@ A `source_control` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the App Service.
 

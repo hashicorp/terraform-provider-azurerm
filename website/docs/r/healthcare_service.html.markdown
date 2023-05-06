@@ -56,9 +56,9 @@ The following arguments are supported:
 
 ~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
 
-* `access_policy_ids` - (Optional) A set of Azure object IDs that are allowed to access the Service. If not configured, the default value is the object id of the service principal or user that is running Terraform.
+* `access_policy_object_ids` - (Optional) A set of Azure object IDs that are allowed to access the Service. If not configured, the default value is the object id of the service principal or user that is running Terraform.
 * `authentication_configuration` - (Optional) An `authentication_configuration` block as defined below.
-* `cosmosdb_throughput` - (Optional) The provisioned throughput for the backing database. Range of `400`-`10000`. Defaults to `400`.
+* `cosmosdb_throughput` - (Optional) The provisioned throughput for the backing database. Range of `400`-`100000`. Defaults to `1000`.
 * `cosmosdb_key_vault_key_versionless_id` - (Optional) A versionless Key Vault Key ID for CMK encryption of the backing database. Changing this forces a new resource to be created.
 
 ~> **Please Note** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
@@ -81,13 +81,13 @@ A `cors_configuration` block supports the following:
 
 * `allowed_origins` - (Optional) A set of origins to be allowed via CORS.
 * `allowed_headers` - (Optional) A set of headers to be allowed via CORS.
-* `allowed_methods` - (Optional) The methods to be allowed via CORS. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
+* `allowed_methods` - (Optional) The methods to be allowed via CORS. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PATCH` and `PUT`.
 * `max_age_in_seconds` - (Optional) The max age to be allowed via CORS.
 * `allow_credentials` - (Optional) (Boolean) If credentials are allowed via CORS.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Healthcare Service.
 

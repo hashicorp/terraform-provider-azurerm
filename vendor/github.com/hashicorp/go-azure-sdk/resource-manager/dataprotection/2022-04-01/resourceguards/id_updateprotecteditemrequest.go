@@ -7,23 +7,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = UpdateProtectedItemRequestId{}
 
 // UpdateProtectedItemRequestId is a struct representing the Resource ID for a Update Protected Item Request
 type UpdateProtectedItemRequestId struct {
-	SubscriptionId     string
-	ResourceGroupName  string
-	ResourceGuardsName string
-	RequestName        string
+	SubscriptionId                 string
+	ResourceGroupName              string
+	ResourceGuardName              string
+	UpdateProtectedItemRequestName string
 }
 
 // NewUpdateProtectedItemRequestID returns a new UpdateProtectedItemRequestId struct
-func NewUpdateProtectedItemRequestID(subscriptionId string, resourceGroupName string, resourceGuardsName string, requestName string) UpdateProtectedItemRequestId {
+func NewUpdateProtectedItemRequestID(subscriptionId string, resourceGroupName string, resourceGuardName string, updateProtectedItemRequestName string) UpdateProtectedItemRequestId {
 	return UpdateProtectedItemRequestId{
-		SubscriptionId:     subscriptionId,
-		ResourceGroupName:  resourceGroupName,
-		ResourceGuardsName: resourceGuardsName,
-		RequestName:        requestName,
+		SubscriptionId:                 subscriptionId,
+		ResourceGroupName:              resourceGroupName,
+		ResourceGuardName:              resourceGuardName,
+		UpdateProtectedItemRequestName: updateProtectedItemRequestName,
 	}
 }
 
@@ -46,12 +49,12 @@ func ParseUpdateProtectedItemRequestID(input string) (*UpdateProtectedItemReques
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
-	if id.RequestName, ok = parsed.Parsed["requestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestName' was not found in the resource id %q", input)
+	if id.UpdateProtectedItemRequestName, ok = parsed.Parsed["updateProtectedItemRequestName"]; !ok {
+		return nil, fmt.Errorf("the segment 'updateProtectedItemRequestName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -77,12 +80,12 @@ func ParseUpdateProtectedItemRequestIDInsensitively(input string) (*UpdateProtec
 		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
 	}
 
-	if id.ResourceGuardsName, ok = parsed.Parsed["resourceGuardsName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardsName' was not found in the resource id %q", input)
+	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
+		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
 	}
 
-	if id.RequestName, ok = parsed.Parsed["requestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestName' was not found in the resource id %q", input)
+	if id.UpdateProtectedItemRequestName, ok = parsed.Parsed["updateProtectedItemRequestName"]; !ok {
+		return nil, fmt.Errorf("the segment 'updateProtectedItemRequestName' was not found in the resource id %q", input)
 	}
 
 	return &id, nil
@@ -106,7 +109,7 @@ func ValidateUpdateProtectedItemRequestID(input interface{}, key string) (warnin
 // ID returns the formatted Update Protected Item Request ID
 func (id UpdateProtectedItemRequestId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataProtection/resourceGuards/%s/updateProtectedItemRequests/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardsName, id.RequestName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceGuardName, id.UpdateProtectedItemRequestName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Update Protected Item Request ID
@@ -119,9 +122,9 @@ func (id UpdateProtectedItemRequestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardsName", "resourceGuardsValue"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardValue"),
 		resourceids.StaticSegment("staticUpdateProtectedItemRequests", "updateProtectedItemRequests", "updateProtectedItemRequests"),
-		resourceids.UserSpecifiedSegment("requestName", "requestValue"),
+		resourceids.UserSpecifiedSegment("updateProtectedItemRequestName", "updateProtectedItemRequestValue"),
 	}
 }
 
@@ -130,8 +133,8 @@ func (id UpdateProtectedItemRequestId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Guards Name: %q", id.ResourceGuardsName),
-		fmt.Sprintf("Request Name: %q", id.RequestName),
+		fmt.Sprintf("Resource Guard Name: %q", id.ResourceGuardName),
+		fmt.Sprintf("Update Protected Item Request Name: %q", id.UpdateProtectedItemRequestName),
 	}
 	return fmt.Sprintf("Update Protected Item Request (%s)", strings.Join(components, "\n"))
 }

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-09-01/actiongroupsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -300,6 +300,21 @@ func TestAccMonitorActionGroup_disabledUpdate(t *testing.T) {
 	})
 }
 
+func TestAccMonitorActionGroup_location(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
+	r := MonitorActionGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.location(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 	r := MonitorActionGroupResource{}
@@ -556,7 +571,7 @@ resource "azurerm_monitor_action_group" "test" {
   sms_receiver {
     name         = "oncallmsg"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -702,7 +717,7 @@ resource "azurerm_monitor_action_group" "test" {
   voice_receiver {
     name         = "oncallmsg"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -972,13 +987,13 @@ resource "azurerm_monitor_action_group" "test" {
   sms_receiver {
     name         = "oncallmsg"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 
   sms_receiver {
     name         = "remotesupport"
-    country_code = "61"
-    phone_number = "13888888888"
+    country_code = "1"
+    phone_number = "3123456789"
   }
 
   webhook_receiver {
@@ -1005,7 +1020,7 @@ resource "azurerm_monitor_action_group" "test" {
   voice_receiver {
     name         = "oncallvoice"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 
   logic_app_receiver {
@@ -1151,15 +1166,36 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 func (t MonitorActionGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ActionGroupID(state.ID)
+	id, err := actiongroupsapis.ParseActionGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Monitor.ActionGroupsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Monitor.ActionGroupsClient.ActionGroupsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
+}
+
+func (MonitorActionGroupResource) location(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+  enabled             = false
+  location            = "swedencentral"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

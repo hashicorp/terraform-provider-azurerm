@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover"
@@ -117,6 +118,20 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
+						"geo_backup_key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							RequiredWith: []string{
+								"identity",
+								"customer_managed_key.0.geo_backup_user_assigned_identity_id",
+							},
+						},
+						"geo_backup_user_assigned_identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
 					},
 				},
 			},
@@ -155,7 +170,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+			"identity": commonschema.UserAssignedIdentityOptional(),
 
 			"maintenance_window": {
 				Type:     pluginsdk.TypeList,
@@ -301,7 +316,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for present of existing Mysql Flexible Server %q (Resource Group %q): %+v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
@@ -340,7 +355,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 
 	sku, err := expandFlexibleServerSku(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding `sku_name` for MySql Flexible Server %s (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
+		return fmt.Errorf("expanding `sku_name` for %s: %+v", id, err)
 	}
 
 	version := servers.ServerVersion(d.Get("version").(string))
@@ -419,7 +434,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 			},
 		}
 		if err := client.UpdateThenPoll(ctx, id, mwParams); err != nil {
-			return fmt.Errorf("updating Mysql Flexible Server %q maintenance window (Resource Group %q): %+v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("updating Maintenance Window for %s: %+v", id, err)
 		}
 	}
 
@@ -458,10 +473,10 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Mysql Flexible Server %q (Resource Group %q): %+v", id.ServerName, id.ResourceGroupName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ServerName)
+	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -469,7 +484,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 		if props := model.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin)
 			d.Set("zone", props.AvailabilityZone)
-			d.Set("version", props.Version)
+			d.Set("version", string(pointer.From(props.Version)))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
 			if network := props.Network; network != nil {
@@ -486,11 +501,11 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
-			id, err := flattenFlexibleServerIdentity(model.Identity)
+			identity, err := flattenFlexibleServerIdentity(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
-			if err := d.Set("identity", id); err != nil {
+			if err := d.Set("identity", identity); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
@@ -510,12 +525,12 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
 				return fmt.Errorf("setting `high_availability`: %+v", err)
 			}
-			d.Set("replication_role", props.ReplicationRole)
+			d.Set("replication_role", string(pointer.From(props.ReplicationRole)))
 			d.Set("replica_capacity", props.ReplicaCapacity)
 		}
 		sku, err := flattenFlexibleServerSku(model.Sku)
 		if err != nil {
-			return fmt.Errorf("flattening `sku_name` for Mysql Flexible Server %s (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("flattening `sku_name`: %+v", err)
 		}
 		d.Set("sku_name", sku)
 
@@ -577,7 +592,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-				return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to update `replication_role`: %+v", id.ServerName, id.ResourceGroupName, err)
+				return fmt.Errorf("updating `replication_role` for %s: %+v", *id, err)
 			}
 		} else {
 			return fmt.Errorf("`replication_role` only can be updated from `Replica` to `None`")
@@ -594,13 +609,13 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-			return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to enable `auto_grow_enabled`: %+v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("enabling `auto_grow_enabled` for %s: %+v", *id, err)
 		}
 	}
 
 	if requireFailover {
 		failoverClient := meta.(*clients.Client).MySQL.FlexibleServerFailoverClient
-		failoverID := serverfailover.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+		failoverID := serverfailover.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
 		if err := failoverClient.ServersFailoverThenPoll(ctx, failoverID); err != nil {
 			return fmt.Errorf("failing over %s: %+v", *id, err)
@@ -616,14 +631,14 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-			return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to disable `high_availability`: %+v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("disabling `high_availability` for %s: %+v", *id, err)
 		}
 
 		parameters.Properties.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}))
 
 		if *parameters.Properties.HighAvailability.Mode != servers.HighAvailabilityModeDisabled {
 			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-				return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to update `high_availability`: %+v", id.ServerName, id.ResourceGroupName, err)
+				return fmt.Errorf("updating `high_availability` for %s: %+v", *id, err)
 			}
 		}
 	}
@@ -647,7 +662,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("identity") {
 		identity, err := expandFlexibleServerIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
-			return fmt.Errorf("expanding `identity` for Mysql Flexible Server %s (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		parameters.Identity = identity
 	}
@@ -659,7 +674,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("sku_name") {
 		sku, err := expandFlexibleServerSku(d.Get("sku_name").(string))
 		if err != nil {
-			return fmt.Errorf("expanding `sku_name` for Mysql Flexible Server %s (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("expanding `sku_name`: %+v", err)
 		}
 		parameters.Sku = sku
 	}
@@ -669,7 +684,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-		return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q): %+v", id.ServerName, id.ResourceGroupName, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if d.HasChange("storage") && !d.Get("storage.0.auto_grow_enabled").(bool) {
@@ -680,7 +695,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-			return fmt.Errorf("updating Mysql Flexible Server %q (Resource Group %q) to disable `auto_grow_enabled`: %+v", id.ServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("disabling `auto_grow_enabled` for %s: %+v", *id, err)
 		}
 	}
 
@@ -930,9 +945,23 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 
 	det := servers.DataEncryptionTypeAzureKeyVault
 	dataEncryption := servers.DataEncryption{
-		Type:                          &det,
-		PrimaryKeyURI:                 utils.String(v["key_vault_key_id"].(string)),
-		PrimaryUserAssignedIdentityId: utils.String(v["primary_user_assigned_identity_id"].(string)),
+		Type: &det,
+	}
+
+	if keyVaultKeyId := v["key_vault_key_id"].(string); keyVaultKeyId != "" {
+		dataEncryption.PrimaryKeyURI = utils.String(keyVaultKeyId)
+	}
+
+	if primaryUserAssignedIdentityId := v["primary_user_assigned_identity_id"].(string); primaryUserAssignedIdentityId != "" {
+		dataEncryption.PrimaryUserAssignedIdentityId = utils.String(primaryUserAssignedIdentityId)
+	}
+
+	if geoBackupKeyVaultKeyId := v["geo_backup_key_vault_key_id"].(string); geoBackupKeyVaultKeyId != "" {
+		dataEncryption.GeoBackupKeyURI = utils.String(geoBackupKeyVaultKeyId)
+	}
+
+	if geoBackupUserAssignedIdentityId := v["geo_backup_user_assigned_identity_id"].(string); geoBackupUserAssignedIdentityId != "" {
+		dataEncryption.GeoBackupUserAssignedIdentityId = utils.String(geoBackupUserAssignedIdentityId)
 	}
 
 	return &dataEncryption
@@ -955,18 +984,29 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 		item["primary_user_assigned_identity_id"] = parsed.ID()
 	}
 
+	if de.GeoBackupKeyURI != nil {
+		item["geo_backup_key_vault_key_id"] = *de.GeoBackupKeyURI
+	}
+	if identity := de.GeoBackupUserAssignedIdentityId; identity != nil {
+		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*identity)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q: %+v", *identity, err)
+		}
+		item["geo_backup_user_assigned_identity_id"] = parsed.ID()
+	}
+
 	return []interface{}{item}, nil
 }
 
 func expandFlexibleServerIdentity(input []interface{}) (*servers.Identity, error) {
 	expanded, err := identity.ExpandUserAssignedMap(input)
-	if err != nil || expanded.Type != identity.TypeUserAssigned {
+	if err != nil {
 		return nil, err
 	}
 
-	idUserAssigned := servers.ManagedServiceIdentityTypeUserAssigned
+	identityType := servers.ManagedServiceIdentityType(string(expanded.Type))
 	out := servers.Identity{
-		Type: &idUserAssigned,
+		Type: &identityType,
 	}
 	if expanded.Type == identity.TypeUserAssigned {
 		ids := make(map[string]interface{})

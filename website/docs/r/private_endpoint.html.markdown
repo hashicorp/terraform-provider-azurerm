@@ -128,6 +128,68 @@ resource "azurerm_private_endpoint" "example" {
 }
 ```
 
+Using a Private Endpoint pointing to an *owned* Azure service, with proper DNS configuration:
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-rg"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "exampleaccount"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "virtnetname"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "subnetname"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_private_endpoint" "example" {
+  name                = "example-endpoint"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  subnet_id           = azurerm_subnet.example.id
+
+  private_service_connection {
+    name                           = "example-privateserviceconnection"
+    private_connection_resource_id = azurerm_storage_account.example.id
+    subresource_names              = ["blob"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "example-dns-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.example.id]
+  }
+}
+
+resource "azurerm_private_dns_zone" "example" {
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "example" {
+  name                  = "example-link"
+  resource_group_name   = azurerm_resource_group.example.name
+  private_dns_zone_name = azurerm_private_dns_zone.example.name
+  virtual_network_id    = azurerm_virtual_network.example.id
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -172,26 +234,9 @@ A `private_service_connection` block supports the following:
 
 * `private_connection_resource_alias` - (Optional) The Service Alias of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created.
 
-* `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
+* `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Possible values are detailed in the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) in the `Subresources` column. Changing this forces a new resource to be created.
 
--> Several possible values for this field are shown below, however this is not extensive:
-
-| Resource Type                 | SubResource Name       | Secondary SubResource Name |
-|-------------------------------|------------------------|----------------------------|
-| Data Lake File System Gen2    | dfs                    | dfs_secondary              |
-| SQL Database / Data Warehouse | sqlServer              |                            |
-| SQL Managed Instance          | managedInstance        |                            |
-| Storage Account               | blob                   | blob_secondary             |
-| Storage Account               | file                   | file_secondary             |
-| Storage Account               | queue                  | queue_secondary            |
-| Storage Account               | table                  | table_secondary            |
-| Storage Account               | web                    | web_secondary              |
-| Web App / Function App        | sites                  |                            |
-| Web App / Function App Slots  | sites-&lt;slotName&gt; |                            |
-| Recovery Services Vault       | AzureBackup            |                            |
-| Recovery Services Vault       | AzureSiteRecovery      |                            |
-
-Some resource types (such as Storage Account) only support 1 subresource per private endpoint. See the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
+-> **NOTE:** Some resource types (such as Storage Account) only support 1 subresource per private endpoint.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 
@@ -203,7 +248,7 @@ An `ip_configuration` block supports the following:
 
 * `private_ip_address` - (Required) Specifies the static IP address within the private endpoint's subnet to be used. Changing this forces a new resource to be created.
 
-* `subresource_name` - (Required) Specifies the subresource this IP address applies to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
+* `subresource_name` - (Optional) Specifies the subresource this IP address applies to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
 
 * `member_name` - (Optional) Specifies the member name this IP address applies to. If it is not specified, it will use the value of `subresource_name`. Changing this forces a new resource to be created.
 
@@ -211,9 +256,19 @@ An `ip_configuration` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Private Endpoint.
+
+* `network_interface` - A `network_interface` block as defined below.
+
+* `custom_dns_configs` - A `custom_dns_configs` block as defined below.
+
+* `private_dns_zone_configs` - A `private_dns_zone_configs` block as defined below.
+
+* `ip_configuration` - A `ip_configuration` block as defined below.
+
+* `private_dns_zone_configs` - A `private_dns_zone_configs` block as defined below.
 
 ---
 
@@ -266,6 +321,12 @@ An `ip_configuration` block exports:
 * `private_ip_address` - (Required) The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
 
 * `subresource_name` - (Required) The subresource this IP address applies to, which corresponds to the `group_id`.
+
+---
+
+A `private_dns_zone_configs` block exports:
+
+* `record_sets` - A `record_sets` block as defined below.
 
 ---
 

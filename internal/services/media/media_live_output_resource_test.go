@@ -144,6 +144,7 @@ resource "azurerm_media_live_event_output" "test" {
   manifest_name                = "testmanifest"
   output_snap_time_in_seconds  = 0
   hls_fragments_per_ts_segment = 5
+  rewind_window_duration       = "PT5M"
 }
 `, r.template(data))
 }
