@@ -13,7 +13,7 @@ import (
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
-	redis_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2021-06-01"
+	redis_v2022_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -24,6 +24,7 @@ import (
 	appConfiguration "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	applicationInsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 	appService "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
+	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
 	attestation "github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	authorization "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	automation "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
@@ -91,6 +92,7 @@ import (
 	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	mssql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
+	mssqlmanagedinstance "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
 	mysql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	netapp "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	network "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
@@ -120,12 +122,14 @@ import (
 	appPlatform "github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/client"
 	sql "github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/client"
 	storage "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	storageMover "github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/client"
 	streamAnalytics "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/client"
 	subscription "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	synapse "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
 	videoAnalyzer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
+	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 )
 
@@ -146,6 +150,7 @@ type Client struct {
 	AppInsights           *applicationInsights.Client
 	AppPlatform           *appPlatform.Client
 	AppService            *appService.Client
+	ArcKubernetes         *arckubernetes.Client
 	Attestation           *attestation.Client
 	Authorization         *authorization.Client
 	Automation            *automation.Client
@@ -213,6 +218,7 @@ type Client struct {
 	Monitor               *monitor.Client
 	MobileNetwork         *mobilenetwork.Client
 	MSSQL                 *mssql.Client
+	MSSQLManagedInstance  *mssqlmanagedinstance.Client
 	MySQL                 *mysql.Client
 	NetApp                *netapp.Client
 	Network               *network.Client
@@ -227,7 +233,7 @@ type Client struct {
 	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
-	Redis                 *redis_v2021_06_01.Client
+	Redis                 *redis_v2022_06_01.Client
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
 	Resource              *resource.Client
@@ -240,6 +246,7 @@ type Client struct {
 	ServiceFabricManaged  *serviceFabricManaged.Client
 	SignalR               *signalr.Client
 	Storage               *storage.Client
+	StorageMover          *storageMover.Client
 	StreamAnalytics       *streamAnalytics.Client
 	Subscription          *subscription.Client
 	Sql                   *sql.Client
@@ -247,6 +254,7 @@ type Client struct {
 	TrafficManager        *trafficManager.Client
 	VideoAnalyzer         *videoAnalyzer.Client
 	Vmware                *vmware.Client
+	VoiceServices         *voiceServices.Client
 	Web                   *web.Client
 }
 
@@ -257,7 +265,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	// Disable the Azure SDK for Go's validation since it's unhelpful for our use-case
 	validation.Disabled = true
 
-	buildAutoClients(&client.autoClient, o)
+	if err := buildAutoClients(&client.autoClient, o); err != nil {
+		return fmt.Errorf("building auto-clients: %+v", err)
+	}
 
 	client.Features = o.Features
 	client.StopContext = ctx
@@ -270,38 +280,73 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Advisor = advisor.NewClient(o)
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
-	client.AppConfiguration = appConfiguration.NewClient(o)
-	client.AppInsights = applicationInsights.NewClient(o)
+	if client.AppConfiguration, err = appConfiguration.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AppConfiguration: %+v", err)
+	}
+	if client.AppInsights, err = applicationInsights.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ApplicationInsights: %+v", err)
+	}
 	client.AppPlatform = appPlatform.NewClient(o)
 	client.AppService = appService.NewClient(o)
-	client.Attestation = attestation.NewClient(o)
+	client.ArcKubernetes = arckubernetes.NewClient(o)
+	if client.Attestation, err = attestation.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Attestation: %+v", err)
+	}
 	client.Authorization = authorization.NewClient(o)
 	client.Automation = automation.NewClient(o)
 	client.AzureStackHCI = azureStackHCI.NewClient(o)
-	client.Batch = batch.NewClient(o)
+	if client.Batch, err = batch.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Batch: %+v", err)
+	}
 	client.Blueprints = blueprints.NewClient(o)
 	client.Bot = bot.NewClient(o)
 	client.Cdn = cdn.NewClient(o)
-	client.Cognitive = cognitiveServices.NewClient(o)
-	client.Communication = communication.NewClient(o)
+	if client.Cognitive, err = cognitiveServices.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Cognitive: %+v", err)
+	}
+	if client.Communication, err = communication.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Communication: %+v", err)
+	}
 	client.Compute = compute.NewClient(o)
-	client.ConfidentialLedger = confidentialledger.NewClient(o)
+	if client.ConfidentialLedger, err = confidentialledger.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ConfidentialLedger: %+v", err)
+	}
 	client.Connections = connections.NewClient(o)
-	client.Consumption = consumption.NewClient(o)
-	client.Containers = containerServices.NewContainersClient(o)
+	if client.Consumption, err = consumption.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Consumption: %+v", err)
+	}
+	if client.Containers, err = containerServices.NewContainersClient(o); err != nil {
+		return fmt.Errorf("building clients for Containers: %+v", err)
+	}
 	client.ContainerApps = containerapps.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
-	client.CostManagement = costmanagement.NewClient(o)
-	client.CustomProviders = customproviders.NewClient(o)
-	client.Dashboard = dashboard.NewClient(o)
+	if client.CostManagement, err = costmanagement.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for CostManagement: %+v", err)
+	}
+	if client.CustomProviders, err = customproviders.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for CustomProviders: %+v", err)
+	}
+	if client.Dashboard, err = dashboard.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Dashboard: %+v", err)
+	}
 	client.DatabaseMigration = datamigration.NewClient(o)
-	client.DataBricks = databricks.NewClient(o)
-	client.DataboxEdge = databoxedge.NewClient(o)
-	client.Datadog = datadog.NewClient(o)
+	if client.DataBricks, err = databricks.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataBricks: %+v", err)
+	}
+	if client.DataboxEdge, err = databoxedge.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataboxEdge: %+v", err)
+	}
+	if client.Datadog, err = datadog.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Datadog: %+v", err)
+	}
 	client.DataFactory = datafactory.NewClient(o)
-	client.DataProtection = dataprotection.NewClient(o)
+	if client.DataProtection, err = dataprotection.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataProtection: %+v", err)
+	}
 	client.DataShare = datashare.NewClient(o)
-	client.DesktopVirtualization = desktopvirtualization.NewClient(o)
+	if client.DesktopVirtualization, err = desktopvirtualization.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DesktopVirtualization: %+v", err)
+	}
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Disks = disks.NewClient(o)
@@ -340,11 +385,14 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Maps: %+v", err)
 	}
 	client.MariaDB = mariadb.NewClient(o)
-	client.Media = media.NewClient(o)
+	if client.Media, err = media.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Media: %+v", err)
+	}
 	client.MixedReality = mixedreality.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
 	client.MobileNetwork = mobilenetwork.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
+	client.MSSQLManagedInstance = mssqlmanagedinstance.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
 	client.NetApp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
@@ -366,7 +414,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Search = search.NewClient(o)
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.Sentinel = sentinel.NewClient(o)
-	client.ServiceBus = serviceBus.NewClient(o)
+	if client.ServiceBus, err = serviceBus.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceBus: %+v", err)
+	}
 	client.ServiceConnector = serviceConnector.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
@@ -375,12 +425,16 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	client.Sql = sql.NewClient(o)
 	client.Storage = storage.NewClient(o)
+	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for StorageMover: %+v", err)
+	}
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
 	client.Subscription = subscription.NewClient(o)
 	client.Synapse = synapse.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)
 	client.VideoAnalyzer = videoAnalyzer.NewClient(o)
 	client.Vmware = vmware.NewClient(o)
+	client.VoiceServices = voiceServices.NewClient(o)
 	client.Web = web.NewClient(o)
 
 	return nil

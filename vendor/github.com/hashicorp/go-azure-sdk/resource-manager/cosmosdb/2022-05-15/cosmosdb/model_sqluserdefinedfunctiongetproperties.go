@@ -4,5 +4,5 @@ package cosmosdb
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SqlUserDefinedFunctionGetProperties struct {
-	Resource *SqlUserDefinedFunctionGetProperties `json:"resource,omitempty"`
+	Resource *SqlUserDefinedFunctionGetPropertiesResource `json:"resource,omitempty"`
 }

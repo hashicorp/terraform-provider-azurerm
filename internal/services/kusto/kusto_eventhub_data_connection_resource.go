@@ -5,7 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
@@ -156,17 +157,15 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, 
 	id := dataconnections.NewDataConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		connectionModel, err := client.Get(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if !response.WasNotFound(connectionModel.HttpResponse) {
+			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if dataConnection, ok := (*connectionModel.Model).(dataconnections.EventHubDataConnection); ok {
-			if dataConnection.Id != nil && *dataConnection.Id != "" {
-				return tf.ImportAsExistsError("azurerm_kusto_eventhub_data_connection", *dataConnection.Id)
-			}
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_kusto_eventhub_data_connection", id.ID())
 		}
 	}
 
@@ -230,11 +229,27 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 				d.Set("consumer_group", props.ConsumerGroup)
 				d.Set("table_name", props.TableName)
 				d.Set("mapping_rule_name", props.MappingRuleName)
-				d.Set("data_format", props.DataFormat)
-				d.Set("database_routing_type", props.DatabaseRouting)
-				d.Set("compression", props.Compression)
+				d.Set("data_format", string(pointer.From(props.DataFormat)))
+				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
+				d.Set("compression", string(pointer.From(props.Compression)))
 				d.Set("event_system_properties", props.EventSystemProperties)
-				d.Set("identity_id", props.ManagedIdentityResourceId)
+
+				identityId := ""
+				if props.ManagedIdentityResourceId != nil {
+					identityId = *props.ManagedIdentityResourceId
+					clusterId, clusterIdErr := clusters.ParseClusterIDInsensitively(identityId)
+					if clusterIdErr == nil {
+						identityId = clusterId.ID()
+					} else {
+						userAssignedIdentityId, userAssignedIdentityIdErr := commonids.ParseUserAssignedIdentityIDInsensitively(identityId)
+						if userAssignedIdentityIdErr == nil {
+							identityId = userAssignedIdentityId.ID()
+						} else {
+							return fmt.Errorf("parsing `identity_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
+						}
+					}
+				}
+				d.Set("identity_id", identityId)
 			}
 		}
 	}

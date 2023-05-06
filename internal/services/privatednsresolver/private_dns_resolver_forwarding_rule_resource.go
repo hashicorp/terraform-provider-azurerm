@@ -206,8 +206,6 @@ func (r PrivateDNSResolverForwardingRuleResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			properties.SystemData = nil
-
 			if _, err := client.CreateOrUpdate(ctx, *id, *properties, forwardingrules.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}

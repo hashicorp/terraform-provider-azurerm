@@ -6,10 +6,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -389,7 +390,22 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 			"registry_credential.0.custom.0.username",
 		),
 		{
-			Config: r.fileTaskStepRegistryCredentialIdentity(data),
+			Config: r.fileTaskStepRegistryCredentialIdentity(data, "foo"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"file_step.0.context_access_token",
+			"registry_credential.0.custom.#",
+			"registry_credential.0.custom.0.%",
+			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.login_server",
+			"registry_credential.0.custom.0.password",
+			"registry_credential.0.custom.0.username",
+		),
+		{
+			Config: r.fileTaskStepRegistryCredentialIdentity(data, "bar"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -452,15 +468,15 @@ func TestAccContainerRegistryTask_requiresImport(t *testing.T) {
 }
 
 func (r ContainerRegistryTaskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Containers.TasksClient
+	client := clients.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
 
-	id, err := parse.ContainerRegistryTaskID(state.ID)
+	id, err := tasks.ParseTaskID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TaskName); err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	if resp, err := client.Get(ctx, *id); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
@@ -963,7 +979,7 @@ resource "azurerm_container_registry_task" "test" {
 `, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_CLIENT_SECRET"))
 }
 
-func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialIdentity(data acceptance.TestData) string {
+func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialIdentity(data acceptance.TestData, tag string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -998,8 +1014,11 @@ resource "azurerm_container_registry_task" "test" {
       identity     = "[system]"
     }
   }
+  tags = {
+    foo = "%s"
+  }
 }
-`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, tag)
 }
 
 func (r ContainerRegistryTaskResource) systemTask(data acceptance.TestData) string {

@@ -10,41 +10,28 @@ on:
     types: ['opened', 'synchronize']
     paths:
       - '.github/workflows/gradually-deprecated.yaml'
-      - '**.go'
       - './scripts/run-gradually-deprecated.sh'
+      - '**.go'
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version-file: ./.go-version
       - run: bash ./scripts/run-gradually-deprecated.sh
       - name: Add waiting-response on fail
         if: failure()
-        uses: actions-ecosystem/action-add-labels@v1
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
-          labels: waiting-response
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          number: ${{ github.event.number }}
-          repo: ${{ github.event.repository.full_name }}
-      - name: Get run url
-        if: failure()
-        run: |
-          echo "gha_url=https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}" >> $GITHUB_ENV
-      - name: Send build failure comment
-        if: failure()
-        uses: actions/github-script@v6
-        with:
-          result-encoding: string
           script: |
-            github.rest.issues.createComment({
-             issue_number: ${{ github.event.number }},
-             owner: context.repo.owner,
-             repo: context.repo.repo,
-             body: '<b>Build failure</b> \n\n Found new usages of deprecated functionality: \n\n ${{ env.gha_url}}'
-             })
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["waiting-response"]
+            })

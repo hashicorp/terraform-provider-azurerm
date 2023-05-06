@@ -679,7 +679,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "azure"))
+`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "azure", true))
 }
 
 func (KubernetesClusterDataSource) advancedNetworkingAzureCalicoPolicyCompleteConfig(data acceptance.TestData) string {
@@ -723,7 +723,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "kubenet"))
+`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "kubenet", true))
 }
 
 func (KubernetesClusterDataSource) addOnProfileOMSConfig(data acceptance.TestData) string {

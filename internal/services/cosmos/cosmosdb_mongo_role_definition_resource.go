@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosDbMongoRoleDefinitionModel struct {
+type CosmosDbMongoRoleDefinitionResourceModel struct {
 	AccountId          string      `tfschema:"account_id"`
 	DbName             string      `tfschema:"db_name"`
 	RoleName           string      `tfschema:"role_name"`
@@ -43,7 +43,7 @@ func (r CosmosDbMongoRoleDefinitionResource) ResourceType() string {
 }
 
 func (r CosmosDbMongoRoleDefinitionResource) ModelObject() interface{} {
-	return &CosmosDbMongoRoleDefinitionModel{}
+	return &CosmosDbMongoRoleDefinitionResourceModel{}
 }
 
 func (r CosmosDbMongoRoleDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -130,7 +130,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model CosmosDbMongoRoleDefinitionModel
+			var model CosmosDbMongoRoleDefinitionResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -157,7 +157,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
-			properties := &mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
+			properties := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: &model.DbName,
 					RoleName:     &model.RoleName,
@@ -167,7 +167,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.MongoDBResourcesCreateUpdateMongoRoleDefinitionThenPoll(ctx, id, *properties); err != nil {
+			if err := client.MongoDBResourcesCreateUpdateMongoRoleDefinitionThenPoll(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -191,7 +191,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
-			var model CosmosDbMongoRoleDefinitionModel
+			var model CosmosDbMongoRoleDefinitionResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -246,20 +246,17 @@ func (r CosmosDbMongoRoleDefinitionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			state := CosmosDbMongoRoleDefinitionModel{
+			state := CosmosDbMongoRoleDefinitionResourceModel{
 				AccountId: cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName).ID(),
 			}
 
-			if properties := model.Properties; properties != nil {
-				state.DbName = *properties.DatabaseName
-				state.RoleName = *properties.RoleName
-				state.Privileges = flattenPrivilege(properties.Privileges)
-				state.InheritedRoleNames = flattenInheritedRole(properties.Roles)
+			if model := resp.Model; model != nil {
+				if properties := model.Properties; properties != nil {
+					state.DbName = *properties.DatabaseName
+					state.RoleName = *properties.RoleName
+					state.Privileges = flattenPrivilege(properties.Privileges)
+					state.InheritedRoleNames = flattenInheritedRole(properties.Roles)
+				}
 			}
 
 			return metadata.Encode(&state)

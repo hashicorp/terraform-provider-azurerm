@@ -54,7 +54,7 @@ resource "azurerm_mobile_network_service" "example" {
       }
     }
 
-    service_data_flow_templates {
+    service_data_flow_template {
       direction      = "Uplink"
       name           = "IP-to-server"
       ports          = []

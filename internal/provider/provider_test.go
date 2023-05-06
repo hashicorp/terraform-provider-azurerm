@@ -271,8 +271,8 @@ func TestAccProvider_genericOidcAuth(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
-	if os.Getenv("ARM_OIDC_TOKEN") == "" {
-		t.Skip("ARM_OIDC_TOKEN not set")
+	if os.Getenv("ARM_OIDC_TOKEN") == "" && os.Getenv("ARM_OIDC_TOKEN_FILE_PATH") == "" {
+		t.Skip("ARM_OIDC_TOKEN or ARM_OIDC_TOKEN_FILE_PATH not set")
 	}
 
 	logging.SetOutput(t)
@@ -289,12 +289,17 @@ func TestAccProvider_genericOidcAuth(t *testing.T) {
 			t.Fatalf("configuring environment %q: %v", envName, err)
 		}
 
+		oidcToken, err := getOidcToken(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		authConfig := &auth.Credentials{
 			Environment:                   *env,
 			TenantID:                      d.Get("tenant_id").(string),
 			ClientID:                      d.Get("client_id").(string),
 			EnableAuthenticationUsingOIDC: true,
-			OIDCAssertionToken:            d.Get("oidc_token").(string),
+			OIDCAssertionToken:            *oidcToken,
 		}
 
 		return buildClient(ctx, provider, d, authConfig)
