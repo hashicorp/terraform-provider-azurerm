@@ -76,6 +76,21 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withZones(t *testing.T) {
 	})
 }
 
+func TestAccSiteRecoveryReplicationRecoveryPlan_withEdgeZones(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
+	r := SiteRecoveryReplicationRecoveryPlan{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withEdgeZones(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (SiteRecoveryReplicationRecoveryPlan) template(data acceptance.TestData) string {
 	tags := ""
 	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
@@ -419,6 +434,44 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   azure_to_azure_settings {
     primary_zone  = "1"
     recovery_zone = "2"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SiteRecoveryReplicationRecoveryPlan) withEdgeZones(data acceptance.TestData) string {
+	// WestUS has an edge zone available - so hard-code to that
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_site_recovery_replication_recovery_plan" "test" {
+  name                      = "acctest-%[2]d"
+  recovery_vault_id         = azurerm_recovery_services_vault.test.id
+  source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
+  target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
+
+  recovery_group {
+    type                       = "Boot"
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+  }
+
+  recovery_group {
+    type = "Failover"
+  }
+
+  recovery_group {
+    type = "Shutdown"
+  }
+
+  azure_to_azure_settings {
+    primary_edge_zone  = data.azurerm_extended_locations.test.extended_locations[0]
+    recovery_edge_zone = data.azurerm_extended_locations.test.extended_locations[0]
   }
 }
 `, r.template(data), data.RandomInteger)
