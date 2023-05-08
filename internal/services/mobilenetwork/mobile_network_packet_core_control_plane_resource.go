@@ -43,7 +43,7 @@ type PacketCoreControlPlaneModel struct {
 	InteropSettings               string                                     `tfschema:"interoperability_settings_json"`
 	Identity                      []identity.ModelUserAssigned               `tfschema:"identity"`
 	Tags                          map[string]string                          `tfschema:"tags"`
-	Version                       string                                     `tfschema:"version"`
+	SoftwareVersion               string                                     `tfschema:"software_version"`
 }
 
 type LocalDiagnosticsAccessConfigurationModel struct {
@@ -253,7 +253,7 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 
 		"tags": commonschema.Tags(),
 
-		"version": {
+		"software_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -339,8 +339,8 @@ func (r PacketCoreControlPlaneResource) Create() sdk.ResourceFunc {
 
 			props.Platform = expandPlatformConfigurationModel(model.Platform)
 
-			if model.Version != "" {
-				props.Version = &model.Version
+			if model.SoftwareVersion != "" {
+				props.Version = &model.SoftwareVersion
 			}
 
 			controlPlane.Properties = props
@@ -435,8 +435,8 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 				model.Properties.Sku = packetcorecontrolplane.BillingSku(plan.Sku)
 			}
 
-			if metadata.ResourceData.HasChange("version") && plan.Version != "" {
-				model.Properties.Version = &plan.Version
+			if metadata.ResourceData.HasChange("version") && plan.SoftwareVersion != "" {
+				model.Properties.Version = &plan.SoftwareVersion
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -518,7 +518,7 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 
 				state.Sku = string(properties.Sku)
 
-				state.Version = pointer.From(properties.Version)
+				state.SoftwareVersion = pointer.From(properties.Version)
 				state.Tags = pointer.From(model.Tags)
 			}
 

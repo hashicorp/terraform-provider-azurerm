@@ -152,7 +152,7 @@ func (r PacketCoreControlPlaneDataSource) Attributes() map[string]*pluginsdk.Sch
 
 		"tags": commonschema.TagsDataSource(),
 
-		"version": {
+		"software_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -227,7 +227,7 @@ func (r PacketCoreControlPlaneDataSource) Read() sdk.ResourceFunc {
 
 				state.Sku = string(properties.Sku)
 
-				state.Version = pointer.From(properties.Version)
+				state.SoftwareVersion = pointer.From(properties.Version)
 				state.Tags = pointer.From(model.Tags)
 			}
 

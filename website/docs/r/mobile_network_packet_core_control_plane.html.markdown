@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Packet Core Control Plane.
 
-* `version` - (Optional) Specifies the version of the packet core software that is deployed.
+* `software_version` - (Optional) Specifies the version of the packet core software that is deployed.
 
 ---
 
