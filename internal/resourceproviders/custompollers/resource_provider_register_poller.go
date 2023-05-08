@@ -27,7 +27,7 @@ type resourceProviderRegistrationPoller struct {
 func (p *resourceProviderRegistrationPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.id, providers.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", err)
+		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
 	}
 
 	registrationState := ""
