@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -12,7 +13,16 @@ func TestTypedDataSourcesContainValidModelObjects(t *testing.T) {
 		for _, resource := range service.DataSources() {
 			t.Logf("- DataSources %q..", resource.ResourceType())
 			obj := resource.ModelObject()
-			if err := sdk.ValidateModelObject(obj); err != nil {
+
+			fields := make(map[string]*pluginsdk.Schema, 0)
+			for k, v := range resource.Arguments() {
+				fields[k] = v
+			}
+			for k, v := range resource.Attributes() {
+				fields[k] = v
+			}
+
+			if err := sdk.ValidateModelObject(obj, fields); err != nil {
 				t.Fatalf("validating model: %+v", err)
 			}
 		}
@@ -25,7 +35,16 @@ func TestTypedResourcesContainValidModelObjects(t *testing.T) {
 		for _, resource := range service.Resources() {
 			t.Logf("- Resource %q..", resource.ResourceType())
 			obj := resource.ModelObject()
-			if err := sdk.ValidateModelObject(obj); err != nil {
+
+			fields := make(map[string]*pluginsdk.Schema, 0)
+			for k, v := range resource.Arguments() {
+				fields[k] = v
+			}
+			for k, v := range resource.Attributes() {
+				fields[k] = v
+			}
+
+			if err := sdk.ValidateModelObject(obj, fields); err != nil {
 				t.Fatalf("validating model: %+v", err)
 			}
 		}
