@@ -17,6 +17,7 @@ BUG FIXES:
 
 * `azurerm_eventhub_namespace` - add locks and remove unneeded WaitForState functions [GH-21656]
 * `azurerm_monitor_metric_alert` - fix regression by using `SingleResourceMultiMetricCriteria` for new metric alerts  [GH-21658]
+* `azurerm_service_fabric_managed_cluster` - fixing a bug where `certificates` within the `vm_secrets` block wouldn't be set into the state [GH-21680]
 
 ## 3.55.0 (May 04, 2023)
 
