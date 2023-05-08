@@ -29,7 +29,6 @@ type ReplicaResourceSchema struct {
 	Endpoint             string `tfschema:"endpoint"`
 	Location             string `tfschema:"location"`
 	Name                 string `tfschema:"name"`
-	ResourceGroupName    string `tfschema:"resource_group_name"`
 }
 
 func (r ReplicaResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

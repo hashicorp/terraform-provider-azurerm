@@ -65,8 +65,8 @@ func (r AppConfigurationReplicaTestResource) basic(data acceptance.TestData) str
 
 resource "azurerm_app_configuration_replica" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
-  location                 = azurerm_resource_group.test.location
-  name                     = "acctest-${local.random_integer}"
+  location                 = local.secondary_location
+  name                     = "replica${local.random_integer}"
 }
 `, r.template(data))
 }
@@ -90,13 +90,14 @@ provider "azurerm" {
 }
 
 locals {
-    random_integer = random_integer.test.result
+    random_integer = %[1]d
 	primary_location	   = %[2]q
+    secondary_location = %[3]q
 }
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-appconfig-replica-${local.random_integer}"
-  location = locals.primary_location
+  location = local.primary_location
 }
 
 resource "azurerm_app_configuration" "test" {
@@ -106,5 +107,5 @@ resource "azurerm_app_configuration" "test" {
   sku                        = "standard"
   soft_delete_retention_days = 1
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
