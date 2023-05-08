@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -461,7 +461,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		requiredResourceProviders := resourceproviders.Required()
 		ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 		defer cancel()
-		
+
 		if err := resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
 			return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
 		}
