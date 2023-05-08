@@ -3,8 +3,8 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230503.1140953` of `github.com/hashicorp/go-azure-sdk` [GH-21467]
+* dependencies: `appconfiguration` upgraded to API Version `2023-03-01` [GH-21660]
 * `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
-* dependencies: `appconfiguration` upgraded api version from 2022-05-01 to 2023-03-01 [GH-21660]
 
 FEATURES:
 
