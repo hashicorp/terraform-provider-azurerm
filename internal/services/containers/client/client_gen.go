@@ -6,6 +6,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
+type autoClient struct {
+}
+
 func NewClient(o *common.ClientOptions) (*containerservice_v2022_09_02_preview.Client, error) {
 	client := containerservice_v2022_09_02_preview.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
 		c.Authorizer = o.ResourceManagerAuthorizer
