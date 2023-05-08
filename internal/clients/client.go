@@ -423,7 +423,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.RedisEnterprise = redisenterprise.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
-	client.Search = search.NewClient(o)
+	if client.Search, err = search.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Search: %+v", err)
+	}
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.Sentinel = sentinel.NewClient(o)
 	if client.ServiceBus, err = serviceBus.NewClient(o); err != nil {
