@@ -6,10 +6,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -467,15 +468,15 @@ func TestAccContainerRegistryTask_requiresImport(t *testing.T) {
 }
 
 func (r ContainerRegistryTaskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Containers.TasksClient
+	client := clients.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
 
-	id, err := parse.ContainerRegistryTaskID(state.ID)
+	id, err := tasks.ParseTaskID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TaskName); err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	if resp, err := client.Get(ctx, *id); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)

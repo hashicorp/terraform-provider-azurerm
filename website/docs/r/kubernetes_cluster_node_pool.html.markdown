@@ -138,6 +138,8 @@ The following arguments are supported:
 
 ~> **Note:** This field can only be configured when `priority` is set to `Spot`.
 
+* `snapshot_id` - (Optional) The ID of the Snapshot which should be used to create this Node Pool. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) until this is fixed in the AKS API.

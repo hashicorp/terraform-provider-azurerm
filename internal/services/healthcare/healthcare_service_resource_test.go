@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HealthCareServiceResource struct{}
@@ -76,17 +76,17 @@ func TestAccHealthCareService_publicNetworkAccessDisabled(t *testing.T) {
 }
 
 func (HealthCareServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServiceID(state.ID)
+	id, err := service.ParseServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.HealthCare.HealthcareServiceClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.HealthCare.HealthcareServiceClient.ServicesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Healthcare service %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Healthcare service %q (resource group: %q): %+v", id.ServiceName, id.ResourceGroupName, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (HealthCareServiceResource) basic(data acceptance.TestData) string {

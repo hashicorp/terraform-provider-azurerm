@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp Inc. All rights reserved.
+// Licensed under the MPL-2.0 License. See NOTICE.txt in the project root for license information.
+
 package auth
 
 import (
@@ -7,14 +10,12 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/go-azure-sdk/sdk/internal/azurecli"
 	"golang.org/x/oauth2"
 )
-
-// Copyright (c) HashiCorp Inc. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AzureCliAuthorizerOptions struct {
 	// Api describes the Azure API being used
@@ -81,8 +82,16 @@ func (a *AzureCliAuthorizer) Token(_ context.Context, _ *http.Request) (*oauth2.
 		return nil, err
 	}
 
+	var expiry time.Time
+	if token.ExpiresOn != "" {
+		if expiry, err = time.ParseInLocation("2006-01-02 15:04:05.999999", token.ExpiresOn, time.Local); err != nil {
+			return nil, fmt.Errorf("internal-error: parsing expiresOn value for az-cli token")
+		}
+	}
+
 	return &oauth2.Token{
 		AccessToken: token.AccessToken,
+		Expiry:      expiry,
 		TokenType:   token.TokenType,
 	}, nil
 }

@@ -4,6 +4,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/firewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/roles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -11,11 +15,15 @@ type Client struct {
 	CassandraClient                  *documentdb.CassandraResourcesClient
 	CassandraClustersClient          *managedcassandras.ManagedCassandrasClient
 	CassandraDatacentersClient       *documentdb.CassandraDataCentersClient
+	ClustersClient                   *clusters.ClustersClient
+	ConfigurationsClient             *configurations.ConfigurationsClient
 	DatabaseClient                   *documentdb.DatabaseAccountsClient
+	FirewallRulesClient              *firewallrules.FirewallRulesClient
 	GremlinClient                    *documentdb.GremlinResourcesClient
 	MongoDbClient                    *documentdb.MongoDBResourcesClient
 	NotebookWorkspaceClient          *documentdb.NotebookWorkspacesClient
 	RestorableDatabaseAccountsClient *documentdb.RestorableDatabaseAccountsClient
+	RolesClient                      *roles.RolesClient
 	SqlDedicatedGatewayClient        *sqldedicatedgateway.SqlDedicatedGatewayClient
 	SqlClient                        *documentdb.SQLResourcesClient
 	SqlResourceClient                *documentdb.SQLResourcesClient
@@ -32,8 +40,17 @@ func NewClient(o *common.ClientOptions) *Client {
 	cassandraDatacentersClient := documentdb.NewCassandraDataCentersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&cassandraDatacentersClient.Client, o.ResourceManagerAuthorizer)
 
+	clustersClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&clustersClient.Client, o.ResourceManagerAuthorizer)
+
+	configurationsClient := configurations.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
+
 	databaseClient := documentdb.NewDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseClient.Client, o.ResourceManagerAuthorizer)
+
+	firewallRulesClient := firewallrules.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	gremlinClient := documentdb.NewGremlinResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gremlinClient.Client, o.ResourceManagerAuthorizer)
@@ -46,6 +63,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	restorableDatabaseAccountsClient := documentdb.NewRestorableDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&restorableDatabaseAccountsClient.Client, o.ResourceManagerAuthorizer)
+
+	rolesClient := roles.NewRolesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&rolesClient.Client, o.ResourceManagerAuthorizer)
 
 	sqlDedicatedGatewayClient := sqldedicatedgateway.NewSqlDedicatedGatewayClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&sqlDedicatedGatewayClient.Client, o.ResourceManagerAuthorizer)
@@ -63,11 +83,15 @@ func NewClient(o *common.ClientOptions) *Client {
 		CassandraClient:                  &cassandraClient,
 		CassandraClustersClient:          &cassandraClustersClient,
 		CassandraDatacentersClient:       &cassandraDatacentersClient,
+		ClustersClient:                   &clustersClient,
+		ConfigurationsClient:             &configurationsClient,
 		DatabaseClient:                   &databaseClient,
+		FirewallRulesClient:              &firewallRulesClient,
 		GremlinClient:                    &gremlinClient,
 		MongoDbClient:                    &mongoDbClient,
 		NotebookWorkspaceClient:          &notebookWorkspaceClient,
 		RestorableDatabaseAccountsClient: &restorableDatabaseAccountsClient,
+		RolesClient:                      &rolesClient,
 		SqlDedicatedGatewayClient:        &sqlDedicatedGatewayClient,
 		SqlClient:                        &sqlClient,
 		SqlResourceClient:                &sqlResourceClient,

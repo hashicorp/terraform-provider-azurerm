@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/contact"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/contactprofile"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/spacecraft"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contact"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/spacecraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -112,7 +112,7 @@ func (r ContactResource) Create() sdk.ResourceFunc {
 			}
 
 			contactProfile := contact.ResourceReference{
-				Id: &model.ContactProfileId,
+				Id: model.ContactProfileId,
 			}
 
 			contactProperties := contact.ContactsProperties{
@@ -125,7 +125,7 @@ func (r ContactResource) Create() sdk.ResourceFunc {
 			contact := contact.Contact{
 				Id:         utils.String(id.ID()),
 				Name:       utils.String(model.Name),
-				Properties: &contactProperties,
+				Properties: contactProperties,
 			}
 			if _, err = client.Create(ctx, id, contact); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -162,18 +162,10 @@ func (r ContactResource) Read() sdk.ResourceFunc {
 					Spacecraft: spacecraftId.ID(),
 				}
 
-				if props != nil {
-					state.ReservationStartTime = props.ReservationStartTime
-					state.ReservationEndTime = props.ReservationEndTime
-					state.GroundStationName = props.GroundStationName
-					if props.ContactProfile.Id != nil {
-						state.ContactProfileId = *props.ContactProfile.Id
-					} else {
-						return fmt.Errorf("contact profile id is missing %s", *id)
-					}
-				} else {
-					return fmt.Errorf("required properties are missing %s", *id)
-				}
+				state.ReservationStartTime = props.ReservationStartTime
+				state.ReservationEndTime = props.ReservationEndTime
+				state.GroundStationName = props.GroundStationName
+				state.ContactProfileId = props.ContactProfile.Id
 
 				return metadata.Encode(&state)
 			}

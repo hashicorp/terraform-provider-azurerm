@@ -162,9 +162,9 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 
-* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0` and `8.1`.
+* `php_version` - (Optional) The version of PHP to run. Possible values are `8.0`, `8.1` and `8.2`.
 
-~> **NOTE:** versions `5.6` and `7.2` are deprecated and will be removed from the provider in a future version.
+~> **NOTE:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10` and `3.11`.
 
@@ -793,6 +793,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `app_metadata` - A `app_metadata` block as defined below.
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
+
+* `hosting_environment_id` - The ID of the App Service Environment used by App Service Slot.
 
 * `default_hostname` - The default hostname of the Linux Web App.
 
