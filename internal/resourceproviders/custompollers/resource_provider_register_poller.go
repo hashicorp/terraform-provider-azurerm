@@ -4,26 +4,27 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
-var _ pollers.PollerType = &resourceProviderUnregistrationPoller{}
+var _ pollers.PollerType = &resourceProviderRegistrationPoller{}
 
-func NewResourceProviderUnregistrationPoller(client *providers.ProvidersClient, id providers.SubscriptionProviderId) *resourceProviderUnregistrationPoller {
-	return &resourceProviderUnregistrationPoller{
+func NewResourceProviderRegistrationPoller(client *providers.ProvidersClient, id providers.SubscriptionProviderId) *resourceProviderRegistrationPoller {
+	return &resourceProviderRegistrationPoller{
 		client: client,
 		id:     id,
 	}
 }
 
-type resourceProviderUnregistrationPoller struct {
+type resourceProviderRegistrationPoller struct {
 	client *providers.ProvidersClient
 	id     providers.SubscriptionProviderId
 }
 
-func (p *resourceProviderUnregistrationPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+func (p *resourceProviderRegistrationPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.id, providers.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", err)
@@ -34,14 +35,16 @@ func (p *resourceProviderUnregistrationPoller) Poll(ctx context.Context) (*polle
 		registrationState = *model.RegistrationState
 	}
 
-	if strings.EqualFold(registrationState, "Unregistered") {
+	if strings.EqualFold(registrationState, "Registered") {
 		return &pollers.PollResult{
-			Status: pollers.PollingStatusSucceeded,
+			Status:       pollers.PollingStatusSucceeded,
+			PollInterval: 10 * time.Second,
 		}, nil
 	}
 
 	// Processing
 	return &pollers.PollResult{
-		Status: pollers.PollingStatusInProgress,
+		Status:       pollers.PollingStatusInProgress,
+		PollInterval: 10 * time.Second,
 	}, nil
 }

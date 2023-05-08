@@ -3,16 +3,19 @@ package resourceproviders
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 )
 
 func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, requiredRPs map[string]struct{}) error {
-	if registeredResourceProviders == nil || unregisteredResourceProviders == nil {
+	if cachedResourceProviders == nil || registeredResourceProviders == nil || unregisteredResourceProviders == nil {
 		if err := populateCache(ctx, client, subscriptionId); err != nil {
 			return fmt.Errorf("populating Resource Provider cache: %+v", err)
 		}
@@ -68,9 +71,19 @@ func registerForSubscription(ctx context.Context, client *providers.ProvidersCli
 
 func registerWithSubscription(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, providerName string) error {
 	providerId := providers.NewSubscriptionProviderID(subscriptionId.SubscriptionId, providerName)
+	log.Printf("[DEBUG] Registering %s..", providerId)
 	if _, err := client.Register(ctx, providerId, providers.ProviderRegistrationRequest{}); err != nil {
 		return fmt.Errorf("Cannot register provider %s with Azure Resource Manager: %s.", providerName, err)
 	}
+
+	log.Printf("[DEBUG] Waiting for %s to finish registering..", providerId)
+	pollerType := custompollers.NewResourceProviderRegistrationPoller(client, providerId)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be registered: %s", providerId, err)
+	}
+
+	log.Printf("[DEBUG] %s is registered.", providerId)
 
 	return nil
 }

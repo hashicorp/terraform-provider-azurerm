@@ -20,6 +20,11 @@ var cacheLock = &sync.Mutex{}
 // CacheSupportedProviders attempts to retrieve the supported Resource Providers from the Resource Manager API
 // and caches them, for used in enhanced validation
 func CacheSupportedProviders(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId) error {
+	// already populated
+	if cachedResourceProviders != nil {
+		return nil
+	}
+
 	if err := populateCache(ctx, client, subscriptionId); err != nil {
 		return fmt.Errorf("populating cache: %+v", err)
 	}
