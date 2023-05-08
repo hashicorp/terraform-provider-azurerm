@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings"
@@ -92,11 +93,20 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
+
 						"automation_account_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
-							RequiredWith: []string{"automatic_update.0.enabled"},
+						},
+
+						"authentication_type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(replicationprotectioncontainermappings.AutomationAccountAuthenticationTypeSystemAssignedIdentity),
+							// The Swagger definition defaults to `RunAsAccount` but it is deprecated.
+							// deprecation details: https://learn.microsoft.com/en-us/azure/automation/whats-new#support-for-run-as-accounts
+							ValidateFunc: validation.StringInSlice(replicationprotectioncontainermappings.PossibleValuesForAutomationAccountAuthenticationType(), false),
 						},
 					},
 				},
@@ -142,12 +152,13 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
+	autoUpdateEnabledValue, automationAccountArmId, authType := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
 
 	if autoUpdateEnabledValue == replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled {
 		parameters.Properties.ProviderSpecificInput = replicationprotectioncontainermappings.A2AContainerMappingInput{
-			AgentAutoUpdateStatus:  &autoUpdateEnabledValue,
-			AutomationAccountArmId: automationAccountArmId,
+			AgentAutoUpdateStatus:               &autoUpdateEnabledValue,
+			AutomationAccountArmId:              automationAccountArmId,
+			AutomationAccountAuthenticationType: authType,
 		}
 	}
 
@@ -192,10 +203,11 @@ func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if d.HasChange("automatic_update") {
-		autoUpdateEnabledValue, automationAccountArmId := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
+		autoUpdateEnabledValue, automationAccountArmId, authType := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
 		updateInput := replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
-			AgentAutoUpdateStatus:  &autoUpdateEnabledValue,
-			AutomationAccountArmId: automationAccountArmId,
+			AgentAutoUpdateStatus:               &autoUpdateEnabledValue,
+			AutomationAccountArmId:              automationAccountArmId,
+			AutomationAccountAuthenticationType: authType,
 		}
 		update.Properties.ProviderSpecificInput = updateInput
 	}
@@ -279,9 +291,9 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func expandAutoUpdateSettings(input []interface{}) (enabled replicationprotectioncontainermappings.AgentAutoUpdateStatus, automationAccountId *string) {
+func expandAutoUpdateSettings(input []interface{}) (enabled replicationprotectioncontainermappings.AgentAutoUpdateStatus, automationAccountId *string, authType *replicationprotectioncontainermappings.AutomationAccountAuthenticationType) {
 	if len(input) == 0 {
-		return replicationprotectioncontainermappings.AgentAutoUpdateStatusDisabled, nil
+		return replicationprotectioncontainermappings.AgentAutoUpdateStatusDisabled, nil, nil
 	}
 	autoUpdateSettingMap := input[0].(map[string]interface{})
 
@@ -298,7 +310,9 @@ func expandAutoUpdateSettings(input []interface{}) (enabled replicationprotectio
 		accountIdOutput = &accountId
 	}
 
-	return autoUpdateEnabledValue, accountIdOutput
+	authType = pointer.To(replicationprotectioncontainermappings.AutomationAccountAuthenticationType(autoUpdateSettingMap["authentication_type"].(string)))
+
+	return autoUpdateEnabledValue, accountIdOutput, authType
 }
 
 func flattenAutoUpdateSettings(input *replicationprotectioncontainermappings.A2AProtectionContainerMappingDetails) []interface{} {
@@ -309,5 +323,6 @@ func flattenAutoUpdateSettings(input *replicationprotectioncontainermappings.A2A
 	}
 	output["enabled"] = *input.AgentAutoUpdateStatus == replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled
 	output["automation_account_id"] = input.AutomationAccountArmId
+	output["authentication_type"] = string(pointer.From(input.AutomationAccountAuthenticationType))
 	return []interface{}{output}
 }
