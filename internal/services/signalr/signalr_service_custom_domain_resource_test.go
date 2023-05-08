@@ -171,6 +171,7 @@ resource "azurerm_signalr_service_custom_domain" "test" {
   signalr_service_id            = azurerm_signalr_service.test.id
   domain_name                   = "signalr.${azurerm_dns_zone.test.name}"
   signalr_custom_certificate_id = azurerm_signalr_service_custom_certificate.test.id
+  depends_on                    = [azurerm_dns_cname_record.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(3), data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }

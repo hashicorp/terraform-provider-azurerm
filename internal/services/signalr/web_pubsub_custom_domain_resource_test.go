@@ -75,7 +75,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_web_pubsub" "test" {
-  name                = "acctestwebPubsub%d"
+  name                = "acctestwebPubsub-%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium_P1"
@@ -100,6 +100,9 @@ resource "azurerm_dns_cname_record" "test" {
   zone_name           = azurerm_dns_zone.test.name
   ttl                 = 3600
   record              = azurerm_web_pubsub.test.hostname
+  depends_on = [
+    azurerm_web_pubsub_custom_certificate.test
+  ]
 }
 
 resource "azurerm_key_vault" "test" {
@@ -172,8 +175,9 @@ resource "azurerm_web_pubsub_custom_domain" "test" {
   web_pubsub_id                    = azurerm_web_pubsub.test.id
   domain_name                      = "wps.${azurerm_dns_zone.test.name}"
   web_pubsub_custom_certificate_id = azurerm_web_pubsub_custom_certificate.test.id
+  depends_on                       = [azurerm_dns_cname_record.test]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(3), data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (r WebPubsubCustomDomainResource) requiresImport(data acceptance.TestData) string {

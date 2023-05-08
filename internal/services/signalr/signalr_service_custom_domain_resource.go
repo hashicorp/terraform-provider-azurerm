@@ -124,7 +124,10 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 					string(signalr.ProvisioningStateMoving),
 					string(signalr.ProvisioningStateRunning),
 				},
-				Target:                    []string{string(signalr.ProvisioningStateSucceeded)},
+				Target: []string{
+					string(signalr.ProvisioningStateSucceeded),
+					string(signalr.ProvisioningStateFailed),
+				},
 				Refresh:                   signalrServiceCustomDomainProvisioningStateRefreshFunc(ctx, client, id),
 				Timeout:                   time.Until(deadline),
 				PollInterval:              10 * time.Second,

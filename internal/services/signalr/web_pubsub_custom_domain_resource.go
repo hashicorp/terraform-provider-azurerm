@@ -124,7 +124,10 @@ func (r CustomDomainWebPubsubResource) Create() sdk.ResourceFunc {
 					string(webpubsub.ProvisioningStateMoving),
 					string(webpubsub.ProvisioningStateRunning),
 				},
-				Target:                    []string{string(webpubsub.ProvisioningStateSucceeded)},
+				Target: []string{
+					string(webpubsub.ProvisioningStateSucceeded),
+					string(webpubsub.ProvisioningStateFailed),
+				},
 				Refresh:                   webPubsubCustomDomainProvisioningStateRefreshFunc(ctx, client, id),
 				Timeout:                   time.Until(deadline),
 				PollInterval:              10 * time.Second,
@@ -170,7 +173,7 @@ func (r CustomDomainWebPubsubResource) Read() sdk.ResourceFunc {
 				props := model.Properties
 				webPubsubCustomCertificateId := ""
 				if props.CustomCertificate.Id != nil {
-					webPubsubCustomCertificateID, err := webpubsub.ParseCustomCertificateID(*props.CustomCertificate.Id)
+					webPubsubCustomCertificateID, err := webpubsub.ParseCustomCertificateIDInsensitively(*props.CustomCertificate.Id)
 					if err != nil {
 						return fmt.Errorf("parsing web pubsub custom cert id for %s: %+v", id, err)
 					}
