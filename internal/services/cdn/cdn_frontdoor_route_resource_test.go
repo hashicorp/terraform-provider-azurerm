@@ -15,10 +15,6 @@ import (
 
 type CdnFrontDoorRouteResource struct{}
 
-// TODO: Add test with real custom domain once I figure out how to do that
-// in the meantime I will use the link_to_default_domain_enabled to make the
-// Frontdoor endpoint our "Custom Domain".
-
 func TestAccCdnFrontDoorRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
 	r := CdnFrontDoorRouteResource{}

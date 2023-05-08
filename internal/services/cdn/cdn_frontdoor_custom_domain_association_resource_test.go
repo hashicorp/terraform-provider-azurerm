@@ -46,28 +46,28 @@ func TestAccCdnFrontDoorCustomDomainAssociation_removeAssociation(t *testing.T) 
 			),
 		},
 		{
-			Config:             r.remove(data),
-			Check:              acceptance.ComposeTestCheckFunc(),
-			ExpectNonEmptyPlan: true, // since deleting this resource actually removes the linked custom domain from the route resource(s)
+			Config: r.remove(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 	})
 }
 
 func TestAccCdnFrontDoorCustomDomainAssociation_removeAssociations(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_association", "test")
+	dataContoso := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_association", "contoso")
+	dataFabrikam := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_association", "fabrikam")
 	r := CdnFrontDoorCustomDomainAssociationResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	dataContoso.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.update(data),
+			Config: r.update(dataContoso),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(dataContoso.ResourceName).ExistsInAzure(r),
+				check.That(dataFabrikam.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config:             r.remove(data),
-			Check:              acceptance.ComposeTestCheckFunc(),
-			ExpectNonEmptyPlan: true, // since deleting this resource actually removes the linked custom domain from the route resource(s)
+			Config: r.remove(dataContoso),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 	})
 }
@@ -78,15 +78,18 @@ func (r CdnFrontDoorCustomDomainAssociationResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	client := clients.Cdn.FrontDoorCustomDomainsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AssociationName)
+	client := clients.Cdn.FrontDoorRoutesClient
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
+
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	// NOTE: Need to figure out how to inspect the returned routes
+	// custom domain attribute here to be 100% valid in the validation here...
 	return utils.Bool(true), nil
 }
 
@@ -96,8 +99,8 @@ func (r CdnFrontDoorCustomDomainAssociationResource) basic(data acceptance.TestD
 %s
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "test" {
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
-  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.contoso.id]
+  cdn_frontdoor_route_id          = azurerm_cdn_frontdoor_route.contoso.id
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
 }
 `, template)
 }
@@ -116,11 +119,8 @@ resource "azurerm_cdn_frontdoor_route" "fabrikam" {
 
   https_redirect_enabled = true
   forwarding_protocol    = "HttpsOnly"
-  patterns_to_match      = ["/sub-%[3]s"]
+  patterns_to_match      = ["/fabrikam-%[3]s"]
   supported_protocols    = ["Http", "Https"]
-
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
-  link_to_default_domain          = true
 
   cache {
     compression_enabled           = true
@@ -130,9 +130,16 @@ resource "azurerm_cdn_frontdoor_route" "fabrikam" {
   }
 }
 
-resource "azurerm_cdn_frontdoor_custom_domain_association" "test" {
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
-  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.contoso.id, azurerm_cdn_frontdoor_route.fabrikam.id]
+resource "azurerm_cdn_frontdoor_custom_domain_association" "contoso" {
+  cdn_frontdoor_route_id          = azurerm_cdn_frontdoor_route.contoso.id
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
+  link_to_default_domain          = false
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain_association" "fabrikam" {
+  cdn_frontdoor_route_id          = azurerm_cdn_frontdoor_route.fabrikam.id
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
+  link_to_default_domain          = false
 }
 `, template, data.RandomInteger, data.RandomStringOfLength(10))
 }
@@ -211,13 +218,9 @@ resource "azurerm_cdn_frontdoor_route" "contoso" {
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
   enabled                       = true
 
-  https_redirect_enabled = true
   forwarding_protocol    = "HttpsOnly"
-  patterns_to_match      = ["/%[3]s"]
+  patterns_to_match      = ["/contoso-%[3]s"]
   supported_protocols    = ["Http", "Https"]
-
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
-  link_to_default_domain          = false
 
   cache {
     compression_enabled           = true

@@ -25,7 +25,7 @@ func TestAccCdnFrontDoorRouteDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorRouteDataSource_useCase(t *testing.T) {
+func TestAccCdnFrontDoorRouteDataSource_customerUseCase(t *testing.T) {
 	// this test case was added to validate customer use case in issue #21639
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_route", "test")
 	d := CdnFrontDoorRouteDataSource{}

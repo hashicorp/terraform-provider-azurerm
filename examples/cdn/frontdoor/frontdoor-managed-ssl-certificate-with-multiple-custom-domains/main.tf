@@ -223,9 +223,6 @@ resource "azurerm_cdn_frontdoor_route" "example" {
   supported_protocols        = ["Http", "Https"]
   cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
 
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
-  link_to_default_domain          = false
-
   cache {
     compression_enabled           = true
     content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
@@ -258,14 +255,12 @@ resource "azurerm_cdn_frontdoor_custom_domain" "fabrikam" {
   }
 }
 
-resource "azurerm_cdn_frontdoor_custom_domain_association" "contoso" {
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
-  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.example.id]
-}
-
-resource "azurerm_cdn_frontdoor_custom_domain_association" "fabrikam" {
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.fabrikam.id
-  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.example.id]
+# You only need one azurerm_cdn_frontdoor_custom_domain_association here since both of the azurerm_cdn_frontdoor_custom_domain's
+# are connected to a single azurerm_cdn_frontdoor_route...
+resource "azurerm_cdn_frontdoor_custom_domain_association" "example" {
+  cdn_frontdoor_route_id          = azurerm_cdn_frontdoor_route.example.id
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
+  link_to_default_domain          = false
 }
 
 resource "azurerm_dns_txt_record" "contoso" {
