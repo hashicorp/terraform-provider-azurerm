@@ -88,12 +88,13 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id, protecteditems.GetOperationOptions{})
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			// workaround for https://github.com/Azure/azure-rest-api-specs/issues/23842
+			if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if existing.Model != nil {
 			return tf.ImportAsExistsError("azurerm_backup_protected_vm", id.ID())
 		}
 	}
@@ -215,9 +216,10 @@ func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx conte
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
-		Pending:    []string{"NotFound"},
-		Target:     []string{"Found"},
-		Refresh:    resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx, client, id),
+		// add `BadRequest` in Pending for https://github.com/Azure/azure-rest-api-specs/issues/23842
+		Pending: []string{"NotFound", "BadRequest"},
+		Target:  []string{"Found"},
+		Refresh: resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx, client, id),
 	}
 
 	if d.IsNewResource() {
@@ -301,6 +303,10 @@ func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, c
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return resp, "NotFound", nil
+			}
+
+			if response.WasBadRequest(resp.HttpResponse) {
+				return resp, "BadRequest", nil
 			}
 
 			return resp, "Error", fmt.Errorf("making Read request on %s: %+v", id, err)

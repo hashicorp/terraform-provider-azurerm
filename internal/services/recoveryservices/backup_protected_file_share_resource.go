@@ -216,12 +216,13 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	if d.IsNewResource() {
 		existing, err2 := client.Get(ctx, id, protecteditems.GetOperationOptions{})
 		if err2 != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+			// workaround for https://github.com/Azure/azure-rest-api-specs/issues/23842
+			if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err2)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if existing.Model != nil {
 			return tf.ImportAsExistsError("azurerm_backup_protected_file_share", id.ID())
 		}
 	}
