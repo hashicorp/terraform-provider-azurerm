@@ -1,17 +1,18 @@
 ## 3.56.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_cosmosdb_postgresql_coordinator_configuration` [GH-21595]
+* **New Resource:** `azurerm_cosmosdb_postgresql_node_configuration` [GH-21596]
+* **New Resource:** `azurerm_cosmosdb_postgresql_role` [GH-21597]
+* **New Resource:** `azurerm_monitor_workspace` [GH-21598]
+
 ENHANCEMENTS:
 
+* provider: updating the `IsAzureStack` check to use `hashicorp/go-azure-sdk` rather than relying on the environment from `Azure/go-autorest` [GH-21697]
 * dependencies: updating to `v0.20230503.1140953` of `github.com/hashicorp/go-azure-sdk` [GH-21467]
 * dependencies: `appconfiguration` upgraded to API Version `2023-03-01` [GH-21660]
 * `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
-
-FEATURES:
-
-* **New Resource:**  `azurerm_cosmosdb_postgresql_coordinator_configuration` [GH-21595]
-* **New Resource:**  `azurerm_cosmosdb_postgresql_node_configuration` [GH-21596]
-* **New Resource:** `azurerm_monitor_workspace` [GH-21598]
-* **New Resource:** `azurerm_cosmosdb_postgresql_role` [GH-21597]
 
 BUG FIXES:
 
