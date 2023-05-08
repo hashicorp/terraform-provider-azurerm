@@ -183,7 +183,7 @@ func (r ResourceProviderRegistrationResource) Update() sdk.ResourceFunc {
 			}
 			registrationState := ""
 			if model := provider.Model; model != nil && model.RegistrationState != nil {
-
+				registrationState = *model.RegistrationState
 			}
 			if registrationState == "" {
 				return fmt.Errorf("retrieving %s: `registrationState` was nil", *resourceId)
