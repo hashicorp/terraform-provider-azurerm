@@ -395,24 +395,6 @@ func validateRoutesCustomDomainProfile(customDomains []interface{}, routeProfile
 	return nil
 }
 
-// Checks to make sure the list of CDN FrontDoor Custom Domains does not contain duplicate entries
-func sliceHasDuplicates(input []interface{}, resourceTxt string) error {
-	k := make(map[string]bool)
-	if len(input) == 0 || input == nil {
-		return nil
-	}
-
-	for _, v := range input {
-		if _, d := k[strings.ToLower(v.(string))]; !d {
-			k[strings.ToLower(v.(string))] = true
-		} else {
-			return fmt.Errorf("duplicate %[1]s detected, please remove all duplicate entries for the %[1]s(ID: %q) from your configuration block", resourceTxt, v.(string))
-		}
-	}
-
-	return nil
-}
-
 func expandRuleSetIds(input []interface{}) ([]interface{}, error) {
 	out := make([]interface{}, 0)
 	if len(input) == 0 || input == nil {
