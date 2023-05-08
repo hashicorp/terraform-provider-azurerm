@@ -218,9 +218,9 @@ resource "azurerm_cdn_frontdoor_route" "contoso" {
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
   enabled                       = true
 
-  forwarding_protocol    = "HttpsOnly"
-  patterns_to_match      = ["/contoso-%[3]s"]
-  supported_protocols    = ["Http", "Https"]
+  forwarding_protocol = "HttpsOnly"
+  patterns_to_match   = ["/contoso-%[3]s"]
+  supported_protocols = ["Http", "Https"]
 
   cache {
     compression_enabled           = true
