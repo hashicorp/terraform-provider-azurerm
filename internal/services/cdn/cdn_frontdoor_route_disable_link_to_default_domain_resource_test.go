@@ -123,8 +123,6 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
   patterns_to_match             = ["/*"]
   supported_protocols           = ["Http", "Https"]
-
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.test.id]
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "test" {
@@ -140,8 +138,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "test" {
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
-  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.test.id]
+  cdn_frontdoor_route_id          = azurerm_cdn_frontdoor_route.test.id
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.test.id]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(8))
 }
