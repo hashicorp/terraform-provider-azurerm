@@ -61,25 +61,25 @@ func (CdnFrontDoorRouteDataSource) stepOne(data acceptance.TestData) string {
 %s
 
 resource "azurerm_cdn_frontdoor_route" "test" {
-	name                          = "acctestRoute-%[2]d"
-	cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
-	cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
-	cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  name                          = "acctestRoute-%[2]d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
 
-	# cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.test.id]
+  # cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.test.id]
 
-	enabled                    = true
-	forwarding_protocol        = "HttpsOnly"
-	https_redirect_enabled     = false
-	patterns_to_match          = ["/*"]
-	cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.test.id]
-	supported_protocols        = ["Https"]
-  
-	cache {
-	  query_strings                 = ["bar"]
-	  query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
-	}
+  enabled                    = true
+  forwarding_protocol        = "HttpsOnly"
+  https_redirect_enabled     = false
+  patterns_to_match          = ["/*"]
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.test.id]
+  supported_protocols        = ["Https"]
+
+  cache {
+    query_strings                 = ["bar"]
+    query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
   }
+}
 `, CdnFrontDoorRouteResource{}.template(data), data.RandomInteger)
 }
 
@@ -91,17 +91,17 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   name                     = "acctest-contoso-%[2]d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   host_name                = "test.%[2]d.com"
-  
+
   tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
   }
-} 
+}
 
 data "azurerm_cdn_frontdoor_endpoint" "test" {
-	name                = "accTestEndpoint-%[2]d"
-	profile_name        = "accTestProfile-%[2]d"
-	resource_group_name = "acctestRG-cdn-afdx-%[2]d"
+  name                = "accTestEndpoint-%[2]d"
+  profile_name        = "accTestProfile-%[2]d"
+  resource_group_name = "acctestRG-cdn-afdx-%[2]d"
 }
 
 data "azurerm_cdn_frontdoor_route" "test" {
