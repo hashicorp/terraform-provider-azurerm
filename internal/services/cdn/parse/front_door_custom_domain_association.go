@@ -13,14 +13,16 @@ type FrontDoorCustomDomainAssociationId struct {
 	SubscriptionId  string
 	ResourceGroup   string
 	ProfileName     string
+	AfdEndpointName string
 	AssociationName string
 }
 
-func NewFrontDoorCustomDomainAssociationID(subscriptionId, resourceGroup, profileName, associationName string) FrontDoorCustomDomainAssociationId {
+func NewFrontDoorCustomDomainAssociationID(subscriptionId, resourceGroup, profileName, afdEndpointName, associationName string) FrontDoorCustomDomainAssociationId {
 	return FrontDoorCustomDomainAssociationId{
 		SubscriptionId:  subscriptionId,
 		ResourceGroup:   resourceGroup,
 		ProfileName:     profileName,
+		AfdEndpointName: afdEndpointName,
 		AssociationName: associationName,
 	}
 }
@@ -28,6 +30,7 @@ func NewFrontDoorCustomDomainAssociationID(subscriptionId, resourceGroup, profil
 func (id FrontDoorCustomDomainAssociationId) String() string {
 	segments := []string{
 		fmt.Sprintf("Association Name %q", id.AssociationName),
+		fmt.Sprintf("Afd Endpoint Name %q", id.AfdEndpointName),
 		fmt.Sprintf("Profile Name %q", id.ProfileName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
@@ -36,8 +39,8 @@ func (id FrontDoorCustomDomainAssociationId) String() string {
 }
 
 func (id FrontDoorCustomDomainAssociationId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/associations/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/afdEndpoints/%s/associations/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.AssociationName)
 }
 
 // FrontDoorCustomDomainAssociationID parses a FrontDoorCustomDomainAssociation ID into an FrontDoorCustomDomainAssociationId struct
@@ -61,6 +64,9 @@ func FrontDoorCustomDomainAssociationID(input string) (*FrontDoorCustomDomainAss
 	}
 
 	if resourceId.ProfileName, err = id.PopSegment("profiles"); err != nil {
+		return nil, err
+	}
+	if resourceId.AfdEndpointName, err = id.PopSegment("afdEndpoints"); err != nil {
 		return nil, err
 	}
 	if resourceId.AssociationName, err = id.PopSegment("associations"); err != nil {

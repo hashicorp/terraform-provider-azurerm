@@ -136,8 +136,6 @@ The following arguments are supported:
 
 ~> **NOTE:** To disable caching, do not provide the `cache` block in the configuration file.
 
-* `cdn_frontdoor_custom_domain_ids` - (Optional) The IDs of the Front Door Custom Domains which are associated with this Front Door Route.
-
 * `cdn_frontdoor_origin_path` - (Optional) A directory path on the Front Door Origin that can be used to retrieve content (e.g. `contoso.cloudapp.net/originpath`).
 
 * `cdn_frontdoor_rule_set_ids` - (Optional) A list of the Front Door Rule Set IDs which should be assigned to this Front Door Route.
@@ -147,8 +145,6 @@ The following arguments are supported:
 * `https_redirect_enabled` - (Optional) Automatically redirect HTTP traffic to HTTPS traffic? Possible values are `true` or `false`. Defaults to `true`.
 
 ~> **NOTE:** The `https_redirect_enabled` rule is the first rule that will be executed.
-
-* `link_to_default_domain` - (Optional) Should this Front Door Route be linked to the default endpoint? Possible values include `true` or `false`. Defaults to `true`.
 
 ---
 

@@ -2,9 +2,11 @@ package cdn
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -67,22 +69,6 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.FrontDoorOriginID,
 				},
-			},
-
-			"cdn_frontdoor_custom_domain_ids": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.FrontDoorCustomDomainID,
-				},
-			},
-
-			"link_to_default_domain": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
 			},
 
 			// NOTE: Per the service team this cannot just be omitted it must explicitly be set to nil to disable caching
@@ -229,32 +215,13 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
 	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
 	originsRaw := d.Get("cdn_frontdoor_origin_ids").([]interface{})
-	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").(*pluginsdk.Set).List()
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
-	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
 
 	// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
 	// This configuration does not cause an error when provisioned, however the http requests that
 	// are supposed to be redirected to https remain http requests
 	if httpsRedirect {
 		if err := validate.SupportsBothHttpAndHttps(protocolsRaw, "https_redirect_enabled"); err != nil {
-			return err
-		}
-	}
-
-	normalizedCustomDomains, err := expandCustomDomains(customDomainsRaw)
-	if err != nil {
-		return err
-	}
-
-	if !linkToDefaultDomain && len(normalizedCustomDomains) == 0 {
-		return fmt.Errorf("it is invalid to disable the 'LinkToDefaultDomain' for the CDN Front Door Route(Name: %s) since the route does not have any CDN Front Door Custom Domains associated with it", id.RouteName)
-	} else if len(normalizedCustomDomains) != 0 {
-		if err := sliceHasDuplicates(normalizedCustomDomains, "CDN FrontDoor Custom Domain"); err != nil {
-			return err
-		}
-
-		if err := validateRoutesCustomDomainProfile(normalizedCustomDomains, id.ProfileName); err != nil {
 			return err
 		}
 	}
@@ -275,12 +242,11 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	props := cdn.Route{
 		RouteProperties: &cdn.RouteProperties{
-			CustomDomains:       expandCustomDomainActivatedResourceArray(normalizedCustomDomains),
 			CacheConfiguration:  expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
 			EnabledState:        expandEnabledBool(d.Get("enabled").(bool)),
 			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       expandEnabledBoolToRouteHttpsRedirect(httpsRedirect),
-			LinkToDefaultDomain: expandEnabledBoolToLinkToDefaultDomain(linkToDefaultDomain),
+			LinkToDefaultDomain: cdn.LinkToDefaultDomainEnabled,
 			OriginGroup:         originGroup,
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRuleSetReferenceArray(normalizedRuleSets),
@@ -351,18 +317,11 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontDoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
 	if props := resp.RouteProperties; props != nil {
-		customDomains, err := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
-		if err != nil {
-			return err
-		}
-
-		d.Set("cdn_frontdoor_custom_domain_ids", customDomains)
 		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
 		d.Set("https_redirect_enabled", flattenHttpsRedirectToBool(props.HTTPSRedirect))
 		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
-		d.Set("link_to_default_domain", flattenLinkToDefaultDomainToBool(props.LinkToDefaultDomain))
 
 		if err := d.Set("cache", flattenCdnFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
 			return fmt.Errorf("setting `cache`: %+v", err)
@@ -411,15 +370,13 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// we need to lock the route for update because the custom domain
 	// association may also be trying to update the route as well...
-	locks.ByName(id.RouteName, cdnFrontDoorRouteResourceName)
-	defer locks.UnlockByName(id.RouteName, cdnFrontDoorRouteResourceName)
+	locks.ByID(cdnFrontDoorRouteResourceName)
+	defer locks.UnlockByID(cdnFrontDoorRouteResourceName)
 
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
-	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").(*pluginsdk.Set).List()
 	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
 	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
-	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
 
 	// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
 	// This configuration does not cause an error when provisioned, however the http requests that
@@ -435,28 +392,12 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	customDomains, err := expandCustomDomains(customDomainsRaw)
-	if err != nil {
-		return err
-	}
-
-	if !linkToDefaultDomain && len(customDomains) == 0 {
-		return fmt.Errorf("it is invalid to disable the 'LinkToDefaultDomain' for the CDN Front Door Route(Name: %s) since the route does not have any CDN Front Door Custom Domains associated with it", id.RouteName)
-	} else if len(customDomains) != 0 {
-		if err := sliceHasDuplicates(customDomains, "CDN FrontDoor Custom Domain"); err != nil {
-			return err
-		}
-
-		if err := validateRoutesCustomDomainProfile(customDomains, id.ProfileName); err != nil {
-			return err
-		}
-	}
-
-	// NOTE: You need to always pass these two on update else you will
+	// NOTE: You need to always pass these three on update else you will
 	// disable your cache and disassociate your custom domains...
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains:      existing.RouteProperties.CustomDomains,
-		CacheConfiguration: existing.RouteProperties.CacheConfiguration,
+		CustomDomains:       existing.RouteProperties.CustomDomains,
+		CacheConfiguration:  existing.RouteProperties.CacheConfiguration,
+		LinkToDefaultDomain: existing.LinkToDefaultDomain,
 	}
 
 	if d.HasChange("cache") {
@@ -473,14 +414,6 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("https_redirect_enabled") {
 		updateProps.HTTPSRedirect = expandEnabledBoolToRouteHttpsRedirect(httpsRedirect)
-	}
-
-	if d.HasChange("link_to_default_domain") {
-		updateProps.LinkToDefaultDomain = expandEnabledBoolToLinkToDefaultDomain(d.Get("link_to_default_domain").(bool))
-	}
-
-	if d.HasChange("cdn_frontdoor_custom_domain_ids") {
-		updateProps.CustomDomains = expandCustomDomainActivatedResourceArray(customDomains)
 	}
 
 	if d.HasChange("cdn_frontdoor_origin_group_id") {
@@ -538,6 +471,41 @@ func resourceCdnFrontDoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}
 	id, err := parse.FrontDoorRouteID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	cdId := parse.NewFrontDoorCustomDomainAssociationID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
+	log.Printf("[DEBUG] Waiting for %s to become ready", id)
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"Creating", "Updating", "Deleting"},
+		Target:                    []string{"Succeeded", "NotFound"},
+		Refresh:                   frontDoorRouteRefreshFunc(ctx, client, pointer.To(cdId)),
+		MinTimeout:                15 * time.Second,
+		ContinuousTargetOccurence: 2,
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+	}
+
+	locks.ByID(cdnFrontDoorRouteResourceName)
+	defer locks.UnlockByID(cdnFrontDoorRouteResourceName)
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
+	if err != nil {
+		if utils.ResponseWasNotFound(existing.Response) {
+			// The route was already deleted...
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)

@@ -3,19 +3,35 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_custom_domain_association"
 description: |-
-  Manages the association between a Front Door (standard/premium) Custom Domain and one or more Front Door (standard/premium) Routes.
+  Manages the Custom Domain associations between one or more Front Door (standard/premium) Custom Domains and a Front Door (standard/premium) Route.
 ---
 
 # azurerm_cdn_frontdoor_custom_domain_association
 
-Manages the association between a Front Door (standard/premium) Custom Domain and one or more Front Door (standard/premium) Routes.
+Manages the Custom Domain associations between one or more Front Door (standard/premium) Custom Domains and a Front Door (standard/premium) Route.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_cdn_frontdoor_custom_domain_association" "example" {
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
-  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.contoso.id, azurerm_cdn_frontdoor_route.fabrikam.id]
+  cdn_frontdoor_route_id          = azurerm_cdn_frontdoor_route.contoso.id
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
+  link_to_default_domain          = false
+}
+```
+
+## Example Usage using the `azurerm_cdn_frontdoor_route` Data Source
+
+```hcl
+data "azurerm_cdn_frontdoor_route" "example" {
+  name                      = azurerm_cdn_frontdoor_route.example.name
+  cdn_frontdoor_endpoint_id = azurerm_cdn_frontdoor_endpoint.example.id
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain_association" "example" {
+  cdn_frontdoor_route_id          = data.azurerm_cdn_frontdoor_route.example.id
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.example.id]
+  link_to_default_domain          = false
 }
 ```
 
@@ -23,11 +39,13 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "example" {
 
 The following arguments are supported:
 
-* `cdn_frontdoor_custom_domain_id` - (Required) The ID of the Front Door Custom Domain that should be managed by the association resource. Changing this forces a new association resource to be created.
+* `cdn_frontdoor_route_id` - (Required) The Resource ID of the Front Door Route which this Front Door Custom Domain Association resource will manage. Changing this forces a new Front Door Custom Domain Association resource to be created.
 
-* `cdn_frontdoor_route_ids` - (Required) One or more IDs of the Front Door Route to which the Front Door Custom Domain is associated with.
+* `cdn_frontdoor_custom_domain_ids` - (Required) The Resource IDs of the Front Door Custom Domain(s) which are to be associated with the Front Door Route.
 
--> **NOTE:** This should include all of the Front Door Route resources that the Front Door Custom Domain is associated with. If the list of Front Door Routes is not complete you will receive the service side error `This resource is still associated with a route. Please delete the association with the route first before deleting this resource` when you attempt to `destroy`/`delete` your Front Door Custom Domain.
+* `link_to_default_domain` - (Optional) Should this Front Door Route be linked to the default endpoint? Possible values include `true` or `false`. Defaults to `true`.
+
+-> **NOTE:** The `link_to_default_domain` value will be automatically toggled to `true` on deletion of this resource.
 
 ## Attributes Reference
 
@@ -51,5 +69,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Front Door Custom Domain Associations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cdn_frontdoor_custom_domain_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1
+terraform import azurerm_cdn_frontdoor_custom_domain_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associations/route1
 ```

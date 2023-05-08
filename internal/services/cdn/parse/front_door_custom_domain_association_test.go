@@ -11,8 +11,8 @@ import (
 var _ resourceids.Id = FrontDoorCustomDomainAssociationId{}
 
 func TestFrontDoorCustomDomainAssociationIDFormatter(t *testing.T) {
-	actual := NewFrontDoorCustomDomainAssociationID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "assoc1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1"
+	actual := NewFrontDoorCustomDomainAssociationID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "endpoint1", "route1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associations/route1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -68,31 +68,44 @@ func TestFrontDoorCustomDomainAssociationID(t *testing.T) {
 		},
 
 		{
-			// missing AssociationName
+			// missing AfdEndpointName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
+			// missing value for AfdEndpointName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/",
+			Error: true,
+		},
+
+		{
+			// missing AssociationName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/",
+			Error: true,
+		},
+
+		{
 			// missing value for AssociationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associations/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/associations/route1",
 			Expected: &FrontDoorCustomDomainAssociationId{
 				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:   "resGroup1",
 				ProfileName:     "profile1",
-				AssociationName: "assoc1",
+				AfdEndpointName: "endpoint1",
+				AssociationName: "route1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/ASSOCIATIONS/ASSOC1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/AFDENDPOINTS/ENDPOINT1/ASSOCIATIONS/ROUTE1",
 			Error: true,
 		},
 	}
@@ -120,6 +133,9 @@ func TestFrontDoorCustomDomainAssociationID(t *testing.T) {
 		}
 		if actual.ProfileName != v.Expected.ProfileName {
 			t.Fatalf("Expected %q but got %q for ProfileName", v.Expected.ProfileName, actual.ProfileName)
+		}
+		if actual.AfdEndpointName != v.Expected.AfdEndpointName {
+			t.Fatalf("Expected %q but got %q for AfdEndpointName", v.Expected.AfdEndpointName, actual.AfdEndpointName)
 		}
 		if actual.AssociationName != v.Expected.AssociationName {
 			t.Fatalf("Expected %q but got %q for AssociationName", v.Expected.AssociationName, actual.AssociationName)

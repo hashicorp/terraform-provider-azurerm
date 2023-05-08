@@ -38,6 +38,8 @@ func dataSourceCdnFrontDoorRoute() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// I have to expose this here because that is the only way the user will
+			// know that the resource has been modified outside of terraform...
 			"cdn_frontdoor_custom_domain_ids": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
@@ -47,6 +49,8 @@ func dataSourceCdnFrontDoorRoute() *pluginsdk.Resource {
 				},
 			},
 
+			// I have to expose this here because that is the only way the user will
+			// know that the resource has been modified outside of terraform...
 			"link_to_default_domain": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
