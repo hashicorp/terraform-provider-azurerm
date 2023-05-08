@@ -334,9 +334,6 @@ resource "azurerm_virtual_machine" "test" {
     storage_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
 
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 resource "azurerm_recovery_services_vault" "test" {
