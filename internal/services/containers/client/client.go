@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
 	containerregistry_v2019_06_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview"
