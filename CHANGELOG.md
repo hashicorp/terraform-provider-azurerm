@@ -10,7 +10,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * provider: updating the `IsAzureStack` check to use `hashicorp/go-azure-sdk` rather than relying on the environment from `Azure/go-autorest` [GH-21697]
-* dependencies: updating to `v0.20230503.1140953` of `github.com/hashicorp/go-azure-sdk` [GH-21467]
+* dependencies: updating to `v0.20230508.1101604` of `github.com/hashicorp/go-azure-sdk` [GH-21698]
 * dependencies: `appconfiguration` upgraded to API Version `2023-03-01` [GH-21660]
 * `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
 
@@ -18,8 +18,10 @@ BUG FIXES:
 
 * `azurerm_app_configuration`: handling an API bug where when polling for `PurgeDeleted` returns a 404 rather the payload for a long-running operation [GH-21665]
 * `azurerm_eventhub_namespace` - add locks and remove unneeded WaitForState functions [GH-21656]
+* `azurerm_machine_learning_workspace` - parse `key_vault_id` insensitively [GH-21684]
 * `azurerm_monitor_metric_alert` - fix regression by using `SingleResourceMultiMetricCriteria` for new metric alerts  [GH-21658]
 * `azurerm_service_fabric_managed_cluster` - fixing a bug where `certificates` within the `vm_secrets` block wouldn't be set into the state [GH-21680]
+* `azurerm_storage_share` - correct resource ID segment from `fileshares` to `shares` [GH-21645]
 
 ## 3.55.0 (May 04, 2023)
 
