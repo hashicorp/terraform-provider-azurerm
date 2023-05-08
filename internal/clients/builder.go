@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -45,14 +44,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	var err error
 
 	// point folks towards the separate Azure Stack Provider when using Azure Stack
-	isAzureStack := false
-	if strings.EqualFold(builder.AuthConfig.Environment.Name, "AZURESTACKCLOUD") {
-		return nil, fmt.Errorf(azureStackEnvironmentError)
-	} else if isAzureStack, err = authentication.IsEnvironmentAzureStack(ctx, builder.MetadataHost, builder.AuthConfig.Environment.Name); err != nil { // TODO: consider updating this helper func
-		return nil, fmt.Errorf("unable to determine if environment is Azure Stack: %+v", err)
-	}
-
-	if isAzureStack {
+	if builder.AuthConfig.Environment.IsAzureStack() {
 		return nil, fmt.Errorf(azureStackEnvironmentError)
 	}
 
