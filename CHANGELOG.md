@@ -15,6 +15,7 @@ FEATURES:
 
 BUG FIXES:
 
+* `azurerm_app_configuration`: handling an API bug where when polling for `PurgeDeleted` returns a 404 rather the payload for a long-running operation [GH-21665]
 * `azurerm_eventhub_namespace` - add locks and remove unneeded WaitForState functions [GH-21656]
 * `azurerm_monitor_metric_alert` - fix regression by using `SingleResourceMultiMetricCriteria` for new metric alerts  [GH-21658]
 * `azurerm_service_fabric_managed_cluster` - fixing a bug where `certificates` within the `vm_secrets` block wouldn't be set into the state [GH-21680]
