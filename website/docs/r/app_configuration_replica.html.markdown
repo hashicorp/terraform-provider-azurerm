@@ -20,16 +20,16 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_app_configuration" "example" {
-  name                       = "example-app-conf"
-  resource_group_name        = azurerm_resource_group.example.name
-  location                   = azurerm_resource_group.example.location
-  sku                        = "standard"
-  soft_delete_retention_days = 1
+  name                = "example-app-conf"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "standard"
 }
+
 resource "azurerm_app_configuration_replica" "example" {
   configuration_store_id = azurerm_app_configuration.example.id
-  location                 = azurerm_resource_group.example.location
-  name                     = "example"
+  location               = azurerm_resource_group.example.location
+  name                   = "example"
 }
 ```
 

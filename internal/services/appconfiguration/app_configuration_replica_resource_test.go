@@ -65,8 +65,8 @@ func (r AppConfigurationReplicaTestResource) basic(data acceptance.TestData) str
 
 resource "azurerm_app_configuration_replica" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
-  location                 = local.secondary_location
-  name                     = "replica${local.random_integer}"
+  location               = local.secondary_location
+  name                   = "replica${local.random_integer}"
 }
 `, r.template(data))
 }
@@ -76,9 +76,9 @@ func (r AppConfigurationReplicaTestResource) requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_app_configuration_replica" "import" {
-  configuration_store_id   = azurerm_app_configuration_replica.test.configuration_store_id
-  location                 = azurerm_app_configuration_replica.test.location
-  name                     = azurerm_app_configuration_replica.test.name
+  configuration_store_id = azurerm_app_configuration_replica.test.configuration_store_id
+  location               = azurerm_app_configuration_replica.test.location
+  name                   = azurerm_app_configuration_replica.test.name
 }
 `, r.basic(data))
 }
@@ -90,9 +90,9 @@ provider "azurerm" {
 }
 
 locals {
-    random_integer = %[1]d
-	primary_location	   = %[2]q
-    secondary_location = %[3]q
+  random_integer     = %[1]d
+  primary_location   = %[2]q
+  secondary_location = %[3]q
 }
 
 resource "azurerm_resource_group" "test" {
