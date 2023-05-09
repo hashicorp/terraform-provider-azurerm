@@ -287,6 +287,15 @@ resource "azurerm_media_transform" "example" {
         }
       }
 
+      format {
+        transport_stream {
+          filename_pattern = "test{Bitrate}"
+          output_file {
+            labels = ["prod"]
+          }
+        }
+      }
+
       filter {
         crop_rectangle {
           height = "240"
