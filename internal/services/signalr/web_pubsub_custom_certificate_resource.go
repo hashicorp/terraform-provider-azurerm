@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -96,6 +97,9 @@ func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 			keyVaultSecretName := keyVaultCertificateId.Name
 
 			id := webpubsub.NewCustomCertificateID(webPubsubId.SubscriptionId, webPubsubId.ResourceGroupName, webPubsubId.WebPubSubName, customCertWebPubsub.Name)
+
+			locks.ByID(webPubsubId.ID())
+			defer locks.UnlockByID(webPubsubId.ID())
 
 			existing, err := client.CustomCertificatesGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -196,6 +200,12 @@ func (r CustomCertWebPubsubResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			webPubsubId := webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName)
+
+			locks.ByID(webPubsubId.ID())
+			defer locks.UnlockByID(webPubsubId.ID())
+
 			if _, err := client.CustomCertificatesDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}

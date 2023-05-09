@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -96,6 +97,9 @@ func (r CustomCertSignalrServiceResource) Create() sdk.ResourceFunc {
 			keyVaultSecretName := keyVaultCertificateId.Name
 
 			id := signalr.NewCustomCertificateID(signalRServiceId.SubscriptionId, signalRServiceId.ResourceGroupName, signalRServiceId.SignalRName, metadata.ResourceData.Get("name").(string))
+
+			locks.ByID(signalRServiceId.ID())
+			defer locks.UnlockByID(signalRServiceId.ID())
 
 			existing, err := client.CustomCertificatesGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -201,6 +205,12 @@ func (r CustomCertSignalrServiceResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			signalrId := signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName)
+
+			locks.ByID(signalrId.ID())
+			defer locks.UnlockByID(signalrId.ID())
+
 			if _, err := client.CustomCertificatesDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
