@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -311,10 +312,17 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinux(webApp.SiteConfig, nil, metadata, servicePlan)
-			if err != nil {
-				return err
+			sc := webApp.SiteConfig[0]
+
+			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+					if sc.AlwaysOn {
+						return fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+					}
+				}
 			}
+
+			siteConfig := sc.ExpandForCreate(webApp.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
@@ -359,13 +367,13 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
+			appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
+				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
 			}
 
-			if appSettings.Properties != nil {
-				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
+			if appSettingsUpdate.Properties != nil {
+				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("setting App Settings for Linux %s: %+v", id, err)
 				}
 			}
@@ -570,14 +578,25 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			siteConfig.Flatten(webAppSiteConfig.SiteConfig)
 			siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 
-			if strings.HasPrefix(siteConfig.LinuxFxVersion, "DOCKER") {
-				siteConfig.DecodeDockerAppStack(state.AppSettings)
+			// For non-import cases we check for use of the deprecated docker settings - remove in 4.0
+			_, usesDeprecatedDocker := metadata.ResourceData.GetOk("site_config.0.application_stack.0.docker_image")
+
+			if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
+				if !features.FourPointOhBeta() {
+					siteConfig.DecodeDockerDeprecatedAppStack(state.AppSettings, usesDeprecatedDocker)
+				} else {
+					siteConfig.DecodeDockerAppStack(state.AppSettings)
+				}
 			}
 
 			state.SiteConfig = []helpers.SiteConfigLinux{siteConfig}
 
 			// Filter out all settings we've consumed above
-			state.AppSettings = helpers.FilterUnmanagedAppSettings(state.AppSettings)
+			if !features.FourPointOhBeta() && usesDeprecatedDocker {
+				state.AppSettings = helpers.FilterManagedAppSettingsDeprecated(state.AppSettings)
+			} else {
+				state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
+			}
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
@@ -645,8 +664,6 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			// TODO - Need locking here for source control meta resource?
-
 			var state LinuxWebAppModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -657,24 +674,30 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
-			var serviceFarmId string
-			servicePlanChange := false
-			if existing.SiteProperties.ServerFarmID != nil {
-				serviceFarmId = *existing.ServerFarmID
+			servicePlanChange := metadata.ResourceData.HasChange("service_plan_id")
+			if servicePlanChange {
+				if existing.SiteProperties != nil {
+					existing.SiteProperties.ServerFarmID = pointer.To(state.ServicePlanId)
+				}
 			}
-			if metadata.ResourceData.HasChange("service_plan_id") {
-				serviceFarmId = state.ServicePlanId
-				existing.SiteProperties.ServerFarmID = pointer.To(serviceFarmId)
-				servicePlanChange = true
-			}
-			servicePlanId, err := parse.ServicePlanID(serviceFarmId)
+
+			servicePlanId, err := parse.ServicePlanID(state.ServicePlanId)
 			if err != nil {
 				return err
 			}
 
 			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
 			if err != nil {
-				return fmt.Errorf("reading App %s: %+v", servicePlanId, err)
+				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
+			}
+
+			sc := state.SiteConfig[0]
+			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+					if sc.AlwaysOn {
+						return fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+					}
+				}
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
@@ -713,11 +736,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("site_config") || servicePlanChange {
-				siteConfig, err := helpers.ExpandSiteConfigLinux(state.SiteConfig, existing.SiteConfig, metadata, servicePlan)
-				if err != nil {
-					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
-				}
-				existing.SiteConfig = siteConfig
+				existing.SiteConfig = sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {

@@ -823,16 +823,120 @@ func TestAccWindowsWebApp_withJava110414Tomcat10020(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebApp_basicDockerContainer(t *testing.T) {
+func TestAccWindowsWebApp_dockerMCR(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skippped as deprecated property removed in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.docker(data),
+			Config: r.dockerMCR(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|windows-cssc/python3.7.2nanoserver:ltsc2022"),
+			),
+		},
+		data.ImportStep("app_settings.%",
+			"site_config.0.application_stack.0.docker_container_name",
+			"site_config.0.application_stack.0.docker_container_tag",
+			"site_config.0.application_stack.0.docker_image_name",
+			"site_config.0.application_stack.0.docker_registry_url",
+			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
+			"app_settings.DOCKER_REGISTRY_SERVER_URL",
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME"),
+	})
+}
+
+func TestAccWindowsWebApp_dockerHub(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skippped as deprecated property removed in 4.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerHub(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
+			),
+		},
+		data.ImportStep("app_settings.%",
+			"site_config.0.application_stack.0.docker_container_name",
+			"site_config.0.application_stack.0.docker_container_tag",
+			"site_config.0.application_stack.0.docker_image_name",
+			"site_config.0.application_stack.0.docker_registry_url",
+			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
+			"app_settings.DOCKER_REGISTRY_SERVER_URL",
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME"),
+	})
+}
+
+func TestAccWindowsWebApp_withDockerDeprecatedUpgrade(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skippped as deprecated property removed in 4.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerHub(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|hello-world:latest"),
+			),
+		},
+		data.ImportStep("app_settings.%",
+			"site_config.0.application_stack.0.docker_container_name",
+			"site_config.0.application_stack.0.docker_container_tag",
+			"site_config.0.application_stack.0.docker_image_name",
+			"site_config.0.application_stack.0.docker_registry_url",
+			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
+			"app_settings.DOCKER_REGISTRY_SERVER_URL",
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME"),
+		{
+			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:windowsservercore-1809"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebApp_withDockerImageMCR(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerImageName(data, "https://mcr.microsoft.com", "azure-app-service/windows/parkingpage:latest"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|mcr.microsoft.com/azure-app-service/windows/parkingpage:latest"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebApp_withDockerImageDockerHub(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:windowsservercore-1809"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
 			),
 		},
 		data.ImportStep(),
@@ -2231,7 +2335,40 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, dotNetVersion)
 }
 
-func (r WindowsWebAppResource) docker(data acceptance.TestData) string {
+func (r WindowsWebAppResource) dockerMCR(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  app_settings = {
+    "DOCKER_REGISTRY_SERVER_URL"          = "https://mcr.microsoft.com"
+    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
+    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
+  }
+
+  site_config {
+    application_stack {
+      docker_container_name = "windows-cssc/python3.7.2nanoserver"
+      docker_container_tag  = "ltsc2022"
+      //docker_container_name = "azure-app-service/windows/parkingpage"
+      //docker_container_tag  = "latest"
+    }
+  }
+}
+`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) dockerHub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2254,12 +2391,40 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     application_stack {
-      docker_container_name = "%s"
-      docker_container_tag  = "%s"
+      docker_container_name = "traefik"
+      docker_container_tag  = "windowsservercore-1809"
     }
   }
 }
-`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, "hello-world", "latest")
+`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) dockerImageName(data acceptance.TestData, registryUrl, containerImage string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  app_settings = {
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
+  }
+
+  site_config {
+    application_stack {
+      docker_image_name   = "%s"
+      docker_registry_url = "%s"
+    }
+  }
+}
+`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger, containerImage, registryUrl)
 }
 
 func (r WindowsWebAppResource) node(data acceptance.TestData, nodeVersion string) string {

@@ -3,6 +3,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -985,6 +986,9 @@ func TestAccLinuxWebAppSlot_withJava8JBOSSEAP73(t *testing.T) {
 }
 
 func TestAccLinuxWebAppSlot_withDocker(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skippped as deprecated property removed in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
 
@@ -994,6 +998,105 @@ func TestAccLinuxWebAppSlot_withDocker(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|mcr.microsoft.com/appsvc/staticsite:latest"),
+			),
+		},
+		data.ImportStep("app_settings.%",
+			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
+			"app_settings.DOCKER_REGISTRY_SERVER_URL",
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
+			"site_config.0.application_stack.0.docker_image",
+			"site_config.0.application_stack.0.docker_image_name",
+			"site_config.0.application_stack.0.docker_image_tag",
+			"site_config.0.application_stack.0.docker_registry_url"),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withDockerHub(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skippped as deprecated property removed in 4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerHub(data, "nginx", "latest"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|nginx:latest"),
+			),
+		},
+		data.ImportStep("app_settings.%",
+			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
+			"app_settings.DOCKER_REGISTRY_SERVER_URL",
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
+			"site_config.0.application_stack.0.docker_image",
+			"site_config.0.application_stack.0.docker_image_name",
+			"site_config.0.application_stack.0.docker_image_tag",
+			"site_config.0.application_stack.0.docker_registry_url"),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withDockerDeprecatedUpgrade(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skippped as deprecated property removed in 4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerHub(data, "nginx", "latest"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|nginx:latest"),
+			),
+		},
+		data.ImportStep("app_settings.%",
+			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
+			"app_settings.DOCKER_REGISTRY_SERVER_URL",
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
+			"site_config.0.application_stack.0.docker_image",
+			"site_config.0.application_stack.0.docker_image_name",
+			"site_config.0.application_stack.0.docker_image_tag",
+			"site_config.0.application_stack.0.docker_registry_url"),
+		{
+			Config: r.dockerImageName(data, "https://index.docker.io", "nginx:latest"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|index.docker.io/nginx:latest"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withDockerImageMCR(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerImageName(data, "https://mcr.microsoft.com", "appsvc/staticsite:latest"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|mcr.microsoft.com/appsvc/staticsite:latest"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withDockerImageDockerHub(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerImageName(data, "https://index.docker.io", "nginx:latest"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|index.docker.io/nginx:latest"),
 			),
 		},
 		data.ImportStep(),
@@ -2077,6 +2180,63 @@ resource "azurerm_linux_web_app_slot" "test" {
 }
 
 `, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
+}
+
+func (r LinuxWebAppSlotResource) dockerHub(data acceptance.TestData, containerImage, containerTag string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  app_settings = {
+    "DOCKER_REGISTRY_SERVER_URL"          = "https://index.docker.io"
+    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
+    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
+  }
+
+  site_config {
+    application_stack {
+      docker_image     = "%s"
+      docker_image_tag = "%s"
+    }
+  }
+}
+
+`, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
+}
+
+func (r LinuxWebAppSlotResource) dockerImageName(data acceptance.TestData, registryUrl, containerImage string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  app_settings = {
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
+  }
+
+  site_config {
+    application_stack {
+      docker_image_name   = "%s"
+      docker_registry_url = "%s"
+    }
+  }
+}
+
+`, r.baseTemplate(data), data.RandomInteger, containerImage, registryUrl)
 }
 
 func (r LinuxWebAppSlotResource) identitySystemAssigned(data acceptance.TestData) string {

@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -308,19 +309,28 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
 			}
 
-			siteConfig, currentStack, err := helpers.ExpandSiteConfigWindows(webApp.SiteConfig, nil, metadata, servicePlan)
-			if err != nil {
-				return err
-			}
+			sc := webApp.SiteConfig[0]
 
-			if *currentStack == helpers.CurrentStackNode {
-				if webApp.AppSettings == nil {
-					webApp.AppSettings = make(map[string]string, 0)
+			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+					if sc.AlwaysOn {
+						return fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+					}
 				}
-				webApp.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = webApp.SiteConfig[0].ApplicationStack[0].NodeVersion
 			}
 
-			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webApp.AppSettings)
+			siteConfig := sc.ExpandForCreate(webApp.AppSettings)
+
+			currentStack := ""
+			if len(sc.ApplicationStack) == 1 {
+				currentStack = sc.ApplicationStack[0].CurrentStack
+				if currentStack == helpers.CurrentStackNode {
+					if webApp.AppSettings == nil {
+						webApp.AppSettings = make(map[string]string, 0)
+					}
+					webApp.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = sc.ApplicationStack[0].NodeVersion
+				}
+			}
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
@@ -365,9 +375,9 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			if currentStack != nil && *currentStack != "" {
+			if currentStack != "" {
 				siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
-				siteMetadata.Properties["CURRENT_STACK"] = currentStack
+				siteMetadata.Properties["CURRENT_STACK"] = pointer.To(currentStack)
 				if _, err := client.UpdateMetadata(ctx, id.ResourceGroup, id.SiteName, siteMetadata); err != nil {
 					return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
 				}
@@ -599,14 +609,25 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 			state.AppSettings = siteConfig.ParseNodeVersion(state.AppSettings)
 
-			if strings.HasPrefix(siteConfig.WindowsFxVersion, "DOCKER") {
-				siteConfig.DecodeDockerAppStack(state.AppSettings)
+			// For non-import cases we check for use of the deprecated docker settings - remove in 4.0
+			_, usesDeprecatedDocker := metadata.ResourceData.GetOk("site_config.0.application_stack.0.docker_container_name")
+
+			if helpers.FxStringHasPrefix(siteConfig.WindowsFxVersion, helpers.FxStringPrefixDocker) {
+				if !features.FourPointOhBeta() {
+					siteConfig.DecodeDockerDeprecatedAppStack(state.AppSettings, usesDeprecatedDocker)
+				} else {
+					siteConfig.DecodeDockerAppStack(state.AppSettings)
+				}
 			}
 
 			state.SiteConfig = []helpers.SiteConfigWindows{siteConfig}
 
 			// Filter out all settings we've consumed above
-			state.AppSettings = helpers.FilterUnmanagedAppSettings(state.AppSettings)
+			if !features.FourPointOhBeta() && usesDeprecatedDocker {
+				state.AppSettings = helpers.FilterManagedAppSettingsDeprecated(state.AppSettings)
+			} else {
+				state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
+			}
 
 			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
@@ -667,8 +688,6 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			// TODO - Need locking here for the source control meta resource?
 
 			var state WindowsWebAppModel
 			if err := metadata.Decode(&state); err != nil {
@@ -749,18 +768,22 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			currentStack := ""
-			stateConfig := state.SiteConfig[0]
-			if len(stateConfig.ApplicationStack) == 1 {
-				currentStack = stateConfig.ApplicationStack[0].CurrentStack
+			sc := state.SiteConfig[0]
+
+			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+					if sc.AlwaysOn {
+						return fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+					}
+				}
+			}
+
+			if len(sc.ApplicationStack) == 1 {
+				currentStack = sc.ApplicationStack[0].CurrentStack
 			}
 
 			if metadata.ResourceData.HasChange("site_config") || servicePlanChange {
-				siteConfig, stack, err := helpers.ExpandSiteConfigWindows(state.SiteConfig, existing.SiteConfig, metadata, servicePlan)
-				if err != nil {
-					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
-				}
-				currentStack = *stack
-				existing.SiteConfig = siteConfig
+				existing.SiteConfig = sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
 			}
 
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, existing)

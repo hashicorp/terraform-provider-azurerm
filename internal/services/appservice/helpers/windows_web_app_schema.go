@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 
@@ -439,74 +440,187 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan) (*web.SiteConfig, *string, error) {
-	if len(siteConfig) == 0 {
-		return nil, nil, nil
-	}
-
+func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) *web.SiteConfig {
 	expanded := &web.SiteConfig{}
-	if existing != nil {
-		expanded = existing
-	}
 
-	winSiteConfig := siteConfig[0]
+	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
+	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
+	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
+	expanded.FtpsState = web.FtpsState(s.FtpsState)
+	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
+	expanded.LoadBalancing = web.SiteLoadBalancing(s.LoadBalancing)
+	expanded.LocalMySQLEnabled = pointer.To(s.LocalMysql)
+	expanded.ManagedPipelineMode = web.ManagedPipelineMode(s.ManagedPipelineMode)
+	expanded.MinTLSVersion = web.SupportedTLSVersions(s.MinTlsVersion)
+	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
+	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
+	expanded.ScmMinTLSVersion = web.SupportedTLSVersions(s.ScmMinTlsVersion)
+	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
+	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
+	expanded.VirtualApplications = expandVirtualApplications(s.VirtualApplications)
+	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 
-	currentStack := ""
-	if len(winSiteConfig.ApplicationStack) == 1 {
-		winAppStack := winSiteConfig.ApplicationStack[0]
-		currentStack = winAppStack.CurrentStack
-	}
-
-	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
-		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
-			if winSiteConfig.AlwaysOn {
-				return nil, nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
-			}
-			if expanded.AlwaysOn != nil && *expanded.AlwaysOn {
-				// TODO - This code will not work as expected due to the service plan always being updated before the App, so the apply will always error out on the Service Plan change if `always_on` is incorrectly set.
-				// Need to investigate if there's a way to avoid users needing to run 2 applies for this.
-				return nil, nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
-			}
+	if s.ApiManagementConfigId != "" {
+		expanded.APIManagementConfig = &web.APIManagementConfig{
+			ID: pointer.To(s.ApiManagementConfigId),
 		}
 	}
-	expanded.AlwaysOn = pointer.To(winSiteConfig.AlwaysOn)
+
+	if s.ApiDefinition != "" {
+		expanded.APIDefinition = &web.APIDefinitionInfo{
+			URL: pointer.To(s.ApiDefinition),
+		}
+	}
+
+	if s.AppCommandLine != "" {
+		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
+	}
+
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
+
+	if len(s.ApplicationStack) == 1 {
+		winAppStack := s.ApplicationStack[0]
+		if winAppStack.NetFrameworkVersion != "" {
+			expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
+		}
+		if winAppStack.NetCoreVersion != "" {
+			expanded.NetFrameworkVersion = pointer.To(winAppStack.NetCoreVersion)
+		}
+		if winAppStack.PhpVersion != "" {
+			if winAppStack.PhpVersion != PhpVersionOff {
+				expanded.PhpVersion = pointer.To(winAppStack.PhpVersion)
+			} else {
+				expanded.PhpVersion = pointer.To("")
+			}
+		}
+		if winAppStack.PythonVersion != "" || winAppStack.Python {
+			expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
+		}
+		if winAppStack.JavaVersion != "" {
+			expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
+			switch {
+			case winAppStack.JavaEmbeddedServer:
+				expanded.JavaContainer = pointer.To(JavaContainerEmbeddedServer)
+				expanded.JavaContainerVersion = pointer.To(JavaContainerEmbeddedServerVersion)
+			case winAppStack.TomcatVersion != "":
+				expanded.JavaContainer = pointer.To(JavaContainerTomcat)
+				expanded.JavaContainerVersion = pointer.To(winAppStack.TomcatVersion)
+			case winAppStack.JavaContainer != "":
+				expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
+				expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
+			}
+		}
+		if !features.FourPointOhBeta() {
+			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
+				if winAppStack.DockerContainerRegistry != "" {
+					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				} else {
+					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				}
+			}
+		}
+
+		if winAppStack.DockerImageName != "" {
+			expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
+			appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
+			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
+			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
+
+		}
+
+	} else {
+		expanded.WindowsFxVersion = pointer.To("")
+	}
+
+	if s.ContainerRegistryUserMSI != "" {
+		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryUserMSI)
+	}
+
+	if len(s.DefaultDocuments) != 0 {
+		expanded.DefaultDocuments = pointer.To(s.DefaultDocuments)
+	}
+
+	if len(s.IpRestriction) != 0 {
+		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
+		if err != nil {
+			// TODO
+			//return nil, nil, fmt.Errorf("expanding IP Restrictions: %+v", err)
+		}
+		expanded.IPSecurityRestrictions = ipRestrictions
+	}
+
+	if len(s.ScmIpRestriction) != 0 {
+		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
+		if err != nil {
+			// TODO
+			//return nil, nil, fmt.Errorf("expanding SCM IP Restrictions: %+v", err)
+		}
+		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
+	}
+
+	if s.RemoteDebuggingVersion != "" {
+		expanded.RemoteDebuggingVersion = pointer.To(s.RemoteDebuggingVersion)
+	}
+
+	if s.HealthCheckPath != "" {
+		expanded.HealthCheckPath = pointer.To(s.HealthCheckPath)
+	}
+
+	if s.WorkerCount != 0 {
+		expanded.NumberOfWorkers = pointer.To(int32(s.WorkerCount))
+	}
+
+	if len(s.Cors) != 0 {
+		expanded.Cors = ExpandCorsSettings(s.Cors)
+	}
+
+	if len(s.AutoHealSettings) != 0 {
+		expanded.AutoHealRules = expandAutoHealSettingsWindows(s.AutoHealSettings)
+	}
+
+	return expanded
+}
+
+func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *web.SiteConfig, appSettings map[string]string) *web.SiteConfig {
+	expanded := web.SiteConfig{}
+	if existing != nil {
+		expanded = *existing
+	}
+
+	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
+	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
+	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
+	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
+	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
+	expanded.LocalMySQLEnabled = pointer.To(s.LocalMysql)
+	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
+	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
+	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.APIManagementConfig = &web.APIManagementConfig{
-			ID: pointer.To(winSiteConfig.ApiManagementConfigId),
+			ID: pointer.To(s.ApiManagementConfigId),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
 		expanded.APIDefinition = &web.APIDefinitionInfo{
-			URL: pointer.To(winSiteConfig.ApiDefinition),
+			URL: pointer.To(s.ApiDefinition),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
-		expanded.AppCommandLine = pointer.To(winSiteConfig.AppCommandLine)
+		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-		if len(winSiteConfig.ApplicationStack) == 1 {
-			winAppStack := winSiteConfig.ApplicationStack[0]
+		if len(s.ApplicationStack) == 1 {
+			winAppStack := s.ApplicationStack[0]
 			if winAppStack.NetFrameworkVersion != "" {
 				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetFrameworkVersion)
-				if currentStack == "" {
-					currentStack = CurrentStackDotNet
-				}
 			}
 			if winAppStack.NetCoreVersion != "" {
 				expanded.NetFrameworkVersion = pointer.To(winAppStack.NetCoreVersion)
-				if currentStack == "" {
-					currentStack = CurrentStackDotNetCore
-				}
-			}
-			if winAppStack.NodeVersion != "" {
-				// Note: node version is now exclusively controlled via app_setting.WEBSITE_NODE_DEFAULT_VERSION
-				if currentStack == "" {
-					currentStack = CurrentStackNode
-				}
 			}
 			if winAppStack.PhpVersion != "" {
 				if winAppStack.PhpVersion != PhpVersionOff {
@@ -514,15 +628,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 				} else {
 					expanded.PhpVersion = pointer.To("")
 				}
-				if currentStack == "" {
-					currentStack = CurrentStackPhp
-				}
 			}
 			if winAppStack.PythonVersion != "" || winAppStack.Python {
 				expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
-				if currentStack == "" {
-					currentStack = CurrentStackPython
-				}
 			}
 			if winAppStack.JavaVersion != "" {
 				expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
@@ -537,101 +645,91 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 					expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
 					expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
 				}
+			}
+			if !features.FourPointOhBeta() {
+				if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
+					if winAppStack.DockerContainerRegistry != "" {
+						expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+					} else {
+						expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+					}
+				}
+			}
 
-				if currentStack == "" {
-					currentStack = CurrentStackJava
-				}
+			if winAppStack.DockerImageName != "" {
+				expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
+				appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
+				appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
+				appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
+
 			}
-			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
-				if winAppStack.DockerContainerRegistry != "" {
-					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-				} else {
-					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-				}
-			}
+
 		} else {
 			expanded.WindowsFxVersion = pointer.To("")
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.virtual_application") {
-		expanded.VirtualApplications = expandVirtualApplicationsForUpdate(winSiteConfig.VirtualApplications)
+		expanded.VirtualApplications = expandVirtualApplicationsForUpdate(s.VirtualApplications)
 	} else {
-		expanded.VirtualApplications = expandVirtualApplications(winSiteConfig.VirtualApplications)
+		expanded.VirtualApplications = expandVirtualApplications(s.VirtualApplications)
 	}
 
-	expanded.AcrUseManagedIdentityCreds = pointer.To(winSiteConfig.UseManagedIdentityACR)
-
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
-		expanded.AcrUserManagedIdentityID = pointer.To(winSiteConfig.ContainerRegistryUserMSI)
+		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryUserMSI)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
-		expanded.DefaultDocuments = &winSiteConfig.DefaultDocuments
+		expanded.DefaultDocuments = pointer.To(s.DefaultDocuments)
 	}
 
-	expanded.HTTP20Enabled = pointer.To(winSiteConfig.Http2Enabled)
-
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
-		ipRestrictions, err := ExpandIpRestrictions(winSiteConfig.IpRestriction)
-		if err != nil {
-			return nil, nil, fmt.Errorf("expanding IP Restrictions: %+v", err)
-		}
+		// TODO
+		ipRestrictions, _ := ExpandIpRestrictions(s.IpRestriction)
+
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(winSiteConfig.ScmUseMainIpRestriction)
-
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
-		scmIpRestrictions, err := ExpandIpRestrictions(winSiteConfig.ScmIpRestriction)
-		if err != nil {
-			return nil, nil, fmt.Errorf("expanding SCM IP Restrictions: %+v", err)
-		}
+		// TODO
+		scmIpRestrictions, _ := ExpandIpRestrictions(s.ScmIpRestriction)
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	expanded.LocalMySQLEnabled = pointer.To(winSiteConfig.LocalMysql)
-
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = web.SiteLoadBalancing(winSiteConfig.LoadBalancing)
+		expanded.LoadBalancing = web.SiteLoadBalancing(s.LoadBalancing)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = web.ManagedPipelineMode(winSiteConfig.ManagedPipelineMode)
+		expanded.ManagedPipelineMode = web.ManagedPipelineMode(s.ManagedPipelineMode)
 	}
-
-	expanded.RemoteDebuggingEnabled = pointer.To(winSiteConfig.RemoteDebugging)
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
-		expanded.RemoteDebuggingVersion = pointer.To(winSiteConfig.RemoteDebuggingVersion)
+		expanded.RemoteDebuggingVersion = pointer.To(s.RemoteDebuggingVersion)
 	}
 
-	expanded.Use32BitWorkerProcess = pointer.To(winSiteConfig.Use32BitWorker)
-
-	expanded.WebSocketsEnabled = pointer.To(winSiteConfig.WebSockets)
-
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = web.FtpsState(winSiteConfig.FtpsState)
+		expanded.FtpsState = web.FtpsState(s.FtpsState)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		expanded.HealthCheckPath = pointer.To(winSiteConfig.HealthCheckPath)
+		expanded.HealthCheckPath = pointer.To(s.HealthCheckPath)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
-		expanded.NumberOfWorkers = pointer.To(int32(winSiteConfig.WorkerCount))
+		expanded.NumberOfWorkers = pointer.To(int32(s.WorkerCount))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTLSVersion = web.SupportedTLSVersions(winSiteConfig.MinTlsVersion)
+		expanded.MinTLSVersion = web.SupportedTLSVersions(s.MinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(winSiteConfig.ScmMinTlsVersion)
+		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(s.ScmMinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		cors := ExpandCorsSettings(winSiteConfig.Cors)
+		cors := ExpandCorsSettings(s.Cors)
 		if cors == nil {
 			cors = &web.CorsSettings{
 				AllowedOrigins: &[]string{},
@@ -639,20 +737,15 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		}
 		expanded.Cors = cors
 	}
-
-	if metadata.ResourceData.HasChange("site_config.0.auto_heal_enabled") {
-		expanded.AutoHealEnabled = pointer.To(winSiteConfig.AutoHeal)
-	}
-
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
-		expanded.AutoHealRules = expandAutoHealSettingsWindows(winSiteConfig.AutoHealSettings)
+		expanded.AutoHealRules = expandAutoHealSettingsWindows(s.AutoHealSettings)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = pointer.To(winSiteConfig.VnetRouteAllEnabled)
+		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	}
 
-	return expanded, &currentStack, nil
+	return &expanded
 }
 
 func (s *SiteConfigWindows) Flatten(appSiteConfig *web.SiteConfig, currentStack string) error {
@@ -728,21 +821,21 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *web.SiteConfig, currentStack 
 	}
 
 	s.WindowsFxVersion = pointer.From(appSiteConfig.WindowsFxVersion)
-	if s.WindowsFxVersion != "" {
-		// TODO - These are deprecated and will be removed in 4.0, need to wrap in feature flag
-		// Decode the string to docker values
-		parts := strings.Split(strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|"), ":")
-		if len(parts) == 2 {
-			winAppStack.DockerContainerTag = parts[1]
-			path := strings.Split(parts[0], "/")
-			if len(path) > 1 {
-				winAppStack.DockerContainerRegistry = path[0]
-				winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
-			} else {
-				winAppStack.DockerContainerName = path[0]
-			}
-		}
-	}
+	//if s.WindowsFxVersion != "" {
+	//	// TODO - These are deprecated and will be removed in 4.0, need to wrap in feature flag
+	//	// Decode the string to docker values
+	//	parts := strings.Split(strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|"), ":")
+	//	if len(parts) == 2 {
+	//		winAppStack.DockerContainerTag = parts[1]
+	//		path := strings.Split(parts[0], "/")
+	//		if len(path) > 1 {
+	//			winAppStack.DockerContainerRegistry = path[0]
+	//			winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+	//		} else {
+	//			winAppStack.DockerContainerName = path[0]
+	//		}
+	//	}
+	//}
 
 	winAppStack.CurrentStack = currentStack
 
@@ -760,6 +853,9 @@ func (s *SiteConfigWindows) SetHealthCheckEvictionTime(input map[string]string) 
 
 func (s *SiteConfigWindows) DecodeDockerAppStack(input map[string]string) {
 	applicationStack := ApplicationStackWindows{}
+	if len(s.ApplicationStack) == 1 {
+		applicationStack = s.ApplicationStack[0]
+	}
 
 	if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
 		applicationStack.DockerRegistryUrl = v
@@ -776,6 +872,45 @@ func (s *SiteConfigWindows) DecodeDockerAppStack(input map[string]string) {
 	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
 	dockerString := strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|")
 	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost)
+
+	s.ApplicationStack = []ApplicationStackWindows{applicationStack}
+}
+
+func (s *SiteConfigWindows) DecodeDockerDeprecatedAppStack(input map[string]string, usesDeprecated bool) {
+	applicationStack := ApplicationStackWindows{}
+	if len(s.ApplicationStack) == 1 {
+		applicationStack = s.ApplicationStack[0]
+	}
+
+	if !usesDeprecated {
+		if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
+			applicationStack.DockerRegistryUrl = v
+		}
+
+		if v, ok := input["DOCKER_REGISTRY_SERVER_USERNAME"]; ok {
+			applicationStack.DockerRegistryUsername = v
+		}
+
+		if v, ok := input["DOCKER_REGISTRY_SERVER_PASSWORD"]; ok {
+			applicationStack.DockerRegistryPassword = v
+		}
+
+		registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+		dockerString := strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|")
+		applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
+	} else {
+		parts := strings.Split(strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|"), ":")
+		if len(parts) == 2 {
+			applicationStack.DockerContainerTag = parts[1]
+			path := strings.Split(parts[0], "/")
+			if len(path) > 1 {
+				applicationStack.DockerContainerRegistry = path[0]
+				applicationStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
+			} else {
+				applicationStack.DockerContainerName = path[0]
+			}
+		}
+	}
 
 	s.ApplicationStack = []ApplicationStackWindows{applicationStack}
 }

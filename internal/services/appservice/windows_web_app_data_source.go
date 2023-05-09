@@ -344,7 +344,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			webApp.AppSettings = siteConfig.ParseNodeVersion(webApp.AppSettings)
 
 			siteConfig.SetHealthCheckEvictionTime(webApp.AppSettings)
-			if strings.HasPrefix(siteConfig.WindowsFxVersion, "DOCKER") {
+			if helpers.FxStringHasPrefix(siteConfig.WindowsFxVersion, helpers.FxStringPrefixDocker) {
 				siteConfig.DecodeDockerAppStack(webApp.AppSettings)
 			}
 

@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -290,18 +291,19 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			siteConfig, currentStack, err := helpers.ExpandSiteConfigWindowsWebAppSlot(webAppSlot.SiteConfig, nil, metadata)
-			if err != nil {
-				return err
-			}
+			sc := webAppSlot.SiteConfig[0]
+			siteConfig := sc.ExpandForCreate(webAppSlot.AppSettings)
 
-			if *currentStack == helpers.CurrentStackNode {
-				if webAppSlot.AppSettings == nil {
-					webAppSlot.AppSettings = make(map[string]string, 0)
+			currentStack := ""
+			if len(sc.ApplicationStack) == 1 {
+				currentStack = sc.ApplicationStack[0].CurrentStack
+				if currentStack == helpers.CurrentStackNode {
+					if webAppSlot.AppSettings == nil {
+						webAppSlot.AppSettings = make(map[string]string, 0)
+					}
+					webAppSlot.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = sc.ApplicationStack[0].NodeVersion
 				}
-				webAppSlot.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = webAppSlot.SiteConfig[0].ApplicationStack[0].NodeVersion
 			}
-			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
@@ -341,11 +343,20 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for creation of Windows %s: %+v", id, err)
 			}
 
+			// (@jackofallops) - Windows Web App Slots need the siteConfig sending individually to actually accept the `windowsFxVersion` value or it's set as `DOCKER|` only.
+			siteConfigUpdate := web.SiteConfigResource{
+				SiteConfig: siteConfig,
+			}
+			_, err = client.UpdateConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, siteConfigUpdate, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("updating %s site config: %+v", id, err)
+			}
+
 			metadata.SetID(id)
 
-			if currentStack != nil && *currentStack != "" {
+			if currentStack != "" {
 				siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
-				siteMetadata.Properties["CURRENT_STACK"] = currentStack
+				siteMetadata.Properties["CURRENT_STACK"] = pointer.To(currentStack)
 				if _, err := client.UpdateMetadataSlot(ctx, id.ResourceGroup, id.SiteName, siteMetadata, id.SlotName); err != nil {
 					return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
 				}
@@ -575,14 +586,25 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 			state.AppSettings = siteConfig.ParseNodeVersion(state.AppSettings)
 
-			if strings.HasPrefix(siteConfig.WindowsFxVersion, "DOCKER") {
-				siteConfig.DecodeDockerAppStack(state.AppSettings)
+			// For non-import cases we check for use of the deprecated docker settings - remove in 4.0
+			_, usesDeprecatedDocker := metadata.ResourceData.GetOk("site_config.0.application_stack.0.docker_container_name")
+
+			if helpers.FxStringHasPrefix(siteConfig.WindowsFxVersion, helpers.FxStringPrefixDocker) {
+				if !features.FourPointOhBeta() {
+					siteConfig.DecodeDockerDeprecatedAppStack(state.AppSettings, usesDeprecatedDocker)
+				} else {
+					siteConfig.DecodeDockerAppStack(state.AppSettings)
+				}
 			}
 
 			state.SiteConfig = []helpers.SiteConfigWindowsWebAppSlot{siteConfig}
 
 			// Filter out all settings we've consumed above
-			state.AppSettings = helpers.FilterUnmanagedAppSettings(state.AppSettings)
+			if !features.FourPointOhBeta() && usesDeprecatedDocker {
+				state.AppSettings = helpers.FilterManagedAppSettingsDeprecated(state.AppSettings)
+			} else {
+				state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
+			}
 
 			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
@@ -706,18 +728,14 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			currentStack := ""
-			stateConfig := state.SiteConfig[0]
-			if len(stateConfig.ApplicationStack) == 1 {
-				currentStack = stateConfig.ApplicationStack[0].CurrentStack
+			sc := state.SiteConfig[0]
+
+			if len(sc.ApplicationStack) == 1 {
+				currentStack = sc.ApplicationStack[0].CurrentStack
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {
-				siteConfig, stack, err := helpers.ExpandSiteConfigWindowsWebAppSlot(state.SiteConfig, existing.SiteConfig, metadata)
-				if err != nil {
-					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
-				}
-				currentStack = *stack
-				existing.SiteConfig = siteConfig
+				existing.SiteConfig = sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {

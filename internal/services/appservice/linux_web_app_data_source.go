@@ -342,14 +342,14 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			siteConfig.Flatten(webAppSiteConfig.SiteConfig)
 			siteConfig.SetHealthCheckEvictionTime(webApp.AppSettings)
 
-			if strings.HasPrefix(siteConfig.LinuxFxVersion, "DOCKER") {
+			if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
 				siteConfig.DecodeDockerAppStack(webApp.AppSettings)
 			}
 
 			webApp.SiteConfig = []helpers.SiteConfigLinux{siteConfig}
 
 			// Filter out all settings we've consumed above
-			webApp.AppSettings = helpers.FilterUnmanagedAppSettings(webApp.AppSettings)
+			webApp.AppSettings = helpers.FilterManagedAppSettings(webApp.AppSettings)
 
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 

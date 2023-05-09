@@ -51,6 +51,7 @@ type ApplicationStackWindows struct {
 
 var windowsApplicationStackConstraintThreePointX = []string{
 	"site_config.0.application_stack.0.docker_container_name",
+	"site_config.0.application_stack.0.docker_image_name",
 	"site_config.0.application_stack.0.dotnet_version",
 	"site_config.0.application_stack.0.dotnet_core_version",
 	"site_config.0.application_stack.0.java_version",
@@ -60,7 +61,7 @@ var windowsApplicationStackConstraintThreePointX = []string{
 	"site_config.0.application_stack.0.python",
 }
 
-var windowsApplicationStackConstraintFourPointOh = []string{
+var windowsApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.docker_image_name",
 	"site_config.0.application_stack.0.dotnet_version",
 	"site_config.0.application_stack.0.dotnet_core_version",
@@ -85,7 +86,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					"v5.0",
 					"v6.0",
 					"v7.0"}, false),
-				AtLeastOneOf: windowsApplicationStackConstraintFourPointOh,
+				AtLeastOneOf: windowsApplicationStackConstraint,
 			},
 
 			"dotnet_core_version": {
@@ -94,7 +95,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				ValidateFunc: validation.StringInSlice([]string{
 					"v4.0",
 				}, false),
-				AtLeastOneOf: windowsApplicationStackConstraintFourPointOh,
+				AtLeastOneOf: windowsApplicationStackConstraint,
 				Description:  "The version of DotNetCore to use.",
 			},
 
@@ -107,47 +108,32 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					PhpVersionSevenPointFour, // Deprecated
 					PhpVersionOff,            // Portal displays `Off` for `""` meaning use latest available
 				}, false),
-				AtLeastOneOf: windowsApplicationStackConstraintFourPointOh,
-			},
-
-			"python_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				Deprecated:   "This property is deprecated. Values set are not used by the service.",
-				AtLeastOneOf: windowsApplicationStackConstraintFourPointOh,
-				ConflictsWith: []string{
-					"site_config.0.application_stack.0.python",
-				},
+				AtLeastOneOf: windowsApplicationStackConstraint,
 			},
 
 			"python": {
 				Type:         pluginsdk.TypeBool,
 				Optional:     true,
 				Default:      false,
-				AtLeastOneOf: windowsApplicationStackConstraintFourPointOh,
-				ConflictsWith: []string{
-					"site_config.0.application_stack.0.python_version",
-				},
+				AtLeastOneOf: windowsApplicationStackConstraint,
 			},
 
 			"node_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"~12", // TODO - Remove in 4.0 due to service Deprecation.
 					"~14",
 					"~16",
 					"~18",
 				}, false),
-				AtLeastOneOf: windowsApplicationStackConstraintFourPointOh,
+				AtLeastOneOf: windowsApplicationStackConstraint,
 			},
 
 			"java_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				AtLeastOneOf: windowsApplicationStackConstraintFourPointOh,
+				AtLeastOneOf: windowsApplicationStackConstraint,
 			},
 
 			"java_embedded_server_enabled": {
@@ -204,7 +190,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 			"docker_image_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ExactlyOneOf: windowsApplicationStackConstraintFourPointOh,
+				AtLeastOneOf: windowsApplicationStackConstraint,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -267,13 +253,37 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 			},
 		}
 
+		r.Schema["docker_image_name"].AtLeastOneOf = windowsApplicationStackConstraintThreePointX
 		r.Schema["dotnet_version"].AtLeastOneOf = windowsApplicationStackConstraintThreePointX
 		r.Schema["dotnet_core_version"].AtLeastOneOf = windowsApplicationStackConstraintThreePointX
 		r.Schema["php_version"].AtLeastOneOf = windowsApplicationStackConstraintThreePointX
 		r.Schema["python"].AtLeastOneOf = windowsApplicationStackConstraintThreePointX
-		r.Schema["python_version"].AtLeastOneOf = windowsApplicationStackConstraintThreePointX
+		r.Schema["python"].ConflictsWith = []string{
+			"site_config.0.application_stack.0.python_version",
+		}
+		r.Schema["python_version"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			Deprecated:   "This property is deprecated. Values set are not used by the service.",
+			AtLeastOneOf: windowsApplicationStackConstraintThreePointX,
+			ConflictsWith: []string{
+				"site_config.0.application_stack.0.python",
+			},
+		}
+
 		r.Schema["node_version"].AtLeastOneOf = windowsApplicationStackConstraintThreePointX
+		r.Schema["node_version"].ValidateFunc = validation.StringInSlice([]string{
+			"~12",
+			"~14",
+			"~16",
+			"~18",
+		}, false)
 		r.Schema["java_version"].AtLeastOneOf = windowsApplicationStackConstraintThreePointX
+
+		r.Schema["docker_registry_url"].Computed = true
+		r.Schema["docker_registry_username"].Computed = true
+		r.Schema["docker_registry_password"].Computed = true
 	}
 
 	return &pluginsdk.Schema{
@@ -287,87 +297,111 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 }
 
 func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
+	r := &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"dotnet_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"dotnet_core_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"php_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"python": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"python_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"node_version": { // Discarded by service if JavaVersion is specified
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"java_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"java_embedded_server_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"tomcat_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"java_container": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"java_container_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"current_stack": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"docker_image_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"docker_registry_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"docker_registry_username": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"docker_registry_password": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+		},
+	}
+
+	if !features.FourPointOhBeta() {
+		r.Schema["docker_container_name"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+
+		r.Schema["docker_container_registry"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+
+		r.Schema["docker_container_tag"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+
+	}
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"dotnet_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"dotnet_core_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"php_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"python": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"python_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"node_version": { // Discarded by service if JavaVersion is specified
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"java_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"java_embedded_server_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"tomcat_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"java_container": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"java_container_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"docker_container_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"docker_container_registry": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"docker_container_tag": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"current_stack": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
+		Elem:     r,
 	}
 }
 
@@ -392,6 +426,7 @@ type ApplicationStackLinux struct {
 
 var linuxApplicationStackConstraintThreePointX = []string{
 	"site_config.0.application_stack.0.docker_image",
+	"site_config.0.application_stack.0.docker_image_name",
 	"site_config.0.application_stack.0.dotnet_version",
 	"site_config.0.application_stack.0.java_version",
 	"site_config.0.application_stack.0.node_version",
@@ -401,7 +436,7 @@ var linuxApplicationStackConstraintThreePointX = []string{
 	"site_config.0.application_stack.0.go_version",
 }
 
-var linuxApplicationStackConstraintFourPointOh = []string{
+var linuxApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.docker_image_name",
 	"site_config.0.application_stack.0.dotnet_version",
 	"site_config.0.application_stack.0.java_version",
@@ -424,7 +459,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"6.0",
 					"7.0",
 				}, false),
-				ExactlyOneOf: linuxApplicationStackConstraintFourPointOh,
+				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
 
 			"go_version": {
@@ -434,7 +469,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"1.19",
 					"1.18",
 				}, false),
-				ExactlyOneOf: linuxApplicationStackConstraintFourPointOh,
+				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
 
 			"php_version": {
@@ -446,7 +481,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"8.1",
 					"8.2",
 				}, false),
-				ExactlyOneOf: linuxApplicationStackConstraintFourPointOh,
+				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
 
 			"python_version": {
@@ -459,7 +494,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"3.10",
 					"3.11",
 				}, false),
-				ExactlyOneOf: linuxApplicationStackConstraintFourPointOh,
+				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
 
 			"node_version": {
@@ -471,7 +506,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"16-lts",
 					"18-lts",
 				}, false),
-				ExactlyOneOf: linuxApplicationStackConstraintFourPointOh,
+				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
 
 			"ruby_version": {
@@ -481,7 +516,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"2.6", // Deprecated - accepted but not offered in the portal. Remove in 4.0
 					"2.7", // EOL 31/03/2023 https://github.com/Azure/app-service-linux-docs/blob/master/Runtime_Support/ruby_support.md Remove Ruby support in 4.0?
 				}, false),
-				ExactlyOneOf: linuxApplicationStackConstraintFourPointOh,
+				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
 
 			"java_version": {
@@ -492,7 +527,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"11",
 					"17",
 				}, false),
-				ExactlyOneOf: linuxApplicationStackConstraintFourPointOh,
+				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
 
 			"java_server": {
@@ -519,7 +554,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 			"docker_image_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ExactlyOneOf: linuxApplicationStackConstraintFourPointOh,
+				ExactlyOneOf: linuxApplicationStackConstraint,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -564,6 +599,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 			Deprecated: "This property has been deprecated and will be removed in 4.0 of the provider.",
 		}
 
+		r.Schema["docker_image_name"].ExactlyOneOf = linuxApplicationStackConstraintThreePointX
 		r.Schema["dotnet_version"].ExactlyOneOf = linuxApplicationStackConstraintThreePointX
 		r.Schema["go_version"].ExactlyOneOf = linuxApplicationStackConstraintThreePointX
 		r.Schema["php_version"].ExactlyOneOf = linuxApplicationStackConstraintThreePointX
@@ -571,6 +607,10 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 		r.Schema["node_version"].ExactlyOneOf = linuxApplicationStackConstraintThreePointX
 		r.Schema["ruby_version"].ExactlyOneOf = linuxApplicationStackConstraintThreePointX
 		r.Schema["java_version"].ExactlyOneOf = linuxApplicationStackConstraintThreePointX
+
+		r.Schema["docker_registry_url"].Computed = true
+		r.Schema["docker_registry_username"].Computed = true
+		r.Schema["docker_registry_password"].Computed = true
 
 	}
 
@@ -584,66 +624,89 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 }
 
 func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
+	r := &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"dotnet_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"go_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"php_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"python_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"node_version": { // Discarded by service if JavaVersion is specified
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"ruby_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"java_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"java_server": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"java_server_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"docker_image_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"docker_registry_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"docker_registry_username": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"docker_registry_password": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+		},
+	}
+
+	if !features.FourPointOhBeta() {
+		r.Schema["docker_image"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+		r.Schema["docker_image_tag"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+	}
+
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"dotnet_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"go_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"php_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"python_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"node_version": { // Discarded by service if JavaVersion is specified
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"ruby_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"java_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"java_server": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"java_server_version": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"docker_image": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"docker_image_tag": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
+		Elem:     r,
 	}
 }

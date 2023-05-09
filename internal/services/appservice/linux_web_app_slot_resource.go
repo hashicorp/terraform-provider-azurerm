@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -299,12 +300,8 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinuxWebAppSlot(webAppSlot.SiteConfig, nil, metadata)
-			if err != nil {
-				return err
-			}
-
-			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webAppSlot.AppSettings)
+			sc := webAppSlot.SiteConfig[0]
+			siteConfig := sc.ExpandForCreate(webAppSlot.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
@@ -565,14 +562,25 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			siteConfig.Flatten(webAppSiteConfig.SiteConfig)
 			siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 
-			if strings.HasPrefix(siteConfig.LinuxFxVersion, "DOCKER") {
-				siteConfig.DecodeDockerAppStack(state.AppSettings)
+			// For non-import cases we check for use of the deprecated docker settings - remove in 4.0
+			_, usesDeprecatedDocker := metadata.ResourceData.GetOk("site_config.0.application_stack.0.docker_image")
+
+			if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
+				if !features.FourPointOhBeta() {
+					siteConfig.DecodeDockerDeprecatedAppStack(state.AppSettings, usesDeprecatedDocker)
+				} else {
+					siteConfig.DecodeDockerAppStack(state.AppSettings)
+				}
 			}
 
 			state.SiteConfig = []helpers.SiteConfigLinuxWebAppSlot{siteConfig}
 
 			// Filter out all settings we've consumed above
-			state.AppSettings = helpers.FilterUnmanagedAppSettings(state.AppSettings)
+			if !features.FourPointOhBeta() && usesDeprecatedDocker {
+				state.AppSettings = helpers.FilterManagedAppSettingsDeprecated(state.AppSettings)
+			} else {
+				state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
+			}
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
@@ -702,7 +710,8 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {
-				siteConfig, err := helpers.ExpandSiteConfigLinuxWebAppSlot(state.SiteConfig, existing.SiteConfig, metadata)
+				sc := state.SiteConfig[0]
+				siteConfig := sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
 				if err != nil {
 					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 				}

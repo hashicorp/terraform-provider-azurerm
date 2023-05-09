@@ -1241,8 +1241,8 @@ func ExpandAppSettingsForCreate(settings map[string]string) *[]web.NameValuePair
 	return nil
 }
 
-func FilterUnmanagedAppSettings(input map[string]string) map[string]string {
-	maxPingFailures := "WEBSITE_HEALTHCHECK_MAXPINGFAILURES"
+// FilterManagedAppSettings removes app_settings values from the state that are controlled directly be schema properties.
+func FilterManagedAppSettings(input map[string]string) map[string]string {
 	unmanagedSettings := []string{
 		"DOCKER_REGISTRY_SERVER_URL",
 		"DOCKER_REGISTRY_SERVER_USERNAME",
@@ -1255,8 +1255,31 @@ func FilterUnmanagedAppSettings(input map[string]string) map[string]string {
 		"spring.datasource.password",
 		"spring.datasource.url",
 		"spring.datasource.username",
-		maxPingFailures,
+		"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
 	}
+
+	for _, v := range unmanagedSettings { //nolint:typecheck
+		delete(input, v)
+	}
+
+	return input
+}
+
+// FilterManagedAppSettingsDeprecated removes app_settings values from the state that are controlled directly be
+// schema properties when the deprecated docker settings are used. This function should be removed in 4.0
+func FilterManagedAppSettingsDeprecated(input map[string]string) map[string]string {
+	unmanagedSettings := []string{
+		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
+		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
+		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
+		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
+		"WEBSITE_VNET_ROUTE_ALL",
+		"spring.datasource.password",
+		"spring.datasource.url",
+		"spring.datasource.username",
+		"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
+	}
+
 	for _, v := range unmanagedSettings { //nolint:typecheck
 		delete(input, v)
 	}
@@ -1338,7 +1361,7 @@ func DisabledLogsConfig() *web.SiteLogsConfig {
 	}
 }
 
-func isFreeOrSharedServicePlan(inputSKU string) bool {
+func IsFreeOrSharedServicePlan(inputSKU string) bool {
 	result := false
 	for _, sku := range freeSkus {
 		if inputSKU == sku {
