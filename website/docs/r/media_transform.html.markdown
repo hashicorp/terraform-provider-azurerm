@@ -234,6 +234,44 @@ resource "azurerm_media_transform" "example" {
         }
       }
 
+      codec {
+        jpg_image {
+          stretch_mode  = "AutoSize"
+          sync_mode     = "Auto"
+          start         = "10"
+          range         = "100%%"
+          sprite_column = 1
+          step          = "10"
+          layer {
+            quality = 70
+            height  = "180"
+            label   = "test"
+            width   = "120"
+          }
+        }
+      }
+
+      codec {
+        png_image {
+          stretch_mode = "AutoSize"
+          sync_mode    = "Auto"
+          start        = "{Best}"
+          range        = "80"
+          step         = "10"
+          layer {
+            height = "180"
+            label  = "test"
+            width  = "120"
+          }
+        }
+      }
+
+      format {
+        jpg {
+          filename_pattern = "test{Basename}"
+        }
+      }
+
       format {
         mp4 {
           filename_pattern = "test{Bitrate}"
@@ -244,11 +282,8 @@ resource "azurerm_media_transform" "example" {
       }
 
       format {
-        transport_stream {
-          filename_pattern = "test{Bitrate}"
-          output_file {
-            labels = ["prod"]
-          }
+        png {
+          filename_pattern = "test{Basename}"
         }
       }
 
@@ -394,7 +429,11 @@ A `codec` block supports the following:
 
 * `h265_video` - (Optional) A `h265_video` block as defined below.
 
--> **NOTE:** Each codec can only have one type: `aac_audio`, `copy_audio`, `copy_video`, `dd_audio`, `h264_video` or `h265_video`. If you need to apply different codec you must create one codec for each one.
+* `jpg_image` - (Optional) A `jpg_image` block as defined below.
+
+* `png_image` - (Optional) A `png_image` block as defined below.
+
+-> **NOTE:** Each codec can only have one type: `aac_audio`, `copy_audio`, `copy_video`, `dd_audio`, `h264_video`, `h265_video`, `jpg_image` or `png_image`. If you need to apply different codec you must create one codec for each one.
 
 ---
 
@@ -505,11 +544,15 @@ A `filter` block supports the following:
 
 A `format` block supports the following:
 
+* `jpg` - (Optional) A `jpg` block as defined below.
+
 * `mp4` - (Optional) A `mp4` block as defined below.
 
 * `transport_stream` - (Optional) A `transport_stream` block as defined below.
+
+* `png` - (Optional) A `png` block as defined below.
  
--> **NOTE:** Each format can only have one type: `mp4` or `transport_stream`. If you need to apply different type you must create one format for each one.
+-> **NOTE:** Each format can only have one type: `jpg`, `mp4`, `transport_stream` or `png`. If you need to apply different type you must create one format for each one.
 
 ---
 
@@ -546,6 +589,34 @@ A `h265_video` block supports the following:
 * `scene_change_detection_enabled` - (Optional) Whether the encoder should insert key frames at scene changes. This flag should be set to true only when the encoder is being configured to produce a single output video. Default to `false`.
 
 * `stretch_mode` - (Optional) Specifies the resizing mode - how the input video will be resized to fit the desired output resolution(s). Possible values are `AutoFit`, `AutoSize` or `None`. Default to `AutoSize`.
+
+* `sync_mode` - (Optional) Specifies the synchronization mode for the video. Possible values are `Auto`, `Cfr`, `Passthrough` or `Vfr`. Default to `Auto`.
+
+---
+
+A `jpg` block supports the following:
+
+* `filename_pattern` - (Required) The file naming pattern used for the creation of output files. The following macros are supported in the file name: `{Basename}` - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. `{Extension}` - The appropriate extension for this format. `{Label}` - The label assigned to the codec/layer. `{Index}` - A unique index for thumbnails. Only applicable to thumbnails. `{AudioStream}` - string "Audio" plus audio stream number(start from 1). `{Bitrate}` - The audio/video bitrate in kbps. Not applicable to thumbnails. `{Codec}` - The type of the audio/video codec. `{Resolution}` - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
+
+---
+
+A `jpg_image` block supports the following:
+
+* `start` - (Required) The position in the input video from where to start generating thumbnails. The value can be in ISO 8601 format (For example, `PT05S` to start at 5 seconds), or a frame count (For example, `10` to start at the 10th frame), or a relative value to stream duration (For example, `10%` to start at 10% of stream duration). Also supports a macro `{Best}`, which tells the encoder to select the best thumbnail from the first few seconds of the video and will only produce one thumbnail, no matter what other settings are for `step` and `range`.
+
+* `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. The default is `2` seconds (`PT2S`). Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting.
+
+* `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior.
+
+* `layer` - (Optional) One or more `layer` blocks as defined below.
+
+* `range` - (Optional) The position relative to transform preset start time in the input video at which to stop generating thumbnails. The value can be in ISO 8601 format (For example, `PT5M30S` to stop at 5 minutes and 30 seconds from start time), or a frame count (For example, `300` to stop at the 300th frame from the frame at start time. If this value is `1`, it means only producing one thumbnail at start time), or a relative value to the stream duration (For example, `50%` to stop at half of stream duration from start time). The default value is `100%`, which means to stop at the end of the stream. 
+
+* `sprite_column` - (Optional) Sets the number of columns used in thumbnail sprite image. The number of rows are automatically calculated and a VTT file is generated with the coordinate mappings for each thumbnail in the sprite. Note: this value should be a positive integer and a proper value is recommended so that the output image resolution will not go beyond JPEG maximum pixel resolution limit `65535x65535`.
+
+* `step` - (Optional) The intervals at which thumbnails are generated. The value can be in ISO 8601 format (For example, `PT05S` for one image every 5 seconds), or a frame count (For example, `30` for one image every 30 frames), or a relative value to stream duration (For example, `10%` for one image every 10% of stream duration). Note: Step value will affect the first generated thumbnail, which may not be exactly the one specified at transform preset start time. This is due to the encoder, which tries to select the best thumbnail between start time and Step position from start time as the first output. As the default value is `10%`, it means if stream has long duration, the first generated thumbnail might be far away from the one specified at start time. Try to select reasonable value for Step if the first thumbnail is expected close to start time, or set Range value at `1` if only one thumbnail is needed at start time.
+
+* `stretch_mode` - (Optional) The resizing mode, which indicates how the input video will be resized to fit the desired output resolution(s). Possible values are `AutoFit`, `AutoSize` or `None`. Default to `AutoSize`.
 
 * `sync_mode` - (Optional) Specifies the synchronization mode for the video. Possible values are `Auto`, `Cfr`, `Passthrough` or `Vfr`. Default to `Auto`.
 
@@ -620,6 +691,28 @@ A `layer` block within `h265_video` block supports the following:
 
 ---
 
+A `layer` block within `jpg_image` block supports the following:
+
+* `height` - (Optional) The height of the output video for this layer. The value can be absolute (in pixels) or relative (in percentage). For example `50%` means the output video has half as many pixels in height as the input.
+
+* `label` - (Optional) The alphanumeric label for this layer, which can be used in multiplexing different video and audio layers, or in naming the output file.
+
+* `quality` - (Optional) The compression quality of the JPEG output. Range is from `0` to `100` and the default is `70`.
+
+* `width` - (Optional) The width of the output video for this layer. The value can be absolute (in pixels) or relative (in percentage). For example `50%` means the output video has half as many pixels in width as the input.
+
+---
+
+A `layer` block within `png_image` block supports the following:
+
+* `height` - (Optional) The height of the output video for this layer. The value can be absolute (in pixels) or relative (in percentage). For example `50%` means the output video has half as many pixels in height as the input.
+
+* `label` - (Optional) The alphanumeric label for this layer, which can be used in multiplexing different video and audio layers, or in naming the output file.
+
+* `width` - (Optional) The width of the output video for this layer. The value can be absolute (in pixels) or relative (in percentage). For example `50%` means the output video has half as many pixels in width as the input.
+
+---
+
 A `mp4` block supports the following:
 
 * `filename_pattern` - (Required) The file naming pattern used for the creation of output files. The following macros are supported in the file name: `{Basename}` - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. `{Extension}` - The appropriate extension for this format. `{Label}` - The label assigned to the codec/layer. `{Index}` - A unique index for thumbnails. Only applicable to thumbnails. `{AudioStream}` - string "Audio" plus audio stream number(start from 1). `{Bitrate}` - The audio/video bitrate in kbps. Not applicable to thumbnails. `{Codec}` - The type of the audio/video codec. `{Resolution}` - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
@@ -661,6 +754,32 @@ An `overlay` block supports the following:
 * `video` - (Optional) A `video` block as defined below.
 
 -> **NOTE:** Each overlay can only have one type: `audio` or `video`. If you need to apply different type you must create one overlay for each one.
+
+---
+
+A `png` block supports the following:
+
+* `filename_pattern` - (Required) The file naming pattern used for the creation of output files. The following macros are supported in the file name: `{Basename}` - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. `{Extension}` - The appropriate extension for this format. `{Label}` - The label assigned to the codec/layer. `{Index}` - A unique index for thumbnails. Only applicable to thumbnails. `{AudioStream}` - string "Audio" plus audio stream number(start from 1). `{Bitrate}` - The audio/video bitrate in kbps. Not applicable to thumbnails. `{Codec}` - The type of the audio/video codec. `{Resolution}` - The video resolution. Any unsubstituted macros will be collapsed and removed from the filename.
+
+---
+
+A `png_image` block supports the following:
+
+* `start` - (Required) The position in the input video from where to start generating thumbnails. The value can be in ISO 8601 format (For example, `PT05S` to start at 5 seconds), or a frame count (For example, `10` to start at the 10th frame), or a relative value to stream duration (For example, `10%` to start at 10% of stream duration). Also supports a macro `{Best}`, which tells the encoder to select the best thumbnail from the first few seconds of the video and will only produce one thumbnail, no matter what other settings are for `step` and `range`.
+
+* `key_frame_interval` - (Optional) The distance between two key frames. The value should be non-zero in the range `0.5` to `20` seconds, specified in ISO 8601 format. The default is `2` seconds (`PT2S`). Note that this setting is ignored if `sync_mode` is set to `Passthrough`, where the KeyFrameInterval value will follow the input source setting.
+
+* `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior.
+
+* `layer` - (Optional) One or more `layer` blocks as defined below.
+
+* `range` - (Optional) The position relative to transform preset start time in the input video at which to stop generating thumbnails. The value can be in ISO 8601 format (For example, `PT5M30S` to stop at `5` minutes and `30` seconds from start time), or a frame count (For example, `300` to stop at the 300th frame from the frame at start time. If this value is `1`, it means only producing one thumbnail at start time), or a relative value to the stream duration (For example, `50%` to stop at half of stream duration from start time). The default value is `100%`, which means to stop at the end of the stream.
+
+* `step` - (Optional) The intervals at which thumbnails are generated. The value can be in ISO 8601 format (For example, `PT05S` for one image every 5 seconds), or a frame count (For example, `30` for one image every 30 frames), or a relative value to stream duration (For example, `10%` for one image every 10% of stream duration). Note: Step value will affect the first generated thumbnail, which may not be exactly the one specified at transform preset start time. This is due to the encoder, which tries to select the best thumbnail between start time and Step position from start time as the first output. As the default value is `10%`, it means if stream has long duration, the first generated thumbnail might be far away from the one specified at start time. Try to select reasonable value for Step if the first thumbnail is expected close to start time, or set Range value at `1` if only one thumbnail is needed at start time.
+
+* `stretch_mode` - (Optional) The resizing mode, which indicates how the input video will be resized to fit the desired output resolution(s). Possible values are `AutoFit`, `AutoSize` or `None`. Default to `AutoSize`.
+
+* `sync_mode` - (Optional) Specifies the synchronization mode for the video. Possible values are `Auto`, `Cfr`, `Passthrough` or `Vfr`. Default to `Auto`.
 
 ---
 
