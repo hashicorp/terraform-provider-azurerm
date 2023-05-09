@@ -10,8 +10,8 @@ FEATURES:
 ENHANCEMENTS:
 
 * provider: updating the `IsAzureStack` check to use `hashicorp/go-azure-sdk` rather than relying on the environment from `Azure/go-autorest` [GH-21697]
-* dependencies: updating to `v0.20230508.1101604` of `github.com/hashicorp/go-azure-sdk` [GH-21698]
-* dependencies: `appconfiguration` upgraded to API Version `2023-03-01` [GH-21660]
+* dependencies: updating `github.com/hashicorp/go-azure-sdk` to `v0.20230508.1171356` [GH-21707]
+* `appconfiguration`: updating to API Version `2023-03-01` [GH-21660]
 * `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
 
 BUG FIXES:
