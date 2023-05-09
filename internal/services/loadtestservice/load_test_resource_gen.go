@@ -405,6 +405,29 @@ func (r LoadTestResource) mapLoadTestResourcePatchRequestBodyToLoadTestResourceS
 	return nil
 }
 
+func (r LoadTestResource) mapLoadTestResourceEncryptionPropertiesIdentitySchemaToEncryptionProperties(input LoadTestResourceEncryptionPropertiesIdentitySchema, output *loadtests.EncryptionProperties) error {
+
+	if output.Identity == nil {
+		output.Identity = &loadtests.EncryptionPropertiesIdentity{}
+	}
+	if err := r.mapLoadTestResourceEncryptionPropertiesIdentitySchemaToEncryptionPropertiesIdentity(input, output.Identity); err != nil {
+		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "EncryptionPropertiesIdentity", "Identity", err)
+	}
+
+	return nil
+}
+
+func (r LoadTestResource) mapEncryptionPropertiesToLoadTestResourceEncryptionPropertiesIdentitySchema(input loadtests.EncryptionProperties, output *LoadTestResourceEncryptionPropertiesIdentitySchema) error {
+
+	if input.Identity != nil {
+		if err := r.mapEncryptionPropertiesIdentityToLoadTestResourceEncryptionPropertiesIdentitySchema(*input.Identity, output); err != nil {
+			return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "EncryptionPropertiesIdentity", "Identity", err)
+		}
+	}
+
+	return nil
+}
+
 func (r LoadTestResource) mapLoadTestResourceEncryptionPropertiesSchemaToLoadTestProperties(input LoadTestResourceEncryptionPropertiesSchema, output *loadtests.LoadTestProperties) error {
 
 	if output.Encryption == nil {
@@ -445,29 +468,6 @@ func (r LoadTestResource) mapLoadTestResourcePatchRequestBodyPropertiesToLoadTes
 	if input.Encryption != nil {
 		if err := r.mapEncryptionPropertiesToLoadTestResourceEncryptionPropertiesSchema(*input.Encryption, output); err != nil {
 			return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "EncryptionProperties", "Encryption", err)
-		}
-	}
-
-	return nil
-}
-
-func (r LoadTestResource) mapLoadTestResourceEncryptionPropertiesIdentitySchemaToEncryptionProperties(input LoadTestResourceEncryptionPropertiesIdentitySchema, output *loadtests.EncryptionProperties) error {
-
-	if output.Identity == nil {
-		output.Identity = &loadtests.EncryptionPropertiesIdentity{}
-	}
-	if err := r.mapLoadTestResourceEncryptionPropertiesIdentitySchemaToEncryptionPropertiesIdentity(input, output.Identity); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "EncryptionPropertiesIdentity", "Identity", err)
-	}
-
-	return nil
-}
-
-func (r LoadTestResource) mapEncryptionPropertiesToLoadTestResourceEncryptionPropertiesIdentitySchema(input loadtests.EncryptionProperties, output *LoadTestResourceEncryptionPropertiesIdentitySchema) error {
-
-	if input.Identity != nil {
-		if err := r.mapEncryptionPropertiesIdentityToLoadTestResourceEncryptionPropertiesIdentitySchema(*input.Identity, output); err != nil {
-			return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "EncryptionPropertiesIdentity", "Identity", err)
 		}
 	}
 

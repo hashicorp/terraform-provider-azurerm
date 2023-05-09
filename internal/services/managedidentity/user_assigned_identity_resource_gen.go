@@ -221,11 +221,10 @@ func (r UserAssignedIdentityResource) mapIdentityToUserAssignedIdentityResourceS
 	output.Location = location.Normalize(input.Location)
 	output.Tags = tags.Flatten(input.Tags)
 
-	if input.Properties == nil {
-		input.Properties = &managedidentities.UserAssignedIdentityProperties{}
-	}
-	if err := r.mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "UserAssignedIdentityProperties", "Properties", err)
+	if input.Properties != nil {
+		if err := r.mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(*input.Properties, output); err != nil {
+			return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "UserAssignedIdentityProperties", "Properties", err)
+		}
 	}
 
 	return nil
@@ -247,11 +246,10 @@ func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToIde
 func (r UserAssignedIdentityResource) mapIdentityUpdateToUserAssignedIdentityResourceSchema(input managedidentities.IdentityUpdate, output *UserAssignedIdentityResourceSchema) error {
 	output.Tags = tags.Flatten(input.Tags)
 
-	if input.Properties == nil {
-		input.Properties = &managedidentities.UserAssignedIdentityProperties{}
-	}
-	if err := r.mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "UserAssignedIdentityProperties", "Properties", err)
+	if input.Properties != nil {
+		if err := r.mapUserAssignedIdentityPropertiesToUserAssignedIdentityResourceSchema(*input.Properties, output); err != nil {
+			return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "UserAssignedIdentityProperties", "Properties", err)
+		}
 	}
 
 	return nil

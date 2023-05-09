@@ -223,7 +223,7 @@ func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) e
 	}
 
 	sasToken, err := storage.ComputeAccountSASToken(accountName, accountKey, permissions, services, resourceTypes,
-		start, expiry, signedProtocol, ipAddresses, signedVersion)
+		start, expiry, signedProtocol, ipAddresses, signedVersion, "")
 	if err != nil {
 		return err
 	}
