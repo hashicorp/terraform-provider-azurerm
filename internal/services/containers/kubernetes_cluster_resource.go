@@ -2061,8 +2061,8 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		// if the default node pool name has changed it means the initial attempt at resizing failed
-		if d.HasChange("default_node_pool.0.vm_size") || d.HasChange("default_node_pool.0.name") {
+		// if the default node pool name has changed, it means the initial attempt at resizing failed
+		if d.HasChange("default_node_pool.0.vm_size") || d.HasChange("default_node_pool.0.name") || d.HasChange("default_node_pool.0.os_sku") || d.HasChange("default_node_pool.0.os_disk_type") || d.HasChange("default_node_pool.0.os_disk_size_gb") {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
 			// to provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
