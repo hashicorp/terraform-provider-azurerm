@@ -263,14 +263,20 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if keyId.NestedItemType == "keys" {
-			props.KeyID = pointer.To(keyId.KeyVaultBaseUrl)
+			// msSql requires the versioned key URL...
+			props.KeyID = pointer.To(keyId.ID())
 		} else {
-			return fmt.Errorf("key vault key id must be a reference to a key, but got: %s", keyId.NestedItemType)
+			return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
 		}
 	}
 
 	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
 		props.PrimaryUserAssignedIdentityID = utils.String(primaryUserAssignedIdentityID.(string))
+	}
+
+	// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
+	if props.KeyID != nil && props.PrimaryUserAssignedIdentityID == nil {
+		return fmt.Errorf("if the 'key_vault_customer_managed_key_id' field has been defined you must also define the 'primary_user_assigned_identity_id' field as well, got %s", pointer.From(props.KeyID))
 	}
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
@@ -354,8 +360,28 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Identity = existing.Identity
 	}
 
+	if d.HasChange("key_vault_customer_managed_key_id") {
+		keyVaultKeyId := d.Get(("key_vault_customer_managed_key_id")).(string)
+
+		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		if err != nil {
+			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+		}
+
+		if keyId.NestedItemType == "keys" {
+			props.KeyID = pointer.To(keyId.ID())
+		} else {
+			return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
+		}
+	}
+
 	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
 		props.PrimaryUserAssignedIdentityID = utils.String(primaryUserAssignedIdentityID.(string))
+	}
+
+	// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
+	if props.KeyID != nil && props.PrimaryUserAssignedIdentityID == nil {
+		return fmt.Errorf("if the 'key_vault_customer_managed_key_id' field has been defined you must also define the 'primary_user_assigned_identity_id' field as well, got %s", pointer.From(props.KeyID))
 	}
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
@@ -507,6 +533,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			primaryUserAssignedIdentityID = parsedPrimaryUserAssignedIdentityID.ID()
 		}
 		d.Set("primary_user_assigned_identity_id", primaryUserAssignedIdentityID)
+		d.Set("key_vault_customer_managed_key_id", props.KeyID)
 		if props.Administrators != nil {
 			d.Set("azuread_administrator", flatternMsSqlServerAdministrators(*props.Administrators))
 		}
