@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "East US"
 }
 
-resource "azurerm_recovery_services_vault" "vault" {
+resource "azurerm_recovery_services_vault" "example" {
   name                = "example-recovery-vault"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -30,10 +30,9 @@ resource "azurerm_site_recovery_services_vault_hyperv_site" "example" {
   name              = "example-site"
 }
 
-resource "azurerm_site_recovery_hyperv_replication_policy" "policy" {
+resource "azurerm_site_recovery_hyperv_replication_policy" "example" {
   name                                               = "policy"
-  resource_group_name                                = azurerm_resource_group.example.name
-  recovery_vault_name                                = azurerm_recovery_services_vault.vault.name
+  recovery_vault_id                                  = azurerm_recovery_services_vault.example.id
   recovery_point_retention_in_hours                  = 2
   application_consistent_snapshot_frequency_in_hours = 1
   replication_interval_in_seconds                    = 300

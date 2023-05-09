@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_recovery_services_vault" "example" {
   name                               = "example-vault"
-  location                           = azurerm_resource_group.test.location
-  resource_group_name                = azurerm_resource_group.test.name
+  location                           = azurerm_resource_group.example.location
+  resource_group_name                = azurerm_resource_group.example.name
   sku                                = "Standard"
   classic_vmware_replication_enabled = true
 
@@ -29,8 +29,7 @@ resource "azurerm_recovery_services_vault" "example" {
 }
 
 resource "azurerm_site_recovery_vmware_replication_policy" "example" {
-  name = "example-policy"
-
+  name                                                 = "example-policy"
   recovery_vault_id                                    = azurerm_recovery_services_vault.example.id
   recovery_point_retention_in_minutes                  = 1440
   application_consistent_snapshot_frequency_in_minutes = 240
