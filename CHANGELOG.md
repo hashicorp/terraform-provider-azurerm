@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * dependencies: updating `github.com/hashicorp/go-azure-sdk` to `v0.20230508.1171356` [GH-21707]
 * `appconfiguration`: updating to API Version `2023-03-01` [GH-21660]
 * `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
+* `azurerm_orbital_contact_profile` - `ip_address` is now optional [GH-21721]
 
 BUG FIXES:
 
