@@ -6,6 +6,7 @@ FEATURES:
 * **New Resource:** `azurerm_cosmosdb_postgresql_node_configuration` [GH-21596]
 * **New Resource:** `azurerm_cosmosdb_postgresql_role` [GH-21597]
 * **New Resource:** `azurerm_monitor_workspace` [GH-21598]
+* **New Resource:** `azurerm_network_manager_deployment` [GH-20451]
 
 ENHANCEMENTS:
 
