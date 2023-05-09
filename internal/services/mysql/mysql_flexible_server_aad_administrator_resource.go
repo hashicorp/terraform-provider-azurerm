@@ -49,25 +49,25 @@ func (r MySQLFlexibleServerAdministratorResource) Arguments() map[string]*plugin
 
 		"identity_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"login": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"object_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 	}
@@ -104,24 +104,12 @@ func (r MySQLFlexibleServerAdministratorResource) Create() sdk.ResourceFunc {
 
 			properties := &azureadadministrators.AzureADAdministrator{
 				Properties: &azureadadministrators.AdministratorProperties{
-					AdministratorType: pointer.To(azureadadministrators.AdministratorTypeActiveDirectory),
+					AdministratorType:  pointer.To(azureadadministrators.AdministratorTypeActiveDirectory),
+					IdentityResourceId: pointer.To(model.IdentityId),
+					Login:              pointer.To(model.Login),
+					Sid:                pointer.To(model.ObjectId),
+					TenantId:           pointer.To(model.TenantId),
 				},
-			}
-
-			if model.IdentityId != "" {
-				properties.Properties.IdentityResourceId = &model.IdentityId
-			}
-
-			if model.Login != "" {
-				properties.Properties.Login = &model.Login
-			}
-
-			if model.ObjectId != "" {
-				properties.Properties.Sid = &model.ObjectId
-			}
-
-			if model.TenantId != "" {
-				properties.Properties.TenantId = &model.TenantId
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
@@ -227,21 +215,10 @@ func (r MySQLFlexibleServerAdministratorResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					if properties.IdentityResourceId != nil {
-						state.IdentityId = pointer.From(properties.IdentityResourceId)
-					}
-
-					if properties.Login != nil {
-						state.Login = pointer.From(properties.Login)
-					}
-
-					if properties.Sid != nil {
-						state.ObjectId = pointer.From(properties.Sid)
-					}
-
-					if properties.TenantId != nil {
-						state.TenantId = pointer.From(properties.TenantId)
-					}
+					state.IdentityId = pointer.From(properties.IdentityResourceId)
+					state.Login = pointer.From(properties.Login)
+					state.ObjectId = pointer.From(properties.Sid)
+					state.TenantId = pointer.From(properties.TenantId)
 				}
 			}
 

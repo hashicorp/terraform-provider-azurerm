@@ -46,6 +46,28 @@ func TestAccMySQLFlexibleServerAdministrator_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccMySQLFlexibleServerAdministrator_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_active_directory_administrator", "test")
+	r := MySQLFlexibleServerAdministratorResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r MySQLFlexibleServerAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azureadadministrators.ParseFlexibleServerID(state.ID)
 	if err != nil {
@@ -100,7 +122,7 @@ func (r MySQLFlexibleServerAdministratorResource) basic(data acceptance.TestData
 
 resource "azurerm_mysql_flexible_server_active_directory_administrator" "test" {
   server_id   = azurerm_mysql_flexible_server.test.id
-  identity_id = azurerm_resource_group.test.name
+  identity_id = azurerm_user_assigned_identity.test.id
   login       = "sqladmin"
   object_id   = data.azurerm_client_config.current.client_id
   tenant_id   = data.azurerm_client_config.current.tenant_id
@@ -120,4 +142,18 @@ resource "azurerm_mysql_flexible_server_active_directory_administrator" "import"
   tenant_id   = azurerm_mysql_flexible_server_active_directory_administrator.test.tenant_id
 }
 `, r.basic(data))
+}
+
+func (r MySQLFlexibleServerAdministratorResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server_active_directory_administrator" "test" {
+  server_id   = azurerm_mysql_flexible_server.test.id
+  identity_id = azurerm_user_assigned_identity.test.id
+  login       = "sqladmin2"
+  object_id   = data.azurerm_client_config.current.client_id
+  tenant_id   = data.azurerm_client_config.current.tenant_id
+}
+`, r.template(data))
 }

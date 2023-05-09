@@ -38,7 +38,7 @@ resource "azurerm_user_assigned_identity" "example" {
 
 resource "azurerm_mysql_flexible_server_active_directory_administrator" "example" {
   server_id   = azurerm_mysql_flexible_server.example.id
-  identity_id = azurerm_resource_group.example.name
+  identity_id = azurerm_user_assigned_identity.example.id
   login       = "sqladmin"
   object_id   = data.azurerm_client_config.current.client_id
   tenant_id   = data.azurerm_client_config.current.tenant_id
@@ -51,13 +51,13 @@ The following arguments are supported:
 
 * `server_id` - (Required) The resource ID of the MySQL Flexible Server. Changing this forces a new resource to be created.
 
-* `identity_id` - (Optional) The resource ID of the identity used for AAD Authentication.
+* `identity_id` - (Required) The resource ID of the identity used for AAD Authentication.
 
-* `login` - (Optional) The login name of the principal to set as the server administrator
+* `login` - (Required) The login name of the principal to set as the server administrator
 
-* `object_id` - (Optional) The ID of the principal to set as the server administrator. For a managed identity this should be the Client ID of the identity.
+* `object_id` - (Required) The ID of the principal to set as the server administrator. For a managed identity this should be the Client ID of the identity.
 
-* `tenant_id` - (Optional) The Azure Tenant ID.
+* `tenant_id` - (Required) The Azure Tenant ID.
 
 ## Attributes Reference
 
