@@ -50,7 +50,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
-} 
+}
 
 resource "azurerm_user_assigned_identity" "example" {
   name                = "example-admin"
@@ -66,14 +66,14 @@ resource "azurerm_mssql_server" "example" {
   administrator_login          = "Example-Administrator"
   administrator_login_password = "Example_Password!"
   minimum_tls_version          = "1.2"
- 
+
   azuread_administrator {
     login_username = azurerm_user_assigned_identity.example.name
     object_id      = azurerm_user_assigned_identity.example.principal_id
   }
 
   identity {
-    type = "UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.example.id]
   }
 
