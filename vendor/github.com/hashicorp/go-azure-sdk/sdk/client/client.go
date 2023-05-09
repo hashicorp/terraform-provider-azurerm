@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -105,14 +106,15 @@ func (r *Request) Marshal(payload interface{}) error {
 		return nil
 	}
 
-	if strings.Contains(contentType, "application/octet-stream") {
-		v, ok := payload.([]byte)
+	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
+		v, ok := payload.(*[]byte)
 		if !ok {
-			return fmt.Errorf("internal-error: `payload` must be []byte but got %+v", payload)
+			return fmt.Errorf("internal-error: `payload` must be *[]byte but got %+v", payload)
 		}
 
-		r.ContentLength = int64(len(v))
-		r.Body = io.NopCloser(bytes.NewReader(v))
+		r.ContentLength = int64(len(*v))
+		r.Body = io.NopCloser(bytes.NewReader(*v))
+		return nil
 	}
 
 	return fmt.Errorf("internal-error: unimplemented marshal function for content type %q", contentType)
@@ -179,6 +181,7 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
+		return nil
 	}
 
 	if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
@@ -199,11 +202,12 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
+		return nil
 	}
 
-	if strings.Contains(contentType, "application/octet-stream") {
-		if _, ok := model.([]byte); !ok {
-			return fmt.Errorf("internal-error: `model` must be []byte but got %+v", model)
+	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
+		if _, ok := model.(**[]byte); !ok {
+			return fmt.Errorf("internal-error: `model` must be **[]byte but got %+v", model)
 		}
 
 		// Read the response body and close it
@@ -217,13 +221,14 @@ func (r *Response) Unmarshal(model interface{}) error {
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
 
 		// copy the byte stream across
-		model = respBody
+		reflect.ValueOf(model).Elem().Elem().SetBytes(respBody)
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
+		return nil
 	}
 
-	return nil
+	return fmt.Errorf("internal-error: unimplemented unmarshal function for content type %q", contentType)
 }
 
 // Client is a base client to be used by API-specific clients. It satisfies the BaseClient interface.

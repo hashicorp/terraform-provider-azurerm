@@ -288,7 +288,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	client.AppPlatform = appPlatform.NewClient(o)
 	client.AppService = appService.NewClient(o)
-	client.ArcKubernetes = arckubernetes.NewClient(o)
+	if client.ArcKubernetes, err = arckubernetes.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ArcKubernetes: %+v", err)
+	}
 	if client.Attestation, err = attestation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Attestation: %+v", err)
 	}
@@ -348,24 +350,34 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for DesktopVirtualization: %+v", err)
 	}
 	client.DevTestLabs = devtestlabs.NewClient(o)
-	client.DigitalTwins = digitaltwins.NewClient(o)
+	if client.DigitalTwins, err = digitaltwins.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DigitalTwins: %+v", err)
+	}
 	client.Disks = disks.NewClient(o)
 	if client.Dns, err = dns.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Dns: %+v", err)
 	}
 	client.DomainServices = domainservices.NewClient(o)
-	client.Elastic = elastic.NewClient(o)
+	if client.Elastic, err = elastic.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Elastic: %+v", err)
+	}
 	client.EventGrid = eventgrid.NewClient(o)
-	client.Eventhub = eventhub.NewClient(o)
+	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Eventhub: %+v", err)
+	}
 	client.Firewall = firewall.NewClient(o)
 	client.FluidRelay = fluidrelay.NewClient(o)
 	client.Frontdoor = frontdoor.NewClient(o)
 	client.HPCCache = hpccache.NewClient(o)
 	client.HSM = hsm.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
-	client.HealthCare = healthcare.NewClient(o)
+	if client.HealthCare, err = healthcare.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for HealthCare: %+v", err)
+	}
 	client.HybridCompute = hybridcompute.NewClient(o)
-	client.IoTCentral = iotcentral.NewClient(o)
+	if client.IoTCentral, err = iotcentral.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for IoTCentral: %+v", err)
+	}
 	client.IoTHub = iothub.NewClient(o)
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
@@ -392,6 +404,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Monitor = monitor.NewClient(o)
 	client.MobileNetwork = mobilenetwork.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
+	client.MSSQLManagedInstance = mssqlmanagedinstance.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
 	client.NetApp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
@@ -410,7 +423,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.RedisEnterprise = redisenterprise.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
-	client.Search = search.NewClient(o)
+	if client.Search, err = search.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Search: %+v", err)
+	}
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.Sentinel = sentinel.NewClient(o)
 	if client.ServiceBus, err = serviceBus.NewClient(o); err != nil {
