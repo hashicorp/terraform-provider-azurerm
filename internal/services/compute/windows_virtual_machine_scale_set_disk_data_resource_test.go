@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccWindowsVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T) {
@@ -258,33 +257,6 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremium
 		data.ImportStep("admin_password"),
 		{
 			Config: r.disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPS(data, 3002, 127),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
-// TODO Remove TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPSLegacy in 4.0
-func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPSLegacy(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipping as property `ultra_ssd_disk_iops_read_write` and `ultra_ssd_disk_mbps_read_write` are deprecated in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	r := WindowsVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPSLegacy(data, 3001, 126),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPSLegacy(data, 3002, 127),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -887,58 +859,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "PremiumV2_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_iops_read_write = %d
-    disk_mbps_read_write = %d
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-`, r.template(data), iops, mbps)
-}
-
-// TODO Remove disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPSLegacy in 4.0
-func (r WindowsVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPSLegacy(data acceptance.TestData, iops int, mbps int) string {
-	// Limited regional availability for `PremiumV2_LRS`
-	data.Locations.Primary = "westeurope"
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2s_v2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  zones               = ["1"]
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  data_disk {
     storage_account_type           = "PremiumV2_LRS"
     caching                        = "None"
     disk_size_gb                   = 10
@@ -1039,11 +959,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_iops_read_write = 101
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_iops_read_write = 101
   }
 
   additional_capabilities {
@@ -1091,11 +1011,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_mbps_read_write = 11
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_mbps_read_write = 11
   }
 
   additional_capabilities {
@@ -1143,12 +1063,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_iops_read_write = 101
-    disk_mbps_read_write = 11
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_iops_read_write = 101
+    ultra_ssd_disk_mbps_read_write = 11
   }
 
   additional_capabilities {
