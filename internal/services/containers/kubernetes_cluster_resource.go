@@ -1249,7 +1249,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 						"vertical_pod_autoscaler_update_mode": {
 							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Optional: true,
+							Default:  "off",
 						},
 						"vertical_pod_autoscaler_controlled_values": {
 							Type:     pluginsdk.TypeString,

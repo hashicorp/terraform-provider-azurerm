@@ -162,14 +162,14 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerTogg
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, true),
+			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, true, "auto"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, false),
+			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, false, "off"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -429,7 +429,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, kedaEnabled)
 }
 
-func (KubernetesClusterResource) workloadAutoscalerProfileVerticalPodAutoscaler(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
+func (KubernetesClusterResource) workloadAutoscalerProfileVerticalPodAutoscaler(data acceptance.TestData, controlPlaneVersion string, enabled bool, updateMode string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -449,6 +449,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   workload_autoscaler_profile {
     vertical_pod_autoscaler_enabled = %t
+    vertical_pod_autoscaler_update_mode = %q
   }
 
   default_node_pool {
@@ -461,7 +462,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled, updateMode)
 }
 
 func (KubernetesClusterResource) imageCleanerSecurityProfile(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
