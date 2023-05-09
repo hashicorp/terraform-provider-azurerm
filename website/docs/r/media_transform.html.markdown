@@ -557,11 +557,11 @@ A `format` block supports the following:
 
 * `mp4` - (Optional) A `mp4` block as defined below.
 
-* `transport_stream` - (Optional) A `transport_stream` block as defined below.
-
 * `png` - (Optional) A `png` block as defined below.
+
+* `transport_stream` - (Optional) A `transport_stream` block as defined below.
  
--> **NOTE:** Each format can only have one type: `jpg`, `mp4`, `transport_stream` or `png`. If you need to apply different type you must create one format for each one.
+-> **NOTE:** Each format can only have one type: `jpg`, `mp4`, `png` or `transport_stream`. If you need to apply different type you must create one format for each one.
 
 ---
 
