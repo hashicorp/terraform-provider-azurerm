@@ -11,7 +11,7 @@ import (
 
 // ValidateModelObject validates that the object contains the specified `tfschema` tags
 // required to be used with the Encode and Decode functions
-func ValidateModelObject(input interface{}, fields map[string]*schema.Schema) error {
+func ValidateModelObject(input interface{}, schemaFields map[string]*schema.Schema) error {
 	if input == nil {
 		// model not used for this resource
 		return nil
@@ -30,10 +30,10 @@ func ValidateModelObject(input interface{}, fields map[string]*schema.Schema) er
 		return fmt.Errorf("cannot resolve pointer to interface")
 	}
 
-	return validateModelObjectRecursively("", objType, objVal, fields)
+	return validateModelObjectRecursively("", objType, objVal, schemaFields)
 }
 
-func validateModelObjectRecursively(prefix string, objType reflect.Type, objVal reflect.Value, schemafields map[string]*schema.Schema) (errOut error) {
+func validateModelObjectRecursively(prefix string, objType reflect.Type, objVal reflect.Value, schemaFields map[string]*schema.Schema) (errOut error) {
 	defer func() {
 		if r := recover(); r != nil {
 			out, ok := r.(error)
@@ -48,17 +48,17 @@ func validateModelObjectRecursively(prefix string, objType reflect.Type, objVal 
 	for i := 0; i < objType.NumField(); i++ {
 		field := objType.Field(i)
 		fieldVal := objVal.Field(i)
+		fieldName := strings.TrimPrefix(fmt.Sprintf("%s.%s", prefix, field.Name), ".")
 
 		if field.Type.Kind() == reflect.Slice {
 			sv := fieldVal.Slice(0, fieldVal.Len())
 			innerType := sv.Type().Elem()
 			innerVal := reflect.Indirect(reflect.New(innerType))
-			fieldName := strings.TrimPrefix(fmt.Sprintf("%s.%s", prefix, field.Name), ".")
 
 			if tag, exists := field.Tag.Lookup("tfschema"); !exists {
 				return fmt.Errorf("field %q is missing an `tfschema` label", fieldName)
 			} else {
-				schemaField, ok := schemafields[tag]
+				schemaField, ok := schemaFields[tag]
 				if !ok {
 					return fmt.Errorf("field %q in model is missing from schema", tag)
 				}
@@ -72,10 +72,11 @@ func validateModelObjectRecursively(prefix string, objType reflect.Type, objVal 
 					switch schemaField.Elem.(*schema.Schema).Type {
 					case schema.TypeString:
 						if field.Type.String() != "[]string" {
+							// todo do a discrepnecy instead of saying one is wrong. Both are wrong. get fukt.
 							return fmt.Errorf("expected field %q in model to be of type `[]string` but instead got %q", fieldName, field.Type.String())
 						}
 					case schema.TypeInt:
-						if field.Type.String() != "[]int" {
+						if field.Type.String() != "[]int64" {
 							return fmt.Errorf("expected field %q in model to be of type `[]int` but instead got %q", fieldName, field.Type.String())
 						}
 					case schema.TypeList:
@@ -93,7 +94,6 @@ func validateModelObjectRecursively(prefix string, objType reflect.Type, objVal 
 					default:
 						return fmt.Errorf("unexpected List Type %q for field %q", schemaField.Elem.(*schema.Schema).Type, fieldName)
 					}
-
 				default:
 					return fmt.Errorf("unexpected type %q for field %q", reflect.TypeOf(schemaField.Elem), tag)
 				}
@@ -101,12 +101,41 @@ func validateModelObjectRecursively(prefix string, objType reflect.Type, objVal 
 		}
 
 		if tag, exists := field.Tag.Lookup("tfschema"); !exists {
-			fieldName := strings.TrimPrefix(fmt.Sprintf("%s.%s", prefix, field.Name), ".")
 			return fmt.Errorf("field %q is missing an `tfschema` label", fieldName)
 		} else {
-			_, ok := schemafields[tag]
+			schemaField, ok := schemaFields[tag]
 			if !ok {
 				return fmt.Errorf(" field %q is missing from schema", tag)
+			}
+			switch schemaField.Type {
+			case schema.TypeString:
+				if field.Type.Kind().String() != "string" {
+					return fmt.Errorf("expected field %q in model to be of type `string` but instead got %q", fieldName, field.Type.String())
+				}
+			case schema.TypeInt:
+				if field.Type.Kind().String() != "int64" {
+					return fmt.Errorf("expected field %q in model to be of type `int` but instead got %q", fieldName, field.Type.String())
+				}
+			case schema.TypeMap:
+				if !strings.HasPrefix(field.Type.Kind().String(), "map") {
+					return fmt.Errorf("expected field %q in model to be a map but instead got %q", fieldName, field.Type.String())
+				}
+			case schema.TypeBool:
+				if field.Type.Kind().String() != "bool" {
+					return fmt.Errorf("expected field %q in model to be of type `bool` but instead got %q", fieldName, field.Type.String())
+				}
+			case schema.TypeFloat:
+				if !strings.HasPrefix(field.Type.Kind().String(), "float") {
+					return fmt.Errorf("expected field %q in model to be of type `bool` but instead got %q", fieldName, field.Type.String())
+				}
+			case schema.TypeList:
+				// ignore for now
+				// todo fix this as we're accounting for this up above
+			case schema.TypeSet:
+				// ignore for now
+				// todo fix this as we're accounting for this up above
+			default:
+				return fmt.Errorf("unexpected type %q for field %q", schemaField.Type, tag)
 			}
 		}
 	}

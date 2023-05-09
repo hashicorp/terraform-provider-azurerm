@@ -11,8 +11,7 @@ func TestValidateTopLevelObjectValid(t *testing.T) {
 		Name string `tfschema:"name"`
 		Age  int    `tfschema:"int"`
 	}
-	// fields := make(map[string]*schema.Schema, 0)
-	fields := map[string]*schema.Schema{
+	schemaFields := map[string]*schema.Schema{
 		"name": {
 			Type: pluginsdk.TypeString,
 		},
@@ -21,7 +20,7 @@ func TestValidateTopLevelObjectValid(t *testing.T) {
 		},
 	}
 
-	if err := ValidateModelObject(&Person{}, fields); err != nil {
+	if err := ValidateModelObject(&Person{}, schemaFields); err != nil {
 		t.Fatalf("error: %+v", err)
 	}
 }
@@ -31,12 +30,12 @@ func TestValidateTopLevelObjectInvalid(t *testing.T) {
 	type Person1 struct {
 		Age int `json:"int"`
 	}
-	fields := map[string]*schema.Schema{
+	schemaFields := map[string]*schema.Schema{
 		"int": {
 			Type: pluginsdk.TypeInt,
 		},
 	}
-	if err := ValidateModelObject(&Person1{}, fields); err != nil {
+	if err := ValidateModelObject(&Person1{}, schemaFields); err == nil {
 		t.Fatalf("expected an error but didn't get one")
 	}
 
@@ -45,12 +44,12 @@ func TestValidateTopLevelObjectInvalid(t *testing.T) {
 		Name string
 	}
 
-	fields2 := map[string]*schema.Schema{
+	schemaFields2 := map[string]*schema.Schema{
 		"name": {
 			Type: pluginsdk.TypeString,
 		},
 	}
-	if err := ValidateModelObject(&Person2{}, fields2); err == nil {
+	if err := ValidateModelObject(&Person2{}, schemaFields2); err == nil {
 		t.Fatalf("expected an error but didn't get one")
 	}
 }
@@ -59,8 +58,13 @@ func TestValidateTopLevelObjectInvalidInterface(t *testing.T) {
 	type Person struct {
 		Name string `tfschema:"name"`
 	}
+	schemaFields := map[string]*schema.Schema{
+		"name": {
+			Type: pluginsdk.TypeString,
+		},
+	}
 	var p interface{} = Person{}
-	if err := ValidateModelObject(&p, nil); err == nil {
+	if err := ValidateModelObject(&p, schemaFields); err == nil {
 		t.Fatalf("expected an error but didn't get one")
 	}
 }
@@ -73,7 +77,22 @@ func TestValidateNestedObjectValid(t *testing.T) {
 		Name string `tfschema:"name"`
 		Pets []Pet  `tfschema:"pets"`
 	}
-	if err := ValidateModelObject(&Person{}, nil); err != nil {
+	schemaFields := map[string]*schema.Schema{
+		"name": {
+			Type: pluginsdk.TypeString,
+		},
+		"pets": {
+			Type: schema.TypeList,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+	if err := ValidateModelObject(&Person{}, schemaFields); err != nil {
 		t.Fatalf("error: %+v", err)
 	}
 }
@@ -87,7 +106,52 @@ func TestValidateNestedObjectInvalid(t *testing.T) {
 		Name string `tfschema:"name"`
 		Pets []Pet  `tfschema:"pets"`
 	}
-	if err := ValidateModelObject(&Person{}, nil); err == nil {
+	schemaFields := map[string]*schema.Schema{
+		"name": {
+			Type: pluginsdk.TypeString,
+		},
+		"pets": {
+			Type: schema.TypeList,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+	if err := ValidateModelObject(&Person{}, schemaFields); err == nil {
+		t.Fatalf("expected an error but didn't get one")
+	}
+}
+
+func TestValidateSchemaMissingTopLevelModel(t *testing.T) {
+	t.Log("Person1")
+	type Person1 struct {
+		Age int `tfschema:"int"`
+	}
+	schemaFields := map[string]*schema.Schema{
+		"name": {
+			Type: pluginsdk.TypeString,
+		},
+	}
+	if err := ValidateModelObject(&Person1{}, schemaFields); err == nil {
+		t.Fatalf("expected an error but didn't get one")
+	}
+}
+
+func TestValidateSchemaWrongType(t *testing.T) {
+	t.Log("Person1")
+	type Person1 struct {
+		Age int `tfschema:"int"`
+	}
+	schemaFields := map[string]*schema.Schema{
+		"int": {
+			Type: pluginsdk.TypeString,
+		},
+	}
+	if err := ValidateModelObject(&Person1{}, schemaFields); err != nil {
 		t.Fatalf("expected an error but didn't get one")
 	}
 }
