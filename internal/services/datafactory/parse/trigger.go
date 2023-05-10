@@ -44,7 +44,7 @@ func (id TriggerId) ID() string {
 func TriggerID(input string) (*TriggerId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Trigger ID: %+v", input, err)
 	}
 
 	resourceId := TriggerId{

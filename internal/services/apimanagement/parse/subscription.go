@@ -44,7 +44,7 @@ func (id SubscriptionId) ID() string {
 func SubscriptionID(input string) (*SubscriptionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Subscription ID: %+v", input, err)
 	}
 
 	resourceId := SubscriptionId{

@@ -47,7 +47,7 @@ func (id JobId) ID() string {
 func JobID(input string) (*JobId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Job ID: %+v", input, err)
 	}
 
 	resourceId := JobId{

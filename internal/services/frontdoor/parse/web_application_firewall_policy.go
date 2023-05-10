@@ -41,7 +41,7 @@ func (id WebApplicationFirewallPolicyId) ID() string {
 func WebApplicationFirewallPolicyID(input string) (*WebApplicationFirewallPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a WebApplicationFirewallPolicy ID: %+v", input, err)
 	}
 
 	resourceId := WebApplicationFirewallPolicyId{

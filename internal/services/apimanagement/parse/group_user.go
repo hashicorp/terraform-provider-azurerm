@@ -47,7 +47,7 @@ func (id GroupUserId) ID() string {
 func GroupUserID(input string) (*GroupUserId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a GroupUser ID: %+v", input, err)
 	}
 
 	resourceId := GroupUserId{

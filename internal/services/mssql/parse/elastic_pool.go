@@ -44,7 +44,7 @@ func (id ElasticPoolId) ID() string {
 func ElasticPoolID(input string) (*ElasticPoolId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a ElasticPool ID: %+v", input, err)
 	}
 
 	resourceId := ElasticPoolId{

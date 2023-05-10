@@ -38,7 +38,7 @@ func (id SubscriptionPolicyRemediationId) ID() string {
 func SubscriptionPolicyRemediationID(input string) (*SubscriptionPolicyRemediationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a SubscriptionPolicyRemediation ID: %+v", input, err)
 	}
 
 	resourceId := SubscriptionPolicyRemediationId{

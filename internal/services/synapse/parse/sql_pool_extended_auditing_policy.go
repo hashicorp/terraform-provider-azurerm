@@ -47,7 +47,7 @@ func (id SqlPoolExtendedAuditingPolicyId) ID() string {
 func SqlPoolExtendedAuditingPolicyID(input string) (*SqlPoolExtendedAuditingPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a SqlPoolExtendedAuditingPolicy ID: %+v", input, err)
 	}
 
 	resourceId := SqlPoolExtendedAuditingPolicyId{

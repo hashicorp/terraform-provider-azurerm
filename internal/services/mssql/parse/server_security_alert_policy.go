@@ -44,7 +44,7 @@ func (id ServerSecurityAlertPolicyId) ID() string {
 func ServerSecurityAlertPolicyID(input string) (*ServerSecurityAlertPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a ServerSecurityAlertPolicy ID: %+v", input, err)
 	}
 
 	resourceId := ServerSecurityAlertPolicyId{

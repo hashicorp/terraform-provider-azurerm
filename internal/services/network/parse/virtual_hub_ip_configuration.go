@@ -44,7 +44,7 @@ func (id VirtualHubIpConfigurationId) ID() string {
 func VirtualHubIpConfigurationID(input string) (*VirtualHubIpConfigurationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a VirtualHubIpConfiguration ID: %+v", input, err)
 	}
 
 	resourceId := VirtualHubIpConfigurationId{

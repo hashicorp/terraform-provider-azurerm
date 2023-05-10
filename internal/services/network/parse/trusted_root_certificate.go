@@ -44,7 +44,7 @@ func (id TrustedRootCertificateId) ID() string {
 func TrustedRootCertificateID(input string) (*TrustedRootCertificateId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a TrustedRootCertificate ID: %+v", input, err)
 	}
 
 	resourceId := TrustedRootCertificateId{

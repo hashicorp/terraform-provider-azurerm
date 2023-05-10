@@ -44,7 +44,7 @@ func (id BackendId) ID() string {
 func BackendID(input string) (*BackendId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Backend ID: %+v", input, err)
 	}
 
 	resourceId := BackendId{

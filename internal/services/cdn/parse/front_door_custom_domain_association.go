@@ -44,7 +44,7 @@ func (id FrontDoorCustomDomainAssociationId) ID() string {
 func FrontDoorCustomDomainAssociationID(input string) (*FrontDoorCustomDomainAssociationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a FrontDoorCustomDomainAssociation ID: %+v", input, err)
 	}
 
 	resourceId := FrontDoorCustomDomainAssociationId{

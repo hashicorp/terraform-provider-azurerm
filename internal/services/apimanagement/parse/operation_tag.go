@@ -50,7 +50,7 @@ func (id OperationTagId) ID() string {
 func OperationTagID(input string) (*OperationTagId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a OperationTag ID: %+v", input, err)
 	}
 
 	resourceId := OperationTagId{

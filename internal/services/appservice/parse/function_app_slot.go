@@ -44,7 +44,7 @@ func (id FunctionAppSlotId) ID() string {
 func FunctionAppSlotID(input string) (*FunctionAppSlotId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a FunctionAppSlot ID: %+v", input, err)
 	}
 
 	resourceId := FunctionAppSlotId{

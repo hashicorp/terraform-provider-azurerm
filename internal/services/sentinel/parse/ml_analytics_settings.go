@@ -44,7 +44,7 @@ func (id MLAnalyticsSettingsId) ID() string {
 func MLAnalyticsSettingsID(input string) (*MLAnalyticsSettingsId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a MLAnalyticsSettings ID: %+v", input, err)
 	}
 
 	resourceId := MLAnalyticsSettingsId{

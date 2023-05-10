@@ -44,7 +44,7 @@ func (id RoutingRuleId) ID() string {
 func RoutingRuleID(input string) (*RoutingRuleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a RoutingRule ID: %+v", input, err)
 	}
 
 	resourceId := RoutingRuleId{

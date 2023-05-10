@@ -44,7 +44,7 @@ func (id ReplicationPolicyId) ID() string {
 func ReplicationPolicyID(input string) (*ReplicationPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a ReplicationPolicy ID: %+v", input, err)
 	}
 
 	resourceId := ReplicationPolicyId{

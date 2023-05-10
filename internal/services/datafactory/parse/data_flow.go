@@ -44,7 +44,7 @@ func (id DataFlowId) ID() string {
 func DataFlowID(input string) (*DataFlowId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a DataFlow ID: %+v", input, err)
 	}
 
 	resourceId := DataFlowId{

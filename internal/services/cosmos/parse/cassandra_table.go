@@ -47,7 +47,7 @@ func (id CassandraTableId) ID() string {
 func CassandraTableID(input string) (*CassandraTableId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a CassandraTable ID: %+v", input, err)
 	}
 
 	resourceId := CassandraTableId{

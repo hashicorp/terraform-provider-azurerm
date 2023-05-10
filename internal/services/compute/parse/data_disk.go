@@ -44,7 +44,7 @@ func (id DataDiskId) ID() string {
 func DataDiskID(input string) (*DataDiskId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a DataDisk ID: %+v", input, err)
 	}
 
 	resourceId := DataDiskId{

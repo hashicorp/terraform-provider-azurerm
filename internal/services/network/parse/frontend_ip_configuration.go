@@ -44,7 +44,7 @@ func (id FrontendIPConfigurationId) ID() string {
 func FrontendIPConfigurationID(input string) (*FrontendIPConfigurationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a FrontendIPConfiguration ID: %+v", input, err)
 	}
 
 	resourceId := FrontendIPConfigurationId{

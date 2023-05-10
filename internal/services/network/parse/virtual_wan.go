@@ -41,7 +41,7 @@ func (id VirtualWanId) ID() string {
 func VirtualWanID(input string) (*VirtualWanId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a VirtualWan ID: %+v", input, err)
 	}
 
 	resourceId := VirtualWanId{

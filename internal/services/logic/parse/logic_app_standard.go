@@ -41,7 +41,7 @@ func (id LogicAppStandardId) ID() string {
 func LogicAppStandardID(input string) (*LogicAppStandardId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a LogicAppStandard ID: %+v", input, err)
 	}
 
 	resourceId := LogicAppStandardId{

@@ -47,7 +47,7 @@ func (id ProductTagId) ID() string {
 func ProductTagID(input string) (*ProductTagId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a ProductTag ID: %+v", input, err)
 	}
 
 	resourceId := ProductTagId{

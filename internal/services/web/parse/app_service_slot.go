@@ -44,7 +44,7 @@ func (id AppServiceSlotId) ID() string {
 func AppServiceSlotID(input string) (*AppServiceSlotId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a AppServiceSlot ID: %+v", input, err)
 	}
 
 	resourceId := AppServiceSlotId{

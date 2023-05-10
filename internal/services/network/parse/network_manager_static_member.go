@@ -47,7 +47,7 @@ func (id NetworkManagerStaticMemberId) ID() string {
 func NetworkManagerStaticMemberID(input string) (*NetworkManagerStaticMemberId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a NetworkManagerStaticMember ID: %+v", input, err)
 	}
 
 	resourceId := NetworkManagerStaticMemberId{

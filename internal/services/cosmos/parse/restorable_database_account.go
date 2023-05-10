@@ -41,7 +41,7 @@ func (id RestorableDatabaseAccountId) ID() string {
 func RestorableDatabaseAccountID(input string) (*RestorableDatabaseAccountId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a RestorableDatabaseAccount ID: %+v", input, err)
 	}
 
 	resourceId := RestorableDatabaseAccountId{

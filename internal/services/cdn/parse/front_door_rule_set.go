@@ -44,7 +44,7 @@ func (id FrontDoorRuleSetId) ID() string {
 func FrontDoorRuleSetID(input string) (*FrontDoorRuleSetId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a FrontDoorRuleSet ID: %+v", input, err)
 	}
 
 	resourceId := FrontDoorRuleSetId{

@@ -44,7 +44,7 @@ func (id VirtualNetworkPeeringId) ID() string {
 func VirtualNetworkPeeringID(input string) (*VirtualNetworkPeeringId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a VirtualNetworkPeering ID: %+v", input, err)
 	}
 
 	resourceId := VirtualNetworkPeeringId{

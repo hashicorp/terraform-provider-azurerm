@@ -47,7 +47,7 @@ func (id ThreatIntelligenceIndicatorId) ID() string {
 func ThreatIntelligenceIndicatorID(input string) (*ThreatIntelligenceIndicatorId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a ThreatIntelligenceIndicator ID: %+v", input, err)
 	}
 
 	resourceId := ThreatIntelligenceIndicatorId{

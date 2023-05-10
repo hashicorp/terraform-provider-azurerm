@@ -50,7 +50,7 @@ func (id NetworkManagerAdminRuleId) ID() string {
 func NetworkManagerAdminRuleID(input string) (*NetworkManagerAdminRuleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a NetworkManagerAdminRule ID: %+v", input, err)
 	}
 
 	resourceId := NetworkManagerAdminRuleId{

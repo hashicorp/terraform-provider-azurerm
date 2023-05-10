@@ -44,7 +44,7 @@ func (id LoadBalancingId) ID() string {
 func LoadBalancingID(input string) (*LoadBalancingId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a LoadBalancing ID: %+v", input, err)
 	}
 
 	resourceId := LoadBalancingId{

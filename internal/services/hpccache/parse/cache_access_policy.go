@@ -44,7 +44,7 @@ func (id CacheAccessPolicyId) ID() string {
 func CacheAccessPolicyID(input string) (*CacheAccessPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a CacheAccessPolicy ID: %+v", input, err)
 	}
 
 	resourceId := CacheAccessPolicyId{

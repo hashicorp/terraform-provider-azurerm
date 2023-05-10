@@ -44,7 +44,7 @@ func (id ServerExtendedAuditingPolicyId) ID() string {
 func ServerExtendedAuditingPolicyID(input string) (*ServerExtendedAuditingPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a ServerExtendedAuditingPolicy ID: %+v", input, err)
 	}
 
 	resourceId := ServerExtendedAuditingPolicyId{

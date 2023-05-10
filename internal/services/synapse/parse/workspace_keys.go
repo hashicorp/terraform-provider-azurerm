@@ -44,7 +44,7 @@ func (id WorkspaceKeysId) ID() string {
 func WorkspaceKeysID(input string) (*WorkspaceKeysId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a WorkspaceKeys ID: %+v", input, err)
 	}
 
 	resourceId := WorkspaceKeysId{

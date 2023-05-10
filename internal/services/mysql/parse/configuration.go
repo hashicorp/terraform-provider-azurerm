@@ -44,7 +44,7 @@ func (id ConfigurationId) ID() string {
 func ConfigurationID(input string) (*ConfigurationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Configuration ID: %+v", input, err)
 	}
 
 	resourceId := ConfigurationId{

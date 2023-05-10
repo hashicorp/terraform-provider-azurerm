@@ -44,7 +44,7 @@ func (id GlobalSchemaId) ID() string {
 func GlobalSchemaID(input string) (*GlobalSchemaId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a GlobalSchema ID: %+v", input, err)
 	}
 
 	resourceId := GlobalSchemaId{

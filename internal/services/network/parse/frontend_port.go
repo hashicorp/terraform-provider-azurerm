@@ -44,7 +44,7 @@ func (id FrontendPortId) ID() string {
 func FrontendPortID(input string) (*FrontendPortId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a FrontendPort ID: %+v", input, err)
 	}
 
 	resourceId := FrontendPortId{

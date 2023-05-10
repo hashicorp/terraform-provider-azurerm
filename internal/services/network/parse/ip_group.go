@@ -41,7 +41,7 @@ func (id IpGroupId) ID() string {
 func IpGroupID(input string) (*IpGroupId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a IpGroup ID: %+v", input, err)
 	}
 
 	resourceId := IpGroupId{

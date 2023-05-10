@@ -44,7 +44,7 @@ func (id SecurityRuleId) ID() string {
 func SecurityRuleID(input string) (*SecurityRuleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a SecurityRule ID: %+v", input, err)
 	}
 
 	resourceId := SecurityRuleId{

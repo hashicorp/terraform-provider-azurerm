@@ -38,7 +38,7 @@ func (id SubscriptionTemplateDeploymentId) ID() string {
 func SubscriptionTemplateDeploymentID(input string) (*SubscriptionTemplateDeploymentId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a SubscriptionTemplateDeployment ID: %+v", input, err)
 	}
 
 	resourceId := SubscriptionTemplateDeploymentId{

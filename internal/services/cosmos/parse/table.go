@@ -44,7 +44,7 @@ func (id TableId) ID() string {
 func TableID(input string) (*TableId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Table ID: %+v", input, err)
 	}
 
 	resourceId := TableId{

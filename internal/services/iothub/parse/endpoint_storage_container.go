@@ -44,7 +44,7 @@ func (id EndpointStorageContainerId) ID() string {
 func EndpointStorageContainerID(input string) (*EndpointStorageContainerId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a EndpointStorageContainer ID: %+v", input, err)
 	}
 
 	resourceId := EndpointStorageContainerId{

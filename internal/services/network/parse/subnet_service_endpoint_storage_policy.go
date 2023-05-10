@@ -41,7 +41,7 @@ func (id SubnetServiceEndpointStoragePolicyId) ID() string {
 func SubnetServiceEndpointStoragePolicyID(input string) (*SubnetServiceEndpointStoragePolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a SubnetServiceEndpointStoragePolicy ID: %+v", input, err)
 	}
 
 	resourceId := SubnetServiceEndpointStoragePolicyId{

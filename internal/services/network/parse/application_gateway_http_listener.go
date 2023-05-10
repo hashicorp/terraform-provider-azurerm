@@ -44,7 +44,7 @@ func (id ApplicationGatewayHTTPListenerId) ID() string {
 func ApplicationGatewayHTTPListenerID(input string) (*ApplicationGatewayHTTPListenerId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a ApplicationGatewayHTTPListener ID: %+v", input, err)
 	}
 
 	resourceId := ApplicationGatewayHTTPListenerId{

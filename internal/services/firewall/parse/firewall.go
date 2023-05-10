@@ -41,7 +41,7 @@ func (id FirewallId) ID() string {
 func FirewallID(input string) (*FirewallId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Firewall ID: %+v", input, err)
 	}
 
 	resourceId := FirewallId{

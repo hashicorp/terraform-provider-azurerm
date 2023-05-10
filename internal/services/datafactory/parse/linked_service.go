@@ -44,7 +44,7 @@ func (id LinkedServiceId) ID() string {
 func LinkedServiceID(input string) (*LinkedServiceId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a LinkedService ID: %+v", input, err)
 	}
 
 	resourceId := LinkedServiceId{

@@ -47,7 +47,7 @@ func (id ScriptId) ID() string {
 func ScriptID(input string) (*ScriptId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Script ID: %+v", input, err)
 	}
 
 	resourceId := ScriptId{

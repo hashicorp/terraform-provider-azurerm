@@ -44,7 +44,7 @@ func (id NetworkInterfaceIpConfigurationId) ID() string {
 func NetworkInterfaceIpConfigurationID(input string) (*NetworkInterfaceIpConfigurationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a NetworkInterfaceIpConfiguration ID: %+v", input, err)
 	}
 
 	resourceId := NetworkInterfaceIpConfigurationId{

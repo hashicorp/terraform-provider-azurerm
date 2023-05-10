@@ -41,7 +41,7 @@ func (id DashboardId) ID() string {
 func DashboardID(input string) (*DashboardId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Dashboard ID: %+v", input, err)
 	}
 
 	resourceId := DashboardId{

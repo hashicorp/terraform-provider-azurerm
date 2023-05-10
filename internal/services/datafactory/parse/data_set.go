@@ -44,7 +44,7 @@ func (id DataSetId) ID() string {
 func DataSetID(input string) (*DataSetId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a DataSet ID: %+v", input, err)
 	}
 
 	resourceId := DataSetId{

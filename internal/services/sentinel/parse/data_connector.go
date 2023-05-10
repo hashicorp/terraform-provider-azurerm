@@ -44,7 +44,7 @@ func (id DataConnectorId) ID() string {
 func DataConnectorID(input string) (*DataConnectorId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a DataConnector ID: %+v", input, err)
 	}
 
 	resourceId := DataConnectorId{

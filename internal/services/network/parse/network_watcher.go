@@ -41,7 +41,7 @@ func (id NetworkWatcherId) ID() string {
 func NetworkWatcherID(input string) (*NetworkWatcherId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a NetworkWatcher ID: %+v", input, err)
 	}
 
 	resourceId := NetworkWatcherId{

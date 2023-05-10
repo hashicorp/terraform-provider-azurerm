@@ -47,7 +47,7 @@ func (id AppHybridConnectionId) ID() string {
 func AppHybridConnectionID(input string) (*AppHybridConnectionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a AppHybridConnection ID: %+v", input, err)
 	}
 
 	resourceId := AppHybridConnectionId{

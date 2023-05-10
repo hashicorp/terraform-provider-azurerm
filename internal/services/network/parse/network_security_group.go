@@ -41,7 +41,7 @@ func (id NetworkSecurityGroupId) ID() string {
 func NetworkSecurityGroupID(input string) (*NetworkSecurityGroupId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a NetworkSecurityGroup ID: %+v", input, err)
 	}
 
 	resourceId := NetworkSecurityGroupId{

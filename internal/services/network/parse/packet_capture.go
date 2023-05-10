@@ -44,7 +44,7 @@ func (id PacketCaptureId) ID() string {
 func PacketCaptureID(input string) (*PacketCaptureId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a PacketCapture ID: %+v", input, err)
 	}
 
 	resourceId := PacketCaptureId{

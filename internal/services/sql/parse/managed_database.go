@@ -44,7 +44,7 @@ func (id ManagedDatabaseId) ID() string {
 func ManagedDatabaseID(input string) (*ManagedDatabaseId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a ManagedDatabase ID: %+v", input, err)
 	}
 
 	resourceId := ManagedDatabaseId{

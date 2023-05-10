@@ -44,7 +44,7 @@ func (id SmartDetectionRuleId) ID() string {
 func SmartDetectionRuleID(input string) (*SmartDetectionRuleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a SmartDetectionRule ID: %+v", input, err)
 	}
 
 	resourceId := SmartDetectionRuleId{

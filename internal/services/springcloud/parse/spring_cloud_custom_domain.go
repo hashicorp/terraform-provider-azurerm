@@ -47,7 +47,7 @@ func (id SpringCloudCustomDomainId) ID() string {
 func SpringCloudCustomDomainID(input string) (*SpringCloudCustomDomainId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a SpringCloudCustomDomain ID: %+v", input, err)
 	}
 
 	resourceId := SpringCloudCustomDomainId{

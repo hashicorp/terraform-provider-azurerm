@@ -47,7 +47,7 @@ func (id ApiPolicyId) ID() string {
 func ApiPolicyID(input string) (*ApiPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a ApiPolicy ID: %+v", input, err)
 	}
 
 	resourceId := ApiPolicyId{

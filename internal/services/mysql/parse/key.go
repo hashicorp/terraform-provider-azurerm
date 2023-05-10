@@ -44,7 +44,7 @@ func (id KeyId) ID() string {
 func KeyID(input string) (*KeyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Key ID: %+v", input, err)
 	}
 
 	resourceId := KeyId{

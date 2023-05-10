@@ -47,7 +47,7 @@ func (id SpringCloudCustomizedAcceleratorId) ID() string {
 func SpringCloudCustomizedAcceleratorID(input string) (*SpringCloudCustomizedAcceleratorId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a SpringCloudCustomizedAccelerator ID: %+v", input, err)
 	}
 
 	resourceId := SpringCloudCustomizedAcceleratorId{

@@ -44,7 +44,7 @@ func (id EnrichmentId) ID() string {
 func EnrichmentID(input string) (*EnrichmentId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Enrichment ID: %+v", input, err)
 	}
 
 	resourceId := EnrichmentId{

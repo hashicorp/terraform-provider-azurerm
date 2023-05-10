@@ -44,7 +44,7 @@ func (id PipelineId) ID() string {
 func PipelineID(input string) (*PipelineId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a Pipeline ID: %+v", input, err)
 	}
 
 	resourceId := PipelineId{

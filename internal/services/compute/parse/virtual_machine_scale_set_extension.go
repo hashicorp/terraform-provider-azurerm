@@ -44,7 +44,7 @@ func (id VirtualMachineScaleSetExtensionId) ID() string {
 func VirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExtensionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a VirtualMachineScaleSetExtension ID: %+v", input, err)
 	}
 
 	resourceId := VirtualMachineScaleSetExtensionId{

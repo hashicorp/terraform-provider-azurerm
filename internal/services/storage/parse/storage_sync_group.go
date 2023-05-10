@@ -44,7 +44,7 @@ func (id StorageSyncGroupId) ID() string {
 func StorageSyncGroupID(input string) (*StorageSyncGroupId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a StorageSyncGroup ID: %+v", input, err)
 	}
 
 	resourceId := StorageSyncGroupId{

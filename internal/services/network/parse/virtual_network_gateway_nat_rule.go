@@ -44,7 +44,7 @@ func (id VirtualNetworkGatewayNatRuleId) ID() string {
 func VirtualNetworkGatewayNatRuleID(input string) (*VirtualNetworkGatewayNatRuleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a VirtualNetworkGatewayNatRule ID: %+v", input, err)
 	}
 
 	resourceId := VirtualNetworkGatewayNatRuleId{

@@ -44,7 +44,7 @@ func (id ApplicationGatewayPrivateLinkConfigurationId) ID() string {
 func ApplicationGatewayPrivateLinkConfigurationID(input string) (*ApplicationGatewayPrivateLinkConfigurationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a ApplicationGatewayPrivateLinkConfiguration ID: %+v", input, err)
 	}
 
 	resourceId := ApplicationGatewayPrivateLinkConfigurationId{

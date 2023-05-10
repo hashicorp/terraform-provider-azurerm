@@ -50,7 +50,7 @@ func (id ProtectedItemId) ID() string {
 func ProtectedItemID(input string) (*ProtectedItemId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as a ProtectedItem ID: %+v", input, err)
 	}
 
 	resourceId := ProtectedItemId{
