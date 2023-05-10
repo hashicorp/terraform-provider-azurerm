@@ -413,7 +413,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Nginx = nginx.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
 	client.Orbital = orbital.NewClient(o)
-	client.Policy = policy.NewClient(o)
+	if client.Policy, err = policy.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Policy: %+v", err)
+	}
 	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
 	client.PowerBI = powerBI.NewClient(o)
@@ -424,7 +426,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Redis = redis.NewClient(o)
 	client.RedisEnterprise = redisenterprise.NewClient(o)
 	client.Relay = relay.NewClient(o)
-	client.Resource = resource.NewClient(o)
+	if client.Resource, err = resource.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Resource: %+v", err)
+	}
 	if client.Search, err = search.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Search: %+v", err)
 	}

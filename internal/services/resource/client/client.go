@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs" // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2015-12-01/features"                      // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
@@ -24,12 +25,15 @@ type Client struct {
 	options *common.ClientOptions
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&deploymentsClient.Client, o.ResourceManagerAuthorizer)
 
-	deploymentScriptsClient := deploymentscripts.NewDeploymentScriptsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&deploymentScriptsClient.Client, o.ResourceManagerAuthorizer)
+	deploymentScriptsClient, err := deploymentscripts.NewDeploymentScriptsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DeploymentScripts client: %+v", err)
+	}
+	o.Configure(deploymentScriptsClient.Client, o.Authorizers.ResourceManager)
 
 	featuresClient := features.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&featuresClient.Client, o.ResourceManagerAuthorizer)
@@ -37,11 +41,17 @@ func NewClient(o *common.ClientOptions) *Client {
 	groupsClient := resources.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupsClient.Client, o.ResourceManagerAuthorizer)
 
-	locksClient := managementlocks.NewManagementLocksClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&locksClient.Client, o.ResourceManagerAuthorizer)
+	locksClient, err := managementlocks.NewManagementLocksClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ManagementLocks client: %+v", err)
+	}
+	o.Configure(locksClient.Client, o.Authorizers.ResourceManager)
 
-	resourceProvidersClient := providers.NewProvidersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&resourceProvidersClient.Client, o.ResourceManagerAuthorizer)
+	resourceProvidersClient, err := providers.NewProvidersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Providers client: %+v", err)
+	}
+	o.Configure(resourceProvidersClient.Client, o.Authorizers.ResourceManager)
 
 	resourcesClient := resources.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&resourcesClient.Client, o.ResourceManagerAuthorizer)
@@ -55,16 +65,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		GroupsClient:                &groupsClient,
 		DeploymentsClient:           &deploymentsClient,
-		DeploymentScriptsClient:     &deploymentScriptsClient,
+		DeploymentScriptsClient:     deploymentScriptsClient,
 		FeaturesClient:              &featuresClient,
-		LocksClient:                 &locksClient,
-		ResourceProvidersClient:     &resourceProvidersClient,
+		LocksClient:                 locksClient,
+		ResourceProvidersClient:     resourceProvidersClient,
 		ResourcesClient:             &resourcesClient,
 		TagsClient:                  &tagsClient,
 		TemplateSpecsVersionsClient: &templatespecsVersionsClient,
 
 		options: o,
-	}
+	}, nil
 }
 
 func (c Client) TagsClientForSubscription(subscriptionID string) *resources.TagsClient {

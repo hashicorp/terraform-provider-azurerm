@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration" // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"      // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
@@ -17,9 +18,12 @@ type Client struct {
 	GuestConfigurationAssignmentsClient *guestconfiguration.AssignmentsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	assignmentsClient := assignments.NewPolicyAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&assignmentsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	assignmentsClient, err := assignments.NewPolicyAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building PolicyAssignments client: %+v", err)
+	}
+	o.Configure(assignmentsClient.Client, o.Authorizers.ResourceManager)
 
 	definitionsClient := policy.NewDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&definitionsClient.Client, o.ResourceManagerAuthorizer)
@@ -37,11 +41,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&guestConfigurationAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AssignmentsClient:                   &assignmentsClient,
+		AssignmentsClient:                   assignmentsClient,
 		DefinitionsClient:                   &definitionsClient,
 		ExemptionsClient:                    &exemptionsClient,
 		SetDefinitionsClient:                &setDefinitionsClient,
 		RemediationsClient:                  &remediationsClient,
 		GuestConfigurationAssignmentsClient: &guestConfigurationAssignmentsClient,
-	}
+	}, nil
 }
