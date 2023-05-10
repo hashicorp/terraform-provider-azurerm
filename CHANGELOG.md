@@ -21,6 +21,7 @@ BUG FIXES:
 
 * provider: fixing a bug where we would invoke but not poll for the Registration State during automatic Resource Provider Registration [GH-21695]
 * `azurerm_app_configuration`: handling an API bug where when polling for `PurgeDeleted` returns a 404 rather the payload for a long-running operation [GH-21665]
+* `azurerm_api_management_api` - fixing a bug where an empty `contact` bug would cause a crash [GH-21740]
 * `azurerm_eventhub_namespace` - add locks and remove unneeded WaitForState functions [GH-21656]
 * `azurerm_machine_learning_workspace` - parse `key_vault_id` insensitively [GH-21684]
 * `azurerm_monitor_metric_alert` - fix regression by using `SingleResourceMultiMetricCriteria` for new metric alerts  [GH-21658]
