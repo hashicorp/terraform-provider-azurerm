@@ -60,7 +60,7 @@ The following attributes are exported:
 
 ---
 
-A `key_vault_reference` block has the following properties:
+A `key_vault_reference` block exports the following:
 
 * `id` - The Azure identifier of the Azure KeyVault reference.
 
@@ -68,9 +68,9 @@ A `key_vault_reference` block has the following properties:
 
 ---
 
-An `encryption` block has the following properties:
+An `encryption` block exports the following:
 
-* `key_vault_key_id` - The Azure identifier of the Azure KeyVault key reference.
+* `key_vault_key_id` - The full URL path of the Key Vault Key used to encrypt data for this Batch account.
 
 ---
 
