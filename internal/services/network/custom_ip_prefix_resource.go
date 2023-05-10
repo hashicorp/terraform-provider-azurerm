@@ -337,18 +337,13 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 				ResourceGroupName: id.ResourceGroup,
 				Location:          location.NormalizeNilable(existing.Location),
 				Tags:              tags.ToTypedObject(existing.Tags),
-			}
-
-			if existing.Zones != nil {
-				model.Zones = *existing.Zones
+				Zones:             pointer.From(existing.Zones),
 			}
 
 			if props := existing.CustomIPPrefixPropertiesFormat; props != nil {
 				model.CIDR = pointer.From(props.Cidr)
-
 				model.InternetAdvertisingDisabled = pointer.From(props.NoInternetAdvertise)
-
-				model.WANValidationSignedMessage = *props.SignedMessage
+				model.WANValidationSignedMessage = pointer.From(props.SignedMessage)
 
 				if parent := props.CustomIPPrefixParent; parent != nil {
 					model.ParentCustomIPPrefixID = pointer.From(parent.ID)

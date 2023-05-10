@@ -120,7 +120,8 @@ func testAccCustomIpPrefix_ipv4Update(t *testing.T) {
 }
 
 func testAccCustomIpPrefix_ipv6(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
+	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "global")
+	data2 := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "regional")
 	r := CustomIpPrefixResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -128,6 +129,7 @@ func testAccCustomIpPrefix_ipv6(t *testing.T) {
 			Config: r.ipv6(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
