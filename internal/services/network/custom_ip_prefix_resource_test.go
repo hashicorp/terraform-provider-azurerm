@@ -263,11 +263,12 @@ resource "azurerm_custom_ip_prefix" "global" {
 }
 
 resource "azurerm_custom_ip_prefix" "regional" {
-  name                = "acctest-v6regional-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  cidr                = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
-  zones               = ["1"]
+  name                       = "acctest-v6regional-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  parent_custom_ip_prefix_id = azurerm_custom_ip_prefix.global.id
+  cidr                       = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
+  zones                      = ["1"]
 }
 `, data.RandomInteger, data.Locations.Primary, ipv6TestCidr)
 }
