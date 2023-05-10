@@ -156,7 +156,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
+			roleType := mongorbacs.MongoRoleDefinitionTypeOne
 			properties := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: &model.DbName,
@@ -206,7 +206,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
+			roleType := mongorbacs.MongoRoleDefinitionTypeOne
 			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: &model.DbName,
