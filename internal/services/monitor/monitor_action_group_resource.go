@@ -849,13 +849,15 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 
 		eventHubNameSpace, eventHubName, subId := val["event_hub_namespace"].(string), val["event_hub_name"].(string), val["subscription_id"].(string)
 		if !features.FourPointOhBeta() {
-			if eventHubNameSpace == "" && eventHubName == "" && subId == "" && val["event_hub_id"].(string) != "" {
-				eventHubId, err := eventhubs.ParseEventhubID(*utils.String(val["event_hub_id"].(string)))
+			eventHubIdRaw := val["event_hub_id"].(string)
+			if eventHubNameSpace == "" && eventHubName == "" && subId == "" && eventHubIdRaw != "" {
+				eventHubId, err := eventhubs.ParseEventhubID(eventHubIdRaw)
 				if err != nil {
 					return nil, err
 				}
 				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.EventhubName, eventHubId.SubscriptionId
-			} else if val["event_hub_id"].(string) != "" || eventHubNameSpace == "" || eventHubName == "" {
+			}
+			if eventHubNameSpace == "" || eventHubName == "" {
 				return nil, fmt.Errorf("in event_hub_receiver, exactly one of event_hub_id or (event_hub_namespace, event_hub_name) must be set")
 			}
 		}
