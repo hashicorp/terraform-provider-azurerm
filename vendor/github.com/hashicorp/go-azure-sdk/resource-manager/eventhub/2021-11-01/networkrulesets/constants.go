@@ -1,6 +1,10 @@
 package networkrulesets
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForDefaultAction() []string {
 		string(DefaultActionAllow),
 		string(DefaultActionDeny),
 	}
+}
+
+func (s *DefaultAction) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDefaultAction(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDefaultAction(input string) (*DefaultAction, error) {
@@ -45,6 +62,19 @@ func PossibleValuesForNetworkRuleIPAction() []string {
 	}
 }
 
+func (s *NetworkRuleIPAction) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNetworkRuleIPAction(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseNetworkRuleIPAction(input string) (*NetworkRuleIPAction, error) {
 	vals := map[string]NetworkRuleIPAction{
 		"allow": NetworkRuleIPActionAllow,
@@ -70,6 +100,19 @@ func PossibleValuesForPublicNetworkAccessFlag() []string {
 		string(PublicNetworkAccessFlagDisabled),
 		string(PublicNetworkAccessFlagEnabled),
 	}
+}
+
+func (s *PublicNetworkAccessFlag) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePublicNetworkAccessFlag(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePublicNetworkAccessFlag(input string) (*PublicNetworkAccessFlag, error) {

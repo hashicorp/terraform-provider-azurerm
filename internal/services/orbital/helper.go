@@ -139,7 +139,7 @@ func EndPointSchema() *pluginsdk.Schema {
 
 				"ip_address": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validation.IsIPAddress,
 				},
 
