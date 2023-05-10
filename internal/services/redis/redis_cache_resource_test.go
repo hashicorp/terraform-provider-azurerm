@@ -1382,7 +1382,7 @@ resource "azurerm_redis_cache" "test" {
 
 resource "azurerm_management_lock" "test" {
   name       = "acctestRedis-%d"
-  scope      = azurerm_resource_group.test.id
+  scope      = azurerm_redis_cache.test.id
   lock_level = "CanNotDelete"
 }
 
