@@ -497,6 +497,28 @@ func TestAccRedisCache_SkuDowngrade(t *testing.T) {
 	})
 }
 
+func TestAccRedisCache_UpdateWithCanNotDeleteLock(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+	r := RedisCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.canNotDeleteLock(data, "volatile-lru"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.canNotDeleteLock(data, "allkeys-lru"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := redis.ParseRediID(state.ID)
 	if err != nil {
@@ -1330,4 +1352,39 @@ func testCheckSSLInConnectionString(resourceName string, propertyName string, re
 
 		return fmt.Errorf("Bad: missing SSL setting in connection string: %s", propertyName)
 	}
+}
+
+func (RedisCacheResource) canNotDeleteLock(data acceptance.TestData, maxMemoryPolicy string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  capacity            = 2
+  family              = "C"
+  sku_name            = "Basic"
+  enable_non_ssl_port = false
+  minimum_tls_version = "1.2"
+
+  redis_configuration {
+    maxmemory_policy = "%s"
+  }
+}
+
+resource "azurerm_management_lock" "test" {
+  name       = "acctestRedis-%d"
+  scope      = azurerm_resource_group.test.id
+  lock_level = "CanNotDelete"
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, maxMemoryPolicy, data.RandomInteger)
 }
