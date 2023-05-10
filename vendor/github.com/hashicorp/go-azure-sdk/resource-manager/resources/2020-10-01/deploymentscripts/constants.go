@@ -1,6 +1,10 @@
 package deploymentscripts
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForCleanupOptions() []string {
 		string(CleanupOptionsOnExpiration),
 		string(CleanupOptionsOnSuccess),
 	}
+}
+
+func (s *CleanupOptions) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCleanupOptions(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCleanupOptions(input string) (*CleanupOptions, error) {
@@ -46,6 +63,19 @@ func PossibleValuesForManagedServiceIdentityType() []string {
 	return []string{
 		string(ManagedServiceIdentityTypeUserAssigned),
 	}
+}
+
+func (s *ManagedServiceIdentityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseManagedServiceIdentityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseManagedServiceIdentityType(input string) (*ManagedServiceIdentityType, error) {
@@ -83,6 +113,19 @@ func PossibleValuesForScriptProvisioningState() []string {
 	}
 }
 
+func (s *ScriptProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScriptProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseScriptProvisioningState(input string) (*ScriptProvisioningState, error) {
 	vals := map[string]ScriptProvisioningState{
 		"canceled":              ScriptProvisioningStateCanceled,
@@ -113,6 +156,19 @@ func PossibleValuesForScriptType() []string {
 		string(ScriptTypeAzureCLI),
 		string(ScriptTypeAzurePowerShell),
 	}
+}
+
+func (s *ScriptType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScriptType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseScriptType(input string) (*ScriptType, error) {
