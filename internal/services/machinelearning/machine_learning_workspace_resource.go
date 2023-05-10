@@ -328,7 +328,6 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 	if props := resp.Model.Properties; props != nil {
 		d.Set("application_insights_id", props.ApplicationInsights)
 		d.Set("storage_account_id", props.StorageAccount)
-		d.Set("key_vault_id", props.KeyVault)
 		d.Set("container_registry_id", props.ContainerRegistry)
 		d.Set("description", props.Description)
 		d.Set("friendly_name", props.FriendlyName)
@@ -338,6 +337,12 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
 		d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 		d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
+
+		kvId, err := commonids.ParseKeyVaultIDInsensitively(*props.KeyVault)
+		if err != nil {
+			return err
+		}
+		d.Set("key_vault_id", kvId.ID())
 
 		if !features.FourPointOhBeta() {
 			d.Set("public_access_behind_virtual_network_enabled", props.AllowPublicAccessWhenBehindVnet)

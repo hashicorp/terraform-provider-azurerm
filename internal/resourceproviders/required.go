@@ -1,6 +1,6 @@
 package resourceproviders
 
-// RequiredResourceProviders returns all of the Resource Providers used by the AzureRM Provider
+// Required returns all of the Resource Providers used by the AzureRM Provider
 // whilst all may not be used by every user - the intention is that we determine which should be
 // registered such that we can avoid obscure errors where Resource Providers aren't registered.
 // new Resource Providers should be added to this list as they're used in the Provider

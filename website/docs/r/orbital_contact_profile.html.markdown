@@ -132,11 +132,11 @@ An `end_point` block supports the following:
 
 * `end_point_name` - (Required) Name of an end point.
 
-* `ip_address` - (Required) IP address of an end point.
-
 * `port` - (Required) TCP port to listen on to receive data.
 
 * `protocol` - (Required) Protocol of an end point. Possible values are `TCP` and `UDP`.
+
+* `ip_address` - (Optional) IP address of an end point.
 
 ---
 

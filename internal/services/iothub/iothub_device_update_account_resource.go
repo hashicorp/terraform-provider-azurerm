@@ -81,7 +81,7 @@ func (r IotHubDeviceUpdateAccountResource) ResourceType() string {
 }
 
 func (r IotHubDeviceUpdateAccountResource) ModelObject() interface{} {
-	return &IotHubDeviceUpdateInstanceModel{}
+	return &IotHubDeviceUpdateAccountModel{}
 }
 
 func (r IotHubDeviceUpdateAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
