@@ -7,7 +7,9 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -455,19 +457,12 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	client.StopContext = stopCtx
 
 	if !skipProviderRegistration {
-		// List all the available providers and their registration state to avoid unnecessary
-		// requests. This also lets us check if the provider credentials are correct.
-		providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
-		if err != nil {
-			return nil, diag.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
-				"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-				"error: %s", err)
-		}
-
-		availableResourceProviders := providerList.Values()
+		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 		requiredResourceProviders := resourceproviders.Required()
+		ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+		defer cancel()
 
-		if err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders); err != nil {
+		if err := resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
 			return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
 		}
 	}
