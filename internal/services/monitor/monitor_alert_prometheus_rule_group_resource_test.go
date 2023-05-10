@@ -269,12 +269,36 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 
+resource "azurerm_kubernetes_cluster" "test2" {
+  name                = "acctestaks2%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks2%[2]d"
+  kubernetes_version  = "1.25.5"
+
+  default_node_pool {
+    name                   = "default"
+    node_count             = 2
+    vm_size                = "Standard_DS2_v2"
+    enable_host_encryption = true
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
 
 resource "azurerm_monitor_alert_prometheus_rule_group" "test" {
   name                = "acctest-amprg-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
-  cluster_name        = azurerm_kubernetes_cluster.test.name
+  cluster_name        = azurerm_kubernetes_cluster.test2.name
   description         = "This is the description of the following rule group2"
   rule_group_enabled  = true
   interval            = "PT10M"
@@ -283,22 +307,28 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "test" {
   rule {
     enabled    = true
     expression = "histogram_quantile(1.0, sum(rate(jobs_duration_seconds_bucket{service=\" billing-processing \"}[5m])) by (job_type))"
-    record     = "job_type:billing_jobs_duration_seconds:99p5m"
+    record     = "job_type:billing_jobs_duration_seconds:99p6m"
     labels = {
-      team = "prod2"
+      team2 = "prod2"
     }
   }
 
   rule {
-    alert      = "Billing_Processing_Very_Slow"
+    alert      = "Billing_Processing_Very_Slow2"
     enabled    = false
     expression = "histogram_quantile(1.0, sum(rate(jobs_duration_seconds_bucket{service=\" billing-processing \"}[5m])) by (job_type))"
     for        = "PT4M"
-    severity   = 3
+    severity   = 1
+    action {
+      action_group_id = azurerm_monitor_action_group.test2.id
+      action_properties = {
+        actionName2 = "actionValue2"
+      }
+    }
     action {
       action_group_id = azurerm_monitor_action_group.test.id
       action_properties = {
-        actionName2 = "actionValue2"
+        actionName3 = "actionValue3"
       }
     }
     resolve_configuration {

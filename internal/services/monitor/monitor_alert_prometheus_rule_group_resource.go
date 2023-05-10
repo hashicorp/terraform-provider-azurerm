@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -20,14 +21,14 @@ import (
 
 type AlertPrometheusRuleGroupResourceModel struct {
 	Name              string                `tfschema:"name"`
-	ResourceGroupName string                `tfschema:"resource_group_name"`
-	ClusterName       string                `tfschema:"cluster_name"`
-	Description       string                `tfschema:"description"`
-	RuleGroupEnabled  bool                  `tfschema:"rule_group_enabled"`
-	Interval          string                `tfschema:"interval"`
 	Location          string                `tfschema:"location"`
+	ResourceGroupName string                `tfschema:"resource_group_name"`
 	Rule              []PrometheusRuleModel `tfschema:"rule"`
 	Scopes            []string              `tfschema:"scopes"`
+	ClusterName       string                `tfschema:"cluster_name"`
+	Description       string                `tfschema:"description"`
+	Interval          string                `tfschema:"interval"`
+	RuleGroupEnabled  bool                  `tfschema:"rule_group_enabled"`
 	Tags              map[string]string     `tfschema:"tags"`
 }
 
@@ -66,6 +67,38 @@ func (r AlertPrometheusRuleGroupResource) ModelObject() interface{} {
 	return &AlertPrometheusRuleGroupResourceModel{}
 }
 
+func (r AlertPrometheusRuleGroupResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model AlertPrometheusRuleGroupResourceModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("DecodeDiff: %+v", err)
+			}
+
+			for i, r := range model.Rule {
+				if (r.Alert != "" && r.Record != "") || (r.Alert == "" && r.Record == "") {
+					return fmt.Errorf("one and only one of [rule.%d.record, rule.%d.alert] for %s must be set", i, i, model.Name)
+				}
+
+				// actions, severity, annotations, for, resolve_configuration must be empty when type is recording rule
+				if r.Record != "" {
+					_, actionOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".action")
+					_, severityOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".severity")
+					_, annotationsOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".annotations")
+					_, forOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".for")
+					_, resolveConfigurationOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".resolve_configuration")
+
+					if actionOk || severityOk || annotationsOk || forOk || resolveConfigurationOk {
+						return fmt.Errorf("the rule.[%d].action, rule.[%d].severity, rule.[%d].annotations, rule.[%d].for and rule.[%d].resolve_configuration must be empty when the rule type of Alert Prometheus Rule Group (%s) is record", i, i, i, i, i, model.Name)
+					}
+				}
+			}
+			return nil
+		},
+		Timeout: 30 * time.Minute,
+	}
+}
+
 func (r AlertPrometheusRuleGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return prometheusrulegroups.ValidatePrometheusRuleGroupID
 }
@@ -76,12 +109,12 @@ func (r AlertPrometheusRuleGroupResource) Arguments() map[string]*pluginsdk.Sche
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(1, 260),
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
-
 		"location": commonschema.Location(),
+
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"rule": {
 			Type:     pluginsdk.TypeList,
@@ -177,8 +210,9 @@ func (r AlertPrometheusRuleGroupResource) Arguments() map[string]*pluginsdk.Sche
 					},
 
 					"severity": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 4),
 					},
 				},
 			},
@@ -204,15 +238,15 @@ func (r AlertPrometheusRuleGroupResource) Arguments() map[string]*pluginsdk.Sche
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"rule_group_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
 		"interval": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"rule_group_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 
 		"tags": commonschema.Tags(),
@@ -257,11 +291,9 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 
 			properties.Properties.Description = pointer.To(model.Description)
 
-			if model.Interval != "" {
-				properties.Properties.Interval = pointer.To(model.Interval)
-			}
+			properties.Properties.Interval = pointer.To(model.Interval)
 
-			properties.Properties.Rules = expandPrometheusRuleModel(model.Rule)
+			properties.Properties.Rules = expandPrometheusRuleModel(model.Rule, metadata.ResourceData)
 
 			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -307,7 +339,7 @@ func (r AlertPrometheusRuleGroupResource) Update() sdk.ResourceFunc {
 				properties.Properties.Description = pointer.To(model.Description)
 			}
 
-			if metadata.ResourceData.HasChange("enabled") {
+			if metadata.ResourceData.HasChange("rule_group_enabled") {
 				properties.Properties.Enabled = pointer.To(model.RuleGroupEnabled)
 			}
 
@@ -316,7 +348,7 @@ func (r AlertPrometheusRuleGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("rule") {
-				properties.Properties.Rules = expandPrometheusRuleModel(model.Rule)
+				properties.Properties.Rules = expandPrometheusRuleModel(model.Rule, metadata.ResourceData)
 			}
 
 			if metadata.ResourceData.HasChange("scopes") {
@@ -406,7 +438,7 @@ func (r AlertPrometheusRuleGroupResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandPrometheusRuleModel(inputList []PrometheusRuleModel) []prometheusrulegroups.PrometheusRule {
+func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.ResourceData) []prometheusrulegroups.PrometheusRule {
 	outputList := make([]prometheusrulegroups.PrometheusRule, 0)
 
 	for _, v := range inputList {
@@ -419,12 +451,14 @@ func expandPrometheusRuleModel(inputList []PrometheusRuleModel) []prometheusrule
 		if v.Alert != "" {
 			output.Actions = expandPrometheusRuleGroupActionModel(v.Action)
 			output.Alert = pointer.To(v.Alert)
-			output.Severity = pointer.To(v.Severity)
+			if _, ok := d.GetOk("severity"); ok {
+				output.Severity = pointer.To(v.Severity)
+			}
 			output.Annotations = pointer.To(v.Annotations)
 			output.For = pointer.To(v.For)
 			output.ResolveConfiguration = expandPrometheusRuleResolveConfigurationModel(v.ResolveConfiguration)
 		} else {
-			// Actions, Alert, Severity, Annotations,For, resolveConfigurationValue must be empty when type is recording rule
+			// action, alert, severity, annotations, for, resolve_configuration must be empty when type is recording rule
 			output.Record = pointer.To(v.Record)
 		}
 
