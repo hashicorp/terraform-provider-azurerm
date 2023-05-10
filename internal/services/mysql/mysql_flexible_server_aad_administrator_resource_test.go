@@ -98,6 +98,12 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_mysql_flexible_server" "test" {
   name                   = "acctest-mysqlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -106,14 +112,13 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
   zone                   = "1"
-}
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r MySQLFlexibleServerAdministratorResource) basic(data acceptance.TestData) string {
@@ -148,12 +153,18 @@ func (r MySQLFlexibleServerAdministratorResource) update(data acceptance.TestDat
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctestUAI2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_mysql_flexible_server_active_directory_administrator" "test" {
   server_id   = azurerm_mysql_flexible_server.test.id
-  identity_id = azurerm_user_assigned_identity.test.id
+  identity_id = azurerm_user_assigned_identity.test2.id
   login       = "sqladmin2"
   object_id   = data.azurerm_client_config.current.client_id
   tenant_id   = data.azurerm_client_config.current.tenant_id
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger)
 }

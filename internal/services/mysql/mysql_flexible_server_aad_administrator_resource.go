@@ -3,6 +3,8 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -50,7 +52,7 @@ func (r MySQLFlexibleServerAdministratorResource) Arguments() map[string]*plugin
 		"identity_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"login": {
@@ -92,14 +94,13 @@ func (r MySQLFlexibleServerAdministratorResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := azureadadministrators.NewFlexibleServerID(flexibleServerId.SubscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName)
-			existing, err := client.Get(ctx, id)
+			existing, err := client.Get(ctx, *flexibleServerId)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+				return fmt.Errorf("checking for existing %s: %+v", flexibleServerId, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				return metadata.ResourceRequiresImport(r.ResourceType(), flexibleServerId)
 			}
 
 			properties := &azureadadministrators.AzureADAdministrator{
@@ -112,9 +113,11 @@ func (r MySQLFlexibleServerAdministratorResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, *flexibleServerId, *properties); err != nil {
+				return fmt.Errorf("creating %s: %+v", flexibleServerId, err)
 			}
+
+			id := parse.NewMySQLFlexibleServerAzureActiveDirectoryAdministratorID(flexibleServerId.SubscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, string(azureadadministrators.AdministratorTypeActiveDirectory))
 
 			metadata.SetID(id)
 			return nil
@@ -128,7 +131,7 @@ func (r MySQLFlexibleServerAdministratorResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MySQL.AzureADAdministratorsClient
 
-			id, err := azureadadministrators.ParseFlexibleServerID(metadata.ResourceData.Id())
+			id, err := parse.MySQLFlexibleServerAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -138,7 +141,9 @@ func (r MySQLFlexibleServerAdministratorResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, *id)
+			flexibleServerId := azureadadministrators.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroup, id.FlexibleServerName)
+
+			resp, err := client.Get(ctx, flexibleServerId)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -180,7 +185,7 @@ func (r MySQLFlexibleServerAdministratorResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, flexibleServerId, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -195,12 +200,14 @@ func (r MySQLFlexibleServerAdministratorResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MySQL.AzureADAdministratorsClient
 
-			id, err := azureadadministrators.ParseFlexibleServerID(metadata.ResourceData.Id())
+			id, err := parse.MySQLFlexibleServerAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			flexibleServerId := azureadadministrators.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroup, id.FlexibleServerName)
+
+			resp, err := client.Get(ctx, flexibleServerId)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -210,12 +217,17 @@ func (r MySQLFlexibleServerAdministratorResource) Read() sdk.ResourceFunc {
 			}
 
 			state := MySQLFlexibleServerAdministratorModel{
-				ServerId: azureadadministrators.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID(),
+				ServerId: flexibleServerId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					state.IdentityId = pointer.From(properties.IdentityResourceId)
+					identity, err := commonids.ParseUserAssignedIdentityIDInsensitively(*properties.IdentityResourceId)
+					if err != nil {
+						return err
+					}
+
+					state.IdentityId = identity.ID()
 					state.Login = pointer.From(properties.Login)
 					state.ObjectId = pointer.From(properties.Sid)
 					state.TenantId = pointer.From(properties.TenantId)
@@ -233,12 +245,14 @@ func (r MySQLFlexibleServerAdministratorResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MySQL.AzureADAdministratorsClient
 
-			id, err := azureadadministrators.ParseFlexibleServerID(metadata.ResourceData.Id())
+			id, err := parse.MySQLFlexibleServerAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			flexibleServerId := azureadadministrators.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroup, id.FlexibleServerName)
+
+			if err := client.DeleteThenPoll(ctx, flexibleServerId); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
