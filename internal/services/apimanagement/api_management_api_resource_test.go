@@ -421,6 +421,8 @@ resource "azurerm_api_management_api" "test" {
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
+
+	contact {}
 }
 `, r.template(data, SkuNameConsumption), data.RandomInteger)
 }
