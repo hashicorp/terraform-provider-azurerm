@@ -183,7 +183,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"os_disk_size_gb": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ForceNew:     true,
 						Computed:     true,
 						ValidateFunc: validation.IntAtLeast(1),
 					},
@@ -191,7 +190,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"os_disk_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
 						Default:  agentpools.OSDiskTypeManaged,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.OSDiskTypeEphemeral),
@@ -202,7 +200,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"os_sku": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
 						Computed: true, // defaults to Ubuntu if using Linux
 						ValidateFunc: validation.StringInSlice([]string{
 							string(agentpools.OSSKUCBLMariner),
