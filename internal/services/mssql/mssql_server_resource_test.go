@@ -229,13 +229,13 @@ func TestAccMsSqlServer_updateAzureadAuthenticationOnlyWithIdentity(t *testing.T
 	})
 }
 
-func TestAccMsSqlServer_dteByokAtServerDeployment(t *testing.T) {
+func TestAccMsSqlServer_TDECMKServerDeployment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dteByokAtServerDeployment(data),
+			Config: r.tdeCMKServerDeployment(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -714,7 +714,7 @@ resource "azurerm_mssql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, enableAzureadAuthenticationOnly)
 }
 
-func (MsSqlServerResource) dteByokAtServerDeployment(data acceptance.TestData) string {
+func (MsSqlServerResource) tdeCMKServerDeployment(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
