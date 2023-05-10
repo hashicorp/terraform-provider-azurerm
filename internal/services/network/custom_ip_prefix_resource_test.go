@@ -254,7 +254,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_custom_ip_prefix" "global" {
-  name                          = "acctest-%[1]d"
+  name                          = "acctest-v6global-%[1]d"
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
   cidr                          = "%[3]s"
@@ -263,7 +263,7 @@ resource "azurerm_custom_ip_prefix" "global" {
 }
 
 resource "azurerm_custom_ip_prefix" "regional" {
-  name                = "acctest-%[1]d"
+  name                = "acctest-v6regional-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   cidr                = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
