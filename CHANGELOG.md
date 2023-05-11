@@ -30,6 +30,8 @@ BUG FIXES:
 * `azurerm_monitor_metric_alert` - fix regression by using `SingleResourceMultiMetricCriteria` for new metric alerts  [GH-21658]
 * `azurerm_service_fabric_managed_cluster` - fixing a bug where `certificates` within the `vm_secrets` block wouldn't be set into the state [GH-21680]
 * `azurerm_storage_share` - correct resource ID segment from `fileshares` to `shares` [GH-21645]
+* `azurerm_virtual_machine_scale_set`,  - - support specifying `ultra_ssd_disk_iops_read_write` and `ultra_ssd_disk_mbps_read_write` for `PremiumV2_LRS` [GH-21530] 
+
 
 ## 3.55.0 (May 04, 2023)
 
