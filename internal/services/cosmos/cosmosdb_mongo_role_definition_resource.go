@@ -5,20 +5,19 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CosmosDbMongoRoleDefinitionResourceModel struct {
-	AccountId          string      `tfschema:"account_id"`
-	DbName             string      `tfschema:"db_name"`
+	DbId               string      `tfschema:"db_id"`
 	RoleName           string      `tfschema:"role_name"`
 	InheritedRoleNames []string    `tfschema:"inherited_role_names"`
 	Privileges         []Privilege `tfschema:"privilege"`
@@ -52,14 +51,7 @@ func (r CosmosDbMongoRoleDefinitionResource) IDValidationFunc() pluginsdk.Schema
 
 func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"account_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: cosmosdb.ValidateDatabaseAccountID,
-		},
-
-		"db_name": {
+		"db_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -136,13 +128,13 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Cosmos.MongoRBACClient
-			databaseAccountId, err := cosmosdb.ParseDatabaseAccountID(model.AccountId)
+			databaseId, err := parse.MongodbDatabaseID(model.DbId)
 			if err != nil {
 				return err
 			}
 
-			mongoRoleDefinitionId := fmt.Sprintf("%s.%s", model.DbName, model.RoleName)
-			id := mongorbacs.NewMongodbRoleDefinitionID(databaseAccountId.SubscriptionId, databaseAccountId.ResourceGroupName, databaseAccountId.DatabaseAccountName, mongoRoleDefinitionId)
+			mongoRoleDefinitionId := fmt.Sprintf("%s.%s", databaseId.Name, model.RoleName)
+			id := mongorbacs.NewMongodbRoleDefinitionID(databaseId.SubscriptionId, databaseId.ResourceGroup, databaseId.DatabaseAccountName, mongoRoleDefinitionId)
 
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
@@ -157,17 +149,17 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			roleType := mongorbacs.MongoRoleDefinitionTypeOne
-			properties := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
+			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
-					DatabaseName: &model.DbName,
-					RoleName:     &model.RoleName,
+					DatabaseName: pointer.To(databaseId.Name),
+					Roles:        expandInheritedRoles(model.InheritedRoleNames, databaseId.Name),
+					RoleName:     pointer.To(model.RoleName),
 					Privileges:   expandPrivilege(model.Privileges),
-					Roles:        expandInheritedRole(model.InheritedRoleNames, model.DbName),
-					Type:         &roleType,
+					Type:         pointer.To(roleType),
 				},
 			}
 
-			if err := client.MongoDBResourcesCreateUpdateMongoRoleDefinitionThenPoll(ctx, id, properties); err != nil {
+			if err := client.MongoDBResourcesCreateUpdateMongoRoleDefinitionThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -206,14 +198,19 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
+			databaseId, err := parse.MongodbDatabaseID(model.DbId)
+			if err != nil {
+				return err
+			}
+
 			roleType := mongorbacs.MongoRoleDefinitionTypeOne
 			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
-					DatabaseName: &model.DbName,
-					RoleName:     &model.RoleName,
+					DatabaseName: pointer.To(databaseId.Name),
+					RoleName:     pointer.To(model.RoleName),
+					Roles:        expandInheritedRoles(model.InheritedRoleNames, databaseId.Name),
 					Privileges:   expandPrivilege(model.Privileges),
-					Roles:        expandInheritedRole(model.InheritedRoleNames, model.DbName),
-					Type:         &roleType,
+					Type:         pointer.To(roleType),
 				},
 			}
 
@@ -246,16 +243,16 @@ func (r CosmosDbMongoRoleDefinitionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := CosmosDbMongoRoleDefinitionResourceModel{
-				AccountId: cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName).ID(),
-			}
+			state := CosmosDbMongoRoleDefinitionResourceModel{}
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					state.DbName = *properties.DatabaseName
-					state.RoleName = *properties.RoleName
+					databaseId := parse.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, *properties.DatabaseName)
+
+					state.DbId = databaseId.ID()
+					state.RoleName = pointer.From(properties.RoleName)
 					state.Privileges = flattenPrivilege(properties.Privileges)
-					state.InheritedRoleNames = flattenInheritedRole(properties.Roles)
+					state.InheritedRoleNames = flattenInheritedRoles(properties.Roles)
 				}
 			}
 
@@ -296,7 +293,7 @@ func expandPrivilege(input []Privilege) *[]mongorbacs.Privilege {
 
 	for _, v := range input {
 		output := mongorbacs.Privilege{
-			Actions:  &v.Actions,
+			Actions:  pointer.To(v.Actions),
 			Resource: expandResource(v.Resource),
 		}
 
@@ -314,7 +311,7 @@ func flattenPrivilege(input *[]mongorbacs.Privilege) []Privilege {
 
 	for _, input := range *input {
 		privilege := Privilege{
-			Actions:  *input.Actions,
+			Actions:  pointer.From(input.Actions),
 			Resource: flattenResource(input.Resource),
 		}
 
@@ -333,11 +330,11 @@ func expandResource(input []Resource) *mongorbacs.PrivilegeResource {
 	result := mongorbacs.PrivilegeResource{}
 
 	if privilegeResource.CollectionName != "" {
-		result.Collection = &privilegeResource.CollectionName
+		result.Collection = pointer.To(privilegeResource.CollectionName)
 	}
 
 	if privilegeResource.DbName != "" {
-		result.Db = &privilegeResource.DbName
+		result.Db = pointer.To(privilegeResource.DbName)
 	}
 
 	return &result
@@ -349,21 +346,16 @@ func flattenResource(input *mongorbacs.PrivilegeResource) []Resource {
 		return result
 	}
 
-	resource := Resource{}
-
-	if input.Collection != nil {
-		resource.CollectionName = *input.Collection
-	}
-
-	if input.Db != nil {
-		resource.DbName = *input.Db
+	resource := Resource{
+		CollectionName: pointer.From(input.Collection),
+		DbName:         pointer.From(input.Db),
 	}
 
 	return append(result, resource)
 }
 
-func expandInheritedRole(input []string, dbName string) *[]mongorbacs.Role {
-	if len(input) == 0 || dbName == "" {
+func expandInheritedRoles(input []string, dbName string) *[]mongorbacs.Role {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -371,8 +363,8 @@ func expandInheritedRole(input []string, dbName string) *[]mongorbacs.Role {
 
 	for _, v := range input {
 		inheritedRole := mongorbacs.Role{
-			Role: utils.String(v),
-			Db:   utils.String(dbName),
+			Db:   pointer.To(dbName),
+			Role: pointer.To(v),
 		}
 
 		result = append(result, inheritedRole)
@@ -381,19 +373,14 @@ func expandInheritedRole(input []string, dbName string) *[]mongorbacs.Role {
 	return &result
 }
 
-func flattenInheritedRole(input *[]mongorbacs.Role) []string {
+func flattenInheritedRoles(input *[]mongorbacs.Role) []string {
 	var result []string
 	if input == nil {
 		return result
 	}
 
-	for _, input := range *input {
-		var roleName string
-		if role := input.Role; role != nil {
-			roleName = *role
-		}
-
-		result = append(result, roleName)
+	for _, v := range *input {
+		result = append(result, pointer.From(v.Role))
 	}
 
 	return result

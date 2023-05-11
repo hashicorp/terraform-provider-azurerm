@@ -101,9 +101,10 @@ func (r CosmosMongoRoleDefinitionResource) basic(data acceptance.TestData) strin
 %s
 
 resource "azurerm_cosmosdb_mongo_role_definition" "test" {
-  account_id = azurerm_cosmosdb_account.test.id
-  db_name    = azurerm_cosmosdb_mongo_database.test.name
-  role_name  = "acctest-mongoroledef-%d"
+  db_id     = azurerm_cosmosdb_mongo_database.test.id
+  role_name = "acctestmongoroledef%d"
+
+  depends_on = [azurerm_cosmosdb_mongo_collection.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -113,9 +114,8 @@ func (r CosmosMongoRoleDefinitionResource) requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_cosmosdb_mongo_role_definition" "import" {
-  account_id = azurerm_cosmosdb_mongo_role_definition.test.account_id
-  db_name    = azurerm_cosmosdb_mongo_role_definition.test.db_name
-  role_name  = azurerm_cosmosdb_mongo_role_definition.test.role_name
+  db_id     = azurerm_cosmosdb_mongo_role_definition.test.db_id
+  role_name = azurerm_cosmosdb_mongo_role_definition.test.role_name
 }
 `, r.basic(data))
 }
@@ -125,9 +125,10 @@ func (r CosmosMongoRoleDefinitionResource) complete(data acceptance.TestData) st
 %s
 
 resource "azurerm_cosmosdb_mongo_role_definition" "base" {
-  account_id = azurerm_cosmosdb_account.test.id
-  db_name    = azurerm_cosmosdb_mongo_database.test.name
-  role_name  = "acctest-baseroledef-%d"
+  db_id     = azurerm_cosmosdb_mongo_database.test.id
+  role_name = "acctestbaseroledef%d"
+
+  depends_on = [azurerm_cosmosdb_mongo_collection.test]
 }
 
 resource "azurerm_cosmosdb_mongo_database" "test2" {
@@ -136,8 +137,8 @@ resource "azurerm_cosmosdb_mongo_database" "test2" {
   account_name        = azurerm_cosmosdb_account.test.name
 }
 
-resource "azurerm_cosmosdb_mongo_collection" "test" {
-  name                = "acctest-mongocoll-%d"
+resource "azurerm_cosmosdb_mongo_collection" "test2" {
+  name                = "acctest-mongocoll2-%d"
   resource_group_name = azurerm_cosmosdb_mongo_database.test2.resource_group_name
   account_name        = azurerm_cosmosdb_mongo_database.test2.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test2.name
@@ -149,9 +150,8 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 }
 
 resource "azurerm_cosmosdb_mongo_role_definition" "test" {
-  account_id           = azurerm_cosmosdb_account.test.id
-  db_name              = azurerm_cosmosdb_mongo_database.test.name
-  role_name            = "acctest-mongoroledef-%d"
+  db_id                = azurerm_cosmosdb_mongo_database.test.id
+  role_name            = "acctestmongoroledef%d"
   inherited_role_names = [azurerm_cosmosdb_mongo_role_definition.base.role_name]
 
   privilege {
@@ -162,6 +162,8 @@ resource "azurerm_cosmosdb_mongo_role_definition" "test" {
       db_name         = azurerm_cosmosdb_mongo_database.test2.name
     }
   }
+
+  depends_on = [azurerm_cosmosdb_mongo_collection.test2]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -171,15 +173,17 @@ func (r CosmosMongoRoleDefinitionResource) update(data acceptance.TestData) stri
 %s
 
 resource "azurerm_cosmosdb_mongo_role_definition" "base" {
-  account_id = azurerm_cosmosdb_account.test.id
-  db_name    = azurerm_cosmosdb_mongo_database.test.name
-  role_name  = "acctest-baseroledef-%d"
+  db_id     = azurerm_cosmosdb_mongo_database.test.id
+  role_name = "acctestbaseroledef%d"
+
+  depends_on = [azurerm_cosmosdb_mongo_collection.test]
 }
 
 resource "azurerm_cosmosdb_mongo_role_definition" "base2" {
-  account_id = azurerm_cosmosdb_account.test.id
-  db_name    = azurerm_cosmosdb_mongo_database.test.name
-  role_name  = "acctest-baseroledef2-%d"
+  db_id     = azurerm_cosmosdb_mongo_database.test.id
+  role_name = "acctestbaseroledef2%d"
+
+  depends_on = [azurerm_cosmosdb_mongo_collection.test]
 }
 
 resource "azurerm_cosmosdb_mongo_database" "test2" {
@@ -188,8 +192,8 @@ resource "azurerm_cosmosdb_mongo_database" "test2" {
   account_name        = azurerm_cosmosdb_account.test.name
 }
 
-resource "azurerm_cosmosdb_mongo_collection" "test" {
-  name                = "acctest-mongocoll-%d"
+resource "azurerm_cosmosdb_mongo_collection" "test2" {
+  name                = "acctest-mongocoll2-%d"
   resource_group_name = azurerm_cosmosdb_mongo_database.test2.resource_group_name
   account_name        = azurerm_cosmosdb_mongo_database.test2.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test2.name
@@ -206,8 +210,8 @@ resource "azurerm_cosmosdb_mongo_database" "test3" {
   account_name        = azurerm_cosmosdb_account.test.name
 }
 
-resource "azurerm_cosmosdb_mongo_collection" "test2" {
-  name                = "acctest-mongocoll2-%d"
+resource "azurerm_cosmosdb_mongo_collection" "test3" {
+  name                = "acctest-mongocoll3-%d"
   resource_group_name = azurerm_cosmosdb_mongo_database.test3.resource_group_name
   account_name        = azurerm_cosmosdb_mongo_database.test3.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test3.name
@@ -219,19 +223,29 @@ resource "azurerm_cosmosdb_mongo_collection" "test2" {
 }
 
 resource "azurerm_cosmosdb_mongo_role_definition" "test" {
-  account_id           = azurerm_cosmosdb_account.test.id
-  db_name              = azurerm_cosmosdb_mongo_database.test.name
-  role_name            = "acctest-mongoroledef-%d"
-  inherited_role_names = [azurerm_cosmosdb_mongo_role_definition.base2.role_name]
+  db_id                = azurerm_cosmosdb_mongo_database.test.id
+  role_name            = "acctestmongoroledef%d"
+  inherited_role_names = [azurerm_cosmosdb_mongo_role_definition.base2.role_name, azurerm_cosmosdb_mongo_role_definition.base.role_name]
 
   privilege {
-    actions = ["find"]
+    actions = ["insert", "find"]
 
     resource {
       collection_name = azurerm_cosmosdb_mongo_collection.test2.name
       db_name         = azurerm_cosmosdb_mongo_database.test3.name
     }
   }
+
+  privilege {
+    actions = ["find"]
+
+    resource {
+      collection_name = azurerm_cosmosdb_mongo_collection.test.name
+      db_name         = azurerm_cosmosdb_mongo_database.test2.name
+    }
+  }
+
+  depends_on = [azurerm_cosmosdb_mongo_collection.test2, azurerm_cosmosdb_mongo_collection.test3]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -277,5 +291,17 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-mongocoll-%d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
