@@ -10,22 +10,22 @@ import (
 )
 
 type PublicIpPrefixId struct {
-	SubscriptionId      string
-	ResourceGroup       string
-	PublicIPPrefixeName string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewPublicIpPrefixID(subscriptionId, resourceGroup, publicIPPrefixeName string) PublicIpPrefixId {
+func NewPublicIpPrefixID(subscriptionId, resourceGroup, name string) PublicIpPrefixId {
 	return PublicIpPrefixId{
-		SubscriptionId:      subscriptionId,
-		ResourceGroup:       resourceGroup,
-		PublicIPPrefixeName: publicIPPrefixeName,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
 func (id PublicIpPrefixId) String() string {
 	segments := []string{
-		fmt.Sprintf("Public I P Prefixe Name %q", id.PublicIPPrefixeName),
+		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
@@ -34,7 +34,7 @@ func (id PublicIpPrefixId) String() string {
 
 func (id PublicIpPrefixId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/publicIPPrefixes/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.PublicIPPrefixeName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 // PublicIpPrefixID parses a PublicIpPrefix ID into an PublicIpPrefixId struct
@@ -57,7 +57,7 @@ func PublicIpPrefixID(input string) (*PublicIpPrefixId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.PublicIPPrefixeName, err = id.PopSegment("publicIPPrefixes"); err != nil {
+	if resourceId.Name, err = id.PopSegment("publicIPPrefixes"); err != nil {
 		return nil, err
 	}
 

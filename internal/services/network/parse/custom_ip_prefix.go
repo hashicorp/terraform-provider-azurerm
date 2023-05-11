@@ -10,22 +10,22 @@ import (
 )
 
 type CustomIpPrefixId struct {
-	SubscriptionId      string
-	ResourceGroup       string
-	CustomIpPrefixeName string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewCustomIpPrefixID(subscriptionId, resourceGroup, customIpPrefixeName string) CustomIpPrefixId {
+func NewCustomIpPrefixID(subscriptionId, resourceGroup, name string) CustomIpPrefixId {
 	return CustomIpPrefixId{
-		SubscriptionId:      subscriptionId,
-		ResourceGroup:       resourceGroup,
-		CustomIpPrefixeName: customIpPrefixeName,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
 func (id CustomIpPrefixId) String() string {
 	segments := []string{
-		fmt.Sprintf("Custom Ip Prefixe Name %q", id.CustomIpPrefixeName),
+		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
@@ -33,15 +33,15 @@ func (id CustomIpPrefixId) String() string {
 }
 
 func (id CustomIpPrefixId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/customIpPrefixes/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.CustomIpPrefixeName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/customIPPrefixes/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 // CustomIpPrefixID parses a CustomIpPrefix ID into an CustomIpPrefixId struct
 func CustomIpPrefixID(input string) (*CustomIpPrefixId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an CustomIpPrefix ID: %+v", input, err)
 	}
 
 	resourceId := CustomIpPrefixId{
@@ -57,7 +57,7 @@ func CustomIpPrefixID(input string) (*CustomIpPrefixId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.CustomIpPrefixeName, err = id.PopSegment("customIpPrefixes"); err != nil {
+	if resourceId.Name, err = id.PopSegment("customIPPrefixes"); err != nil {
 		return nil, err
 	}
 

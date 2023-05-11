@@ -12,7 +12,7 @@ var _ resourceids.Id = CustomIpPrefixId{}
 
 func TestCustomIpPrefixIDFormatter(t *testing.T) {
 	actual := NewCustomIpPrefixID("12345678-1234-9876-4563-123456789012", "resGroup1", "prefix1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIpPrefixes/prefix1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIPPrefixes/prefix1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -56,24 +56,24 @@ func TestCustomIpPrefixID(t *testing.T) {
 		},
 
 		{
-			// missing CustomIpPrefixeName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Error: true,
 		},
 
 		{
-			// missing value for CustomIpPrefixeName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIpPrefixes/",
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIPPrefixes/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIpPrefixes/prefix1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIPPrefixes/prefix1",
 			Expected: &CustomIpPrefixId{
-				SubscriptionId:      "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:       "resGroup1",
-				CustomIpPrefixeName: "prefix1",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				Name:           "prefix1",
 			},
 		},
 
@@ -105,8 +105,8 @@ func TestCustomIpPrefixID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.CustomIpPrefixeName != v.Expected.CustomIpPrefixeName {
-			t.Fatalf("Expected %q but got %q for CustomIpPrefixeName", v.Expected.CustomIpPrefixeName, actual.CustomIpPrefixeName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

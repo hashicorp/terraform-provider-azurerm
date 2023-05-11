@@ -161,7 +161,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewCustomIpPrefixID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := r.client.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
+			existing, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -236,7 +236,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				properties.Zones = &model.Zones
 			}
 
-			future, err := r.client.CreateOrUpdate(ctx, id.ResourceGroup, id.CustomIpPrefixeName, properties)
+			future, err := r.client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -324,7 +324,7 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := r.client.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
+			existing, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
 			if err != nil {
 				if utils.ResponseWasNotFound(existing.Response) {
 					return metadata.MarkAsGone(id)
@@ -333,7 +333,7 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 			}
 
 			model := CustomIpPrefixModel{
-				Name:              id.CustomIpPrefixeName,
+				Name:              id.Name,
 				ResourceGroupName: id.ResourceGroup,
 				Location:          location.NormalizeNilable(existing.Location),
 				Tags:              tags.ToTypedObject(existing.Tags),
@@ -388,7 +388,7 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			future, err := r.client.Delete(ctx, id.ResourceGroup, id.CustomIpPrefixeName)
+			future, err := r.client.Delete(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
@@ -421,7 +421,7 @@ func (t commissionedStates) strings() (out []string) {
 }
 
 func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, desiredState network.CommissionedState) error {
-	existing, err := r.client.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
+	existing, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return fmt.Errorf("retrieving existing %s: %+v", id, err)
 	}
@@ -534,7 +534,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 }
 
 func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, desiredState network.CommissionedState, noInternetAdvertise *bool) error {
-	existing, err := r.client.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
+	existing, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		return fmt.Errorf("retrieving existing %s: %+v", id, err)
 	}
@@ -546,7 +546,7 @@ func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id par
 	existing.CustomIPPrefixPropertiesFormat.NoInternetAdvertise = noInternetAdvertise
 
 	log.Printf("[DEBUG] Updating the CommissionedState field to %q for %s..", string(desiredState), id)
-	future, err := r.client.CreateOrUpdate(ctx, id.ResourceGroup, id.CustomIpPrefixeName, existing)
+	future, err := r.client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
 	if err != nil {
 		return fmt.Errorf("updating CommissionedState to %q for %s: %+v", string(desiredState), id, err)
 	}
@@ -579,7 +579,7 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 
 func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context, id parse.CustomIpPrefixId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := r.client.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
+		res, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
 		}
@@ -590,7 +590,7 @@ func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context
 
 func (r CustomIpPrefixResource) provisioningStateRefreshFunc(ctx context.Context, id parse.CustomIpPrefixId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := r.client.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
+		res, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
 		}

@@ -253,12 +253,16 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 					key = strings.TrimSuffix(key, "ies")
 					key = fmt.Sprintf("%sy", key)
 				}
-
-				// handles `PublicIPAddressesName`
-				if strings.HasSuffix(key, "sses") {
+				switch {
+				case strings.HasSuffix(key, "sses"):
+					// handles `PublicIPAddressesName`
 					key = strings.TrimSuffix(key, "sses")
 					key = fmt.Sprintf("%sss", key)
-				} else {
+				case strings.HasSuffix(key, "xes"):
+					// handles `CustomIPPrefixeName`
+					key = strings.TrimSuffix(key, "xes")
+					key = fmt.Sprintf("%sx", key)
+				default:
 					key = strings.TrimSuffix(key, "s")
 				}
 
