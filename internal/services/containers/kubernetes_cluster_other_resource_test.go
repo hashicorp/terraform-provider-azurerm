@@ -2020,10 +2020,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
   maintenance_window_auto_upgrade {
-    allowed {
-      day   = "Monday"
-      hours = [1, 2]
-    }
+    frequency   = "Weekly"
+    interval    = 1
+		day_of_week = "Monday"
+		start_time  = "07:00"
+		utc_offset  = "+01:00"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
