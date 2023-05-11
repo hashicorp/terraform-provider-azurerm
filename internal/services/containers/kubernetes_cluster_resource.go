@@ -745,7 +745,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Weekly",
-								"Monthly",
+								"RelativeMonthly",
 								"AbsoluteMonthly",
 							}, false),
 						},
@@ -822,7 +822,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Weekly",
-								"Monthly",
+								"RelativeMonthly",
 								"AbsoluteMonthly",
 								"Daily",
 							}, false),
