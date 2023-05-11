@@ -276,7 +276,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
 	if props.KeyID != nil && props.PrimaryUserAssignedIdentityID == nil {
-		return fmt.Errorf("if the 'key_vault_customer_managed_key_id' field has been defined you must also define the 'primary_user_assigned_identity_id' field as well, got %s", pointer.From(props.KeyID))
+		return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'key_vault_customer_managed_key_id' in %s", id)
 	}
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
@@ -381,7 +381,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
 	if props.KeyID != nil && props.PrimaryUserAssignedIdentityID == nil {
-		return fmt.Errorf("if the 'key_vault_customer_managed_key_id' field has been defined you must also define the 'primary_user_assigned_identity_id' field as well, got %s", pointer.From(props.KeyID))
+		return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'key_vault_customer_managed_key_id' in %s", id)
 	}
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
