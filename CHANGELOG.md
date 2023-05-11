@@ -10,9 +10,11 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.56.0` of `github.com/hashicorp/go-azure-helpers` [GH-21725]
+* dependencies: updating to `v0.20230510.1131358` of `github.com/hashicorp/go-azure-sdk` [GH-21725]
+* provider: improving the error messages when parsing a Resource ID and the ID doesn't match what's expected [GH-21725]
 * provider: Resource Provider Registration now uses API Version `2022-09-01` [GH-21695]
 * provider: updating the `IsAzureStack` check to use `hashicorp/go-azure-sdk` rather than relying on the environment from `Azure/go-autorest` [GH-21697]
-* dependencies: updating `github.com/hashicorp/go-azure-sdk` to `v0.20230508.1171356` [GH-21707]
 * `appconfiguration`: updating to API Version `2023-03-01` [GH-21660]
 * `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
 * `azurerm_orbital_contact_profile` - `ip_address` is now optional [GH-21721]
