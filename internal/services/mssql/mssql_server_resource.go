@@ -134,7 +134,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
-			"key_vault_customer_managed_key_id": {
+			"transparent_data_encryption_key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
@@ -254,7 +254,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Identity = expandedIdentity
 	}
 
-	if v, ok := d.GetOk("key_vault_customer_managed_key_id"); ok {
+	if v, ok := d.GetOk("transparent_data_encryption_key_vault_key_id"); ok {
 		keyVaultKeyId := v.(string)
 
 		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
@@ -276,7 +276,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
 	if props.KeyID != nil && props.PrimaryUserAssignedIdentityID == nil {
-		return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'key_vault_customer_managed_key_id' in %s", id)
+		return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'transparent_data_encryption_key_vault_key_id' in %s", id)
 	}
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
@@ -360,8 +360,8 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Identity = existing.Identity
 	}
 
-	if d.HasChange("key_vault_customer_managed_key_id") {
-		keyVaultKeyId := d.Get(("key_vault_customer_managed_key_id")).(string)
+	if d.HasChange("key_vault_key_id") {
+		keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
 
 		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
 		if err != nil {
@@ -381,7 +381,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
 	if props.KeyID != nil && props.PrimaryUserAssignedIdentityID == nil {
-		return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'key_vault_customer_managed_key_id' in %s", id)
+		return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'transparent_data_encryption_key_vault_key_id' in %s", id)
 	}
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
@@ -533,7 +533,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			primaryUserAssignedIdentityID = parsedPrimaryUserAssignedIdentityID.ID()
 		}
 		d.Set("primary_user_assigned_identity_id", primaryUserAssignedIdentityID)
-		d.Set("key_vault_customer_managed_key_id", props.KeyID)
+		d.Set("transparent_data_encryption_key_vault_key_id", props.KeyID)
 		if props.Administrators != nil {
 			d.Set("azuread_administrator", flatternMsSqlServerAdministrators(*props.Administrators))
 		}

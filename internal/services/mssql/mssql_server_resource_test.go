@@ -752,8 +752,8 @@ resource "azurerm_mssql_server" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-  key_vault_customer_managed_key_id = azurerm_key_vault_key.test.id
+  primary_user_assigned_identity_id            = azurerm_user_assigned_identity.test.id
+  transparent_data_encryption_key_vault_key_id = azurerm_key_vault_key.test.id
 }
 
 resource "azurerm_key_vault" "test" {
