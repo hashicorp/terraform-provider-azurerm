@@ -22,18 +22,18 @@ const (
 
 func TestAccCustomIpPrefix(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		//"ipv4": {
-		//	"basic":                testAccCustomIpPrefix_ipv4,
-		//	"commissioned":         testAccCustomIpPrefix_ipv4Commissioned,
-		//	"commissionedRegional": testAccCustomIpPrefix_ipv4CommissionedRegional,
-		//	"update":               testAccCustomIpPrefix_ipv4Update,
-		//	"requiresImport":       testAccCustomIpPrefix_requiresImport,
-		//},
+		"ipv4": {
+			"basic":                testAccCustomIpPrefix_ipv4,
+			"commissioned":         testAccCustomIpPrefix_ipv4Commissioned,
+			"commissionedRegional": testAccCustomIpPrefix_ipv4CommissionedUnadvertised,
+			"update":               testAccCustomIpPrefix_ipv4Update,
+			"requiresImport":       testAccCustomIpPrefix_ipv4RequiresImport,
+		},
 		"ipv6": {
-			"basic": testAccCustomIpPrefix_ipv6,
-			//"commissioned":         testAccCustomIpPrefix_ipv6Commissioned,
-			//"commissionedRegional": testAccCustomIpPrefix_ipv6CommissionedRegional,
-			//"update":               testAccCustomIpPrefix_ipv6Update,
+			"basic":                testAccCustomIpPrefix_ipv6,
+			"commissioned":         testAccCustomIpPrefix_ipv6Commissioned,
+			"commissionedRegional": testAccCustomIpPrefix_ipv6CommissionedUnadvertised,
+			"update":               testAccCustomIpPrefix_ipv6Update,
 		},
 	})
 }
@@ -68,13 +68,13 @@ func testAccCustomIpPrefix_ipv4Commissioned(t *testing.T) {
 	})
 }
 
-func testAccCustomIpPrefix_ipv4CommissionedRegional(t *testing.T) {
+func testAccCustomIpPrefix_ipv4CommissionedUnadvertised(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.ipv4CommissionedRegional(data),
+			Config: r.ipv4CommissionedUnadvertised(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -119,6 +119,21 @@ func testAccCustomIpPrefix_ipv4Update(t *testing.T) {
 	})
 }
 
+func testAccCustomIpPrefix_ipv4RequiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
+	r := CustomIpPrefixResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipv4(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.ipv4RequiresImport),
+	})
+}
+
 func testAccCustomIpPrefix_ipv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "global")
 	data2 := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "regional")
@@ -136,18 +151,76 @@ func testAccCustomIpPrefix_ipv6(t *testing.T) {
 	})
 }
 
-func testAccCustomIpPrefix_requiresImport(t *testing.T) {
+func testAccCustomIpPrefix_ipv6Commissioned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
 	r := CustomIpPrefixResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.ipv4(data),
+			Config: r.ipv6Commissioned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		data.ImportStep(),
+	})
+}
+
+func testAccCustomIpPrefix_ipv6CommissionedUnadvertised(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
+	r := CustomIpPrefixResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipv6CommissionedGlobalUnadvertised(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv6CommissionedRegionalUnadvertised(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv6Commissioned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccCustomIpPrefix_ipv6Update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
+	r := CustomIpPrefixResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipv6(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv6Commissioned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipv6(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -181,13 +254,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_custom_ip_prefix" "test" {
-  name                          = "acctest-%[1]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  cidr                          = "%[3]s"
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cidr  = "%[3]s"
+  zones = ["1"]
+
   roa_validity_end_date         = "2099-12-12"
   wan_validation_signed_message = "signed message for WAN validation"
-  zones                         = ["1"]
 }
 `, data.RandomInteger, data.Locations.Primary, ipv4TestCidr)
 }
@@ -208,17 +283,19 @@ resource "azurerm_custom_ip_prefix" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  commissioning_enabled         = true
-  cidr                          = "%[3]s"
-  internet_advertising_disabled = false
+  cidr  = "%[3]s"
+  zones = ["1"]
+
   roa_validity_end_date         = "2099-12-12"
   wan_validation_signed_message = "signed message for WAN validation"
-  zones                         = ["1"]
+
+  commissioning_enabled         = true
+  internet_advertising_disabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, ipv4TestCidr)
 }
 
-func (r CustomIpPrefixResource) ipv4CommissionedRegional(data acceptance.TestData) string {
+func (r CustomIpPrefixResource) ipv4CommissionedUnadvertised(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -234,14 +311,34 @@ resource "azurerm_custom_ip_prefix" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  commissioning_enabled         = true
-  cidr                          = "%[3]s"
-  internet_advertising_disabled = true
+  cidr  = "%[3]s"
+  zones = ["1"]
+
   roa_validity_end_date         = "2099-12-12"
   wan_validation_signed_message = "signed message for WAN validation"
-  zones                         = ["1"]
+
+  commissioning_enabled         = true
+  internet_advertising_disabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, ipv4TestCidr)
+}
+
+func (r CustomIpPrefixResource) ipv4RequiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_custom_ip_prefix" "import" {
+  name                = azurerm_custom_ip_prefix.test.name
+  location            = azurerm_custom_ip_prefix.test.location
+  resource_group_name = azurerm_custom_ip_prefix.test.resource_group_name
+
+  cidr  = azurerm_custom_ip_prefix.test.cidr
+  zones = azurerm_custom_ip_prefix.test.zones
+
+  roa_validity_end_date         = azurerm_custom_ip_prefix.test.roa_validity_end_date
+  wan_validation_signed_message = azurerm_custom_ip_prefix.test.wan_validation_signed_message
+}
+`, r.ipv4(data))
 }
 
 func (r CustomIpPrefixResource) ipv6(data acceptance.TestData) string {
@@ -256,10 +353,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_custom_ip_prefix" "global" {
-  name                          = "acctest-v6global-%[1]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  cidr                          = "%[3]s"
+  name                = "acctest-v6global-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cidr = "%[3]s"
+
   roa_validity_end_date         = "2199-12-12"
   wan_validation_signed_message = "signed message for WAN validation"
 }
@@ -269,24 +368,129 @@ resource "azurerm_custom_ip_prefix" "regional" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   parent_custom_ip_prefix_id = azurerm_custom_ip_prefix.global.id
-  cidr                       = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
-  zones                      = ["1"]
+
+  cidr  = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
+  zones = ["1"]
 }
 `, data.RandomInteger, data.Locations.Primary, ipv6TestCidr)
 }
 
-func (r CustomIpPrefixResource) requiresImport(data acceptance.TestData) string {
+func (r CustomIpPrefixResource) ipv6Commissioned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_custom_ip_prefix" "import" {
-  name                = azurerm_custom_ip_prefix.test.name
-  location            = azurerm_custom_ip_prefix.test.location
-  resource_group_name = azurerm_custom_ip_prefix.test.resource_group_name
-
-  cidr                          = azurerm_custom_ip_prefix.test.cidr
-  roa_validity_end_date         = azurerm_custom_ip_prefix.test.roa_validity_end_date
-  wan_validation_signed_message = azurerm_custom_ip_prefix.test.wan_validation_signed_message
+provider "azurerm" {
+  features {}
 }
-`, r.ipv4(data))
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_custom_ip_prefix" "global" {
+  name                = "acctest-v6global-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cidr = "%[3]s"
+
+  roa_validity_end_date         = "2199-12-12"
+  wan_validation_signed_message = "signed message for WAN validation"
+
+  commissioning_enabled         = true
+  internet_advertising_disabled = false
+}
+
+resource "azurerm_custom_ip_prefix" "regional" {
+  name                       = "acctest-v6regional-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  parent_custom_ip_prefix_id = azurerm_custom_ip_prefix.global.id
+
+  cidr  = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
+  zones = ["1"]
+
+  commissioning_enabled         = true
+  internet_advertising_disabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, ipv6TestCidr)
+}
+
+func (r CustomIpPrefixResource) ipv6CommissionedGlobalUnadvertised(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_custom_ip_prefix" "global" {
+  name                = "acctest-v6global-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cidr = "%[3]s"
+
+  roa_validity_end_date         = "2199-12-12"
+  wan_validation_signed_message = "signed message for WAN validation"
+
+  commissioning_enabled         = true
+  internet_advertising_disabled = true
+}
+
+resource "azurerm_custom_ip_prefix" "regional" {
+  name                       = "acctest-v6regional-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  parent_custom_ip_prefix_id = azurerm_custom_ip_prefix.global.id
+
+  cidr  = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
+  zones = ["1"]
+
+  commissioning_enabled         = true
+  internet_advertising_disabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, ipv6TestCidr)
+}
+
+func (r CustomIpPrefixResource) ipv6CommissionedRegionalUnadvertised(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_custom_ip_prefix" "global" {
+  name                = "acctest-v6global-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cidr = "%[3]s"
+
+  roa_validity_end_date         = "2199-12-12"
+  wan_validation_signed_message = "signed message for WAN validation"
+
+  commissioning_enabled         = true
+  internet_advertising_disabled = false
+}
+
+resource "azurerm_custom_ip_prefix" "regional" {
+  name                       = "acctest-v6regional-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  parent_custom_ip_prefix_id = azurerm_custom_ip_prefix.global.id
+
+  cidr  = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
+  zones = ["1"]
+
+  commissioning_enabled         = true
+  internet_advertising_disabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, ipv6TestCidr)
 }
