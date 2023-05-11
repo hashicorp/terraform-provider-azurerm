@@ -210,6 +210,18 @@ func (r SomeResource) Delete() sdk.ResourceFunc {
 
 ## Setting Properties to Optional + Computed
 
-Due to certain behaviours in the Azure API it had become commonplace to set properties whose values could change in the background or for new properties that returned a default value not set by users as `Computed` to prevent the provider from flagging a diff after applying a plan.
+There's a number of API's within Azure which will specify a default value for a field if one isn't specified, for example the createMode field is typically defaulted (server-side) to Default.
 
-Differing behaviour in the new protocol version (v6) used in `terraform-core` mean that any changes that occur to a property's value after applying will throw an error instead of a warning. Thus any uses of `Optional` + `Computed` should be avoided and existing ones will need to be phased out and replaced with logic that allows users to add the property to `ignore_changes`.
+The Azure Provider currently makes use of `hashicorp/terraform-plugin-sdk@v2` to define Data Sources and Resources, which under the hood uses v5 of the Terraform Protocol to interact with Terraform Core.
+
+In version 5 of the Terraform Protocol, if a field is created with one value at Create time and returns a different value immediately after creation, then an internal warning is logged (but no error is raised) - meaning that the only way this change is visible is through a diff when terraform plan is run. The next version of the Terraform Protocol (v6 - used by `hashicorp/terraform-plugin-framework`) changes this from a logged warning to an error at runtime - meaning that these diff's will become more visible to users (and need to be accounted for in the provider).
+
+To workaround situations where we need to expose the default value from the Azure API - we've historically marked fields as both Optional and Computed - meaning that a value will be returned from the API when it's not defined.
+
+Whilst this works, one side-effect is that it's hard for users to reset a field to it's default value when this is done - as such some fields today (such as the subnets block within the azurerm_virtual_network resource) require that an explicit empty value is specified (for example subnets = []) to remove this value, where this field is Optional & Computed.
+
+In order to solve this, (new) fields should no longer be marked as `Optional` + `Computed` - instead where a split Create and Update method is used (see above) users can lean on `ignore_changes` to ignore values from a field with a default value, should they wish to continue using the default value.
+
+This approach means that we can support users who want to use the default value (by specifying ignore_changes = ["some_field"]), users who want to explicitly define this value (e.g. some_field = "bar") and users who need to remove this value (by either omitting the field or defining it as null, so that gets removed).
+
+Over time, the existing resources will be migrated from `Optional` + `Computed` -> `Optional` (allowing users to rely on ignore_changes) so that this becomes more behaviourally consistent - however new fields should be defined as `Optional` alone, rather than `Optional` and `Computed`.
