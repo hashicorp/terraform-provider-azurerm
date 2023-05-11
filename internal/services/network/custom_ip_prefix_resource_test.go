@@ -230,7 +230,7 @@ func (CustomIpPrefixResource) Exists(ctx context.Context, client *clients.Client
 		return nil, err
 	}
 
-	resp, err := client.Network.CustomIPPrefixesClient.Get(ctx, id.ResourceGroup, id.CustomIpPrefixeName, "")
+	resp, err := client.Network.CustomIPPrefixesClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

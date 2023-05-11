@@ -102,7 +102,7 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	id := parse.NewPublicIpPrefixID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.PublicIPPrefixeName, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
@@ -137,7 +137,7 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		publicIpPrefix.Zones = &zones
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.PublicIPPrefixeName, publicIpPrefix)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, publicIpPrefix)
 	if err != nil {
 		return fmt.Errorf("creating/Updating %s: %+v", id, err)
 	}
@@ -161,7 +161,7 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.PublicIPPrefixeName, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -171,7 +171,7 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.PublicIPPrefixeName)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("zones", zones.FlattenUntyped(resp.Zones))
@@ -204,7 +204,7 @@ func resourcePublicIpPrefixDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.PublicIPPrefixeName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
