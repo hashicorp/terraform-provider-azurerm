@@ -178,6 +178,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "The Client ID which should be used.",
 			},
 
+			"client_id_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID_PATH", ""),
+				Description: "Path to a file containing the Client ID which should be used.",
+			},
+
 			"tenant_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -236,6 +243,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
 				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
+			},
+
+			"client_secret_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET_PATH", ""),
+				Description: "The path to a file containing the Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
 			// OIDC specifc fields
@@ -373,6 +387,16 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			return nil, diag.FromErr(err)
 		}
 
+		clientSecret, err := getClientSecret(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		clientID, err := getClientID(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		var (
 			env *environments.Environment
 
@@ -396,14 +420,14 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 		authConfig := &auth.Credentials{
 			Environment:        *env,
-			ClientID:           d.Get("client_id").(string),
+			ClientID:           *clientID,
 			TenantID:           d.Get("tenant_id").(string),
 			AuxiliaryTenantIDs: auxTenants,
 
 			ClientCertificateData:     clientCertificateData,
 			ClientCertificatePath:     d.Get("client_certificate_path").(string),
 			ClientCertificatePassword: d.Get("client_certificate_password").(string),
-			ClientSecret:              d.Get("client_secret").(string),
+			ClientSecret:              *clientSecret,
 
 			OIDCAssertionToken:          *oidcToken,
 			GitHubOIDCTokenRequestURL:   d.Get("oidc_request_url").(string),
@@ -503,6 +527,50 @@ func getOidcToken(d *schema.ResourceData) (*string, error) {
 	}
 
 	return &idToken, nil
+}
+
+func getClientID(d *schema.ResourceData) (*string, error) {
+	clientID := strings.TrimSpace(d.Get("client_id").(string))
+
+	if path := d.Get("client_id_path").(string); path != "" {
+		fileClientIDRaw, err := os.ReadFile(path)
+
+		if err != nil {
+			return nil, fmt.Errorf("reading Client Secret from file %q: %v", path, err)
+		}
+
+		fileClientID := strings.TrimSpace(string(fileClientIDRaw))
+
+		if clientID != "" && clientID != fileClientID {
+			return nil, fmt.Errorf("mismatch between supplied Client ID and supplied Client ID file contents - please either remove one or ensure they match")
+		}
+
+		clientID = fileClientID
+	}
+
+	return &clientID, nil
+}
+
+func getClientSecret(d *schema.ResourceData) (*string, error) {
+	clientSecret := strings.TrimSpace(d.Get("client_secret").(string))
+
+	if path := d.Get("client_secret_path").(string); path != "" {
+		fileSecretRaw, err := os.ReadFile(path)
+
+		if err != nil {
+			return nil, fmt.Errorf("reading Client Secret from file %q: %v", path, err)
+		}
+
+		fileSecret := strings.TrimSpace(string(fileSecretRaw))
+
+		if clientSecret != "" && clientSecret != fileSecret {
+			return nil, fmt.Errorf("mismatch between supplied Client Secret and supplied Client Secret file contents - please either remove one or ensure they match")
+		}
+
+		clientSecret = fileSecret
+	}
+
+	return &clientSecret, nil
 }
 
 const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.

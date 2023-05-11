@@ -223,11 +223,11 @@ func TestAccProvider_clientSecretAuth(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
-	if os.Getenv("ARM_CLIENT_ID") == "" {
-		t.Skip("ARM_CLIENT_ID not set")
+	if os.Getenv("ARM_CLIENT_ID") == "" && os.Getenv("ARM_CLIENT_ID_PATH") == "" {
+		t.Skip("ARM_CLIENT_ID or ARM_CLIENT_ID_PATH not set")
 	}
-	if os.Getenv("ARM_CLIENT_SECRET") == "" {
-		t.Skip("ARM_CLIENT_SECRET not set")
+	if os.Getenv("ARM_CLIENT_SECRET") == "" && os.Getenv("ARM_CLIENT_SECRET_PATH") == "" {
+		t.Skip("ARM_CLIENT_SECRET or ARM_CLIENT_SECRET_PATH not set")
 	}
 
 	logging.SetOutput(t)
@@ -244,12 +244,22 @@ func TestAccProvider_clientSecretAuth(t *testing.T) {
 			t.Fatalf("configuring environment %q: %v", envName, err)
 		}
 
+		clientID, err := getClientID(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		clientSecret, err := getClientSecret(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		authConfig := &auth.Credentials{
 			Environment:                           *env,
 			TenantID:                              d.Get("tenant_id").(string),
-			ClientID:                              d.Get("client_id").(string),
+			ClientID:                              *clientID,
 			EnableAuthenticatingUsingClientSecret: true,
-			ClientSecret:                          d.Get("client_secret").(string),
+			ClientSecret:                          *clientSecret,
 		}
 
 		return buildClient(ctx, provider, d, authConfig)
