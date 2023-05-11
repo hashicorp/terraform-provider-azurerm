@@ -91,7 +91,13 @@ The following arguments are supported:
 
 * `local_diagnostics_access` - (Required) One or more `local_diagnostics_access` blocks as defined below. Specifies the Kubernetes ingress configuration that controls access to the packet core diagnostics through local APIs.
 
-* `control_plane_access_interface` - (Optional) A `control_plane_access_interface` block as defined below. Specifies the control plane interface on the access network e.g. a N2 interface for 5G networks or a S1-MME interface for 4G networks
+* `control_plane_access_name` - (Optional) Specifies the logical name for this interface. This should match one of the interfaces configured on your Azure Stack Edge device.
+
+* `control_plane_access_ipv4_address` - (Optional) The IPv4 address for the control plane interface. This should match one of the interfaces configured on your Azure Stack Edge device.
+
+* `control_plane_access_ipv4_subnet` - (Optional) The IPv4 subnet for the control plane interface. This should match one of the interfaces configured on your Azure Stack Edge device.
+
+* `control_plane_access_ipv4_gateway` - (Optional) The default IPv4 gateway for the control plane interface. This should match one of the interfaces configured on your Azure Stack Edge device.
 
 * `user_equipment_mtu_in_bytes` - (Optional) Specifies the MTU in bytes that can be sent to the user equipment. The same MTU is set on the user plane data links for all data networks. The MTU set on the user plane access link will be 60 bytes greater than this value to allow for GTP encapsulation.
 
@@ -106,18 +112,6 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Packet Core Control Plane.
 
 * `software_version` - (Optional) Specifies the version of the packet core software that is deployed.
-
----
-
-A `control_plane_access_interface` block supports the following:
-
-* `name` - (Optional) Specifies the logical name for this interface. This should match one of the interfaces configured on your Azure Stack Edge device.
-
-* `ipv4_address` - (Optional) The IPv4 address.
-
-* `ipv4_subnet` - (Optional) The IPv4 subnet.
-
-* `ipv4_gateway` - (Optional) The default IPv4 gateway.
 
 ---
 
