@@ -71,6 +71,8 @@ The following arguments are supported:
 
 * `object_id` - (Required) The object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID of a service principal can be fetched from  `azuread_service_principal.object_id`. The object ID must be unique for the list of access policies. Changing this forces a new resource to be created.
 
+~> **NOTE:** Due to design limitation, setting `object_id` to `identity[0].principal_id` of another resource could not be done at the same time while updating the identity of the referenced resource to System Assigned Identity.
+
 * `application_id` - (Optional) The object ID of an Application in Azure Active Directory. Changing this forces a new resource to be created.
 
 * `certificate_permissions` - (Optional) List of certificate permissions, must be one or more from the following: `Backup`, `Create`, `Delete`, `DeleteIssuers`, `Get`, `GetIssuers`, `Import`, `List`, `ListIssuers`, `ManageContacts`, `ManageIssuers`, `Purge`, `Recover`, `Restore`, `SetIssuers` and `Update`.

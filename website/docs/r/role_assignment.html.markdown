@@ -143,6 +143,8 @@ The following arguments are supported:
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 
+~> **NOTE:** Due to design limitation, setting `principal_id` to `identity[0].principal_id` of another resource could not be done at the same time while updating the identity of the referenced resource to System Assigned Identity.
+
 * `condition` - (Optional) The condition that limits the resources that the role can be assigned to. Changing this forces a new resource to be created.
 
 * `condition_version` - (Optional) The version of the condition. Possible values are `1.0` or `2.0`. Changing this forces a new resource to be created.
