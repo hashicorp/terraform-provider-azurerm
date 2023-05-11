@@ -23,11 +23,14 @@ resource "azurerm_custom_ip_prefix" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  cidr                          = "1.2.3.4/22"
-  commissioning_enabled         = true
+  cidr  = "1.2.3.4/22"
+  zones = ["1", "2", "3"]
+
+  commissioning_enabled = true
+
   roa_validity_end_date         = "2099-12-12"
   wan_validation_signed_message = "signed message for WAN validation"
-  zones                         = ["1", "2", "3"]
+
   tags = {
     env = "test"
   }
@@ -42,24 +45,26 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_custom_ip_prefix" "global" {
-  name                          = "example-Global-CustomIPPrefix"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  cidr                          = "2001:db8:1::/48"
+  name                = "example-Global-CustomIPPrefix"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cidr = "2001:db8:1::/48"
+
   roa_validity_end_date         = "2199-12-12"
   wan_validation_signed_message = "signed message for WAN validation"
 }
 
 resource "azurerm_custom_ip_prefix" "regional" {
-  name                = "example-Regional-CustomIPPrefix"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  cidr                = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
-  zones               = ["1"]
+  name                       = "example-Regional-CustomIPPrefix"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  parent_custom_ip_prefix_id = azurerm_custom_ip_prefix.global.id
+
+  cidr  = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
+  zones = ["1"]
 }
 ```
-
-~> **Dependencies** When configuring IPv6 regional prefixes, it's important to ensure a dependency relationship, either implicit or explicit, between the resources for your global and regional prefixes, otherwise Terraform will attempt to create them in parallel.
 
 ## Argument Reference
 
@@ -73,10 +78,6 @@ The following arguments are supported:
 
 * `cidr` - (Required) The `cidr` of the Custom IP Prefix, either IPv4 or IPv6. Changing this forces a new resource to be created.
 
-* `roa_validity_end_date` - (Optional) The expiration date of the Route Origin Authorization (ROA) document which has been filed with the Routing Internet Registry (RIR) for this prefix. The expected format is `YYYY-MM-DD`. Required when provisioning an IPv4 prefix or IPv6 global prefix. Changing this forces a new resource to be created.
-
-* `wan_validation_signed_message` - (Optional) The signed base64-encoded authorization message, which will be sent to Microsoft for WAN verification. Required when provisioning an IPv4 prefix or IPv6 global prefix. Refer to [Azure documentation](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/create-custom-ip-address-prefix-cli#certificate-readiness) for more details about the process for your RIR. Changing this forces a new resource to be created.
-
 * `commissioning_enabled` - (Optional) Specifies that the custom IP prefix should be commissioned after provisioning in Azure. Defaults to `false`.
 
 !> **Warning** Changing the value of `commissioning_enabled` from `true` to `false` causes the IP prefix to stop being advertised by Azure and is functionally equivalent to deleting it when used in a production setting.
@@ -85,7 +86,13 @@ The following arguments are supported:
 
 !> **Warning** Changing the value of `internet_advertising_disabled` from `true` to `false` causes the IP prefix to stop being advertised by Azure and is functionally equivalent to deleting it when used in a production setting.
 
+* `parent_custom_ip_prefix_id` - (Optional) Specifies the ID of the parent prefix. Only needed when creating a regional/child IPv6 prefix. Changing this forces a new resource to be created.
+
+* `roa_validity_end_date` - (Optional) The expiration date of the Route Origin Authorization (ROA) document which has been filed with the Routing Internet Registry (RIR) for this prefix. The expected format is `YYYY-MM-DD`. Required when provisioning an IPv4 prefix or IPv6 global prefix. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the Custom IP Prefix.
+
+* `wan_validation_signed_message` - (Optional) The signed base64-encoded authorization message, which will be sent to Microsoft for WAN verification. Required when provisioning an IPv4 prefix or IPv6 global prefix. Refer to [Azure documentation](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/create-custom-ip-address-prefix-cli#certificate-readiness) for more details about the process for your RIR. Changing this forces a new resource to be created.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Custom IP Prefix should be located. Should not be specified when creating an IPv6 global prefix. Changing this forces a new resource to be created.
 
