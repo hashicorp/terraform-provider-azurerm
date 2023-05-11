@@ -4,9 +4,57 @@ Since it's inception the provider has undergone various iterations and changes i
 
 ## Separate Create and Update Methods
 
-Combined create and update methods within the provider are a legacy remnant that will need to be separated going forward and prior to the next major release of the provider due to changes in behaviour in Terraform core and the providers migration from `terraform-pluginsdk` to `terraform-plugin-framework`.
+Historically the Provider has opted to combine the Create and Update methods due to the behaviour of the Azure API, where the same API is used for both Create and Update, meaning that the same payload has to be sent during both the Creation and Update of the resource.
 
-Migration to `terraform-plugin-framework` will see the use of `ignore_changes` become more prevalent in Terraform configs. For `ignore_changes` to work the create and update methods must be separate and `d.HasChanges` needs to be called on properties within the resource - see [this guide on new resources](guide-new-resource.md) for an example of how this is done.
+In order to properly support Terraform's `ignore_changes` feature, rather than using a combined method for Create and Update, we're now requiring that these are separate, and that in the Update partial/delta differences are performed, to only update the value for a field if it's marked as changed.
+
+For example, whilst a Create method may look similar to below:
+
+```go
+payload := resources.Group{
+    Location: location.Normalize(d.Get("location").(string)),
+    Tags: tags.Expand(d.Get("tags").(map[string]interface{}),
+}
+if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+  return fmt.Errorf("creating %s: %+v", id, err)
+}
+```
+
+The update method should be checking if the updatable fields (in this example, only tags) - have changes (using `d.HasChanges` - which will flag updated values in the config if they're not ignored via `ignore_changes`).
+
+Depending on the API there are two types of Updates, a patch/delta update (where only the fields containing changes are sent) - and a full update (which requires sending the full payload) - these are differentiable via the method name in the SDK, patch/delta updates are generally called `Update`, with a full update being called `CreateOrUpdate`.
+
+A patch/delta update would look similar to below:
+
+```go
+payload := resources.GroupUpdate{}
+if d.HasChanges("tags") {
+  // this uses `pointer.To` since all fields are optional in a patch/delta update, so they'll only be updated if specified
+  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{}))
+}
+if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
+  return fmt.Errorf("updating %s: %+v", id, err)
+}
+```
+
+A full update would retrieve the existing object from the API and then patch it, for example:
+
+```go
+resp, err := client.Get(ctx, id)
+if err != nil {
+  return fmt.Errorf("retrieving %s: %+v", id, err)
+}
+if resp.Model == nil {
+  return fmt.Errorf("retrieving %s: model was nil", id)
+}
+payload := *resp.Model
+if d.HasChanges("tags") {
+  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{})
+}
+if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
+  return fmt.Errorf("updating %s: %+v", id, err)
+}
+```
 
 ## Typed vs. Untyped Resources
 
