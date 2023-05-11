@@ -23,9 +23,9 @@ data "azurerm_mobile_network_packet_core_control_plane" "example" {
 
 The following arguments are supported:
 
-* `name` - The name which should be used for this Mobile Network Packet Core Control Plane. 
+* `name` - The name of the Mobile Network Packet Core Control Plane. 
 
-* `resource_group_name` - The name of the Resource Group where the Mobile Network Packet Core Control Plane should exist. 
+* `resource_group_name` - The name of the Resource Group where the Mobile Network Packet Core Control Plane exists.  
 
 ---
 
@@ -39,11 +39,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Mobile Network Packet Core Control Plane exists. 
 
-* `site_ids` - The list of Mobile Network Site IDs in which this packet core control plane deployed.
+* `site_ids` - The list of Mobile Network Site IDs in which this packet core control plane is deployed.
 
 * `sku` - The SKU defining the throughput and SIM allowances for this packet core control plane deployment. 
 
-* `local_diagnostics_access` - One or more `local_diagnostics_access` blocks as defined below. The kubernetes ingress configuration that controls access to the packet core diagnostics through local APIs.
+* `local_diagnostics_access` - One or more `local_diagnostics_access` blocks as defined below. The Kubernetes ingress configuration that controls access to the packet core diagnostics through local APIs.
 
 * `control_plane_access_interface` - A `control_plane_access_interface` block as defined below. The control plane interface on the access network.
 
@@ -57,9 +57,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `interoperability_settings_json` - Settings in JSON format to allow interoperability with third party components e.g. RANs and UEs.
 
-* `tags` - A mapping of tags of Mobile Network Packet Core Control Plane.
+* `tags` - A mapping of tags assigned to the Mobile Network Packet Core Control Plane.
 
-* `version` - The version of the packet core software that is deployed.
+* `software_version` - The version of the packet core software that is deployed.
 
 ---
 
@@ -87,7 +87,7 @@ An `identity` block supports the following:
 
 * `type` - The type of Managed Service Identity.
 
-* `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - A list of User Assigned Managed Identity IDs assigned to this resource.
 
 ---
 

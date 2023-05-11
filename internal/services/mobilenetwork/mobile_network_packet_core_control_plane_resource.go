@@ -487,7 +487,7 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 
 				properties := model.Properties
 
-				state.UeMtu = pointer.From(model.Properties.UeMtu)
+				state.UeMtu = pointer.From(properties.UeMtu)
 
 				state.ControlPlaneAccessIPv4Address = pointer.From(properties.ControlPlaneAccessInterface.IPv4Address)
 
@@ -497,11 +497,13 @@ func (r PacketCoreControlPlaneResource) Read() sdk.ResourceFunc {
 
 				state.ControlPlaneAccessName = pointer.From(properties.ControlPlaneAccessInterface.Name)
 
-				if properties.CoreNetworkTechnology != nil { // it still needs a nil check because it needs to do type conversion
+				// it still needs a nil check because it needs to do type conversion
+				if properties.CoreNetworkTechnology != nil {
 					state.CoreNetworkTechnology = string(pointer.From(properties.CoreNetworkTechnology))
 				}
 
-				if properties.InteropSettings != nil && *properties.InteropSettings != nil { // Marshal on a nil interface{} may get random result.
+				// Marshal on a nil interface{} may get random result.
+				if properties.InteropSettings != nil && *properties.InteropSettings != nil {
 					interopSettingsValue, err := json.Marshal(*properties.InteropSettings)
 					if err != nil {
 						return err

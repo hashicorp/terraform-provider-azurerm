@@ -79,22 +79,22 @@ resource "azurerm_mobile_network_packet_core_control_plane" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Mobile Network Packet Core Control Plane. Changing this forces a new Mobile Network Packet Core Control Plane to be created.
+* `name` - (Required) Specifies The name of the Mobile Network Packet Core Control Plane. Changing this forces a new Mobile Network Packet Core Control Plane to be created.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Mobile Network Packet Core Control Plane should exist. Changing this forces a new Mobile Network Packet Core Control Plane to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network Packet Core Control Plane should exist. Changing this forces a new Mobile Network Packet Core Control Plane to be created.
 
 * `site_ids` - (Required) A list of Mobile Network Site IDs in which this packet core control plane should be deployed. The Sites must be in the same location as the packet core control plane.
-* 
+
 * `sku` - (Required) The SKU defining the throughput and SIM allowances for this packet core control plane deployment. Possible values are `G0`, `G1`, `G2`, `G3`, `G4`, `G5` and `G10`.
 
 * `local_diagnostics_access` - (Required) One or more `local_diagnostics_access` blocks as defined below. Specifies the Kubernetes ingress configuration that controls access to the packet core diagnostics through local APIs.
-* 
+
 * `control_plane_access_interface` - (Optional) A `control_plane_access_interface` block as defined below. Specifies the control plane interface on the access network e.g. a N2 interface for 5G networks or a S1-MME interface for 4G networks
-* 
+
 * `user_equipment_mtu_in_bytes` - (Optional) Specifies the MTU in bytes that can be sent to the user equipment. The same MTU is set on the user plane data links for all data networks. The MTU set on the user plane access link will be 60 bytes greater than this value to allow for GTP encapsulation.
-* 
+
 * `core_network_technology` - (Optional) The core network technology generation. Possible values are `EPG` and `5GC`.
 
 * `platform` - (Optional) A `platform` block as defined below.
