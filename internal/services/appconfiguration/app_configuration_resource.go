@@ -304,12 +304,6 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 	parameters.Identity = identity
 
-	// retry checkNameAvailability until the name is released by purged app configuration, see https://github.com/Azure/AppConfiguration/issues/677
-	operationsClient := meta.(*clients.Client).AppConfiguration.OperationsClient
-	if err = resourceConfigurationStoreWaitForNameAvailable(ctx, operationsClient, resourceId); err != nil {
-		return err
-	}
-
 	if err := client.CreateThenPoll(ctx, resourceId, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
