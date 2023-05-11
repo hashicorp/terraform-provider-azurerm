@@ -44,7 +44,7 @@ func (id AnalyticsSharedItemId) ID() string {
 func AnalyticsSharedItemID(input string) (*AnalyticsSharedItemId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an AnalyticsSharedItem ID: %+v", input, err)
 	}
 
 	resourceId := AnalyticsSharedItemId{
