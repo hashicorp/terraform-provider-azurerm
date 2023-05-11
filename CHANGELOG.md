@@ -24,6 +24,7 @@ BUG FIXES:
 * `azurerm_api_management_api` - fixing a bug where an empty `contact` bug would cause a crash [GH-21740]
 * `azurerm_eventhub_namespace` - add locks and remove unneeded WaitForState functions [GH-21656]
 * `azurerm_machine_learning_workspace` - parse `key_vault_id` insensitively [GH-21684]
+* `azurerm_monitor_action_group` - further expand ExactlyOneOf logic for `event_hub_receiver` attributes [GH-21735]
 * `azurerm_monitor_metric_alert` - fix regression by using `SingleResourceMultiMetricCriteria` for new metric alerts  [GH-21658]
 * `azurerm_service_fabric_managed_cluster` - fixing a bug where `certificates` within the `vm_secrets` block wouldn't be set into the state [GH-21680]
 * `azurerm_storage_share` - correct resource ID segment from `fileshares` to `shares` [GH-21645]
