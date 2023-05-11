@@ -171,7 +171,7 @@ func TestAccKubernetesCluster_updateOs(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
 			Config: r.updateOsSku(data, "Mariner"),
 			Check: acceptance.ComposeTestCheckFunc(
