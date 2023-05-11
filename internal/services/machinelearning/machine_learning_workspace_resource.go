@@ -180,7 +180,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
-			
+
 			"workspace_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
