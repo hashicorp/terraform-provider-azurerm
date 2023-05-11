@@ -44,7 +44,7 @@ func (id FirewallPolicyRuleCollectionGroupId) ID() string {
 func FirewallPolicyRuleCollectionGroupID(input string) (*FirewallPolicyRuleCollectionGroupId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a FirewallPolicyRuleCollectionGroup ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an FirewallPolicyRuleCollectionGroup ID: %+v", input, err)
 	}
 
 	resourceId := FirewallPolicyRuleCollectionGroupId{

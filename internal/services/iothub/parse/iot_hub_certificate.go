@@ -44,7 +44,7 @@ func (id IotHubCertificateId) ID() string {
 func IotHubCertificateID(input string) (*IotHubCertificateId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a IotHubCertificate ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an IotHubCertificate ID: %+v", input, err)
 	}
 
 	resourceId := IotHubCertificateId{

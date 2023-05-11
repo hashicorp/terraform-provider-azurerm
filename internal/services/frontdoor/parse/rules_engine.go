@@ -44,7 +44,7 @@ func (id RulesEngineId) ID() string {
 func RulesEngineID(input string) (*RulesEngineId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a RulesEngine ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an RulesEngine ID: %+v", input, err)
 	}
 
 	resourceId := RulesEngineId{

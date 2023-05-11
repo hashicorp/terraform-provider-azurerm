@@ -44,7 +44,7 @@ func (id KeyVersionlessId) ID() string {
 func KeyVersionlessID(input string) (*KeyVersionlessId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a KeyVersionless ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an KeyVersionless ID: %+v", input, err)
 	}
 
 	resourceId := KeyVersionlessId{

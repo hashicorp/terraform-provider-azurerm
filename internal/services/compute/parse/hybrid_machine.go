@@ -41,7 +41,7 @@ func (id HybridMachineId) ID() string {
 func HybridMachineID(input string) (*HybridMachineId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a HybridMachine ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an HybridMachine ID: %+v", input, err)
 	}
 
 	resourceId := HybridMachineId{

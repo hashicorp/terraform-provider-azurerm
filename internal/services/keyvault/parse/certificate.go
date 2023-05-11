@@ -47,7 +47,7 @@ func (id CertificateId) ID() string {
 func CertificateID(input string) (*CertificateId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a Certificate ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an Certificate ID: %+v", input, err)
 	}
 
 	resourceId := CertificateId{

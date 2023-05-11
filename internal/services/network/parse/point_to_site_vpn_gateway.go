@@ -41,7 +41,7 @@ func (id PointToSiteVpnGatewayId) ID() string {
 func PointToSiteVpnGatewayID(input string) (*PointToSiteVpnGatewayId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a PointToSiteVpnGateway ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an PointToSiteVpnGateway ID: %+v", input, err)
 	}
 
 	resourceId := PointToSiteVpnGatewayId{

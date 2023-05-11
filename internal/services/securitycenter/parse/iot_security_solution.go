@@ -41,7 +41,7 @@ func (id IotSecuritySolutionId) ID() string {
 func IotSecuritySolutionID(input string) (*IotSecuritySolutionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a IotSecuritySolution ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an IotSecuritySolution ID: %+v", input, err)
 	}
 
 	resourceId := IotSecuritySolutionId{

@@ -44,7 +44,7 @@ func (id VirtualMachineExtensionId) ID() string {
 func VirtualMachineExtensionID(input string) (*VirtualMachineExtensionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a VirtualMachineExtension ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an VirtualMachineExtension ID: %+v", input, err)
 	}
 
 	resourceId := VirtualMachineExtensionId{

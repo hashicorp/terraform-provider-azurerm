@@ -41,7 +41,7 @@ func (id SpringCloudServiceId) ID() string {
 func SpringCloudServiceID(input string) (*SpringCloudServiceId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SpringCloudService ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SpringCloudService ID: %+v", input, err)
 	}
 
 	resourceId := SpringCloudServiceId{

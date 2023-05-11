@@ -44,7 +44,7 @@ func (id StorageAccountManagementPolicyId) ID() string {
 func StorageAccountManagementPolicyID(input string) (*StorageAccountManagementPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a StorageAccountManagementPolicy ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an StorageAccountManagementPolicy ID: %+v", input, err)
 	}
 
 	resourceId := StorageAccountManagementPolicyId{

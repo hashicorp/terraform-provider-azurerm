@@ -50,7 +50,7 @@ func (id SqlFunctionId) ID() string {
 func SqlFunctionID(input string) (*SqlFunctionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SqlFunction ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SqlFunction ID: %+v", input, err)
 	}
 
 	resourceId := SqlFunctionId{

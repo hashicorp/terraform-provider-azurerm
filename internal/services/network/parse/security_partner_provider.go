@@ -41,7 +41,7 @@ func (id SecurityPartnerProviderId) ID() string {
 func SecurityPartnerProviderID(input string) (*SecurityPartnerProviderId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SecurityPartnerProvider ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SecurityPartnerProvider ID: %+v", input, err)
 	}
 
 	resourceId := SecurityPartnerProviderId{

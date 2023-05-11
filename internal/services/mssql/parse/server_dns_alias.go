@@ -44,7 +44,7 @@ func (id ServerDNSAliasId) ID() string {
 func ServerDNSAliasID(input string) (*ServerDNSAliasId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ServerDNSAlias ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ServerDNSAlias ID: %+v", input, err)
 	}
 
 	resourceId := ServerDNSAliasId{

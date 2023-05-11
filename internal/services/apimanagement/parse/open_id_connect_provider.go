@@ -44,7 +44,7 @@ func (id OpenIDConnectProviderId) ID() string {
 func OpenIDConnectProviderID(input string) (*OpenIDConnectProviderId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a OpenIDConnectProvider ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an OpenIDConnectProvider ID: %+v", input, err)
 	}
 
 	resourceId := OpenIDConnectProviderId{

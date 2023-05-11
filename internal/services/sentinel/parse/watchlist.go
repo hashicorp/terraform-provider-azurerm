@@ -44,7 +44,7 @@ func (id WatchlistId) ID() string {
 func WatchlistID(input string) (*WatchlistId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a Watchlist ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an Watchlist ID: %+v", input, err)
 	}
 
 	resourceId := WatchlistId{

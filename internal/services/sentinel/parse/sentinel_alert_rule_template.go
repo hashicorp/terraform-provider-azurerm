@@ -44,7 +44,7 @@ func (id SentinelAlertRuleTemplateId) ID() string {
 func SentinelAlertRuleTemplateID(input string) (*SentinelAlertRuleTemplateId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SentinelAlertRuleTemplate ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SentinelAlertRuleTemplate ID: %+v", input, err)
 	}
 
 	resourceId := SentinelAlertRuleTemplateId{

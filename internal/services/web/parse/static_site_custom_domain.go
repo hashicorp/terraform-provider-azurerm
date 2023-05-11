@@ -44,7 +44,7 @@ func (id StaticSiteCustomDomainId) ID() string {
 func StaticSiteCustomDomainID(input string) (*StaticSiteCustomDomainId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a StaticSiteCustomDomain ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an StaticSiteCustomDomain ID: %+v", input, err)
 	}
 
 	resourceId := StaticSiteCustomDomainId{

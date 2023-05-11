@@ -41,7 +41,7 @@ func (id ResourceGroupCostManagementViewId) ID() string {
 func ResourceGroupCostManagementViewID(input string) (*ResourceGroupCostManagementViewId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ResourceGroupCostManagementView ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ResourceGroupCostManagementView ID: %+v", input, err)
 	}
 
 	resourceId := ResourceGroupCostManagementViewId{

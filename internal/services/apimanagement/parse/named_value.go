@@ -44,7 +44,7 @@ func (id NamedValueId) ID() string {
 func NamedValueID(input string) (*NamedValueId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a NamedValue ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an NamedValue ID: %+v", input, err)
 	}
 
 	resourceId := NamedValueId{

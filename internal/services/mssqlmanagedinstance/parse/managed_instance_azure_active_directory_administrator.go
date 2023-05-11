@@ -44,7 +44,7 @@ func (id ManagedInstanceAzureActiveDirectoryAdministratorId) ID() string {
 func ManagedInstanceAzureActiveDirectoryAdministratorID(input string) (*ManagedInstanceAzureActiveDirectoryAdministratorId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ManagedInstanceAzureActiveDirectoryAdministrator ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ManagedInstanceAzureActiveDirectoryAdministrator ID: %+v", input, err)
 	}
 
 	resourceId := ManagedInstanceAzureActiveDirectoryAdministratorId{

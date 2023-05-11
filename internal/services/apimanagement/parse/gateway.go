@@ -44,7 +44,7 @@ func (id GatewayId) ID() string {
 func GatewayID(input string) (*GatewayId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a Gateway ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an Gateway ID: %+v", input, err)
 	}
 
 	resourceId := GatewayId{

@@ -41,7 +41,7 @@ func (id KubernetesClusterId) ID() string {
 func KubernetesClusterID(input string) (*KubernetesClusterId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a KubernetesCluster ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an KubernetesCluster ID: %+v", input, err)
 	}
 
 	resourceId := KubernetesClusterId{

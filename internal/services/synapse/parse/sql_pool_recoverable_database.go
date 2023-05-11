@@ -44,7 +44,7 @@ func (id SqlPoolRecoverableDatabaseId) ID() string {
 func SqlPoolRecoverableDatabaseID(input string) (*SqlPoolRecoverableDatabaseId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SqlPoolRecoverableDatabase ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SqlPoolRecoverableDatabase ID: %+v", input, err)
 	}
 
 	resourceId := SqlPoolRecoverableDatabaseId{

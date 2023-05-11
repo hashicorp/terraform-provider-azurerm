@@ -47,7 +47,7 @@ func (id SqlContainerId) ID() string {
 func SqlContainerID(input string) (*SqlContainerId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SqlContainer ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SqlContainer ID: %+v", input, err)
 	}
 
 	resourceId := SqlContainerId{

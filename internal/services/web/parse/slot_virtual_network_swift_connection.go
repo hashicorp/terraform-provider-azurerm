@@ -47,7 +47,7 @@ func (id SlotVirtualNetworkSwiftConnectionId) ID() string {
 func SlotVirtualNetworkSwiftConnectionID(input string) (*SlotVirtualNetworkSwiftConnectionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SlotVirtualNetworkSwiftConnection ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SlotVirtualNetworkSwiftConnection ID: %+v", input, err)
 	}
 
 	resourceId := SlotVirtualNetworkSwiftConnectionId{

@@ -47,7 +47,7 @@ func (id NotificationRecipientEmailId) ID() string {
 func NotificationRecipientEmailID(input string) (*NotificationRecipientEmailId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a NotificationRecipientEmail ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an NotificationRecipientEmail ID: %+v", input, err)
 	}
 
 	resourceId := NotificationRecipientEmailId{

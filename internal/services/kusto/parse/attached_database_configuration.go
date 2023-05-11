@@ -44,7 +44,7 @@ func (id AttachedDatabaseConfigurationId) ID() string {
 func AttachedDatabaseConfigurationID(input string) (*AttachedDatabaseConfigurationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a AttachedDatabaseConfiguration ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an AttachedDatabaseConfiguration ID: %+v", input, err)
 	}
 
 	resourceId := AttachedDatabaseConfigurationId{

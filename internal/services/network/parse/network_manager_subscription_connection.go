@@ -38,7 +38,7 @@ func (id NetworkManagerSubscriptionConnectionId) ID() string {
 func NetworkManagerSubscriptionConnectionID(input string) (*NetworkManagerSubscriptionConnectionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a NetworkManagerSubscriptionConnection ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an NetworkManagerSubscriptionConnection ID: %+v", input, err)
 	}
 
 	resourceId := NetworkManagerSubscriptionConnectionId{

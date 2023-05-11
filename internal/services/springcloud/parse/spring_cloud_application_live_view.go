@@ -44,7 +44,7 @@ func (id SpringCloudApplicationLiveViewId) ID() string {
 func SpringCloudApplicationLiveViewID(input string) (*SpringCloudApplicationLiveViewId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SpringCloudApplicationLiveView ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SpringCloudApplicationLiveView ID: %+v", input, err)
 	}
 
 	resourceId := SpringCloudApplicationLiveViewId{

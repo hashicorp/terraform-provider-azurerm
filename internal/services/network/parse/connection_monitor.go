@@ -44,7 +44,7 @@ func (id ConnectionMonitorId) ID() string {
 func ConnectionMonitorID(input string) (*ConnectionMonitorId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ConnectionMonitor ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ConnectionMonitor ID: %+v", input, err)
 	}
 
 	resourceId := ConnectionMonitorId{

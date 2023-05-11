@@ -41,7 +41,7 @@ func (id ResourceGroupTemplateDeploymentId) ID() string {
 func ResourceGroupTemplateDeploymentID(input string) (*ResourceGroupTemplateDeploymentId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ResourceGroupTemplateDeployment ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ResourceGroupTemplateDeployment ID: %+v", input, err)
 	}
 
 	resourceId := ResourceGroupTemplateDeploymentId{

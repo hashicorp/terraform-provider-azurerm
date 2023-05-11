@@ -47,7 +47,7 @@ func (id ProductApiId) ID() string {
 func ProductApiID(input string) (*ProductApiId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ProductApi ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ProductApi ID: %+v", input, err)
 	}
 
 	resourceId := ProductApiId{

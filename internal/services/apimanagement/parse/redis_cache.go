@@ -44,7 +44,7 @@ func (id RedisCacheId) ID() string {
 func RedisCacheID(input string) (*RedisCacheId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a RedisCache ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an RedisCache ID: %+v", input, err)
 	}
 
 	resourceId := RedisCacheId{

@@ -44,7 +44,7 @@ func (id SpringCloudGatewayId) ID() string {
 func SpringCloudGatewayID(input string) (*SpringCloudGatewayId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SpringCloudGateway ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SpringCloudGateway ID: %+v", input, err)
 	}
 
 	resourceId := SpringCloudGatewayId{

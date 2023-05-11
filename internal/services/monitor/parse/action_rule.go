@@ -41,7 +41,7 @@ func (id ActionRuleId) ID() string {
 func ActionRuleID(input string) (*ActionRuleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ActionRule ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ActionRule ID: %+v", input, err)
 	}
 
 	resourceId := ActionRuleId{

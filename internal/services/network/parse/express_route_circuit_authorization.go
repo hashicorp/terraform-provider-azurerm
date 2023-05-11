@@ -44,7 +44,7 @@ func (id ExpressRouteCircuitAuthorizationId) ID() string {
 func ExpressRouteCircuitAuthorizationID(input string) (*ExpressRouteCircuitAuthorizationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ExpressRouteCircuitAuthorization ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ExpressRouteCircuitAuthorization ID: %+v", input, err)
 	}
 
 	resourceId := ExpressRouteCircuitAuthorizationId{

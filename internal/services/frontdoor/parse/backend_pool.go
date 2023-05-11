@@ -44,7 +44,7 @@ func (id BackendPoolId) ID() string {
 func BackendPoolID(input string) (*BackendPoolId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a BackendPool ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an BackendPool ID: %+v", input, err)
 	}
 
 	resourceId := BackendPoolId{

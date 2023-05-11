@@ -44,7 +44,7 @@ func (id ReplicationFabricId) ID() string {
 func ReplicationFabricID(input string) (*ReplicationFabricId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ReplicationFabric ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ReplicationFabric ID: %+v", input, err)
 	}
 
 	resourceId := ReplicationFabricId{

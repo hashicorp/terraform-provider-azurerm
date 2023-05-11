@@ -47,7 +47,7 @@ func (id AppServiceSlotCustomHostnameBindingId) ID() string {
 func AppServiceSlotCustomHostnameBindingID(input string) (*AppServiceSlotCustomHostnameBindingId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a AppServiceSlotCustomHostnameBinding ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an AppServiceSlotCustomHostnameBinding ID: %+v", input, err)
 	}
 
 	resourceId := AppServiceSlotCustomHostnameBindingId{

@@ -41,7 +41,7 @@ func (id FrontDoorFirewallPolicyId) ID() string {
 func FrontDoorFirewallPolicyID(input string) (*FrontDoorFirewallPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a FrontDoorFirewallPolicy ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an FrontDoorFirewallPolicy ID: %+v", input, err)
 	}
 
 	resourceId := FrontDoorFirewallPolicyId{

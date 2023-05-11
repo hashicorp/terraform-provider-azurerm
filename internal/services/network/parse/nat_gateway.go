@@ -41,7 +41,7 @@ func (id NatGatewayId) ID() string {
 func NatGatewayID(input string) (*NatGatewayId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a NatGateway ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an NatGateway ID: %+v", input, err)
 	}
 
 	resourceId := NatGatewayId{

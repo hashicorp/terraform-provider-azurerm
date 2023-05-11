@@ -50,7 +50,7 @@ func (id SqlPoolWorkloadClassifierId) ID() string {
 func SqlPoolWorkloadClassifierID(input string) (*SqlPoolWorkloadClassifierId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SqlPoolWorkloadClassifier ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SqlPoolWorkloadClassifier ID: %+v", input, err)
 	}
 
 	resourceId := SqlPoolWorkloadClassifierId{

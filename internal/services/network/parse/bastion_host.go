@@ -41,7 +41,7 @@ func (id BastionHostId) ID() string {
 func BastionHostID(input string) (*BastionHostId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a BastionHost ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an BastionHost ID: %+v", input, err)
 	}
 
 	resourceId := BastionHostId{

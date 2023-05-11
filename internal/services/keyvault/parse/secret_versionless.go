@@ -44,7 +44,7 @@ func (id SecretVersionlessId) ID() string {
 func SecretVersionlessID(input string) (*SecretVersionlessId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SecretVersionless ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SecretVersionless ID: %+v", input, err)
 	}
 
 	resourceId := SecretVersionlessId{

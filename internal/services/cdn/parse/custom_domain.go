@@ -47,7 +47,7 @@ func (id CustomDomainId) ID() string {
 func CustomDomainID(input string) (*CustomDomainId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a CustomDomain ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an CustomDomain ID: %+v", input, err)
 	}
 
 	resourceId := CustomDomainId{

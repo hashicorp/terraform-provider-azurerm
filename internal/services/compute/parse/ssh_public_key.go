@@ -41,7 +41,7 @@ func (id SSHPublicKeyId) ID() string {
 func SSHPublicKeyID(input string) (*SSHPublicKeyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SSHPublicKey ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SSHPublicKey ID: %+v", input, err)
 	}
 
 	resourceId := SSHPublicKeyId{

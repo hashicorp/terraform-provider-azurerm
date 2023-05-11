@@ -44,7 +44,7 @@ func (id VirtualMachineConfigurationAssignmentId) ID() string {
 func VirtualMachineConfigurationAssignmentID(input string) (*VirtualMachineConfigurationAssignmentId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a VirtualMachineConfigurationAssignment ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an VirtualMachineConfigurationAssignment ID: %+v", input, err)
 	}
 
 	resourceId := VirtualMachineConfigurationAssignmentId{

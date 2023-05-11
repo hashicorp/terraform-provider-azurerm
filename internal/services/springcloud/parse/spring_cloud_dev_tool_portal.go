@@ -44,7 +44,7 @@ func (id SpringCloudDevToolPortalId) ID() string {
 func SpringCloudDevToolPortalID(input string) (*SpringCloudDevToolPortalId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SpringCloudDevToolPortal ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SpringCloudDevToolPortal ID: %+v", input, err)
 	}
 
 	resourceId := SpringCloudDevToolPortalId{

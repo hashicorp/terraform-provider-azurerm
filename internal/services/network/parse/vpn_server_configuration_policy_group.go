@@ -44,7 +44,7 @@ func (id VpnServerConfigurationPolicyGroupId) ID() string {
 func VpnServerConfigurationPolicyGroupID(input string) (*VpnServerConfigurationPolicyGroupId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a VpnServerConfigurationPolicyGroup ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an VpnServerConfigurationPolicyGroup ID: %+v", input, err)
 	}
 
 	resourceId := VpnServerConfigurationPolicyGroupId{

@@ -44,7 +44,7 @@ func (id SqlPoolId) ID() string {
 func SqlPoolID(input string) (*SqlPoolId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SqlPool ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SqlPool ID: %+v", input, err)
 	}
 
 	resourceId := SqlPoolId{

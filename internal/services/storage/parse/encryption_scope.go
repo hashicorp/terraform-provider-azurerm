@@ -44,7 +44,7 @@ func (id EncryptionScopeId) ID() string {
 func EncryptionScopeID(input string) (*EncryptionScopeId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a EncryptionScope ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an EncryptionScope ID: %+v", input, err)
 	}
 
 	resourceId := EncryptionScopeId{

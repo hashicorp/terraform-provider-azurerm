@@ -47,7 +47,7 @@ func (id ProtectionContainerId) ID() string {
 func ProtectionContainerID(input string) (*ProtectionContainerId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ProtectionContainer ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ProtectionContainer ID: %+v", input, err)
 	}
 
 	resourceId := ProtectionContainerId{

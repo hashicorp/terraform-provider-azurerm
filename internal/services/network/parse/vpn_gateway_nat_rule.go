@@ -44,7 +44,7 @@ func (id VpnGatewayNatRuleId) ID() string {
 func VpnGatewayNatRuleID(input string) (*VpnGatewayNatRuleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a VpnGatewayNatRule ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an VpnGatewayNatRule ID: %+v", input, err)
 	}
 
 	resourceId := VpnGatewayNatRuleId{

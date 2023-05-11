@@ -41,7 +41,7 @@ func (id SystemTopicId) ID() string {
 func SystemTopicID(input string) (*SystemTopicId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SystemTopic ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SystemTopic ID: %+v", input, err)
 	}
 
 	resourceId := SystemTopicId{

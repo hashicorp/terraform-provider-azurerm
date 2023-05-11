@@ -44,7 +44,7 @@ func (id SqlRoleAssignmentId) ID() string {
 func SqlRoleAssignmentID(input string) (*SqlRoleAssignmentId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SqlRoleAssignment ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SqlRoleAssignment ID: %+v", input, err)
 	}
 
 	resourceId := SqlRoleAssignmentId{

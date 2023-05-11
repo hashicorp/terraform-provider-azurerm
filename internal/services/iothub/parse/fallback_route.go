@@ -44,7 +44,7 @@ func (id FallbackRouteId) ID() string {
 func FallbackRouteID(input string) (*FallbackRouteId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a FallbackRoute ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an FallbackRoute ID: %+v", input, err)
 	}
 
 	resourceId := FallbackRouteId{

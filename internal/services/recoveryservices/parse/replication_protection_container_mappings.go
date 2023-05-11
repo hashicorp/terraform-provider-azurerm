@@ -50,7 +50,7 @@ func (id ReplicationProtectionContainerMappingsId) ID() string {
 func ReplicationProtectionContainerMappingsID(input string) (*ReplicationProtectionContainerMappingsId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ReplicationProtectionContainerMappings ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ReplicationProtectionContainerMappings ID: %+v", input, err)
 	}
 
 	resourceId := ReplicationProtectionContainerMappingsId{

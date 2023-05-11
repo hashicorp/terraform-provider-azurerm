@@ -44,7 +44,7 @@ func (id PlanId) ID() string {
 func PlanID(input string) (*PlanId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a Plan ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an Plan ID: %+v", input, err)
 	}
 
 	resourceId := PlanId{

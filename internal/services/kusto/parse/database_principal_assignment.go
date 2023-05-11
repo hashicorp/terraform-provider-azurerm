@@ -47,7 +47,7 @@ func (id DatabasePrincipalAssignmentId) ID() string {
 func DatabasePrincipalAssignmentID(input string) (*DatabasePrincipalAssignmentId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a DatabasePrincipalAssignment ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an DatabasePrincipalAssignment ID: %+v", input, err)
 	}
 
 	resourceId := DatabasePrincipalAssignmentId{

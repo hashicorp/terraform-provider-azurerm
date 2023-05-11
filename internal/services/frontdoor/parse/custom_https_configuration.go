@@ -44,7 +44,7 @@ func (id CustomHttpsConfigurationId) ID() string {
 func CustomHttpsConfigurationID(input string) (*CustomHttpsConfigurationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a CustomHttpsConfiguration ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an CustomHttpsConfiguration ID: %+v", input, err)
 	}
 
 	resourceId := CustomHttpsConfigurationId{

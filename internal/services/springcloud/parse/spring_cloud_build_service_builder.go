@@ -47,7 +47,7 @@ func (id SpringCloudBuildServiceBuilderId) ID() string {
 func SpringCloudBuildServiceBuilderID(input string) (*SpringCloudBuildServiceBuilderId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SpringCloudBuildServiceBuilder ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SpringCloudBuildServiceBuilder ID: %+v", input, err)
 	}
 
 	resourceId := SpringCloudBuildServiceBuilderId{

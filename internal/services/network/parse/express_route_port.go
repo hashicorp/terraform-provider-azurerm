@@ -41,7 +41,7 @@ func (id ExpressRoutePortId) ID() string {
 func ExpressRoutePortID(input string) (*ExpressRoutePortId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ExpressRoutePort ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ExpressRoutePort ID: %+v", input, err)
 	}
 
 	resourceId := ExpressRoutePortId{

@@ -47,7 +47,7 @@ func (id GremlinGraphId) ID() string {
 func GremlinGraphID(input string) (*GremlinGraphId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a GremlinGraph ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an GremlinGraph ID: %+v", input, err)
 	}
 
 	resourceId := GremlinGraphId{

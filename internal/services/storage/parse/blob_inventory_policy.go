@@ -44,7 +44,7 @@ func (id BlobInventoryPolicyId) ID() string {
 func BlobInventoryPolicyID(input string) (*BlobInventoryPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a BlobInventoryPolicy ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an BlobInventoryPolicy ID: %+v", input, err)
 	}
 
 	resourceId := BlobInventoryPolicyId{

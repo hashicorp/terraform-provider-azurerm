@@ -44,7 +44,7 @@ func (id RouteMapId) ID() string {
 func RouteMapID(input string) (*RouteMapId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a RouteMap ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an RouteMap ID: %+v", input, err)
 	}
 
 	resourceId := RouteMapId{

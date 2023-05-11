@@ -38,7 +38,7 @@ func (id SubscriptionAssignmentId) ID() string {
 func SubscriptionAssignmentID(input string) (*SubscriptionAssignmentId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SubscriptionAssignment ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SubscriptionAssignment ID: %+v", input, err)
 	}
 
 	resourceId := SubscriptionAssignmentId{

@@ -44,7 +44,7 @@ func (id AuthorizationServerId) ID() string {
 func AuthorizationServerID(input string) (*AuthorizationServerId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a AuthorizationServer ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an AuthorizationServer ID: %+v", input, err)
 	}
 
 	resourceId := AuthorizationServerId{

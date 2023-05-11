@@ -41,7 +41,7 @@ func (id VpnSiteId) ID() string {
 func VpnSiteID(input string) (*VpnSiteId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a VpnSite ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an VpnSite ID: %+v", input, err)
 	}
 
 	resourceId := VpnSiteId{

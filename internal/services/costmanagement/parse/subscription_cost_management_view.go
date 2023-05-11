@@ -38,7 +38,7 @@ func (id SubscriptionCostManagementViewId) ID() string {
 func SubscriptionCostManagementViewID(input string) (*SubscriptionCostManagementViewId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a SubscriptionCostManagementView ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an SubscriptionCostManagementView ID: %+v", input, err)
 	}
 
 	resourceId := SubscriptionCostManagementViewId{

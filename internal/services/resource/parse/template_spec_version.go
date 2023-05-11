@@ -44,7 +44,7 @@ func (id TemplateSpecVersionId) ID() string {
 func TemplateSpecVersionID(input string) (*TemplateSpecVersionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a TemplateSpecVersion ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an TemplateSpecVersion ID: %+v", input, err)
 	}
 
 	resourceId := TemplateSpecVersionId{

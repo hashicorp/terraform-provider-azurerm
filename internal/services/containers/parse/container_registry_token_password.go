@@ -47,7 +47,7 @@ func (id ContainerRegistryTokenPasswordId) ID() string {
 func ContainerRegistryTokenPasswordID(input string) (*ContainerRegistryTokenPasswordId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a ContainerRegistryTokenPassword ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an ContainerRegistryTokenPassword ID: %+v", input, err)
 	}
 
 	resourceId := ContainerRegistryTokenPasswordId{

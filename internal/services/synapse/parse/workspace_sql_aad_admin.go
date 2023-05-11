@@ -44,7 +44,7 @@ func (id WorkspaceSqlAADAdminId) ID() string {
 func WorkspaceSqlAADAdminID(input string) (*WorkspaceSqlAADAdminId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a WorkspaceSqlAADAdmin ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an WorkspaceSqlAADAdmin ID: %+v", input, err)
 	}
 
 	resourceId := WorkspaceSqlAADAdminId{

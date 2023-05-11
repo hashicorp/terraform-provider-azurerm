@@ -41,7 +41,7 @@ func (id StaticSiteId) ID() string {
 func StaticSiteID(input string) (*StaticSiteId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a StaticSite ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an StaticSite ID: %+v", input, err)
 	}
 
 	resourceId := StaticSiteId{

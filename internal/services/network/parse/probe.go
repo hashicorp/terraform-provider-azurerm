@@ -44,7 +44,7 @@ func (id ProbeId) ID() string {
 func ProbeID(input string) (*ProbeId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a Probe ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an Probe ID: %+v", input, err)
 	}
 
 	resourceId := ProbeId{

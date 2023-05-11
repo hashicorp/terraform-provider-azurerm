@@ -38,7 +38,7 @@ func (id AutoProvisioningSettingId) ID() string {
 func AutoProvisioningSettingID(input string) (*AutoProvisioningSettingId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a AutoProvisioningSetting ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an AutoProvisioningSetting ID: %+v", input, err)
 	}
 
 	resourceId := AutoProvisioningSettingId{
