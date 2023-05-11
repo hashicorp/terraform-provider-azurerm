@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/deletedconfigurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/operations"
 	authWrapper "github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -18,6 +19,7 @@ import (
 type Client struct {
 	ConfigurationStoresClient        *configurationstores.ConfigurationStoresClient
 	DeletedConfigurationStoresClient *deletedconfigurationstores.DeletedConfigurationStoresClient
+	OperationsClient                 *operations.OperationsClient
 	authorizerFunc                   common.ApiAuthorizerFunc
 	configureClientFunc              func(c *autorest.Client, authorizer autorest.Authorizer)
 }
@@ -129,9 +131,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(deletedConfigurationStores.Client, o.Authorizers.ResourceManager)
 
+	operationsClient, err := operations.NewOperationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Operations client: %+v", err)
+	}
+	o.Configure(operationsClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		ConfigurationStoresClient:        configurationStores,
 		DeletedConfigurationStoresClient: deletedConfigurationStores,
+		OperationsClient:                 operationsClient,
 		authorizerFunc:                   o.Authorizers.AuthorizerFunc,
 		configureClientFunc:              o.ConfigureClient,
 	}, nil

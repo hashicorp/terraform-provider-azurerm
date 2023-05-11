@@ -10,12 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/deletedconfigurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/operations"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -231,6 +233,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	deletedConfigurationStoresClient := meta.(*clients.Client).AppConfiguration.DeletedConfigurationStoresClient
+
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -300,7 +303,13 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	parameters.Identity = identity
-	// TODO: retry checkNameAvailability before creation when SDK is ready, see https://github.com/Azure/AppConfiguration/issues/677
+
+	// retry checkNameAvailability until the name is released by purged app configuration, see https://github.com/Azure/AppConfiguration/issues/677
+	operationsClient := meta.(*clients.Client).AppConfiguration.OperationsClient
+	if err = resourceConfigurationStoreWaitForNameAvailable(ctx, operationsClient, resourceId); err != nil {
+		return err
+	}
+
 	if err := client.CreateThenPoll(ctx, resourceId, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
@@ -571,7 +580,11 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("polling after purging for %s: %+v", *id, err)
 		}
 
-		// TODO: retry checkNameAvailability after deletion when SDK is ready, see https://github.com/Azure/AppConfiguration/issues/677
+		// retry checkNameAvailability until the name is released by purged app configuration, see https://github.com/Azure/AppConfiguration/issues/677
+		operationsClient := meta.(*clients.Client).AppConfiguration.OperationsClient
+		if err = resourceConfigurationStoreWaitForNameAvailable(ctx, operationsClient, *id); err != nil {
+			return err
+		}
 		log.Printf("[DEBUG] Purged AppConfiguration %q.", id.ConfigurationStoreName)
 	}
 
@@ -731,4 +744,58 @@ func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAc
 	// otherwise presume it's an undefined value and best-effort it
 	out := configurationstores.PublicNetworkAccess(input)
 	return &out
+}
+
+func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: context had no deadline")
+	}
+	state := &pluginsdk.StateChangeConf{
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 2,
+		Pending:                   []string{"Unavailable"},
+		Target:                    []string{"Available"},
+		Refresh:                   resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx, client, configurationStoreId),
+		Timeout:                   time.Until(deadline),
+	}
+
+	_, err := state.WaitForStateContext(ctx)
+	if err != nil {
+		return fmt.Errorf("waiting for the Configuration Store %s Name Available: %+v", configurationStoreId, err)
+	}
+
+	return nil
+
+}
+
+func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if Configuration Store %s is name available ..", configurationStoreId)
+
+		subscriptionId := commonids.NewSubscriptionID(configurationStoreId.SubscriptionId)
+
+		parameters := operations.CheckNameAvailabilityParameters{
+			Name: configurationStoreId.ConfigurationStoreName,
+			Type: operations.ConfigurationResourceTypeMicrosoftPointAppConfigurationConfigurationStores,
+		}
+
+		resp, err := client.CheckNameAvailability(ctx, subscriptionId, parameters)
+		if err != nil {
+			return resp, "Error", fmt.Errorf("retrieving Deployment: %+v", err)
+		}
+
+		if resp.Model == nil {
+			return resp, "Error", fmt.Errorf("unexpected null model of %s", configurationStoreId)
+		}
+
+		if resp.Model.NameAvailable == nil {
+			return resp, "Error", fmt.Errorf("unexpected null NameAvailable property of %s", configurationStoreId)
+		}
+
+		if !*resp.Model.NameAvailable {
+			return resp, "Unavailable", nil
+		}
+		return resp, "Available", nil
+	}
 }
