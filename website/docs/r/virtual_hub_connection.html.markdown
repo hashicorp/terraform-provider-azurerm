@@ -60,6 +60,10 @@ The following arguments are supported:
 
 * `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Defaults to `false`.
 
+* `vnet_local_route_override_enabled` - (Optional) whether the Network Virtual Appliance (NVA) in the spoke virtual network (vnet) should be bypassed for traffic destined for the local vnet. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `static_route_propagate_enabled` - (Optional) Whether static routes on this connection are automatically propagate to route tables which this connection propagates to. Defaults to `true`.
+
 * `routing` - (Optional) A `routing` block as defined below.
 
 ---
@@ -92,13 +96,6 @@ A `static_vnet_route` block supports the following:
 
 * `next_hop_ip_address` - (Optional) The IP Address which should be used for the Next Hop.
 
----
-
-A `static_vnet_route` block supports the following:
-
-* `vnet_local_route_override_criteria` - (Optional) Specifies whether Network Virtual Appliance in spoke vnet is bypassed for traffic with destination to local vnet. Possible values are `Contains` and `Equal`. 
-
-* `static_route_propagated` - Whether static routes on this connection are automatically propagate to route tables which this connection propagates to. 
 
 ## Attributes Reference
 

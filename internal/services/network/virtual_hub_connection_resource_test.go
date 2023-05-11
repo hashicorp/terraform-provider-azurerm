@@ -258,15 +258,22 @@ func TestAccVirtualHubConnection_updateRouteOverride(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 	r := VirtualHubConnectionResource{}
 
+	// test with specified value, then test with removing the block
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withRoutingConfiguration(data),
+			Config: r.withLocalRouteOverride(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.withLocalRouteOverride(data),
+			Config: r.withLocalRouteOverride(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withRoutingConfiguration(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -533,7 +540,7 @@ resource "azurerm_virtual_hub_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualHubConnectionResource) withLocalRouteOverride(data acceptance.TestData) string {
+func (r VirtualHubConnectionResource) withLocalRouteOverride(data acceptance.TestData, staticPropagate bool) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -558,14 +565,11 @@ resource "azurerm_virtual_hub_connection" "test" {
       address_prefixes    = ["10.0.5.0/24"]
       next_hop_ip_address = "10.0.5.5"
     }
-
-    static_vnet_route_config {
-      vnet_local_route_override_criteria = "Contains"
-    }
-
   }
+  vnet_local_route_override_enabled = %[3]t
+  static_route_propagate_enabled    = false
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, staticPropagate)
 }
 
 func (r VirtualHubConnectionResource) withoutPropagatedRouteTable(data acceptance.TestData) string {

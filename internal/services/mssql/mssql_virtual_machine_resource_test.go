@@ -447,6 +447,7 @@ func (r MsSqlVirtualMachineResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
+
 resource "azurerm_mssql_virtual_machine" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   sql_license_type   = "PAYG"
