@@ -36,7 +36,7 @@ func ParseDatabaseAccountNameID(input string) (*DatabaseAccountNameId, error) {
 	id := DatabaseAccountNameId{}
 
 	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
 	}
 
 	return &id, nil
@@ -55,7 +55,7 @@ func ParseDatabaseAccountNameIDInsensitively(input string) (*DatabaseAccountName
 	id := DatabaseAccountNameId{}
 
 	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
 	}
 
 	return &id, nil

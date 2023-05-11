@@ -42,20 +42,20 @@ func ParseOperationKindID(input string) (*OperationKindId, error) {
 	id := OperationKindId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, fmt.Errorf("the segment 'vaultName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
 	}
 
 	if v, ok := parsed.Parsed["operationKind"]; true {
 		if !ok {
-			return nil, fmt.Errorf("the segment 'operationKind' was not found in the resource id %q", input)
+			return nil, resourceids.NewSegmentNotSpecifiedError(id, "operationKind", *parsed)
 		}
 
 		operationKind, err := parseAccessPolicyUpdateKind(v)
@@ -81,20 +81,20 @@ func ParseOperationKindIDInsensitively(input string) (*OperationKindId, error) {
 	id := OperationKindId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, fmt.Errorf("the segment 'vaultName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
 	}
 
 	if v, ok := parsed.Parsed["operationKind"]; true {
 		if !ok {
-			return nil, fmt.Errorf("the segment 'operationKind' was not found in the resource id %q", input)
+			return nil, resourceids.NewSegmentNotSpecifiedError(id, "operationKind", *parsed)
 		}
 
 		operationKind, err := parseAccessPolicyUpdateKind(v)

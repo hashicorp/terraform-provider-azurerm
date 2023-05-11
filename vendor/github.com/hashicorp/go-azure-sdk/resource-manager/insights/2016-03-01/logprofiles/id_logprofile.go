@@ -38,11 +38,11 @@ func ParseLogProfileID(input string) (*LogProfileId, error) {
 	id := LogProfileId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.LogProfileName, ok = parsed.Parsed["logProfileName"]; !ok {
-		return nil, fmt.Errorf("the segment 'logProfileName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "logProfileName", *parsed)
 	}
 
 	return &id, nil
@@ -61,11 +61,11 @@ func ParseLogProfileIDInsensitively(input string) (*LogProfileId, error) {
 	id := LogProfileId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.LogProfileName, ok = parsed.Parsed["logProfileName"]; !ok {
-		return nil, fmt.Errorf("the segment 'logProfileName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "logProfileName", *parsed)
 	}
 
 	return &id, nil
