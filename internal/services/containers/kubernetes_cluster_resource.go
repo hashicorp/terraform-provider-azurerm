@@ -756,18 +756,30 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"day_of_week": {
-							Type:     pluginsdk.TypeInt,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice(
+								maintenanceconfigurations.PossibleValuesForWeekDay(),
+								false),
+						},
+
+						"duration": {
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"week_index": {
-							Type:     pluginsdk.TypeInt,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringInSlice(
+								maintenanceconfigurations.PossibleValuesForType(),
+								false),
 						},
 
 						"day_of_month": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 31),
 						},
 
 						"start_date": {
@@ -786,9 +798,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"not_allowed": {
-							Type:         pluginsdk.TypeSet,
-							Optional:     true,
-							AtLeastOneOf: []string{"maintenance_window_auto_upgrade.0.allowed", "maintenance_window_auto_upgrade.0.not_allowed"},
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"end": {
@@ -834,18 +845,30 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"day_of_week": {
-							Type:     pluginsdk.TypeInt,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice(
+								maintenanceconfigurations.PossibleValuesForWeekDay(),
+								false),
+						},
+
+						"duration": {
+							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
 
 						"week_index": {
-							Type:     pluginsdk.TypeInt,
+							Type:     pluginsdk.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringInSlice(
+								maintenanceconfigurations.PossibleValuesForType(),
+								false),
 						},
 
 						"day_of_month": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 31),
 						},
 
 						"start_date": {
@@ -864,9 +887,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"not_allowed": {
-							Type:         pluginsdk.TypeSet,
-							Optional:     true,
-							AtLeastOneOf: []string{"maintenance_window_auto_upgrade.0.allowed", "maintenance_window_auto_upgrade.0.not_allowed"},
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"end": {
