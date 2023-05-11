@@ -8,11 +8,28 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// NestedItemObjectType enumerates the type of the Nested Item Type (e.g."Key", "Secret", or "Certificate").
+type NestedItemObjectType string
+
+const (
+	// KeyVaultObjectType Keys...
+	NestedItemTypeKey NestedItemObjectType = "keys"
+	// KeyVaultObjectType Secrets...
+	NestedItemTypeSecret NestedItemObjectType = "secrets"
+	// KeyVaultObjectType Certificates...
+	NestedItemTypeCertificate NestedItemObjectType = "certificates"
+)
+
+// PossibleNestedItemObjectTypeValues returns an array of possible values for the NestedItemObjectType const.
+func PossibleNestedItemObjectTypeValues() []NestedItemObjectType {
+	return []NestedItemObjectType{NestedItemTypeKey, NestedItemTypeSecret, NestedItemTypeCertificate}
+}
+
 var _ resourceids.Id = NestedItemId{}
 
 type NestedItemId struct {
 	KeyVaultBaseUrl string
-	NestedItemType  string
+	NestedItemType  NestedItemObjectType
 	Name            string
 	Version         string
 }
@@ -29,7 +46,7 @@ func NewNestedItemID(keyVaultBaseUrl, nestedItemType, name, version string) (*Ne
 
 	return &NestedItemId{
 		KeyVaultBaseUrl: keyVaultUrl.String(),
-		NestedItemType:  nestedItemType,
+		NestedItemType:  NestedItemObjectType(nestedItemType),
 		Name:            name,
 		Version:         version,
 	}, nil
@@ -39,7 +56,7 @@ func (id NestedItemId) ID() string {
 	// example: https://tharvey-keyvault.vault.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
 	segments := []string{
 		strings.TrimSuffix(id.KeyVaultBaseUrl, "/"),
-		id.NestedItemType,
+		string(id.NestedItemType),
 		id.Name,
 	}
 	if id.Version != "" {
@@ -51,7 +68,7 @@ func (id NestedItemId) ID() string {
 func (id NestedItemId) String() string {
 	components := []string{
 		fmt.Sprintf("Base Url %q", id.KeyVaultBaseUrl),
-		fmt.Sprintf("Nested Item Type %q", id.NestedItemType),
+		fmt.Sprintf("Nested Item Type %q", string(id.NestedItemType)),
 		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Version %q", id.Version),
 	}
@@ -62,7 +79,7 @@ func (id NestedItemId) VersionlessID() string {
 	// example: https://tharvey-keyvault.vault.azure.net/type/bird
 	segments := []string{
 		strings.TrimSuffix(id.KeyVaultBaseUrl, "/"),
-		id.NestedItemType,
+		string(id.NestedItemType),
 		id.Name,
 	}
 	return strings.TrimSuffix(strings.Join(segments, "/"), "/")
@@ -94,7 +111,7 @@ func parseNestedItemId(id string) (*NestedItemId, error) {
 	// versionless example: https://tharvey-keyvault.vault.azure.net/type/bird/
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot parse Azure KeyVault Child Id: %s", err)
+		return nil, fmt.Errorf("cannot parse Azure KeyVault Child Id: %s", err)
 	}
 
 	path := idURL.Path
@@ -105,7 +122,7 @@ func parseNestedItemId(id string) (*NestedItemId, error) {
 	components := strings.Split(path, "/")
 
 	if len(components) != 2 && len(components) != 3 {
-		return nil, fmt.Errorf("KeyVault Nested Item should contain 2 or 3 segments, got %d from %q", len(components), path)
+		return nil, fmt.Errorf("keyVault Nested Item should contain 2 or 3 segments, got %d from %q", len(components), path)
 	}
 
 	version := ""
@@ -113,9 +130,11 @@ func parseNestedItemId(id string) (*NestedItemId, error) {
 		version = components[2]
 	}
 
+	// TODO: Add validation for components[0]
+
 	childId := NestedItemId{
 		KeyVaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
-		NestedItemType:  components[0],
+		NestedItemType:  NestedItemObjectType(components[0]),
 		Name:            components[1],
 		Version:         version,
 	}
