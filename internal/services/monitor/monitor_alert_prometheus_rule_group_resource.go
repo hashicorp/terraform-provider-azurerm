@@ -291,8 +291,9 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 
 			properties.Properties.Description = pointer.To(model.Description)
 
-			properties.Properties.Interval = pointer.To(model.Interval)
-
+			if _, ok := metadata.ResourceData.GetOk("interval"); ok {
+				properties.Properties.Interval = pointer.To(model.Interval)
+			}
 			properties.Properties.Rules = expandPrometheusRuleModel(model.Rule, metadata.ResourceData)
 
 			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
@@ -439,7 +440,7 @@ func (r AlertPrometheusRuleGroupResource) Delete() sdk.ResourceFunc {
 func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.ResourceData) []prometheusrulegroups.PrometheusRule {
 	outputList := make([]prometheusrulegroups.PrometheusRule, 0)
 
-	for _, v := range inputList {
+	for i, v := range inputList {
 		output := prometheusrulegroups.PrometheusRule{
 			Enabled:    pointer.To(v.Enabled),
 			Expression: v.Expression,
@@ -449,7 +450,7 @@ func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.Resour
 		if v.Alert != "" {
 			output.Actions = expandPrometheusRuleGroupActionModel(v.Action)
 			output.Alert = pointer.To(v.Alert)
-			if _, ok := d.GetOk("severity"); ok {
+			if _, ok := d.GetOk("rule." + strconv.Itoa(i) + ".severity"); ok {
 				output.Severity = pointer.To(v.Severity)
 			}
 			output.Annotations = pointer.To(v.Annotations)
