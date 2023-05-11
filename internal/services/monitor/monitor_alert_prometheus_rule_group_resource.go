@@ -388,31 +388,29 @@ func (r AlertPrometheusRuleGroupResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
-			}
-
 			state := AlertPrometheusRuleGroupResourceModel{
 				Name:              id.PrometheusRuleGroupName,
 				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
 			}
 
-			state.ClusterName = pointer.From(model.Properties.ClusterName)
+			if resp.Model != nil {
 
-			state.Description = pointer.From(model.Properties.Description)
+				state.ClusterName = pointer.From(resp.Model.Properties.ClusterName)
 
-			state.RuleGroupEnabled = pointer.From(model.Properties.Enabled)
+				state.Description = pointer.From(resp.Model.Properties.Description)
 
-			state.Interval = pointer.From(model.Properties.Interval)
+				state.Interval = pointer.From(resp.Model.Properties.Interval)
 
-			state.Rule = flattenPrometheusRuleModel(&model.Properties.Rules)
+				state.Location = location.Normalize(resp.Model.Location)
 
-			state.Scopes = model.Properties.Scopes
+				state.Rule = flattenPrometheusRuleModel(&resp.Model.Properties.Rules)
 
-			state.Tags = pointer.From(model.Tags)
+				state.RuleGroupEnabled = pointer.From(resp.Model.Properties.Enabled)
 
+				state.Scopes = resp.Model.Properties.Scopes
+
+				state.Tags = pointer.From(resp.Model.Tags)
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -493,9 +491,7 @@ func expandPrometheusRuleResolveConfigurationModel(inputList []PrometheusRuleRes
 		AutoResolved: pointer.To(input.AutoResolved),
 	}
 
-	if input.TimeToResolve != "" {
-		output.TimeToResolve = pointer.To(input.TimeToResolve)
-	}
+	output.TimeToResolve = pointer.To(input.TimeToResolve)
 
 	return &output
 }
@@ -511,10 +507,7 @@ func flattenPrometheusRuleModel(inputList *[]prometheusrulegroups.PrometheusRule
 			Expression: input.Expression,
 		}
 
-		actionsValue, err := flattenPrometheusRuleGroupActionModel(input.Actions)
-		if err != nil {
-			return nil
-		}
+		actionsValue := flattenPrometheusRuleGroupActionModel(input.Actions)
 
 		output.Action = actionsValue
 
@@ -531,9 +524,6 @@ func flattenPrometheusRuleModel(inputList *[]prometheusrulegroups.PrometheusRule
 		output.Record = pointer.From(input.Record)
 
 		resolveConfigurationValue := flattenPrometheusRuleResolveConfigurationModel(input.ResolveConfiguration)
-		if err != nil {
-			return nil
-		}
 
 		output.ResolveConfiguration = resolveConfigurationValue
 
@@ -545,10 +535,10 @@ func flattenPrometheusRuleModel(inputList *[]prometheusrulegroups.PrometheusRule
 	return outputList
 }
 
-func flattenPrometheusRuleGroupActionModel(inputList *[]prometheusrulegroups.PrometheusRuleGroupAction) ([]PrometheusRuleGroupActionModel, error) {
+func flattenPrometheusRuleGroupActionModel(inputList *[]prometheusrulegroups.PrometheusRuleGroupAction) []PrometheusRuleGroupActionModel {
 	outputList := make([]PrometheusRuleGroupActionModel, 0)
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -561,7 +551,7 @@ func flattenPrometheusRuleGroupActionModel(inputList *[]prometheusrulegroups.Pro
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
 func flattenPrometheusRuleResolveConfigurationModel(input *prometheusrulegroups.PrometheusRuleResolveConfiguration) []PrometheusRuleResolveConfigurationModel {
