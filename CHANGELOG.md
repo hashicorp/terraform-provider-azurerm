@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * provider: updating the `IsAzureStack` check to use `hashicorp/go-azure-sdk` rather than relying on the environment from `Azure/go-autorest` [GH-21697]
 * `appconfiguration`: updating to API Version `2023-03-01` [GH-21660]
 * `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
+* `azurerm_machine_learning_workspace` - exporting `workspace_id` [GH-21746]
 * `azurerm_orbital_contact_profile` - `ip_address` is now optional [GH-21721]
 
 BUG FIXES:
