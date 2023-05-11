@@ -223,8 +223,10 @@ resource "azurerm_mssql_server" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [all]
+  }
 }
-
-
 `, data.RandomInteger, data.Locations.Primary)
 }
