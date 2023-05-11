@@ -2,6 +2,7 @@ package hybridcompute_test
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 
@@ -10,14 +11,34 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type HybridComputeMachineDataSource struct{}
+type ArcMachineDataSource struct{}
 
-func TestAccHybridComputeMachine_basic(t *testing.T) {
+const LetterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const NumberBytes = "1234567890"
+const SpecialBytes = "!@#$%^()"
+
+func generateRandomPassword(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		r := rand.Int()
+		switch r % 3 {
+		case 0:
+			b[i] = LetterBytes[rand.Intn(len(LetterBytes))]
+		case 1:
+			b[i] = SpecialBytes[rand.Intn(len(SpecialBytes))]
+		case 2:
+			b[i] = NumberBytes[rand.Intn(len(NumberBytes))]
+		}
+	}
+	return string(b)
+}
+
+func TestAccArcMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hybrid_compute_machine", "test")
-	d := HybridComputeMachineDataSource{}
+	d := ArcMachineDataSource{}
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	randomUUID, _ := uuid.GenerateUUID()
-	password := generateRandomPassword(10)
+	password := generateRandomPassword(15)
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.basic(data, clientSecret, randomUUID, password),
@@ -31,7 +52,7 @@ func TestAccHybridComputeMachine_basic(t *testing.T) {
 	})
 }
 
-func (r HybridComputeMachineDataSource) template(data acceptance.TestData, secret string, randomUUID string, password string) string {
+func (r ArcMachineDataSource) template(data acceptance.TestData, secret string, randomUUID string, password string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -168,7 +189,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, password, password, secret)
 }
 
-func (r HybridComputeMachineDataSource) basic(data acceptance.TestData, secret string, randomUUID string, password string) string {
+func (r ArcMachineDataSource) basic(data acceptance.TestData, secret string, randomUUID string, password string) string {
 	template := r.template(data, secret, randomUUID, password)
 	return fmt.Sprintf(`
 				%s

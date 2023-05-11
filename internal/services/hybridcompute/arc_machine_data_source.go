@@ -2,6 +2,7 @@ package hybridcompute
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -11,12 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type HybridComputeMachineModel struct {
+type ArcMachineModel struct {
 	Name                       string                    `tfschema:"name"`
 	ResourceGroupName          string                    `tfschema:"resource_group_name"`
 	AgentConfiguration         []AgentConfigurationModel `tfschema:"agent_configuration"`
@@ -48,23 +50,78 @@ type HybridComputeMachineModel struct {
 	VmUuid                     string                    `tfschema:"vm_uuid"`
 }
 
-type HybridComputeMachineDataSource struct{}
-
-var _ sdk.DataSource = HybridComputeMachineDataSource{}
-
-func (r HybridComputeMachineDataSource) ResourceType() string {
-	return "azurerm_hybrid_compute_machine"
+type AgentConfigurationModel struct {
+	ExtensionsAllowList       []ConfigurationExtensionModel `tfschema:"extensions_allow_list"`
+	ExtensionsBlockList       []ConfigurationExtensionModel `tfschema:"extensions_block_list"`
+	ExtensionsEnabled         bool                          `tfschema:"extensions_enabled"`
+	GuestConfigurationEnabled bool                          `tfschema:"guest_configuration_enabled"`
+	IncomingConnectionsPorts  []string                      `tfschema:"incoming_connections_ports"`
+	ProxyBypass               []string                      `tfschema:"proxy_bypass"`
+	ProxyUrl                  string                        `tfschema:"proxy_url"`
 }
 
-func (r HybridComputeMachineDataSource) ModelObject() interface{} {
-	return &HybridComputeMachineModel{}
+type ConfigurationExtensionModel struct {
+	Publisher string `tfschema:"publisher"`
+	Type      string `tfschema:"type"`
 }
 
-func (r HybridComputeMachineDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return machines.ValidateMachineID
+type CloudMetadataModel struct {
+	Provider string `tfschema:"provider"`
 }
 
-func (r HybridComputeMachineDataSource) Arguments() map[string]*pluginsdk.Schema {
+type LocationDataModel struct {
+	City            string `tfschema:"city"`
+	CountryOrRegion string `tfschema:"country_or_region"`
+	District        string `tfschema:"district"`
+	Name            string `tfschema:"name"`
+}
+
+type OSProfileModel struct {
+	ComputerName         string                               `tfschema:"computer_name"`
+	LinuxConfiguration   []OSProfileLinuxConfigurationModel   `tfschema:"linux_configuration"`
+	WindowsConfiguration []OSProfileWindowsConfigurationModel `tfschema:"windows_configuration"`
+}
+
+type OSProfileLinuxConfigurationModel struct {
+	PatchSettings []PatchSettingsModel `tfschema:"patch_settings"`
+}
+
+type PatchSettingsModel struct {
+	AssessmentMode machines.AssessmentModeTypes `tfschema:"assessment_mode"`
+	PatchMode      machines.PatchModeTypes      `tfschema:"patch_mode"`
+}
+
+type OSProfileWindowsConfigurationModel struct {
+	PatchSettings []PatchSettingsModel `tfschema:"patch_settings"`
+}
+
+type ServiceStatusesModel struct {
+	ExtensionService          []ServiceStatusModel `tfschema:"extension_service"`
+	GuestConfigurationService []ServiceStatusModel `tfschema:"guest_configuration_service"`
+}
+
+type ServiceStatusModel struct {
+	StartupType string `tfschema:"startup_type"`
+	Status      string `tfschema:"status"`
+}
+
+type ErrorDetailModel struct {
+	AdditionalInfo []ErrorAdditionalInfoModel `tfschema:"additional_info"`
+	Code           string                     `tfschema:"code"`
+	Message        string                     `tfschema:"message"`
+	Target         string                     `tfschema:"target"`
+}
+
+type ErrorAdditionalInfoModel struct {
+	Info string `tfschema:"info"`
+	Type string `tfschema:"type"`
+}
+
+type ArcMachineDataSource struct{}
+
+var _ sdk.DataSource = ArcMachineDataSource{}
+
+func (a ArcMachineDataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -76,7 +133,7 @@ func (r HybridComputeMachineDataSource) Arguments() map[string]*pluginsdk.Schema
 	}
 }
 
-func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (a ArcMachineDataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"agent_configuration": {
 			Type:     pluginsdk.TypeList,
@@ -461,13 +518,18 @@ func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
+func (a ArcMachineDataSource) ModelObject() interface{} {
+	return &ArcMachineDataSource{}
+}
+
+func (a ArcMachineDataSource) ResourceType() string {
+	return "azurerm_arc_machine"
+}
+
+func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			logger := sdk.ConsoleLogger{}
-			logger.Warn("Datasource azurerm_hybrid_compute_machine will be deprecated and replaced by azurerm_arc_machine in 4.0 and later version.")
-
 			client := metadata.Client.HybridCompute.MachinesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
@@ -619,4 +681,279 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
+}
+
+func flattenAgentConfigurationModel(input *machines.AgentConfiguration) ([]AgentConfigurationModel, error) {
+	var outputList []AgentConfigurationModel
+	if input == nil {
+		return outputList, nil
+	}
+
+	output := AgentConfigurationModel{}
+
+	extensionsAllowListValue := flattenConfigurationExtensionModel(input.ExtensionsAllowList)
+
+	output.ExtensionsAllowList = extensionsAllowListValue
+
+	extensionsBlockListValue := flattenConfigurationExtensionModel(input.ExtensionsBlockList)
+
+	output.ExtensionsBlockList = extensionsBlockListValue
+
+	if input.ExtensionsEnabled != nil {
+		parsedBool, err := strconv.ParseBool(*input.ExtensionsEnabled)
+		if err != nil {
+			return nil, err
+		}
+		output.ExtensionsEnabled = parsedBool
+	}
+
+	if input.GuestConfigurationEnabled != nil {
+		parsedBool, err := strconv.ParseBool(*input.GuestConfigurationEnabled)
+		if err != nil {
+			return nil, err
+		}
+		output.GuestConfigurationEnabled = parsedBool
+	}
+
+	if input.IncomingConnectionsPorts != nil {
+		output.IncomingConnectionsPorts = *input.IncomingConnectionsPorts
+	}
+
+	if input.ProxyBypass != nil {
+		output.ProxyBypass = *input.ProxyBypass
+	}
+
+	if input.ProxyUrl != nil {
+		output.ProxyUrl = *input.ProxyUrl
+	}
+
+	return append(outputList, output), nil
+}
+
+func flattenConfigurationExtensionModel(inputList *[]machines.ConfigurationExtension) []ConfigurationExtensionModel {
+	var outputList []ConfigurationExtensionModel
+	if inputList == nil {
+		return outputList
+	}
+
+	for _, input := range *inputList {
+		output := ConfigurationExtensionModel{}
+
+		if input.Publisher != nil {
+			output.Publisher = *input.Publisher
+		}
+
+		if input.Type != nil {
+			output.Type = *input.Type
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return outputList
+}
+
+func flattenCloudMetadataModel(input *machines.CloudMetadata) []CloudMetadataModel {
+	var outputList []CloudMetadataModel
+	if input == nil {
+		return outputList
+	}
+
+	output := CloudMetadataModel{}
+
+	if input.Provider != nil {
+		output.Provider = *input.Provider
+	}
+
+	return append(outputList, output)
+}
+
+func flattenErrorDetailModel(inputList *[]machines.ErrorDetail) []ErrorDetailModel {
+	var outputList []ErrorDetailModel
+	if inputList == nil {
+		return outputList
+	}
+
+	for _, input := range *inputList {
+		output := ErrorDetailModel{}
+
+		additionalInfoValue := flattenErrorAdditionalInfoModel(input.AdditionalInfo)
+
+		output.AdditionalInfo = additionalInfoValue
+
+		if input.Code != nil {
+			output.Code = *input.Code
+		}
+
+		if input.Message != nil {
+			output.Message = *input.Message
+		}
+
+		if input.Target != nil {
+			output.Target = *input.Target
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return outputList
+}
+
+func flattenErrorAdditionalInfoModel(inputList *[]machines.ErrorAdditionalInfo) []ErrorAdditionalInfoModel {
+	var outputList []ErrorAdditionalInfoModel
+	if inputList == nil {
+		return outputList
+	}
+
+	for _, input := range *inputList {
+		output := ErrorAdditionalInfoModel{}
+
+		if input.Info != nil && *input.Info != nil {
+
+			infoValue, err := json.Marshal(*input.Info)
+			if err != nil {
+				return nil
+			}
+
+			output.Info = string(infoValue)
+		}
+
+		if input.Type != nil {
+			output.Type = *input.Type
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return outputList
+}
+
+func flattenLocationDataModel(input *machines.LocationData) []LocationDataModel {
+	var outputList []LocationDataModel
+	if input == nil {
+		return outputList
+	}
+
+	output := LocationDataModel{
+		Name: input.Name,
+	}
+
+	if input.City != nil {
+		output.City = *input.City
+	}
+
+	if input.CountryOrRegion != nil {
+		output.CountryOrRegion = *input.CountryOrRegion
+	}
+
+	if input.District != nil {
+		output.District = *input.District
+	}
+
+	return append(outputList, output)
+}
+
+func flattenOSProfileModel(input *machines.OSProfile) []OSProfileModel {
+	var outputList []OSProfileModel
+	if input == nil {
+		return outputList
+	}
+
+	output := OSProfileModel{}
+
+	if input.ComputerName != nil {
+		output.ComputerName = *input.ComputerName
+	}
+
+	linuxConfigurationValue := flattenOSProfileLinuxConfigurationModel(input.LinuxConfiguration)
+
+	output.LinuxConfiguration = linuxConfigurationValue
+
+	windowsConfigurationValue := flattenOSProfileWindowsConfigurationModel(input.WindowsConfiguration)
+	output.WindowsConfiguration = windowsConfigurationValue
+
+	return append(outputList, output)
+}
+
+func flattenOSProfileLinuxConfigurationModel(input *machines.OSProfileLinuxConfiguration) []OSProfileLinuxConfigurationModel {
+	var outputList []OSProfileLinuxConfigurationModel
+	if input == nil {
+		return outputList
+	}
+
+	output := OSProfileLinuxConfigurationModel{}
+
+	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
+
+	output.PatchSettings = patchSettingsValue
+
+	return append(outputList, output)
+}
+
+func flattenPatchSettingsModel(input *machines.PatchSettings) []PatchSettingsModel {
+	var outputList []PatchSettingsModel
+	if input == nil {
+		return outputList
+	}
+
+	output := PatchSettingsModel{}
+
+	if input.AssessmentMode != nil {
+		output.AssessmentMode = *input.AssessmentMode
+	}
+
+	if input.PatchMode != nil {
+		output.PatchMode = *input.PatchMode
+	}
+
+	return append(outputList, output)
+}
+
+func flattenOSProfileWindowsConfigurationModel(input *machines.OSProfileWindowsConfiguration) []OSProfileWindowsConfigurationModel {
+	var outputList []OSProfileWindowsConfigurationModel
+	if input == nil {
+		return outputList
+	}
+
+	output := OSProfileWindowsConfigurationModel{}
+	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
+	output.PatchSettings = patchSettingsValue
+
+	return append(outputList, output)
+}
+
+func flattenServiceStatusesModel(input *machines.ServiceStatuses) []ServiceStatusesModel {
+	var outputList []ServiceStatusesModel
+	if input == nil {
+		return outputList
+	}
+
+	output := ServiceStatusesModel{}
+
+	extensionServiceValue := flattenServiceStatusModel(input.ExtensionService)
+	output.ExtensionService = extensionServiceValue
+
+	guestConfigurationServiceValue := flattenServiceStatusModel(input.GuestConfigurationService)
+	output.GuestConfigurationService = guestConfigurationServiceValue
+
+	return append(outputList, output)
+}
+
+func flattenServiceStatusModel(input *machines.ServiceStatus) []ServiceStatusModel {
+	var outputList []ServiceStatusModel
+	if input == nil {
+		return outputList
+	}
+
+	output := ServiceStatusModel{}
+
+	if input.StartupType != nil {
+		output.StartupType = *input.StartupType
+	}
+
+	if input.Status != nil {
+		output.Status = *input.Status
+	}
+
+	return append(outputList, output)
 }
