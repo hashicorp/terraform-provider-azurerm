@@ -223,12 +223,80 @@ func TestAccProvider_clientSecretAuth(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
-	if os.Getenv("ARM_CLIENT_ID") == "" && os.Getenv("ARM_CLIENT_ID_PATH") == "" {
-		t.Skip("ARM_CLIENT_ID or ARM_CLIENT_ID_PATH not set")
+	if os.Getenv("ARM_CLIENT_ID") == "" {
+		t.Skip("ARM_CLIENT_ID not set")
 	}
-	if os.Getenv("ARM_CLIENT_SECRET") == "" && os.Getenv("ARM_CLIENT_SECRET_PATH") == "" {
-		t.Skip("ARM_CLIENT_SECRET or ARM_CLIENT_SECRET_PATH not set")
+	if os.Getenv("ARM_CLIENT_SECRET") == "" {
+		t.Skip("ARM_CLIENT_SECRET not set")
 	}
+
+	// Ensure we are running using the expected env-vars
+	// t.SetEnv does automatic cleanup / resets the values after the test
+	t.Setenv("ARM_CLIENT_ID_PATH", "")
+	t.Setenv("ARM_CLIENT_SECRET_PATH", "")
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Support only Client Certificate authentication
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		envName := d.Get("environment").(string)
+		env, err := environments.FromName(envName)
+		if err != nil {
+			t.Fatalf("configuring environment %q: %v", envName, err)
+		}
+
+		clientID, err := getClientID(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		clientSecret, err := getClientSecret(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		authConfig := &auth.Credentials{
+			Environment:                           *env,
+			TenantID:                              d.Get("tenant_id").(string),
+			ClientID:                              *clientID,
+			EnableAuthenticatingUsingClientSecret: true,
+			ClientSecret:                          *clientSecret,
+		}
+
+		return buildClient(ctx, provider, d, authConfig)
+	}
+
+	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	if d != nil && d.HasError() {
+		t.Fatalf("err: %+v", d)
+	}
+
+	if errs := testCheckProvider(provider); len(errs) > 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+	}
+}
+
+func TestAccProvider_clientSecretAuth_fileBased(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+	if os.Getenv("ARM_CLIENT_ID_PATH") == "" {
+		t.Skip("ARM_CLIENT_ID_PATH not set")
+	}
+	if os.Getenv("ARM_CLIENT_SECRET_PATH") == "" {
+		t.Skip("ARM_CLIENT_SECRET_PATH not set")
+	}
+
+	// Ensure we are running using the expected env-vars
+	// t.SetEnv does automatic cleanup / resets the values after the test
+	t.Setenv("ARM_CLIENT_ID", "")
+	t.Setenv("ARM_CLIENT_SECRET", "")
 
 	logging.SetOutput(t)
 
