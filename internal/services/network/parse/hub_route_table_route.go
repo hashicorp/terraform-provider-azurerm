@@ -47,7 +47,7 @@ func (id HubRouteTableRouteId) ID() string {
 func HubRouteTableRouteID(input string) (*HubRouteTableRouteId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an HubRouteTableRoute ID: %+v", input, err)
 	}
 
 	resourceId := HubRouteTableRouteId{

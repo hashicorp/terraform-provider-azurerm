@@ -526,9 +526,8 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	logicAppReceiversRaw := d.Get("logic_app_receiver").([]interface{})
 	azureFunctionReceiversRaw := d.Get("azure_function_receiver").([]interface{})
 	armRoleReceiversRaw := d.Get("arm_role_receiver").([]interface{})
-	eventHubReceiversRaw := d.Get("event_hub_receiver").([]interface{})
 
-	expandedEventHubReceiver, err := expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, eventHubReceiversRaw)
+	expandedEventHubReceiver, err := expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, d)
 	if err != nil {
 		return err
 	}
@@ -842,21 +841,41 @@ func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]actiongroupsapis.A
 	return &receivers
 }
 
-func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, v []interface{}) (*[]actiongroupsapis.EventHubReceiver, error) {
+func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, d *pluginsdk.ResourceData) (*[]actiongroupsapis.EventHubReceiver, error) {
 	receivers := make([]actiongroupsapis.EventHubReceiver, 0)
-	for _, receiverValue := range v {
+	eventHubReceiver := d.Get("event_hub_receiver").([]interface{})
+	for i, receiverValue := range eventHubReceiver {
 		val := receiverValue.(map[string]interface{})
 
 		eventHubNameSpace, eventHubName, subId := val["event_hub_namespace"].(string), val["event_hub_name"].(string), val["subscription_id"].(string)
+
 		if !features.FourPointOhBeta() {
-			if eventHubNameSpace == "" && eventHubName == "" && subId == "" && val["event_hub_id"].(string) != "" {
-				eventHubId, err := eventhubs.ParseEventhubID(*utils.String(val["event_hub_id"].(string)))
+			eventHubReceiverRaw := d.GetRawConfig().AsValueMap()["event_hub_receiver"].AsValueSlice()[i].AsValueMap()
+			eventHubIdRaw := eventHubReceiverRaw["event_hub_id"]
+
+			hasSetId := !eventHubIdRaw.IsNull()
+			hasSetName := !eventHubReceiverRaw["event_hub_name"].IsNull()
+			hasSetNamespace := !eventHubReceiverRaw["event_hub_namespace"].IsNull()
+			hasSetSubscriptionId := !eventHubReceiverRaw["subscription_id"].IsNull()
+
+			if hasSetName != hasSetNamespace {
+				return nil, fmt.Errorf("in event_hub_receiver, event_hub_name and event_hub_namespace must be set together")
+			}
+
+			if hasSetId == hasSetName {
+				return nil, fmt.Errorf("in event_hub_receiver, exactly one of event_hub_id or (event_hub_namespace, event_hub_name) must be set")
+			}
+
+			if hasSetId && hasSetSubscriptionId {
+				return nil, fmt.Errorf("in event_hub_receiver, event_hub_id and subscription_id cannot be set together")
+			}
+
+			if hasSetId {
+				eventHubId, err := eventhubs.ParseEventhubID(eventHubIdRaw.AsString())
 				if err != nil {
 					return nil, err
 				}
 				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.EventhubName, eventHubId.SubscriptionId
-			} else if val["event_hub_id"].(string) != "" || eventHubNameSpace == "" || eventHubName == "" {
-				return nil, fmt.Errorf("in event_hub_receiver, exactly one of event_hub_id or (event_hub_namespace, event_hub_name) must be set")
 			}
 		}
 
@@ -866,16 +885,19 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 			Name:                 val["name"].(string),
 			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
+
 		if v := val["tenant_id"].(string); v != "" {
 			receiver.TenantId = utils.String(v)
 		} else {
 			receiver.TenantId = utils.String(tenantId)
 		}
+
 		if subId != "" {
 			receiver.SubscriptionId = subId
 		} else {
 			receiver.SubscriptionId = subscriptionId
 		}
+
 		receivers = append(receivers, receiver)
 	}
 	return &receivers, nil

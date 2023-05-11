@@ -10,9 +10,11 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.56.0` of `github.com/hashicorp/go-azure-helpers` [GH-21725]
+* dependencies: updating to `v0.20230511.1094507` of `github.com/hashicorp/go-azure-sdk` [GH-21759]
+* provider: improving the error messages when parsing a Resource ID and the ID doesn't match what's expected [GH-21725]
 * provider: Resource Provider Registration now uses API Version `2022-09-01` [GH-21695]
 * provider: updating the `IsAzureStack` check to use `hashicorp/go-azure-sdk` rather than relying on the environment from `Azure/go-autorest` [GH-21697]
-* dependencies: updating `github.com/hashicorp/go-azure-sdk` to `v0.20230508.1171356` [GH-21707]
 * `appconfiguration`: updating to API Version `2023-03-01` [GH-21660]
 * `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
 * `azurerm_orbital_contact_profile` - `ip_address` is now optional [GH-21721]
@@ -21,11 +23,15 @@ BUG FIXES:
 
 * provider: fixing a bug where we would invoke but not poll for the Registration State during automatic Resource Provider Registration [GH-21695]
 * `azurerm_app_configuration`: handling an API bug where when polling for `PurgeDeleted` returns a 404 rather the payload for a long-running operation [GH-21665]
+* `azurerm_api_management_api` - fixing a bug where an empty `contact` bug would cause a crash [GH-21740]
 * `azurerm_eventhub_namespace` - add locks and remove unneeded WaitForState functions [GH-21656]
 * `azurerm_machine_learning_workspace` - parse `key_vault_id` insensitively [GH-21684]
+* `azurerm_monitor_action_group` - further expand ExactlyOneOf logic for `event_hub_receiver` attributes [GH-21735]
 * `azurerm_monitor_metric_alert` - fix regression by using `SingleResourceMultiMetricCriteria` for new metric alerts  [GH-21658]
 * `azurerm_service_fabric_managed_cluster` - fixing a bug where `certificates` within the `vm_secrets` block wouldn't be set into the state [GH-21680]
 * `azurerm_storage_share` - correct resource ID segment from `fileshares` to `shares` [GH-21645]
+* `azurerm_virtual_machine_scale_set`,  - - support specifying `ultra_ssd_disk_iops_read_write` and `ultra_ssd_disk_mbps_read_write` for `PremiumV2_LRS` [GH-21530] 
+
 
 ## 3.55.0 (May 04, 2023)
 

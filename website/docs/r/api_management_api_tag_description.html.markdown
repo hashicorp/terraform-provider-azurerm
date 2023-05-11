@@ -52,11 +52,6 @@ resource "azurerm_api_management_tag" "example" {
   name              = "example-Tag"
 }
 
-resource "azurerm_api_management_tag" "example" {
-  api_management_id = azurerm_api_management.example.id
-  name              = "example-tag"
-}
-
 resource "azurerm_api_management_api_tag_description" "example" {
   api_tag_id                = azurerm_api_management_tag.example.id
   description               = "This is an example description"

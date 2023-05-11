@@ -44,23 +44,23 @@ func ParseTrackID(input string) (*TrackId, error) {
 	id := TrackId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
 	}
 
 	if id.AssetName, ok = parsed.Parsed["assetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'assetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "assetName", *parsed)
 	}
 
 	if id.TrackName, ok = parsed.Parsed["trackName"]; !ok {
-		return nil, fmt.Errorf("the segment 'trackName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trackName", *parsed)
 	}
 
 	return &id, nil
@@ -79,23 +79,23 @@ func ParseTrackIDInsensitively(input string) (*TrackId, error) {
 	id := TrackId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
 	}
 
 	if id.AssetName, ok = parsed.Parsed["assetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'assetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "assetName", *parsed)
 	}
 
 	if id.TrackName, ok = parsed.Parsed["trackName"]; !ok {
-		return nil, fmt.Errorf("the segment 'trackName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trackName", *parsed)
 	}
 
 	return &id, nil
