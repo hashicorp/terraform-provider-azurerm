@@ -734,6 +734,136 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"maintenance_window_auto_upgrade": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"allowed": {
+							Type:         pluginsdk.TypeSet,
+							Optional:     true,
+							AtLeastOneOf: []string{"maintenance_window_auto_upgrade.0.allowed", "maintenance_window_auto_upgrade.0.not_allowed"},
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"day": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(maintenanceconfigurations.WeekDaySunday),
+											string(maintenanceconfigurations.WeekDayMonday),
+											string(maintenanceconfigurations.WeekDayTuesday),
+											string(maintenanceconfigurations.WeekDayWednesday),
+											string(maintenanceconfigurations.WeekDayThursday),
+											string(maintenanceconfigurations.WeekDayFriday),
+											string(maintenanceconfigurations.WeekDaySaturday),
+										}, false),
+									},
+
+									"hours": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeInt,
+											ValidateFunc: validation.IntBetween(0, 23),
+										},
+									},
+								},
+							},
+						},
+
+						"not_allowed": {
+							Type:         pluginsdk.TypeSet,
+							Optional:     true,
+							AtLeastOneOf: []string{"maintenance_window_auto_upgrade.0.allowed", "maintenance_window_auto_upgrade.0.not_allowed"},
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"end": {
+										Type:             pluginsdk.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.RFC3339Time,
+										ValidateFunc:     validation.IsRFC3339Time,
+									},
+
+									"start": {
+										Type:             pluginsdk.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.RFC3339Time,
+										ValidateFunc:     validation.IsRFC3339Time,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"maintenance_window_node_os": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"allowed": {
+							Type:         pluginsdk.TypeSet,
+							Optional:     true,
+							AtLeastOneOf: []string{"maintenance_window_node_os.0.allowed", "maintenance_window_node_os.0.not_allowed"},
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"day": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(maintenanceconfigurations.WeekDaySunday),
+											string(maintenanceconfigurations.WeekDayMonday),
+											string(maintenanceconfigurations.WeekDayTuesday),
+											string(maintenanceconfigurations.WeekDayWednesday),
+											string(maintenanceconfigurations.WeekDayThursday),
+											string(maintenanceconfigurations.WeekDayFriday),
+											string(maintenanceconfigurations.WeekDaySaturday),
+										}, false),
+									},
+
+									"hours": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeInt,
+											ValidateFunc: validation.IntBetween(0, 23),
+										},
+									},
+								},
+							},
+						},
+
+						"not_allowed": {
+							Type:         pluginsdk.TypeSet,
+							Optional:     true,
+							AtLeastOneOf: []string{"maintenance_window_node_os.0.allowed", "maintenance_window_node_os.0.not_allowed"},
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"end": {
+										Type:             pluginsdk.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.RFC3339Time,
+										ValidateFunc:     validation.IsRFC3339Time,
+									},
+
+									"start": {
+										Type:             pluginsdk.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.RFC3339Time,
+										ValidateFunc:     validation.IsRFC3339Time,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"node_os_channel_upgrade": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1592,7 +1722,29 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
-			return fmt.Errorf("creating/updating maintenance config for %s: %+v", id, err)
+			return fmt.Errorf("creating/updating default maintenance config for %s: %+v", id, err)
+		}
+	}
+
+	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window_auto_upgrade"); ok {
+		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		parameters := maintenanceconfigurations.MaintenanceConfiguration{
+			Properties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{})),
+		}
+		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
+		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
+			return fmt.Errorf("creating/updating aksManagedAutoUpgradeSchedule maintenance config for %s: %+v", id, err)
+		}
+	}
+
+	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window_node_os"); ok {
+		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		parameters := maintenanceconfigurations.MaintenanceConfiguration{
+			Properties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{})),
+		}
+		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
+		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
+			return fmt.Errorf("creating/updating aksManagedNodeOSUpgradeSchedule maintenance config for %s: %+v", id, err)
 		}
 	}
 
@@ -2207,6 +2359,28 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
 			return fmt.Errorf("creating/updating Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+		}
+	}
+
+	if d.HasChange("maintenance_window_auto_upgrade") {
+		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		parameters := maintenanceconfigurations.MaintenanceConfiguration{
+			Properties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window").([]interface{})),
+		}
+		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
+		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
+			return fmt.Errorf("creating/updating aksManagedAutoUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+		}
+	}
+
+	if d.HasChange("maintenance_window_node_os") {
+		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
+		parameters := maintenanceconfigurations.MaintenanceConfiguration{
+			Properties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window").([]interface{})),
+		}
+		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
+		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
+			return fmt.Errorf("creating/updating aksManagedNodeOSUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
 		}
 	}
 
