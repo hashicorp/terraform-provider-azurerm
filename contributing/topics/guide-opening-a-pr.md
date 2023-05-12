@@ -16,6 +16,8 @@ As a general rule, the smaller the PR the quicker it's merged - as such when upg
 
 We also recommend not opening a PR based on your `main` branch. By doing this any changed pushed to the PR may inadvertently be also pushed to your `main` branch without warning.
 
+Due to the high volume of PR's on the project and to ensure maintainers are able to focus on changes which are ready to review, please do not open Draft PRs or work that is not yet ready to be reviewed.
+
 ## Process
 
 Pull Requests generally go through a number of phrases which vary slightly depending on what's being changed.

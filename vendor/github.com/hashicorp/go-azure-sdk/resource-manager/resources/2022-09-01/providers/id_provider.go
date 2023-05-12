@@ -36,7 +36,7 @@ func ParseProviderID(input string) (*ProviderId, error) {
 	id := ProviderId{}
 
 	if id.ProviderName, ok = parsed.Parsed["providerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'providerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "providerName", *parsed)
 	}
 
 	return &id, nil
@@ -55,7 +55,7 @@ func ParseProviderIDInsensitively(input string) (*ProviderId, error) {
 	id := ProviderId{}
 
 	if id.ProviderName, ok = parsed.Parsed["providerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'providerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "providerName", *parsed)
 	}
 
 	return &id, nil

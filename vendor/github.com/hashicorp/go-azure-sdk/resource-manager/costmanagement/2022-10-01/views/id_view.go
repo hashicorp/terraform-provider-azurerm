@@ -36,7 +36,7 @@ func ParseViewID(input string) (*ViewId, error) {
 	id := ViewId{}
 
 	if id.ViewName, ok = parsed.Parsed["viewName"]; !ok {
-		return nil, fmt.Errorf("the segment 'viewName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "viewName", *parsed)
 	}
 
 	return &id, nil
@@ -55,7 +55,7 @@ func ParseViewIDInsensitively(input string) (*ViewId, error) {
 	id := ViewId{}
 
 	if id.ViewName, ok = parsed.Parsed["viewName"]; !ok {
-		return nil, fmt.Errorf("the segment 'viewName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "viewName", *parsed)
 	}
 
 	return &id, nil

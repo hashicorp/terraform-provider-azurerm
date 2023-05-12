@@ -42,19 +42,19 @@ func ParseApplicationID(input string) (*ApplicationId, error) {
 	id := ApplicationId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'galleryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
 	}
 
 	if id.ApplicationName, ok = parsed.Parsed["applicationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'applicationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseApplicationIDInsensitively(input string) (*ApplicationId, error) {
 	id := ApplicationId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'galleryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
 	}
 
 	if id.ApplicationName, ok = parsed.Parsed["applicationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'applicationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationName", *parsed)
 	}
 
 	return &id, nil

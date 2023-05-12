@@ -44,23 +44,23 @@ func ParseDataConnectionID(input string) (*DataConnectionId, error) {
 	id := DataConnectionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
 	}
 
 	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseName", *parsed)
 	}
 
 	if id.DataConnectionName, ok = parsed.Parsed["dataConnectionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'dataConnectionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataConnectionName", *parsed)
 	}
 
 	return &id, nil
@@ -79,23 +79,23 @@ func ParseDataConnectionIDInsensitively(input string) (*DataConnectionId, error)
 	id := DataConnectionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
 	}
 
 	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseName", *parsed)
 	}
 
 	if id.DataConnectionName, ok = parsed.Parsed["dataConnectionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'dataConnectionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataConnectionName", *parsed)
 	}
 
 	return &id, nil

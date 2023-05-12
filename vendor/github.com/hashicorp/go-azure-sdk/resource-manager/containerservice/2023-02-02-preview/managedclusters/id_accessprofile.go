@@ -42,19 +42,19 @@ func ParseAccessProfileID(input string) (*AccessProfileId, error) {
 	id := AccessProfileId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterName", *parsed)
 	}
 
 	if id.AccessProfileName, ok = parsed.Parsed["accessProfileName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accessProfileName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accessProfileName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseAccessProfileIDInsensitively(input string) (*AccessProfileId, error) {
 	id := AccessProfileId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterName", *parsed)
 	}
 
 	if id.AccessProfileName, ok = parsed.Parsed["accessProfileName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accessProfileName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accessProfileName", *parsed)
 	}
 
 	return &id, nil

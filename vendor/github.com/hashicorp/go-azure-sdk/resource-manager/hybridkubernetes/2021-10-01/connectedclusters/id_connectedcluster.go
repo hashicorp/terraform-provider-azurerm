@@ -40,15 +40,15 @@ func ParseConnectedClusterID(input string) (*ConnectedClusterId, error) {
 	id := ConnectedClusterId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ConnectedClusterName, ok = parsed.Parsed["connectedClusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'connectedClusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "connectedClusterName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseConnectedClusterIDInsensitively(input string) (*ConnectedClusterId, er
 	id := ConnectedClusterId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ConnectedClusterName, ok = parsed.Parsed["connectedClusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'connectedClusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "connectedClusterName", *parsed)
 	}
 
 	return &id, nil

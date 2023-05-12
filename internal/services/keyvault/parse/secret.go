@@ -47,7 +47,7 @@ func (id SecretId) ID() string {
 func SecretID(input string) (*SecretId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an Secret ID: %+v", input, err)
 	}
 
 	resourceId := SecretId{
