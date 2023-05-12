@@ -19,14 +19,12 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being able provision against one instance at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		//"data_source": {
-		//	"basic": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
-		//},
 		"resource": {
-			//"basic":    testAccKeyVaultManagedHardwareSecurityModule_basic,
-			//"update":   testAccKeyVaultManagedHardwareSecurityModule_requiresImport,
-			//"complete": testAccKeyVaultManagedHardwareSecurityModule_complete,
-			"download": testAccKeyVaultManagedHardwareSecurityModule_download,
+			"data_source": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
+			"basic":       testAccKeyVaultManagedHardwareSecurityModule_basic,
+			"update":      testAccKeyVaultManagedHardwareSecurityModule_requiresImport,
+			"complete":    testAccKeyVaultManagedHardwareSecurityModule_complete,
+			"download":    testAccKeyVaultManagedHardwareSecurityModule_download,
 		},
 	})
 }
