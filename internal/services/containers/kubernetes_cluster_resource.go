@@ -2406,34 +2406,54 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("maintenance_window") {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
-		parameters := maintenanceconfigurations.MaintenanceConfiguration{
-			Properties: expandKubernetesClusterMaintenanceConfigurationDefault(d.Get("maintenance_window").([]interface{})),
-		}
+		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfigurationDefault(d.Get("maintenance_window").([]interface{}))
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
-		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
-			return fmt.Errorf("creating/updating Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+		if maintenanceWindowProperties != nil {
+			parameters := maintenanceconfigurations.MaintenanceConfiguration{
+				Properties: maintenanceWindowProperties,
+			}
+			if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
+				return fmt.Errorf("creating/updating Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+			}
+		} else {
+			if _, err := client.Delete(ctx, maintenanceId); err != nil {
+				return fmt.Errorf("deleting Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+			}
 		}
 	}
 
 	if d.HasChange("maintenance_window_auto_upgrade") {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
-		parameters := maintenanceconfigurations.MaintenanceConfiguration{
-			Properties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window_auto_upgrade").([]interface{})),
-		}
+		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window_auto_upgrade").([]interface{}))
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
-		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
-			return fmt.Errorf("creating/updating aksManagedAutoUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+		if maintenanceWindowProperties != nil {
+			parameters := maintenanceconfigurations.MaintenanceConfiguration{
+				Properties: maintenanceWindowProperties,
+			}
+			if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
+				return fmt.Errorf("creating/updating aksManagedAutoUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+			}
+		} else {
+			if _, err := client.Delete(ctx, maintenanceId); err != nil {
+				return fmt.Errorf("deleting aksManagedAutoUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+			}
 		}
 	}
 
 	if d.HasChange("maintenance_window_node_os") {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
-		parameters := maintenanceconfigurations.MaintenanceConfiguration{
-			Properties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window_auto_upgrade").([]interface{})),
-		}
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
+		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window_node_os").([]interface{}))
+		if maintenanceWindowProperties != nil {
+			parameters := maintenanceconfigurations.MaintenanceConfiguration{
+			Properties: maintenanceWindowProperties,
+		}
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
 			return fmt.Errorf("creating/updating aksManagedNodeOSUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+		}
+	} else {
+		if _, err := client.Delete(ctx, maintenanceId); err != nil {
+			return fmt.Errorf("deleting aksManagedNodeOSUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
 		}
 	}
 
