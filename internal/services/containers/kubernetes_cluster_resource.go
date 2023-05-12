@@ -3974,7 +3974,7 @@ func flattenKubernetesClusterMaintenanceConfiguration(input *maintenanceconfigur
 
 	results = append(results, map[string]interface{}{
 		"not_allowed": flattenKubernetesClusterMaintenanceConfigurationDateSpans(input.NotAllowedDates),
-		"duration":    input.DurationHours,
+		"duration":    int(input.DurationHours),
 		"start_date":  startDate,
 		"start_time":  input.StartTime,
 		"utc_offset":  utcOfset,
@@ -3988,11 +3988,6 @@ func flattenKubernetesClusterMaintenanceConfigurationSchedule(input maintenancec
 	if input.Daily != nil {
 		frequency = "Daily"
 		interval = input.Daily.IntervalDays
-
-		return map[string]interface{}{
-			"frequency": frequency,
-			"interval":  interval,
-		}
 	}
 
 	dayOfWeek := ""
@@ -4000,25 +3995,13 @@ func flattenKubernetesClusterMaintenanceConfigurationSchedule(input maintenancec
 		frequency = "Weekly"
 		interval = input.Weekly.IntervalWeeks
 		dayOfWeek = string(input.Weekly.DayOfWeek)
-
-		return map[string]interface{}{
-			"frequency":   frequency,
-			"interval":    interval,
-			"day_of_week": dayOfWeek,
-		}
 	}
 
-	dayOfMonth := int64(0)
+	dayOfMonth := 0
 	if input.AbsoluteMonthly != nil {
 		frequency = "AbsoluteMonthly"
 		interval = input.AbsoluteMonthly.IntervalMonths
-		dayOfMonth = input.AbsoluteMonthly.DayOfMonth
-
-		return map[string]interface{}{
-			"frequency":    frequency,
-			"interval":     interval,
-			"day_of_month": dayOfMonth,
-		}
+		dayOfMonth = int(input.AbsoluteMonthly.DayOfMonth)
 	}
 
 	weekIndex := ""
@@ -4027,16 +4010,15 @@ func flattenKubernetesClusterMaintenanceConfigurationSchedule(input maintenancec
 		interval = input.RelativeMonthly.IntervalMonths
 		dayOfWeek = string(input.RelativeMonthly.DayOfWeek)
 		weekIndex = string(input.RelativeMonthly.WeekIndex)
-
-		return map[string]interface{}{
-			"frequency":   frequency,
-			"interval":    interval,
-			"day_of_week": dayOfWeek,
-			"week_index":  weekIndex,
-		}
 	}
 
-	return map[string]interface{}{}
+	return map[string]interface{}{
+		"frequency":    frequency,
+		"interval":     interval,
+		"day_of_week":  dayOfWeek,
+		"week_index":   weekIndex,
+		"day_of_month": dayOfMonth,
+	}
 }
 
 func flattenKubernetesClusterMaintenanceConfigurationDefault(input *maintenanceconfigurations.MaintenanceConfigurationProperties) interface{} {
