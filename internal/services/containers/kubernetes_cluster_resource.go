@@ -764,7 +764,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"duration": {
-							Type:     pluginsdk.TypeString,
+							Type:     pluginsdk.TypeInt,
 							Optional: true,
 						},
 
