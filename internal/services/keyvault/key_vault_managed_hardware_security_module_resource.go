@@ -224,21 +224,8 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	}
 
 	if err := hsmClient.CreateOrUpdateThenPoll(ctx, id, hsm); err != nil {
-		//=======
-		//	// do NOT retry if failed, for it takes too long to create and will not success. let it fail
-		//	// but `hsmClient` is a shared variable such change may cause data-race, but it should be fine for a hsmClient tool
-		//	retry := hsmClient.Client.RetryAttempts
-		//	hsmClient.Client.RetryAttempts = 1
-		//	future, err := hsmClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, hsm)
-		//	if err != nil {
-		//>>>>>>> b215a3b91d (activate mhsm in create/update with certificate)
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-	//hsmClient.Client.RetryAttempts = retry
-	//
-	//if err = future.WaitForCompletionRef(ctx, hsmClient.Client); err != nil {
-	//	return fmt.Errorf("waiting on creation for %s: %+v", id, err)
-	//}
 
 	// security domain download to activate this module
 	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && (certs)[0] != nil {
