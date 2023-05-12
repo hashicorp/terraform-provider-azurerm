@@ -26,12 +26,15 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(extensionsClient.Client, o.Authorizers.ResourceManager)
 
-	fluxConfigurationClient := fluxconfiguration.NewFluxConfigurationClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&fluxConfigurationClient.Client, o.ResourceManagerAuthorizer)
+	fluxConfigurationClient, err := fluxconfiguration.NewFluxConfigurationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Flux Configuration Client: %+v", err)
+	}
+	o.Configure(fluxConfigurationClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		ArcKubernetesClient:     &arcKubernetesClient,
 		ExtensionsClient:        extensionsClient,
-		FluxConfigurationClient: &fluxConfigurationClient,
+		FluxConfigurationClient: fluxConfigurationClient,
 	}, nil
 }

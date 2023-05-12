@@ -61,8 +61,11 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(kubernetesExtensionsClient.Client, o.Authorizers.ResourceManager)
 
-	fluxConfigurationClient := fluxconfiguration.NewFluxConfigurationClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&fluxConfigurationClient.Client, o.ResourceManagerAuthorizer)
+	fluxConfigurationClient, err := fluxconfiguration.NewFluxConfigurationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Flux Configuration Client: %+v", err)
+	}
+	o.Configure(fluxConfigurationClient.Client, o.Authorizers.ResourceManager)
 
 	agentPoolsClient := agentpools.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&agentPoolsClient.Client, o.ResourceManagerAuthorizer)
@@ -83,7 +86,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		KubernetesClustersClient:                    &kubernetesClustersClient,
 		KubernetesExtensionsClient:                  kubernetesExtensionsClient,
-		KubernetesFluxConfigurationClient:           &fluxConfigurationClient,
+		KubernetesFluxConfigurationClient:           fluxConfigurationClient,
 		MaintenanceConfigurationsClient:             &maintenanceConfigurationsClient,
 		ServicesClient:                              &servicesClient,
 		SnapshotClient:                              &snapshotClient,
