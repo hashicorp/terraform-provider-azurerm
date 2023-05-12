@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
@@ -742,7 +743,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 			d.Set("vm_size", props.VMSize)
-			d.Set("inter_node_communication", props.InterNodeCommunication)
+			d.Set("inter_node_communication", string(pointer.From(props.InterNodeCommunication)))
 			d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 
 			if scaleSettings := props.ScaleSettings; scaleSettings != nil {
@@ -846,7 +847,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					d.Set("storage_image_reference", flattenBatchPoolImageReference(&config.ImageReference))
 
 					if config.LicenseType != nil {
-						d.Set("license_type", *config.LicenseType)
+						d.Set("license_type", config.LicenseType)
 					}
 
 					d.Set("node_agent_sku_id", config.NodeAgentSkuId)

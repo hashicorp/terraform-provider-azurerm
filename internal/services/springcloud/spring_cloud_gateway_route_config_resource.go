@@ -71,6 +71,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				},
 			},
 
+			// lintignore:S013
 			"protocol": {
 				Type:     pluginsdk.TypeString,
 				Optional: !features.FourPointOh(),

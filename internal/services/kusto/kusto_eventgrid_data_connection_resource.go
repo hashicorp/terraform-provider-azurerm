@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -259,11 +260,11 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 			d.Set("eventhub_id", props.EventHubResourceId)
 			d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
 			d.Set("skip_first_record", props.IgnoreFirstRecord)
-			d.Set("blob_storage_event_type", props.BlobStorageEventType)
+			d.Set("blob_storage_event_type", string(pointer.From(props.BlobStorageEventType)))
 			d.Set("table_name", props.TableName)
 			d.Set("mapping_rule_name", props.MappingRuleName)
-			d.Set("data_format", props.DataFormat)
-			d.Set("database_routing_type", props.DatabaseRouting)
+			d.Set("data_format", string(pointer.From(props.DataFormat)))
+			d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
 			d.Set("eventgrid_resource_id", props.EventGridResourceId)
 
 			managedIdentityResourceId := ""

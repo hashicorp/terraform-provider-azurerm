@@ -79,6 +79,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
@@ -128,14 +129,16 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		appservice.Registration{},
+		arckubernetes.Registration{},
 		automation.Registration{},
 		batch.Registration{},
 		bot.Registration{},
 		cognitive.Registration{},
+		communication.Registration{},
 		compute.Registration{},
 		consumption.Registration{},
-		cosmos.Registration{},
 		containerapps.Registration{},
+		cosmos.Registration{},
 		costmanagement.Registration{},
 		dashboard.Registration{},
 		databoxedge.Registration{},
@@ -157,7 +160,9 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		monitor.Registration{},
 		mobilenetwork.Registration{},
 		mssql.Registration{},
+		mssqlmanagedinstance.Registration{},
 		network.Registration{},
+		netapp.Registration{},
 		nginx.Registration{},
 		policy.Registration{},
 		privatednsresolver.Registration{},
@@ -201,7 +206,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			bot.Registration{},
 			cdn.Registration{},
 			cognitive.Registration{},
-			communication.Registration{},
 			compute.Registration{},
 			confidentialledger.Registration{},
 			connections.Registration{},
@@ -252,6 +256,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			monitor.Registration{},
 			managedidentity.Registration{},
 			mssql.Registration{},
+			mssqlmanagedinstance.Registration{},
 			mysql.Registration{},
 			netapp.Registration{},
 			network.Registration{},

@@ -44,23 +44,23 @@ func ParseCassandraKeyspaceTableID(input string) (*CassandraKeyspaceTableId, err
 	id := CassandraKeyspaceTableId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
 	}
 
 	if id.CassandraKeyspaceName, ok = parsed.Parsed["cassandraKeyspaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'cassandraKeyspaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cassandraKeyspaceName", *parsed)
 	}
 
 	if id.TableName, ok = parsed.Parsed["tableName"]; !ok {
-		return nil, fmt.Errorf("the segment 'tableName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "tableName", *parsed)
 	}
 
 	return &id, nil
@@ -79,23 +79,23 @@ func ParseCassandraKeyspaceTableIDInsensitively(input string) (*CassandraKeyspac
 	id := CassandraKeyspaceTableId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
 	}
 
 	if id.CassandraKeyspaceName, ok = parsed.Parsed["cassandraKeyspaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'cassandraKeyspaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cassandraKeyspaceName", *parsed)
 	}
 
 	if id.TableName, ok = parsed.Parsed["tableName"]; !ok {
-		return nil, fmt.Errorf("the segment 'tableName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "tableName", *parsed)
 	}
 
 	return &id, nil

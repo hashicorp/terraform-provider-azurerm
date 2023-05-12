@@ -44,7 +44,7 @@ func (id LoadBalancerBackendAddressPoolId) ID() string {
 func LoadBalancerBackendAddressPoolID(input string) (*LoadBalancerBackendAddressPoolId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an LoadBalancerBackendAddressPool ID: %+v", input, err)
 	}
 
 	resourceId := LoadBalancerBackendAddressPoolId{

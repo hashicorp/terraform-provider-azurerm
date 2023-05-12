@@ -34,10 +34,13 @@ resource "azurerm_backup_policy_vm" "example" {
     frequency = "Daily"
     time      = "23:00"
   }
+  retention_daily {
+    count = 10
+  }
 }
 
 data "azurerm_virtual_machine" "example" {
-  name                = "production"
+  name                = "example-vm"
   resource_group_name = azurerm_resource_group.example.name
 }
 

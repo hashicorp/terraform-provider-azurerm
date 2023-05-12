@@ -143,6 +143,11 @@ func TestAccRedisCache_BackupDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+			// `redis_configuration.0.aof_storage_connection_string_0` and `redis_configuration.0.aof_storage_connection_string_1` are returned as:
+			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
+			// TODO: remove this once the Bug's been fixed:
+			// https://github.com/Azure/azure-rest-api-specs/issues/3037
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
@@ -178,7 +183,7 @@ func TestAccRedisCache_BackupEnabledDisabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
+			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
 			// TODO: remove this once the Bug's been fixed:
 			// https://github.com/Azure/azure-rest-api-specs/issues/3037
 			ExpectNonEmptyPlan: true,
@@ -188,8 +193,8 @@ func TestAccRedisCache_BackupEnabledDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
+			// `redis_configuration.0.aof_storage_connection_string_0` and `redis_configuration.0.aof_storage_connection_string_1` are returned as:
+			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
 			// TODO: remove this once the Bug's been fixed:
 			// https://github.com/Azure/azure-rest-api-specs/issues/3037
 			ExpectNonEmptyPlan: true,
@@ -224,6 +229,9 @@ func TestAccRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+			// `redis_configuration.0.aof_storage_connection_string_0` and `aof_storage_connection_string_1` are returned as:
+			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
+			// TODO: remove this once the Bug's been fixed:
 			ExpectNonEmptyPlan: true,
 		},
 		{
@@ -231,6 +239,9 @@ func TestAccRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
+			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
+			// TODO: remove this once the Bug's been fixed:
 			ExpectNonEmptyPlan: true,
 		},
 	})
@@ -690,6 +701,42 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctestsa2%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_account" "test3" {
+  name                     = "acctestsa3%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
   location            = azurerm_resource_group.test.location
@@ -700,10 +747,13 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    rdb_backup_enabled = false
+    rdb_backup_enabled              = false
+    aof_backup_enabled              = true
+    aof_storage_connection_string_0 = azurerm_storage_account.test2.primary_connection_string
+    aof_storage_connection_string_1 = azurerm_storage_account.test3.primary_connection_string
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (RedisCacheResource) backupEnabled(data acceptance.TestData) string {
@@ -742,7 +792,7 @@ resource "azurerm_redis_cache" "test" {
     rdb_backup_enabled            = true
     rdb_backup_frequency          = 60
     rdb_backup_max_snapshot_count = 1
-    rdb_storage_connection_string = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}"
+    rdb_storage_connection_string = azurerm_storage_account.test.primary_connection_string
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
@@ -759,6 +809,42 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctestsa2%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_account" "test3" {
+  name                     = "acctestsa3%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
   location            = azurerm_resource_group.test.location
@@ -769,10 +855,14 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    aof_backup_enabled = false
+    aof_backup_enabled            = false
+    rdb_backup_enabled            = true
+    rdb_backup_frequency          = 60
+    rdb_backup_max_snapshot_count = 1
+    rdb_storage_connection_string = azurerm_storage_account.test3.primary_connection_string
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (RedisCacheResource) aofBackupEnabled(data acceptance.TestData) string {
@@ -787,7 +877,19 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "unlikely23exst2acct%s"
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctestsa2%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -809,11 +911,11 @@ resource "azurerm_redis_cache" "test" {
 
   redis_configuration {
     aof_backup_enabled              = true
-    aof_storage_connection_string_0 = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}"
-    aof_storage_connection_string_1 = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.secondary_access_key}"
+    aof_storage_connection_string_0 = azurerm_storage_account.test.primary_connection_string
+    aof_storage_connection_string_1 = azurerm_storage_account.test2.primary_connection_string
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (RedisCacheResource) patchSchedule(data acceptance.TestData) string {
@@ -1192,8 +1294,8 @@ resource "azurerm_redis_cache" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   capacity            = 2
-  family              = "C"
-  sku_name            = "Basic"
+  family              = "P"
+  sku_name            = "Premium"
   enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 

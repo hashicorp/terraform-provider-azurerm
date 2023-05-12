@@ -42,19 +42,19 @@ func ParseContentKeyPolicyID(input string) (*ContentKeyPolicyId, error) {
 	id := ContentKeyPolicyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
 	}
 
 	if id.ContentKeyPolicyName, ok = parsed.Parsed["contentKeyPolicyName"]; !ok {
-		return nil, fmt.Errorf("the segment 'contentKeyPolicyName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "contentKeyPolicyName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseContentKeyPolicyIDInsensitively(input string) (*ContentKeyPolicyId, er
 	id := ContentKeyPolicyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'mediaServiceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
 	}
 
 	if id.ContentKeyPolicyName, ok = parsed.Parsed["contentKeyPolicyName"]; !ok {
-		return nil, fmt.Errorf("the segment 'contentKeyPolicyName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "contentKeyPolicyName", *parsed)
 	}
 
 	return &id, nil

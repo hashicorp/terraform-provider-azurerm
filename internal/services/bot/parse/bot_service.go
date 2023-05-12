@@ -41,7 +41,7 @@ func (id BotServiceId) ID() string {
 func BotServiceID(input string) (*BotServiceId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an BotService ID: %+v", input, err)
 	}
 
 	resourceId := BotServiceId{

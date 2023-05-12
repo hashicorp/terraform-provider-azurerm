@@ -279,7 +279,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if props.Properties.Subnet != nil {
 			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
 		}
-		d.Set("authorization_type", props.Properties.ComputeInstanceAuthorizationType)
+		d.Set("authorization_type", string(pointer.From(props.Properties.ComputeInstanceAuthorizationType)))
 		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
 		d.Set("node_public_ip_enabled", props.Properties.EnableNodePublicIP)

@@ -40,15 +40,15 @@ func ParseDataCollectionRuleID(input string) (*DataCollectionRuleId, error) {
 	id := DataCollectionRuleId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DataCollectionRuleName, ok = parsed.Parsed["dataCollectionRuleName"]; !ok {
-		return nil, fmt.Errorf("the segment 'dataCollectionRuleName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionRuleName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseDataCollectionRuleIDInsensitively(input string) (*DataCollectionRuleId
 	id := DataCollectionRuleId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DataCollectionRuleName, ok = parsed.Parsed["dataCollectionRuleName"]; !ok {
-		return nil, fmt.Errorf("the segment 'dataCollectionRuleName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionRuleName", *parsed)
 	}
 
 	return &id, nil

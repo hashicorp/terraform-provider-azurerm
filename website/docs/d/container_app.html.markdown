@@ -101,7 +101,7 @@ A `container` block supports the following:
 
 * `liveness_probe` - A `liveness_probe` block as detailed below.
 
-* `memory` - The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`.
+* `memory` - The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi`, and `4Gi`.
 
 * `name` - The name of the container
 
