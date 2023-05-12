@@ -2254,12 +2254,12 @@ resource "azurerm_kubernetes_cluster" "test" {
     start_date  = "2023-11-26"
 
     not_allowed {
-      end   = "2023-11-30"
-      start = "2023-11-26"
+      end   = "2023-11-30T00:00:00Z"
+      start = "2023-11-26T00:00:00Z"
     }
     not_allowed {
-      end   = "2023-12-30"
-      start = "2023-12-26"
+      end   = "2023-12-30T00:00:00Z"
+      start = "2023-12-26T00:00:00Z"
     }
   }
 }
