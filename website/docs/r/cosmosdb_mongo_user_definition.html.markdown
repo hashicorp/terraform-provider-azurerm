@@ -50,10 +50,9 @@ resource "azurerm_cosmosdb_mongo_database" "example" {
 }
 
 resource "azurerm_cosmosdb_mongo_user_definition" "example" {
-  account_id = azurerm_cosmosdb_account.example.id
-  db_name    = azurerm_cosmosdb_mongo_database.example.name
-  username   = "myUserName"
-  password   = "myPassword"
+  db_id    = azurerm_cosmosdb_mongo_database.example.id
+  username = "myUserName"
+  password = "myPassword"
 }
 ```
 
@@ -61,9 +60,7 @@ resource "azurerm_cosmosdb_mongo_user_definition" "example" {
 
 The following arguments are supported:
 
-* `account_id` - (Required) The ID of the Cosmos DB Account. Changing this forces a new resource to be created.
-
-* `db_name` - (Required) The name of the Mongo DB. Changing this forces a new resource to be created.
+* `db_id` - (Required) The resource ID of the Mongo DB. Changing this forces a new resource to be created.
 
 * `username` - (Required) The username for the Mongo User Definition. Changing this forces a new resource to be created.
 
@@ -72,6 +69,8 @@ The following arguments are supported:
 * `custom_data` - (Optional) The custom definition for the Mongo User Definition.
 
 * `inherited_role_names` - (Optional) A list of Mongo Roles that are inherited to the Mongo User Definition.
+
+~> **Note:** The role that needs to be inherited should exist in the Mongo DB of `db_id`.
 
 ## Attributes Reference
 

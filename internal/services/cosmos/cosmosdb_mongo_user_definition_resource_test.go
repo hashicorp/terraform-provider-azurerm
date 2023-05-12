@@ -26,7 +26,7 @@ func TestAccCosmosDbMongoUserDefinition_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("password"),
 	})
 }
 
@@ -56,7 +56,7 @@ func TestAccCosmosDbMongoUserDefinition_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("password", "custom_data"),
 	})
 }
 
@@ -71,14 +71,14 @@ func TestAccCosmosDbMongoUserDefinition_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("password", "custom_data"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("password", "custom_data"),
 	})
 }
 
@@ -101,10 +101,9 @@ func (r CosmosMongoUserDefinitionResource) basic(data acceptance.TestData) strin
 %s
 
 resource "azurerm_cosmosdb_mongo_user_definition" "test" {
-  account_id = azurerm_cosmosdb_account.test.id
-  db_name    = azurerm_cosmosdb_mongo_database.test.name
-  username   = "myUserName-%d"
-  password   = "myPassword-%d"
+  db_id    = azurerm_cosmosdb_mongo_database.test.id
+  username = "myUserName-%d"
+  password = "myPassword-%d"
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
@@ -114,10 +113,9 @@ func (r CosmosMongoUserDefinitionResource) requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_cosmosdb_mongo_user_definition" "import" {
-  account_id = azurerm_cosmosdb_mongo_user_definition.test.account_id
-  db_name    = azurerm_cosmosdb_mongo_user_definition.test.db_name
-  username   = azurerm_cosmosdb_mongo_user_definition.test.username
-  password   = azurerm_cosmosdb_mongo_user_definition.test.password
+  db_id    = azurerm_cosmosdb_mongo_user_definition.test.db_id
+  username = azurerm_cosmosdb_mongo_user_definition.test.username
+  password = azurerm_cosmosdb_mongo_user_definition.test.password
 }
 `, r.basic(data))
 }
@@ -127,14 +125,12 @@ func (r CosmosMongoUserDefinitionResource) complete(data acceptance.TestData) st
 %s
 
 resource "azurerm_cosmosdb_mongo_role_definition" "test" {
-  account_id = azurerm_cosmosdb_account.test.id
-  db_name    = azurerm_cosmosdb_mongo_database.test.name
-  role_name  = "acctest-roledefinition-%d"
+  db_id     = azurerm_cosmosdb_mongo_database.test.id
+  role_name = "acctestmongoroledef%d"
 }
 
 resource "azurerm_cosmosdb_mongo_user_definition" "test" {
-  account_id           = azurerm_cosmosdb_account.test.id
-  db_name              = azurerm_cosmosdb_mongo_database.test.name
+  db_id                = azurerm_cosmosdb_mongo_database.test.id
   username             = "myUserName-%d"
   password             = "myPassword-%d"
   custom_data          = "my Custom Data"
@@ -148,24 +144,21 @@ func (r CosmosMongoUserDefinitionResource) update(data acceptance.TestData) stri
 %s
 
 resource "azurerm_cosmosdb_mongo_role_definition" "test" {
-  account_id = azurerm_cosmosdb_account.test.id
-  db_name    = azurerm_cosmosdb_mongo_database.test.name
-  role_name  = "acctest-roledefinition-%d"
+  db_id     = azurerm_cosmosdb_mongo_database.test.id
+  role_name = "acctestmongoroledef%d"
 }
 
 resource "azurerm_cosmosdb_mongo_role_definition" "test2" {
-  account_id = azurerm_cosmosdb_account.test.id
-  db_name    = azurerm_cosmosdb_mongo_database.test.name
-  role_name  = "acctest-roledefinition2-%d"
+  db_id     = azurerm_cosmosdb_mongo_database.test.id
+  role_name = "acctestmongoroledef2%d"
 }
 
 resource "azurerm_cosmosdb_mongo_user_definition" "test" {
-  account_id           = azurerm_cosmosdb_account.test.id
-  db_name              = azurerm_cosmosdb_mongo_database.test.name
+  db_id                = azurerm_cosmosdb_mongo_database.test.id
   username             = "myUserName-%d"
   password             = "myPassword2-%d"
   custom_data          = "my Custom Data2"
-  inherited_role_names = [azurerm_cosmosdb_mongo_role_definition.test2.role_name]
+  inherited_role_names = [azurerm_cosmosdb_mongo_role_definition.test2.role_name, azurerm_cosmosdb_mongo_role_definition.test.role_name]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

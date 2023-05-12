@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CosmosDbMongoUserDefinitionResourceModel struct {
-	AccountId          string   `tfschema:"account_id"`
-	DBName             string   `tfschema:"db_name"`
+	DbId               string   `tfschema:"db_id"`
 	Username           string   `tfschema:"username"`
 	Password           string   `tfschema:"password"`
 	CustomData         string   `tfschema:"custom_data"`
@@ -42,18 +42,11 @@ func (r CosmosDbMongoUserDefinitionResource) IDValidationFunc() pluginsdk.Schema
 
 func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"account_id": {
+		"db_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: mongorbacs.ValidateDatabaseAccountID,
-		},
-
-		"db_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.CosmosEntityName,
+			ValidateFunc: validate.MongodbDatabaseID,
 		},
 
 		"username": {
@@ -101,13 +94,13 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Cosmos.MongoRBACClient
-			databaseAccountId, err := mongorbacs.ParseDatabaseAccountID(model.AccountId)
+			databaseId, err := parse.MongodbDatabaseID(model.DbId)
 			if err != nil {
 				return err
 			}
 
-			mongoUserDefinitionId := fmt.Sprintf("%s.%s", model.DBName, model.Username)
-			id := mongorbacs.NewMongodbUserDefinitionID(databaseAccountId.SubscriptionId, databaseAccountId.ResourceGroupName, databaseAccountId.DatabaseAccountName, mongoUserDefinitionId)
+			mongoUserDefinitionId := fmt.Sprintf("%s.%s", databaseId.Name, model.Username)
+			id := mongorbacs.NewMongodbUserDefinitionID(databaseId.SubscriptionId, databaseId.ResourceGroup, databaseId.DatabaseAccountName, mongoUserDefinitionId)
 
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
@@ -123,16 +116,16 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 
 			properties := mongorbacs.MongoUserDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoUserDefinitionResource{
-					DatabaseName: &model.DBName,
-					Mechanisms:   utils.String("SCRAM-SHA-256"),
-					Password:     &model.Password,
-					UserName:     &model.Username,
-					Roles:        expandInheritedRole(model.InheritedRoleNames, model.DBName),
+					DatabaseName: pointer.To(databaseId.Name),
+					Mechanisms:   pointer.To("SCRAM-SHA-256"),
+					Password:     pointer.To(model.Password),
+					UserName:     pointer.To(model.Username),
+					Roles:        expandInheritedRole(model.InheritedRoleNames, databaseId.Name),
 				},
 			}
 
 			if v := model.CustomData; v != "" {
-				properties.Properties.CustomData = &v
+				properties.Properties.CustomData = pointer.To(v)
 			}
 
 			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, id, properties); err != nil {
@@ -174,18 +167,23 @@ func (r CosmosDbMongoUserDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
+			databaseId, err := parse.MongodbDatabaseID(model.DbId)
+			if err != nil {
+				return err
+			}
+
 			parameters := mongorbacs.MongoUserDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoUserDefinitionResource{
-					DatabaseName: &model.DBName,
-					Mechanisms:   utils.String("SCRAM-SHA-256"),
-					Password:     &model.Password,
-					UserName:     &model.Username,
-					Roles:        expandInheritedRole(model.InheritedRoleNames, model.DBName),
+					DatabaseName: pointer.To(databaseId.Name),
+					Mechanisms:   pointer.To("SCRAM-SHA-256"),
+					Password:     pointer.To(model.Password),
+					UserName:     pointer.To(model.Username),
+					Roles:        expandInheritedRole(model.InheritedRoleNames, databaseId.Name),
 				},
 			}
 
 			if model.CustomData != "" {
-				properties.Properties.CustomData = &model.CustomData
+				properties.Properties.CustomData = pointer.To(model.CustomData)
 			}
 
 			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, *id, parameters); err != nil {
@@ -217,14 +215,14 @@ func (r CosmosDbMongoUserDefinitionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := CosmosDbMongoUserDefinitionResourceModel{
-				AccountId: mongorbacs.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName).ID(),
-			}
+			state := CosmosDbMongoUserDefinitionResourceModel{}
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					state.DBName = *properties.DatabaseName
-					state.Username = *properties.UserName
+					databaseId := parse.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, *properties.DatabaseName)
+
+					state.DbId = databaseId.ID()
+					state.Username = pointer.From(properties.UserName)
 					state.Password = metadata.ResourceData.Get("password").(string)
 					state.CustomData = metadata.ResourceData.Get("custom_data").(string)
 					state.InheritedRoleNames = flattenInheritedRole(properties.Roles)
@@ -260,7 +258,7 @@ func (r CosmosDbMongoUserDefinitionResource) Delete() sdk.ResourceFunc {
 }
 
 func expandInheritedRole(input []string, dbName string) *[]mongorbacs.Role {
-	if len(input) == 0 || dbName == "" {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -268,8 +266,8 @@ func expandInheritedRole(input []string, dbName string) *[]mongorbacs.Role {
 
 	for _, v := range input {
 		role := mongorbacs.Role{
-			Role: utils.String(v),
-			Db:   utils.String(dbName),
+			Db:   pointer.To(dbName),
+			Role: pointer.To(v),
 		}
 
 		result = append(result, role)
@@ -285,12 +283,7 @@ func flattenInheritedRole(input *[]mongorbacs.Role) []string {
 	}
 
 	for _, v := range *input {
-		var roleName string
-		if role := v.Role; role != nil {
-			roleName = *role
-		}
-
-		result = append(result, roleName)
+		result = append(result, pointer.From(v.Role))
 	}
 
 	return result
