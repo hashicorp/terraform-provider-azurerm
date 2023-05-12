@@ -97,8 +97,7 @@ type KustomizationDefinitionModel struct {
 type ArcKubernetesFluxConfigurationResource struct{}
 
 var (
-	_ sdk.ResourceWithUpdate        = ArcKubernetesFluxConfigurationResource{}
-	_ sdk.ResourceWithCustomizeDiff = ArcKubernetesFluxConfigurationResource{}
+	_ sdk.ResourceWithUpdate = ArcKubernetesFluxConfigurationResource{}
 )
 
 func (r ArcKubernetesFluxConfigurationResource) ResourceType() string {
@@ -133,7 +132,7 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 		},
 
 		"kustomizations": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -500,29 +499,6 @@ func (r ArcKubernetesFluxConfigurationResource) Attributes() map[string]*plugins
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (k ArcKubernetesFluxConfigurationResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model ArcKubernetesFluxConfigurationModel
-			if err := metadata.DecodeDiff(&model); err != nil {
-				return fmt.Errorf("DecodeDiff: %+v", err)
-			}
-
-			allKeys := make(map[string]bool)
-			for _, k := range model.Kustomizations {
-				if _, exists := allKeys[k.Name]; exists {
-					return fmt.Errorf("kustomization name `%s` is not unique", k.Name)
-				}
-
-				allKeys[k.Name] = true
-			}
-
-			return nil
-		},
-	}
-}
-
 func (r ArcKubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -530,6 +506,10 @@ func (r ArcKubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 			var model ArcKubernetesFluxConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if err := validateArcKubernetesFluxConfigurationModel(&model); err != nil {
+				return err
 			}
 
 			client := metadata.Client.ArcKubernetes.FluxConfigurationClient
@@ -603,6 +583,10 @@ func (r ArcKubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 			var model ArcKubernetesFluxConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if err := validateArcKubernetesFluxConfigurationModel(&model); err != nil {
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)
@@ -1090,4 +1074,17 @@ func flattenRepositoryRefDefinitionModel(input *fluxconfiguration.RepositoryRefD
 	}
 
 	return referenceType, referenceValue, nil
+}
+
+func validateArcKubernetesFluxConfigurationModel(model *ArcKubernetesFluxConfigurationModel) error {
+	allKeys := make(map[string]bool)
+	for _, k := range model.Kustomizations {
+		if _, exists := allKeys[k.Name]; exists {
+			return fmt.Errorf("kustomization name `%s` is not unique", k.Name)
+		}
+
+		allKeys[k.Name] = true
+	}
+
+	return nil
 }

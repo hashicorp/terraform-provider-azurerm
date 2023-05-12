@@ -708,6 +708,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
 
   kustomizations {
     name = "kustomization-1"
+    path = "./test/path"
   }
 
   depends_on = [

@@ -101,8 +101,7 @@ type ManagedIdentityDefinitionModel struct {
 type KubernetesFluxConfigurationResource struct{}
 
 var (
-	_ sdk.ResourceWithUpdate        = KubernetesFluxConfigurationResource{}
-	_ sdk.ResourceWithCustomizeDiff = KubernetesFluxConfigurationResource{}
+	_ sdk.ResourceWithUpdate = KubernetesFluxConfigurationResource{}
 )
 
 func (r KubernetesFluxConfigurationResource) ResourceType() string {
@@ -137,7 +136,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"kustomizations": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -520,29 +519,6 @@ func (r KubernetesFluxConfigurationResource) Attributes() map[string]*pluginsdk.
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (k KubernetesFluxConfigurationResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model KubernetesFluxConfigurationModel
-			if err := metadata.DecodeDiff(&model); err != nil {
-				return fmt.Errorf("DecodeDiff: %+v", err)
-			}
-
-			allKeys := make(map[string]bool)
-			for _, k := range model.Kustomizations {
-				if _, exists := allKeys[k.Name]; exists {
-					return fmt.Errorf("kustomization name `%s` is not unique", k.Name)
-				}
-
-				allKeys[k.Name] = true
-			}
-
-			return nil
-		},
-	}
-}
-
 func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -550,6 +526,10 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 			var model KubernetesFluxConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if err := validateKubernetesFluxConfigurationModel(&model); err != nil {
+				return err
 			}
 
 			client := metadata.Client.Containers.KubernetesFluxConfigurationClient
@@ -623,6 +603,10 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 			var model KubernetesFluxConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if err := validateKubernetesFluxConfigurationModel(&model); err != nil {
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)
@@ -1137,4 +1121,17 @@ func flattenRepositoryRefDefinitionModel(input *fluxconfiguration.RepositoryRefD
 	}
 
 	return referenceType, referenceValue, nil
+}
+
+func validateKubernetesFluxConfigurationModel(model *KubernetesFluxConfigurationModel) error {
+	allKeys := make(map[string]bool)
+	for _, k := range model.Kustomizations {
+		if _, exists := allKeys[k.Name]; exists {
+			return fmt.Errorf("kustomization name `%s` is not unique", k.Name)
+		}
+
+		allKeys[k.Name] = true
+	}
+
+	return nil
 }
