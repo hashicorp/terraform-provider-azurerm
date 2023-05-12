@@ -2416,7 +2416,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("maintenance_window_auto_upgrade") {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
-			Properties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window").([]interface{})),
+			Properties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window_auto_upgrade").([]interface{})),
 		}
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
@@ -2427,7 +2427,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("maintenance_window_node_os") {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
-			Properties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window").([]interface{})),
+			Properties: expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window_auto_upgrade").([]interface{})),
 		}
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
