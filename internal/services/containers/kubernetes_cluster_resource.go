@@ -786,6 +786,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"start_date": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 
 						"start_time": {
@@ -876,6 +877,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"start_date": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 
 						"start_time": {
