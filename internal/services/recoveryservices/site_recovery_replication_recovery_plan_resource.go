@@ -310,14 +310,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.A2ASettings != nil && len(model.A2ASettings) == 1 {
-				parameters.Properties.ProviderSpecificInput = pointer.To([]replicationrecoveryplans.RecoveryPlanProviderSpecificInput{
-					replicationrecoveryplans.RecoveryPlanA2AInput{
-						PrimaryZone:              &model.A2ASettings[0].PrimaryZone,
-						RecoveryZone:             &model.A2ASettings[0].RecoveryZone,
-						PrimaryExtendedLocation:  expandEdgeZone(model.A2ASettings[0].PrimaryEdgeZone),
-						RecoveryExtendedLocation: expandEdgeZone(model.A2ASettings[0].RecoveryEdgeZone),
-					},
-				})
+				parameters.Properties.ProviderSpecificInput = expandA2ASettings(model.A2ASettings[0])
 			}
 
 			err = client.CreateThenPoll(ctx, id, parameters)
@@ -374,17 +367,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Read() sdk.ResourceFunc {
 					state.RecoveryGroup = flattenRecoveryGroups(*group)
 				}
 				if details := prop.ProviderSpecificDetails; details != nil && len(*details) > 0 {
-					detail := pointer.From(details)[0]
-					if a2a, ok := detail.(replicationrecoveryplans.RecoveryPlanA2ADetails); ok {
-						state.A2ASettings = []ReplicationRecoveryPlanA2ASpecificInputModel{
-							{
-								PrimaryZone:      pointer.From(a2a.PrimaryZone),
-								RecoveryZone:     pointer.From(a2a.RecoveryZone),
-								PrimaryEdgeZone:  flattenEdgeZone(a2a.PrimaryExtendedLocation),
-								RecoveryEdgeZone: flattenEdgeZone(a2a.RecoveryExtendedLocation),
-							},
-						}
-					}
+					state.A2ASettings = flattenRecoveryPlanProviderSpecficInput(details)
 				}
 			}
 
@@ -518,6 +501,17 @@ func expandRecoverGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans.
 	return output, nil
 }
 
+func expandA2ASettings(input ReplicationRecoveryPlanA2ASpecificInputModel) *[]replicationrecoveryplans.RecoveryPlanProviderSpecificInput {
+	return &[]replicationrecoveryplans.RecoveryPlanProviderSpecificInput{
+		replicationrecoveryplans.RecoveryPlanA2AInput{
+			PrimaryZone:              pointer.To(input.PrimaryZone),
+			RecoveryZone:             pointer.To(input.RecoveryZone),
+			PrimaryExtendedLocation:  expandEdgeZone(input.PrimaryEdgeZone),
+			RecoveryExtendedLocation: expandEdgeZone(input.RecoveryEdgeZone),
+		},
+	}
+}
+
 func validateRecoverGroup(input []RecoveryGroupModel) (bool, error) {
 	bootCount := 0
 	shutdownCount := 0
@@ -624,4 +618,22 @@ func flattenRecoveryPlanActions(input *[]replicationrecoveryplans.RecoveryPlanAc
 		actionOutputs = append(actionOutputs, actionOutput)
 	}
 	return actionOutputs
+}
+
+func flattenRecoveryPlanProviderSpecficInput(input *[]replicationrecoveryplans.RecoveryPlanProviderSpecificDetails) []ReplicationRecoveryPlanA2ASpecificInputModel {
+	output := make([]ReplicationRecoveryPlanA2ASpecificInputModel, 0)
+	for _, providerSpecificInput := range *input {
+		switch providerSpecificInput.(type) {
+		case replicationrecoveryplans.RecoveryPlanA2AInput:
+			a2aInput := providerSpecificInput.(replicationrecoveryplans.RecoveryPlanA2AInput)
+			o := ReplicationRecoveryPlanA2ASpecificInputModel{
+				PrimaryZone:      pointer.From(a2aInput.PrimaryZone),
+				RecoveryZone:     pointer.From(a2aInput.RecoveryZone),
+				PrimaryEdgeZone:  flattenEdgeZone(a2aInput.PrimaryExtendedLocation),
+				RecoveryEdgeZone: flattenEdgeZone(a2aInput.RecoveryExtendedLocation),
+			}
+			output = append(output, o)
+		}
+	}
+	return output
 }
