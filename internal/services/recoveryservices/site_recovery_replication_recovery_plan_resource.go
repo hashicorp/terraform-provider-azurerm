@@ -623,9 +623,7 @@ func flattenRecoveryPlanActions(input *[]replicationrecoveryplans.RecoveryPlanAc
 func flattenRecoveryPlanProviderSpecficInput(input *[]replicationrecoveryplans.RecoveryPlanProviderSpecificDetails) []ReplicationRecoveryPlanA2ASpecificInputModel {
 	output := make([]ReplicationRecoveryPlanA2ASpecificInputModel, 0)
 	for _, providerSpecificInput := range *input {
-		switch providerSpecificInput.(type) {
-		case replicationrecoveryplans.RecoveryPlanA2AInput:
-			a2aInput := providerSpecificInput.(replicationrecoveryplans.RecoveryPlanA2AInput)
+		if a2aInput, ok := providerSpecificInput.(replicationrecoveryplans.RecoveryPlanA2ADetails); ok {
 			o := ReplicationRecoveryPlanA2ASpecificInputModel{
 				PrimaryZone:      pointer.From(a2aInput.PrimaryZone),
 				RecoveryZone:     pointer.From(a2aInput.RecoveryZone),
