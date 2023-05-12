@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `appconfiguration`: updating to API Version `2023-03-01` [GH-21660]
 * `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
 * `azurerm_machine_learning_workspace` - exporting `workspace_id` [GH-21746]
+* `azurerm_mssql_server` - expose the ability to enable `Transparent Data Encryption` using a `Customer Managed Key` during server deployment [GH-21704]
 * `azurerm_orbital_contact_profile` - `ip_address` is now optional [GH-21721]
 
 BUG FIXES:
