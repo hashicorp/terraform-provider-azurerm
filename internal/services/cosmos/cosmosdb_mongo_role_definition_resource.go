@@ -55,7 +55,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.CosmosEntityName,
+			ValidateFunc: validate.MongodbDatabaseID,
 		},
 
 		"role_name": {

@@ -103,8 +103,6 @@ func (r CosmosMongoRoleDefinitionResource) basic(data acceptance.TestData) strin
 resource "azurerm_cosmosdb_mongo_role_definition" "test" {
   db_id     = azurerm_cosmosdb_mongo_database.test.id
   role_name = "acctestmongoroledef%d"
-
-  depends_on = [azurerm_cosmosdb_mongo_collection.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -123,6 +121,18 @@ resource "azurerm_cosmosdb_mongo_role_definition" "import" {
 func (r CosmosMongoRoleDefinitionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-mongocoll-%d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+}
 
 resource "azurerm_cosmosdb_mongo_role_definition" "base" {
   db_id     = azurerm_cosmosdb_mongo_database.test.id
@@ -165,12 +175,24 @@ resource "azurerm_cosmosdb_mongo_role_definition" "test" {
 
   depends_on = [azurerm_cosmosdb_mongo_collection.test2]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r CosmosMongoRoleDefinitionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-mongocoll-%d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+}
 
 resource "azurerm_cosmosdb_mongo_role_definition" "base" {
   db_id     = azurerm_cosmosdb_mongo_database.test.id
@@ -247,7 +269,7 @@ resource "azurerm_cosmosdb_mongo_role_definition" "test" {
 
   depends_on = [azurerm_cosmosdb_mongo_collection.test2, azurerm_cosmosdb_mongo_collection.test3]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r CosmosMongoRoleDefinitionResource) template(data acceptance.TestData) string {
@@ -291,17 +313,5 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-
-resource "azurerm_cosmosdb_mongo_collection" "test" {
-  name                = "acctest-mongocoll-%d"
-  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
-  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
-  database_name       = azurerm_cosmosdb_mongo_database.test.name
-
-  index {
-    keys   = ["_id"]
-    unique = true
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
