@@ -40,12 +40,13 @@ func TestNewNestedItemID(t *testing.T) {
 				t.Fatalf("Got error for New Resource ID '%s': %+v", tc.keyVaultBaseUrl, err)
 				return
 			}
-			t.Logf("[DEBUG]   > Received Expected Error: %+v", err)
+			t.Logf("[DEBUG]   --> [Received Expected Error]: %+v", err)
 			continue
 		}
 		if id.ID() != tc.Expected {
 			t.Fatalf("Expected id for %q to be %q, got %q", tc.keyVaultBaseUrl, tc.Expected, id)
 		}
+		t.Logf("[DEBUG]   --> [Valid Value]: %+v", tc.keyVaultBaseUrl)
 	}
 }
 
@@ -57,6 +58,22 @@ func TestParseNestedItemID(t *testing.T) {
 	}{
 		{
 			Input:       "",
+			ExpectError: true,
+		},
+		{
+			Input:       "https",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-keyvault.vault.azure.net",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-keyvault.vault.azure.net/",
 			ExpectError: true,
 		},
 		{
@@ -110,7 +127,7 @@ func TestParseNestedItemID(t *testing.T) {
 		secretId, err := ParseNestedItemID(tc.Input)
 		if err != nil {
 			if tc.ExpectError {
-				t.Logf("[DEBUG]   > Received Expected Error: %+v", err)
+				t.Logf("[DEBUG]   --> [Received Expected Error]: %+v", err)
 				continue
 			}
 
@@ -136,6 +153,7 @@ func TestParseNestedItemID(t *testing.T) {
 		if tc.Input != secretId.ID() {
 			t.Fatalf("Expected 'ID()' to be '%s', got '%s'", tc.Input, secretId.ID())
 		}
+		t.Logf("[DEBUG]   --> [Valid Value]: %+v", tc.Input)
 	}
 }
 
@@ -205,7 +223,7 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 		secretId, err := ParseOptionallyVersionedNestedItemID(tc.Input)
 		if err != nil {
 			if tc.ExpectError {
-				t.Logf("[DEBUG]   > Received Expected Error: %+v", err)
+				t.Logf("[DEBUG]   --> [Received Expected Error]: %+v", err)
 				continue
 			}
 
@@ -231,5 +249,6 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 		if tc.Input != secretId.ID() {
 			t.Fatalf("Expected 'ID()' to be '%s', got '%s'", tc.Input, secretId.ID())
 		}
+		t.Logf("[DEBUG]   --> [Valid Value]: %+v", tc.Input)
 	}
 }

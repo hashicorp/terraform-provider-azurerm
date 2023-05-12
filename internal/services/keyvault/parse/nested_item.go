@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// NestedItemObjectType enumerates the type of the Nested Item Type (e.g."keys", "secrets", or "certificates").
+// NestedItemObjectType enumerates the type of the "NestedItemType" value (e.g."keys", "secrets" or "certificates").
 type NestedItemObjectType string
 
 const (
@@ -21,7 +21,7 @@ const (
 	NestedItemTypeCertificate NestedItemObjectType = "certificates"
 )
 
-// PossibleNestedItemObjectTypeValues returns an array of possible values for the NestedItemObjectType const.
+// PossibleNestedItemObjectTypeValues returns a string slice of possible "NestedItemObjectType" values.
 func PossibleNestedItemObjectTypeValues() []string {
 	return []string{string(NestedItemTypeKey), string(NestedItemTypeSecret), string(NestedItemTypeCertificate)}
 }
@@ -95,7 +95,7 @@ func ParseNestedItemID(input string) (*NestedItemId, error) {
 	}
 
 	if item.Version == "" {
-		return nil, fmt.Errorf("expected a versioned ID but no version in %q", input)
+		return nil, fmt.Errorf("expected a key vault versioned ID but no version information was found in: %q", input)
 	}
 
 	return item, nil
@@ -112,7 +112,7 @@ func parseNestedItemId(id string) (*NestedItemId, error) {
 	// versionless example: https://tharvey-keyvault.vault.azure.net/type/bird/
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
-		return nil, fmt.Errorf("cannot parse Azure KeyVault Child Id: %s", err)
+		return nil, fmt.Errorf("cannot parse azure key vault child ID: %s", err)
 	}
 
 	path := idURL.Path
@@ -123,7 +123,7 @@ func parseNestedItemId(id string) (*NestedItemId, error) {
 	components := strings.Split(path, "/")
 
 	if len(components) != 2 && len(components) != 3 {
-		return nil, fmt.Errorf("key vault Nested Item should contain 2 or 3 segments, got %d from %q", len(components), path)
+		return nil, fmt.Errorf("key vault nested item should contain 2 or 3 segments, found %d segment(s) in %q", len(components), id)
 	}
 
 	version := ""
@@ -134,7 +134,7 @@ func parseNestedItemId(id string) (*NestedItemId, error) {
 	nestedItemObjectTypes := PossibleNestedItemObjectTypeValues()
 
 	if !utils.SliceContainsValue(nestedItemObjectTypes, components[0]) {
-		return nil, fmt.Errorf("key vault NestedItemType should be one of: %s, got %q", strings.Join(nestedItemObjectTypes, ", "), components[0])
+		return nil, fmt.Errorf("key vault 'NestedItemType' should be one of: %s, got %q", strings.Join(nestedItemObjectTypes, ", "), components[0])
 	}
 
 	nestedItemObjectType := NestedItemObjectType(components[0])
