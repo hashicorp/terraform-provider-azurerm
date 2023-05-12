@@ -1,38 +1,38 @@
-## 3.56.0 (Unreleased)
+## 3.56.0 (May 11, 2023)
 
 FEATURES:
 
-* **New Resource:** `azurerm_cosmosdb_postgresql_coordinator_configuration` [GH-21595]
-* **New Resource:** `azurerm_cosmosdb_postgresql_node_configuration` [GH-21596]
-* **New Resource:** `azurerm_cosmosdb_postgresql_role` [GH-21597]
-* **New Resource:** `azurerm_monitor_workspace` [GH-21598]
-* **New Resource:** `azurerm_network_manager_deployment` [GH-20451]
+* **New Resource:** `azurerm_cosmosdb_postgresql_coordinator_configuration` ([#21595](https://github.com/hashicorp/terraform-provider-azurerm/issues/21595))
+* **New Resource:** `azurerm_cosmosdb_postgresql_node_configuration` ([#21596](https://github.com/hashicorp/terraform-provider-azurerm/issues/21596))
+* **New Resource:** `azurerm_cosmosdb_postgresql_role` ([#21597](https://github.com/hashicorp/terraform-provider-azurerm/issues/21597))
+* **New Resource:** `azurerm_monitor_workspace` ([#21598](https://github.com/hashicorp/terraform-provider-azurerm/issues/21598))
+* **New Resource:** `azurerm_network_manager_deployment` ([#20451](https://github.com/hashicorp/terraform-provider-azurerm/issues/20451))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.56.0` of `github.com/hashicorp/go-azure-helpers` [GH-21725]
-* dependencies: updating to `v0.20230511.1094507` of `github.com/hashicorp/go-azure-sdk` [GH-21759]
-* provider: improving the error messages when parsing a Resource ID and the ID doesn't match what's expected [GH-21725]
-* provider: Resource Provider Registration now uses API Version `2022-09-01` [GH-21695]
-* provider: updating the `IsAzureStack` check to use `hashicorp/go-azure-sdk` rather than relying on the environment from `Azure/go-autorest` [GH-21697]
-* `appconfiguration`: updating to API Version `2023-03-01` [GH-21660]
-* `keyvault`: refactoring to use `hashicorp/go-azure-sdk` [GH-21621]
-* `azurerm_machine_learning_workspace` - exporting `workspace_id` [GH-21746]
-* `azurerm_mssql_server` - expose the ability to enable `Transparent Data Encryption` using a `Customer Managed Key` during server deployment [GH-21704]
-* `azurerm_orbital_contact_profile` - `ip_address` is now optional [GH-21721]
+* dependencies: updating to `v0.56.0` of `github.com/hashicorp/go-azure-helpers` ([#21725](https://github.com/hashicorp/terraform-provider-azurerm/issues/21725))
+* dependencies: updating to `v0.20230511.1094507` of `github.com/hashicorp/go-azure-sdk` ([#21759](https://github.com/hashicorp/terraform-provider-azurerm/issues/21759))
+* provider: improving the error messages when parsing a Resource ID and the ID doesn't match what's expected ([#21725](https://github.com/hashicorp/terraform-provider-azurerm/issues/21725))
+* provider: Resource Provider Registration now uses API Version `2022-09-01` ([#21695](https://github.com/hashicorp/terraform-provider-azurerm/issues/21695))
+* provider: updating the `IsAzureStack` check to use `hashicorp/go-azure-sdk` rather than relying on the environment from `Azure/go-autorest` ([#21697](https://github.com/hashicorp/terraform-provider-azurerm/issues/21697))
+* `appconfiguration`: updating to API Version `2023-03-01` ([#21660](https://github.com/hashicorp/terraform-provider-azurerm/issues/21660))
+* `keyvault`: refactoring to use `hashicorp/go-azure-sdk` ([#21621](https://github.com/hashicorp/terraform-provider-azurerm/issues/21621))
+* `azurerm_machine_learning_workspace` - exporting `workspace_id` ([#21746](https://github.com/hashicorp/terraform-provider-azurerm/issues/21746))
+* `azurerm_mssql_server` - expose the ability to enable `Transparent Data Encryption` using a `Customer Managed Key` during server deployment ([#21704](https://github.com/hashicorp/terraform-provider-azurerm/issues/21704))
+* `azurerm_orbital_contact_profile` - `ip_address` is now optional ([#21721](https://github.com/hashicorp/terraform-provider-azurerm/issues/21721))
 
 BUG FIXES:
 
-* provider: fixing a bug where we would invoke but not poll for the Registration State during automatic Resource Provider Registration [GH-21695]
-* `azurerm_app_configuration`: handling an API bug where when polling for `PurgeDeleted` returns a 404 rather the payload for a long-running operation [GH-21665]
-* `azurerm_api_management_api` - fixing a bug where an empty `contact` bug would cause a crash [GH-21740]
-* `azurerm_eventhub_namespace` - add locks and remove unneeded WaitForState functions [GH-21656]
-* `azurerm_machine_learning_workspace` - parse `key_vault_id` insensitively [GH-21684]
-* `azurerm_monitor_action_group` - further expand ExactlyOneOf logic for `event_hub_receiver` attributes [GH-21735]
-* `azurerm_monitor_metric_alert` - fix regression by using `SingleResourceMultiMetricCriteria` for new metric alerts  [GH-21658]
-* `azurerm_service_fabric_managed_cluster` - fixing a bug where `certificates` within the `vm_secrets` block wouldn't be set into the state [GH-21680]
-* `azurerm_storage_share` - correct resource ID segment from `fileshares` to `shares` [GH-21645]
-* `azurerm_virtual_machine_scale_set`,  - - support specifying `ultra_ssd_disk_iops_read_write` and `ultra_ssd_disk_mbps_read_write` for `PremiumV2_LRS` [GH-21530] 
+* provider: fixing a bug where we would invoke but not poll for the Registration State during automatic Resource Provider Registration ([#21695](https://github.com/hashicorp/terraform-provider-azurerm/issues/21695))
+* `azurerm_app_configuration`: handling an API bug where when polling for `PurgeDeleted` returns a 404 rather the payload for a long-running operation ([#21665](https://github.com/hashicorp/terraform-provider-azurerm/issues/21665))
+* `azurerm_api_management_api` - fixing a bug where an empty `contact` bug would cause a crash ([#21740](https://github.com/hashicorp/terraform-provider-azurerm/issues/21740))
+* `azurerm_eventhub_namespace` - add locks and remove unneeded WaitForState functions ([#21656](https://github.com/hashicorp/terraform-provider-azurerm/issues/21656))
+* `azurerm_machine_learning_workspace` - parse `key_vault_id` insensitively ([#21684](https://github.com/hashicorp/terraform-provider-azurerm/issues/21684))
+* `azurerm_monitor_action_group` - further expand ExactlyOneOf logic for `event_hub_receiver` attributes ([#21735](https://github.com/hashicorp/terraform-provider-azurerm/issues/21735))
+* `azurerm_monitor_metric_alert` - fix regression by using `SingleResourceMultiMetricCriteria` for new metric alerts  ([#21658](https://github.com/hashicorp/terraform-provider-azurerm/issues/21658))
+* `azurerm_service_fabric_managed_cluster` - fixing a bug where `certificates` within the `vm_secrets` block wouldn't be set into the state ([#21680](https://github.com/hashicorp/terraform-provider-azurerm/issues/21680))
+* `azurerm_storage_share` - correct resource ID segment from `fileshares` to `shares` ([#21645](https://github.com/hashicorp/terraform-provider-azurerm/issues/21645))
+* `azurerm_virtual_machine_scale_set`,  - - support specifying `ultra_ssd_disk_iops_read_write` and `ultra_ssd_disk_mbps_read_write` for `PremiumV2_LRS` ([#21530](https://github.com/hashicorp/terraform-provider-azurerm/issues/21530)) 
 
 
 ## 3.55.0 (May 04, 2023)
