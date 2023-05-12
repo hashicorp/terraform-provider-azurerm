@@ -1,7 +1,7 @@
-// Package accesscontrol implements the Azure ARM Accesscontrol service API version 2020-08-01-preview.
+// Package synapse implements the Azure ARM Synapse service API version 2020-08-01-preview.
 //
 //
-package accesscontrol
+package synapse
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,7 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
-// BaseClient is the base client for Accesscontrol.
+// BaseClient is the base client for Synapse.
 type BaseClient struct {
 	autorest.Client
 	Endpoint string
