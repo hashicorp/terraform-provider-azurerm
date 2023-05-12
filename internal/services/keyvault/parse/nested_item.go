@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NestedItemObjectType enumerates the type of the Nested Item Type (e.g."keys", "secrets", or "certificates").
@@ -21,8 +22,8 @@ const (
 )
 
 // PossibleNestedItemObjectTypeValues returns an array of possible values for the NestedItemObjectType const.
-func PossibleNestedItemObjectTypeValues() []NestedItemObjectType {
-	return []NestedItemObjectType{NestedItemTypeKey, NestedItemTypeSecret, NestedItemTypeCertificate}
+func PossibleNestedItemObjectTypeValues() []string {
+	return []string{string(NestedItemTypeKey), string(NestedItemTypeSecret), string(NestedItemTypeCertificate)}
 }
 
 var _ resourceids.Id = NestedItemId{}
@@ -122,7 +123,7 @@ func parseNestedItemId(id string) (*NestedItemId, error) {
 	components := strings.Split(path, "/")
 
 	if len(components) != 2 && len(components) != 3 {
-		return nil, fmt.Errorf("keyVault Nested Item should contain 2 or 3 segments, got %d from %q", len(components), path)
+		return nil, fmt.Errorf("key vault Nested Item should contain 2 or 3 segments, got %d from %q", len(components), path)
 	}
 
 	version := ""
@@ -130,11 +131,17 @@ func parseNestedItemId(id string) (*NestedItemId, error) {
 		version = components[2]
 	}
 
-	// TODO: Add validation for components[0]
+	nestedItemObjectTypes := PossibleNestedItemObjectTypeValues()
+
+	if !utils.SliceContainsValue(nestedItemObjectTypes, components[0]) {
+		return nil, fmt.Errorf("key vault NestedItemType should be one of: %s, got %q", strings.Join(nestedItemObjectTypes, ", "), components[0])
+	}
+
+	nestedItemObjectType := NestedItemObjectType(components[0])
 
 	childId := NestedItemId{
 		KeyVaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
-		NestedItemType:  NestedItemObjectType(components[0]),
+		NestedItemType:  nestedItemObjectType,
 		Name:            components[1],
 		Version:         version,
 	}
