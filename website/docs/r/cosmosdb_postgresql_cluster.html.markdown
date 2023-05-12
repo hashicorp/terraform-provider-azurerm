@@ -43,6 +43,8 @@ The following arguments are supported:
 
 * `coordinator_storage_quota_in_mb` - (Required) The coordinator storage allowed for the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608` and `16777216`.
 
+-> **NOTE:** For more information, please see the [product documentation](https://learn.microsoft.com/en-us/azure/cosmos-db/postgresql/resources-compute)
+
 * `coordinator_vcore_count` - (Required) The coordinator vCore count for the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `1`, `2`, `4`, `8`, `16`, `32`, `64` and `96`.
 
 * `node_count` - (Required) The worker node count of the Azure Cosmos DB for PostgreSQL Cluster. Possible value is between `0` and `20` except `1`.
