@@ -154,6 +154,7 @@ func flattenSharedImageVersions(input []compute.GalleryImageVersion, filterTags 
 				// If the tags don't match, return false
 				if imageVersion.Tags[k] == nil || *v != *imageVersion.Tags[k] {
 					found = false
+					break
 				}
 			}
 		}

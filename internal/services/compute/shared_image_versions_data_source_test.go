@@ -29,6 +29,7 @@ func TestAccDataSourceSharedImageVersions_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("images.0.id").Exists(),
+				check.That(data.ResourceName).Key("images.#").HasValue("2"),
 				check.That(data.ResourceName).Key("images.0.managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("images.0.target_region.#").HasValue("1"),
 				check.That(data.ResourceName).Key("images.0.target_region.0.storage_account_type").HasValue("Standard_LRS"),
@@ -80,8 +81,7 @@ func TestAccDataSourceSharedImageVersions_tagsFilter(t *testing.T) {
 	})
 }
 
-func (SharedImageVersionsDataSource) basic(data acceptance.TestData) string {
-	template := SharedImageVersionResource{}.imageVersion(data)
+func (r SharedImageVersionsDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -91,10 +91,10 @@ data "azurerm_shared_image_versions" "test" {
   resource_group_name = azurerm_shared_image_version.test.resource_group_name
   depends_on          = [azurerm_shared_image_version.test]
 }
-`, template)
+`, r.template(data))
 }
 
-func (SharedImageVersionsDataSource) tagsFilterError(data acceptance.TestData) string {
+func (r SharedImageVersionsDataSource) tagsFilterError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -104,13 +104,14 @@ data "azurerm_shared_image_versions" "test" {
   resource_group_name = azurerm_shared_image_version.test.resource_group_name
 
   tags_filter = {
-    "foo" = "error"
+    environment = "error"
+    cost-center = "Ops"
   }
 }
-`, SharedImageVersionResource{}.imageVersion(data))
+`, r.template(data))
 }
 
-func (SharedImageVersionsDataSource) tagsFilter(data acceptance.TestData) string {
+func (r SharedImageVersionsDataSource) tagsFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -121,8 +122,49 @@ data "azurerm_shared_image_versions" "test" {
   depends_on          = [azurerm_shared_image_version.test]
 
   tags_filter = {
-    "foo" = "bar"
+    environment = "Dev"
+    cost-center = "Ops"
   }
 }
-`, SharedImageVersionResource{}.imageVersion(data))
+`, r.template(data))
+}
+
+func (SharedImageVersionsDataSource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+
+  tags = {
+    environment = "Dev"
+    cost-center = "Ops"
+    foo         = "bar"
+  }
+}
+
+resource "azurerm_shared_image_version" "test2" {
+  name                = "0.0.2"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+}
+`, SharedImageVersionResource{}.provision(data))
 }
