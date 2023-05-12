@@ -765,7 +765,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 						"duration": {
 							Type:         pluginsdk.TypeInt,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validation.IntBetween(4, 24),
 						},
 
@@ -855,7 +855,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 						"duration": {
 							Type:         pluginsdk.TypeInt,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validation.IntBetween(4, 24),
 						},
 
