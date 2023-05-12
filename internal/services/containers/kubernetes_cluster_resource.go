@@ -2446,14 +2446,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window_node_os").([]interface{}))
 		if maintenanceWindowProperties != nil {
 			parameters := maintenanceconfigurations.MaintenanceConfiguration{
-			Properties: maintenanceWindowProperties,
-		}
-		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
-			return fmt.Errorf("creating/updating aksManagedNodeOSUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
-		}
-	} else {
-		if _, err := client.Delete(ctx, maintenanceId); err != nil {
-			return fmt.Errorf("deleting aksManagedNodeOSUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+				Properties: maintenanceWindowProperties,
+			}
+			if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
+				return fmt.Errorf("creating/updating aksManagedNodeOSUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+			}
+		} else {
+			if _, err := client.Delete(ctx, maintenanceId); err != nil {
+				return fmt.Errorf("deleting aksManagedNodeOSUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+			}
 		}
 	}
 
