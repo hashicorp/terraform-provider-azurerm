@@ -3,12 +3,10 @@ package arckubernetes_test
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"os"
+	"regexp"
 	"testing"
 	"time"
-
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
@@ -22,19 +20,9 @@ import (
 type ArcKubernetesFluxConfigurationResource struct{}
 
 func TestAccArcKubernetesFluxConfiguration_basic(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")
 	r := ArcKubernetesFluxConfigurationResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, credential, privateKey, publicKey),
@@ -47,19 +35,9 @@ func TestAccArcKubernetesFluxConfiguration_basic(t *testing.T) {
 }
 
 func TestAccArcKubernetesFluxConfiguration_requiresImport(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")
 	r := ArcKubernetesFluxConfigurationResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, credential, privateKey, publicKey),
@@ -75,19 +53,9 @@ func TestAccArcKubernetesFluxConfiguration_requiresImport(t *testing.T) {
 }
 
 func TestAccArcKubernetesFluxConfiguration_complete(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")
 	r := ArcKubernetesFluxConfigurationResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateGitRepositoryWithHttpKey(data, credential, privateKey, publicKey),
@@ -95,24 +63,14 @@ func TestAccArcKubernetesFluxConfiguration_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("git_repository.0.https_key"),
+		data.ImportStep("git_repository.0.https_key_base64"),
 	})
 }
 
 func TestAccArcKubernetesFluxConfiguration_update(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")
 	r := ArcKubernetesFluxConfigurationResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.bucket(data, credential, privateKey, publicKey),
@@ -120,23 +78,18 @@ func TestAccArcKubernetesFluxConfiguration_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("bucket.0.secret_key"),
+		data.ImportStep("bucket.0.secret_key_base64"),
 		{
 			Config: r.privateGitRepositoryWithHttpKey(data, credential, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("git_repository.0.https_key"),
+		data.ImportStep("git_repository.0.https_key_base64"),
 	})
 }
 
 func TestAccArcKubernetesFluxConfiguration_privateRepositoryWithSshKey(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
 	const FluxUrl = "ARM_K8S_FLUX_CONFIG_SSH_URL" // git@github.com:Azure/arc-k8s-demo.git
 	const PrivateSshKey = "ARM_K8S_FLUX_CONFIG_SSH_KEY"
 	const KnownHosts = "ARM_K8S_FLUX_CONFIG_KNOWN_HOSTS"
@@ -146,14 +99,9 @@ func TestAccArcKubernetesFluxConfiguration_privateRepositoryWithSshKey(t *testin
 		return
 	}
 
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")
 	r := ArcKubernetesFluxConfigurationResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateRepositoryWithSshKey(data, os.Getenv(FluxUrl), os.Getenv(PrivateSshKey), os.Getenv(KnownHosts), credential, privateKey, publicKey),
@@ -161,24 +109,14 @@ func TestAccArcKubernetesFluxConfiguration_privateRepositoryWithSshKey(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("git_repository.0.ssh_private_key"),
+		data.ImportStep("git_repository.0.ssh_private_key_base64"),
 	})
 }
 
 func TestAccArcKubernetesFluxConfiguration_azureBlobWithAccountKey(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")
 	r := ArcKubernetesFluxConfigurationResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.azureBlobWithAccountKey(data, credential, privateKey, publicKey),
@@ -186,24 +124,14 @@ func TestAccArcKubernetesFluxConfiguration_azureBlobWithAccountKey(t *testing.T)
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_blob.0.account_key"),
+		data.ImportStep("blob_storage.0.account_key"),
 	})
 }
 
 func TestAccArcKubernetesFluxConfiguration_azureBlobWithSasToken(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")
 	r := ArcKubernetesFluxConfigurationResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.azureBlobWithSasToken(data, credential, privateKey, publicKey),
@@ -211,24 +139,14 @@ func TestAccArcKubernetesFluxConfiguration_azureBlobWithSasToken(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_blob.0.sas_token"),
+		data.ImportStep("blob_storage.0.sas_token"),
 	})
 }
 
 func TestAccArcKubernetesFluxConfiguration_azureBlobWithServicePrincipalSecret(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")
 	r := ArcKubernetesFluxConfigurationResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.azureBlobWithServicePrincipalSecret(data, credential, privateKey, publicKey),
@@ -236,16 +154,11 @@ func TestAccArcKubernetesFluxConfiguration_azureBlobWithServicePrincipalSecret(t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_blob.0.service_principal.0.client_secret"),
+		data.ImportStep("blob_storage.0.service_principal.0.client_secret"),
 	})
 }
 
 func TestAccArcKubernetesFluxConfiguration_azureBlobWithServicePrincipalCertificate(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
 	if os.Getenv("ARM_CLIENT_CERTIFICATE") == "" {
 		t.Skip("ARM_CLIENT_CERTIFICATE not set")
 	}
@@ -253,14 +166,9 @@ func TestAccArcKubernetesFluxConfiguration_azureBlobWithServicePrincipalCertific
 		t.Skip("ARM_CLIENT_CERTIFICATE_PASSWORD not set")
 	}
 
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")
 	r := ArcKubernetesFluxConfigurationResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.azureBlobWithServicePrincipalCertificate(data, credential, privateKey, publicKey),
@@ -268,7 +176,19 @@ func TestAccArcKubernetesFluxConfiguration_azureBlobWithServicePrincipalCertific
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_blob.0.service_principal.0.client_certificate", "azure_blob.0.service_principal.0.client_certificate_password"),
+		data.ImportStep("blob_storage.0.service_principal.0.client_certificate_base64", "blob_storage.0.service_principal.0.client_certificate_password"),
+	})
+}
+
+func TestAccArcKubernetesFluxConfiguration_kustomizationNameDuplicated(t *testing.T) {
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")
+	r := ArcKubernetesFluxConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.kustomizationNameDuplicated(data, credential, privateKey, publicKey),
+			ExpectError: regexp.MustCompile("kustomization name `kustomization-1` is not unique"),
+		},
 	})
 }
 
@@ -317,6 +237,7 @@ func (r ArcKubernetesFluxConfigurationResource) basic(data acceptance.TestData, 
 resource "azurerm_arc_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
   cluster_id = azurerm_arc_kubernetes_cluster.test.id
+  namespace  = "flux"
 
   git_repository {
     url             = "https://github.com/Azure/arc-k8s-demo"
@@ -343,6 +264,7 @@ func (r ArcKubernetesFluxConfigurationResource) requiresImport(data acceptance.T
 resource "azurerm_arc_kubernetes_flux_configuration" "import" {
   name       = azurerm_arc_kubernetes_flux_configuration.test.name
   cluster_id = azurerm_arc_kubernetes_flux_configuration.test.cluster_id
+  namespace  = azurerm_arc_kubernetes_flux_configuration.test.namespace
 
   git_repository {
     url             = "https://github.com/Azure/arc-k8s-demo"
@@ -369,14 +291,14 @@ func (r ArcKubernetesFluxConfigurationResource) privateGitRepositoryWithHttpKey(
 resource "azurerm_arc_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
   cluster_id = azurerm_arc_kubernetes_cluster.test.id
-  namespace  = "example"
+  namespace  = "flux"
   scope      = "cluster"
 
   git_repository {
     url                      = "https://github.com/Azure/arc-k8s-demo"
     https_user               = "example"
-    https_key                = base64encode("example")
-    https_ca_cert            = base64encode("example")
+    https_key_base64         = base64encode("example")
+    https_ca_cert_base64     = base64encode("example")
     sync_interval_in_seconds = 800
     timeout_in_seconds       = 800
     reference_type           = "branch"
@@ -389,7 +311,7 @@ resource "azurerm_arc_kubernetes_flux_configuration" "test" {
     timeout_in_seconds         = 800
     sync_interval_in_seconds   = 800
     retry_interval_in_seconds  = 800
-    re_creating_enabled        = true
+    recreating_enabled         = true
     garbage_collection_enabled = true
   }
 
@@ -413,12 +335,12 @@ func (r ArcKubernetesFluxConfigurationResource) bucket(data acceptance.TestData,
 resource "azurerm_arc_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
   cluster_id = azurerm_arc_kubernetes_cluster.test.id
-  namespace  = "example"
+  namespace  = "flux"
   scope      = "cluster"
 
   bucket {
     access_key               = "example"
-    secret_key               = base64encode("example")
+    secret_key_base64        = base64encode("example")
     bucket_name              = "flux"
     sync_interval_in_seconds = 800
     timeout_in_seconds       = 800
@@ -440,7 +362,7 @@ func (r ArcKubernetesFluxConfigurationResource) privateRepositoryWithSshKey(data
 	template := r.template(data, credential, privateKey, publicKey)
 	knownHostsContent := ""
 	if knownHosts != "" {
-		knownHostsContent = fmt.Sprintf(`ssh_known_hosts = "%s"`, knownHosts)
+		knownHostsContent = fmt.Sprintf(`ssh_known_hosts_base64 = "%s"`, knownHosts)
 	}
 	return fmt.Sprintf(`
 				%s
@@ -448,10 +370,11 @@ func (r ArcKubernetesFluxConfigurationResource) privateRepositoryWithSshKey(data
 resource "azurerm_arc_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
   cluster_id = azurerm_arc_kubernetes_cluster.test.id
+  namespace  = "flux"
 
   git_repository {
-    url             = "%s"
-    ssh_private_key = "%s"
+    url                    = "%s"
+    ssh_private_key_base64 = "%s"
     %s
     reference_type  = "branch"
     reference_value = "main"
@@ -489,8 +412,9 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_arc_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%[2]d"
   cluster_id = azurerm_arc_kubernetes_cluster.test.id
+  namespace  = "flux"
 
-  azure_blob {
+  blob_storage {
     container_name           = azurerm_storage_container.test.name
     url                      = azurerm_storage_account.test.primary_blob_endpoint
     account_key              = azurerm_storage_account.test.primary_access_key
@@ -569,8 +493,9 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_arc_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%[2]d"
   cluster_id = azurerm_arc_kubernetes_cluster.test.id
+  namespace  = "flux"
 
-  azure_blob {
+  blob_storage {
     container_name = azurerm_storage_container.test.name
     url            = azurerm_storage_account.test.primary_blob_endpoint
     sas_token      = data.azurerm_storage_account_sas.test.sas
@@ -623,8 +548,9 @@ resource "azurerm_role_assignment" "test_blob" {
 resource "azurerm_arc_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%[2]d"
   cluster_id = azurerm_arc_kubernetes_cluster.test.id
+  namespace  = "flux"
 
-  azure_blob {
+  blob_storage {
     container_name = azurerm_storage_container.test.name
     url            = azurerm_storage_account.test.primary_blob_endpoint
     service_principal {
@@ -683,14 +609,15 @@ resource "azurerm_role_assignment" "test_blob" {
 resource "azurerm_arc_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%[2]d"
   cluster_id = azurerm_arc_kubernetes_cluster.test.id
+  namespace  = "flux"
 
-  azure_blob {
+  blob_storage {
     container_name = azurerm_storage_container.test.name
     url            = azurerm_storage_account.test.primary_blob_endpoint
     service_principal {
       client_id                     = "%[3]s"
       tenant_id                     = "%[4]s"
-      client_certificate            = "%[5]s"
+      client_certificate_base64     = "%[5]s"
       client_certificate_password   = "%[6]s"
       client_certificate_send_chain = true
     }
@@ -707,4 +634,35 @@ resource "azurerm_arc_kubernetes_flux_configuration" "test" {
   ]
 }
 `, r.template(data, credential, privateKey, publicKey), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_TENANT_ID"), os.Getenv("ARM_CLIENT_CERTIFICATE"), os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"))
+}
+
+func (r ArcKubernetesFluxConfigurationResource) kustomizationNameDuplicated(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
+	template := r.template(data, credential, privateKey, publicKey)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_arc_kubernetes_flux_configuration" "test" {
+  name       = "acctest-fc-%d"
+  cluster_id = azurerm_arc_kubernetes_cluster.test.id
+  namespace  = "flux"
+
+  git_repository {
+    url             = "https://github.com/Azure/arc-k8s-demo"
+    reference_type  = "branch"
+    reference_value = "main"
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+  }
+
+  depends_on = [
+    azurerm_arc_kubernetes_cluster_extension.test
+  ]
+}
+`, template, data.RandomInteger)
 }

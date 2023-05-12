@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 
@@ -56,7 +57,7 @@ func TestAccKubernetesFluxConfiguration_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("git_repository.0.https_key"),
+		data.ImportStep("git_repository.0.https_key_base64"),
 	})
 }
 
@@ -70,14 +71,14 @@ func TestAccKubernetesFluxConfiguration_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("bucket.0.secret_key"),
+		data.ImportStep("bucket.0.secret_key_base64"),
 		{
 			Config: r.privateGitRepositoryWithHttpKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("git_repository.0.https_key"),
+		data.ImportStep("git_repository.0.https_key_base64"),
 	})
 }
 
@@ -100,7 +101,7 @@ func TestAccKubernetesFluxConfiguration_privateRepositoryWithSshKey(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("git_repository.0.ssh_private_key"),
+		data.ImportStep("git_repository.0.ssh_private_key_base64"),
 	})
 }
 
@@ -114,7 +115,7 @@ func TestAccKubernetesFluxConfiguration_azureBlobWithAccountKey(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_blob.0.account_key"),
+		data.ImportStep("blob_storage.0.account_key"),
 	})
 }
 
@@ -142,7 +143,7 @@ func TestAccKubernetesFluxConfiguration_azureBlobWithSasToken(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_blob.0.sas_token"),
+		data.ImportStep("blob_storage.0.sas_token"),
 	})
 }
 
@@ -156,7 +157,7 @@ func TestAccKubernetesFluxConfiguration_azureBlobWithServicePrincipalSecret(t *t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_blob.0.service_principal.0.client_secret"),
+		data.ImportStep("blob_storage.0.service_principal.0.client_secret"),
 	})
 }
 
@@ -177,7 +178,18 @@ func TestAccKubernetesFluxConfiguration_azureBlobWithServicePrincipalCertificate
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("azure_blob.0.service_principal.0.client_certificate", "azure_blob.0.service_principal.0.client_certificate_password"),
+		data.ImportStep("blob_storage.0.service_principal.0.client_certificate_base64", "blob_storage.0.service_principal.0.client_certificate_password"),
+	})
+}
+
+func TestAccKubernetesFluxConfiguration_kustomizationNameDuplicated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
+	r := KubernetesFluxConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.kustomizationNameDuplicated(data),
+			ExpectError: regexp.MustCompile("kustomization name `kustomization-1` is not unique"),
+		},
 	})
 }
 
@@ -219,6 +231,7 @@ func (r KubernetesFluxConfigurationResource) basic(data acceptance.TestData) str
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
   cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
 
   git_repository {
     url             = "https://github.com/Azure/arc-k8s-demo"
@@ -244,7 +257,8 @@ func (r KubernetesFluxConfigurationResource) requiresImport(data acceptance.Test
 
 resource "azurerm_kubernetes_flux_configuration" "import" {
   name       = azurerm_kubernetes_flux_configuration.test.name
-  cluster_id = azurerm_kubernetes_cluster.test.id
+  cluster_id = azurerm_kubernetes_flux_configuration.test.cluster_id
+  namespace  = azurerm_kubernetes_flux_configuration.test.namespace
 
   git_repository {
     url             = "https://github.com/Azure/arc-k8s-demo"
@@ -271,14 +285,14 @@ func (r KubernetesFluxConfigurationResource) privateGitRepositoryWithHttpKey(dat
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
   cluster_id = azurerm_kubernetes_cluster.test.id
-  namespace  = "example"
+  namespace  = "flux"
   scope      = "cluster"
 
   git_repository {
     url                      = "https://github.com/Azure/arc-k8s-demo"
     https_user               = "example"
-    https_key                = base64encode("example")
-    https_ca_cert            = base64encode("example")
+    https_key_base64         = base64encode("example")
+    https_ca_cert_base64     = base64encode("example")
     sync_interval_in_seconds = 800
     timeout_in_seconds       = 800
     reference_type           = "branch"
@@ -291,7 +305,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
     timeout_in_seconds         = 800
     sync_interval_in_seconds   = 800
     retry_interval_in_seconds  = 800
-    re_creating_enabled        = true
+    recreating_enabled         = true
     garbage_collection_enabled = true
   }
 
@@ -315,12 +329,12 @@ func (r KubernetesFluxConfigurationResource) bucket(data acceptance.TestData) st
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
   cluster_id = azurerm_kubernetes_cluster.test.id
-  namespace  = "example"
+  namespace  = "flux"
   scope      = "cluster"
 
   bucket {
     access_key               = "example"
-    secret_key               = base64encode("example")
+    secret_key_base64        = base64encode("example")
     bucket_name              = "flux"
     sync_interval_in_seconds = 800
     timeout_in_seconds       = 800
@@ -342,7 +356,7 @@ func (r KubernetesFluxConfigurationResource) privateRepositoryWithSshKey(data ac
 	template := r.template(data)
 	knownHostsContent := ""
 	if knownHosts != "" {
-		knownHostsContent = fmt.Sprintf(`ssh_known_hosts = "%s"`, knownHosts)
+		knownHostsContent = fmt.Sprintf(`ssh_known_hosts_base64 = "%s"`, knownHosts)
 	}
 	return fmt.Sprintf(`
 				%s
@@ -350,10 +364,11 @@ func (r KubernetesFluxConfigurationResource) privateRepositoryWithSshKey(data ac
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
   cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
 
   git_repository {
-    url             = "%s"
-    ssh_private_key = "%s"
+    url                    = "%s"
+    ssh_private_key_base64 = "%s"
     %s
     reference_type  = "branch"
     reference_value = "main"
@@ -391,8 +406,9 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%[2]d"
   cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
 
-  azure_blob {
+  blob_storage {
     container_name           = azurerm_storage_container.test.name
     url                      = azurerm_storage_account.test.primary_blob_endpoint
     account_key              = azurerm_storage_account.test.primary_access_key
@@ -444,8 +460,9 @@ resource "azurerm_role_assignment" "test_blob" {
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%[2]d"
   cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
 
-  azure_blob {
+  blob_storage {
     container_name = azurerm_storage_container.test.name
     url            = azurerm_storage_account.test.primary_blob_endpoint
     managed_identity {
@@ -526,8 +543,9 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%[2]d"
   cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
 
-  azure_blob {
+  blob_storage {
     container_name = azurerm_storage_container.test.name
     url            = azurerm_storage_account.test.primary_blob_endpoint
     sas_token      = data.azurerm_storage_account_sas.test.sas
@@ -580,8 +598,9 @@ resource "azurerm_role_assignment" "test_blob" {
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%[2]d"
   cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
 
-  azure_blob {
+  blob_storage {
     container_name = azurerm_storage_container.test.name
     url            = azurerm_storage_account.test.primary_blob_endpoint
     service_principal {
@@ -640,14 +659,15 @@ resource "azurerm_role_assignment" "test_blob" {
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%[2]d"
   cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
 
-  azure_blob {
+  blob_storage {
     container_name = azurerm_storage_container.test.name
     url            = azurerm_storage_account.test.primary_blob_endpoint
     service_principal {
       client_id                     = "%[3]s"
       tenant_id                     = "%[4]s"
-      client_certificate            = "%[5]s"
+      client_certificate_base64     = "%[5]s"
       client_certificate_password   = "%[6]s"
       client_certificate_send_chain = true
     }
@@ -664,4 +684,35 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   ]
 }
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_TENANT_ID"), os.Getenv("ARM_CLIENT_CERTIFICATE"), os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"))
+}
+
+func (r KubernetesFluxConfigurationResource) kustomizationNameDuplicated(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_kubernetes_flux_configuration" "test" {
+  name       = "acctest-fc-%d"
+  cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
+
+  git_repository {
+    url             = "https://github.com/Azure/arc-k8s-demo"
+    reference_type  = "branch"
+    reference_value = "main"
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster_extension.test
+  ]
+}
+`, template, data.RandomInteger)
 }

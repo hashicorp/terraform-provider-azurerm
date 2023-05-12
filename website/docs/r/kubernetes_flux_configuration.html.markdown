@@ -44,6 +44,7 @@ resource "azurerm_kubernetes_cluster_extension" "example" {
 resource "azurerm_kubernetes_flux_configuration" "example" {
   name       = "example-fc"
   cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
 
   git_repository {
     url             = "https://github.com/Azure/arc-k8s-demo"
@@ -71,13 +72,13 @@ The following arguments are supported:
 
 * `kustomizations` - (Required) A `kustomizations` block as defined below.
 
-* `azure_blob` - (Optional) An `azure_blob` block as defined below.
+* `namespace` - (Required) Specifies the namespace to which this configuration is installed to. Changing this forces a new Kubernetes Flux Configuration to be created.
+
+* `blob_storage` - (Optional) An `blob_storage` block as defined below.
 
 * `bucket` - (Optional) A `bucket` block as defined below.
 
 * `git_repository` - (Optional) A `git_repository` block as defined below.
-
-* `namespace` - (Optional) Specifies the namespace to which this configuration is installed to. Defaults to `default`. Changing this forces a new Kubernetes Flux Configuration to be created.
 
 * `scope` - (Optional) Specifies the scope at which the operator will be installed. Possible values are `cluster` and `namespace`. Defaults to `namespace`. Changing this forces a new Kubernetes Flux Configuration to be created.
 
@@ -97,7 +98,7 @@ A `kustomizations` block supports the following:
 
 * `retry_interval_in_seconds` - (Optional) The interval at which to re-reconcile the kustomization on the cluster in the event of failure on reconciliation. Defaults to `600`.
 
-* `re_creating_enabled` - (Optional) Whether re-creating Kubernetes resources on the cluster is enabled when patching fails due to an immutable field change. Defaults to `false`.
+* `recreating_enabled` - (Optional) Whether re-creating Kubernetes resources on the cluster is enabled when patching fails due to an immutable field change. Defaults to `false`.
 
 * `garbage_collection_enabled` - (Optional) Whether garbage collections of Kubernetes objects created by this kustomization is enabled. Defaults to `false`.
 
@@ -105,7 +106,7 @@ A `kustomizations` block supports the following:
 
 ---
 
-An `azure_blob` block supports the following:
+An `blob_storage` block supports the following:
 
 * `container_name` - (Required) Specifies the Azure Blob container name to sync from the url endpoint for the flux configuration.
 
@@ -113,7 +114,7 @@ An `azure_blob` block supports the following:
 
 * `account_key` - (Optional) Specifies the account key (shared key) to access the storage account.
 
-* `local_auth_ref` - (Optional) Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets.
+* `local_auth_reference` - (Optional) Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets.
 
 * `managed_identity` - (Optional) A `managed_identity` block as defined below.
 
@@ -139,7 +140,7 @@ A `service_principal` block supports the following:
 
 * `tenant_id` - (Required) Specifies the tenant ID for authenticating a Service Principal.
 
-* `client_certificate` - (Optional) Base64-encoded certificate used to authenticate a Service Principal .
+* `client_certificate_base64` - (Optional) Base64-encoded certificate used to authenticate a Service Principal .
 
 * `client_certificate_password` - (Optional) Specifies the password for the certificate used to authenticate a Service Principal .
 
@@ -157,11 +158,11 @@ A `bucket` block supports the following:
 
 * `access_key` - (Optional) Specifies the plaintext access key used to securely access the S3 bucket.
 
-* `secret_key` - (Optional) Specifies the Base64-encoded secret key used to authenticate with the bucket source.
+* `secret_key_base64` - (Optional) Specifies the Base64-encoded secret key used to authenticate with the bucket source.
 
 * `tls_enabled` - (Optional) Specify whether to communicate with a bucket using TLS is enabled. Defaults to `true`.
 
-* `local_auth_ref` - (Optional) Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets. It must be between 1 and 63 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.
+* `local_auth_reference` - (Optional) Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets. It must be between 1 and 63 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.
 
 * `sync_interval_in_seconds` - (Optional) Specifies the interval at which to re-reconcile the cluster git repository source with the remote. Defaults to `600`.
 
@@ -177,17 +178,17 @@ A `git_repository` block supports the following:
 
 * `reference_value` - (Required) Specifies the source reference value for the GitRepository object.
 
-* `https_ca_cert` - (Optional) Specifies the Base64-encoded HTTPS certificate authority contents used to access git private git repositories over HTTPS.
+* `https_ca_cert_base64` - (Optional) Specifies the Base64-encoded HTTPS certificate authority contents used to access git private git repositories over HTTPS.
 
 * `https_user` - (Optional) Specifies the plaintext HTTPS username used to access private git repositories over HTTPS.
 
-* `https_key` - (Optional) Specifies the Base64-encoded HTTPS personal access token or password that will be used to access the repository.
+* `https_key_base64` - (Optional) Specifies the Base64-encoded HTTPS personal access token or password that will be used to access the repository.
 
-* `local_auth_ref` - (Optional) Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets. It must be between 1 and 63 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.
+* `local_auth_reference` - (Optional) Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets. It must be between 1 and 63 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.
 
-* `ssh_private_key` - (Optional) Specifies the Base64-encoded SSH private key in PEM format.
+* `ssh_private_key_base64` - (Optional) Specifies the Base64-encoded SSH private key in PEM format.
 
-* `ssh_known_hosts` - (Optional) Specifies the Base64-encoded known_hosts value containing public SSH keys required to access private git repositories over SSH.
+* `ssh_known_hosts_base64` - (Optional) Specifies the Base64-encoded known_hosts value containing public SSH keys required to access private git repositories over SSH.
 
 * `sync_interval_in_seconds` - (Optional) Specifies the interval at which to re-reconcile the cluster git repository source with the remote. Defaults to `600`.
 
