@@ -20,7 +20,6 @@ type CosmosDbMongoUserDefinitionResourceModel struct {
 	DbId               string   `tfschema:"db_id"`
 	Username           string   `tfschema:"username"`
 	Password           string   `tfschema:"password"`
-	CustomData         string   `tfschema:"custom_data"`
 	InheritedRoleNames []string `tfschema:"inherited_role_names"`
 }
 
@@ -60,12 +59,6 @@ func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"custom_data": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -124,10 +117,6 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if v := model.CustomData; v != "" {
-				properties.Properties.CustomData = pointer.To(v)
-			}
-
 			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -182,10 +171,6 @@ func (r CosmosDbMongoUserDefinitionResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			if model.CustomData != "" {
-				properties.Properties.CustomData = pointer.To(model.CustomData)
-			}
-
 			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -224,7 +209,6 @@ func (r CosmosDbMongoUserDefinitionResource) Read() sdk.ResourceFunc {
 					state.DbId = databaseId.ID()
 					state.Username = pointer.From(properties.UserName)
 					state.Password = metadata.ResourceData.Get("password").(string)
-					state.CustomData = metadata.ResourceData.Get("custom_data").(string)
 					state.InheritedRoleNames = flattenInheritedRole(properties.Roles)
 				}
 			}

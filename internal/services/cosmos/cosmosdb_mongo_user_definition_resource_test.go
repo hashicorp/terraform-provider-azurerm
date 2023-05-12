@@ -56,7 +56,7 @@ func TestAccCosmosDbMongoUserDefinition_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "custom_data"),
+		data.ImportStep("password"),
 	})
 }
 
@@ -71,14 +71,14 @@ func TestAccCosmosDbMongoUserDefinition_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "custom_data"),
+		data.ImportStep("password"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "custom_data"),
+		data.ImportStep("password"),
 	})
 }
 
@@ -133,7 +133,6 @@ resource "azurerm_cosmosdb_mongo_user_definition" "test" {
   db_id                = azurerm_cosmosdb_mongo_database.test.id
   username             = "myUserName-%d"
   password             = "myPassword-%d"
-  custom_data          = "my Custom Data"
   inherited_role_names = [azurerm_cosmosdb_mongo_role_definition.test.role_name]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -157,7 +156,6 @@ resource "azurerm_cosmosdb_mongo_user_definition" "test" {
   db_id                = azurerm_cosmosdb_mongo_database.test.id
   username             = "myUserName-%d"
   password             = "myPassword2-%d"
-  custom_data          = "my Custom Data2"
   inherited_role_names = [azurerm_cosmosdb_mongo_role_definition.test2.role_name, azurerm_cosmosdb_mongo_role_definition.test.role_name]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

@@ -66,8 +66,6 @@ The following arguments are supported:
 
 * `password` - (Required) The password for the Mongo User Definition.
 
-* `custom_data` - (Optional) The custom definition for the Mongo User Definition.
-
 * `inherited_role_names` - (Optional) A list of Mongo Roles that are inherited to the Mongo User Definition.
 
 ~> **Note:** The role that needs to be inherited should exist in the Mongo DB of `db_id`.
