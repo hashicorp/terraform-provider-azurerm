@@ -927,7 +927,7 @@ func FlattenHDInsightsDiskEncryptionProperties(input hdinsight.DiskEncryptionPro
 	msiResourceId = *input.MsiResourceID
 
 	if keyName != "" || keyVersion != "" {
-		keyVaultKeyIdRaw, err := parse.NewNestedItemID(*input.VaultURI, "keys", keyName, keyVersion)
+		keyVaultKeyIdRaw, err := parse.NewNestedItemID(*input.VaultURI, parse.NestedItemTypeKey, keyName, keyVersion)
 		if err != nil {
 			return nil, err
 		}
@@ -1240,7 +1240,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 			Subnet: utils.String(subnetId),
 		}
 	} else if (virtualNetworkSpecified && !subnetSpecified) || (subnetSpecified && !virtualNetworkSpecified) {
-		return nil, fmt.Errorf("`virtual_network_id` and `subnet_id` must both either be set or empty!")
+		return nil, fmt.Errorf("`virtual_network_id` and `subnet_id` must both either be set or empty")
 	}
 
 	if password != "" {
@@ -1255,7 +1255,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 		}
 
 		if len(sshKeys) == 0 {
-			return nil, fmt.Errorf("Either a `password` or `ssh_key` must be specified!")
+			return nil, fmt.Errorf("either a `password` or `ssh_key` must be specified")
 		}
 
 		role.OsProfile.LinuxOperatingSystemProfile.SSHProfile = &hdinsight.SSHProfile{

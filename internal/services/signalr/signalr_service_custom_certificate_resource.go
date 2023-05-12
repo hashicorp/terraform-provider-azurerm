@@ -172,7 +172,7 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 			if resp.Model.Properties.KeyVaultSecretVersion != nil {
 				certVersion = *resp.Model.Properties.KeyVaultSecretVersion
 			}
-			nestedItem, err := keyVaultParse.NewNestedItemID(vaultBasedUri, "certificates", certName, certVersion)
+			nestedItem, err := keyVaultParse.NewNestedItemID(vaultBasedUri, keyVaultParse.NestedItemTypeCertificate, certName, certVersion)
 			if err != nil {
 				return err
 			}

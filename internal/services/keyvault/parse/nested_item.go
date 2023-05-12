@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-// NestedItemObjectType enumerates the type of the Nested Item Type (e.g."Key", "Secret", or "Certificate").
+// NestedItemObjectType enumerates the type of the Nested Item Type (e.g."keys", "secrets", or "certificates").
 type NestedItemObjectType string
 
 const (
@@ -34,7 +34,7 @@ type NestedItemId struct {
 	Version         string
 }
 
-func NewNestedItemID(keyVaultBaseUrl, nestedItemType, name, version string) (*NestedItemId, error) {
+func NewNestedItemID(keyVaultBaseUrl string, nestedItemType NestedItemObjectType, name, version string) (*NestedItemId, error) {
 	keyVaultUrl, err := url.Parse(keyVaultBaseUrl)
 	if err != nil || keyVaultBaseUrl == "" {
 		return nil, fmt.Errorf("parsing %q: %+v", keyVaultBaseUrl, err)
@@ -46,7 +46,7 @@ func NewNestedItemID(keyVaultBaseUrl, nestedItemType, name, version string) (*Ne
 
 	return &NestedItemId{
 		KeyVaultBaseUrl: keyVaultUrl.String(),
-		NestedItemType:  NestedItemObjectType(nestedItemType),
+		NestedItemType:  nestedItemType,
 		Name:            name,
 		Version:         version,
 	}, nil

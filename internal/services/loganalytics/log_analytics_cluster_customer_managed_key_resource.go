@@ -211,7 +211,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData
 				if kvProps.KeyVersion != nil {
 					keyVersion = *kvProps.KeyVersion
 				}
-				keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, "keys", keyName, keyVersion)
+				keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
 				if err != nil {
 					return err
 				}

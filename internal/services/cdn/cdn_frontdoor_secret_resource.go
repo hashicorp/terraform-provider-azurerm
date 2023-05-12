@@ -258,7 +258,7 @@ func flattenSecretParameters(ctx context.Context, input cdn.BasicSecretParameter
 			return nil, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", secretSourceId.SecretName, keyVaultId, err)
 		}
 
-		keyVaultCertificateId, err := keyVaultParse.NewNestedItemID(*keyVaultBaseUri, "certificates", secretSourceId.SecretName, certificateVersion)
+		keyVaultCertificateId, err := keyVaultParse.NewNestedItemID(*keyVaultBaseUri, keyVaultParse.NestedItemTypeCertificate, secretSourceId.SecretName, certificateVersion)
 		if err != nil {
 			return nil, err
 		}

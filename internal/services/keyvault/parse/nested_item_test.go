@@ -3,7 +3,7 @@ package parse
 import "testing"
 
 func TestNewNestedItemID(t *testing.T) {
-	childType := "keys"
+	childType := NestedItemTypeKey
 	childName := "test"
 	childVersion := "testVersionString"
 	cases := []struct {
