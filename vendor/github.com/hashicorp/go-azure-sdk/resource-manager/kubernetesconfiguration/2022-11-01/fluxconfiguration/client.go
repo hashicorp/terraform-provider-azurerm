@@ -1,18 +1,26 @@
 package fluxconfiguration
 
-import "github.com/Azure/go-autorest/autorest"
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FluxConfigurationClient struct {
-	Client  autorest.Client
-	baseUri string
+	Client *resourcemanager.Client
 }
 
-func NewFluxConfigurationClientWithBaseURI(endpoint string) FluxConfigurationClient {
-	return FluxConfigurationClient{
-		Client:  autorest.NewClientWithUserAgent(userAgent()),
-		baseUri: endpoint,
+func NewFluxConfigurationClientWithBaseURI(api environments.Api) (*FluxConfigurationClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(api, "fluxconfiguration", defaultApiVersion)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating FluxConfigurationClient: %+v", err)
 	}
+
+	return &FluxConfigurationClient{
+		Client: client,
+	}, nil
 }

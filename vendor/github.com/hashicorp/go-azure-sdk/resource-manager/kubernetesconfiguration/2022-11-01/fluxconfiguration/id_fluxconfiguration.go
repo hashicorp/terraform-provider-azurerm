@@ -46,27 +46,27 @@ func ParseFluxConfigurationID(input string) (*FluxConfigurationId, error) {
 	id := FluxConfigurationId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ProviderName, ok = parsed.Parsed["providerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'providerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "providerName", *parsed)
 	}
 
 	if id.ClusterResourceName, ok = parsed.Parsed["clusterResourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterResourceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterResourceName", *parsed)
 	}
 
 	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
 	}
 
 	if id.FluxConfigurationName, ok = parsed.Parsed["fluxConfigurationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'fluxConfigurationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fluxConfigurationName", *parsed)
 	}
 
 	return &id, nil
@@ -85,27 +85,27 @@ func ParseFluxConfigurationIDInsensitively(input string) (*FluxConfigurationId, 
 	id := FluxConfigurationId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ProviderName, ok = parsed.Parsed["providerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'providerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "providerName", *parsed)
 	}
 
 	if id.ClusterResourceName, ok = parsed.Parsed["clusterResourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterResourceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterResourceName", *parsed)
 	}
 
 	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
 	}
 
 	if id.FluxConfigurationName, ok = parsed.Parsed["fluxConfigurationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'fluxConfigurationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fluxConfigurationName", *parsed)
 	}
 
 	return &id, nil
