@@ -764,8 +764,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"duration": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(4, 24),
 						},
 
 						"week_index": {
@@ -853,8 +854,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"duration": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(4, 24),
 						},
 
 						"week_index": {
@@ -3906,7 +3908,7 @@ func expandKubernetesClusterMaintenanceConfiguration(input []interface{}) *maint
 		},
 	}
 
-	if duration := value["duration"]; duration != nil {
+	if duration := value["duration"]; duration != nil && duration.(int) != 0 {
 		output.MaintenanceWindow.DurationHours = int64(duration.(int))
 	}
 
