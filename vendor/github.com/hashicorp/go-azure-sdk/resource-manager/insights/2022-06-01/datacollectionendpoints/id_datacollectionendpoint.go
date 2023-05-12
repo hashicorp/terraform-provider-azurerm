@@ -40,15 +40,15 @@ func ParseDataCollectionEndpointID(input string) (*DataCollectionEndpointId, err
 	id := DataCollectionEndpointId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DataCollectionEndpointName, ok = parsed.Parsed["dataCollectionEndpointName"]; !ok {
-		return nil, fmt.Errorf("the segment 'dataCollectionEndpointName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionEndpointName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseDataCollectionEndpointIDInsensitively(input string) (*DataCollectionEn
 	id := DataCollectionEndpointId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DataCollectionEndpointName, ok = parsed.Parsed["dataCollectionEndpointName"]; !ok {
-		return nil, fmt.Errorf("the segment 'dataCollectionEndpointName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionEndpointName", *parsed)
 	}
 
 	return &id, nil

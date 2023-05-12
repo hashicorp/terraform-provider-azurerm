@@ -36,7 +36,7 @@ func ParseManagementGroupID(input string) (*ManagementGroupId, error) {
 	id := ManagementGroupId{}
 
 	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
-		return nil, fmt.Errorf("the segment 'managementGroupId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managementGroupId", *parsed)
 	}
 
 	return &id, nil
@@ -55,7 +55,7 @@ func ParseManagementGroupIDInsensitively(input string) (*ManagementGroupId, erro
 	id := ManagementGroupId{}
 
 	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
-		return nil, fmt.Errorf("the segment 'managementGroupId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managementGroupId", *parsed)
 	}
 
 	return &id, nil

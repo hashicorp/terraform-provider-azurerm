@@ -24,7 +24,6 @@ type ManagerDeploymentModel struct {
 	ScopeAccess      string   `tfschema:"scope_access"`
 	Location         string   `tfschema:"location"`
 	ConfigurationIds []string `tfschema:"configuration_ids"`
-	DeploymentStatus string   `tfschema:"deployment_status"`
 }
 
 type ManagerDeploymentResource struct{}
@@ -83,12 +82,7 @@ func (r ManagerDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r ManagerDeploymentResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"deployment_status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
@@ -197,7 +191,6 @@ func (r ManagerDeploymentResource) Read() sdk.ResourceFunc {
 				Location:         location.NormalizeNilable(deployment.Region),
 				ScopeAccess:      string(*deployment.DeploymentType),
 				ConfigurationIds: *deployment.ConfigurationIds,
-				DeploymentStatus: string(*deployment.DeploymentStatus),
 			})
 		},
 		Timeout: 5 * time.Minute,
