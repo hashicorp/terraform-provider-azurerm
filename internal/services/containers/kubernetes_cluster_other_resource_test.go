@@ -559,6 +559,21 @@ func TestAccKubernetesCluster_capacityReservationGroup(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_completeMaintenanceConfigAutoUpgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeMaintenanceConfigAutoUpgrade(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_completeMaintenanceConfigDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -574,7 +589,22 @@ func TestAccKubernetesCluster_completeMaintenanceConfigDefault(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_updateMaintenanceConfigDefault(t *testing.T) {
+func TestAccKubernetesCluster_completeMaintenanceConfigNodeOs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeMaintenanceConfigNodeOs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_updateMaintenanceConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -595,6 +625,49 @@ func TestAccKubernetesCluster_updateMaintenanceConfigDefault(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basicMaintenanceConfigDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicMaintenanceConfigAutoUpgrade(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeMaintenanceConfigAutoUpgrade(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicMaintenanceConfigAutoUpgrade(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+
+		{
+			Config: r.basicMaintenanceConfigNodeOs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeMaintenanceConfigNodeOs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicMaintenanceConfigNodeOs(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2145,6 +2218,54 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (KubernetesClusterResource) completeMaintenanceConfigAutoUpgrade(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  maintenance_window_auto_upgrade {
+    frequency = "RelativeMonthly"
+    interval  = 2
+    duration  = 8
+
+    day_of_week = "Monday"
+    week_index  = "First"
+    start_time  = "07:00"
+    utc_offset  = "+01:00"
+    start_date  = "2023-11-26"
+
+    not_allowed {
+      end   = "2023-11-30"
+      start = "2023-11-26"
+    }
+    not_allowed {
+      end   = "2023-12-30"
+      start = "2023-12-26"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) completeMaintenanceConfigDefault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2185,6 +2306,53 @@ resource "azurerm_kubernetes_cluster" "test" {
     allowed {
       day   = "Sunday"
       hours = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) completeMaintenanceConfigNodeOs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  maintenance_window_node_os {
+    frequency = "AbsoluteMonthly"
+    interval  = 2
+    duration  = 9
+
+    day_of_month = 5
+    start_time   = "07:00"
+    utc_offset   = "+01:00"
+    start_date   = "2023-11-26"
+
+    not_allowed {
+      end   = "2023-11-30"
+      start = "2023-11-26"
+    }
+    not_allowed {
+      end   = "2023-12-30"
+      start = "2023-12-26"
     }
   }
 }
