@@ -198,6 +198,18 @@ variable "ssh_key" {
   default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
 }
 
+resource "azurerm_private_dns_zone" "test" {
+  name                = "privatelink.api.ml.azure.us"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                  = "test-vlink"
+  resource_group_name   = azurerm_resource_group.test.name
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+}
+
 resource "azurerm_private_endpoint" "test" {
   name                = "test-pe-%d"
   location            = azurerm_resource_group.test.location
@@ -209,6 +221,11 @@ resource "azurerm_private_endpoint" "test" {
     private_connection_resource_id = azurerm_machine_learning_workspace.test.id
     subresource_names              = ["amlworkspace"]
     is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "test"
+    private_dns_zone_ids = [azurerm_private_dns_zone.test.id]
   }
 }
 
@@ -442,7 +459,11 @@ resource "azurerm_machine_learning_workspace" "test" {
 func (r ComputeClusterResource) template_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
