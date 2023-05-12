@@ -261,7 +261,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
     azurerm_private_endpoint.test,
   ]
 }
-`, template, data.RandomIntOfLength(8))
+`, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 
 func (r ComputeClusterResource) recreateVmSize(data acceptance.TestData) string {
