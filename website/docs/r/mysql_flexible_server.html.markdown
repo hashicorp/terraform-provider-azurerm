@@ -93,7 +93,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Creating a `GeoRestore` server requires the source server with `geo_redundant_backup_enabled` enabled.
 
-~> **NOTE:** The best practise is that it has to wait greater than 10 minutes to create the `GeoRestore` server once the source server is created.
+~> **NOTE:** The best practise is that it has to wait greater than 10 minutes to create the `GeoRestore` or `Replica` server once the source server is created.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 
