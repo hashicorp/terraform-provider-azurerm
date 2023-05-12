@@ -2251,7 +2251,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     week_index  = "First"
     start_time  = "07:00"
     utc_offset  = "+01:00"
-    start_date  = "2023-11-26"
+    start_date  = "2023-11-26T00:00:00Z"
 
     not_allowed {
       end   = "2023-11-30T00:00:00Z"
@@ -2304,8 +2304,16 @@ resource "azurerm_kubernetes_cluster" "test" {
       hours = [1, 2]
     }
     allowed {
-      day   = "Sunday"
+      day   = "Thursday"
       hours = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    }
+    allowed {
+      day   = "Friday"
+      hours = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    }
+    allowed {
+      day   = "Saterday"
+      hours = [10, 11, 12, 13, 14, 15, 16]
     }
   }
 }
@@ -2344,15 +2352,15 @@ resource "azurerm_kubernetes_cluster" "test" {
     day_of_month = 5
     start_time   = "07:00"
     utc_offset   = "+01:00"
-    start_date   = "2023-11-26"
+    start_date   = "2023-11-26T00:00:00Z"
 
     not_allowed {
-      end   = "2023-11-30"
-      start = "2023-11-26"
+      end   = "2023-11-30T00:00:00Z"
+      start = "2023-11-26T00:00:00Z"
     }
     not_allowed {
-      end   = "2023-12-30"
-      start = "2023-12-26"
+      end   = "2023-12-30T00:00:00Z"
+      start = "2023-12-26T00:00:00Z"
     }
   }
 }

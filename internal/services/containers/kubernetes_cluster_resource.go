@@ -875,9 +875,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"start_date": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							Computed:         true,
+							DiffSuppressFunc: suppress.RFC3339Time,
+							ValidateFunc:     validation.IsRFC3339Time,
 						},
 
 						"start_time": {
@@ -3902,12 +3904,16 @@ func expandKubernetesClusterMaintenanceConfiguration(input []interface{}) *maint
 
 	output := &maintenanceconfigurations.MaintenanceConfigurationProperties{
 		MaintenanceWindow: &maintenanceconfigurations.MaintenanceWindow{
-			StartDate:       utils.String(value["start_date"].(string)),
 			StartTime:       value["start_time"].(string),
 			UtcOffset:       utils.String(value["utc_offset"].(string)),
 			NotAllowedDates: expandKubernetesClusterMaintenanceConfigurationDateSpans(value["not_allowed"].(*pluginsdk.Set).List()),
 			Schedule:        schedule,
 		},
+	}
+
+	if startDateRaw := value["start_date"]; startDateRaw != nil && startDateRaw.(string) != "" {
+		startDate, _ := time.Parse(time.RFC3339, startDateRaw.(string))
+		output.MaintenanceWindow.StartDate = utils.String(startDate.Format("2006-01-02"))
 	}
 
 	if duration := value["duration"]; duration != nil && duration.(int) != 0 {
@@ -3965,7 +3971,7 @@ func flattenKubernetesClusterMaintenanceConfiguration(input *maintenanceconfigur
 
 	startDate := ""
 	if input.StartDate != nil {
-		startDate = *input.StartDate
+		startDate = *input.StartDate + "T00:00:00Z"
 	}
 	utcOfset := ""
 	if input.UtcOffset != nil {
@@ -4077,8 +4083,8 @@ func flattenKubernetesClusterMaintenanceConfigurationDateSpans(input *[]maintena
 			start = item.Start
 		}
 		results = append(results, map[string]interface{}{
-			"end":   end,
-			"start": start,
+			"end":   end + "T00:00:00Z",
+			"start": start + "T00:00:00Z",
 		})
 	}
 	return results
