@@ -2312,7 +2312,7 @@ resource "azurerm_kubernetes_cluster" "test" {
       hours = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
     }
     allowed {
-      day   = "Saterday"
+      day   = "Saturday"
       hours = [10, 11, 12, 13, 14, 15, 16]
     }
   }
@@ -2346,7 +2346,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   maintenance_window_node_os {
     frequency = "AbsoluteMonthly"
-    interval  = 2
+    interval  = 1
     duration  = 9
 
     day_of_month = 5
