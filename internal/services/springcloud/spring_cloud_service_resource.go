@@ -87,6 +87,13 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"default_build_service_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
 			"log_stream_public_endpoint_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -413,7 +420,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if size := d.Get("build_agent_pool_size").(string); len(size) > 0 {
+	if defaultBuildServiceEnabled := d.Get("default_build_service_enabled").(bool); defaultBuildServiceEnabled && skuName == "E0" {
 		buildResource := appplatform.BuildService{
 			Properties: &appplatform.BuildServiceProperties{},
 		}
@@ -424,7 +431,9 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		if err := buildServiceCreateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for creation build service of %s: %+v", id, err)
 		}
+	}
 
+	if size := d.Get("build_agent_pool_size").(string); len(size) > 0 {
 		agentPoolResource := appplatform.BuildServiceAgentPoolResource{
 			Properties: &appplatform.BuildServiceAgentPoolProperties{
 				PoolSize: &appplatform.BuildServiceAgentPoolSizeProperties{
@@ -451,7 +460,6 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
-	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -534,22 +542,6 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if size := d.Get("build_agent_pool_size").(string); len(size) > 0 {
-		resp, err := buildServiceClient.GetBuildService(ctx, id.ResourceGroup, id.SpringName, "default")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				buildResource := appplatform.BuildService{
-					Properties: &appplatform.BuildServiceProperties{},
-				}
-				buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
-				if err != nil {
-					return fmt.Errorf("creating build service of %s: %+v", id, err)
-				}
-				if err := buildServiceCreateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for creation build service of %s: %+v", id, err)
-				}
-			}
-			return fmt.Errorf("retrieving build service of %s: %+v", id, err)
-		}
 		agentPoolResource := appplatform.BuildServiceAgentPoolResource{
 			Properties: &appplatform.BuildServiceAgentPoolProperties{
 				PoolSize: &appplatform.BuildServiceAgentPoolSizeProperties{
@@ -576,6 +568,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
+	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -610,6 +603,22 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	if utils.ResponseWasNotFound(serviceRegistry.Response) {
 		serviceRegistryEnabled = false
 	}
+
+	defaultBuildServiceEnabled := true
+	if resp.Sku != nil && resp.Sku.Name != nil && *resp.Sku.Name == "E0" {
+		defaultBuildService, err := buildServiceClient.GetBuildService(ctx, id.ResourceGroup, id.SpringName, "default")
+		if err != nil {
+			if !utils.ResponseWasNotFound(defaultBuildService.Response) {
+				return fmt.Errorf("retrieving default build service of %s: %+v", id, err)
+			}
+			defaultBuildServiceEnabled = false
+		}
+		if utils.ResponseWasNotFound(defaultBuildService.Response) {
+			defaultBuildServiceEnabled = false
+		}
+	}
+	d.Set("default_build_service_enabled", defaultBuildServiceEnabled)
+
 	agentPool, err := agentPoolClient.Get(ctx, id.ResourceGroup, id.SpringName, "default", "default")
 	if err == nil && agentPool.Properties != nil && agentPool.Properties.PoolSize != nil {
 		d.Set("build_agent_pool_size", agentPool.Properties.PoolSize.Name)
