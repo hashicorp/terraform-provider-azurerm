@@ -85,19 +85,17 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"enable_node_public_ip": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 					},
 
 					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_host_encryption": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 					},
 
-					"kubelet_config": schemaNodePoolKubeletConfig(),
+					"kubelet_config": schemaNodePoolKubeletConfig(false),
 
-					"linux_os_config": schemaNodePoolLinuxOSConfig(),
+					"linux_os_config": schemaNodePoolLinuxOSConfig(false),
 
 					"fips_enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -126,7 +124,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Computed: true,
-						ForceNew: true,
 					},
 
 					"message_of_the_day": {
@@ -171,7 +168,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					"node_taints": {
 						Type:     pluginsdk.TypeList,
-						ForceNew: true,
 						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
@@ -244,7 +240,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"only_critical_addons_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 					},
 
 					"scale_down_mode": {
@@ -285,18 +280,18 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 	}
 }
 
-func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
+func schemaNodePoolKubeletConfig(forceNew bool) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		ForceNew: true,
+		ForceNew: forceNew,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cpu_manager_policy": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ForceNew: true,
+					ForceNew: forceNew,
 					ValidateFunc: validation.StringInSlice([]string{
 						"none",
 						"static",
@@ -306,33 +301,33 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 				"cpu_cfs_quota_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					ForceNew: true,
+					ForceNew: forceNew,
 				},
 
 				"cpu_cfs_quota_period": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ForceNew: true,
+					ForceNew: forceNew,
 				},
 
 				"image_gc_high_threshold": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ForceNew:     true,
+					ForceNew:     forceNew,
 					ValidateFunc: validation.IntBetween(0, 100),
 				},
 
 				"image_gc_low_threshold": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ForceNew:     true,
+					ForceNew:     forceNew,
 					ValidateFunc: validation.IntBetween(0, 100),
 				},
 
 				"topology_manager_policy": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ForceNew: true,
+					ForceNew: forceNew,
 					ValidateFunc: validation.StringInSlice([]string{
 						"none",
 						"best-effort",
@@ -344,7 +339,7 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 				"allowed_unsafe_sysctls": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
-					ForceNew: true,
+					ForceNew: forceNew,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -353,32 +348,32 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 				"container_log_max_size_mb": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
-					ForceNew: true,
+					ForceNew: forceNew,
 				},
 
 				// TODO 4.0: change this to `container_log_max_files`
 				"container_log_max_line": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ForceNew:     true,
+					ForceNew:     forceNew,
 					ValidateFunc: validation.IntAtLeast(2),
 				},
 
 				"pod_max_pid": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
-					ForceNew: true,
+					ForceNew: forceNew,
 				},
 			},
 		},
 	}
 }
 
-func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
+func schemaNodePoolLinuxOSConfig(forceNew bool) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		ForceNew: true,
+		ForceNew: forceNew,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -387,7 +382,7 @@ func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 				"transparent_huge_page_enabled": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ForceNew: true,
+					ForceNew: forceNew,
 					ValidateFunc: validation.StringInSlice([]string{
 						"always",
 						"madvise",
@@ -398,7 +393,7 @@ func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 				"transparent_huge_page_defrag": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ForceNew: true,
+					ForceNew: forceNew,
 					ValidateFunc: validation.StringInSlice([]string{
 						"always",
 						"defer",
@@ -411,7 +406,7 @@ func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 				"swap_file_size_mb": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
-					ForceNew: true,
+					ForceNew: forceNew,
 				},
 			},
 		},
