@@ -179,6 +179,13 @@ func TestAccKubernetesCluster_updateOs(t *testing.T) {
 			),
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.updateZones(data, "Standard_D2ads_v5", "[1,2,3]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 }
 
@@ -508,7 +515,6 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                   = "default"
     node_count             = 1
     vm_size                = "Standard_D2ads_v5"
-    enable_host_encryption = true
   }
 
   identity {
@@ -596,6 +602,43 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, vmSize)
 }
 
+func (KubernetesClusterResource) updateZones(data acceptance.TestData, vmSize, zones string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                        = "default"
+    temporary_name_for_rotation = "temp"
+    node_count                  = 1
+    vm_size                     = "%s"
+    zones						= %s
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, vmSize, zones)
+}
+
 func (KubernetesClusterResource) updateOsDisk(data acceptance.TestData, osDiskType string, osDiskSize int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -619,7 +662,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count                  = 1
     os_disk_type                = "%s"
     os_disk_size_gb             = %d
-    enable_host_encryption      = true
+    vm_size                     = "Standard_D2ads_v5"
   }
 
   identity {
@@ -656,7 +699,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     temporary_name_for_rotation = "temp"
     node_count                  = 1
     os_sku                      = "%s"
-    enable_host_encryption      = true
+    vm_size                     = "Standard_D2ads_v5"
   }
 
   identity {

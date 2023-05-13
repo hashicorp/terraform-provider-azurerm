@@ -277,7 +277,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 				}
 
-				s["zones"] = commonschema.ZonesMultipleOptionalForceNew()
+				s["zones"] = commonschema.ZonesMultipleOptional()
 
 				return s
 			}(),
