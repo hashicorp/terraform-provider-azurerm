@@ -153,7 +153,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 	})
 }
 
-func TestAccKubernetesCluster_updateOs(t *testing.T) {
+func TestAccKubernetesCluster_cycleSystemNodePool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -774,7 +774,7 @@ resource "azurerm_kubernetes_cluster" "test" {
       swap_file_size_mb             = 301
 
       sysctl_config {
-        fs_aio_max_nr                      = 65535
+        fs_aio_max_nr                      = 65537
         fs_file_max                        = 100001
         fs_inotify_max_user_watches        = 1000001
         fs_nr_open                         = 1048575
