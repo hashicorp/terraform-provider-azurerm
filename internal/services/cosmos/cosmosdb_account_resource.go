@@ -1002,7 +1002,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		// 'Identity' field is included in the update call with the 'DefaultIdentity' it will silently fail
 		// per the bug noted above (e.g. Azure Bug #2209567).
 		//
-		// In the update scenario where the end-user would like to update thier 'Identity' and thier 'DefaultIdentity'
+		// In the update scenario where the end-user would like to update their 'Identity' and their 'DefaultIdentity'
 		// fields at the same time both of these operations need to happen atomically in separate PUT/PATCH calls
 		// to the service else you will hit the bug mentioned above. You need to update the 'Identity' field
 		// first then update the 'DefaultIdentity' in totally different PUT/PATCH calls where you have to drop
