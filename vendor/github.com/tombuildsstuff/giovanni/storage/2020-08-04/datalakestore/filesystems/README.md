@@ -1,4 +1,4 @@
-## Data Lake Storage Gen2 File Systems SDK for API version 2019-12-12
+## Data Lake Storage Gen2 File Systems SDK for API version 2020-08-04
 
 This package allows you to interact with the Data Lake Storage Gen2 File Systems API
 
@@ -22,7 +22,7 @@ import (
     "github.com/Azure/go-autorest/autorest/azure"
     "github.com/hashicorp/go-azure-helpers/authentication"
     "github.com/hashicorp/go-azure-helpers/sender"
-    "github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
+    "github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/filesystems"
 )
 
 func Example() error {
