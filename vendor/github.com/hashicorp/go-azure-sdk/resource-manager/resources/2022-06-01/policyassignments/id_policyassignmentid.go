@@ -36,7 +36,7 @@ func ParsePolicyAssignmentIdID(input string) (*PolicyAssignmentIdId, error) {
 	id := PolicyAssignmentIdId{}
 
 	if id.PolicyAssignmentId, ok = parsed.Parsed["policyAssignmentId"]; !ok {
-		return nil, fmt.Errorf("the segment 'policyAssignmentId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policyAssignmentId", *parsed)
 	}
 
 	return &id, nil
@@ -55,7 +55,7 @@ func ParsePolicyAssignmentIdIDInsensitively(input string) (*PolicyAssignmentIdId
 	id := PolicyAssignmentIdId{}
 
 	if id.PolicyAssignmentId, ok = parsed.Parsed["policyAssignmentId"]; !ok {
-		return nil, fmt.Errorf("the segment 'policyAssignmentId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policyAssignmentId", *parsed)
 	}
 
 	return &id, nil

@@ -40,15 +40,15 @@ func ParseScheduledQueryRuleID(input string) (*ScheduledQueryRuleId, error) {
 	id := ScheduledQueryRuleId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ScheduledQueryRuleName, ok = parsed.Parsed["scheduledQueryRuleName"]; !ok {
-		return nil, fmt.Errorf("the segment 'scheduledQueryRuleName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduledQueryRuleName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseScheduledQueryRuleIDInsensitively(input string) (*ScheduledQueryRuleId
 	id := ScheduledQueryRuleId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ScheduledQueryRuleName, ok = parsed.Parsed["scheduledQueryRuleName"]; !ok {
-		return nil, fmt.Errorf("the segment 'scheduledQueryRuleName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduledQueryRuleName", *parsed)
 	}
 
 	return &id, nil

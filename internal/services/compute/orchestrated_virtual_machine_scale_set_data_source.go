@@ -55,7 +55,6 @@ type VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress struct
 	IdleTimeoutInMinutes int                                                                         `tfschema:"idle_timeout_in_minutes"`
 	IPTag                []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag `tfschema:"ip_tag"`
 	PublicIpPrefixId     string                                                                      `tfschema:"public_ip_prefix_id"`
-	SkuName              string                                                                      `tfschema:"sku_name"`
 	Version              string                                                                      `tfschema:"version"`
 }
 

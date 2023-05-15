@@ -36,7 +36,7 @@ func ParseScheduledActionID(input string) (*ScheduledActionId, error) {
 	id := ScheduledActionId{}
 
 	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'scheduledActionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduledActionName", *parsed)
 	}
 
 	return &id, nil
@@ -55,7 +55,7 @@ func ParseScheduledActionIDInsensitively(input string) (*ScheduledActionId, erro
 	id := ScheduledActionId{}
 
 	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'scheduledActionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduledActionName", *parsed)
 	}
 
 	return &id, nil

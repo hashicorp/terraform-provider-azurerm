@@ -40,15 +40,15 @@ func ParseHealthBotID(input string) (*HealthBotId, error) {
 	id := HealthBotId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.HealthBotName, ok = parsed.Parsed["healthBotName"]; !ok {
-		return nil, fmt.Errorf("the segment 'healthBotName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "healthBotName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseHealthBotIDInsensitively(input string) (*HealthBotId, error) {
 	id := HealthBotId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.HealthBotName, ok = parsed.Parsed["healthBotName"]; !ok {
-		return nil, fmt.Errorf("the segment 'healthBotName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "healthBotName", *parsed)
 	}
 
 	return &id, nil

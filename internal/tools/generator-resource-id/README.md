@@ -1,5 +1,7 @@
 ## Generator: Resource ID
 
+> **Note:** Resource ID Formatters, Parsers and Structs are now available in [`hashicorp/go-azure-sdk`](https://github.com/hashicorp/go-azure-sdk) and [`commonids` within `hashicorp/go-azure-helpers`](https://github.com/hashicorp/go-azure-helpers/tree/main/resourcemanager/commonids), where available those Resource ID's can be used directly - at this point this package is mostly for legacy resources which haven't yet been migrated to `hashicorp/go-azure-sdk`.
+
 Each Service Definition contains one or more Resource ID's - this tool allows the generation of:
 
 * Resource ID Formatters

@@ -42,19 +42,19 @@ func ParsePrivateEndpointConnectionID(input string) (*PrivateEndpointConnectionI
 	id := PrivateEndpointConnectionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.PrivateLinkScopeName, ok = parsed.Parsed["privateLinkScopeName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateLinkScopeName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeName", *parsed)
 	}
 
 	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateEndpointConnectionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParsePrivateEndpointConnectionIDInsensitively(input string) (*PrivateEndpoi
 	id := PrivateEndpointConnectionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.PrivateLinkScopeName, ok = parsed.Parsed["privateLinkScopeName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateLinkScopeName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeName", *parsed)
 	}
 
 	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateEndpointConnectionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", *parsed)
 	}
 
 	return &id, nil
