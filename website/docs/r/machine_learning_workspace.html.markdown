@@ -416,6 +416,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `discovery_url` - The url for the discovery service to identify regional endpoints for machine learning experimentation services.
 
+* `workspace_id` - The immutable id associated with this workspace.
+
 ---
 
 An `identity` block exports the following:

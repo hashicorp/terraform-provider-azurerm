@@ -40,15 +40,15 @@ func ParseDeletedConfigurationStoreID(input string) (*DeletedConfigurationStoreI
 	id := DeletedConfigurationStoreId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
 	}
 
 	if id.DeletedConfigurationStoreName, ok = parsed.Parsed["deletedConfigurationStoreName"]; !ok {
-		return nil, fmt.Errorf("the segment 'deletedConfigurationStoreName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedConfigurationStoreName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseDeletedConfigurationStoreIDInsensitively(input string) (*DeletedConfig
 	id := DeletedConfigurationStoreId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
 	}
 
 	if id.DeletedConfigurationStoreName, ok = parsed.Parsed["deletedConfigurationStoreName"]; !ok {
-		return nil, fmt.Errorf("the segment 'deletedConfigurationStoreName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedConfigurationStoreName", *parsed)
 	}
 
 	return &id, nil

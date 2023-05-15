@@ -36,7 +36,7 @@ func ParseAliasID(input string) (*AliasId, error) {
 	id := AliasId{}
 
 	if id.AliasName, ok = parsed.Parsed["aliasName"]; !ok {
-		return nil, fmt.Errorf("the segment 'aliasName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "aliasName", *parsed)
 	}
 
 	return &id, nil
@@ -55,7 +55,7 @@ func ParseAliasIDInsensitively(input string) (*AliasId, error) {
 	id := AliasId{}
 
 	if id.AliasName, ok = parsed.Parsed["aliasName"]; !ok {
-		return nil, fmt.Errorf("the segment 'aliasName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "aliasName", *parsed)
 	}
 
 	return &id, nil

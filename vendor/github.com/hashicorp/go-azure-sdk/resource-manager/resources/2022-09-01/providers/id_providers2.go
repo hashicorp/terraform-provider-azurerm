@@ -38,11 +38,11 @@ func ParseProviders2ID(input string) (*Providers2Id, error) {
 	id := Providers2Id{}
 
 	if id.GroupId, ok = parsed.Parsed["groupId"]; !ok {
-		return nil, fmt.Errorf("the segment 'groupId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "groupId", *parsed)
 	}
 
 	if id.ProviderName, ok = parsed.Parsed["providerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'providerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "providerName", *parsed)
 	}
 
 	return &id, nil
@@ -61,11 +61,11 @@ func ParseProviders2IDInsensitively(input string) (*Providers2Id, error) {
 	id := Providers2Id{}
 
 	if id.GroupId, ok = parsed.Parsed["groupId"]; !ok {
-		return nil, fmt.Errorf("the segment 'groupId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "groupId", *parsed)
 	}
 
 	if id.ProviderName, ok = parsed.Parsed["providerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'providerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "providerName", *parsed)
 	}
 
 	return &id, nil

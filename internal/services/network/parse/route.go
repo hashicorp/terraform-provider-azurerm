@@ -44,7 +44,7 @@ func (id RouteId) ID() string {
 func RouteID(input string) (*RouteId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an Route ID: %+v", input, err)
 	}
 
 	resourceId := RouteId{
