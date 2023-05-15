@@ -141,8 +141,6 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			return err
 		}
 
-
-
 		keyVault, err := vaultsClient.Get(ctx, *keyVaultID)
 		if err != nil {
 			return fmt.Errorf("retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.VaultName, keyVaultID.ResourceGroupName, err)
@@ -285,7 +283,6 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 		}
 		d.Set("key_vault_id", keyVaultID)
 	}
-
 
 	d.Set("storage_account_id", d.Id())
 	d.Set("key_vault_uri", keyVaultURI)
