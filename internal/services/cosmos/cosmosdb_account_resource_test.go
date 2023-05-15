@@ -167,7 +167,14 @@ func TestAccCosmosDBAccount_updateDefaultIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateDefaultIdentityUserAssigned(data, documentdb.DatabaseAccountKindGlobalDocumentDB, `join("=", ["UserAssignedIdentity", azurerm_user_assigned_identity.test.id])`, documentdb.DefaultConsistencyLevelEventual),
+			Config: r.updateDefaultIdentityUserAssigned(data, documentdb.DatabaseAccountKindGlobalDocumentDB, `join("=", ["UserAssignedIdentity", azurerm_user_assigned_identity.test.id])`, documentdb.DefaultConsistencyLevelEventual, "UserAssigned"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateDefaultIdentityUserAssigned(data, documentdb.DatabaseAccountKindGlobalDocumentDB, `join("=", ["UserAssignedIdentity", azurerm_user_assigned_identity.test.id])`, documentdb.DefaultConsistencyLevelEventual, "SystemAssigned, UserAssigned"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
@@ -3268,7 +3275,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), defaultIdentity, string(consistency))
 }
 
-func (CosmosDBAccountResource) updateDefaultIdentityUserAssigned(data acceptance.TestData, kind documentdb.DatabaseAccountKind, defaultIdentity string, consistency documentdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) updateDefaultIdentityUserAssigned(data acceptance.TestData, kind documentdb.DatabaseAccountKind, defaultIdentity string, consistency documentdb.DefaultConsistencyLevel, identityType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3294,7 +3301,7 @@ resource "azurerm_cosmosdb_account" "test" {
   default_identity_type = "%s"
 
   identity {
-    type         = "UserAssigned"
+    type         = "%s"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -3307,7 +3314,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), defaultIdentity, string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), defaultIdentity, identityType, string(consistency))
 }
 
 func (CosmosDBAccountResource) defaultCreateMode(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {

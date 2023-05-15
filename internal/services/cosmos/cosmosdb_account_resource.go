@@ -1192,11 +1192,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'Locations' [NO CHANGE]")
 		}
 
-		// Identity and Default Identity...
-		log.Print("\r\n\r\n\r\n\r\n\r\n\r\n\r\nXXXX-XX-XXTXX:XX:XX.XXX-XXXX [INFO]  provider.terraform-provider-azurerm:   *********************************************************************")
-		log.Print("  ******************************* START *******************************")
-		log.Print("  *********************************************************************")
-
+		// Update Identity and Default Identity...
 		if d.HasChange("identity") {
 			expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
 			if err != nil {
@@ -1240,8 +1236,8 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'Identity' [NO CHANGE]")
 		}
 
-		// NOTE: updateDefaultIdentity now has a default value of 'FirstPartyIdentity'... This value now gets triggered if the default value
-		//       does not match the value in Azure...
+		// NOTE: updateDefaultIdentity now has a default value of 'FirstPartyIdentity'... This value now gets
+		//       triggered if the default value does not match the value in Azure...
 		if updateDefaultIdentity {
 			// This will now return the default of 'FirstPartyIdentity' if it
 			// is not set in the config, which is correct.
@@ -1262,10 +1258,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("updating 'default_identity_type' %q: %+v", id, err)
 			}
 		}
-
-		log.Print("  *******************************************************************")
-		log.Print("  ******************************* END *******************************")
-		log.Print("  *******************************************************************\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\nXXXX-XX-XXTXX:XX:XX.XXX-XXXX [INFO]  provider.terraform-provider-azurerm: ")
 
 		d.SetId(id.ID())
 	}
