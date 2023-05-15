@@ -3294,9 +3294,9 @@ resource "azurerm_cosmosdb_account" "test" {
   default_identity_type = "%s"
 
   identity {
-     type         = "UserAssigned"
-     identity_ids = [azurerm_user_assigned_identity.test.id]
-  } 
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 
   consistency_policy {
     consistency_level = "%s"
