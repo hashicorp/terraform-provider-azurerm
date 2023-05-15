@@ -40,7 +40,7 @@ func TestAccSiteRecoveryHyperVNetworkMapping_basic(t *testing.T) {
 	})
 }
 
-func (SiteRecoveryHyperVNetworkMappingResource) basic(data acceptance.TestData, vaultId, vmmName, NetworkName string) string {
+func (SiteRecoveryHyperVNetworkMappingResource) basic(data acceptance.TestData, vaultId, vmmName, networkName string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "target" {
   name     = "acctestRG-recovery-%[1]d-1"
@@ -61,7 +61,7 @@ resource "azurerm_site_recovery_hyperv_network_mapping" "test" {
   source_network_name                               = "%[5]s"
   target_network_id                                 = azurerm_virtual_network.target.id
 }
-`, data.RandomInteger, data.Locations.Primary, vaultId, vmmName, NetworkName)
+`, data.RandomInteger, data.Locations.Primary, vaultId, vmmName, networkName)
 }
 
 func (t SiteRecoveryHyperVNetworkMappingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

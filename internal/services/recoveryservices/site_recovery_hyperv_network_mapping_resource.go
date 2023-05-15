@@ -136,13 +136,16 @@ func (s HyperVNetworkMappingResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError("azurerm_site_recovery_hyperv_network_mapping", id.ID())
 			}
 
-			client.CreateThenPoll(ctx, id, replicationnetworkmappings.CreateNetworkMappingInput{
+			err = client.CreateThenPoll(ctx, id, replicationnetworkmappings.CreateNetworkMappingInput{
 				Properties: replicationnetworkmappings.CreateNetworkMappingInputProperties{
 					RecoveryNetworkId:     plan.TargetNetworkId,
 					RecoveryFabricName:    pointer.To(HyperVNetworkMappingRecoveryFabricName),
 					FabricSpecificDetails: replicationnetworkmappings.VMmToAzureCreateNetworkMappingInput{},
 				},
 			})
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 
 			metadata.SetID(id)
 			return nil
