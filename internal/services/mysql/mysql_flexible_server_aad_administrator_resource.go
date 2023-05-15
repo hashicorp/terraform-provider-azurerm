@@ -37,7 +37,7 @@ func (r MySQLFlexibleServerAdministratorResource) ModelObject() interface{} {
 }
 
 func (r MySQLFlexibleServerAdministratorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.MySQLFlexibleServerAzureActiveDirectoryAdministratorID
+	return validate.FlexibleServerAzureActiveDirectoryAdministratorID
 }
 
 func (r MySQLFlexibleServerAdministratorResource) Arguments() map[string]*pluginsdk.Schema {
@@ -117,7 +117,7 @@ func (r MySQLFlexibleServerAdministratorResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", flexibleServerId, err)
 			}
 
-			id := parse.NewMySQLFlexibleServerAzureActiveDirectoryAdministratorID(flexibleServerId.SubscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, string(azureadadministrators.AdministratorTypeActiveDirectory))
+			id := parse.NewFlexibleServerAzureActiveDirectoryAdministratorID(flexibleServerId.SubscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, string(azureadadministrators.AdministratorTypeActiveDirectory))
 
 			metadata.SetID(id)
 			return nil
@@ -131,7 +131,7 @@ func (r MySQLFlexibleServerAdministratorResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MySQL.AzureADAdministratorsClient
 
-			id, err := parse.MySQLFlexibleServerAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
+			id, err := parse.FlexibleServerAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -184,7 +184,7 @@ func (r MySQLFlexibleServerAdministratorResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MySQL.AzureADAdministratorsClient
 
-			id, err := parse.MySQLFlexibleServerAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
+			id, err := parse.FlexibleServerAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -229,7 +229,7 @@ func (r MySQLFlexibleServerAdministratorResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MySQL.AzureADAdministratorsClient
 
-			id, err := parse.MySQLFlexibleServerAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
+			id, err := parse.FlexibleServerAzureActiveDirectoryAdministratorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

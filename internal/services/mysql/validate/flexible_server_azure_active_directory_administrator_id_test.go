@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestMySQLFlexibleServerAzureActiveDirectoryAdministratorID(t *testing.T) {
+func TestFlexibleServerAzureActiveDirectoryAdministratorID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -78,7 +78,7 @@ func TestMySQLFlexibleServerAzureActiveDirectoryAdministratorID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := MySQLFlexibleServerAzureActiveDirectoryAdministratorID(tc.Input, "test")
+		_, errors := FlexibleServerAzureActiveDirectoryAdministratorID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

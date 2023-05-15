@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = MySQLFlexibleServerAzureActiveDirectoryAdministratorId{}
+var _ resourceids.Id = FlexibleServerAzureActiveDirectoryAdministratorId{}
 
-func TestMySQLFlexibleServerAzureActiveDirectoryAdministratorIDFormatter(t *testing.T) {
-	actual := NewMySQLFlexibleServerAzureActiveDirectoryAdministratorID("12345678-1234-9876-4563-123456789012", "resGroup1", "server1", "ActiveDirectory").ID()
+func TestFlexibleServerAzureActiveDirectoryAdministratorIDFormatter(t *testing.T) {
+	actual := NewFlexibleServerAzureActiveDirectoryAdministratorID("12345678-1234-9876-4563-123456789012", "resGroup1", "server1", "ActiveDirectory").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforMySQL/flexibleServers/server1/administrators/ActiveDirectory"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestMySQLFlexibleServerAzureActiveDirectoryAdministratorID(t *testing.T) {
+func TestFlexibleServerAzureActiveDirectoryAdministratorID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *MySQLFlexibleServerAzureActiveDirectoryAdministratorId
+		Expected *FlexibleServerAzureActiveDirectoryAdministratorId
 	}{
 
 		{
@@ -82,7 +82,7 @@ func TestMySQLFlexibleServerAzureActiveDirectoryAdministratorID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforMySQL/flexibleServers/server1/administrators/ActiveDirectory",
-			Expected: &MySQLFlexibleServerAzureActiveDirectoryAdministratorId{
+			Expected: &FlexibleServerAzureActiveDirectoryAdministratorId{
 				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:      "resGroup1",
 				FlexibleServerName: "server1",
@@ -100,7 +100,7 @@ func TestMySQLFlexibleServerAzureActiveDirectoryAdministratorID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := MySQLFlexibleServerAzureActiveDirectoryAdministratorID(v.Input)
+		actual, err := FlexibleServerAzureActiveDirectoryAdministratorID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

@@ -70,7 +70,7 @@ func TestAccMySQLFlexibleServerAdministrator_update(t *testing.T) {
 }
 
 func (r MySQLFlexibleServerAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MySQLFlexibleServerAzureActiveDirectoryAdministratorID(state.ID)
+	id, err := parse.FlexibleServerAzureActiveDirectoryAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
 	}

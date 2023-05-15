@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type MySQLFlexibleServerAzureActiveDirectoryAdministratorId struct {
+type FlexibleServerAzureActiveDirectoryAdministratorId struct {
 	SubscriptionId     string
 	ResourceGroup      string
 	FlexibleServerName string
 	AdministratorName  string
 }
 
-func NewMySQLFlexibleServerAzureActiveDirectoryAdministratorID(subscriptionId, resourceGroup, flexibleServerName, administratorName string) MySQLFlexibleServerAzureActiveDirectoryAdministratorId {
-	return MySQLFlexibleServerAzureActiveDirectoryAdministratorId{
+func NewFlexibleServerAzureActiveDirectoryAdministratorID(subscriptionId, resourceGroup, flexibleServerName, administratorName string) FlexibleServerAzureActiveDirectoryAdministratorId {
+	return FlexibleServerAzureActiveDirectoryAdministratorId{
 		SubscriptionId:     subscriptionId,
 		ResourceGroup:      resourceGroup,
 		FlexibleServerName: flexibleServerName,
@@ -25,29 +25,29 @@ func NewMySQLFlexibleServerAzureActiveDirectoryAdministratorID(subscriptionId, r
 	}
 }
 
-func (id MySQLFlexibleServerAzureActiveDirectoryAdministratorId) String() string {
+func (id FlexibleServerAzureActiveDirectoryAdministratorId) String() string {
 	segments := []string{
 		fmt.Sprintf("Administrator Name %q", id.AdministratorName),
 		fmt.Sprintf("Flexible Server Name %q", id.FlexibleServerName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "My S Q L Flexible Server Azure Active Directory Administrator", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Flexible Server Azure Active Directory Administrator", segmentsStr)
 }
 
-func (id MySQLFlexibleServerAzureActiveDirectoryAdministratorId) ID() string {
+func (id FlexibleServerAzureActiveDirectoryAdministratorId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforMySQL/flexibleServers/%s/administrators/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FlexibleServerName, id.AdministratorName)
 }
 
-// MySQLFlexibleServerAzureActiveDirectoryAdministratorID parses a MySQLFlexibleServerAzureActiveDirectoryAdministrator ID into an MySQLFlexibleServerAzureActiveDirectoryAdministratorId struct
-func MySQLFlexibleServerAzureActiveDirectoryAdministratorID(input string) (*MySQLFlexibleServerAzureActiveDirectoryAdministratorId, error) {
+// FlexibleServerAzureActiveDirectoryAdministratorID parses a FlexibleServerAzureActiveDirectoryAdministrator ID into an FlexibleServerAzureActiveDirectoryAdministratorId struct
+func FlexibleServerAzureActiveDirectoryAdministratorID(input string) (*FlexibleServerAzureActiveDirectoryAdministratorId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an FlexibleServerAzureActiveDirectoryAdministrator ID: %+v", input, err)
 	}
 
-	resourceId := MySQLFlexibleServerAzureActiveDirectoryAdministratorId{
+	resourceId := FlexibleServerAzureActiveDirectoryAdministratorId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
