@@ -199,7 +199,7 @@ variable "ssh_key" {
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "privatelink.api.ml.azure.us"
+  name                = "privatelink.api.azureml.ms"
   resource_group_name = azurerm_resource_group.test.name
 }
 

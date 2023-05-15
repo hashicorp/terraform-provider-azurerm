@@ -192,7 +192,7 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "privatelink.api.ml.azure.us"
+  name                = "privatelink.api.azureml.ms"
   resource_group_name = azurerm_resource_group.test.name
 }
 
