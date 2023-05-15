@@ -2603,7 +2603,6 @@ resource "azurerm_windows_web_app" "test" {
           count      = "10"
           interval   = "00:10:00"
           time_taken = "00:00:10"
-          path       = null
         }
       }
 
@@ -2636,7 +2635,6 @@ resource "azurerm_windows_web_app" "test" {
           count      = "10"
           interval   = "00:10:00"
           time_taken = "00:00:10"
-          path       = null
         }
         slow_request_with_path {
           count      = "11"

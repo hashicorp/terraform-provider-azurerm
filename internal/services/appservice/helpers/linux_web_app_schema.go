@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	appServiceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -601,15 +602,15 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"time_taken": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
 							},
 
 							"interval": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
 							},
 
 							"count": {
@@ -627,15 +628,15 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"time_taken": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
 							},
 
 							"interval": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
 							},
 
 							"count": {
@@ -663,15 +664,15 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"time_taken": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						// ValidateFunc: validation.IsRFC3339Time,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: appServiceValidate.TimeInterval,
 					},
 
 					"interval": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						// ValidateFunc: validation.IsRFC3339Time,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: appServiceValidate.TimeInterval,
 					},
 
 					"count": {
@@ -684,6 +685,7 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+						Deprecated:   "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
 					},
 				},
 			},
@@ -829,8 +831,9 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 					},
 
 					"path": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Type:       pluginsdk.TypeString,
+						Computed:   true,
+						Deprecated: "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
 					},
 				},
 			},

@@ -293,15 +293,15 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"time_taken": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"interval": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"count": {
@@ -329,15 +329,15 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"time_taken": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						// ValidateFunc: validation.IsRFC3339Time,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.TimeInterval,
 					},
 
 					"interval": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						// ValidateFunc: validation.IsRFC3339Time,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.TimeInterval,
 					},
 
 					"count": {
@@ -350,6 +350,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+						Deprecated:   "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
 					},
 				},
 			},
@@ -500,8 +501,9 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 					},
 
 					"path": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Type:       pluginsdk.TypeString,
+						Computed:   true,
+						Deprecated: "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
 					},
 				},
 			},
