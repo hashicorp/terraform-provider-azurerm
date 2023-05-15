@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -69,13 +70,15 @@ func TestAccMySQLFlexibleServerAdministrator_update(t *testing.T) {
 }
 
 func (r MySQLFlexibleServerAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := azureadadministrators.ParseFlexibleServerID(state.ID)
+	id, err := parse.MySQLFlexibleServerAzureActiveDirectoryAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
+	flexibleServerId := azureadadministrators.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroup, id.FlexibleServerName)
+
 	client := clients.MySQL.AzureADAdministratorsClient
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.Get(ctx, flexibleServerId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
@@ -104,6 +107,12 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
 }
 
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctestUAI2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_mysql_flexible_server" "test" {
   name                   = "acctest-mysqlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -111,14 +120,14 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  zone                   = "2"
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
+    identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.test2.id]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r MySQLFlexibleServerAdministratorResource) basic(data acceptance.TestData) string {
@@ -153,12 +162,6 @@ func (r MySQLFlexibleServerAdministratorResource) update(data acceptance.TestDat
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_user_assigned_identity" "test2" {
-  name                = "acctestUAI2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
 resource "azurerm_mysql_flexible_server_active_directory_administrator" "test" {
   server_id   = azurerm_mysql_flexible_server.test.id
   identity_id = azurerm_user_assigned_identity.test2.id
@@ -166,5 +169,5 @@ resource "azurerm_mysql_flexible_server_active_directory_administrator" "test" {
   object_id   = data.azurerm_client_config.current.client_id
   tenant_id   = data.azurerm_client_config.current.tenant_id
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data))
 }

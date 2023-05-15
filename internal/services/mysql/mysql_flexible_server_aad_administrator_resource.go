@@ -3,14 +3,14 @@ package mysql
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/azureadadministrators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -103,7 +103,7 @@ func (r MySQLFlexibleServerAdministratorResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), flexibleServerId)
 			}
 
-			properties := &azureadadministrators.AzureADAdministrator{
+			properties := azureadadministrators.AzureADAdministrator{
 				Properties: &azureadadministrators.AdministratorProperties{
 					AdministratorType:  pointer.To(azureadadministrators.AdministratorTypeActiveDirectory),
 					IdentityResourceId: pointer.To(model.IdentityId),
@@ -113,7 +113,7 @@ func (r MySQLFlexibleServerAdministratorResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *flexibleServerId, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *flexibleServerId, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", flexibleServerId, err)
 			}
 
@@ -154,35 +154,19 @@ func (r MySQLFlexibleServerAdministratorResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity_id") {
-				if model.IdentityId != "" {
-					properties.Properties.IdentityResourceId = &model.IdentityId
-				} else {
-					properties.Properties.IdentityResourceId = nil
-				}
+				properties.Properties.IdentityResourceId = pointer.To(model.IdentityId)
 			}
 
 			if metadata.ResourceData.HasChange("login") {
-				if model.Login != "" {
-					properties.Properties.Login = &model.Login
-				} else {
-					properties.Properties.Login = nil
-				}
+				properties.Properties.Login = pointer.To(model.Login)
 			}
 
 			if metadata.ResourceData.HasChange("object_id") {
-				if model.ObjectId != "" {
-					properties.Properties.Sid = &model.ObjectId
-				} else {
-					properties.Properties.Sid = nil
-				}
+				properties.Properties.Sid = pointer.To(model.ObjectId)
 			}
 
 			if metadata.ResourceData.HasChange("tenant_id") {
-				if model.TenantId != "" {
-					properties.Properties.TenantId = &model.TenantId
-				} else {
-					properties.Properties.TenantId = nil
-				}
+				properties.Properties.TenantId = pointer.To(model.TenantId)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, flexibleServerId, *properties); err != nil {
