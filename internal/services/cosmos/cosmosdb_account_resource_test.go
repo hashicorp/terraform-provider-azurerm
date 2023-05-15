@@ -153,14 +153,14 @@ func TestAccCosmosDBAccount_updateDefaultIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultIdentity(data, documentdb.DatabaseAccountKindGlobalDocumentDB, "FirstPartyIdentity", documentdb.DefaultConsistencyLevelEventual),
+			Config: r.defaultIdentity(data, documentdb.DatabaseAccountKindGlobalDocumentDB, `"FirstPartyIdentity"`, documentdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateDefaultIdentity(data, documentdb.DatabaseAccountKindGlobalDocumentDB, "SystemAssignedIdentity", documentdb.DefaultConsistencyLevelEventual),
+			Config: r.updateDefaultIdentity(data, documentdb.DatabaseAccountKindGlobalDocumentDB, `"SystemAssignedIdentity"`, documentdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
@@ -3257,7 +3257,7 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   offer_type            = "Standard"
   kind                  = "%s"
-  default_identity_type = "%s"
+  default_identity_type = %s
 
   identity {
     type = "SystemAssigned"
@@ -3298,7 +3298,7 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   offer_type            = "Standard"
   kind                  = "%s"
-  default_identity_type = "%s"
+  default_identity_type = %s
 
   identity {
     type         = "%s"
