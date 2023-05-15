@@ -978,6 +978,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		publicNetworkAccess := props.PublicNetworkAccess
 		if d.HasChange("public_network_access_enabled") {
+			publicNetworkAccess = documentdb.PublicNetworkAccessEnabled
 			if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
 				publicNetworkAccess = documentdb.PublicNetworkAccessDisabled
 			}
@@ -986,6 +987,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		networkByPass := props.NetworkACLBypass
 		if d.HasChange("network_acl_bypass_for_azure_services") {
+			networkByPass = documentdb.NetworkACLBypassNone
 			if d.Get("network_acl_bypass_for_azure_services").(bool) {
 				networkByPass = documentdb.NetworkACLBypassAzureServices
 			}
