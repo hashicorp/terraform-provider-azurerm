@@ -79,7 +79,7 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 			}
 			client := metadata.Client.SignalR.SignalRClient
 
-			signalRServiceId, err := signalr.ParseSignalRID(metadata.ResourceData.Get("signalr_service_id").(string))
+			signalRServiceId, err := signalr.ParseSignalRIDInsensitively(metadata.ResourceData.Get("signalr_service_id").(string))
 			if err != nil {
 				return fmt.Errorf("parsing signalr service id error: %+v", err)
 			}
@@ -94,10 +94,11 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 			}
 
 			existing, err := client.CustomDomainsGet(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+
 			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id, err)
-				}
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -131,7 +132,7 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 				Refresh:                   signalrServiceCustomDomainProvisioningStateRefreshFunc(ctx, client, id),
 				Timeout:                   time.Until(deadline),
 				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 5,
+				ContinuousTargetOccurence: 20,
 			}
 
 			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
@@ -149,7 +150,7 @@ func (r CustomDomainSignalrServiceResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SignalR.SignalRClient
-			id, err := signalr.ParseCustomDomainID(metadata.ResourceData.Id())
+			id, err := signalr.ParseCustomDomainIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -169,7 +170,6 @@ func (r CustomDomainSignalrServiceResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				props := model.Properties
-
 				signalrCustomCertificateId := ""
 				if props.CustomCertificate.Id != nil {
 					signalrCustomCertificateID, err := signalr.ParseCustomCertificateIDInsensitively(*props.CustomCertificate.Id)
@@ -208,6 +208,23 @@ func (r CustomDomainSignalrServiceResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Exists"},
+				Target:                    []string{"NotFound"},
+				Refresh:                   signalrServiceCustomDomainDeleteRefreshFunc(ctx, client, *id),
+				Timeout:                   time.Until(deadline),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 20,
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
+			}
+
 			return nil
 		},
 	}
@@ -221,15 +238,33 @@ func signalrServiceCustomDomainProvisioningStateRefreshFunc(ctx context.Context,
 	return func() (interface{}, string, error) {
 		res, err := client.CustomDomainsGet(ctx, id)
 
+		provisioningState := "Pending"
 		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return res, provisioningState, nil
+			}
 			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
 		}
 
-		if model := res.Model; model != nil {
-			if model.Properties.ProvisioningState != nil {
-				return res, string(*model.Properties.ProvisioningState), nil
-			}
+		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
+			provisioningState = string(*res.Model.Properties.ProvisioningState)
 		}
-		return nil, "", fmt.Errorf("unable to read provisioning state")
+
+		return res, provisioningState, nil
+	}
+}
+
+func signalrServiceCustomDomainDeleteRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.CustomDomainId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.CustomDomainsGet(ctx, id)
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
+		}
+
+		return res, "Exists", nil
 	}
 }

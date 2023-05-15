@@ -94,10 +94,11 @@ func (r CustomDomainWebPubsubResource) Create() sdk.ResourceFunc {
 			}
 
 			existing, err := client.CustomDomainsGet(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+
 			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id, err)
-				}
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -208,6 +209,22 @@ func (r CustomDomainWebPubsubResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Exists"},
+				Target:                    []string{"NotFound"},
+				Refresh:                   webPubsubCustomDomainDeleteRefreshFunc(ctx, client, *id),
+				Timeout:                   time.Until(deadline),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 20,
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
+			}
 			return nil
 		},
 	}
@@ -234,5 +251,20 @@ func webPubsubCustomDomainProvisioningStateRefreshFunc(ctx context.Context, clie
 		}
 
 		return res, provisioningState, nil
+	}
+}
+
+func webPubsubCustomDomainDeleteRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.CustomDomainId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.CustomDomainsGet(ctx, id)
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
+		}
+
+		return res, "Exists", nil
 	}
 }

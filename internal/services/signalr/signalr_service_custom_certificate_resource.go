@@ -214,6 +214,23 @@ func (r CustomCertSignalrServiceResource) Delete() sdk.ResourceFunc {
 			if _, err := client.CustomCertificatesDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Exists"},
+				Target:                    []string{"NotFound"},
+				Refresh:                   signalrServiceCustomCertificateDeleteRefreshFunc(ctx, client, *id),
+				Timeout:                   time.Until(deadline),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 20,
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
+			}
 			return nil
 		},
 	}
@@ -221,4 +238,19 @@ func (r CustomCertSignalrServiceResource) Delete() sdk.ResourceFunc {
 
 func (r CustomCertSignalrServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return signalr.ValidateCustomCertificateID
+}
+
+func signalrServiceCustomCertificateDeleteRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.CustomCertificateId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.CustomCertificatesGet(ctx, id)
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
+		}
+
+		return res, "Exists", nil
+	}
 }

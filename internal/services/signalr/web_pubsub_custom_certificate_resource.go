@@ -209,6 +209,23 @@ func (r CustomCertWebPubsubResource) Delete() sdk.ResourceFunc {
 			if _, err := client.CustomCertificatesDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Exists"},
+				Target:                    []string{"NotFound"},
+				Refresh:                   webPubsubCustomCertificateDeleteRefreshFunc(ctx, client, *id),
+				Timeout:                   time.Until(deadline),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 20,
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
+			}
 			return nil
 		},
 	}
@@ -216,4 +233,19 @@ func (r CustomCertWebPubsubResource) Delete() sdk.ResourceFunc {
 
 func (r CustomCertWebPubsubResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return webpubsub.ValidateCustomCertificateID
+}
+
+func webPubsubCustomCertificateDeleteRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.CustomCertificateId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.CustomCertificatesGet(ctx, id)
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
+		}
+
+		return res, "Exists", nil
+	}
 }

@@ -467,7 +467,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Refresh:                   signalrServiceProvisioningStateRefreshFunc(ctx, client, *id),
 		Timeout:                   time.Until(deadline),
 		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 5,
+		ContinuousTargetOccurence: 20,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
