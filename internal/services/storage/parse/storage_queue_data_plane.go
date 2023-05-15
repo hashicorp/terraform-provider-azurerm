@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/queue/queues"
 )
 
 var _ resourceids.Id = StorageQueueDataPlaneId{}

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/queue/queues"
 )
 
 type DataPlaneStorageQueueWrapper struct {
