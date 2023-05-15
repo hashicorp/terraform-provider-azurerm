@@ -67,7 +67,7 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"labels": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -97,7 +97,7 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 									},
 
 									"address_prefixes": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
