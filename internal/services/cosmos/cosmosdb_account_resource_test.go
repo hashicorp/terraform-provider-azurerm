@@ -153,7 +153,7 @@ func TestAccCosmosDBAccount_updateDefaultIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultIdentity(data, documentdb.DatabaseAccountKindGlobalDocumentDB, `"FirstPartyIdentity"`, documentdb.DefaultConsistencyLevelEventual),
+			Config: r.defaultIdentity(data, documentdb.DatabaseAccountKindGlobalDocumentDB, "FirstPartyIdentity", documentdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
