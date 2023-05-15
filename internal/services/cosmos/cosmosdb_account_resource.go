@@ -239,6 +239,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
+			// Per Documentation: "The default identity needs to be explicitly set by the users." This should not be optional without a default anymore.
+			// DOC: https://learn.microsoft.com/en-us/java/api/com.azure.resourcemanager.cosmos.models.databaseaccountupdateparameters?view=azure-java-stable#method-details
 			"default_identity_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -744,11 +746,11 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	capabilities := expandAzureRmCosmosDBAccountCapabilities(d)
 
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
 		Identity: expandedIdentity,
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
-			DatabaseAccountOfferType:           utils.String(offerType),
+			DatabaseAccountOfferType:           pointer.To(offerType),
 			IPRules:                            ipRangeFilter,
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableFreeTier:                     utils.Bool(enableFreeTier),
@@ -770,7 +772,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if v, ok := d.GetOk("default_identity_type"); ok {
-		account.DatabaseAccountCreateUpdateProperties.DefaultIdentity = utils.String(v.(string))
+		account.DatabaseAccountCreateUpdateProperties.DefaultIdentity = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("analytical_storage"); ok {
@@ -812,16 +814,16 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
-		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = pointer.To(keyVaultKey.ID())
 	}
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
 	consistencyPolicy := account.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy
 	if len(geoLocations) > 1 && consistencyPolicy != nil && consistencyPolicy.DefaultConsistencyLevel == documentdb.DefaultConsistencyLevelBoundedStaleness {
-		if msp := consistencyPolicy.MaxStalenessPrefix; msp != nil && *msp < 100000 {
+		if msp := consistencyPolicy.MaxStalenessPrefix; msp != nil && pointer.From(msp) < 100000 {
 			return fmt.Errorf("max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
 		}
-		if mis := consistencyPolicy.MaxIntervalInSeconds; mis != nil && *mis < 300 {
+		if mis := consistencyPolicy.MaxIntervalInSeconds; mis != nil && pointer.From(mis) < 300 {
 			return fmt.Errorf("max_interval_in_seconds (%d) must be greater then 300 (5min) when more then one geo_location is used", *mis)
 		}
 	}
@@ -848,8 +850,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
-
-	// id := parse.NewDatabaseAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	// get existing locations (if exists)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
@@ -908,12 +908,9 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			capabilities = newCapabilities
+		} else {
+			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'Capabilities' [NO CHANGE]")
 		}
-	}
-
-	expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	updateRequired := false
@@ -1033,7 +1030,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				PublicNetworkAccess:                publicNetworkAccess,
 				EnableAnalyticalStorage:            enableAnalyticalStorage,
 				Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
-				DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
+				DisableKeyBasedMetadataWriteAccess: pointer.To(!d.Get("access_key_metadata_writes_enabled").(bool)),
 				NetworkACLBypass:                   networkByPass,
 				NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 				DisableLocalAuth:                   disableLocalAuthentication,
@@ -1043,18 +1040,11 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		accountProps := account.DatabaseAccountCreateUpdateProperties
 
-		if props.DefaultIdentity != nil {
-			accountProps.DefaultIdentity = props.DefaultIdentity
-		}
-
-		// d.GetOk cannot tell if the user has set the property or not since the property is Optional and Computed.
-		// d.GetOk will always return a value for the property, if it's not in the config file it will pull the
-		// value from state. So we have to use 'd.GetRawConfig()' to tell if it is actually in the config or not.
-		//
-		// @WodansSon: I have updated this check to use the existing 'pluginsdk.IsExplicitlyNullInConfig' helper
-		//             function instead of calling `d.GetRawConfig()` directly.
+		// 'default_identity_type' will always have a value since it now has a default value of "FirstPartyIdentity" per the API documentation.
+		// I do not include 'DefaultIdentity' and 'Identity' in the 'accountProps' intentionally, these operations need to be
+		// performed mutually exclusive from each other in an atomic fashion, else you will hit the service teams bug...
 		updateDefaultIdentity := false
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "default_identity_type") && d.HasChange("default_identity_type") {
+		if defaultIdentity := d.Get("default_identity_type").(string); defaultIdentity != pointer.From(props.DefaultIdentity) {
 			updateDefaultIdentity = true
 		}
 
@@ -1094,7 +1084,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				if err != nil {
 					return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 				}
-				accountProps.KeyVaultKeyURI = utils.String(keyVaultKey.ID())
+				accountProps.KeyVaultKeyURI = pointer.To(keyVaultKey.ID())
 			}
 			updateRequired = true
 		}
@@ -1203,51 +1193,66 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		// Identity and Default Identity...
-		log.Print("\r\n\r\n\r\n\r\n\r\n\r\n\r\nXXXX-XX-XXTXX:XX:XX.XXX-XXXX [INFO]  provider.terraform-provider-azurerm:  *********************************************************************")
+		log.Print("\r\n\r\n\r\n\r\n\r\n\r\n\r\nXXXX-XX-XXTXX:XX:XX.XXX-XXXX [INFO]  provider.terraform-provider-azurerm:   *********************************************************************")
 		log.Print("  ******************************* START *******************************")
 		log.Print("  *********************************************************************")
 
-		if expandedIdentity != nil {
+		if d.HasChange("identity") {
+			expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			// Looks like you have to always remove all the identities first before you can
 			// reassign/modify them, else it will append any new/changed identities
 			// resulting in a diff...
 			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Setting 'Identity' to 'None'")
-			account.Identity = pointer.To(documentdb.ManagedServiceIdentity{
-				Type: documentdb.ResourceIdentityTypeNone,
-			})
+
+			// can't set this back to account, because that will hit the bug...
+			identity := documentdb.DatabaseAccountUpdateParameters{
+				Identity: pointer.To(documentdb.ManagedServiceIdentity{
+					Type: documentdb.ResourceIdentityTypeNone,
+				}),
+			}
 
 			// Update the database 'Identity' to 'None'...
-			err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id.ResourceGroup, id.Name, account, d)
-			if err != nil {
-				return fmt.Errorf("updating 'identity' %q: %+v", id, err)
-			}
-
-			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'Identity'")
-			// account.Identity = expandedIdentity
-			identity := documentdb.DatabaseAccountUpdateParameters{
-				Identity: expandedIdentity,
-			}
-
-			// Update the database...
 			err = resourceCosmosDbAccountApiUpdate(client, ctx, id.ResourceGroup, id.Name, identity, d)
 			if err != nil {
 				return fmt.Errorf("updating 'identity' %q: %+v", id, err)
 			}
 
-			// Since you have to clear the existing identities by setting them to 'None', which
-			// causes the existing 'DefaultIdentity' to flip to 'Undefined' you will always need
-			// to update the 'DefaultIdentity' if you update the 'Identity' field...
-			updateDefaultIdentity = true
+			// If the Identity was removed from the configuration file it will be set as type None
+			// so we can skip setting the Identity if it is going to be set to None...
+			if expandedIdentity.Type != documentdb.ResourceIdentityTypeNone {
+				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'Identity' to %q", expandedIdentity.Type)
+
+				identity := documentdb.DatabaseAccountUpdateParameters{
+					Identity: expandedIdentity,
+				}
+
+				// Update the database...
+				err = resourceCosmosDbAccountApiUpdate(client, ctx, id.ResourceGroup, id.Name, identity, d)
+				if err != nil {
+					return fmt.Errorf("updating 'identity' %q: %+v", id, err)
+				}
+			}
 		} else {
 			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'Identity' [NO CHANGE]")
 		}
 
+		// NOTE: updateDefaultIdentity now has a default value of 'FirstPartyIdentity'... This value now gets triggered if the default value
+		//       does not match the value in Azure...
 		if updateDefaultIdentity {
-			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity'")
+			// This will now return the default of 'FirstPartyIdentity' if it
+			// is not set in the config, which is correct.
+			configDefaultIdentity := d.Get("default_identity_type").(string)
+
+			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q", configDefaultIdentity)
+
 			// PATCH instead of PUT...
 			defaultIdentity := documentdb.DatabaseAccountUpdateParameters{
 				DatabaseAccountUpdateProperties: &documentdb.DatabaseAccountUpdateProperties{
-					DefaultIdentity: pointer.To(d.Get("default_identity_type").(string)),
+					DefaultIdentity: pointer.To(configDefaultIdentity),
 				},
 			}
 
@@ -1256,8 +1261,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			if err != nil {
 				return fmt.Errorf("updating 'default_identity_type' %q: %+v", id, err)
 			}
-		} else {
-			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: updating 'DefaultIdentity' [NO CHANGE]")
 		}
 
 		log.Print("  *******************************************************************")
@@ -1636,7 +1639,7 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *pluginsdk.ResourceData) *d
 		if stalenessPrefix == 0 {
 			stalenessPrefix = 100
 		}
-		policy.MaxStalenessPrefix = utils.Int64(int64(stalenessPrefix))
+		policy.MaxStalenessPrefix = pointer.FromInt64(int64(stalenessPrefix))
 	}
 	if maxInterval, ok := input["max_interval_in_seconds"].(int); ok {
 		if maxInterval == 0 {
@@ -1654,9 +1657,9 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]docu
 		data := l.(map[string]interface{})
 
 		location := documentdb.Location{
-			LocationName:     utils.String(azure.NormalizeLocation(data["location"].(string))),
+			LocationName:     pointer.To(azure.NormalizeLocation(data["location"].(string))),
 			FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
-			IsZoneRedundant:  utils.Bool(data["zone_redundant"].(bool)),
+			IsZoneRedundant:  pointer.FromBool(data["zone_redundant"].(bool)),
 		}
 
 		locations = append(locations, location)
@@ -1701,7 +1704,7 @@ func expandAzureRmCosmosDBAccountCapabilities(d *pluginsdk.ResourceData) *[]docu
 
 	for _, c := range capabilities {
 		m := c.(map[string]interface{})
-		s = append(s, documentdb.Capability{Name: utils.String(m["name"].(string))})
+		s = append(s, documentdb.Capability{Name: pointer.To(m["name"].(string))})
 	}
 
 	return &s
@@ -1714,8 +1717,8 @@ func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *pluginsdk.ResourceData) 
 	for i, r := range virtualNetworkRules {
 		m := r.(map[string]interface{})
 		s[i] = documentdb.VirtualNetworkRule{
-			ID:                               utils.String(m["id"].(string)),
-			IgnoreMissingVNetServiceEndpoint: utils.Bool(m["ignore_missing_vnet_service_endpoint"].(bool)),
+			ID:                               pointer.To(m["id"].(string)),
+			IgnoreMissingVNetServiceEndpoint: pointer.FromBool(m["ignore_missing_vnet_service_endpoint"].(bool)),
 		}
 	}
 	return &s
@@ -2065,7 +2068,7 @@ func expandCosmosdbAccountRestoreParameters(input []interface{}) *documentdb.Res
 
 	return &documentdb.RestoreParameters{
 		RestoreMode:           documentdb.RestoreModePointInTime,
-		RestoreSource:         utils.String(v["source_cosmosdb_account_id"].(string)),
+		RestoreSource:         pointer.To(v["source_cosmosdb_account_id"].(string)),
 		RestoreTimestampInUtc: &date.Time{Time: restoreTimestampInUtc},
 		DatabasesToRestore:    expandCosmosdbAccountDatabasesToRestore(v["database"].(*pluginsdk.Set).List()),
 	}
@@ -2078,7 +2081,7 @@ func expandCosmosdbAccountDatabasesToRestore(input []interface{}) *[]documentdb.
 		v := item.(map[string]interface{})
 
 		results = append(results, documentdb.DatabaseRestoreResource{
-			DatabaseName:    utils.String(v["name"].(string)),
+			DatabaseName:    pointer.To(v["name"].(string)),
 			CollectionNames: utils.ExpandStringSlice(v["collection_names"].(*pluginsdk.Set).List()),
 		})
 	}
@@ -2210,7 +2213,7 @@ func prepareCapabilities(capabilities interface{}) *[]documentdb.Capability {
 		m := v.(map[string]interface{})
 		if c, ok := m["name"].(string); ok {
 			cap := documentdb.Capability{
-				Name: utils.String(c),
+				Name: pointer.To(c),
 			}
 			output = append(output, cap)
 		}

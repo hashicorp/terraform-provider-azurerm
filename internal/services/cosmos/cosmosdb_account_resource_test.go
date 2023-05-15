@@ -167,10 +167,45 @@ func TestAccCosmosDBAccount_updateDefaultIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.updateDefaultIdentityUserAssigned(data, documentdb.DatabaseAccountKindGlobalDocumentDB, `join("=", ["UserAssignedIdentity", azurerm_user_assigned_identity.test.id])`, documentdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 1),
 			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_userAssignedIdentityMultiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleUserAssignedIdentityBaseState(data),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleUserAssignedIdentity(data, "azurerm_user_assigned_identity.test.id"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleUserAssignedIdentity(data, "azurerm_user_assigned_identity.test2.id"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleUserAssignedIdentity(data, "azurerm_user_assigned_identity.test.id"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleUserAssignedIdentityBaseState(data),
 		},
 		data.ImportStep(),
 	})
@@ -2591,6 +2626,109 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
 
+func (CosmosDBAccountResource) multipleUserAssignedIdentity(data acceptance.TestData, identityResource string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-user-example"
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-user-example-two"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "MongoDB"
+
+  default_identity_type = join("=", ["UserAssignedIdentity", join("=", ["UserAssignedIdentity", %[4]s])])
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  consistency_policy {
+    consistency_level       = "BoundedStaleness"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [%[4]s]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, identityResource)
+}
+
+func (CosmosDBAccountResource) multipleUserAssignedIdentityBaseState(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-user-example"
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-user-example-two"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "MongoDB"
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  consistency_policy {
+    consistency_level       = "BoundedStaleness"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (CosmosDBAccountResource) basicWithBackupPeriodic(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3117,6 +3255,48 @@ resource "azurerm_cosmosdb_account" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), defaultIdentity, string(consistency))
+}
+
+func (CosmosDBAccountResource) updateDefaultIdentityUserAssigned(data acceptance.TestData, kind documentdb.DatabaseAccountKind, defaultIdentity string, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-user-example"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                  = "acctest-ca-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  offer_type            = "Standard"
+  kind                  = "%s"
+  default_identity_type = "%s"
+
+  identity {
+     type         = "UserAssigned"
+     identity_ids = [azurerm_user_assigned_identity.test.id]
+  } 
 
   consistency_policy {
     consistency_level = "%s"
