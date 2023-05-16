@@ -3,7 +3,7 @@ subcategory: "Hybrid Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_arc_machine"
 description: |-
-Gets information about an existing Azure Arc machine.
+  Gets information about an existing Azure Arc machine.
 ---
 
 # Data Source: azurerm_arc_machine
