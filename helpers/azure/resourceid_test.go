@@ -267,3 +267,52 @@ func TestParseAzureResourceIDWithoutSubscription(t *testing.T) {
 		}
 	}
 }
+
+func TestResourceIDPopSegment(t *testing.T) {
+	testCases := []struct {
+		key               string
+		id                string
+		expectError       bool
+		expectedErrorText string
+	}{
+		{
+			"ruleSets",
+			"/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/example-resources/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleset1/rules/rule1",
+			false,
+			"",
+		},
+		{
+			"ruleSets",
+			"/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/example-resources/providers/Microsoft.Cdn/profiles/profile1",
+			true,
+			"ID was missing the `ruleSets` element",
+		},
+		{
+			"ruleSets",
+			"/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/example-resources/providers/Microsoft.Cdn/profiles/profile1/rulesets/ruleset1/rules/rule1",
+			true,
+			"ID contained `rulesets` element, expected `ruleSets`",
+		},
+	}
+
+	for _, test := range testCases {
+		t.Logf("[DEBUG] Testing %q", test.id)
+
+		parsed, parse_err := azure.ParseAzureResourceID(test.id)
+		if parse_err != nil {
+			t.Fatalf("Unexpected error: %s", parse_err)
+		}
+		_, err := parsed.PopSegment(test.key)
+
+		if test.expectError && err != nil {
+			if err.Error() != test.expectedErrorText {
+				t.Fatalf("Unexpected error text: '%s' should be '%s'", err, test.expectedErrorText)
+			} else {
+				continue
+			}
+		}
+		if err != nil {
+			t.Fatalf("Unexpected error: %s", err)
+		}
+	}
+}

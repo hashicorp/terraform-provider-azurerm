@@ -156,6 +156,16 @@ func ParseAzureResourceIDWithoutSubscription(id string) (*ResourceID, error) {
 func (id *ResourceID) PopSegment(name string) (string, error) {
 	val, ok := id.Path[name]
 	if !ok {
+
+		// There are sometimes casing issues with path segments, check for case insensitive
+		// matches during error conditions to create more user-friendly errors for those
+		// importing resources
+		for key := range id.Path {
+			if strings.EqualFold(key, name) {
+				return "", fmt.Errorf("ID contained `%s` element, expected `%s`", key, name)
+			}
+		}
+
 		return "", fmt.Errorf("ID was missing the `%s` element", name)
 	}
 
