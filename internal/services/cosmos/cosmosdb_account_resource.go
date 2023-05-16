@@ -1072,6 +1072,10 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			updateDefaultIdentity = true
 		}
 
+		if props.AnalyticalStorageConfiguration != nil {
+			accountProps.AnalyticalStorageConfiguration.SchemaType = props.AnalyticalStorageConfiguration.SchemaType
+		}
+
 		if d.HasChange("analytical_storage") {
 			if v, ok := d.GetOk("analytical_storage"); ok {
 				accountProps.AnalyticalStorageConfiguration = expandCosmosDBAccountAnalyticalStorageConfiguration(v.([]interface{}))
@@ -1079,11 +1083,19 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			updateRequired = true
 		}
 
+		if props.Capacity != nil {
+			accountProps.Capacity = props.Capacity
+		}
+
 		if d.HasChange("capacity") {
 			if v, ok := d.GetOk("capacity"); ok {
 				accountProps.Capacity = expandCosmosDBAccountCapacity(v.([]interface{}))
 			}
 			updateRequired = true
+		}
+
+		if props.CreateMode != "" {
+			accountProps.CreateMode = props.CreateMode
 		}
 
 		var createMode string
@@ -1095,11 +1107,19 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			updateRequired = true
 		}
 
+		if props.RestoreParameters != nil {
+			accountProps.RestoreParameters = props.RestoreParameters
+		}
+
 		if d.HasChange("restore") {
 			if v, ok := d.GetOk("restore"); ok {
 				accountProps.RestoreParameters = expandCosmosdbAccountRestoreParameters(v.([]interface{}))
 			}
 			updateRequired = true
+		}
+
+		if props.KeyVaultKeyURI != nil {
+			accountProps.KeyVaultKeyURI = props.KeyVaultKeyURI
 		}
 
 		if d.HasChange("key_vault_key_id") {
@@ -1113,6 +1133,10 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			updateRequired = true
 		}
 
+		if props.APIProperties != nil {
+			accountProps.APIProperties = props.APIProperties
+		}
+
 		if d.HasChange("mongo_server_version") {
 			if v, ok := d.GetOk("mongo_server_version"); ok {
 				accountProps.APIProperties = &documentdb.APIProperties{
@@ -1120,6 +1144,10 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 			}
 			updateRequired = true
+		}
+
+		if props.BackupPolicy != nil {
+			accountProps.BackupPolicy = props.BackupPolicy
 		}
 
 		if d.HasChange("backup") {
