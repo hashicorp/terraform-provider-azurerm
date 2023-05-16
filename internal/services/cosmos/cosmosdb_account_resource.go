@@ -994,6 +994,12 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			updateRequired = true
 		}
 
+		// NOTE: for this field the expand is embedded directly into the
+		// 'documentdb.DatabaseAccountCreateUpdateParameters' below...
+		if d.HasChanges("consistency_policy") {
+			updateRequired = true
+		}
+
 		// Incident : #383341730
 		// Azure Bug: #2209567 'Updating identities and default identity at the same time fails silently'
 		//
