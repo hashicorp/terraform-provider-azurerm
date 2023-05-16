@@ -1201,11 +1201,15 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		// Update Identity and Default Identity...
+		identityChanged := false
+
+		expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
 		if d.HasChange("identity") {
-			expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
+			identityChanged = true
 
 			// Looks like you have to always remove all the identities first before you can
 			// reassign/modify them, else it will append any new/changed identities
@@ -1246,12 +1250,18 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		// NOTE: updateDefaultIdentity now has a default value of 'FirstPartyIdentity'... This value now gets
 		//       triggered if the default value does not match the value in Azure...
-		if updateDefaultIdentity {
+		//
+		// NOTE: When you change the 'Identity', the 'DefaultIdentity' will be set to 'undefined', so if you change
+		//       the identity you must also update the 'DefaultIdentity' as well...
+		if updateDefaultIdentity || identityChanged {
 			// This will now return the default of 'FirstPartyIdentity' if it
 			// is not set in the config, which is correct.
 			configDefaultIdentity := d.Get("default_identity_type").(string)
-
-			log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q", configDefaultIdentity)
+			if identityChanged {
+				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q because the 'Identity' was changed to %q", configDefaultIdentity, expandedIdentity.Type)
+			} else {
+				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q", configDefaultIdentity)
+			}
 
 			// PATCH instead of PUT...
 			defaultIdentity := documentdb.DatabaseAccountUpdateParameters{
