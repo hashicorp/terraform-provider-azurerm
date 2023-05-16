@@ -220,6 +220,11 @@ func TestAccProvider_clientCertificateAuth(t *testing.T) {
 }
 
 func TestAccProvider_clientSecretAuth(t *testing.T) {
+	t.Run("fromEnvironment", testAccProvider_clientSecretAuthFromEnvironment)
+	t.Run("fromFiles", testAccProvider_clientSecretAuthFromFiles)
+}
+
+func testAccProvider_clientSecretAuthFromEnvironment(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -282,7 +287,7 @@ func TestAccProvider_clientSecretAuth(t *testing.T) {
 	}
 }
 
-func TestAccProvider_clientSecretAuthFromFiles(t *testing.T) {
+func testAccProvider_clientSecretAuthFromFiles(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
