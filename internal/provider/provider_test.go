@@ -232,8 +232,8 @@ func TestAccProvider_clientSecretAuth(t *testing.T) {
 
 	// Ensure we are running using the expected env-vars
 	// t.SetEnv does automatic cleanup / resets the values after the test
-	t.Setenv("ARM_CLIENT_ID_PATH", "")
-	t.Setenv("ARM_CLIENT_SECRET_PATH", "")
+	t.Setenv("ARM_CLIENT_ID_FILE_PATH", "")
+	t.Setenv("ARM_CLIENT_SECRET_FILE_PATH", "")
 
 	logging.SetOutput(t)
 
@@ -249,7 +249,7 @@ func TestAccProvider_clientSecretAuth(t *testing.T) {
 			t.Fatalf("configuring environment %q: %v", envName, err)
 		}
 
-		clientID, err := getClientID(d)
+		clientId, err := getClientId(d)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
@@ -262,7 +262,7 @@ func TestAccProvider_clientSecretAuth(t *testing.T) {
 		authConfig := &auth.Credentials{
 			Environment:                           *env,
 			TenantID:                              d.Get("tenant_id").(string),
-			ClientID:                              *clientID,
+			ClientID:                              *clientId,
 			EnableAuthenticatingUsingClientSecret: true,
 			ClientSecret:                          *clientSecret,
 		}
@@ -282,15 +282,15 @@ func TestAccProvider_clientSecretAuth(t *testing.T) {
 	}
 }
 
-func TestAccProvider_clientSecretAuth_fileBased(t *testing.T) {
+func TestAccProvider_clientSecretAuthFromFiles(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
-	if os.Getenv("ARM_CLIENT_ID_PATH") == "" {
-		t.Skip("ARM_CLIENT_ID_PATH not set")
+	if os.Getenv("ARM_CLIENT_ID_FILE_PATH") == "" {
+		t.Skip("ARM_CLIENT_ID_FILE_PATH not set")
 	}
-	if os.Getenv("ARM_CLIENT_SECRET_PATH") == "" {
-		t.Skip("ARM_CLIENT_SECRET_PATH not set")
+	if os.Getenv("ARM_CLIENT_SECRET_FILE_PATH") == "" {
+		t.Skip("ARM_CLIENT_SECRET_FILE_PATH not set")
 	}
 
 	// Ensure we are running using the expected env-vars
@@ -312,7 +312,7 @@ func TestAccProvider_clientSecretAuth_fileBased(t *testing.T) {
 			t.Fatalf("configuring environment %q: %v", envName, err)
 		}
 
-		clientID, err := getClientID(d)
+		clientId, err := getClientId(d)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
@@ -325,7 +325,7 @@ func TestAccProvider_clientSecretAuth_fileBased(t *testing.T) {
 		authConfig := &auth.Credentials{
 			Environment:                           *env,
 			TenantID:                              d.Get("tenant_id").(string),
-			ClientID:                              *clientID,
+			ClientID:                              *clientId,
 			EnableAuthenticatingUsingClientSecret: true,
 			ClientSecret:                          *clientSecret,
 		}

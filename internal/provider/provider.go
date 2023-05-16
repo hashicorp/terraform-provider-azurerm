@@ -178,11 +178,11 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "The Client ID which should be used.",
 			},
 
-			"client_id_path": {
+			"client_id_file_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID_PATH", ""),
-				Description: "Path to a file containing the Client ID which should be used.",
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID_FILE_PATH", ""),
+				Description: "The path to a file containing the Client ID which should be used.",
 			},
 
 			"tenant_id": {
@@ -245,10 +245,10 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
-			"client_secret_path": {
+			"client_secret_file_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET_PATH", ""),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET_FILE_PATH", ""),
 				Description: "The path to a file containing the Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
@@ -392,7 +392,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			return nil, diag.FromErr(err)
 		}
 
-		clientID, err := getClientID(d)
+		clientId, err := getClientId(d)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
@@ -420,7 +420,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 		authConfig := &auth.Credentials{
 			Environment:        *env,
-			ClientID:           *clientID,
+			ClientID:           *clientId,
 			TenantID:           d.Get("tenant_id").(string),
 			AuxiliaryTenantIDs: auxTenants,
 
@@ -529,32 +529,32 @@ func getOidcToken(d *schema.ResourceData) (*string, error) {
 	return &idToken, nil
 }
 
-func getClientID(d *schema.ResourceData) (*string, error) {
-	clientID := strings.TrimSpace(d.Get("client_id").(string))
+func getClientId(d *schema.ResourceData) (*string, error) {
+	clientId := strings.TrimSpace(d.Get("client_id").(string))
 
-	if path := d.Get("client_id_path").(string); path != "" {
-		fileClientIDRaw, err := os.ReadFile(path)
+	if path := d.Get("client_id_file_path").(string); path != "" {
+		fileClientIdRaw, err := os.ReadFile(path)
 
 		if err != nil {
-			return nil, fmt.Errorf("reading Client Secret from file %q: %v", path, err)
+			return nil, fmt.Errorf("reading Client ID from file %q: %v", path, err)
 		}
 
-		fileClientID := strings.TrimSpace(string(fileClientIDRaw))
+		fileClientId := strings.TrimSpace(string(fileClientIdRaw))
 
-		if clientID != "" && clientID != fileClientID {
+		if clientId != "" && clientId != fileClientId {
 			return nil, fmt.Errorf("mismatch between supplied Client ID and supplied Client ID file contents - please either remove one or ensure they match")
 		}
 
-		clientID = fileClientID
+		clientId = fileClientId
 	}
 
-	return &clientID, nil
+	return &clientId, nil
 }
 
 func getClientSecret(d *schema.ResourceData) (*string, error) {
 	clientSecret := strings.TrimSpace(d.Get("client_secret").(string))
 
-	if path := d.Get("client_secret_path").(string); path != "" {
+	if path := d.Get("client_secret_file_path").(string); path != "" {
 		fileSecretRaw, err := os.ReadFile(path)
 
 		if err != nil {
