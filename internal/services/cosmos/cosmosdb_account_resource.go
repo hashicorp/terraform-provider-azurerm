@@ -985,6 +985,24 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			updateRequired = true
 		}
 
+		// NOTE: these fields are expanded directly into the
+		// 'documentdb.DatabaseAccountCreateUpdateParameters' below...
+		if d.HasChanges("consistency_policy") {
+			updateRequired = true
+		}
+
+		if d.HasChange("virtual_network_rule") {
+			updateRequired = true
+		}
+
+		if d.HasChange("cors_rule") {
+			updateRequired = true
+		}
+
+		if d.HasChange("access_key_metadata_writes_enabled") {
+			updateRequired = true
+		}
+
 		networkByPass := props.NetworkACLBypass
 		if d.HasChange("network_acl_bypass_for_azure_services") {
 			networkByPass = documentdb.NetworkACLBypassNone
@@ -994,9 +1012,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			updateRequired = true
 		}
 
-		// NOTE: for this field the expand is embedded directly into the
-		// 'documentdb.DatabaseAccountCreateUpdateParameters' below...
-		if d.HasChanges("consistency_policy") {
+		if d.HasChange("network_acl_bypass_ids") {
 			updateRequired = true
 		}
 
