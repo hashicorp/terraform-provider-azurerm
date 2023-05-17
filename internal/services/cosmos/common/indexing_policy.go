@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -67,6 +68,28 @@ func ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(input []interface{}) *[
 	return &indexes
 }
 
+func ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexesForGremlin(input []interface{}) *[][]cosmosdb.CompositePath {
+	indexes := make([][]cosmosdb.CompositePath, 0)
+
+	for _, i := range input {
+		indexPairs := make([]cosmosdb.CompositePath, 0)
+		indexPair := i.(map[string]interface{})
+		for _, idxPair := range indexPair["index"].([]interface{}) {
+			data := idxPair.(map[string]interface{})
+
+			order := cosmosdb.CompositePathSortOrder(strings.ToLower(data["order"].(string)))
+			index := cosmosdb.CompositePath{
+				Path:  utils.String(data["path"].(string)),
+				Order: &order,
+			}
+			indexPairs = append(indexPairs, index)
+		}
+		indexes = append(indexes, indexPairs)
+	}
+
+	return &indexes
+}
+
 func ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]documentdb.SpatialSpec {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -83,6 +106,30 @@ func ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]d
 	for _, i := range input {
 		indexPair := i.(map[string]interface{})
 		indexes = append(indexes, documentdb.SpatialSpec{
+			Types: &spatialTypes,
+			Path:  utils.String(indexPair["path"].(string)),
+		})
+	}
+
+	return &indexes
+}
+
+func ExpandAzureRmCosmosDBIndexingPolicySpatialIndexesForGremlin(input []interface{}) *[]cosmosdb.SpatialSpec {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	indexes := make([]cosmosdb.SpatialSpec, 0)
+	// no matter what spatial types are updated, all types will be set and returned from service
+	spatialTypes := []cosmosdb.SpatialType{
+		cosmosdb.SpatialTypeLineString,
+		cosmosdb.SpatialTypeMultiPolygon,
+		cosmosdb.SpatialTypePoint,
+		cosmosdb.SpatialTypePolygon,
+	}
+
+	for _, i := range input {
+		indexPair := i.(map[string]interface{})
+		indexes = append(indexes, cosmosdb.SpatialSpec{
 			Types: &spatialTypes,
 			Path:  utils.String(indexPair["path"].(string)),
 		})
@@ -159,6 +206,27 @@ func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePat
 	return indexPairs
 }
 
+func flattenCosmosDBIndexingPolicyCompositeIndexForGremlin(input []cosmosdb.CompositePath) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	indexPairs := make([]interface{}, 0)
+	for _, v := range input {
+		path := ""
+		if v.Path != nil {
+			path = *v.Path
+		}
+
+		block := make(map[string]interface{})
+		block["path"] = path
+		block["order"] = v.Order
+		indexPairs = append(indexPairs, block)
+	}
+
+	return indexPairs
+}
+
 func FlattenCosmosDBIndexingPolicyCompositeIndexes(input *[][]documentdb.CompositePath) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -169,6 +237,22 @@ func FlattenCosmosDBIndexingPolicyCompositeIndexes(input *[][]documentdb.Composi
 	for _, v := range *input {
 		block := make(map[string][]interface{})
 		block["index"] = flattenCosmosDBIndexingPolicyCompositeIndex(v)
+		indexes = append(indexes, block)
+	}
+
+	return indexes
+}
+
+func FlattenCosmosDBIndexingPolicyCompositeIndexesForGremlin(input *[][]cosmosdb.CompositePath) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	indexes := make([]interface{}, 0)
+
+	for _, v := range *input {
+		block := make(map[string][]interface{})
+		block["index"] = flattenCosmosDBIndexingPolicyCompositeIndexForGremlin(v)
 		indexes = append(indexes, block)
 	}
 
@@ -212,7 +296,42 @@ func FlattenCosmosDBIndexingPolicySpatialIndexes(input *[]documentdb.SpatialSpec
 	return indexes
 }
 
+func FlattenCosmosDBIndexingPolicySpatialIndexesForGremlin(input *[]cosmosdb.SpatialSpec) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	indexes := make([]interface{}, 0)
+
+	for _, v := range *input {
+		var path string
+		if v.Path != nil {
+			path = *v.Path
+		}
+		indexes = append(indexes, map[string]interface{}{
+			"path":  path,
+			"types": flattenCosmosDBIndexingPolicySpatialIndexesTypesForGremlin(v.Types),
+		})
+	}
+
+	return indexes
+}
+
 func flattenCosmosDBIndexingPolicySpatialIndexesTypes(input *[]documentdb.SpatialType) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	types := make([]interface{}, 0)
+
+	for _, v := range *input {
+		types = append(types, string(v))
+	}
+
+	return types
+}
+
+func flattenCosmosDBIndexingPolicySpatialIndexesTypesForGremlin(input *[]cosmosdb.SpatialType) []interface{} {
 	if input == nil {
 		return nil
 	}
