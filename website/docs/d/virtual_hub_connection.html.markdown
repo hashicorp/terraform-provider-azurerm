@@ -31,6 +31,7 @@ The following arguments are supported:
 * `name` - The name of the Connection which should be retrieved.
 
 * `resource_group_name` - The Name of the Resource Group where the Virtual Hub Connection exists.
+
 *  `virtual_hub_name` - The name of the Virtual Hub where this Connection exists.
 
 ## Attributes Reference
