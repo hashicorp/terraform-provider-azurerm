@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `synapse`: refactoring to use `tombuildsstuff/kermit` rather than `Azure/azure-sdk-for-go` for Data Plane [GH-21792]
 * `azurerm_batch_account` - support versionless keys for CMK [GH-21677]
 * `azurerm_media_transform` - support for the `jpg_image` and `png_image` blocks within the `custom_preset` block [GH-21709]
 * `azurerm_recovery_services_vault` - support the `monitoring` block [GH-21691]
