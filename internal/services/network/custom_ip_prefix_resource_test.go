@@ -20,7 +20,7 @@ const (
 	ipv6TestCidr = "2620:10c:5001::/48"
 )
 
-func TestAccCustomIpPrefix(t *testing.T) {
+func TestAccCustomIpPrefixV4(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"ipv4": {
 			"basic":                testAccCustomIpPrefix_ipv4,
@@ -29,6 +29,11 @@ func TestAccCustomIpPrefix(t *testing.T) {
 			"update":               testAccCustomIpPrefix_ipv4Update,
 			"requiresImport":       testAccCustomIpPrefix_ipv4RequiresImport,
 		},
+	})
+}
+
+func TestAccCustomIpPrefixV6(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"ipv6": {
 			"basic":                testAccCustomIpPrefix_ipv6,
 			"commissioned":         testAccCustomIpPrefix_ipv6Commissioned,
