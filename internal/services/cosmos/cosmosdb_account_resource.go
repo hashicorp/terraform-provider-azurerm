@@ -771,6 +771,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(t),
 	}
 
+	// These values may not have changed but they need to be in the update params...
 	if v, ok := d.GetOk("default_identity_type"); ok {
 		account.DatabaseAccountCreateUpdateProperties.DefaultIdentity = pointer.To(v.(string))
 	}
@@ -915,104 +916,43 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	updateRequired := false
 	if props := existing.DatabaseAccountGetProperties; props != nil {
-		// no need to check this value as it's 'ForceNew'...
 		location := azure.NormalizeLocation(pointer.From(existing.Location))
+		offerType := d.Get("offer_type").(string)
+		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		kind := documentdb.DatabaseAccountKind(d.Get("kind").(string))
+		isVirtualNetworkFilterEnabled := pointer.To(d.Get("is_virtual_network_filter_enabled").(bool))
+		enableFreeTier := pointer.To(d.Get("enable_free_tier").(bool))
+		enableAutomaticFailover := pointer.To(d.Get("enable_automatic_failover").(bool))
+		enableAnalyticalStorage := pointer.To(d.Get("analytical_storage_enabled").(bool))
+		disableLocalAuthentication := pointer.To(d.Get("local_authentication_disabled").(bool))
 
-		t := existing.Tags
-		if d.HasChange("tags") {
-			t = tags.Expand(d.Get("tags").(map[string]interface{}))
-			updateRequired = true
+		networkByPass := documentdb.NetworkACLBypassNone
+		if d.Get("network_acl_bypass_for_azure_services").(bool) {
+			networkByPass = documentdb.NetworkACLBypassAzureServices
 		}
 
-		kind := existing.Kind
-		if d.HasChange("tags") {
-			kind = documentdb.DatabaseAccountKind(d.Get("kind").(string))
-			updateRequired = true
+		var ipRangeFilter *[]documentdb.IPAddressOrRange
+		if features.FourPointOhBeta() {
+			ipRangeFilter = common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
+		} else {
+			ipRangeFilter = common.CosmosDBIpRangeFilterToIpRulesThreePointOh(d.Get("ip_range_filter").(string))
 		}
 
-		offerType := string(props.DatabaseAccountOfferType)
-		if d.HasChange("offer_type") {
-			offerType = d.Get("offer_type").(string)
-			updateRequired = true
-		}
-
-		ipRangeFilter := props.IPRules
-		if d.HasChange("ip_range_filter") {
-			if features.FourPointOhBeta() {
-				ipRangeFilter = common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
-			} else {
-				ipRangeFilter = common.CosmosDBIpRangeFilterToIpRulesThreePointOh(d.Get("ip_range_filter").(string))
-			}
-			updateRequired = true
-		}
-
-		isVirtualNetworkFilterEnabled := props.IsVirtualNetworkFilterEnabled
-		if d.HasChange("is_virtual_network_filter_enabled") {
-			isVirtualNetworkFilterEnabled = pointer.To(d.Get("is_virtual_network_filter_enabled").(bool))
-			updateRequired = true
-		}
-
-		enableFreeTier := props.EnableFreeTier
-		if d.HasChange("enable_free_tier") {
-			enableFreeTier = pointer.To(d.Get("enable_free_tier").(bool))
-			updateRequired = true
-		}
-
-		enableAutomaticFailover := props.EnableAutomaticFailover
-		if d.HasChange("enable_free_tier") {
-			enableAutomaticFailover = pointer.To(d.Get("enable_automatic_failover").(bool))
-			updateRequired = true
-		}
-
-		enableAnalyticalStorage := props.EnableAnalyticalStorage
-		if d.HasChange("analytical_storage_enabled") {
-			enableAnalyticalStorage = pointer.To(d.Get("analytical_storage_enabled").(bool))
-			updateRequired = true
-		}
-
-		disableLocalAuthentication := props.DisableLocalAuth
-		if d.HasChange("local_authentication_disabled") {
-			disableLocalAuthentication = pointer.To(d.Get("local_authentication_disabled").(bool))
-			updateRequired = true
-		}
-
-		publicNetworkAccess := props.PublicNetworkAccess
-		if d.HasChange("public_network_access_enabled") {
-			publicNetworkAccess = documentdb.PublicNetworkAccessEnabled
-			if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-				publicNetworkAccess = documentdb.PublicNetworkAccessDisabled
-			}
-			updateRequired = true
+		publicNetworkAccess := documentdb.PublicNetworkAccessEnabled
+		if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+			publicNetworkAccess = documentdb.PublicNetworkAccessDisabled
 		}
 
 		// NOTE: these fields are expanded directly into the
-		// 'documentdb.DatabaseAccountCreateUpdateParameters' below...
-		if d.HasChanges("consistency_policy") {
-			updateRequired = true
-		}
-
-		if d.HasChange("virtual_network_rule") {
-			updateRequired = true
-		}
-
-		if d.HasChange("cors_rule") {
-			updateRequired = true
-		}
-
-		if d.HasChange("access_key_metadata_writes_enabled") {
-			updateRequired = true
-		}
-
-		networkByPass := props.NetworkACLBypass
-		if d.HasChange("network_acl_bypass_for_azure_services") {
-			networkByPass = documentdb.NetworkACLBypassNone
-			if d.Get("network_acl_bypass_for_azure_services").(bool) {
-				networkByPass = documentdb.NetworkACLBypassAzureServices
-			}
-			updateRequired = true
-		}
-
-		if d.HasChange("network_acl_bypass_ids") {
+		// 'DatabaseAccountCreateUpdateParameters' below or
+		// are included in the 'DatabaseAccountCreateUpdateParameters'
+		// later, however we need to know if they changed or not...
+		if d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
+			"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
+			"capacity", "create_mode", "restore", "key_vault_key_id", "mongo_server_version", "backup",
+			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
+			"kind", "tags", "enable_free_tier", "enable_automatic_failover", "analytical_storage_enabled",
+			"local_authentication_disabled") {
 			updateRequired = true
 		}
 
@@ -1064,103 +1004,55 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		accountProps := account.DatabaseAccountCreateUpdateProperties
 
+		if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
+			keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
+			if err != nil {
+				return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+			}
+			accountProps.KeyVaultKeyURI = pointer.To(keyVaultKey.ID())
+		}
+
 		// 'default_identity_type' will always have a value since it now has a default value of "FirstPartyIdentity" per the API documentation.
 		// I do not include 'DefaultIdentity' and 'Identity' in the 'accountProps' intentionally, these operations need to be
 		// performed mutually exclusive from each other in an atomic fashion, else you will hit the service teams bug...
 		updateDefaultIdentity := false
-		if defaultIdentity := d.Get("default_identity_type").(string); defaultIdentity != pointer.From(props.DefaultIdentity) {
+		if d.HasChange("default_identity_type") {
 			updateDefaultIdentity = true
 		}
 
-		if props.AnalyticalStorageConfiguration != nil {
-			accountProps.AnalyticalStorageConfiguration.SchemaType = props.AnalyticalStorageConfiguration.SchemaType
+		// we need the following in the accountProps even if they have not changed...
+		if v, ok := d.GetOk("analytical_storage"); ok {
+			accountProps.AnalyticalStorageConfiguration = expandCosmosDBAccountAnalyticalStorageConfiguration(v.([]interface{}))
 		}
 
-		if d.HasChange("analytical_storage") {
-			if v, ok := d.GetOk("analytical_storage"); ok {
-				accountProps.AnalyticalStorageConfiguration = expandCosmosDBAccountAnalyticalStorageConfiguration(v.([]interface{}))
-			}
-			updateRequired = true
-		}
-
-		if props.Capacity != nil {
-			accountProps.Capacity = props.Capacity
-		}
-
-		if d.HasChange("capacity") {
-			if v, ok := d.GetOk("capacity"); ok {
-				accountProps.Capacity = expandCosmosDBAccountCapacity(v.([]interface{}))
-			}
-			updateRequired = true
-		}
-
-		if props.CreateMode != "" {
-			accountProps.CreateMode = props.CreateMode
+		if v, ok := d.GetOk("capacity"); ok {
+			accountProps.Capacity = expandCosmosDBAccountCapacity(v.([]interface{}))
 		}
 
 		var createMode string
-		if d.HasChange("create_mode") {
-			if v, ok := d.GetOk("create_mode"); ok {
-				createMode = v.(string)
-				accountProps.CreateMode = documentdb.CreateMode(createMode)
+		if v, ok := d.GetOk("create_mode"); ok {
+			createMode = v.(string)
+			accountProps.CreateMode = documentdb.CreateMode(createMode)
+		}
+
+		if v, ok := d.GetOk("restore"); ok {
+			accountProps.RestoreParameters = expandCosmosdbAccountRestoreParameters(v.([]interface{}))
+		}
+
+		if v, ok := d.GetOk("mongo_server_version"); ok {
+			accountProps.APIProperties = &documentdb.APIProperties{
+				ServerVersion: documentdb.ServerVersion(v.(string)),
 			}
-			updateRequired = true
 		}
 
-		if props.RestoreParameters != nil {
-			accountProps.RestoreParameters = props.RestoreParameters
-		}
-
-		if d.HasChange("restore") {
-			if v, ok := d.GetOk("restore"); ok {
-				accountProps.RestoreParameters = expandCosmosdbAccountRestoreParameters(v.([]interface{}))
+		if v, ok := d.GetOk("backup"); ok {
+			policy, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), createMode)
+			if err != nil {
+				return fmt.Errorf("expanding `backup`: %+v", err)
 			}
-			updateRequired = true
-		}
-
-		if props.KeyVaultKeyURI != nil {
-			accountProps.KeyVaultKeyURI = props.KeyVaultKeyURI
-		}
-
-		if d.HasChange("key_vault_key_id") {
-			if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
-				keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
-				if err != nil {
-					return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
-				}
-				accountProps.KeyVaultKeyURI = pointer.To(keyVaultKey.ID())
-			}
-			updateRequired = true
-		}
-
-		if props.APIProperties != nil {
-			accountProps.APIProperties = props.APIProperties
-		}
-
-		if d.HasChange("mongo_server_version") {
-			if v, ok := d.GetOk("mongo_server_version"); ok {
-				accountProps.APIProperties = &documentdb.APIProperties{
-					ServerVersion: documentdb.ServerVersion(v.(string)),
-				}
-			}
-			updateRequired = true
-		}
-
-		if props.BackupPolicy != nil {
-			accountProps.BackupPolicy = props.BackupPolicy
-		}
-
-		if d.HasChange("backup") {
-			if v, ok := d.GetOk("backup"); ok {
-				policy, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), createMode)
-				if err != nil {
-					return fmt.Errorf("expanding `backup`: %+v", err)
-				}
-				accountProps.BackupPolicy = policy
-			} else if createMode != "" {
-				return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
-			}
-			updateRequired = true
+			accountProps.BackupPolicy = policy
+		} else if createMode != "" {
+			return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
 		}
 
 		// Only do this update if a value has changed above...
@@ -1196,7 +1088,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		updateLocations := false
 		for _, configLoc := range configLocations {
 			if cosmosLoc, ok := cosmosLocationsMap[pointer.From(configLoc.LocationName)]; ok {
-				// the location in the config is in the database too...
+				// is the location in the config also in the database with the same 'FailoverPriority'?
 				if pointer.From(configLoc.FailoverPriority) != pointer.From(cosmosLoc.FailoverPriority) {
 					// The Failover Priority has been changed in the config...
 					if pointer.From(configLoc.FailoverPriority) == 0 {
@@ -1246,7 +1138,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		// Update Identity and Default Identity...
 		identityChanged := false
-
 		expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
