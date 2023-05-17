@@ -1,6 +1,9 @@
 ## 3.57.0 (Unreleased)
 
+ENHANCEMENTS:
+
 * `azurerm_media_transform` - support for the `jpg_image` and `png_image` blocks within the `custom_preset` block [GH-21709]
+* `azurerm_recovery_services_vault` - support the `monitoring` block [GH-21691]
 
 ## 3.56.0 (May 11, 2023)
 
