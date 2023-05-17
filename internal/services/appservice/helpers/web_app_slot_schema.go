@@ -1007,7 +1007,7 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int, metadata sdk.ResourceMetaData) []SiteConfigWindowsWebAppSlot {
+func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindowsWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
 	}
@@ -1065,7 +1065,7 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 	if appSiteSlotConfig.NetFrameworkVersion != nil {
 		winAppStack.NetFrameworkVersion = pointer.From(appSiteSlotConfig.NetFrameworkVersion)
 		if *appSiteSlotConfig.NetFrameworkVersion == DotNetCLRVersionFourPointOh {
-			if !features.FourPointOhBeta() && metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_core_version").(string) != "" {
+			if !features.FourPointOhBeta() && currentStack == CurrentStackDotNetCore {
 				winAppStack.NetCoreVersion = DotNetCoreVersionThreePointOne
 				winAppStack.NetFrameworkVersion = ""
 			}

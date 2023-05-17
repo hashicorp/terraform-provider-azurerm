@@ -660,7 +660,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int, metadata sdk.ResourceMetaData) ([]SiteConfigWindows, error) {
+func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) ([]SiteConfigWindows, error) {
 	if appSiteConfig == nil {
 		return nil, nil
 	}
@@ -720,7 +720,7 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 	if appSiteConfig.NetFrameworkVersion != nil {
 		winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
 		if *appSiteConfig.NetFrameworkVersion == DotNetCLRVersionFourPointOh {
-			if !features.FourPointOhBeta() && metadata.ResourceData.Get("site_config.0.application_stack.0.dotnet_core_version").(string) != "" {
+			if !features.FourPointOhBeta() && currentStack == CurrentStackDotNetCore {
 				winAppStack.NetCoreVersion = DotNetCoreVersionThreePointOne
 				winAppStack.NetFrameworkVersion = ""
 			}

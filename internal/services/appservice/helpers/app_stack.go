@@ -305,6 +305,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"site_config.0.application_stack.0.python_version",
 			},
 			Description: "The version of DotNetCore to use.",
+			Deprecated:  "`dotnet_core_version` will be deprecated in version 4.0 of the AzureRM Provider as dotnet core will be deprecated by Azure.",
 		}
 	}
 	return s
