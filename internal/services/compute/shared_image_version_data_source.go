@@ -193,8 +193,11 @@ func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context
 					return nil, fmt.Errorf("parsing version(s): %v", errs)
 				}
 			}
-			image := images[len(images)-1]
-			return &image, nil
+			for i := len(images) - 1; i >= 0; i-- {
+				if prop := images[i].GalleryImageVersionProperties; prop == nil || prop.PublishingProfile == nil || prop.PublishingProfile.ExcludeFromLatest == nil || !*prop.PublishingProfile.ExcludeFromLatest {
+					return &(images[i]), nil
+				}
+			}
 		}
 		return nil, notFoundError
 
