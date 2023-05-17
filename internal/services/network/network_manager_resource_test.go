@@ -62,6 +62,32 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":            testAccNetworkManagerConnectivityConfiguration_update,
 			"requiresImport":    testAccNetworkManagerConnectivityConfiguration_requiresImport,
 		},
+		"SecurityAdminConfiguration": {
+			"basic":          testAccNetworkManagerSecurityAdminConfiguration_basic,
+			"complete":       testAccNetworkManagerSecurityAdminConfiguration_complete,
+			"update":         testAccNetworkManagerSecurityAdminConfiguration_update,
+			"requiresImport": testAccNetworkManagerSecurityAdminConfiguration_requiresImport,
+		},
+		"AdminRuleCollection": {
+			"basic":          testAccNetworkManagerAdminRuleCollection_basic,
+			"complete":       testAccNetworkManagerAdminRuleCollection_complete,
+			"update":         testAccNetworkManagerAdminRuleCollection_update,
+			"requiresImport": testAccNetworkManagerAdminRuleCollection_requiresImport,
+		},
+		"AdminRule": {
+			"basic":          testAccNetworkManagerAdminRule_basic,
+			"complete":       testAccNetworkManagerAdminRule_complete,
+			"update":         testAccNetworkManagerAdminRule_update,
+			"requiresImport": testAccNetworkManagerAdminRule_requiresImport,
+		},
+		"Deployment": {
+			"basic":          testAccNetworkManagerDeployment_basic,
+			"basicAdmin":     testAccNetworkManagerDeployment_basicAdmin,
+			"complete":       testAccNetworkManagerDeployment_complete,
+			"update":         testAccNetworkManagerDeployment_update,
+			"withTriggers":   testAccNetworkManagerDeployment_withTriggers,
+			"requiresImport": testAccNetworkManagerDeployment_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {

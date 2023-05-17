@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package commonids
 
 import (
@@ -39,19 +42,19 @@ func ParseVirtualHubBGPConnectionID(input string) (*VirtualHubBGPConnectionId, e
 	id := VirtualHubBGPConnectionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.HubName, ok = parsed.Parsed["hubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'hubName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hubName", *parsed)
 	}
 
 	if id.ConnectionName, ok = parsed.Parsed["connectionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'connectionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "connectionName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseVirtualHubBGPConnectionIDInsensitively(input string) (*VirtualHubBGPCo
 	id := VirtualHubBGPConnectionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.HubName, ok = parsed.Parsed["hubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'hubName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hubName", *parsed)
 	}
 
 	if id.ConnectionName, ok = parsed.Parsed["connectionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'connectionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "connectionName", *parsed)
 	}
 
 	return &id, nil

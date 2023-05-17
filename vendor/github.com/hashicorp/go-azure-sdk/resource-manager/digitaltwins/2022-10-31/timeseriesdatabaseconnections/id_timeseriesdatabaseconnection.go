@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = TimeSeriesDatabaseConnectionId{}
 
 // TimeSeriesDatabaseConnectionId is a struct representing the Resource ID for a Time Series Database Connection
@@ -39,19 +42,19 @@ func ParseTimeSeriesDatabaseConnectionID(input string) (*TimeSeriesDatabaseConne
 	id := TimeSeriesDatabaseConnectionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DigitalTwinsInstanceName, ok = parsed.Parsed["digitalTwinsInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'digitalTwinsInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "digitalTwinsInstanceName", *parsed)
 	}
 
 	if id.TimeSeriesDatabaseConnectionName, ok = parsed.Parsed["timeSeriesDatabaseConnectionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'timeSeriesDatabaseConnectionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "timeSeriesDatabaseConnectionName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseTimeSeriesDatabaseConnectionIDInsensitively(input string) (*TimeSeries
 	id := TimeSeriesDatabaseConnectionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DigitalTwinsInstanceName, ok = parsed.Parsed["digitalTwinsInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'digitalTwinsInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "digitalTwinsInstanceName", *parsed)
 	}
 
 	if id.TimeSeriesDatabaseConnectionName, ok = parsed.Parsed["timeSeriesDatabaseConnectionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'timeSeriesDatabaseConnectionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "timeSeriesDatabaseConnectionName", *parsed)
 	}
 
 	return &id, nil

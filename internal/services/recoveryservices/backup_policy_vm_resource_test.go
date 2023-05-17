@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -530,18 +530,33 @@ func TestAccBackupProtectionPolicyVM_updateWeeklyToPartialV2(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectionPolicyVM_withCustomRGName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCustomResourceGroup(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t BackupProtectionPolicyVMResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BackupPolicyID(state.ID)
+	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.RecoveryServices.ProtectionPoliciesClient.Get(ctx, id.VaultName, id.ResourceGroup, id.Name)
+	resp, err := clients.RecoveryServices.ProtectionPoliciesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Recovery Service Protection Policy (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BackupProtectionPolicyVMResource) template(data acceptance.TestData) string {
@@ -864,4 +879,30 @@ resource "azurerm_backup_policy_vm" "test" {
   policy_type = "%s"
 }
 `, r.template(data), data.RandomInteger, retentionRange, policyType)
+}
+
+func (r BackupProtectionPolicyVMResource) withCustomResourceGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  instant_restore_resource_group {
+    prefix = "acctest"
+    suffix = "suffix"
+  }
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

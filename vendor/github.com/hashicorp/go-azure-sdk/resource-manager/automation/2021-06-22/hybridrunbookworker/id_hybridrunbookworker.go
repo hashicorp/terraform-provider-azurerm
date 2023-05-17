@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = HybridRunbookWorkerId{}
 
 // HybridRunbookWorkerId is a struct representing the Resource ID for a Hybrid Runbook Worker
@@ -41,23 +44,23 @@ func ParseHybridRunbookWorkerID(input string) (*HybridRunbookWorkerId, error) {
 	id := HybridRunbookWorkerId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'automationAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
 	}
 
 	if id.HybridRunbookWorkerGroupName, ok = parsed.Parsed["hybridRunbookWorkerGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'hybridRunbookWorkerGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridRunbookWorkerGroupName", *parsed)
 	}
 
 	if id.HybridRunbookWorkerId, ok = parsed.Parsed["hybridRunbookWorkerId"]; !ok {
-		return nil, fmt.Errorf("the segment 'hybridRunbookWorkerId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridRunbookWorkerId", *parsed)
 	}
 
 	return &id, nil
@@ -76,23 +79,23 @@ func ParseHybridRunbookWorkerIDInsensitively(input string) (*HybridRunbookWorker
 	id := HybridRunbookWorkerId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'automationAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
 	}
 
 	if id.HybridRunbookWorkerGroupName, ok = parsed.Parsed["hybridRunbookWorkerGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'hybridRunbookWorkerGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridRunbookWorkerGroupName", *parsed)
 	}
 
 	if id.HybridRunbookWorkerId, ok = parsed.Parsed["hybridRunbookWorkerId"]; !ok {
-		return nil, fmt.Errorf("the segment 'hybridRunbookWorkerId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridRunbookWorkerId", *parsed)
 	}
 
 	return &id, nil

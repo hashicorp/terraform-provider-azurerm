@@ -79,7 +79,6 @@ The following arguments are supported:
 * `description` - (Optional) A description of the Connectivity Configuration.
 
 * `global_mesh_enabled` - (Optional) Indicates whether to global mesh is supported. Possible values are `true` and `false`. 
- 
 * `hub` - (Optional) A `hub` block as defined below.
  
 ---

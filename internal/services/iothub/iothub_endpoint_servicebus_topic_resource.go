@@ -242,6 +242,10 @@ func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta i
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
+		if utils.ResponseWasNotFound(iothub.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
@@ -251,13 +255,17 @@ func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta i
 	d.Set("iothub_id", iotHubId.ID())
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
+		d.SetId("")
 		return nil
 	}
+
+	exist := false
 
 	if endpoints := iothub.Properties.Routing.Endpoints.ServiceBusTopics; endpoints != nil {
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
+					exist = true
 					d.Set("resource_group_name", endpoint.ResourceGroup)
 
 					authenticationType := string(devices.AuthenticationTypeKeyBased)
@@ -292,6 +300,10 @@ func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta i
 				}
 			}
 		}
+	}
+
+	if !exist {
+		d.SetId("")
 	}
 
 	return nil

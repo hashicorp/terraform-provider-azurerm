@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = UpdateProtectedItemRequestId{}
 
 // UpdateProtectedItemRequestId is a struct representing the Resource ID for a Update Protected Item Request
@@ -39,19 +42,19 @@ func ParseUpdateProtectedItemRequestID(input string) (*UpdateProtectedItemReques
 	id := UpdateProtectedItemRequestId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGuardName", *parsed)
 	}
 
 	if id.UpdateProtectedItemRequestName, ok = parsed.Parsed["updateProtectedItemRequestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'updateProtectedItemRequestName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "updateProtectedItemRequestName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseUpdateProtectedItemRequestIDInsensitively(input string) (*UpdateProtec
 	id := UpdateProtectedItemRequestId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGuardName", *parsed)
 	}
 
 	if id.UpdateProtectedItemRequestName, ok = parsed.Parsed["updateProtectedItemRequestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'updateProtectedItemRequestName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "updateProtectedItemRequestName", *parsed)
 	}
 
 	return &id, nil

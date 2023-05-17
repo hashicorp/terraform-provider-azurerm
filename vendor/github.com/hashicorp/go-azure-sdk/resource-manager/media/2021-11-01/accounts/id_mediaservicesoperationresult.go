@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = MediaServicesOperationResultId{}
 
 // MediaServicesOperationResultId is a struct representing the Resource ID for a Media Services Operation Result
@@ -37,15 +40,15 @@ func ParseMediaServicesOperationResultID(input string) (*MediaServicesOperationR
 	id := MediaServicesOperationResultId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
 	}
 
 	if id.OperationId, ok = parsed.Parsed["operationId"]; !ok {
-		return nil, fmt.Errorf("the segment 'operationId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "operationId", *parsed)
 	}
 
 	return &id, nil
@@ -64,15 +67,15 @@ func ParseMediaServicesOperationResultIDInsensitively(input string) (*MediaServi
 	id := MediaServicesOperationResultId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'locationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
 	}
 
 	if id.OperationId, ok = parsed.Parsed["operationId"]; !ok {
-		return nil, fmt.Errorf("the segment 'operationId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "operationId", *parsed)
 	}
 
 	return &id, nil

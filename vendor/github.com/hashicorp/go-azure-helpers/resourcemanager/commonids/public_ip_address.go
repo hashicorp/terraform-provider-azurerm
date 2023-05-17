@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package commonids
 
 import (
@@ -37,15 +40,15 @@ func ParsePublicIPAddressID(input string) (*PublicIPAddressId, error) {
 	id := PublicIPAddressId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.PublicIPAddressesName, ok = parsed.Parsed["publicIPAddressesName"]; !ok {
-		return nil, fmt.Errorf("the segment 'publicIPAddressesName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publicIPAddressesName", *parsed)
 	}
 
 	return &id, nil
@@ -64,15 +67,15 @@ func ParsePublicIPAddressIDInsensitively(input string) (*PublicIPAddressId, erro
 	id := PublicIPAddressId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.PublicIPAddressesName, ok = parsed.Parsed["publicIPAddressesName"]; !ok {
-		return nil, fmt.Errorf("the segment 'publicIPAddressesName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publicIPAddressesName", *parsed)
 	}
 
 	return &id, nil

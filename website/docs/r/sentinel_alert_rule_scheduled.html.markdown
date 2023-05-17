@@ -29,22 +29,13 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "example" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  workspace_resource_id = azurerm_log_analytics_workspace.example.id
-  workspace_name        = azurerm_log_analytics_workspace.example.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_alert_rule_scheduled" "example" {
   name                       = "example"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   display_name               = "example"
   severity                   = "High"
   query                      = <<QUERY
@@ -102,6 +93,10 @@ The following arguments are supported:
 
 * `suppression_enabled` - (Optional) Should the Sentinel Scheduled Alert Rulea stop running query after alert is generated? Defaults to `false`.
 
+* `sentinel_entity_mapping` - (Optional) A list of `sentinel_entity_mapping` blocks as defined below.
+
+-> **NOTE:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 5.
+
 * `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `ImpairProcessControl`, `InhibitResponseFunction`, `Impact`, `InitialAccess`, `LateralMovement`, `Persistence`, `PrivilegeEscalation`, `PreAttack`, `Reconnaissance` and `ResourceDevelopment`.
 
 * `techniques` - (Optional) A list of techniques of attacks by which to classify the rule.
@@ -122,6 +117,16 @@ An `alert_details_override` block supports the following:
 
 * `tactics_column_name` - (Optional) The column name to take the alert tactics from.
 
+* `dynamic_property` - (Optional) A list of `dynamic_property` blocks as defined below.
+
+---
+
+A `dynamic_property` block supports the following:
+
+* `name` - (Required) The name of the dynamic property. Possible Values are `AlertLink`, `ConfidenceLevel`, `ConfidenceScore`, `ExtendedLinks`, `ProductComponentName`, `ProductName`, `ProviderName`, `RemediationSteps` and `Techniques`.
+
+* `value` - (Required) The value of the dynamic property. Pssible Values are `Caller`, `dcount_ResourceId` and `EventSubmissionTimestamp`.
+
 ---
 
 An `entity_mapping` block supports the following:
@@ -129,6 +134,12 @@ An `entity_mapping` block supports the following:
 * `entity_type` - (Required) The type of the entity. Possible values are `Account`, `AzureResource`, `CloudApplication`, `DNS`, `File`, `FileHash`, `Host`, `IP`, `Mailbox`, `MailCluster`, `MailMessage`, `Malware`, `Process`, `RegistryKey`, `RegistryValue`, `SecurityGroup`, `SubmissionMail`, `URL`.
 
 * `field_mapping` - (Required) A list of `field_mapping` blocks as defined below.
+
+---
+
+A `sentinel_entity_mapping` block supports the following:
+
+* `column_name` - (Required) The column name to be mapped to the identifier.
 
 ---
 

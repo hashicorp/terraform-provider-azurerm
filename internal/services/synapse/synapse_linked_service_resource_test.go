@@ -125,8 +125,12 @@ func (t LinkedServiceResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, err
 	}
 
-	environment := clients.Account.Environment
-	client, err := clients.Synapse.LinkedServiceClient(id.WorkspaceName, environment.SynapseEndpointSuffix)
+	suffix, ok := clients.Account.Environment.Synapse.DomainSuffix()
+	if !ok {
+		return nil, fmt.Errorf("could not determine Synapse domain suffix for environment %q", clients.Account.Environment.Name)
+	}
+
+	client, err := clients.Synapse.LinkedServiceClient(id.WorkspaceName, *suffix)
 	if err != nil {
 		return nil, err
 	}

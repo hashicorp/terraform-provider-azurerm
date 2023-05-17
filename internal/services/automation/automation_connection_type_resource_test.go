@@ -5,27 +5,27 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/connectiontype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AutomationConnectionTypeResource struct{}
 
 func (a AutomationConnectionTypeResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConnectionTypeID(state.ID)
+	id, err := connectiontype.ParseConnectionTypeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.ConnectionTypeClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := client.Automation.ConnectionTypeClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Connection Type %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving Automation Connection Type %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.ConnectionTypeProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (a AutomationConnectionTypeResource) template(data acceptance.TestData) string {

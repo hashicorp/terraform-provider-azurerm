@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = SqlVirtualMachineGroupId{}
 
 // SqlVirtualMachineGroupId is a struct representing the Resource ID for a Sql Virtual Machine Group
@@ -37,15 +40,15 @@ func ParseSqlVirtualMachineGroupID(input string) (*SqlVirtualMachineGroupId, err
 	id := SqlVirtualMachineGroupId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.SqlVirtualMachineGroupName, ok = parsed.Parsed["sqlVirtualMachineGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sqlVirtualMachineGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineGroupName", *parsed)
 	}
 
 	return &id, nil
@@ -64,15 +67,15 @@ func ParseSqlVirtualMachineGroupIDInsensitively(input string) (*SqlVirtualMachin
 	id := SqlVirtualMachineGroupId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.SqlVirtualMachineGroupName, ok = parsed.Parsed["sqlVirtualMachineGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sqlVirtualMachineGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineGroupName", *parsed)
 	}
 
 	return &id, nil

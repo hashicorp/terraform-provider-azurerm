@@ -121,7 +121,7 @@ The `threat_detection_policy` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The SQL Database ID.
 * `creation_date` - The creation date of the SQL Database.

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveevents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveoutputs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -60,7 +61,7 @@ func resourceMediaLiveOutput() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.ISO8601DurationBetween("PT1M", "PT25H"),
 			},
 
 			"asset_name": {
@@ -100,6 +101,13 @@ func resourceMediaLiveOutput() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IntAtLeast(0),
+			},
+
+			"rewind_window_duration": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ISO8601DurationBetween("PT1M", "PT25H"),
 			},
 		},
 	}
@@ -158,6 +166,10 @@ func resourceMediaLiveOutputCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		parameters.Properties.OutputSnapTime = utils.Int64(int64(outputSnapTime.(int)))
 	}
 
+	if rewindWindowLength, ok := d.GetOk("rewind_window_duration"); ok {
+		parameters.Properties.RewindWindowLength = utils.String(rewindWindowLength.(string))
+	}
+
 	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -209,6 +221,7 @@ func resourceMediaLiveOutputRead(d *pluginsdk.ResourceData, meta interface{}) er
 				outputSnapTime = *props.OutputSnapTime
 			}
 			d.Set("output_snap_time_in_seconds", outputSnapTime)
+			d.Set("rewind_window_duration", props.RewindWindowLength)
 		}
 	}
 

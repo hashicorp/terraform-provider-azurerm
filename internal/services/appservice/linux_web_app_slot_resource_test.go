@@ -693,6 +693,36 @@ func TestAccLinuxWebAppSlot_withPhp80(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_withPhp81(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.php(data, "8.1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withPhp82(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.php(data, "8.2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebAppSlot_withPython37(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
@@ -2245,7 +2275,7 @@ resource "azurerm_service_plan" "test3" {
 
 resource "azurerm_linux_web_app_slot" "test" {
   name           = "acctestWAS-%[2]d"
-  app_service_id = azurerm_linux_web_app.test3.id
+  app_service_id = azurerm_linux_web_app.test.id
 
   service_plan_id = azurerm_service_plan.test3.id
 

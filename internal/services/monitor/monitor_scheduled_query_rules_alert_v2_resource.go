@@ -208,6 +208,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
+		// lintignore:S013
 		"evaluation_frequency": {
 			Type: pluginsdk.TypeString,
 			// this field is required, missing this field will get an error from service
@@ -579,8 +580,6 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 					model.Properties.WindowSize = nil
 				}
 			}
-
-			model.SystemData = nil
 
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = &resourceModel.Tags

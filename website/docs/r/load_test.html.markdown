@@ -15,7 +15,7 @@ Manages a Load Test Service.
 ## Example Usage
 
 ```hcl
-resource "azurerm_load_example" "example" {
+resource "azurerm_load_test" "example" {
   location            = azurerm_resource_group.example.location
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Load Test.
 

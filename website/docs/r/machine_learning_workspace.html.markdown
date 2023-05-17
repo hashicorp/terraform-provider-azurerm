@@ -107,6 +107,7 @@ resource "azurerm_key_vault_access_policy" "example" {
     "Get",
     "Delete",
     "Purge",
+    "GetRotationPolicy",
   ]
 }
 
@@ -241,6 +242,7 @@ resource "azurerm_key_vault_access_policy" "example-sp" {
     "Recover",
     "Delete",
     "Purge",
+    "GetRotationPolicy",
   ]
 }
 
@@ -366,7 +368,7 @@ The following arguments are supported:
 
 ~> **NOTE:** `public_access_behind_virtual_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled`.
 
-* `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace. Changing this forces a new resource to be created.
+* `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace.
 
 * `description` - (Optional) The description of this Machine Learning Workspace.
 
@@ -408,11 +410,13 @@ An `encryption` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Machine Learning Workspace.
 
 * `discovery_url` - The url for the discovery service to identify regional endpoints for machine learning experimentation services.
+
+* `workspace_id` - The immutable id associated with this workspace.
 
 ---
 

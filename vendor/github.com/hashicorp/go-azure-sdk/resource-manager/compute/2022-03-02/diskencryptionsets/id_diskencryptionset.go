@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = DiskEncryptionSetId{}
 
 // DiskEncryptionSetId is a struct representing the Resource ID for a Disk Encryption Set
@@ -37,15 +40,15 @@ func ParseDiskEncryptionSetID(input string) (*DiskEncryptionSetId, error) {
 	id := DiskEncryptionSetId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DiskEncryptionSetName, ok = parsed.Parsed["diskEncryptionSetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'diskEncryptionSetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diskEncryptionSetName", *parsed)
 	}
 
 	return &id, nil
@@ -64,15 +67,15 @@ func ParseDiskEncryptionSetIDInsensitively(input string) (*DiskEncryptionSetId, 
 	id := DiskEncryptionSetId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DiskEncryptionSetName, ok = parsed.Parsed["diskEncryptionSetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'diskEncryptionSetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diskEncryptionSetName", *parsed)
 	}
 
 	return &id, nil

@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = ShareId{}
 
 // ShareId is a struct representing the Resource ID for a Share
@@ -39,19 +42,19 @@ func ParseShareID(input string) (*ShareId, error) {
 	id := ShareId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
 	}
 
 	if id.ShareName, ok = parsed.Parsed["shareName"]; !ok {
-		return nil, fmt.Errorf("the segment 'shareName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "shareName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseShareIDInsensitively(input string) (*ShareId, error) {
 	id := ShareId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
 	}
 
 	if id.ShareName, ok = parsed.Parsed["shareName"]; !ok {
-		return nil, fmt.Errorf("the segment 'shareName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "shareName", *parsed)
 	}
 
 	return &id, nil

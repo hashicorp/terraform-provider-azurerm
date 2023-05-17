@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = PrivateZoneId{}
 
 // PrivateZoneId is a struct representing the Resource ID for a Private Zone
@@ -39,20 +42,20 @@ func ParsePrivateZoneID(input string) (*PrivateZoneId, error) {
 	id := PrivateZoneId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateDnsZoneName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneName", *parsed)
 	}
 
 	if v, ok := parsed.Parsed["recordType"]; true {
 		if !ok {
-			return nil, fmt.Errorf("the segment 'recordType' was not found in the resource id %q", input)
+			return nil, resourceids.NewSegmentNotSpecifiedError(id, "recordType", *parsed)
 		}
 
 		recordType, err := parseRecordType(v)
@@ -78,20 +81,20 @@ func ParsePrivateZoneIDInsensitively(input string) (*PrivateZoneId, error) {
 	id := PrivateZoneId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateDnsZoneName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneName", *parsed)
 	}
 
 	if v, ok := parsed.Parsed["recordType"]; true {
 		if !ok {
-			return nil, fmt.Errorf("the segment 'recordType' was not found in the resource id %q", input)
+			return nil, resourceids.NewSegmentNotSpecifiedError(id, "recordType", *parsed)
 		}
 
 		recordType, err := parseRecordType(v)

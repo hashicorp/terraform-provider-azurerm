@@ -248,9 +248,11 @@ The following arguments are supported:
 
 * `managed_disk` - (Optional) One or more `managed_disk` block as defined below. Changing this forces a new resource to be created.
 
-* `unmanaged_disk` - (Optional) One or more `unmanaged_disk` block.
+* `unmanaged_disk` - (Optional) One or more `unmanaged_disk` block. Changing this forces a new resource to be created.
+ 
+* `target_edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `target_proximity_placement_group_id` (Optional) Id of Proximity Placement Group the new VM should belong to when a failover is done.
+* `target_proximity_placement_group_id` - (Optional) Id of Proximity Placement Group the new VM should belong to when a failover is done.
 
 * `target_boot_diagnostic_storage_account_id` - (Optional) Id of the storage account which the new VM should used for boot diagnostic when a failover is done.
 
@@ -259,6 +261,8 @@ The following arguments are supported:
 * `target_virtual_machine_scale_set_id` - (Optional) Id of the Virtual Machine Scale Set which the new Vm should belong to when a failover is done.
 
 * `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover).
+
+* `test_network_id` - (Optional) Network to use when a test failover is done.
 
 * `network_interface` - (Optional) One or more `network_interface` block as defined below.
 * 

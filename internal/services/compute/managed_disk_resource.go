@@ -7,10 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -21,11 +23,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func resourceManagedDisk() *pluginsdk.Resource {
@@ -123,7 +127,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true, // Not supported by disk update
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"image_reference_id": {
@@ -219,7 +223,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/14192
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+				ValidateFunc:     diskaccesses.ValidateDiskAccessID,
 			},
 
 			"public_network_access_enabled": {
@@ -600,6 +604,8 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	diskSizeGB := d.Get("disk_size_gb").(int)
 	onDemandBurstingEnabled := d.Get("on_demand_bursting_enabled").(bool)
 	shouldShutDown := false
+	shouldDetach := false
+	expandedDisk := compute.DataDisk{}
 
 	id, err := disks.ParseDiskID(d.Id())
 	if err != nil {
@@ -709,6 +715,9 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 					return fmt.Errorf("determining if the Virtual Machine the Disk is attached to supports no-downtime-resize: %+v", err)
 				}
 
+				// If a disk is 4 TiB or less, you can't expand it beyond 4 TiB without detaching it from the VM.
+				shouldDetach = oldSize.(int) < 4096 && newSize.(int) >= 4096
+
 				canBeResizedWithoutDowntime = *vmSkuSupportsNoDowntimeResize && *diskSupportsNoDowntimeResize
 			}
 			if !canBeResizedWithoutDowntime {
@@ -806,6 +815,11 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		locks.ByName(name, VirtualMachineResourceName)
 		defer locks.UnlockByName(name, VirtualMachineResourceName)
 
+		vm, err := vmClient.Get(ctx, virtualMachine.ResourceGroup, virtualMachine.Name, "")
+		if err != nil {
+			return fmt.Errorf("retrieving Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+		}
+
 		instanceView, err := vmClient.InstanceView(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving InstanceView for Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
@@ -839,6 +853,40 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 					shouldShutDown = false
 				case "stopped":
 					shouldShutDown = false
+				}
+			}
+		}
+
+		// Detach
+		if shouldDetach {
+			dataDisks := make([]compute.DataDisk, 0)
+			if vm.StorageProfile != nil && vm.StorageProfile.DataDisks != nil {
+				for _, dataDisk := range *vm.StorageProfile.DataDisks {
+					// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.EqualFold`
+					if dataDisk.Name != nil && *dataDisk.Name != id.DiskName {
+						dataDisks = append(dataDisks, dataDisk)
+					} else {
+						if dataDisk.Caching != compute.CachingTypesNone {
+							return fmt.Errorf("`disk_size_gb` can't be increased above 4095GB when `caching` is set to anything other than `None`")
+						}
+						expandedDisk = dataDisk
+					}
+				}
+
+				vm.StorageProfile.DataDisks = &dataDisks
+
+				// fixes #2485
+				vm.Identity = nil
+				// fixes #1600
+				vm.Resources = nil
+
+				future, err := vmClient.CreateOrUpdate(ctx, virtualMachine.ResourceGroup, virtualMachine.Name, vm)
+				if err != nil {
+					return fmt.Errorf("removing Disk %q from Virtual Machine %q : %+v", id.DiskName, virtualMachine.String(), err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting for Disk %q to be removed from Virtual Machine %q : %+v", id.DiskName, virtualMachine.String(), err)
 				}
 			}
 		}
@@ -879,6 +927,33 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		err = client.UpdateThenPoll(ctx, *id, diskUpdate)
 		if err != nil {
 			return fmt.Errorf("updating Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		// Reattach DataDisk
+		if shouldDetach && vm.StorageProfile != nil {
+			disks := *vm.StorageProfile.DataDisks
+
+			expandedDisk.DiskSizeGB = pointer.To(int32(pointer.From(diskUpdate.Properties.DiskSizeGB)))
+			disks = append(disks, expandedDisk)
+
+			vm.StorageProfile.DataDisks = &disks
+
+			// fixes #2485
+			vm.Identity = nil
+			// fixes #1600
+			vm.Resources = nil
+
+			// if there's too many disks we get a 409 back with:
+			//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
+			// which we're intentionally not wrapping, since the errors good.
+			future, err := vmClient.CreateOrUpdate(ctx, virtualMachine.ResourceGroup, virtualMachine.Name, vm)
+			if err != nil {
+				return fmt.Errorf("updating Virtual Machine %q to reattach Disk %q: %+v", virtualMachine.String(), name, err)
+			}
+
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for Virtual Machine %q to finish reattaching Disk %q: %+v", virtualMachine.String(), name, err)
+			}
 		}
 
 		if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
@@ -970,13 +1045,13 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 			d.Set("disk_iops_read_only", props.DiskIOPSReadOnly)
 			d.Set("disk_mbps_read_only", props.DiskMBpsReadOnly)
-			d.Set("os_type", props.OsType)
+			d.Set("os_type", string(pointer.From(props.OsType)))
 			d.Set("tier", props.Tier)
 			d.Set("max_shares", props.MaxShares)
-			d.Set("hyper_v_generation", props.HyperVGeneration)
+			d.Set("hyper_v_generation", string(pointer.From(props.HyperVGeneration)))
 
 			if networkAccessPolicy := props.NetworkAccessPolicy; *networkAccessPolicy != disks.NetworkAccessPolicyAllowAll {
-				d.Set("network_access_policy", props.NetworkAccessPolicy)
+				d.Set("network_access_policy", string(pointer.From(props.NetworkAccessPolicy)))
 			}
 			d.Set("disk_access_id", props.DiskAccessId)
 

@@ -227,11 +227,9 @@ A `retry_policy` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the EventGrid Event Subscription.
-
-* `topic_name` - (Optional/ **Deprecated) Specifies the name of the topic to associate with the event subscription.
 
 ## Timeouts
 

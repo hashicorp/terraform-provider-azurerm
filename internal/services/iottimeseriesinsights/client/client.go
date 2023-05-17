@@ -1,34 +1,14 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights" // nolint: staticcheck
+	"github.com/Azure/go-autorest/autorest"
+	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-type Client struct {
-	AccessPoliciesClient    *timeseriesinsights.AccessPoliciesClient
-	EnvironmentsClient      *timeseriesinsights.EnvironmentsClient
-	EventSourcesClient      *timeseriesinsights.EventSourcesClient
-	ReferenceDataSetsClient *timeseriesinsights.ReferenceDataSetsClient
-}
-
-func NewClient(o *common.ClientOptions) *Client {
-	AccessPoliciesClient := timeseriesinsights.NewAccessPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AccessPoliciesClient.Client, o.ResourceManagerAuthorizer)
-
-	EnvironmentsClient := timeseriesinsights.NewEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&EnvironmentsClient.Client, o.ResourceManagerAuthorizer)
-
-	EventSourcesClient := timeseriesinsights.NewEventSourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&EventSourcesClient.Client, o.ResourceManagerAuthorizer)
-
-	ReferenceDataSetsClient := timeseriesinsights.NewReferenceDataSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ReferenceDataSetsClient.Client, o.ResourceManagerAuthorizer)
-
-	return &Client{
-		AccessPoliciesClient:    &AccessPoliciesClient,
-		EnvironmentsClient:      &EnvironmentsClient,
-		EventSourcesClient:      &EventSourcesClient,
-		ReferenceDataSetsClient: &ReferenceDataSetsClient,
-	}
+func NewClient(o *common.ClientOptions) *timeseriesinsights_v2020_05_15.Client {
+	client := timeseriesinsights_v2020_05_15.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
+		c.Authorizer = o.ResourceManagerAuthorizer
+	})
+	return &client
 }

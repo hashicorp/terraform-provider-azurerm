@@ -138,6 +138,9 @@ service/hpc-cache:
 service/hsm:
   - internal/services/hsm/**/*
 
+service/hybrid-compute:
+  - internal/services/hybridcompute/**/*
+
 service/iot-central:
   - internal/services/iotcentral/**/*
 
@@ -198,11 +201,17 @@ service/media:
 service/mixed-reality:
   - internal/services/mixedreality/**/*
 
+service/mobile-network:
+  - internal/services/mobilenetwork/**/*
+
 service/monitor:
   - internal/services/monitor/**/*
 
 service/mssql:
   - internal/services/mssql/**/*
+
+service/mssqlmanagedinstance:
+  - internal/services/mssqlmanagedinstance/**/*
 
 service/mysql:
   - internal/services/mysql/**/*

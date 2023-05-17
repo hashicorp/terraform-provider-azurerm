@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = ScopedBudgetId{}
 
 // ScopedBudgetId is a struct representing the Resource ID for a Scoped Budget
@@ -35,11 +38,11 @@ func ParseScopedBudgetID(input string) (*ScopedBudgetId, error) {
 	id := ScopedBudgetId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.BudgetName, ok = parsed.Parsed["budgetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'budgetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "budgetName", *parsed)
 	}
 
 	return &id, nil
@@ -58,11 +61,11 @@ func ParseScopedBudgetIDInsensitively(input string) (*ScopedBudgetId, error) {
 	id := ScopedBudgetId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.BudgetName, ok = parsed.Parsed["budgetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'budgetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "budgetName", *parsed)
 	}
 
 	return &id, nil

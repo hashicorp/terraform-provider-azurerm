@@ -130,7 +130,7 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "Get", "List", "Create", "Delete", "Update", "Purge",
+      "Get", "List", "Create", "Delete", "Update", "Purge", "GetRotationPolicy", "SetRotationPolicy"
     ]
   }
 
@@ -139,7 +139,7 @@ resource "azurerm_key_vault" "test" {
     object_id = azurerm_mssql_server.test.identity[0].principal_id
 
     key_permissions = [
-      "Get", "WrapKey", "UnwrapKey", "List", "Create",
+      "Get", "WrapKey", "UnwrapKey", "List", "Create", "GetRotationPolicy", "SetRotationPolicy"
     ]
   }
 }
@@ -223,8 +223,10 @@ resource "azurerm_mssql_server" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [transparent_data_encryption_key_vault_key_id]
+  }
 }
-
-
 `, data.RandomInteger, data.Locations.Primary)
 }

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	kustoValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,7 +31,7 @@ func resourceKustoDatabase() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DatabaseID(id)
+			_, err := databases.ParseDatabaseID(id)
 			return err
 		}),
 
@@ -87,35 +87,31 @@ func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
+	id := databases.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_kusto_database", id.ID())
 		}
 	}
 
 	databaseProperties := expandKustoDatabaseProperties(d)
 
-	readWriteDatabase := kusto.ReadWriteDatabase{
-		Name:                        utils.String(id.Name),
-		Location:                    utils.String(location.Normalize(d.Get("location").(string))),
-		ReadWriteDatabaseProperties: databaseProperties,
+	readWriteDatabase := databases.ReadWriteDatabase{
+		Name:       utils.String(id.DatabaseName),
+		Location:   utils.String(location.Normalize(d.Get("location").(string))),
+		Properties: databaseProperties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.Name, readWriteDatabase)
+	err := client.CreateOrUpdateThenPoll(ctx, id, readWriteDatabase)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -127,36 +123,35 @@ func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabaseID(d.Id())
+	id, err := databases.ParseDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if resp.Value == nil {
+	if resp.Model == nil {
 		return fmt.Errorf("retrieving %s: response was nil", *id)
 	}
 
-	database, ok := resp.Value.AsReadWriteDatabase()
+	database, ok := (*resp.Model).(databases.ReadWriteDatabase)
 	if !ok {
 		return fmt.Errorf("%s was not a Read/Write Database", *id)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.DatabaseName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("cluster_name", id.ClusterName)
-
 	d.Set("location", location.NormalizeNilable(database.Location))
 
-	if props := database.ReadWriteDatabaseProperties; props != nil {
+	if props := database.Properties; props != nil {
 		d.Set("hot_cache_period", props.HotCachePeriod)
 		d.Set("soft_delete_period", props.SoftDeletePeriod)
 
@@ -173,25 +168,21 @@ func resourceKustoDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabaseID(d.Id())
+	id, err := databases.ParseDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandKustoDatabaseProperties(d *pluginsdk.ResourceData) *kusto.ReadWriteDatabaseProperties {
-	databaseProperties := &kusto.ReadWriteDatabaseProperties{}
+func expandKustoDatabaseProperties(d *pluginsdk.ResourceData) *databases.ReadWriteDatabaseProperties {
+	databaseProperties := &databases.ReadWriteDatabaseProperties{}
 
 	if softDeletePeriod, ok := d.GetOk("soft_delete_period"); ok {
 		databaseProperties.SoftDeletePeriod = utils.String(softDeletePeriod.(string))
