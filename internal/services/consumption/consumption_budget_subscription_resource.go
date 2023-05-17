@@ -5,8 +5,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type SubscriptionConsumptionBudget struct {
@@ -25,7 +25,7 @@ func (r SubscriptionConsumptionBudget) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotWhiteSpace,
+			ValidateFunc: validate.ConsumptionBudgetName(),
 		},
 		"subscription_id": {
 			Type:         pluginsdk.TypeString,
