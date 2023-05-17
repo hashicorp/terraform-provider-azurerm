@@ -72,6 +72,7 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 								ValidateFunc: validation.Any(
 									azure.ValidateResourceID,
 									mgValidate.ManagementGroupID,
+									validate.SubnetServiceEndpointStoragePolicyAlias,
 								),
 							},
 						},
