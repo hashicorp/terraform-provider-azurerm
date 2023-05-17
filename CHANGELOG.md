@@ -1,3 +1,7 @@
+## 3.57.0 (Unreleased)
+
+* `azurerm_media_transform` - support for the `jpg_image` and `png_image` blocks within the `custom_preset` block [GH-21709]
+
 ## 3.56.0 (May 11, 2023)
 
 FEATURES:
