@@ -125,7 +125,7 @@ func (t CosmosGremlinDatabaseResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.GremlinClient.GremlinResourcesGetGremlinDatabase(ctx, *id)
+	resp, err := clients.Cosmos.CosmosDBClient.GremlinResourcesGetGremlinDatabase(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Cosmos Gremlin Database (%s): %+v", id.String(), err)
 	}

@@ -18,9 +18,9 @@ type Client struct {
 	CassandraDatacentersClient       *documentdb.CassandraDataCentersClient
 	ClustersClient                   *clusters.ClustersClient
 	ConfigurationsClient             *configurations.ConfigurationsClient
+	CosmosDBClient                   *cosmosdb.CosmosDBClient
 	DatabaseClient                   *documentdb.DatabaseAccountsClient
 	FirewallRulesClient              *firewallrules.FirewallRulesClient
-	GremlinClient                    *cosmosdb.CosmosDBClient
 	MongoDbClient                    *documentdb.MongoDBResourcesClient
 	NotebookWorkspaceClient          *documentdb.NotebookWorkspacesClient
 	RestorableDatabaseAccountsClient *documentdb.RestorableDatabaseAccountsClient
@@ -47,14 +47,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	configurationsClient := configurations.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
 
+	cosmosdbClient := cosmosdb.NewCosmosDBClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&cosmosdbClient.Client, o.ResourceManagerAuthorizer)
+
 	databaseClient := documentdb.NewDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databaseClient.Client, o.ResourceManagerAuthorizer)
 
 	firewallRulesClient := firewallrules.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
-
-	gremlinClient := cosmosdb.NewCosmosDBClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&gremlinClient.Client, o.ResourceManagerAuthorizer)
 
 	mongoDbClient := documentdb.NewMongoDBResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&mongoDbClient.Client, o.ResourceManagerAuthorizer)
@@ -86,9 +86,9 @@ func NewClient(o *common.ClientOptions) *Client {
 		CassandraDatacentersClient:       &cassandraDatacentersClient,
 		ClustersClient:                   &clustersClient,
 		ConfigurationsClient:             &configurationsClient,
+		CosmosDBClient:                   &cosmosdbClient,
 		DatabaseClient:                   &databaseClient,
 		FirewallRulesClient:              &firewallRulesClient,
-		GremlinClient:                    &gremlinClient,
 		MongoDbClient:                    &mongoDbClient,
 		NotebookWorkspaceClient:          &notebookWorkspaceClient,
 		RestorableDatabaseAccountsClient: &restorableDatabaseAccountsClient,

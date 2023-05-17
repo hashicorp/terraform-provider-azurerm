@@ -194,7 +194,7 @@ func (t CosmosGremlinGraphResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.GremlinClient.GremlinResourcesGetGremlinGraph(ctx, *id)
+	resp, err := clients.Cosmos.CosmosDBClient.GremlinResourcesGetGremlinGraph(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Cosmos Gremlin Graph (%s): %+v", id.String(), err)
 	}
