@@ -142,7 +142,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, r.template(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger)
+`, r.template(data, []string{"EnableGremlin"}), data.RandomInteger)
 }
 
 func (r CosmosGremlinDatabaseResource) requiresImport(data acceptance.TestData) string {
@@ -167,7 +167,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   throughput          = %[3]d
 }
-`, r.template(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger, throughput)
+`, r.template(data, []string{"EnableGremlin"}), data.RandomInteger, throughput)
 }
 
 func (r CosmosGremlinDatabaseResource) autoscale(data acceptance.TestData, maxThroughput int) string {
@@ -182,7 +182,7 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
     max_throughput = %[3]d
   }
 }
-`, r.template(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger, maxThroughput)
+`, r.template(data, []string{"EnableGremlin"}), data.RandomInteger, maxThroughput)
 }
 
 func (r CosmosGremlinDatabaseResource) serverless(data acceptance.TestData) string {
@@ -194,10 +194,10 @@ resource "azurerm_cosmosdb_gremlin_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, r.template(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableGremlin", "EnableServerless"}), data.RandomInteger)
+`, r.template(data, []string{"EnableGremlin", "EnableServerless"}), data.RandomInteger)
 }
 
-func (r CosmosGremlinDatabaseResource) template(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, capabilities []string) string {
+func (r CosmosGremlinDatabaseResource) template(data acceptance.TestData, capabilities []string) string {
 	capeTf := ""
 	for _, c := range capabilities {
 		capeTf += fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
@@ -218,7 +218,7 @@ resource "azurerm_cosmosdb_account" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
-  kind                = "%s"
+  kind                = "GlobalDocumentDB"
 
   consistency_policy {
     consistency_level = "Strong"
@@ -231,5 +231,5 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), capeTf)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capeTf)
 }
