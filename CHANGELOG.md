@@ -1,5 +1,9 @@
 ## 3.57.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_virtual_hub_connection` [GH-21681]
+
 ENHANCEMENTS:
 
 * `azurerm_media_transform` - support for the `jpg_image` and `png_image` blocks within the `custom_preset` block [GH-21709]
