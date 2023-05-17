@@ -434,7 +434,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"no_proxy": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							ForceNew: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
