@@ -730,10 +730,6 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{
-						"auth_settings_v2.0.active_directory_v2.0.client_secret_setting_name",
-						"auth_settings_v2.0.active_directory_v2.0.client_secret_certificate_thumbprint",
-					},
 					Description: "The App Setting name that contains the client secret of the Client.",
 				},
 
@@ -741,10 +737,6 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{
-						"auth_settings_v2.0.active_directory_v2.0.client_secret_setting_name",
-						"auth_settings_v2.0.active_directory_v2.0.client_secret_certificate_thumbprint",
-					},
 					Description: "The thumbprint of the certificate used for signing purposes.",
 				},
 

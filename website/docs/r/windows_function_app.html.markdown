@@ -293,8 +293,6 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
-
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 
 * `jwt_allowed_client_applications` - (Optional) A list of Allowed Client Applications in the JWT Claim.
