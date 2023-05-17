@@ -1,4 +1,4 @@
-package managedvirtualnetwork
+package synapse
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,14 +9,15 @@ package managedvirtualnetwork
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork"
+const fqdn = "home/runner/work/kermit/kermit/sdk/synapse/2019-06-01-preview/synapse"
 
 // ManagedPrivateEndpoint managed private endpoint
 type ManagedPrivateEndpoint struct {

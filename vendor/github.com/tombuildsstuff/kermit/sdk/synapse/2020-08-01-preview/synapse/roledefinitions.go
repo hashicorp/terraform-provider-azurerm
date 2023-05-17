@@ -1,4 +1,4 @@
-package accesscontrol
+package synapse
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,13 +8,14 @@ package accesscontrol
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
-// RoleDefinitionsClient is the client for the RoleDefinitions methods of the Accesscontrol service.
+// RoleDefinitionsClient is the client for the RoleDefinitions methods of the Synapse service.
 type RoleDefinitionsClient struct {
 	BaseClient
 }
@@ -27,7 +28,7 @@ func NewRoleDefinitionsClient(endpoint string) RoleDefinitionsClient {
 // GetRoleDefinitionByID get role definition by role definition Id.
 // Parameters:
 // roleDefinitionID - synapse Built-In Role Definition Id.
-func (client RoleDefinitionsClient) GetRoleDefinitionByID(ctx context.Context, roleDefinitionID string) (result SynapseRoleDefinition, err error) {
+func (client RoleDefinitionsClient) GetRoleDefinitionByID(ctx context.Context, roleDefinitionID string) (result RoleDefinition, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleDefinitionsClient.GetRoleDefinitionByID")
 		defer func() {
@@ -40,20 +41,20 @@ func (client RoleDefinitionsClient) GetRoleDefinitionByID(ctx context.Context, r
 	}
 	req, err := client.GetRoleDefinitionByIDPreparer(ctx, roleDefinitionID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleDefinitionsClient", "GetRoleDefinitionByID", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleDefinitionsClient", "GetRoleDefinitionByID", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetRoleDefinitionByIDSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleDefinitionsClient", "GetRoleDefinitionByID", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleDefinitionsClient", "GetRoleDefinitionByID", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetRoleDefinitionByIDResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleDefinitionsClient", "GetRoleDefinitionByID", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleDefinitionsClient", "GetRoleDefinitionByID", resp, "Failure responding to request")
 		return
 	}
 
@@ -91,7 +92,7 @@ func (client RoleDefinitionsClient) GetRoleDefinitionByIDSender(req *http.Reques
 
 // GetRoleDefinitionByIDResponder handles the response to the GetRoleDefinitionByID request. The method always
 // closes the http.Response Body.
-func (client RoleDefinitionsClient) GetRoleDefinitionByIDResponder(resp *http.Response) (result SynapseRoleDefinition, err error) {
+func (client RoleDefinitionsClient) GetRoleDefinitionByIDResponder(resp *http.Response) (result RoleDefinition, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -105,7 +106,7 @@ func (client RoleDefinitionsClient) GetRoleDefinitionByIDResponder(resp *http.Re
 // Parameters:
 // isBuiltIn - is a Synapse Built-In Role or not.
 // scope - scope of the Synapse Built-in Role.
-func (client RoleDefinitionsClient) ListRoleDefinitions(ctx context.Context, isBuiltIn *bool, scope string) (result ListSynapseRoleDefinition, err error) {
+func (client RoleDefinitionsClient) ListRoleDefinitions(ctx context.Context, isBuiltIn *bool, scope string) (result ListRoleDefinition, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RoleDefinitionsClient.ListRoleDefinitions")
 		defer func() {
@@ -118,20 +119,20 @@ func (client RoleDefinitionsClient) ListRoleDefinitions(ctx context.Context, isB
 	}
 	req, err := client.ListRoleDefinitionsPreparer(ctx, isBuiltIn, scope)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleDefinitionsClient", "ListRoleDefinitions", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleDefinitionsClient", "ListRoleDefinitions", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListRoleDefinitionsSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleDefinitionsClient", "ListRoleDefinitions", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleDefinitionsClient", "ListRoleDefinitions", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListRoleDefinitionsResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleDefinitionsClient", "ListRoleDefinitions", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleDefinitionsClient", "ListRoleDefinitions", resp, "Failure responding to request")
 		return
 	}
 
@@ -171,7 +172,7 @@ func (client RoleDefinitionsClient) ListRoleDefinitionsSender(req *http.Request)
 
 // ListRoleDefinitionsResponder handles the response to the ListRoleDefinitions request. The method always
 // closes the http.Response Body.
-func (client RoleDefinitionsClient) ListRoleDefinitionsResponder(resp *http.Response) (result ListSynapseRoleDefinition, err error) {
+func (client RoleDefinitionsClient) ListRoleDefinitionsResponder(resp *http.Response) (result ListRoleDefinition, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -195,20 +196,20 @@ func (client RoleDefinitionsClient) ListScopes(ctx context.Context) (result List
 	}
 	req, err := client.ListScopesPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleDefinitionsClient", "ListScopes", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleDefinitionsClient", "ListScopes", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListScopesSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleDefinitionsClient", "ListScopes", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleDefinitionsClient", "ListScopes", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListScopesResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleDefinitionsClient", "ListScopes", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleDefinitionsClient", "ListScopes", resp, "Failure responding to request")
 		return
 	}
 
