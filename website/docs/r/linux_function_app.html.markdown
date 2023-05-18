@@ -291,11 +291,9 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client.
 
-!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
-
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 
