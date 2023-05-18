@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VaultGuardProxyResource struct{}
+type VaultResourceGuardAssociationResource struct{}
 
-func TestAccSiteRecoveryVaultGuardProxy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault_guard_proxy", "test")
-	r := VaultGuardProxyResource{}
+func TestAccSiteRecoveryVaultResourceGuardAssociation_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault_resource_guard_association", "test")
+	r := VaultResourceGuardAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,7 +30,7 @@ func TestAccSiteRecoveryVaultGuardProxy_basic(t *testing.T) {
 	})
 }
 
-func (VaultGuardProxyResource) basic(data acceptance.TestData) string {
+func (VaultResourceGuardAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -56,7 +56,7 @@ resource "azurerm_data_protection_resource_guard" "test" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_recovery_services_vault_guard_proxy" "test" {
+resource "azurerm_recovery_services_vault_resource_guard_association" "test" {
   name              = "tftest"
   vault_id          = azurerm_recovery_services_vault.test.id
   resource_guard_id = azurerm_data_protection_resource_guard.test.id
@@ -64,7 +64,7 @@ resource "azurerm_recovery_services_vault_guard_proxy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (t VaultGuardProxyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t VaultResourceGuardAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := resourceguardproxy.ParseBackupResourceGuardProxyID(state.ID)
 	if err != nil {
 		return nil, err

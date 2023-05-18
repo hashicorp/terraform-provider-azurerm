@@ -1,14 +1,14 @@
 ---
 subcategory: "Recovery Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_recovery_services_vault_guard_proxy"
+page_title: "Azure Resource Manager: azurerm_recovery_services_vault_resource_guard_association"
 description: |-
-  Manages a Recovery Services Vault Guard Proxy.
+  Manages an association of a Resource Guard and Recovery Services Vault. 
 ---
 
-# azurerm_recovery_services_vault_guard_proxy
+# azurerm_recovery_services_vault_resource_guard_association
 
-Manages a Recovery Services Vault Guard Proxy.
+Manages an association of a Resource Guard and Recovery Services Vault. 
 
 ## Example Usage
 
@@ -33,7 +33,7 @@ resource "azurerm_recovery_services_vault" "vault" {
   soft_delete_enabled = true
 }
 
-resource "azurerm_recovery_services_vault_guard_proxy" "test" {
+resource "azurerm_recovery_services_vault_resource_guard_association" "test" {
   name              = "example-guard-proxy"
   vault_id          = azurerm_recovery_services_vault.test.id
   resource_guard_id = azurerm_data_protection_resource_guard.test.id
@@ -44,11 +44,11 @@ resource "azurerm_recovery_services_vault_guard_proxy" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Recovery Services Vault Guard Proxy. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Recovery Services Vault Resource Guard Association. Changing this forces a new resource to be created.
 
-* `vault_id` - (Required) ID of the Recovery Services Vault where the Resource Guard Proxy should exist. Changing this forces a new resource to be created.
+* `vault_id` - (Required) ID of the Recovery Services Vault which should be associated with. Changing this forces a new resource to be created.
 
-* `resource_guard_id` - (Required) ID of the Resource Guard which the Resource Guard Proxy should be associated with. Changing this forces a new resource to be created. 
+* `resource_guard_id` - (Required) ID of the Resource Guard which should be associated with. Changing this forces a new resource to be created. 
 
 ## Attributes Reference
 
@@ -70,5 +70,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Resource Guards can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_recovery_services_vault_guard_proxy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/vault1/backupResourceGuardProxies/proxy1
+terraform import azurerm_recovery_services_vault_resource_guard_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/vault1/backupResourceGuardProxies/proxy1
 ```

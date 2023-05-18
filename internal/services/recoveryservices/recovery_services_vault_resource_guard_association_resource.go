@@ -40,7 +40,7 @@ func (r VaultGuardProxyResource) ModelObject() interface{} {
 }
 
 func (r VaultGuardProxyResource) ResourceType() string {
-	return "azurerm_recovery_services_vault_guard_proxy"
+	return "azurerm_recovery_services_vault_resource_guard_association"
 }
 
 func (r VaultGuardProxyResource) Arguments() map[string]*schema.Schema {
@@ -86,7 +86,7 @@ func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_recovery_services_vault_guard_proxy", id.ID())
+				return tf.ImportAsExistsError("azurerm_recovery_services_vault_resource_guard_association", id.ID())
 			}
 
 			proxy := resourceguardproxy.ResourceGuardProxyBaseResource{
@@ -97,8 +97,7 @@ func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 				}),
 			}
 
-			_, err = client.Put(ctx, id, proxy)
-			if err != nil {
+			if _, err = client.Put(ctx, id, proxy); err != nil {
 				return fmt.Errorf("creating %s:%w", id, err)
 			}
 
@@ -163,17 +162,19 @@ func (r VaultGuardProxyResource) Delete() sdk.ResourceFunc {
 			}
 
 			requestId := resourceguards.NewDeleteResourceGuardProxyRequestID(guardId.SubscriptionId, guardId.ResourceGroupName, guardId.ResourceGuardName, VaultGuardProxyDeleteRequestName)
-			_, err = client.UnlockDelete(ctx, *id, resourceguardproxy.UnlockDeleteRequest{
+
+			unlock := resourceguardproxy.UnlockDeleteRequest{
 				ResourceGuardOperationRequests: pointer.To([]string{requestId.ID()}),
-			})
-			if err != nil {
+			}
+
+			if _, err = client.UnlockDelete(ctx, *id, unlock); err != nil {
 				return fmt.Errorf("unlocking delete %s:%+v", id, err)
 			}
 
-			_, err = client.Delete(ctx, *id)
-			if err != nil {
+			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s:%+v", id, err)
 			}
+
 			return nil
 		},
 	}
