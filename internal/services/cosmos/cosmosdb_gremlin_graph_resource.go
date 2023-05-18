@@ -199,7 +199,7 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 			Resource: cosmosdb.GremlinGraphResource{
 				Id:                       id.GraphName,
 				IndexingPolicy:           expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
-				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicyForGremlin(d.Get("conflict_resolution_policy").([]interface{})),
+				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
 		},
@@ -230,12 +230,12 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
-			db.Properties.Options.Throughput = common.ConvertThroughputFromResourceDataForGremlin(throughput)
+			db.Properties.Options.Throughput = common.ConvertThroughputFromResourceDataForGremlinAndSqlContainer(throughput)
 		}
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
-		db.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettingsForGremlin(d)
+		db.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettingsForGremlinAndSqlContainer(d)
 	}
 
 	err = client.GremlinResourcesCreateUpdateGremlinGraphThenPoll(ctx, id, db)
@@ -303,7 +303,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if common.HasThroughputChange(d) {
-		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParametersForGremlin(d)
+		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParametersForGremlinAndSqlContainer(d)
 		throughputFuture, err := client.GremlinResourcesUpdateGremlinGraphThroughput(ctx, *id, *throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.HttpResponse) {
@@ -371,7 +371,7 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 				}
 
 				if crp := props.ConflictResolutionPolicy; crp != nil {
-					if err := d.Set("conflict_resolution_policy", common.FlattenCosmosDbConflictResolutionPolicyForGremlin(crp)); err != nil {
+					if err := d.Set("conflict_resolution_policy", common.FlattenCosmosDbConflictResolutionPolicy(crp)); err != nil {
 						return fmt.Errorf("setting `conflict_resolution_policy`: %+v", err)
 					}
 				}
@@ -406,7 +406,7 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 				d.Set("autoscale_settings", nil)
 			}
 		} else {
-			common.SetResourceDataThroughputFromResponseForGremlin(*throughputResp.Model, d)
+			common.SetResourceDataThroughputFromResponseForGremlinAndSqlContainer(*throughputResp.Model, d)
 		}
 	}
 	return nil
@@ -450,10 +450,10 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *pluginsdk.ResourceData) *
 		ExcludedPaths: expandAzureRmCosmosDbGremlinGraphExcludedPath(input),
 	}
 	if v, ok := input["composite_index"].([]interface{}); ok {
-		policy.CompositeIndexes = common.ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexesForGremlin(v)
+		policy.CompositeIndexes = common.ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(v)
 	}
 
-	policy.SpatialIndexes = common.ExpandAzureRmCosmosDBIndexingPolicySpatialIndexesForGremlin(input["spatial_index"].([]interface{}))
+	policy.SpatialIndexes = common.ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
 
 	if automatic, ok := input["automatic"].(bool); ok {
 		policy.Automatic = utils.Bool(automatic)
@@ -525,8 +525,8 @@ func flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(input *cosmosdb.IndexingPo
 	indexPolicy["indexing_mode"] = input.IndexingMode
 	indexPolicy["included_paths"] = pluginsdk.NewSet(pluginsdk.HashString, flattenAzureRmCosmosDBGremlinGraphIncludedPaths(input.IncludedPaths))
 	indexPolicy["excluded_paths"] = pluginsdk.NewSet(pluginsdk.HashString, flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input.ExcludedPaths))
-	indexPolicy["composite_index"] = common.FlattenCosmosDBIndexingPolicyCompositeIndexesForGremlin(input.CompositeIndexes)
-	indexPolicy["spatial_index"] = common.FlattenCosmosDBIndexingPolicySpatialIndexesForGremlin(input.SpatialIndexes)
+	indexPolicy["composite_index"] = common.FlattenCosmosDBIndexingPolicyCompositeIndexes(input.CompositeIndexes)
+	indexPolicy["spatial_index"] = common.FlattenCosmosDBIndexingPolicySpatialIndexes(input.SpatialIndexes)
 
 	return []interface{}{indexPolicy}
 }

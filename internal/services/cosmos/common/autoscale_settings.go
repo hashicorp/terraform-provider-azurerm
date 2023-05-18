@@ -26,7 +26,7 @@ func ExpandCosmosDbAutoscaleSettings(d *pluginsdk.ResourceData) *documentdb.Auto
 	return &autoscaleSettings
 }
 
-func ExpandCosmosDbAutoscaleSettingsForGremlin(d *pluginsdk.ResourceData) *cosmosdb.AutoScaleSettings {
+func ExpandCosmosDbAutoscaleSettingsForGremlinAndSqlContainer(d *pluginsdk.ResourceData) *cosmosdb.AutoScaleSettings {
 	i := d.Get("autoscale_settings").([]interface{})
 	if len(i) == 0 || i[0] == nil {
 		log.Printf("[DEBUG] Cosmos DB autoscale settings are not set on the resource")
@@ -110,7 +110,7 @@ func ExpandCosmosDbAutoscaleSettingsResource(d *pluginsdk.ResourceData) *documen
 }
 
 func ExpandCosmosDbAutoscaleSettingsResourceForGremlin(d *pluginsdk.ResourceData) *cosmosdb.AutoscaleSettingsResource {
-	autoscaleSettings := ExpandCosmosDbAutoscaleSettingsForGremlin(d)
+	autoscaleSettings := ExpandCosmosDbAutoscaleSettingsForGremlinAndSqlContainer(d)
 
 	if autoscaleSettings == nil {
 		return nil

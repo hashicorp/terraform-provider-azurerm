@@ -41,7 +41,7 @@ func ConvertThroughputFromResourceData(throughput interface{}) *int32 {
 	return utils.Int32(int32(throughput.(int)))
 }
 
-func ConvertThroughputFromResourceDataForGremlin(throughput interface{}) *int64 {
+func ConvertThroughputFromResourceDataForGremlinAndSqlContainer(throughput interface{}) *int64 {
 	return utils.Int64(int64(throughput.(int)))
 }
 
@@ -65,7 +65,7 @@ func ExpandCosmosDBThroughputSettingsUpdateParameters(d *pluginsdk.ResourceData)
 	return &throughputParameters
 }
 
-func ExpandCosmosDBThroughputSettingsUpdateParametersForGremlin(d *pluginsdk.ResourceData) *cosmosdb.ThroughputSettingsUpdateParameters {
+func ExpandCosmosDBThroughputSettingsUpdateParametersForGremlinAndSqlContainer(d *pluginsdk.ResourceData) *cosmosdb.ThroughputSettingsUpdateParameters {
 	throughputParameters := cosmosdb.ThroughputSettingsUpdateParameters{
 		Properties: cosmosdb.ThroughputSettingsUpdateProperties{
 			Resource: cosmosdb.ThroughputSettingsResource{},
@@ -73,7 +73,7 @@ func ExpandCosmosDBThroughputSettingsUpdateParametersForGremlin(d *pluginsdk.Res
 	}
 
 	if v, exists := d.GetOk("throughput"); exists {
-		throughputParameters.Properties.Resource.Throughput = ConvertThroughputFromResourceDataForGremlin(v)
+		throughputParameters.Properties.Resource.Throughput = ConvertThroughputFromResourceDataForGremlinAndSqlContainer(v)
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
@@ -92,7 +92,7 @@ func SetResourceDataThroughputFromResponse(throughputResponse documentdb.Through
 	d.Set("autoscale_settings", autoscaleSettings)
 }
 
-func SetResourceDataThroughputFromResponseForGremlin(throughputResponse cosmosdb.ThroughputSettingsGetResults, d *pluginsdk.ResourceData) {
+func SetResourceDataThroughputFromResponseForGremlinAndSqlContainer(throughputResponse cosmosdb.ThroughputSettingsGetResults, d *pluginsdk.ResourceData) {
 	d.Set("throughput", GetThroughputFromResultForGremlin(throughputResponse))
 
 	autoscaleSettings := FlattenCosmosDbAutoscaleSettingsForGremlin(throughputResponse)

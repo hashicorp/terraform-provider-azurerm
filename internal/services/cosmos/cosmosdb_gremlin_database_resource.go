@@ -100,12 +100,12 @@ func resourceCosmosGremlinDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
-			db.Properties.Options.Throughput = common.ConvertThroughputFromResourceDataForGremlin(throughput)
+			db.Properties.Options.Throughput = common.ConvertThroughputFromResourceDataForGremlinAndSqlContainer(throughput)
 		}
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
-		db.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettingsForGremlin(d)
+		db.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettingsForGremlinAndSqlContainer(d)
 	}
 
 	err = client.GremlinResourcesCreateUpdateGremlinDatabaseThenPoll(ctx, id, db)
@@ -148,7 +148,7 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if common.HasThroughputChange(d) {
-		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParametersForGremlin(d)
+		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParametersForGremlinAndSqlContainer(d)
 		throughputFuture, err := client.GremlinResourcesUpdateGremlinDatabaseThroughput(ctx, *id, *throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.HttpResponse) {
@@ -216,7 +216,7 @@ func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("autoscale_settings", nil)
 			}
 		} else {
-			common.SetResourceDataThroughputFromResponseForGremlin(*throughputResp.Model, d)
+			common.SetResourceDataThroughputFromResponseForGremlinAndSqlContainer(*throughputResp.Model, d)
 		}
 	}
 
