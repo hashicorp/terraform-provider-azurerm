@@ -313,8 +313,6 @@ resource "azurerm_linux_function_app" "test" {
 }
 
 func (r LinuxFunctionAppResource) authV2AzureActiveDirectoryNoSecretName(data acceptance.TestData, planSku string) string {
-	secretSettingName := "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
-	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -325,11 +323,6 @@ provider "azuread" {}
 %s
 
 data "azurerm_client_config" "current" {}
-
-resource "azuread_group" "test" {
-  display_name     = "acctestspa-%d"
-  security_enabled = true
-}
 
 resource "azurerm_linux_function_app" "test" {
   name                = "acctest-LFA-%[2]d"
@@ -342,21 +335,13 @@ resource "azurerm_linux_function_app" "test" {
 
   site_config {}
 
-  app_settings = {
-    "%[3]s" = "%[4]s"
-  }
-
-  sticky_settings {
-    app_setting_names = ["%[3]s"]
-  }
 
   auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "Return401"
     active_directory_v2 {
       client_id                  = data.azurerm_client_config.current.client_id
-      tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
-      allowed_groups             = [azuread_group.test.object_id]
+      tenant_auth_endpoint       = "https://sts.windows.net/%[3]s/v2.0"
     }
 
     login {
@@ -364,7 +349,7 @@ resource "azurerm_linux_function_app" "test" {
     }
   }
 }
-`, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue, data.Client().TenantID)
+`, r.template(data, planSku), data.RandomInteger, data.Client().TenantID)
 }
 
 func (r LinuxFunctionAppResource) authV2Apple(data acceptance.TestData, planSku string) string {
