@@ -44,23 +44,23 @@ func ParseApplicationVersionID(input string) (*ApplicationVersionId, error) {
 	id := ApplicationVersionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'galleryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
 	}
 
 	if id.ApplicationName, ok = parsed.Parsed["applicationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'applicationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationName", *parsed)
 	}
 
 	if id.VersionName, ok = parsed.Parsed["versionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'versionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionName", *parsed)
 	}
 
 	return &id, nil
@@ -79,23 +79,23 @@ func ParseApplicationVersionIDInsensitively(input string) (*ApplicationVersionId
 	id := ApplicationVersionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'galleryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
 	}
 
 	if id.ApplicationName, ok = parsed.Parsed["applicationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'applicationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationName", *parsed)
 	}
 
 	if id.VersionName, ok = parsed.Parsed["versionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'versionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionName", *parsed)
 	}
 
 	return &id, nil

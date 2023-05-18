@@ -48,31 +48,31 @@ func ParseCloudServicesPublicIPAddressID(input string) (*CloudServicesPublicIPAd
 	id := CloudServicesPublicIPAddressId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.CloudServiceName, ok = parsed.Parsed["cloudServiceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'cloudServiceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cloudServiceName", *parsed)
 	}
 
 	if id.RoleInstanceName, ok = parsed.Parsed["roleInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'roleInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleInstanceName", *parsed)
 	}
 
 	if id.NetworkInterfaceName, ok = parsed.Parsed["networkInterfaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'networkInterfaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkInterfaceName", *parsed)
 	}
 
 	if id.IpConfigurationName, ok = parsed.Parsed["ipConfigurationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'ipConfigurationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "ipConfigurationName", *parsed)
 	}
 
 	if id.PublicIPAddressName, ok = parsed.Parsed["publicIPAddressName"]; !ok {
-		return nil, fmt.Errorf("the segment 'publicIPAddressName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publicIPAddressName", *parsed)
 	}
 
 	return &id, nil
@@ -91,31 +91,31 @@ func ParseCloudServicesPublicIPAddressIDInsensitively(input string) (*CloudServi
 	id := CloudServicesPublicIPAddressId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.CloudServiceName, ok = parsed.Parsed["cloudServiceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'cloudServiceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cloudServiceName", *parsed)
 	}
 
 	if id.RoleInstanceName, ok = parsed.Parsed["roleInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'roleInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleInstanceName", *parsed)
 	}
 
 	if id.NetworkInterfaceName, ok = parsed.Parsed["networkInterfaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'networkInterfaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkInterfaceName", *parsed)
 	}
 
 	if id.IpConfigurationName, ok = parsed.Parsed["ipConfigurationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'ipConfigurationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "ipConfigurationName", *parsed)
 	}
 
 	if id.PublicIPAddressName, ok = parsed.Parsed["publicIPAddressName"]; !ok {
-		return nil, fmt.Errorf("the segment 'publicIPAddressName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publicIPAddressName", *parsed)
 	}
 
 	return &id, nil

@@ -116,11 +116,6 @@ func TestExpandFeatures(t *testing.T) {
 							"expand_without_downtime": true,
 						},
 					},
-					"network": []interface{}{
-						map[string]interface{}{
-							"relaxed_locking": true,
-						},
-					},
 					"resource_group": []interface{}{
 						map[string]interface{}{
 							"prevent_deletion_if_contains_resources": true,
@@ -244,11 +239,6 @@ func TestExpandFeatures(t *testing.T) {
 					"managed_disk": []interface{}{
 						map[string]interface{}{
 							"expand_without_downtime": false,
-						},
-					},
-					"network_locking": []interface{}{
-						map[string]interface{}{
-							"relaxed_locking": false,
 						},
 					},
 					"resource_group": []interface{}{

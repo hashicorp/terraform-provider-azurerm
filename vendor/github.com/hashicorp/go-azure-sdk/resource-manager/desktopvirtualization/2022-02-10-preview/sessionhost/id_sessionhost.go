@@ -42,19 +42,19 @@ func ParseSessionHostID(input string) (*SessionHostId, error) {
 	id := SessionHostId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.HostPoolName, ok = parsed.Parsed["hostPoolName"]; !ok {
-		return nil, fmt.Errorf("the segment 'hostPoolName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hostPoolName", *parsed)
 	}
 
 	if id.SessionHostName, ok = parsed.Parsed["sessionHostName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sessionHostName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sessionHostName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseSessionHostIDInsensitively(input string) (*SessionHostId, error) {
 	id := SessionHostId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.HostPoolName, ok = parsed.Parsed["hostPoolName"]; !ok {
-		return nil, fmt.Errorf("the segment 'hostPoolName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hostPoolName", *parsed)
 	}
 
 	if id.SessionHostName, ok = parsed.Parsed["sessionHostName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sessionHostName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sessionHostName", *parsed)
 	}
 
 	return &id, nil

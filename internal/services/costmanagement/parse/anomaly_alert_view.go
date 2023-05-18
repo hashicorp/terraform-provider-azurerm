@@ -38,7 +38,7 @@ func (id AnomalyAlertViewId) ID() string {
 func AnomalyAlertViewID(input string) (*AnomalyAlertViewId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an AnomalyAlertView ID: %+v", input, err)
 	}
 
 	resourceId := AnomalyAlertViewId{

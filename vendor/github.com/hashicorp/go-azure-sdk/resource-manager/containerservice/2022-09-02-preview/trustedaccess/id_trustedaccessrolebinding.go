@@ -42,19 +42,19 @@ func ParseTrustedAccessRoleBindingID(input string) (*TrustedAccessRoleBindingId,
 	id := TrustedAccessRoleBindingId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterName", *parsed)
 	}
 
 	if id.TrustedAccessRoleBindingName, ok = parsed.Parsed["trustedAccessRoleBindingName"]; !ok {
-		return nil, fmt.Errorf("the segment 'trustedAccessRoleBindingName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trustedAccessRoleBindingName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseTrustedAccessRoleBindingIDInsensitively(input string) (*TrustedAccessR
 	id := TrustedAccessRoleBindingId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterName", *parsed)
 	}
 
 	if id.TrustedAccessRoleBindingName, ok = parsed.Parsed["trustedAccessRoleBindingName"]; !ok {
-		return nil, fmt.Errorf("the segment 'trustedAccessRoleBindingName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trustedAccessRoleBindingName", *parsed)
 	}
 
 	return &id, nil

@@ -407,7 +407,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.MSSQLManagedInstance = mssqlmanagedinstance.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
 	client.NetApp = netapp.NewClient(o)
-	client.Network = network.NewClient(o)
+	if client.Network, err = network.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Network: %+v", err)
+	}
 	client.Nginx = nginx.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
 	client.Orbital = orbital.NewClient(o)

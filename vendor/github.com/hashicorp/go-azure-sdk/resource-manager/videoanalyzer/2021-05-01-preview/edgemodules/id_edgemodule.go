@@ -42,19 +42,19 @@ func ParseEdgeModuleID(input string) (*EdgeModuleId, error) {
 	id := EdgeModuleId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.VideoAnalyzerName, ok = parsed.Parsed["videoAnalyzerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'videoAnalyzerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "videoAnalyzerName", *parsed)
 	}
 
 	if id.EdgeModuleName, ok = parsed.Parsed["edgeModuleName"]; !ok {
-		return nil, fmt.Errorf("the segment 'edgeModuleName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "edgeModuleName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseEdgeModuleIDInsensitively(input string) (*EdgeModuleId, error) {
 	id := EdgeModuleId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.VideoAnalyzerName, ok = parsed.Parsed["videoAnalyzerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'videoAnalyzerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "videoAnalyzerName", *parsed)
 	}
 
 	if id.EdgeModuleName, ok = parsed.Parsed["edgeModuleName"]; !ok {
-		return nil, fmt.Errorf("the segment 'edgeModuleName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "edgeModuleName", *parsed)
 	}
 
 	return &id, nil

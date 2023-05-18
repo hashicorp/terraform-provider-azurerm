@@ -41,7 +41,7 @@ func (id PrivateLinkHubId) ID() string {
 func PrivateLinkHubID(input string) (*PrivateLinkHubId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an PrivateLinkHub ID: %+v", input, err)
 	}
 
 	resourceId := PrivateLinkHubId{

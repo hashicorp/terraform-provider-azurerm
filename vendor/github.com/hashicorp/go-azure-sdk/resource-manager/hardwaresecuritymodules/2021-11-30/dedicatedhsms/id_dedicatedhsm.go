@@ -40,15 +40,15 @@ func ParseDedicatedHSMID(input string) (*DedicatedHSMId, error) {
 	id := DedicatedHSMId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DedicatedHSMName, ok = parsed.Parsed["dedicatedHSMName"]; !ok {
-		return nil, fmt.Errorf("the segment 'dedicatedHSMName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dedicatedHSMName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseDedicatedHSMIDInsensitively(input string) (*DedicatedHSMId, error) {
 	id := DedicatedHSMId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DedicatedHSMName, ok = parsed.Parsed["dedicatedHSMName"]; !ok {
-		return nil, fmt.Errorf("the segment 'dedicatedHSMName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dedicatedHSMName", *parsed)
 	}
 
 	return &id, nil
