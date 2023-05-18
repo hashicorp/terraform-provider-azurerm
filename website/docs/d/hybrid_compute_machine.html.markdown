@@ -12,7 +12,7 @@ Use this data source to access information about an existing Hybrid Compute.
 
 ## Disclaimers
 
--> **Note:** The `azurerm_hybrid_compute_machine` datasource has been superseded by the [`azurerm_arc_machine`](arc_machine.html) datasource. The existing `azurerm_hybrid_compute_machine` datasource will continue to be available throughout the 3.x releases however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_arc_machine` datasource.
+-> **Note:** The  Data Source `azurerm_hybrid_compute_machine` is deprecated will be removed in v4.0 of the Azure Provider - a replacement can be found in the form of the [`azurerm_arc_machine`](arc_machine.html) Data Source.
 
 ## Example Usage
 
