@@ -743,6 +743,8 @@ A `status_code` block supports the following:
 
 * `win32_status` - (Optional) The Win32 Status Code of the Request.
 
+-> **Note:** `sub_status` and `win32_status` is only available for single status code.
+
 ---
 
 A `sticky_settings` block exports the following:

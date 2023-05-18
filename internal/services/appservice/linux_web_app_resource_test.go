@@ -1112,6 +1112,21 @@ func TestAccLinuxWebApp_withAutoHealRulesStatusCodeRange(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withAutoHealRulesStatusCode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoHealRulesStatusCode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebApp_withAutoHealRulesSlowRequest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -2734,6 +2749,45 @@ resource "azurerm_linux_web_app" "test" {
           status_code_range = "500-599"
           interval          = "00:01:00"
           count             = 10
+        }
+      }
+
+      action {
+        action_type                    = "Recycle"
+        minimum_process_execution_time = "00:05:00"
+      }
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) autoHealRulesStatusCode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    auto_heal_enabled = true
+
+    auto_heal_setting {
+      trigger {
+        status_code {
+          status_code_range = "500-599"
+          interval          = "00:01:00"
+          count             = 10
+          path              = "./terraformteststatuscode.aspx"
+          win32_status      = "30"
+          sub_status        = 202
         }
       }
 

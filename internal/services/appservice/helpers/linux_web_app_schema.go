@@ -1012,6 +1012,11 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 				if s.Path != "" {
 					statusCodeTrigger.Path = pointer.To(s.Path)
 				}
+				statusCodeTrigger.SubStatus = pointer.To(int32(s.SubStatus))
+				win32status, err := strconv.Atoi(s.Win32Status)
+				if err == nil {
+					statusCodeTrigger.Win32Status = pointer.To(int32(win32status))
+				}
 				statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 			}
 		}
@@ -1066,6 +1071,10 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 
 				if s.SubStatus != nil {
 					t.SubStatus = int(*s.SubStatus)
+				}
+
+				if s.Win32Status != nil {
+					t.Win32Status = strconv.Itoa(int(*s.Win32Status))
 				}
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}

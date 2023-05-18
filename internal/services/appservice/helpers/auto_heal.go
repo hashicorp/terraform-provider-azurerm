@@ -444,6 +444,12 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 				}
 				statusCodeTrigger.Count = pointer.To(int32(s.Count))
 				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
+				statusCodeTrigger.SubStatus = pointer.To(int32(s.SubStatus))
+				win32status, err := strconv.Atoi(s.Win32Status)
+				if err == nil {
+					statusCodeTrigger.Win32Status = pointer.To(int32(win32status))
+				}
+
 				if s.Path != "" {
 					statusCodeTrigger.Path = pointer.To(s.Path)
 				}
@@ -511,6 +517,10 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 
 				if s.SubStatus != nil {
 					t.SubStatus = int(*s.SubStatus)
+				}
+
+				if s.Win32Status != nil {
+					t.Win32Status = strconv.Itoa(int(*s.Win32Status))
 				}
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}
