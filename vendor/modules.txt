@@ -26,8 +26,6 @@ github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql
-github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork
-github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup
@@ -830,6 +828,8 @@ github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub
 github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault
 github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network
 github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights
+github.com/tombuildsstuff/kermit/sdk/synapse/2019-06-01-preview/synapse
+github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse
 github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse
 github.com/tombuildsstuff/kermit/version
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
