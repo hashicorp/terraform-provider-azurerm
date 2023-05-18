@@ -105,7 +105,7 @@ func TestAccVirtualHub_tags(t *testing.T) {
 	})
 }
 
-func TestAccVirtualHub_autoscale(t *testing.T) {
+func TestAccVirtualHub_auto_scale_min_capacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
 	r := VirtualHubResource{}
 
@@ -264,9 +264,7 @@ resource "azurerm_virtual_hub" "test" {
   virtual_wan_id      = azurerm_virtual_wan.test.id
   address_prefix      = "10.0.1.0/24"
 
-  virtual_router_auto_scale_configuration {
-	min_capacity: 2
-  }
+  virtual_router_auto_scale_min_capacity = 2
 }
 `, r.template(data), data.RandomInteger)
 }

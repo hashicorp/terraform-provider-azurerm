@@ -49,7 +49,7 @@ The following attributes are exported:
 
 * `virtual_router_ips` - The IP addresses of the Virtual Hub BGP router.
 
-* `virtual_router_autoscale_configuration` - The scaling configuration for the Virtual Hub Router.
+* `virtual_router_auto_scale_min_capacity` - Minimum instance capacity for the scaling configuration of the Virtual Hub Router.
 
 ## Timeouts
 
