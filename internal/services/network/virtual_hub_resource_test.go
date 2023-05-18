@@ -264,7 +264,7 @@ resource "azurerm_virtual_hub" "test" {
   virtual_wan_id      = azurerm_virtual_wan.test.id
   address_prefix      = "10.0.1.0/24"
 
-  virtual_router_auto_scale_min_capacity = 2
+  virtual_router_auto_scale_min_capacity = 3
 }
 `, r.template(data), data.RandomInteger)
 }
