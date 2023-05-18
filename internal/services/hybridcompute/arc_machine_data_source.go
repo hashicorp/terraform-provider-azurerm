@@ -533,7 +533,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.HybridCompute.MachinesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var hybridComputeMachineModel HybridComputeMachineModel
+			var hybridComputeMachineModel ArcMachineModel
 			if err := metadata.Decode(&hybridComputeMachineModel); err != nil {
 				return err
 			}
@@ -554,7 +554,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := HybridComputeMachineModel{
+			state := ArcMachineModel{
 				Name:              id.MachineName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
