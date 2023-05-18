@@ -2,7 +2,6 @@ package hybridcompute
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -40,7 +39,6 @@ type ArcMachineModel struct {
 	DisplayName                string                    `tfschema:"display_name"`
 	DnsFqdn                    string                    `tfschema:"dns_fqdn"`
 	DomainName                 string                    `tfschema:"domain_name"`
-	ErrorDetails               []ErrorDetailModel        `tfschema:"error_details"`
 	LastStatusChange           string                    `tfschema:"last_status_change"`
 	MachineFqdn                string                    `tfschema:"machine_fqdn"`
 	OsName                     string                    `tfschema:"os_name"`
@@ -103,18 +101,6 @@ type ServiceStatusesModel struct {
 type ServiceStatusModel struct {
 	StartupType string `tfschema:"startup_type"`
 	Status      string `tfschema:"status"`
-}
-
-type ErrorDetailModel struct {
-	AdditionalInfo []ErrorAdditionalInfoModel `tfschema:"additional_info"`
-	Code           string                     `tfschema:"code"`
-	Message        string                     `tfschema:"message"`
-	Target         string                     `tfschema:"target"`
-}
-
-type ErrorAdditionalInfoModel struct {
-	Info string `tfschema:"info"`
-	Type string `tfschema:"type"`
 }
 
 type ArcMachineDataSource struct{}
@@ -261,47 +247,6 @@ func (a ArcMachineDataSource) Attributes() map[string]*schema.Schema {
 		"domain_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-
-		"error_details": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"additional_info": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"info": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-
-					"code": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"message": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"target": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
 		},
 
 		"identity": commonschema.SystemAssignedIdentityComputed(),
@@ -606,9 +551,11 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 					state.DomainName = *properties.DomainName
 				}
 
-				errorDetailsValue := flattenErrorDetailModel(properties.ErrorDetails)
-
-				state.ErrorDetails = errorDetailsValue
+				if properties.ErrorDetails != nil {
+					if len(*properties.ErrorDetails) > 0 {
+						return fmt.Errorf("retrieving %s: error details: %+v", id, *properties.ErrorDetails)
+					}
+				}
 
 				if properties.LastStatusChange != nil {
 					state.LastStatusChange = *properties.LastStatusChange
@@ -766,66 +713,6 @@ func flattenCloudMetadataModel(input *machines.CloudMetadata) []CloudMetadataMod
 	}
 
 	return append(outputList, output)
-}
-
-func flattenErrorDetailModel(inputList *[]machines.ErrorDetail) []ErrorDetailModel {
-	var outputList []ErrorDetailModel
-	if inputList == nil {
-		return outputList
-	}
-
-	for _, input := range *inputList {
-		output := ErrorDetailModel{}
-
-		additionalInfoValue := flattenErrorAdditionalInfoModel(input.AdditionalInfo)
-
-		output.AdditionalInfo = additionalInfoValue
-
-		if input.Code != nil {
-			output.Code = *input.Code
-		}
-
-		if input.Message != nil {
-			output.Message = *input.Message
-		}
-
-		if input.Target != nil {
-			output.Target = *input.Target
-		}
-
-		outputList = append(outputList, output)
-	}
-
-	return outputList
-}
-
-func flattenErrorAdditionalInfoModel(inputList *[]machines.ErrorAdditionalInfo) []ErrorAdditionalInfoModel {
-	var outputList []ErrorAdditionalInfoModel
-	if inputList == nil {
-		return outputList
-	}
-
-	for _, input := range *inputList {
-		output := ErrorAdditionalInfoModel{}
-
-		if input.Info != nil && *input.Info != nil {
-
-			infoValue, err := json.Marshal(*input.Info)
-			if err != nil {
-				return nil
-			}
-
-			output.Info = string(infoValue)
-		}
-
-		if input.Type != nil {
-			output.Type = *input.Type
-		}
-
-		outputList = append(outputList, output)
-	}
-
-	return outputList
 }
 
 func flattenLocationDataModel(input *machines.LocationData) []LocationDataModel {
