@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -103,7 +104,12 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 						"authentication_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(replicationprotectioncontainermappings.AutomationAccountAuthenticationTypeSystemAssignedIdentity),
+							Default: func() interface{} {
+								if !features.FourPointOhBeta() {
+									return nil
+								}
+								return string(replicationprotectioncontainermappings.AutomationAccountAuthenticationTypeSystemAssignedIdentity)
+							}(),
 							// The Swagger definition defaults to `RunAsAccount` but it is deprecated.
 							// deprecation details: https://learn.microsoft.com/en-us/azure/automation/whats-new#support-for-run-as-accounts
 							ValidateFunc: validation.StringInSlice(replicationprotectioncontainermappings.PossibleValuesForAutomationAccountAuthenticationType(), false),
