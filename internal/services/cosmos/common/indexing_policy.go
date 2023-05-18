@@ -141,28 +141,7 @@ func flattenCosmosDBIndexingPolicyExcludedPaths(input *[]cosmosdb.ExcludedPath) 
 	return excludedPaths
 }
 
-func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePath) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	indexPairs := make([]interface{}, 0)
-	for _, v := range input {
-		path := ""
-		if v.Path != nil {
-			path = *v.Path
-		}
-
-		block := make(map[string]interface{})
-		block["path"] = path
-		block["order"] = string(v.Order)
-		indexPairs = append(indexPairs, block)
-	}
-
-	return indexPairs
-}
-
-func flattenCosmosDBIndexingPolicyCompositeIndexForGremlin(input []cosmosdb.CompositePath) []interface{} {
+func flattenCosmosDBIndexingPolicyCompositeIndex(input []cosmosdb.CompositePath) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -192,7 +171,7 @@ func FlattenCosmosDBIndexingPolicyCompositeIndexes(input *[][]cosmosdb.Composite
 
 	for _, v := range *input {
 		block := make(map[string][]interface{})
-		block["index"] = flattenCosmosDBIndexingPolicyCompositeIndexForGremlin(v)
+		block["index"] = flattenCosmosDBIndexingPolicyCompositeIndex(v)
 		indexes = append(indexes, block)
 	}
 
@@ -229,28 +208,14 @@ func FlattenCosmosDBIndexingPolicySpatialIndexes(input *[]cosmosdb.SpatialSpec) 
 		}
 		indexes = append(indexes, map[string]interface{}{
 			"path":  path,
-			"types": flattenCosmosDBIndexingPolicySpatialIndexesTypesForGremlin(v.Types),
+			"types": flattenCosmosDBIndexingPolicySpatialIndexesTypes(v.Types),
 		})
 	}
 
 	return indexes
 }
 
-func flattenCosmosDBIndexingPolicySpatialIndexesTypes(input *[]documentdb.SpatialType) []interface{} {
-	if input == nil {
-		return nil
-	}
-
-	types := make([]interface{}, 0)
-
-	for _, v := range *input {
-		types = append(types, string(v))
-	}
-
-	return types
-}
-
-func flattenCosmosDBIndexingPolicySpatialIndexesTypesForGremlin(input *[]cosmosdb.SpatialType) []interface{} {
+func flattenCosmosDBIndexingPolicySpatialIndexesTypes(input *[]cosmosdb.SpatialType) []interface{} {
 	if input == nil {
 		return nil
 	}
