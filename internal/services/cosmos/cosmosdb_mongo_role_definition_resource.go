@@ -17,10 +17,10 @@ import (
 )
 
 type CosmosDbMongoRoleDefinitionResourceModel struct {
-	DbId               string      `tfschema:"db_id"`
-	RoleName           string      `tfschema:"role_name"`
-	InheritedRoleNames []string    `tfschema:"inherited_role_names"`
-	Privileges         []Privilege `tfschema:"privilege"`
+	CosmosMongoDatabaseId string      `tfschema:"cosmos_mongo_database_id"`
+	RoleName              string      `tfschema:"role_name"`
+	InheritedRoleNames    []string    `tfschema:"inherited_role_names"`
+	Privileges            []Privilege `tfschema:"privilege"`
 }
 
 type Privilege struct {
@@ -51,7 +51,7 @@ func (r CosmosDbMongoRoleDefinitionResource) IDValidationFunc() pluginsdk.Schema
 
 func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"db_id": {
+		"cosmos_mongo_database_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -128,7 +128,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Cosmos.MongoRBACClient
-			databaseId, err := parse.MongodbDatabaseID(model.DbId)
+			databaseId, err := parse.MongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
@@ -198,7 +198,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			databaseId, err := parse.MongodbDatabaseID(model.DbId)
+			databaseId, err := parse.MongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
@@ -249,7 +249,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Read() sdk.ResourceFunc {
 				if properties := model.Properties; properties != nil {
 					databaseId := parse.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, *properties.DatabaseName)
 
-					state.DbId = databaseId.ID()
+					state.CosmosMongoDatabaseId = databaseId.ID()
 					state.RoleName = pointer.From(properties.RoleName)
 					state.Privileges = flattenPrivilege(properties.Privileges)
 					state.InheritedRoleNames = flattenInheritedRoles(properties.Roles)

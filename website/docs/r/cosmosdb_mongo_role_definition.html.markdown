@@ -50,8 +50,8 @@ resource "azurerm_cosmosdb_mongo_database" "example" {
 }
 
 resource "azurerm_cosmosdb_mongo_role_definition" "example" {
-  db_id     = azurerm_cosmosdb_mongo_database.example.id
-  role_name = "example-roledefinition"
+  cosmos_mongo_database_id = azurerm_cosmosdb_mongo_database.example.id
+  role_name                = "example-roledefinition"
 }
 ```
 
@@ -59,13 +59,13 @@ resource "azurerm_cosmosdb_mongo_role_definition" "example" {
 
 The following arguments are supported:
 
-* `db_id` - (Required) The resource ID of the Mongo DB. Changing this forces a new resource to be created.
+* `cosmos_mongo_database_id` - (Required) The resource ID of the Mongo DB. Changing this forces a new resource to be created.
 
 * `role_name` - (Required) The user-friendly name for the Mongo Role Definition. It must be unique for the database account. Changing this forces a new resource to be created.
 
 * `inherited_role_names` - (Optional) A list of Mongo Roles which are inherited to the Mongo Role Definition.
 
-~> **Note:** The role that needs to be inherited should exist in the Mongo DB of `db_id`.
+~> **Note:** The role that needs to be inherited should exist in the Mongo DB of `cosmos_mongo_database_id`.
 
 * `privilege` - (Optional) A `privilege` block as defined below.
 
