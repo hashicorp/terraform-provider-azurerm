@@ -121,7 +121,11 @@ type DeprecatedErrorAdditionalInfoModel struct {
 
 type HybridComputeMachineDataSource struct{}
 
-var _ sdk.DataSource = HybridComputeMachineDataSource{}
+func (r HybridComputeMachineDataSource) DeprecatedInFavourOfDataSource() string {
+	return "azurerm_arc_machine"
+}
+
+var _ sdk.DataSourceWithDeprecationReplacedBy = HybridComputeMachineDataSource{}
 
 func (r HybridComputeMachineDataSource) ResourceType() string {
 	return "azurerm_hybrid_compute_machine"
@@ -536,9 +540,6 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			logger := sdk.ConsoleLogger{}
-			logger.Warn("Datasource azurerm_hybrid_compute_machine will be deprecated and replaced by azurerm_arc_machine in 4.0 and later version.")
-
 			client := metadata.Client.HybridCompute.MachinesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 

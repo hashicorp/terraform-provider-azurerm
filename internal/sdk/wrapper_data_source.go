@@ -52,6 +52,19 @@ func (dw *DataSourceWrapper) DataSource() (*schema.Resource, error) {
 		},
 	}
 
+	if v, ok := dw.dataSource.(DataSourceWithDeprecationReplacedBy); ok {
+		replacementDataSourceType := v.DeprecatedInFavourOfDataSource()
+		if replacementDataSourceType == "" {
+			return nil, fmt.Errorf("datasource %q must return a non-empty DeprecatedInFavourOfDataSource if implementing DataSourceWithDeprecationReplacedBy", dw.dataSource.ResourceType())
+		}
+		resource.DeprecationMessage = fmt.Sprintf(`The %[1]q datasource has been deprecated and replaced by the %[2]q datasource.
+
+The existing %[1]q datasource will remain available until the next
+major version of the Azure Provider however the existing datasource is feature-frozen
+and we recommend using the %[2]q datasource instead.
+`, dw.dataSource.ResourceType(), replacementDataSourceType)
+	}
+
 	return &resource, nil
 }
 
