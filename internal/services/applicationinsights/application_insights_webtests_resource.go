@@ -237,7 +237,12 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 			appInsightsId = strings.Split(i, ":")[1]
 		}
 	}
-	d.Set("application_insights_id", appInsightsId)
+	parsedAppInsightsId, err := parse.ComponentIDInsensitively(appInsightsId)
+	if err != nil {
+		return fmt.Errorf("parsing `application_insights_id`: %+v", err)
+	}
+
+	d.Set("application_insights_id", parsedAppInsightsId.ID())
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("kind", resp.Kind)
