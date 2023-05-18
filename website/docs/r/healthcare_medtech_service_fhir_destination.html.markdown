@@ -11,11 +11,64 @@ description: |-
 Manages a Healthcare Med Tech Service Fhir Destination.
 
 ```hcl
-resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
+resource "azurerm_resource_group" "example" {
+  name     = "example"
+  location = "West Europe"
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_healthcare_workspace" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_eventhub_namespace" "example" {
+  name                = "tfexample-ehn"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "example" {
+  name                = "tfexample-eh"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  partition_count     = 1
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_consumer_group" "example" {
+  name                = "$default"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  eventhub_name       = azurerm_eventhub.example.name
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_healthcare_medtech_service" "example" {
+  name         = "mt"
+  workspace_id = azurerm_healthcare_workspace.example.id
+  location     = azurerm_resource_group.example.location
+
+  eventhub_namespace_name      = azurerm_eventhub_namespace.example.name
+  eventhub_name                = azurerm_eventhub.example.name
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.example.name
+
+  device_mapping_json = <<JSON
+{
+"templateType": "CollectionContent",
+"template": []
+}
+JSON
+}
+
+resource "azurerm_healthcare_medtech_service_fhir_destination" "example" {
   name                                 = "tfexmtdes"
   location                             = "east us"
-  medtech_service_id                   = "mt_service_id"
-  destination_fhir_service_id          = "fhir_service_id"
+  medtech_service_id                   = azurerm_healthcare_medtech_service.example.id
+  destination_fhir_service_id          = azurerm_healthcare_fhir_service.example.id
   destination_identity_resolution_type = "Create"
 
   destination_fhir_mapping_json = <<JSON

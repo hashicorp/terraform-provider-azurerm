@@ -22,9 +22,9 @@ resource "azurerm_healthcare_medtech_service" "test" {
     type = "SystemAssigned"
   }
 
-  eventhub_namespace_name      = "tfex-eventhub-namespace.name"
-  eventhub_name                = "tfex-eventhub.name"
-  eventhub_consumer_group_name = "tfex-eventhub-consumer-group.name"
+  eventhub_namespace_name      = "tfex-eventhub-namespace"
+  eventhub_name                = "tfex-eventhub"
+  eventhub_consumer_group_name = "$Default"
 
   device_mapping_json = <<JSON
 {
