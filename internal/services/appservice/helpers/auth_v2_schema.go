@@ -730,14 +730,20 @@ func AadAuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The App Setting name that contains the client secret of the Client.",
+					ConflictsWith: []string{
+						"auth_settings_v2.0.active_directory_v2.0.client_secret_certificate_thumbprint",
+					},
+					Description: "The App Setting name that contains the client secret of the Client.",
 				},
 
 				"client_secret_certificate_thumbprint": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The thumbprint of the certificate used for signing purposes.",
+					ConflictsWith: []string{
+						"auth_settings_v2.0.active_directory_v2.0.client_secret_setting_name",
+					},
+					Description: "The thumbprint of the certificate used for signing purposes.",
 				},
 
 				"jwt_allowed_groups": {
