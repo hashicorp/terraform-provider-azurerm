@@ -137,7 +137,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
     service_resources = [
       "/subscriptions/%s",
       azurerm_resource_group.test.id,
-      azurerm_storage_account.test.id
+      azurerm_storage_account.test.id,
 	  "/services/Azure"
     ]
   }
