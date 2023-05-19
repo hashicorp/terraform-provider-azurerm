@@ -14,3 +14,22 @@ func SubnetServiceEndpointStoragePolicyAlias(i interface{}, k string) (warnings 
 // 	// Same rule as policy
 // 	return SubnetServiceEndpointStoragePolicyName(i, k)
 // }
+
+
+go
+"service_resources": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.Any(
+									azure.ValidateResourceID,
+									mgValidate.ManagementGroupID,
+									validation.StringInSlice([]string{
+										"/services/Azure/ManagedInstance",
+										"[other]",
+										"[value]",
+									}, false),
+								),
+							},
+						},
