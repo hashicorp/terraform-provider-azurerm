@@ -152,9 +152,9 @@ func resourceSubnetServiceEndpointStoragePolicyRead(d *pluginsdk.ResourceData, m
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
+ 
 	id, err := parse.SubnetServiceEndpointStoragePolicyID(d.Id())
-	if err != nil {
+	if err != nil {k
 		return err
 	}
 
@@ -248,6 +248,7 @@ func flattenServiceEndpointPolicyDefinitions(input *[]network.ServiceEndpointPol
 				description = *b.Description
 			}
 			serviceResource = utils.FlattenStringSlice(b.ServiceResources)
+			service = b.service
 		}
 
 		output = append(output, map[string]interface{}{
