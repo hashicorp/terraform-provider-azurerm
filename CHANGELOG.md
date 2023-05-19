@@ -12,6 +12,10 @@ ENHANCEMENTS:
 * `azurerm_media_transform` - support for the `jpg_image` and `png_image` blocks within the `custom_preset` block [GH-21709]
 * `azurerm_recovery_services_vault` - support the `monitoring` block [GH-21691]
 
+BUG FIXES:
+
+* `data.azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil [GH-21850]
+
 ## 3.56.0 (May 11, 2023)
 
 FEATURES:
