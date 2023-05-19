@@ -72,7 +72,14 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 								ValidateFunc: validation.Any(
 									azure.ValidateResourceID,
 									mgValidate.ManagementGroupID,
-									validate.SubnetServiceEndpointStoragePolicyAlias,
+									validation.StringInSlice([]string{
+										"/services/Azure",
+										"/services/Azure/Batch",
+										"/services/Azure/DataFactory",
+										"/services/Azure/MachineLearning",
+										"/services/Azure/ManagedInstance",
+										"/services/Azure/WebPI",
+									}, false),
 								),
 							},
 						},
