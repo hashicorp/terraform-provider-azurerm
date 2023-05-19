@@ -55,7 +55,7 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
-				MaxItems: 1,
+				MaxItems: 2,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
