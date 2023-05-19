@@ -89,6 +89,13 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringLenBetween(0, 140),
 						},
+
+						"service": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "Microsoft.Storage",
+							ValidateFunc: validation.StringLenBetween(0, 140),
+						},
 					},
 				},
 			},
@@ -210,7 +217,7 @@ func expandServiceEndpointPolicyDefinitions(input []interface{}) *[]network.Serv
 			Name: utils.String(e["name"].(string)),
 			ServiceEndpointPolicyDefinitionPropertiesFormat: &network.ServiceEndpointPolicyDefinitionPropertiesFormat{
 				Description:      utils.String(e["description"].(string)),
-				Service:          utils.String("Microsoft.Storage"),
+				Service:          utils.String(e["service"].(string)),
 				ServiceResources: utils.ExpandStringSlice(e["service_resources"].(*pluginsdk.Set).List()),
 			},
 		})
@@ -233,6 +240,7 @@ func flattenServiceEndpointPolicyDefinitions(input *[]network.ServiceEndpointPol
 
 		var (
 			description     = ""
+			service         = ""
 			serviceResource = []interface{}{}
 		)
 		if b := e.ServiceEndpointPolicyDefinitionPropertiesFormat; b != nil {
@@ -246,6 +254,7 @@ func flattenServiceEndpointPolicyDefinitions(input *[]network.ServiceEndpointPol
 			"name":              name,
 			"description":       description,
 			"service_resources": serviceResource,
+			"service":           service,
 		})
 	}
 

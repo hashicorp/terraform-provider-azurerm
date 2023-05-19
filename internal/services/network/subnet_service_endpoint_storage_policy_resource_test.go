@@ -132,15 +132,25 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   definition {
-    name        = "def1"
+    name        = "resourceid"
     description = "test definition1"
+	service     = "Microsoft.Storage"
     service_resources = [
       "/subscriptions/%s",
       azurerm_resource_group.test.id,
       azurerm_storage_account.test.id,
+    ]
+  }
+  
+  definition {
+    name        = "alias"
+    description = "test definition1"
+	service     = "Global"
+    service_resources = [
 	  "/services/Azure"
     ]
   }
+
   tags = {
     environment = "Production"
     cost_center = "MSFT"
