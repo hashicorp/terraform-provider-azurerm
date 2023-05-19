@@ -13,6 +13,75 @@ Manages a Automation Hybrid Runbook Worker.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_automation_account" "example" {
+  name                = "example-account"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_hybrid_runbook_worker_group" "example" {
+  name                    = "example"
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-vnet"
+  resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["192.168.1.0/24"]
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["192.168.1.0/24"]
+}
+
+resource "azurerm_network_interface" "example" {
+  name                = "example-nic"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  ip_configuration {
+    name                          = "vm-example"
+    subnet_id                     = azurerm_subnet.example.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "example" {
+  name                = "example-vm"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  size                            = "Standard_B1s"
+  admin_username                  = "testadmin"
+  admin_password                  = "Password1234!"
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "OpenLogic"
+    offer     = "CentOS"
+    sku       = "7.5"
+    version   = "latest"
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  network_interface_ids = [azurerm_network_interface.example.id]
+}
+
 resource "azurerm_automation_hybrid_runbook_worker" "example" {
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
