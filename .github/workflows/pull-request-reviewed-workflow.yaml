@@ -32,10 +32,10 @@ jobs:
         id: env_vars
         if: steps.get_artifact.outcome == 'success'
         run: |
-          echo "ghrepo=$(cat artifact/ghrepo.txt)" >>${GITHUB_OUTPUT}
-          echo "ghowner=$(cat artifact/ghowner.txt)" >>${GITHUB_OUTPUT}
-          echo "prnumber=$(cat artifact/prnumber.txt)" >>${GITHUB_OUTPUT}
-          echo "action=$(cat artifact/action.txt)" >>${GITHUB_OUTPUT}
+          echo "ghrepo=$(cat artifact/ghrepo.txt)" >> "$GITHUB_OUTPUT"
+          echo "ghowner=$(cat artifact/ghowner.txt)" >> "$GITHUB_OUTPUT"
+          echo "prnumber=$(cat artifact/prnumber.txt)" >> "$GITHUB_OUTPUT"
+          echo "action=$(cat artifact/action.txt)" >> "$GITHUB_OUTPUT"
 
       - name: add waiting-reponse
         if: steps.get_artifact.outcome == 'success' && steps.env_vars.outputs.action == 'add-waiting-response'
