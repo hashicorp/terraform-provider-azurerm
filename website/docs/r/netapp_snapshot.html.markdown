@@ -64,7 +64,7 @@ resource "azurerm_netapp_volume" "example" {
   pool_name           = azurerm_netapp_pool.example.name
   volume_path         = "my-unique-file-path"
   service_level       = "Premium"
-  subnet_id           = azurerm_subnet.test.id
+  subnet_id           = azurerm_subnet.example.id
   storage_quota_in_gb = "100"
 }
 

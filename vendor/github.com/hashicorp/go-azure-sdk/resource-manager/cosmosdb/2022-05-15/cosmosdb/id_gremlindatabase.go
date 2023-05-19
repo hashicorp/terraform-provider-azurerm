@@ -42,19 +42,19 @@ func ParseGremlinDatabaseID(input string) (*GremlinDatabaseId, error) {
 	id := GremlinDatabaseId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
 	}
 
 	if id.GremlinDatabaseName, ok = parsed.Parsed["gremlinDatabaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'gremlinDatabaseName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "gremlinDatabaseName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseGremlinDatabaseIDInsensitively(input string) (*GremlinDatabaseId, erro
 	id := GremlinDatabaseId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
 	}
 
 	if id.GremlinDatabaseName, ok = parsed.Parsed["gremlinDatabaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'gremlinDatabaseName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "gremlinDatabaseName", *parsed)
 	}
 
 	return &id, nil

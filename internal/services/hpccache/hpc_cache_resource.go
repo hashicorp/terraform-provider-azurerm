@@ -10,8 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -664,39 +666,35 @@ func storageCacheRetrieveKeyVault(ctx context.Context, keyVaultsClient *client.C
 		return nil, fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultKeyId.KeyVaultBaseUrl)
 	}
 
-	parsedKeyVaultID, err := keyVaultParse.VaultID(*keyVaultID)
+	parsedKeyVaultID, err := commonids.ParseKeyVaultID(*keyVaultID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := keyVaultsClient.VaultsClient.Get(ctx, parsedKeyVaultID.ResourceGroup, parsedKeyVaultID.Name)
+	resp, err := keyVaultsClient.VaultsClient.Get(ctx, *parsedKeyVaultID)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *parsedKeyVaultID, err)
 	}
 
+	loc := ""
 	purgeProtectionEnabled := false
 	softDeleteEnabled := false
-
-	if props := resp.Properties; props != nil {
-		if props.EnableSoftDelete != nil {
-			softDeleteEnabled = *props.EnableSoftDelete
+	if model := resp.Model; model != nil {
+		loc = location.NormalizeNilable(model.Location)
+		if model.Properties.EnableSoftDelete != nil {
+			softDeleteEnabled = *model.Properties.EnableSoftDelete
 		}
 
-		if props.EnablePurgeProtection != nil {
-			purgeProtectionEnabled = *props.EnablePurgeProtection
+		if model.Properties.EnablePurgeProtection != nil {
+			purgeProtectionEnabled = *model.Properties.EnablePurgeProtection
 		}
-	}
-
-	location := ""
-	if resp.Location != nil {
-		location = *resp.Location
 	}
 
 	return &storageCacheKeyVault{
 		keyVaultId:             *keyVaultID,
-		resourceGroupName:      parsedKeyVaultID.ResourceGroup,
-		keyVaultName:           parsedKeyVaultID.Name,
-		location:               location,
+		resourceGroupName:      parsedKeyVaultID.ResourceGroupName,
+		keyVaultName:           parsedKeyVaultID.VaultName,
+		location:               loc,
 		purgeProtectionEnabled: purgeProtectionEnabled,
 		softDeleteEnabled:      softDeleteEnabled,
 	}, nil

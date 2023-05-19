@@ -7,12 +7,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -52,11 +51,7 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 				ValidateFunc: clusters.ValidateClusterID,
 			},
 
-			"key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: keyVaultValidate.VaultID,
-			},
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
 
 			"key_name": {
 				Type:         pluginsdk.TypeString,
@@ -115,33 +110,33 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	keyVaultIDRaw := d.Get("key_vault_id").(string)
-	keyVaultID, err := keyVaultParse.VaultID(keyVaultIDRaw)
+	keyVaultID, err := commonids.ParseKeyVaultID(keyVaultIDRaw)
 	if err != nil {
 		return err
 	}
 
-	keyVault, err := vaultsClient.Get(ctx, keyVaultID.ResourceGroup, keyVaultID.Name)
+	keyVault, err := vaultsClient.Get(ctx, *keyVaultID)
 	if err != nil {
-		return fmt.Errorf("retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *keyVaultID, err)
 	}
 
 	softDeleteEnabled := false
 	purgeProtectionEnabled := false
-	if props := keyVault.Properties; props != nil {
-		if esd := props.EnableSoftDelete; esd != nil {
+	if model := keyVault.Model; model != nil {
+		if esd := model.Properties.EnableSoftDelete; esd != nil {
 			softDeleteEnabled = *esd
 		}
-		if epp := props.EnablePurgeProtection; epp != nil {
+		if epp := model.Properties.EnablePurgeProtection; epp != nil {
 			purgeProtectionEnabled = *epp
 		}
 	}
 	if !softDeleteEnabled || !purgeProtectionEnabled {
-		return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.Name, keyVaultID.ResourceGroup)
+		return fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultID)
 	}
 
 	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
 	if err != nil {
-		return fmt.Errorf("looking up Key Vault URI from Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
+		return fmt.Errorf("looking up Key Vault URI from %s: %+v", *keyVaultID, err)
 	}
 
 	keyName := d.Get("key_name").(string)

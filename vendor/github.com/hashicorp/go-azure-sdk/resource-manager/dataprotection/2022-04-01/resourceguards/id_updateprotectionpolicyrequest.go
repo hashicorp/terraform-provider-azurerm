@@ -42,19 +42,19 @@ func ParseUpdateProtectionPolicyRequestID(input string) (*UpdateProtectionPolicy
 	id := UpdateProtectionPolicyRequestId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGuardName", *parsed)
 	}
 
 	if id.UpdateProtectionPolicyRequestName, ok = parsed.Parsed["updateProtectionPolicyRequestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'updateProtectionPolicyRequestName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "updateProtectionPolicyRequestName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseUpdateProtectionPolicyRequestIDInsensitively(input string) (*UpdatePro
 	id := UpdateProtectionPolicyRequestId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ResourceGuardName, ok = parsed.Parsed["resourceGuardName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGuardName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGuardName", *parsed)
 	}
 
 	if id.UpdateProtectionPolicyRequestName, ok = parsed.Parsed["updateProtectionPolicyRequestName"]; !ok {
-		return nil, fmt.Errorf("the segment 'updateProtectionPolicyRequestName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "updateProtectionPolicyRequestName", *parsed)
 	}
 
 	return &id, nil

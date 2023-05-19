@@ -188,3 +188,37 @@ func (r resource) Read() sdk.ResourceFunc {
 	
 }
 ```
+
+## The `type` field
+
+The Azure API makes use of classes and inheritance through discriminator types defined in the REST API specifications. A strong indicator that a resource is actually a discriminated type is through the definition of a `type` or `kind` property.
+
+Rather than exposing a generic resource with all the possible fields for all the possible different `type`'s, we intentionally opt to split these resources by the `type` to improve the user experience. This means we can only output the relevant fields for this `type` which in turn allows us to provide more granular validation etc.
+
+Whilst there is a trade-off here, since this means that we have to maintain more Data Sources/Resources, this is a worthwhile trade-off since each of these resources only exposes the fields which are relevant for this resource, meaning the logic is far simpler than trying to maintain a generic resource and pushing the complexity onto end-users.
+
+Taking the Data Factory Linked Service resources as an example which could have all of possible types defined below, each requiring a different set of inputs:
+
+```go
+"type": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ValidateFunc: validation.StringInSlice([]string{
+        string(datafactory.TypeBasicLinkedServiceTypeAzureBlobStorage),
+        string(datafactory.TypeBasicLinkedServiceTypeAzureDatabricks),
+        string(datafactory.TypeBasicLinkedServiceTypeAzureFileStorage),
+        string(datafactory.TypeBasicLinkedServiceTypeAzureFunction),
+        string(datafactory.TypeBasicLinkedServiceTypeAzureSearch),
+		...
+    }, false),
+},
+```
+
+Would be better exposed as the following resources:
+- `azurerm_data_factory_linked_service_azure_blob_storage`
+- `azurerm_data_factory_linked_service_azure_databricks`
+- `azurerm_data_factory_linked_service_azure_file_storage`
+- `azurerm_data_factory_linked_service_azure_function`
+- `azurerm_data_factory_linked_service_azure_search`
+
+   ...

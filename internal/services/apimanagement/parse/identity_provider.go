@@ -44,7 +44,7 @@ func (id IdentityProviderId) ID() string {
 func IdentityProviderID(input string) (*IdentityProviderId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an IdentityProvider ID: %+v", input, err)
 	}
 
 	resourceId := IdentityProviderId{

@@ -41,7 +41,7 @@ func (id DiskEncryptionSetId) ID() string {
 func DiskEncryptionSetID(input string) (*DiskEncryptionSetId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an DiskEncryptionSet ID: %+v", input, err)
 	}
 
 	resourceId := DiskEncryptionSetId{

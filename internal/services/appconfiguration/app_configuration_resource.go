@@ -1,6 +1,7 @@
 package appconfiguration
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,8 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/deletedconfigurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/deletedconfigurationstores"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -90,6 +93,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// `sku` is not enum, https://github.com/Azure/azure-rest-api-specs/issues/23902
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -551,8 +555,20 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		log.Printf("[DEBUG]  %q marked for purge - executing purge", id.ConfigurationStoreName)
-		if err := deletedConfigurationStoresClient.ConfigurationStoresPurgeDeletedThenPoll(ctx, deletedId); err != nil {
+
+		if _, err := deletedConfigurationStoresClient.ConfigurationStoresPurgeDeleted(ctx, deletedId); err != nil {
 			return fmt.Errorf("purging %s: %+v", *id, err)
+		}
+
+		// The PurgeDeleted API is a POST which returns a 200 with no body and nothing to poll on, so we'll need
+		// a custom poller to poll until the LRO returns a 404
+		pollerType := &purgeDeletedPoller{
+			client: deletedConfigurationStoresClient,
+			id:     deletedId,
+		}
+		poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("polling after purging for %s: %+v", *id, err)
 		}
 
 		// TODO: retry checkNameAvailability after deletion when SDK is ready, see https://github.com/Azure/AppConfiguration/issues/677
@@ -560,6 +576,42 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+var _ pollers.PollerType = &purgeDeletedPoller{}
+
+type purgeDeletedPoller struct {
+	client *deletedconfigurationstores.DeletedConfigurationStoresClient
+	id     deletedconfigurationstores.DeletedConfigurationStoreId
+}
+
+func (p *purgeDeletedPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	resp, err := p.client.ConfigurationStoresGetDeleted(ctx, p.id)
+
+	status := "dropped connection"
+	if resp.HttpResponse != nil {
+		status = fmt.Sprintf("%d", resp.HttpResponse.StatusCode)
+	}
+
+	if response.WasNotFound(resp.HttpResponse) {
+		return &pollers.PollResult{
+			HttpResponse: &client.Response{
+				Response: resp.HttpResponse,
+			},
+			Status: pollers.PollingStatusSucceeded,
+		}, nil
+	}
+
+	if response.WasStatusCode(resp.HttpResponse, http.StatusOK) {
+		return &pollers.PollResult{
+			HttpResponse: &client.Response{
+				Response: resp.HttpResponse,
+			},
+			Status: pollers.PollingStatusInProgress,
+		}, nil
+	}
+
+	return nil, fmt.Errorf("unexpected status %q: %+v", status, err)
 }
 
 type flattenedAccessKeys struct {

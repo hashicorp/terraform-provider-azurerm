@@ -38,11 +38,11 @@ func ParseScopedDataCollectionRuleAssociationID(input string) (*ScopedDataCollec
 	id := ScopedDataCollectionRuleAssociationId{}
 
 	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceUri' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
 	}
 
 	if id.DataCollectionRuleAssociationName, ok = parsed.Parsed["dataCollectionRuleAssociationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'dataCollectionRuleAssociationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionRuleAssociationName", *parsed)
 	}
 
 	return &id, nil
@@ -61,11 +61,11 @@ func ParseScopedDataCollectionRuleAssociationIDInsensitively(input string) (*Sco
 	id := ScopedDataCollectionRuleAssociationId{}
 
 	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceUri' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
 	}
 
 	if id.DataCollectionRuleAssociationName, ok = parsed.Parsed["dataCollectionRuleAssociationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'dataCollectionRuleAssociationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataCollectionRuleAssociationName", *parsed)
 	}
 
 	return &id, nil

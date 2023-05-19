@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	authWrapper "github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
@@ -45,14 +45,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	var err error
 
 	// point folks towards the separate Azure Stack Provider when using Azure Stack
-	isAzureStack := false
-	if strings.EqualFold(builder.AuthConfig.Environment.Name, "AZURESTACKCLOUD") {
-		return nil, fmt.Errorf(azureStackEnvironmentError)
-	} else if isAzureStack, err = authentication.IsEnvironmentAzureStack(ctx, builder.MetadataHost, builder.AuthConfig.Environment.Name); err != nil { // TODO: consider updating this helper func
-		return nil, fmt.Errorf("unable to determine if environment is Azure Stack: %+v", err)
-	}
-
-	if isAzureStack {
+	if builder.AuthConfig.Environment.IsAzureStack() {
 		return nil, fmt.Errorf(azureStackEnvironmentError)
 	}
 
@@ -66,11 +59,6 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	storageAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Storage)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build authorizer for Storage API: %+v", err)
-	}
-
-	attestationAuth, err := auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Attestation)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build authorizer for Attestation API: %+v", err)
 	}
 
 	keyVaultAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.KeyVault)
@@ -140,7 +128,6 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		PartnerId:        builder.PartnerID,
 		TerraformVersion: builder.TerraformVersion,
 
-		AttestationAuthorizer:     authWrapper.AutorestAuthorizer(attestationAuth).BearerAuthorizerCallback(),
 		BatchManagementAuthorizer: authWrapper.AutorestAuthorizer(batchManagementAuth),
 		KeyVaultAuthorizer:        authWrapper.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
 		ResourceManagerAuthorizer: authWrapper.AutorestAuthorizer(resourceManagerAuth),
@@ -163,8 +150,12 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	if features.EnhancedValidationEnabled() {
+		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
+
 		location.CacheSupportedLocations(ctx, *resourceManagerEndpoint)
-		resourceproviders.CacheSupportedProviders(ctx, client.Resource.ProvidersClient)
+		if err := resourceproviders.CacheSupportedProviders(ctx, client.Resource.ResourceProvidersClient, subscriptionId); err != nil {
+			log.Printf("[DEBUG] error retrieving providers: %s. Enhanced validation will be unavailable", err)
+		}
 	}
 
 	return &client, nil

@@ -1,8 +1,16 @@
 package arckubernetes
 
-import "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
 
 type Registration struct{}
+
+var (
+	_ sdk.TypedServiceRegistration   = Registration{}
+	_ sdk.UntypedServiceRegistration = Registration{}
+)
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -25,5 +33,15 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_arc_kubernetes_cluster": resourceArcKubernetesCluster(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		ArcKubernetesClusterExtensionResource{},
 	}
 }

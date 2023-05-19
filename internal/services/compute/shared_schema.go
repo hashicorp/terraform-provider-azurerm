@@ -1,6 +1,8 @@
 package compute
 
 import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -168,11 +170,7 @@ func linuxSecretSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
-				"key_vault_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: keyVaultValidate.VaultID,
-				},
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
 
 				// whilst we /could/ flatten this to `certificate_urls` we're intentionally not to keep this
 				// closer to the Windows VMSS resource, which will also take a `store` param
@@ -583,11 +581,7 @@ func windowsSecretSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
-				"key_vault_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: keyVaultValidate.VaultID,
-				},
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
 
 				"certificate": {
 					Type:     pluginsdk.TypeSet,
