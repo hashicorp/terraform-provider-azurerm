@@ -240,7 +240,7 @@ func flattenServiceEndpointPolicyDefinitions(input *[]network.ServiceEndpointPol
 
 		var (
 			description     = ""
-			service         = []interface{}{}
+			service         = ""
 			serviceResource = []interface{}{}
 		)
 		if b := e.ServiceEndpointPolicyDefinitionPropertiesFormat; b != nil {
