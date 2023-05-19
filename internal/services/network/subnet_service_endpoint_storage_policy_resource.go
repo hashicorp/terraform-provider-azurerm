@@ -152,7 +152,6 @@ func resourceSubnetServiceEndpointStoragePolicyRead(d *pluginsdk.ResourceData, m
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
 	id, err := parse.SubnetServiceEndpointStoragePolicyID(d.Id())
 	if err != nil {k
 		return err
