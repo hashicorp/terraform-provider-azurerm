@@ -13,42 +13,51 @@ Manages a Healthcare Med Tech Service.
 ## Example Usage
 
 ```hcl
-resource "azurerm_healthcare_medtech_service" "test" {
-  name         = "tftest"
-  workspace_id = "tfex-workspace_id"
+resource "azurerm_resource_group" "example" {
+  name     = "example-rg"
+  location = "east us"
+}
+
+resource "azurerm_healthcare_workspace" "example" {
+  name                = "examplewkspace"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_healthcare_medtech_service" "example" {
+  name         = "examplemed"
+  workspace_id = azurerm_healthcare_workspace.example.id
   location     = "east us"
 
   identity {
     type = "SystemAssigned"
   }
 
-  eventhub_namespace_name      = "tfex-eventhub-namespace"
-  eventhub_name                = "tfex-eventhub"
+  eventhub_namespace_name      = "example-eventhub-namespace"
+  eventhub_name                = "example-eventhub"
   eventhub_consumer_group_name = "$Default"
 
-  device_mapping_json = <<JSON
-{
-    "templateType": "CollectionContent",
-    "template": [
-                {
-                  "templateType": "JsonPathContent",
-                  "template": {
-                    "typeName": "heartrate",
-                    "typeMatchExpression": "$..[?(@heartrate)]",
-                    "deviceIdExpression": "$.deviceid",
-                    "timestampExpression": "$.measurementdatetime",
-                    "values": [
-                      {
-                        "required": "true",
-                        "valueExpression": "$.heartrate",
-                        "valueName": "hr"
-                      }
-                    ]
-                  }
-                }
-              ]
-}
-JSON
+  device_mapping_json = jsonencode({
+    "templateType" : "CollectionContent",
+    "template" : [
+      {
+        "templateType" : "JsonPathContent",
+        "template" : {
+          "typeName" : "heartrate",
+          "typeMatchExpression" : "$..[?(@heartrate)]",
+          "deviceIdExpression" : "$.deviceid",
+          "timestampExpression" : "$.measurementdatetime",
+          "values" : [
+            {
+              "required" : "true",
+              "valueExpression" : "$.heartrate",
+              "valueName" : "hr"
+            }
+          ]
+        }
+      }
+    ]
+  })
 }
 ```
 
