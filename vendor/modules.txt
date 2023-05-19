@@ -251,6 +251,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-p
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/maintenanceconfigurations
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclustersnapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras

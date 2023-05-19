@@ -235,6 +235,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 -> **Note:** Whilst the AKS API previously supported the `Paid` SKU - the AKS API introduced a breaking change in API Version `2023-02-01` (used in v3.51.0 and later) where the value `Paid` must now be set to `Standard`.
 
+* `snapshot_id` - (Optional)  The ID of the Snapshot which should be used to create this cluster. Changing this forces a new resource to be created.
+
 * `storage_profile` - (Optional) A `storage_profile` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

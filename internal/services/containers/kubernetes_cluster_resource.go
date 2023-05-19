@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclustersnapshots"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
@@ -1142,6 +1143,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"snapshot_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: managedclustersnapshots.ValidateManagedClusterSnapshotID,
+			},
+
 			"storage_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1541,6 +1549,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{}), &managedclusters.ServiceMeshProfile{}); serviceMeshProfile != nil {
 		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
+	}
+
+	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
+		parameters.Properties.CreationData = &managedclusters.CreationData{
+			SourceResourceId: utils.String(snapshotId),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id, parameters)
@@ -2197,6 +2211,10 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("kubernetes_version", props.KubernetesVersion)
 			d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 			d.Set("local_account_disabled", props.DisableLocalAccounts)
+
+			if props.CreationData != nil {
+				d.Set("snapshot_id", props.CreationData.SourceResourceId)
+			}
 
 			nodeResourceGroup := ""
 			if v := props.NodeResourceGroup; v != nil {

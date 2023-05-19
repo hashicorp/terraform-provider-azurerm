@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclustersnapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -28,6 +29,7 @@ type Client struct {
 	MaintenanceConfigurationsClient             *maintenanceconfigurations.MaintenanceConfigurationsClient
 	ServicesClient                              *containerservices.ContainerServicesClient
 	SnapshotClient                              *snapshots.SnapshotsClient
+	ManagedClusterSnapshotClient                *managedclustersnapshots.ManagedClusterSnapshotsClient
 	Environment                                 azure.Environment
 }
 
@@ -71,6 +73,9 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	snapshotClient := snapshots.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&snapshotClient.Client, o.ResourceManagerAuthorizer)
 
+	managedClusterSnapshotClient := managedclustersnapshots.NewManagedClusterSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&managedClusterSnapshotClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AgentPoolsClient:                            &agentPoolsClient,
 		ContainerInstanceClient:                     &containerInstanceClient,
@@ -81,6 +86,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		MaintenanceConfigurationsClient:             &maintenanceConfigurationsClient,
 		ServicesClient:                              &servicesClient,
 		SnapshotClient:                              &snapshotClient,
+		ManagedClusterSnapshotClient:                &managedClusterSnapshotClient,
 		Environment:                                 o.AzureEnvironment,
 	}, nil
 }
