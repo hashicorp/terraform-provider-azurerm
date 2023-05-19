@@ -47,7 +47,7 @@ resource "azurerm_eventhub_consumer_group" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_healthcare_fhir_service" "test" {
+resource "azurerm_healthcare_fhir_service" "example" {
   name                = "examplefhir"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
