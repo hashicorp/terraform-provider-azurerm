@@ -94,10 +94,7 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "Microsoft.Storage",
-							ValidateFunc: validation.StringInSlice([]string{
-								"Microsoft.Storage",
-								"Global",
-							}, false),
+							ValidateFunc: validation.StringLenBetween(0, 140),
 						},
 					},
 				},
@@ -155,7 +152,6 @@ func resourceSubnetServiceEndpointStoragePolicyRead(d *pluginsdk.ResourceData, m
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
 	id, err := parse.SubnetServiceEndpointStoragePolicyID(d.Id())
 	if err != nil {
 		return err
