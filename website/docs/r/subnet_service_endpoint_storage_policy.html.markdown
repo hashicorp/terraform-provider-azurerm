@@ -36,8 +36,12 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "example" {
     description = "definition2"
     service     = "Global"
     service_resources = [
-      /services/Azure/Batch
-      /services/Azure/DataFactory
+      "/services/Azure",
+      "/services/Azure/Batch",
+      "/services/Azure/DataFactory",
+      "/services/Azure/MachineLearning",
+      "/services/Azure/ManagedInstance",
+      "/services/Azure/WebPI",
     ]
   }
 }
