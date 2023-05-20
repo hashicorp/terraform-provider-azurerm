@@ -1,4 +1,4 @@
-package accesscontrol
+package synapse
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,7 +12,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol"
+const fqdn = "home/runner/work/kermit/kermit/sdk/synapse/2020-08-01-preview/synapse"
 
 // CheckAccessDecision check access response details
 type CheckAccessDecision struct {
@@ -61,16 +61,28 @@ type ErrorResponse struct {
 	Details *[]ErrorDetail `json:"details,omitempty"`
 }
 
+// ListRoleDefinition ...
+type ListRoleDefinition struct {
+	autorest.Response `json:"-"`
+	Value             *[]RoleDefinition `json:"value,omitempty"`
+}
+
 // ListString ...
 type ListString struct {
 	autorest.Response `json:"-"`
 	Value             *[]string `json:"value,omitempty"`
 }
 
-// ListSynapseRoleDefinition ...
-type ListSynapseRoleDefinition struct {
-	autorest.Response `json:"-"`
-	Value             *[]SynapseRoleDefinition `json:"value,omitempty"`
+// RbacPermission synapse role definition details
+type RbacPermission struct {
+	// Actions - List of actions
+	Actions *[]string `json:"actions,omitempty"`
+	// NotActions - List of Not actions
+	NotActions *[]string `json:"notActions,omitempty"`
+	// DataActions - List of data actions
+	DataActions *[]string `json:"dataActions,omitempty"`
+	// NotDataActions - List of Not data actions
+	NotDataActions *[]string `json:"notDataActions,omitempty"`
 }
 
 // RequiredAction action Info
@@ -117,28 +129,8 @@ type RoleAssignmentRequest struct {
 	PrincipalType *string `json:"principalType,omitempty"`
 }
 
-// SubjectInfo subject details
-type SubjectInfo struct {
-	// PrincipalID - Principal Id
-	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
-	// GroupIds - List of group Ids that the principalId is part of.
-	GroupIds *[]uuid.UUID `json:"groupIds,omitempty"`
-}
-
-// SynapseRbacPermission synapse role definition details
-type SynapseRbacPermission struct {
-	// Actions - List of actions
-	Actions *[]string `json:"actions,omitempty"`
-	// NotActions - List of Not actions
-	NotActions *[]string `json:"notActions,omitempty"`
-	// DataActions - List of data actions
-	DataActions *[]string `json:"dataActions,omitempty"`
-	// NotDataActions - List of Not data actions
-	NotDataActions *[]string `json:"notDataActions,omitempty"`
-}
-
-// SynapseRoleDefinition synapse role definition details
-type SynapseRoleDefinition struct {
+// RoleDefinition synapse role definition details
+type RoleDefinition struct {
 	autorest.Response `json:"-"`
 	// ID - Role Definition ID
 	ID *uuid.UUID `json:"id,omitempty"`
@@ -149,9 +141,17 @@ type SynapseRoleDefinition struct {
 	// Description - Description for the Synapse role
 	Description *string `json:"description,omitempty"`
 	// Permissions - Permissions for the Synapse role
-	Permissions *[]SynapseRbacPermission `json:"permissions,omitempty"`
+	Permissions *[]RbacPermission `json:"permissions,omitempty"`
 	// Scopes - Allowed scopes for the Synapse role
 	Scopes *[]string `json:"scopes,omitempty"`
 	// AvailabilityStatus - Availability of the Synapse role
 	AvailabilityStatus *string `json:"availabilityStatus,omitempty"`
+}
+
+// SubjectInfo subject details
+type SubjectInfo struct {
+	// PrincipalID - Principal Id
+	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
+	// GroupIds - List of group Ids that the principalId is part of.
+	GroupIds *[]uuid.UUID `json:"groupIds,omitempty"`
 }

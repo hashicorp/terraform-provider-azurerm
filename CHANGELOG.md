@@ -1,3 +1,21 @@
+## 3.57.0 (May 19, 2023)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_virtual_hub_connection` ([#21681](https://github.com/hashicorp/terraform-provider-azurerm/issues/21681))
+
+ENHANCEMENTS:
+
+* `synapse`: refactoring to use `tombuildsstuff/kermit` rather than `Azure/azure-sdk-for-go` for Data Plane ([#21792](https://github.com/hashicorp/terraform-provider-azurerm/issues/21792))
+* `azurerm_batch_account` - support versionless keys for CMK ([#21677](https://github.com/hashicorp/terraform-provider-azurerm/issues/21677))
+* `azurerm_kubernetes_cluster` - changing the `http_proxy_config.no_proxy` no longer creates a new resource ([#21793](https://github.com/hashicorp/terraform-provider-azurerm/issues/21793))
+* `azurerm_media_transform` - support for the `jpg_image` and `png_image` blocks within the `custom_preset` block ([#21709](https://github.com/hashicorp/terraform-provider-azurerm/issues/21709))
+* `azurerm_recovery_services_vault` - support the `monitoring` block ([#21691](https://github.com/hashicorp/terraform-provider-azurerm/issues/21691))
+
+BUG FIXES:
+
+* `data.azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil ([#21850](https://github.com/hashicorp/terraform-provider-azurerm/issues/21850))
+
 ## 3.56.0 (May 11, 2023)
 
 FEATURES:

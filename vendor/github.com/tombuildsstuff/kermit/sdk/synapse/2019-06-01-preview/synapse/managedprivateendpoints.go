@@ -1,4 +1,4 @@
-package managedvirtualnetwork
+package synapse
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,14 +8,14 @@ package managedvirtualnetwork
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
-// ManagedPrivateEndpointsClient is the client for the ManagedPrivateEndpoints methods of the Managedvirtualnetwork
-// service.
+// ManagedPrivateEndpointsClient is the client for the ManagedPrivateEndpoints methods of the Synapse service.
 type ManagedPrivateEndpointsClient struct {
 	BaseClient
 }
@@ -43,20 +43,20 @@ func (client ManagedPrivateEndpointsClient) Create(ctx context.Context, managedV
 	}
 	req, err := client.CreatePreparer(ctx, managedVirtualNetworkName, managedPrivateEndpointName, managedPrivateEndpoint)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Create", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "Create", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.CreateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Create", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "Create", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.CreateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Create", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "Create", resp, "Failure responding to request")
 		return
 	}
 
@@ -127,20 +127,20 @@ func (client ManagedPrivateEndpointsClient) Delete(ctx context.Context, managedV
 	}
 	req, err := client.DeletePreparer(ctx, managedVirtualNetworkName, managedPrivateEndpointName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "Delete", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "Delete", resp, "Failure responding to request")
 		return
 	}
 
@@ -205,20 +205,20 @@ func (client ManagedPrivateEndpointsClient) Get(ctx context.Context, managedVirt
 	}
 	req, err := client.GetPreparer(ctx, managedVirtualNetworkName, managedPrivateEndpointName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -284,20 +284,20 @@ func (client ManagedPrivateEndpointsClient) List(ctx context.Context, managedVir
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, managedVirtualNetworkName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.mpelr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result.mpelr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "List", resp, "Failure responding to request")
 		return
 	}
 	if result.mpelr.hasNextLink() && result.mpelr.IsEmpty() {
@@ -353,7 +353,7 @@ func (client ManagedPrivateEndpointsClient) ListResponder(resp *http.Response) (
 func (client ManagedPrivateEndpointsClient) listNextResults(ctx context.Context, lastResults ManagedPrivateEndpointListResponse) (result ManagedPrivateEndpointListResponse, err error) {
 	req, err := lastResults.managedPrivateEndpointListResponsePreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -361,11 +361,11 @@ func (client ManagedPrivateEndpointsClient) listNextResults(ctx context.Context,
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "synapse.ManagedPrivateEndpointsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
