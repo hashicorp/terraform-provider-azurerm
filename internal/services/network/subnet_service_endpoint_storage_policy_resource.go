@@ -94,7 +94,10 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "Microsoft.Storage",
-							ValidateFunc: validation.StringLenBetween(0, 140),
+							ValidateFunc: validation.StringInSlice([]string{
+								"Microsoft.Storage",
+								"Global",
+							}, false),
 						},
 					},
 				},
