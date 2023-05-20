@@ -235,7 +235,12 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
     description = "test definition1"
 	service     = "Global"
     service_resources = [
-	  "/services/Azure"
+	  "/services/Azure",
+	  "/services/Azure/Batch",
+	  "/services/Azure/DataFactory",
+	  "/services/Azure/MachineLearning",
+	  "/services/Azure/ManagedInstance",
+	  "/services/Azure/WebPI",
     ]
   }
 
@@ -268,7 +273,12 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
     description = "test definition1"
 	service     = "Global"
     service_resources = [
-	  "/services/Azure"
+	  "/services/Azure",
+	  "/services/Azure/Batch",
+	  "/services/Azure/DataFactory",
+	  "/services/Azure/MachineLearning",
+	  "/services/Azure/ManagedInstance",
+	  "/services/Azure/WebPI",
     ]
   }
 
