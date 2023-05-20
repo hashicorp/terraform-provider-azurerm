@@ -154,7 +154,6 @@ func resourceSubnetServiceEndpointStoragePolicyRead(d *pluginsdk.ResourceData, m
 	defer cancel()
 	id, err := parse.SubnetServiceEndpointStoragePolicyID(d.Id())
 	if err != nil {
-		k
 		return err
 	}
 
