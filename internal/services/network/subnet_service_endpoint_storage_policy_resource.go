@@ -250,7 +250,7 @@ func flattenServiceEndpointPolicyDefinitions(input *[]network.ServiceEndpointPol
 				description = *b.Description
 			}
 			serviceResource = utils.FlattenStringSlice(b.ServiceResources)
-			service = string(*b.Service)
+			service = *b.Service
 		}
 
 		output = append(output, map[string]interface{}{
