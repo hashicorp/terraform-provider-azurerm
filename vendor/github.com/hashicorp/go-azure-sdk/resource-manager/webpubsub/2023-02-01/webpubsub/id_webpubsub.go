@@ -40,15 +40,15 @@ func ParseWebPubSubID(input string) (*WebPubSubId, error) {
 	id := WebPubSubId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'webPubSubName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "webPubSubName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseWebPubSubIDInsensitively(input string) (*WebPubSubId, error) {
 	id := WebPubSubId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'webPubSubName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "webPubSubName", *parsed)
 	}
 
 	return &id, nil

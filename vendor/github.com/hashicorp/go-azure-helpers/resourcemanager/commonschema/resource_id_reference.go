@@ -5,7 +5,7 @@ package commonschema
 
 import (
 	"fmt"
-	
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )

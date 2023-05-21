@@ -40,15 +40,15 @@ func ParseFrontDoorID(input string) (*FrontDoorId, error) {
 	id := FrontDoorId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.FrontDoorName, ok = parsed.Parsed["frontDoorName"]; !ok {
-		return nil, fmt.Errorf("the segment 'frontDoorName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "frontDoorName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseFrontDoorIDInsensitively(input string) (*FrontDoorId, error) {
 	id := FrontDoorId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.FrontDoorName, ok = parsed.Parsed["frontDoorName"]; !ok {
-		return nil, fmt.Errorf("the segment 'frontDoorName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "frontDoorName", *parsed)
 	}
 
 	return &id, nil

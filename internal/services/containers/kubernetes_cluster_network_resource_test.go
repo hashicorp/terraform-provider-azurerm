@@ -727,15 +727,29 @@ func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 func TestAccKubernetesCluster_httpProxyConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	noProxy := "\"localhost\", \"127.0.0.1\", \"mcr.microsoft.com\""
+	newNoProxy := "\"localhost\", \"127.0.0.1\", \"mcr.microsoft.com\", \"monitor.azure.com\""
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.httpProxyConfig(data),
+			Config: r.httpProxyConfig(data, noProxy),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("http_proxy_config.0.http_proxy").IsSet(),
 				check.That(data.ResourceName).Key("http_proxy_config.0.https_proxy").IsSet(),
-				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.0").IsSet(),
+				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.#").HasValue("3"),
 			),
+			ExpectNonEmptyPlan: true,
+		},
+		data.ImportStep(),
+		{
+			Config: r.httpProxyConfig(data, newNoProxy),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("http_proxy_config.0.http_proxy").IsSet(),
+				check.That(data.ResourceName).Key("http_proxy_config.0.https_proxy").IsSet(),
+				check.That(data.ResourceName).Key("http_proxy_config.0.no_proxy.#").HasValue("4"),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 		data.ImportStep(),
 	})
@@ -3018,7 +3032,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) httpProxyConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) httpProxyConfig(data acceptance.TestData, noProxy string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -3171,21 +3185,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   http_proxy_config {
     http_proxy  = "http://${azurerm_public_ip.test_proxy.ip_address}:8888/"
     https_proxy = "http://${azurerm_public_ip.test_proxy.ip_address}:8888/"
-    no_proxy = [
-      "localhost",
-      "127.0.0.1",
-      "mcr.microsoft.com"
-    ]
-  }
-
-  lifecycle {
-    ignore_changes = [
-      http_proxy_config.0.no_proxy
-    ]
+    no_proxy    = [%s]
   }
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, noProxy)
 }
 
 func (KubernetesClusterResource) httpProxyConfigWithTrustedCa(data acceptance.TestData) string {

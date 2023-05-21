@@ -319,7 +319,7 @@ A `custom_oidc_v2` block supports the following:
 
 * `client_id` - (Required) The ID of the Client to use to authenticate with the Custom OIDC.
 
-* `openid_configuration_endpoint` - (Required) The app setting name that contains the `client_secret` value used for the Custom OIDC Login.
+* `openid_configuration_endpoint` - (Required) Specifies the endpoint used for OpenID Connect Discovery. For example `https://example.com/.well-known/openid-configuration`.
 
 * `name_claim_type` - (Optional) The name of the claim that contains the users name.
 
