@@ -222,25 +222,25 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
   definition {
     name        = "resourceid"
     description = "test definition1"
-	service     = "Microsoft.Storage"
+    service     = "Microsoft.Storage"
     service_resources = [
       "/subscriptions/%s",
       azurerm_resource_group.test.id,
       azurerm_storage_account.test.id,
     ]
   }
-  
+
   definition {
     name        = "alias"
     description = "test definition1"
-	service     = "Global"
+    service     = "Global"
     service_resources = [
-	  "/services/Azure",
-	  "/services/Azure/Batch",
-	  "/services/Azure/DataFactory",
-	  "/services/Azure/MachineLearning",
-	  "/services/Azure/ManagedInstance",
-	  "/services/Azure/WebPI",
+      "/services/Azure",
+      "/services/Azure/Batch",
+      "/services/Azure/DataFactory",
+      "/services/Azure/MachineLearning",
+      "/services/Azure/ManagedInstance",
+      "/services/Azure/WebPI",
     ]
   }
 
@@ -271,14 +271,14 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
   definition {
     name        = "alias"
     description = "test definition1"
-	service     = "Global"
+    service     = "Global"
     service_resources = [
-	  "/services/Azure",
-	  "/services/Azure/Batch",
-	  "/services/Azure/DataFactory",
-	  "/services/Azure/MachineLearning",
-	  "/services/Azure/ManagedInstance",
-	  "/services/Azure/WebPI",
+      "/services/Azure",
+      "/services/Azure/Batch",
+      "/services/Azure/DataFactory",
+      "/services/Azure/MachineLearning",
+      "/services/Azure/ManagedInstance",
+      "/services/Azure/WebPI",
     ]
   }
 
@@ -309,7 +309,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
   definition {
     name        = "resourceid"
     description = "test definition1"
-	service     = "Microsoft.Storage"
+    service     = "Microsoft.Storage"
     service_resources = [
       "/subscriptions/%s",
       azurerm_resource_group.test.id,
