@@ -151,7 +151,52 @@ func TestValidateSchemaWrongType(t *testing.T) {
 			Type: pluginsdk.TypeString,
 		},
 	}
-	if err := ValidateModelObject(&Person1{}, schemaFields); err != nil {
+	if err := ValidateModelObject(&Person1{}, schemaFields); err == nil {
 		t.Fatalf("expected an error but didn't get one")
+	}
+}
+
+func TestValidateSchemaInt64(t *testing.T) {
+	t.Log("Person1")
+	type Person1 struct {
+		Age int64 `tfschema:"int"`
+	}
+	schemaFields := map[string]*schema.Schema{
+		"int": {
+			Type: pluginsdk.TypeInt,
+		},
+	}
+	if err := ValidateModelObject(&Person1{}, schemaFields); err != nil {
+		t.Fatalf("expected no error but got one: %+v", err)
+	}
+}
+
+func TestValidateSchemaString(t *testing.T) {
+	t.Log("Person1")
+	type Person1 struct {
+		Name string `tfschema:"name"`
+	}
+	schemaFields := map[string]*schema.Schema{
+		"name": {
+			Type: pluginsdk.TypeString,
+		},
+	}
+	if err := ValidateModelObject(&Person1{}, schemaFields); err != nil {
+		t.Fatalf("expected no error but got one: %+v", err)
+	}
+}
+
+func TestValidateSchemaBool(t *testing.T) {
+	t.Log("Person1")
+	type Person1 struct {
+		IsHuman bool `tfschema:"is_human"`
+	}
+	schemaFields := map[string]*schema.Schema{
+		"is_human": {
+			Type: pluginsdk.TypeBool,
+		},
+	}
+	if err := ValidateModelObject(&Person1{}, schemaFields); err != nil {
+		t.Fatalf("expected no error but got one: %+v", err)
 	}
 }
