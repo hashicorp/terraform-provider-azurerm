@@ -1,3 +1,9 @@
+## 3.58.0 (Unreleased)
+
+BUG FIXES:
+
+* `data.azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil [GH-21867]
+
 ## 3.57.0 (May 19, 2023)
 
 FEATURES:
