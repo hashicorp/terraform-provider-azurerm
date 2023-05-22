@@ -134,7 +134,9 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "test" {
   location            = "%s"
   scopes              = [azurerm_monitor_workspace.test.id]
   rule {
-    expression = "histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service=\" billing-processing \"}[5m])) by (job_type))"
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
     record     = "job_type:billing_jobs_duration_seconds:99p5m"
     labels = {
       team = "prod"
@@ -156,7 +158,9 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "import" {
   scopes              = azurerm_monitor_alert_prometheus_rule_group.test.scopes
 
   rule {
-    expression = "histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service=\" billing-processing \"}[5m])) by (job_type))"
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
     record     = "job_type:billing_jobs_duration_seconds:99p5m"
     labels = {
       team = "prod"
@@ -180,7 +184,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
-  kubernetes_version  = "1.25.5"
 
   default_node_pool {
     name                   = "default"
@@ -205,7 +208,9 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "test" {
   scopes              = [azurerm_monitor_workspace.test.id]
   rule {
     enabled    = false
-    expression = "histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service=\" billing-processing \"}[5m])) by (job_type))"
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
     record     = "job_type:billing_jobs_duration_seconds:99p5m"
     labels = {
       team = "prod"
@@ -214,7 +219,9 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "test" {
   rule {
     alert      = "Billing_Processing_Very_Slow"
     enabled    = true
-    expression = "histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service=\" billing-processing \"}[5m])) by (job_type))"
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
     for        = "PT5M"
     severity   = 2
     action {
@@ -223,7 +230,7 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "test" {
         actionName = "actionValue"
       }
     }
-    resolve_configuration {
+    alert_resolution {
       auto_resolved   = true
       time_to_resolve = "PT10M"
     }
@@ -255,7 +262,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
-  kubernetes_version  = "1.25.5"
 
   default_node_pool {
     name                   = "default"
@@ -274,7 +280,6 @@ resource "azurerm_kubernetes_cluster" "test2" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks2%[2]d"
-  kubernetes_version  = "1.25.5"
 
   default_node_pool {
     name                   = "default"
@@ -306,7 +311,9 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "test" {
 
   rule {
     enabled    = true
-    expression = "histogram_quantile(1.0, sum(rate(jobs_duration_seconds_bucket{service=\" billing-processing \"}[5m])) by (job_type))"
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
     record     = "job_type:billing_jobs_duration_seconds:99p6m"
     labels = {
       team2 = "prod2"
@@ -316,7 +323,9 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "test" {
   rule {
     alert      = "Billing_Processing_Very_Slow2"
     enabled    = false
-    expression = "histogram_quantile(1.0, sum(rate(jobs_duration_seconds_bucket{service=\" billing-processing \"}[5m])) by (job_type))"
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
     for        = "PT4M"
     severity   = 1
     action {
@@ -331,7 +340,7 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "test" {
         actionName3 = "actionValue3"
       }
     }
-    resolve_configuration {
+    alert_resolution {
       auto_resolved   = false
       time_to_resolve = "PT9M"
     }

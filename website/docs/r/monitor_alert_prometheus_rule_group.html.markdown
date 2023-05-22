@@ -35,7 +35,6 @@ resource "azurerm_kubernetes_cluster" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   dns_prefix          = "example-aks"
-  kubernetes_version  = "1.25.5"
 
   default_node_pool {
     name                   = "default"
@@ -60,7 +59,9 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "example" {
   scopes              = [azurerm_monitor_workspace.example.id]
   rule {
     enabled    = false
-    expression = "histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service=\" billing-processing \"}[5m])) by (job_type))"
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
     record     = "job_type:billing_jobs_duration_seconds:99p5m"
     labels = {
       team = "prod"
@@ -70,7 +71,9 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "example" {
   rule {
     alert      = "Billing_Processing_Very_Slow"
     enabled    = true
-    expression = "histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service=\" billing-processing \"}[5m])) by (job_type))"
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
     for        = "PT5M"
     severity   = 2
 
@@ -81,7 +84,7 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "example" {
       }
     }
 
-    resolve_configuration {
+    alert_resolution {
       auto_resolved   = true
       time_to_resolve = "PT10M"
     }
@@ -144,7 +147,7 @@ A `rule` block supports the following:
 
 * `record` - (Optional) Specifies the recorded metrics name.
 
-* `resolve_configuration` - (Optional) A `resolve_configuration` block as defined below.
+* `alert_resolution` - (Optional) An `alert_resolution` block as defined below.
 
 * `severity` - (Optional) Specifies the severity of the alerts fired by the rule. Possible values are between 0 and 4.
 
@@ -158,7 +161,7 @@ An `action` block supports the following:
 
 ---
 
-A `resolve_configuration` block supports the following:
+An `alert_resolution` block supports the following:
 
 * `auto_resolved` - (Optional) Is the alert auto-resolution? Possible values are `true` and `false`.
 

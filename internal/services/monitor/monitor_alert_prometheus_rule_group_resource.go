@@ -33,16 +33,16 @@ type AlertPrometheusRuleGroupResourceModel struct {
 }
 
 type PrometheusRuleModel struct {
-	Action               []PrometheusRuleGroupActionModel          `tfschema:"action"`
-	Alert                string                                    `tfschema:"alert"`
-	Annotations          map[string]string                         `tfschema:"annotations"`
-	Enabled              bool                                      `tfschema:"enabled"`
-	Expression           string                                    `tfschema:"expression"`
-	For                  string                                    `tfschema:"for"`
-	Labels               map[string]string                         `tfschema:"labels"`
-	Record               string                                    `tfschema:"record"`
-	ResolveConfiguration []PrometheusRuleResolveConfigurationModel `tfschema:"resolve_configuration"`
-	Severity             int64                                     `tfschema:"severity"`
+	Action          []PrometheusRuleGroupActionModel     `tfschema:"action"`
+	Alert           string                               `tfschema:"alert"`
+	Annotations     map[string]string                    `tfschema:"annotations"`
+	Enabled         bool                                 `tfschema:"enabled"`
+	Expression      string                               `tfschema:"expression"`
+	For             string                               `tfschema:"for"`
+	Labels          map[string]string                    `tfschema:"labels"`
+	Record          string                               `tfschema:"record"`
+	AlertResolution []PrometheusRuleAlertResolutionModel `tfschema:"alert_resolution"`
+	Severity        int64                                `tfschema:"severity"`
 }
 
 type PrometheusRuleGroupActionModel struct {
@@ -50,7 +50,7 @@ type PrometheusRuleGroupActionModel struct {
 	ActionProperties map[string]string `tfschema:"action_properties"`
 }
 
-type PrometheusRuleResolveConfigurationModel struct {
+type PrometheusRuleAlertResolutionModel struct {
 	AutoResolved  bool   `tfschema:"auto_resolved"`
 	TimeToResolve string `tfschema:"time_to_resolve"`
 }
@@ -80,16 +80,16 @@ func (r AlertPrometheusRuleGroupResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("one and only one of [rule.%d.record, rule.%d.alert] for %s must be set", i, i, model.Name)
 				}
 
-				// actions, severity, annotations, for, resolve_configuration must be empty when type is recording rule
+				// actions, severity, annotations, for, alert_resolution must be empty when type is recording rule
 				if r.Record != "" {
 					_, actionOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".action")
 					_, severityOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".severity")
 					_, annotationsOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".annotations")
 					_, forOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".for")
-					_, resolveConfigurationOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".resolve_configuration")
+					_, resolveConfigurationOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".alert_resolution")
 
 					if actionOk || severityOk || annotationsOk || forOk || resolveConfigurationOk {
-						return fmt.Errorf("the rule.[%d].action, rule.[%d].severity, rule.[%d].annotations, rule.[%d].for and rule.[%d].resolve_configuration must be empty when the rule type of Alert Prometheus Rule Group (%s) is record", i, i, i, i, i, model.Name)
+						return fmt.Errorf("the rule.[%d].action, rule.[%d].severity, rule.[%d].annotations, rule.[%d].for and rule.[%d].alert_resolution must be empty when the rule type of Alert Prometheus Rule Group (%s) is record", i, i, i, i, i, model.Name)
 					}
 				}
 			}
@@ -189,7 +189,7 @@ func (r AlertPrometheusRuleGroupResource) Arguments() map[string]*pluginsdk.Sche
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					"resolve_configuration": {
+					"alert_resolution": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
@@ -288,9 +288,7 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 			}
 
 			properties.Properties.ClusterName = pointer.To(model.ClusterName)
-
 			properties.Properties.Description = pointer.To(model.Description)
-
 			if _, ok := metadata.ResourceData.GetOk("interval"); ok {
 				properties.Properties.Interval = pointer.To(model.Interval)
 			}
@@ -335,27 +333,21 @@ func (r AlertPrometheusRuleGroupResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("cluster_name") {
 				properties.Properties.ClusterName = pointer.To(model.ClusterName)
 			}
-
 			if metadata.ResourceData.HasChange("description") {
 				properties.Properties.Description = pointer.To(model.Description)
 			}
-
 			if metadata.ResourceData.HasChange("rule_group_enabled") {
 				properties.Properties.Enabled = pointer.To(model.RuleGroupEnabled)
 			}
-
 			if metadata.ResourceData.HasChange("interval") {
 				properties.Properties.Interval = pointer.To(model.Interval)
 			}
-
 			if metadata.ResourceData.HasChange("rule") {
 				properties.Properties.Rules = expandPrometheusRuleModel(model.Rule, metadata.ResourceData)
 			}
-
 			if metadata.ResourceData.HasChange("scopes") {
 				properties.Properties.Scopes = model.Scopes
 			}
-
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = pointer.To(model.Tags)
 			}
@@ -395,21 +387,13 @@ func (r AlertPrometheusRuleGroupResource) Read() sdk.ResourceFunc {
 			}
 
 			if resp.Model != nil {
-
 				state.ClusterName = pointer.From(resp.Model.Properties.ClusterName)
-
 				state.Description = pointer.From(resp.Model.Properties.Description)
-
 				state.Interval = pointer.From(resp.Model.Properties.Interval)
-
 				state.Location = location.Normalize(resp.Model.Location)
-
 				state.Rule = flattenPrometheusRuleModel(&resp.Model.Properties.Rules)
-
 				state.RuleGroupEnabled = pointer.From(resp.Model.Properties.Enabled)
-
 				state.Scopes = resp.Model.Properties.Scopes
-
 				state.Tags = pointer.From(resp.Model.Tags)
 			}
 			return metadata.Encode(&state)
@@ -455,12 +439,11 @@ func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.Resour
 			}
 			output.Annotations = pointer.To(v.Annotations)
 			output.For = pointer.To(v.For)
-			output.ResolveConfiguration = expandPrometheusRuleResolveConfigurationModel(v.ResolveConfiguration)
+			output.ResolveConfiguration = expandPrometheusRuleAlertResolutionModel(v.AlertResolution)
 		} else {
-			// action, alert, severity, annotations, for, resolve_configuration must be empty when type is recording rule
+			// action, alert, severity, annotations, for, alert_resolution must be empty when type is recording rule
 			output.Record = pointer.To(v.Record)
 		}
-
 		outputList = append(outputList, output)
 	}
 
@@ -473,16 +456,14 @@ func expandPrometheusRuleGroupActionModel(inputList []PrometheusRuleGroupActionM
 		output := prometheusrulegroups.PrometheusRuleGroupAction{
 			ActionProperties: pointer.To(v.ActionProperties),
 		}
-
 		output.ActionGroupId = pointer.To(v.ActionGroupId)
-
 		outputList = append(outputList, output)
 	}
 
 	return &outputList
 }
 
-func expandPrometheusRuleResolveConfigurationModel(inputList []PrometheusRuleResolveConfigurationModel) *prometheusrulegroups.PrometheusRuleResolveConfiguration {
+func expandPrometheusRuleAlertResolutionModel(inputList []PrometheusRuleAlertResolutionModel) *prometheusrulegroups.PrometheusRuleResolveConfiguration {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -491,7 +472,6 @@ func expandPrometheusRuleResolveConfigurationModel(inputList []PrometheusRuleRes
 	output := prometheusrulegroups.PrometheusRuleResolveConfiguration{
 		AutoResolved: pointer.To(input.AutoResolved),
 	}
-
 	output.TimeToResolve = pointer.To(input.TimeToResolve)
 
 	return &output
@@ -509,27 +489,16 @@ func flattenPrometheusRuleModel(inputList *[]prometheusrulegroups.PrometheusRule
 		}
 
 		actionsValue := flattenPrometheusRuleGroupActionModel(input.Actions)
-
 		output.Action = actionsValue
-
 		output.Alert = pointer.From(input.Alert)
-
 		output.Annotations = pointer.From(input.Annotations)
-
 		output.Enabled = pointer.From(input.Enabled)
-
 		output.For = pointer.From(input.For)
-
 		output.Labels = pointer.From(input.Labels)
-
 		output.Record = pointer.From(input.Record)
-
-		resolveConfigurationValue := flattenPrometheusRuleResolveConfigurationModel(input.ResolveConfiguration)
-
-		output.ResolveConfiguration = resolveConfigurationValue
-
+		resolveConfigurationValue := flattenPrometheusRuleAlertResolutionModel(input.ResolveConfiguration)
+		output.AlertResolution = resolveConfigurationValue
 		output.Severity = pointer.From(input.Severity)
-
 		outputList = append(outputList, output)
 	}
 
@@ -544,27 +513,22 @@ func flattenPrometheusRuleGroupActionModel(inputList *[]prometheusrulegroups.Pro
 
 	for _, input := range *inputList {
 		output := PrometheusRuleGroupActionModel{}
-
 		output.ActionGroupId = pointer.From(input.ActionGroupId)
-
 		output.ActionProperties = pointer.From(input.ActionProperties)
-
 		outputList = append(outputList, output)
 	}
 
 	return outputList
 }
 
-func flattenPrometheusRuleResolveConfigurationModel(input *prometheusrulegroups.PrometheusRuleResolveConfiguration) []PrometheusRuleResolveConfigurationModel {
-	outputList := make([]PrometheusRuleResolveConfigurationModel, 0)
+func flattenPrometheusRuleAlertResolutionModel(input *prometheusrulegroups.PrometheusRuleResolveConfiguration) []PrometheusRuleAlertResolutionModel {
+	outputList := make([]PrometheusRuleAlertResolutionModel, 0)
 	if input == nil {
 		return outputList
 	}
 
-	output := PrometheusRuleResolveConfigurationModel{}
-
+	output := PrometheusRuleAlertResolutionModel{}
 	output.AutoResolved = pointer.From(input.AutoResolved)
-
 	output.TimeToResolve = pointer.From(input.TimeToResolve)
 
 	return append(outputList, output)
