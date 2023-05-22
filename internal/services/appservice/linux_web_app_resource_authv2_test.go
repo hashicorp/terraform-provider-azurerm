@@ -302,7 +302,7 @@ resource "azurerm_linux_web_app" "test" {
     auth_enabled           = true
     unauthenticated_action = "Return401"
     active_directory_v2 {
-      client_id                  = data.azurerm_client_config.current.client_id
+      client_id = data.azurerm_client_config.current.client_id
       allowed_audiences = [
         "activedirectorytokenaudiences",
       ]

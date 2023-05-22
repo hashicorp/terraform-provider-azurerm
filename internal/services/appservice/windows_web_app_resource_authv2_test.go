@@ -268,8 +268,8 @@ resource "azurerm_windows_web_app" "test" {
     auth_enabled           = true
     unauthenticated_action = "Return401"
     active_directory_v2 {
-      client_id                  = data.azurerm_client_config.current.client_id
-      tenant_auth_endpoint       = "https://sts.windows.net/%[3]s/v2.0"
+      client_id            = data.azurerm_client_config.current.client_id
+      tenant_auth_endpoint = "https://sts.windows.net/%[3]s/v2.0"
     }
     login {}
   }
