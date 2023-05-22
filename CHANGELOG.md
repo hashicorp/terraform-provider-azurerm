@@ -1,5 +1,13 @@
 ## 3.58.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230516.1215417` of `github.com/hashicorp/go-azure-sdk` [GH-21810]
+* `nginx`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `portal`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `redis`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `redisenterprise`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+
 BUG FIXES:
 
 * Data Source: `azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil [GH-21867]
