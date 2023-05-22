@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+
 	nginx "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
