@@ -2604,8 +2604,8 @@ resource "azurerm_windows_web_app" "test" {
           interval          = "00:01:00"
           count             = 10
           path              = "./terraformtest.aspx"
-          win32_status      = "30"
-          sub_status        = 202
+          //win32_status      = "30"
+          //sub_status        = 202
         }
       }
 

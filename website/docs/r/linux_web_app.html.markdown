@@ -735,7 +735,11 @@ A `status_code` block supports the following:
 
 * `interval` - (Required) The time interval in the form `hh:mm:ss`.
 
-* `status_code_range` - (Required) The status code for this rule, accepts single status codes and status code ranges. e.g. `500` or `400-499`. Possible values are integers between `101` and `599`
+* `status_code_range` - (Optional) The status code range for this rule, e.g. `400-499`.
+
+* `status_code` - (Optional) The single status code for this rule, e.g. `500` . Possible values are integers between `101` and `599`
+
+-> **Note:** `status_code` is introduced in 4.0 provider, for 3.x provider, please use `status_code_range` to set the single status code, otherwise, there will be no change detected for this property.
 
 * `path` - (Optional) The path to which this rule status code applies.
 

@@ -653,7 +653,9 @@ A `status_code` block exports the following:
 
 * `path` - The path to which this rule status code applies.
 
-* `status_code_range` - The status code or range for this rule.
+* `status_code_range` - The status range for this rule.
+
+* `status_code` - The single status code for this rule.
 
 * `sub_status` - The Request Sub Status of the Status Code.
 

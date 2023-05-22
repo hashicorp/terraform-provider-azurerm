@@ -1,11 +1,13 @@
 package helpers
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -17,10 +19,11 @@ type AutoHealSettingWindows struct {
 }
 
 type AutoHealTriggerWindows struct {
-	Requests        []AutoHealRequestTrigger    `tfschema:"requests"`
-	PrivateMemoryKB int                         `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
-	StatusCodes     []AutoHealStatusCodeTrigger `tfschema:"status_code"`       // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
-	SlowRequests    []AutoHealSlowRequest       `tfschema:"slow_request"`
+	Requests         []AutoHealRequestTrigger         `tfschema:"requests"`
+	PrivateMemoryKB  int                              `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
+	StatusCodes      []AutoHealStatusCodeTrigger      `tfschema:"status_code"`       // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
+	StatusCodesRange []AutoHealStatusCodeRangeTrigger `tfschema:"status_code_range"` // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
+	SlowRequests     []AutoHealSlowRequest            `tfschema:"slow_request"`
 }
 
 type AutoHealRequestTrigger struct {
@@ -29,9 +32,17 @@ type AutoHealRequestTrigger struct {
 }
 
 type AutoHealStatusCodeTrigger struct {
+	StatusCode               string `tfschema:"status_code"`
+	StatusCodeRange3Provider string `tfschema:"status_code_range"`
+	SubStatus                int    `tfschema:"sub_status"`
+	Win32Status              string `tfschema:"win32_status"`
+	Path                     string `tfschema:"path"`
+	Count                    int    `tfschema:"count"`
+	Interval                 string `tfschema:"interval"` // Format - hh:mm:ss
+}
+
+type AutoHealStatusCodeRangeTrigger struct {
 	StatusCodeRange string `tfschema:"status_code_range"` // Conflicts with `StatusCode`, `Win32Code`, and `SubStatus` when not a single value...
-	SubStatus       int    `tfschema:"sub_status"`
-	Win32Status     string `tfschema:"win32_status"`
 	Path            string `tfschema:"path"`
 	Count           int    `tfschema:"count"`
 	Interval        string `tfschema:"interval"` // Format - hh:mm:ss
@@ -176,7 +187,7 @@ func autoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
 
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
 func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -214,10 +225,10 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"status_code_range": {
+							"status_code": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: validate.StatusCodeRange,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"count": {
@@ -240,6 +251,38 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							"win32_status": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
+							},
+
+							"path": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+
+				"status_code_range": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"status_code_range": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.StatusCodeRange,
+							},
+
+							"count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: validation.IntAtLeast(1),
+							},
+
+							"interval": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"path": {
@@ -286,6 +329,57 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["status_code"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// to mak
+					"status_code": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"status_code_range": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.StatusCodeRange,
+					},
+
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+
+					"interval": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.TimeInterval,
+					},
+
+					"sub_status": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+
+					"win32_status": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"path": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+	}
+	return s
 }
 
 func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
@@ -327,6 +421,11 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 								Computed: true,
 							},
 
+							"status_code": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
 							"count": {
 								Type:     pluginsdk.TypeInt,
 								Computed: true,
@@ -387,9 +486,9 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *web.AutoHealRules {
+func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) (*web.AutoHealRules, error) {
 	if len(autoHealSettings) == 0 {
-		return &web.AutoHealRules{}
+		return &web.AutoHealRules{}, nil
 	}
 
 	result := &web.AutoHealRules{
@@ -424,21 +523,41 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 
 	if len(triggers.StatusCodes) > 0 {
 		statusCodeTriggers := make([]web.StatusCodesBasedTrigger, 0)
-		statusCodeRangeTriggers := make([]web.StatusCodesRangeBasedTrigger, 0)
+		statusCodeRangeTriggers3Provider := make([]web.StatusCodesRangeBasedTrigger, 0)
 		for _, s := range triggers.StatusCodes {
 			statusCodeTrigger := web.StatusCodesBasedTrigger{}
-			statusCodeRangeTrigger := web.StatusCodesRangeBasedTrigger{}
-			parts := strings.Split(s.StatusCodeRange, "-")
-			if len(parts) == 2 {
-				statusCodeRangeTrigger.StatusCodes = pointer.To(s.StatusCodeRange)
-				statusCodeRangeTrigger.Count = pointer.To(int32(s.Count))
-				statusCodeRangeTrigger.TimeInterval = pointer.To(s.Interval)
-				if s.Path != "" {
-					statusCodeRangeTrigger.Path = pointer.To(s.Path)
+			statusCodeRangeTriggerFor3Provider := web.StatusCodesRangeBasedTrigger{}
+			if !features.FourPointOhBeta() {
+				if len(strings.Split(s.StatusCodeRange3Provider, "-")) == 2 {
+					statusCodeRangeTriggerFor3Provider.StatusCodes = pointer.To(s.StatusCodeRange3Provider)
+					statusCodeRangeTriggerFor3Provider.Count = pointer.To(int32(s.Count))
+					statusCodeRangeTriggerFor3Provider.TimeInterval = pointer.To(s.Interval)
+					if s.Win32Status != "" || s.SubStatus != 0 {
+						return nil, fmt.Errorf("`sub_status` and `win32_status` is not supported when setting the status code range")
+					}
+					if s.Path != "" {
+						statusCodeRangeTriggerFor3Provider.Path = pointer.To(s.Path)
+					}
+					statusCodeRangeTriggers3Provider = append(statusCodeRangeTriggers3Provider, statusCodeRangeTriggerFor3Provider)
+				} else {
+					statusCode, err := strconv.Atoi(s.StatusCodeRange3Provider)
+					if err == nil {
+						statusCodeTrigger.Status = pointer.To(int32(statusCode))
+					}
+					statusCodeTrigger.Count = pointer.To(int32(s.Count))
+					statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
+					statusCodeTrigger.SubStatus = pointer.To(int32(s.SubStatus))
+					win32status, err := strconv.Atoi(s.Win32Status)
+					if err == nil {
+						statusCodeTrigger.Win32Status = pointer.To(int32(win32status))
+					}
+					if s.Path != "" {
+						statusCodeTrigger.Path = pointer.To(s.Path)
+					}
+					statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 				}
-				statusCodeRangeTriggers = append(statusCodeRangeTriggers, statusCodeRangeTrigger)
 			} else {
-				statusCode, err := strconv.Atoi(s.StatusCodeRange)
+				statusCode, err := strconv.Atoi(s.StatusCode)
 				if err == nil {
 					statusCodeTrigger.Status = pointer.To(int32(statusCode))
 				}
@@ -449,14 +568,29 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 				if err == nil {
 					statusCodeTrigger.Win32Status = pointer.To(int32(win32status))
 				}
-
 				if s.Path != "" {
 					statusCodeTrigger.Path = pointer.To(s.Path)
 				}
 				statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 			}
 		}
+
 		result.Triggers.StatusCodes = &statusCodeTriggers
+		result.Triggers.StatusCodesRange = &statusCodeRangeTriggers3Provider
+	}
+
+	if len(triggers.StatusCodesRange) > 0 && features.FourPointOhBeta() {
+		statusCodeRangeTriggers := make([]web.StatusCodesRangeBasedTrigger, 0)
+		for _, s := range triggers.StatusCodesRange {
+			statusCodeRangeTrigger := web.StatusCodesRangeBasedTrigger{}
+			statusCodeRangeTrigger.StatusCodes = pointer.To(s.StatusCodeRange)
+			statusCodeRangeTrigger.Count = pointer.To(int32(s.Count))
+			statusCodeRangeTrigger.TimeInterval = pointer.To(s.Interval)
+			if s.Path != "" {
+				statusCodeRangeTrigger.Path = pointer.To(s.Path)
+			}
+			statusCodeRangeTriggers = append(statusCodeRangeTriggers, statusCodeRangeTrigger)
+		}
 		result.Triggers.StatusCodesRange = &statusCodeRangeTriggers
 	}
 
@@ -471,7 +605,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 		}
 	}
 
-	return result
+	return result, nil
 }
 
 func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHealSettingWindows {
@@ -500,6 +634,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 		}
 
 		statusCodeTriggers := make([]AutoHealStatusCodeTrigger, 0)
+		statusCodeRangeTriggers := make([]AutoHealStatusCodeRangeTrigger, 0)
 		if triggers.StatusCodes != nil {
 			for _, s := range *triggers.StatusCodes {
 				t := AutoHealStatusCodeTrigger{
@@ -508,7 +643,11 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 				}
 
 				if s.Status != nil {
-					t.StatusCodeRange = strconv.Itoa(int(*s.Status))
+					if !features.FourPointOhBeta() {
+						t.StatusCodeRange3Provider = strconv.Itoa(int(*s.Status))
+					} else {
+						t.StatusCode = strconv.Itoa(int(*s.Status))
+					}
 				}
 
 				if s.Count != nil {
@@ -527,18 +666,33 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 		}
 		if triggers.StatusCodesRange != nil {
 			for _, s := range *triggers.StatusCodesRange {
-				t := AutoHealStatusCodeTrigger{
-					Interval: pointer.From(s.TimeInterval),
-					Path:     pointer.From(s.Path),
-				}
-				if s.Count != nil {
-					t.Count = int(*s.Count)
-				}
+				if !features.FourPointOhBeta() {
+					tLegacy := AutoHealStatusCodeTrigger{
+						Interval: pointer.From(s.TimeInterval),
+						Path:     pointer.From(s.Path),
+					}
+					if s.Count != nil {
+						tLegacy.Count = int(*s.Count)
+					}
 
-				if s.StatusCodes != nil {
-					t.StatusCodeRange = *s.StatusCodes
+					if s.StatusCodes != nil {
+						tLegacy.StatusCodeRange3Provider = *s.StatusCodes
+					}
+					statusCodeTriggers = append(statusCodeTriggers, tLegacy)
+				} else {
+					t := AutoHealStatusCodeRangeTrigger{
+						Interval: pointer.From(s.TimeInterval),
+						Path:     pointer.From(s.Path),
+					}
+					if s.Count != nil {
+						t.Count = int(*s.Count)
+					}
+
+					if s.StatusCodes != nil {
+						t.StatusCodeRange = *s.StatusCodes
+					}
+					statusCodeRangeTriggers = append(statusCodeRangeTriggers, t)
 				}
-				statusCodeTriggers = append(statusCodeTriggers, t)
 			}
 		}
 		resultTrigger.StatusCodes = statusCodeTriggers

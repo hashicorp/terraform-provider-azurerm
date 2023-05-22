@@ -705,7 +705,11 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
-		expanded.AutoHealRules = expandAutoHealSettingsLinux(linuxSlotSiteConfig.AutoHealSettings)
+		autoHealRule, err := expandAutoHealSettingsLinux(linuxSlotSiteConfig.AutoHealSettings)
+		if err != nil {
+			return nil, fmt.Errorf("setting auto heal rule error: %+v", err)
+		}
+		expanded.AutoHealRules = autoHealRule
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
@@ -991,7 +995,11 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
-		expanded.AutoHealRules = expandAutoHealSettingsWindows(winSlotSiteConfig.AutoHealSettings)
+		autoHealRule, err := expandAutoHealSettingsWindows(winSlotSiteConfig.AutoHealSettings)
+		if err != nil {
+			return nil, nil, fmt.Errorf("setting auto heal rule error: %+v", err)
+		}
+		expanded.AutoHealRules = autoHealRule
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
