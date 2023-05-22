@@ -758,11 +758,11 @@ A `status_code` block supports the following:
 
 * `interval` - (Required) The time interval in the form `hh:mm:ss`.
 
-* `status_code_range` - (Optional) The status code range for this rule, e.g. `400-499`.
+* `status_code_range` - (Required) The status code range for this rule, e.g. `400-499`.
 
-* `status_code` - (Optional) The single status code for this rule, e.g. `500` . Possible values are integers between `101` and `599`
+~> **Note:** `status_code_range` in  `status_code` will be deprecated in 4.0 provider, please use `status_code_range` block to set the code range.
 
--> **Note:** `status_code` is introduced in 4.0 provider, for 3.x provider, please use `status_code_range` to set the single status code, otherwise, there will be no change detected for this property.
+* `status_code` - (Required) The single status code for this rule, e.g. `500` . Possible values are integers between `101` and `599`
 
 * `path` - (Optional) The path to which this rule status code applies.
 
@@ -770,7 +770,17 @@ A `status_code` block supports the following:
 
 * `win32_status` - (Optional) The Win32 Status Code of the Request.
 
--> **Note:** `sub_status` and `win32_status` is only available for single status code.
+---
+
+A `status_code_range` block supports the following:
+
+* `count` - (Required) The number of occurrences of the defined `status_code` in the specified `interval` on which to trigger this rule.
+
+* `interval` - (Required) The time interval in the form `hh:mm:ss`.
+
+* `status_code_range` - (Required) The status code range for this rule, e.g. `400-499`.
+
+* `path` - (Optional) The path to which this rule status code applies.
 
 ---
 
@@ -807,6 +817,10 @@ A `trigger` block supports the following:
 * `slow_request` - (Optional) One or more `slow_request` blocks as defined above.
 
 * `status_code` - (Optional) One or more `status_code` blocks as defined above.
+
+* `status_code_range` - (Optional) One or more `status_code_range` blocks as defined above.
+
+~> **Note:** `status_code_range` is only available in 4.0 provider.
 
 ---
 

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	appServiceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -523,7 +524,7 @@ func autoHealActionSchemaLinuxComputed() *pluginsdk.Schema {
 
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
 func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -555,10 +556,10 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"status_code_range": {
+							"status_code": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: nil, // TODO - status code range validation
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"count": {
@@ -568,21 +569,51 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 							},
 
 							"interval": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
 							},
 
 							"sub_status": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								ValidateFunc: nil, // TODO - no docs on this, needs investigation
+								Type:     pluginsdk.TypeInt,
+								Optional: true,
 							},
 
 							"win32_status": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+							},
+
+							"path": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
-								ValidateFunc: nil, // TODO - no docs on this, needs investigation
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+
+				"status_code_range": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"status_code_range": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.StatusCodeRange,
+							},
+
+							"count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: validation.IntAtLeast(1),
+							},
+
+							"interval": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
 							},
 
 							"path": {
@@ -629,10 +660,64 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["status_code"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// to match the struct
+					"status_code": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"status_code_range": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: nil, // TODO - status code range validation
+						Deprecated:   "`status_code_range` is deprecated in 4.0 provider, please use `status_code_range` block instead.",
+					},
+
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+
+					"interval": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						// ValidateFunc: validation.IsRFC3339Time,
+					},
+
+					"sub_status": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: nil, // TODO - no docs on this, needs investigation
+					},
+
+					"win32_status": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: nil, // TODO - no docs on this, needs investigation
+					},
+
+					"path": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+
+	}
+	return s
 }
 
 func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -660,11 +745,6 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"status_code_range": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-
 							"status_code": {
 								Type:     pluginsdk.TypeString,
 								Computed: true,
@@ -698,6 +778,34 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 					},
 				},
 
+				"status_code_range": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"status_code_range": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"path": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
 				"slow_request": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -728,6 +836,54 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["status_code"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// to match the struct
+					"status_code": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"status_code_range": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"count": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+
+					"interval": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"sub_status": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+
+					"win32_status": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"path": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		}
+	}
+
+	return s
 }
 
 func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan) (*web.SiteConfig, error) {
@@ -1162,6 +1318,7 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 			}
 		}
 		resultTrigger.StatusCodes = statusCodeTriggers
+		resultTrigger.StatusCodesRange = statusCodeRangeTriggers
 
 		slowRequestTriggers := make([]AutoHealSlowRequest, 0)
 		if triggers.SlowRequests != nil {

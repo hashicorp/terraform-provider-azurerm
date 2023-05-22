@@ -336,7 +336,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					// to mak
+					// to match the struct
 					"status_code": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -346,6 +346,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.StatusCodeRange,
+						Deprecated:   "`status_code_range` is deprecated in 4.0 provider, please use `status_code_range` block instead.",
 					},
 
 					"count": {
@@ -383,7 +384,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 }
 
 func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -416,11 +417,6 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"status_code_range": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-
 							"status_code": {
 								Type:     pluginsdk.TypeString,
 								Computed: true,
@@ -442,6 +438,34 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 							},
 
 							"win32_status": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"path": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"status_code_range": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"status_code_range": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+
+							"interval": {
 								Type:     pluginsdk.TypeString,
 								Computed: true,
 							},
@@ -484,6 +508,53 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["status_code"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// to match the struct
+					"status_code": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"status_code_range": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"count": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+
+					"interval": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"sub_status": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+
+					"win32_status": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"path": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		}
+	}
+
+	return s
 }
 
 func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) (*web.AutoHealRules, error) {
@@ -696,6 +767,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 			}
 		}
 		resultTrigger.StatusCodes = statusCodeTriggers
+		resultTrigger.StatusCodesRange = statusCodeRangeTriggers
 
 		slowRequestTriggers := make([]AutoHealSlowRequest, 0)
 		if triggers.SlowRequests != nil {
