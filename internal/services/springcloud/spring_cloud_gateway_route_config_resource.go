@@ -222,14 +222,14 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 		},
 	}
 
-	filters := utils.ExpandStringSlice(d.Get("filters").(*pluginsdk.Set).List())
-	if len(*filters) > 0 {
-		gatewayRouteConfigResource.Properties.Filters = filters
+	filters := d.Get("filters").(*pluginsdk.Set).List()
+	if len(filters) > 0 {
+		gatewayRouteConfigResource.Properties.Filters = utils.ExpandStringSlice(filters)
 	}
 
-	predicates := utils.ExpandStringSlice(d.Get("predicates").(*pluginsdk.Set).List())
-	if len(*predicates) > 0 {
-		gatewayRouteConfigResource.Properties.Predicates = predicates
+	predicates := d.Get("predicates").(*pluginsdk.Set).List()
+	if len(predicates) > 0 {
+		gatewayRouteConfigResource.Properties.Predicates = utils.ExpandStringSlice(predicates)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName, gatewayRouteConfigResource)
