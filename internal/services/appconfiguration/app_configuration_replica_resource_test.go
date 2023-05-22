@@ -30,6 +30,21 @@ func TestAccAppConfigurationReplica_basic(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationReplica_multiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_replica", "test")
+	r := AppConfigurationReplicaTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfigurationReplica_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_replica", "test")
 	r := AppConfigurationReplicaTestResource{}
@@ -66,7 +81,25 @@ func (r AppConfigurationReplicaTestResource) basic(data acceptance.TestData) str
 resource "azurerm_app_configuration_replica" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   location               = local.secondary_location
-  name                   = "replica${local.random_integer}"
+  name                   = "replica1"
+}
+`, r.template(data))
+}
+
+func (r AppConfigurationReplicaTestResource) multiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_replica" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  location               = local.secondary_location
+  name                   = "replica1"
+}
+
+resource "azurerm_app_configuration_replica" "test1" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  location               = local.ternary_location
+  name                   = "replica2"
 }
 `, r.template(data))
 }
@@ -93,6 +126,7 @@ locals {
   random_integer     = %[1]d
   primary_location   = %[2]q
   secondary_location = %[3]q
+  ternary_location   = %[4]q
 }
 
 resource "azurerm_resource_group" "test" {
@@ -101,11 +135,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_configuration" "test" {
-  name                       = "testaccappconf%[1]d"
+  name                       = "testappconf${local.random_integer}"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   sku                        = "standard"
   soft_delete_retention_days = 1
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
 }

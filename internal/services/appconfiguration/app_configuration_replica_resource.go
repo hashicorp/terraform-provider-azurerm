@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/replicas"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -93,11 +94,15 @@ func (r ReplicaResource) Create() sdk.ResourceFunc {
 			}
 
 			payload := replicas.Replica{
-				Location: &config.Location,
+				Location: pointer.To(config.Location),
 				Name:     pointer.To(config.Name),
 			}
 
-			if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+			// concurrent creation of replicas under one configuration store will fail
+			locks.ByName(id.ConfigurationStoreName, r.ResourceType())
+			defer locks.UnlockByName(id.ConfigurationStoreName, r.ResourceType())
+
+			if err = client.CreateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -159,7 +164,7 @@ func (r ReplicaResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
