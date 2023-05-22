@@ -1,4 +1,4 @@
-package accesscontrol
+package synapse
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,14 +8,15 @@ package accesscontrol
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
-// RoleAssignmentsClient is the client for the RoleAssignments methods of the Accesscontrol service.
+// RoleAssignmentsClient is the client for the RoleAssignments methods of the Synapse service.
 type RoleAssignmentsClient struct {
 	BaseClient
 }
@@ -45,25 +46,25 @@ func (client RoleAssignmentsClient) CheckPrincipalAccess(ctx context.Context, re
 				Chain: []validation.Constraint{{Target: "request.Subject.PrincipalID", Name: validation.Null, Rule: true, Chain: nil}}},
 				{Target: "request.Actions", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "request.Scope", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("accesscontrol.RoleAssignmentsClient", "CheckPrincipalAccess", err.Error())
+		return result, validation.NewError("synapse.RoleAssignmentsClient", "CheckPrincipalAccess", err.Error())
 	}
 
 	req, err := client.CheckPrincipalAccessPreparer(ctx, request)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "CheckPrincipalAccess", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "CheckPrincipalAccess", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.CheckPrincipalAccessSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "CheckPrincipalAccess", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "CheckPrincipalAccess", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.CheckPrincipalAccessResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "CheckPrincipalAccess", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "CheckPrincipalAccess", resp, "Failure responding to request")
 		return
 	}
 
@@ -131,25 +132,25 @@ func (client RoleAssignmentsClient) CreateRoleAssignment(ctx context.Context, re
 				{Target: "request.Scope", Name: validation.Null, Rule: true, Chain: nil}}},
 		{TargetValue: roleAssignmentID,
 			Constraints: []validation.Constraint{{Target: "roleAssignmentID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("accesscontrol.RoleAssignmentsClient", "CreateRoleAssignment", err.Error())
+		return result, validation.NewError("synapse.RoleAssignmentsClient", "CreateRoleAssignment", err.Error())
 	}
 
 	req, err := client.CreateRoleAssignmentPreparer(ctx, request, roleAssignmentID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "CreateRoleAssignment", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "CreateRoleAssignment", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.CreateRoleAssignmentSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "CreateRoleAssignment", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "CreateRoleAssignment", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.CreateRoleAssignmentResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "CreateRoleAssignment", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "CreateRoleAssignment", resp, "Failure responding to request")
 		return
 	}
 
@@ -217,25 +218,25 @@ func (client RoleAssignmentsClient) DeleteRoleAssignmentByID(ctx context.Context
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: roleAssignmentID,
 			Constraints: []validation.Constraint{{Target: "roleAssignmentID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("accesscontrol.RoleAssignmentsClient", "DeleteRoleAssignmentByID", err.Error())
+		return result, validation.NewError("synapse.RoleAssignmentsClient", "DeleteRoleAssignmentByID", err.Error())
 	}
 
 	req, err := client.DeleteRoleAssignmentByIDPreparer(ctx, roleAssignmentID, scope)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "DeleteRoleAssignmentByID", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "DeleteRoleAssignmentByID", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteRoleAssignmentByIDSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "DeleteRoleAssignmentByID", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "DeleteRoleAssignmentByID", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteRoleAssignmentByIDResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "DeleteRoleAssignmentByID", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "DeleteRoleAssignmentByID", resp, "Failure responding to request")
 		return
 	}
 
@@ -302,25 +303,25 @@ func (client RoleAssignmentsClient) GetRoleAssignmentByID(ctx context.Context, r
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: roleAssignmentID,
 			Constraints: []validation.Constraint{{Target: "roleAssignmentID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("accesscontrol.RoleAssignmentsClient", "GetRoleAssignmentByID", err.Error())
+		return result, validation.NewError("synapse.RoleAssignmentsClient", "GetRoleAssignmentByID", err.Error())
 	}
 
 	req, err := client.GetRoleAssignmentByIDPreparer(ctx, roleAssignmentID)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "GetRoleAssignmentByID", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "GetRoleAssignmentByID", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetRoleAssignmentByIDSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "GetRoleAssignmentByID", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "GetRoleAssignmentByID", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetRoleAssignmentByIDResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "GetRoleAssignmentByID", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "GetRoleAssignmentByID", resp, "Failure responding to request")
 		return
 	}
 
@@ -387,20 +388,20 @@ func (client RoleAssignmentsClient) ListRoleAssignments(ctx context.Context, rol
 	}
 	req, err := client.ListRoleAssignmentsPreparer(ctx, roleID, principalID, scope, continuationToken)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "ListRoleAssignments", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "ListRoleAssignments", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListRoleAssignmentsSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "ListRoleAssignments", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "ListRoleAssignments", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListRoleAssignmentsResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "accesscontrol.RoleAssignmentsClient", "ListRoleAssignments", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.RoleAssignmentsClient", "ListRoleAssignments", resp, "Failure responding to request")
 		return
 	}
 

@@ -1,7 +1,7 @@
-// Package managedvirtualnetwork implements the Azure ARM Managedvirtualnetwork service API version 2019-06-01-preview.
+// Package synapse implements the Azure ARM Synapse service API version 2019-06-01-preview.
 //
 //
-package managedvirtualnetwork
+package synapse
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,7 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
-// BaseClient is the base client for Managedvirtualnetwork.
+// BaseClient is the base client for Synapse.
 type BaseClient struct {
 	autorest.Client
 	Endpoint string

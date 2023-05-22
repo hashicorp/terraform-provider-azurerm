@@ -896,12 +896,12 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 		}
 
 		diskVersion := ""
-		if input.FileCSIDriver != nil {
+		if input.DiskCSIDriver != nil {
 			diskVersion = *input.DiskCSIDriver.Version
 		}
 
 		fileEnabled := true
-		if input.DiskCSIDriver != nil {
+		if input.FileCSIDriver != nil {
 			fileEnabled = *input.FileCSIDriver.Enabled
 		}
 
