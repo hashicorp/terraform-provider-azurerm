@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `external_seed_node_ip_addresses` - (Optional) A list of IP Addresses of the seed nodes in unmanaged the Cassandra Data Center which will be added to the seed node lists of all managed nodes.
 
-* `hours_between_backups` - (Optional) The number of hours to wait between taking a backup of the Cassandra Cluster. Defaults to `24`.
+* `hours_between_backups` - (Optional) (Deprecated) The number of hours to wait between taking a backup of the Cassandra Cluster. Defaults to `24`.
 
 ~> **Note:** To disable this feature, set this property to `0`.
 

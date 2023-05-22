@@ -109,9 +109,9 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 			},
 
 			"hours_between_backups": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				Default:  24,
+				Type:       pluginsdk.TypeInt,
+				Optional:   true,
+				Deprecated: "This property has been deprecated by service API and will be removed in v4.0 of the provider",
 			},
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),
@@ -172,7 +172,6 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 			AuthenticationMethod:          &authenticationMethod,
 			CassandraVersion:              utils.String(d.Get("version").(string)),
 			DelegatedManagementSubnetId:   utils.String(d.Get("delegated_management_subnet_id").(string)),
-			HoursBetweenBackups:           utils.Int64(int64(d.Get("hours_between_backups").(int))),
 			InitialCassandraAdminPassword: utils.String(d.Get("default_admin_password").(string)),
 			RepairEnabled:                 utils.Bool(d.Get("repair_enabled").(bool)),
 		},
@@ -233,7 +232,10 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 				d.Set("authentication_method", string(pointer.From(props.AuthenticationMethod)))
 				d.Set("repair_enabled", props.RepairEnabled)
 				d.Set("version", props.CassandraVersion)
-				d.Set("hours_between_backups", props.HoursBetweenBackups)
+
+				if v, ok := d.GetOk("hours_between_backups"); ok {
+					d.Set("hours_between_backups", v.(string))
+				}
 
 				if err := d.Set("client_certificate_pems", flattenCassandraClusterCertificate(props.ClientCertificates)); err != nil {
 					return fmt.Errorf("setting `client_certificate_pems`: %+v", err)
@@ -289,7 +291,6 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AuthenticationMethod:          &authenticationMethod,
 			CassandraVersion:              utils.String(d.Get("version").(string)),
 			DelegatedManagementSubnetId:   utils.String(d.Get("delegated_management_subnet_id").(string)),
-			HoursBetweenBackups:           utils.Int64(int64(d.Get("hours_between_backups").(int))),
 			InitialCassandraAdminPassword: utils.String(d.Get("default_admin_password").(string)),
 			RepairEnabled:                 utils.Bool(d.Get("repair_enabled").(bool)),
 		},

@@ -133,7 +133,6 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   client_certificate_pems          = [file("testdata/cert.pem")]
   external_gossip_certificate_pems = [file("testdata/cert.pem")]
   external_seed_node_ip_addresses  = ["10.52.221.2"]
-  hours_between_backups            = 22
 
   identity {
     type = "SystemAssigned"
@@ -165,7 +164,6 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   client_certificate_pems          = [file("testdata/cert2.pem")]
   external_gossip_certificate_pems = [file("testdata/cert2.pem")]
   external_seed_node_ip_addresses  = ["10.52.221.5"]
-  hours_between_backups            = 0
 
   tags = {
     Env = "Test2"
