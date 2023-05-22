@@ -16,13 +16,9 @@ import (
 
 func PreCheck(t *testing.T) {
 	variables := []string{
-		"ARM_CLIENT_ID",
-		"ARM_CLIENT_SECRET",
 		"ARM_SUBSCRIPTION_ID",
 		"ARM_TENANT_ID",
 		"ARM_TEST_LOCATION",
-		"ARM_TEST_LOCATION_ALT",
-		"ARM_TEST_LOCATION_ALT2",
 	}
 
 	for _, variable := range variables {
@@ -85,7 +81,7 @@ func GetAuthConfig(t *testing.T) *auth.Credentials {
 
 		EnableAuthenticatingUsingClientCertificate: true,
 		EnableAuthenticatingUsingClientSecret:      true,
-		EnableAuthenticatingUsingAzureCLI:          false,
+		EnableAuthenticatingUsingAzureCLI:          true,
 		EnableAuthenticatingUsingManagedIdentity:   false,
 		EnableAuthenticationUsingOIDC:              false,
 		EnableAuthenticationUsingGitHubOIDC:        false,
