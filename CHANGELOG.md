@@ -2,7 +2,8 @@
 
 BUG FIXES:
 
-* `data.azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil [GH-21867]
+* Data Source: `azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil [GH-21867]
+* `azurerm_application_insights_web_test` - normalizing the value for `application_insights_id` [GH-21837]
 
 ## 3.57.0 (May 19, 2023)
 
