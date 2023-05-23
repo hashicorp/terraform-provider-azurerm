@@ -303,7 +303,7 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
-  minimum_tls_version          = "Disabled"
+  minimum_tls_version          = "None"
 
   identity {
     type = "SystemAssigned"
