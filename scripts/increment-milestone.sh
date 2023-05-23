@@ -54,7 +54,6 @@ if [[ $milestone_number != 0 ]]; then
     date+="T12:00:00Z"
 
     echo "Creating new milestone..."
-    # Create milestone for next release
     curl -L \
     -X POST \
     -H "Accept: application/vnd.github+json" \
