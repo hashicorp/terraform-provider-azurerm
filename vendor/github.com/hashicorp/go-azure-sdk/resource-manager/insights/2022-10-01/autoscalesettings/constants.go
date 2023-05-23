@@ -107,6 +107,37 @@ func parseOperationType(input string) (*OperationType, error) {
 	return &out, nil
 }
 
+type PredictiveAutoscalePolicyScaleMode string
+
+const (
+	PredictiveAutoscalePolicyScaleModeDisabled     PredictiveAutoscalePolicyScaleMode = "Disabled"
+	PredictiveAutoscalePolicyScaleModeEnabled      PredictiveAutoscalePolicyScaleMode = "Enabled"
+	PredictiveAutoscalePolicyScaleModeForecastOnly PredictiveAutoscalePolicyScaleMode = "ForecastOnly"
+)
+
+func PossibleValuesForPredictiveAutoscalePolicyScaleMode() []string {
+	return []string{
+		string(PredictiveAutoscalePolicyScaleModeDisabled),
+		string(PredictiveAutoscalePolicyScaleModeEnabled),
+		string(PredictiveAutoscalePolicyScaleModeForecastOnly),
+	}
+}
+
+func parsePredictiveAutoscalePolicyScaleMode(input string) (*PredictiveAutoscalePolicyScaleMode, error) {
+	vals := map[string]PredictiveAutoscalePolicyScaleMode{
+		"disabled":     PredictiveAutoscalePolicyScaleModeDisabled,
+		"enabled":      PredictiveAutoscalePolicyScaleModeEnabled,
+		"forecastonly": PredictiveAutoscalePolicyScaleModeForecastOnly,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PredictiveAutoscalePolicyScaleMode(input)
+	return &out, nil
+}
+
 type RecurrenceFrequency string
 
 const (
