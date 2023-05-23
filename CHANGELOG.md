@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `redisenterprise`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
 * `azurerm_backup_policy_vm` - Support for the `days` and `include_last_days` properties [GH-21434]
 * `azurerm_subnet` - `name` within the `subnet_delegation` block can now be set to `Microsoft.App/environments` [GH-21893]
+* `azurerm_signalr_service` - support for the `user_assigned_identity_id` property [GH-21055]
 
 BUG FIXES:
 
