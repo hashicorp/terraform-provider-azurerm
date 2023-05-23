@@ -159,6 +159,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 					"1.1",
 					"1.2",
 					"Disabled",
+					"None"
 				}, false),
 			},
 
@@ -287,7 +288,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.ServerProperties.RestrictOutboundNetworkAccess = sql.ServerNetworkAccessFlagEnabled
 	}
 
-	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
+	if v := d.Get("minimum_tls_version"); v.(string) != "None" {
 		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
 	}
 
@@ -397,7 +398,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
-	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
+	if v := d.Get("minimum_tls_version"); v.(string) != "None" {
 		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
 	}
 
@@ -518,7 +519,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		if v := props.MinimalTLSVersion; v == nil {
-			d.Set("minimum_tls_version", "Disabled")
+			d.Set("minimum_tls_version", "None")
 		} else {
 			d.Set("minimum_tls_version", props.MinimalTLSVersion)
 		}
@@ -737,7 +738,7 @@ func flattenSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListR
 
 func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
-	if old != "" && old != "Disabled" && new == "Disabled" {
+	if old != "" && old != "Disabled" && old != "None" && new == "None" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
 	}
 	return
