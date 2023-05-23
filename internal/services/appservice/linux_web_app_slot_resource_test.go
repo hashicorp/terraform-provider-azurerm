@@ -1000,6 +1000,21 @@ func TestAccLinuxWebAppSlot_withDocker(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_withDockerCompose(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerCompose(data, "testdata/docker-compose-wordpress.yml"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_config.0.application_stack.0.registry_username", "site_config.0.application_stack.0.registry_password", "site_config.0.application_stack.0.registry_url"),
+	})
+}
+
 // Deployments
 
 func TestAccLinuxWebAppSlot_zipDeploy(t *testing.T) {
@@ -2070,6 +2085,30 @@ resource "azurerm_linux_web_app_slot" "test" {
 }
 
 `, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
+}
+
+func (r LinuxWebAppSlotResource) dockerCompose(data acceptance.TestData, dockerCompose string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {
+    application_stack {
+      registry_url        = "https://mcr.microsoft.com"
+      docker_compose_file = filebase64("%s")
+    }
+  }
+}
+
+
+`, r.baseTemplate(data), data.RandomInteger, dockerCompose)
 }
 
 func (r LinuxWebAppSlotResource) identitySystemAssigned(data acceptance.TestData) string {

@@ -86,8 +86,22 @@ func decodeApplicationStackLinux(fxString string, appSettings web.StringDictiona
 	case "RUBY":
 		result.RubyVersion = parts[1]
 
+	case "COMPOSE":
+		dockerSetting := DecodeLinuxWebAppDockerFxString(parts[1], appSettings, true)
+		result.DockerContainerRegistry = dockerSetting.registryURL
+		result.DockerComposeFile = parts[1]
+		if !features.FourPointOhBeta() && metadata.ResourceData.Get("site_config.0.application_stack.0.registry_url").(string) == "" {
+			result.DockerContainerRegistry = ""
+		}
+		if registryUserName, ok := metadata.ResourceData.Get("site_config.0.application_stack.0.registry_username").(string); ok {
+			result.DockerContainerRegistryUserName = registryUserName
+		}
+		if registryPwd, ok := metadata.ResourceData.Get("site_config.0.application_stack.0.registry_password").(string); ok {
+			result.DockerContainerRegistryUserPassword = registryPwd
+		}
+
 	default: // DOCKER is the expected default here as "custom" images require it
-		dockerSetting := DecodeLinuxWebAppDockerFxString(parts[1], appSettings)
+		dockerSetting := DecodeLinuxWebAppDockerFxString(parts[1], appSettings, false)
 		result.DockerImage = dockerSetting.imageName
 		result.DockerImageTag = dockerSetting.imageTag
 		result.DockerContainerRegistry = dockerSetting.registryURL
@@ -233,7 +247,7 @@ func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocke
 	return []ApplicationStackDocker{partial}, nil
 }
 
-func DecodeLinuxWebAppDockerFxString(input string, dockerAppSetting web.StringDictionary) DockerParts {
+func DecodeLinuxWebAppDockerFxString(input string, dockerAppSetting web.StringDictionary, dockerCompose bool) DockerParts {
 	result := DockerParts{}
 	if dockerAppSetting.Properties == nil || dockerAppSetting.Properties["DOCKER_REGISTRY_SERVER_URL"] == nil {
 		return result
@@ -251,11 +265,17 @@ func DecodeLinuxWebAppDockerFxString(input string, dockerAppSetting web.StringDi
 			result.registryPassword = pointer.From(v)
 		}
 	}
+
 	for _, v := range urlSchemes {
 		if strings.Contains(registryURL, v) {
 			registryURL = strings.TrimPrefix(registryURL, v)
 			break
 		}
+	}
+
+	// for docker compose, only to get the registry url
+	if dockerCompose {
+		return result
 	}
 
 	if strings.Contains(input, registryURL) {

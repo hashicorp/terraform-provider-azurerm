@@ -139,6 +139,8 @@ An `application_stack` block exports the following:
 
 ~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
 
+* `docker_compose_file` - The Docker Compose File.
+
 * `docker_image` - The Docker image reference.
 
 * `docker_image_tag` - The image Tag.

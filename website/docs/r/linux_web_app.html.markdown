@@ -147,6 +147,10 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
 
+* `docker_compose_file ` - (Optional) The Docker compose file.
+
+~> **NOTE:** `docker_compose_file` and `docker_image` can't be set simultaneously.
+
 * `docker_image` - (Optional) The Docker image reference.
 
 * `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`.

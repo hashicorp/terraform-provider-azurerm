@@ -618,10 +618,18 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 						continue
 					}
 				}
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				if linuxAppStack.DockerImage != "" {
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				} else {
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("COMPOSE|%s", linuxAppStack.DockerComposeFile))
+				}
 			}
 			if !features.FourPointOhBeta() && linuxAppStack.DockerContainerRegistry == "" {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				if linuxAppStack.DockerImage != "" {
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				} else {
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("COMPOSE|%s", linuxAppStack.DockerComposeFile))
+				}
 			}
 		} else {
 			expanded.LinuxFxVersion = pointer.To("")

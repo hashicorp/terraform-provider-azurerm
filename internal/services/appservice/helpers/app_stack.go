@@ -393,6 +393,7 @@ type ApplicationStackLinux struct {
 	DockerContainerRegistryUserPassword string `tfschema:"registry_password"`
 	DockerImageTag                      string `tfschema:"docker_image_tag"`
 	DockerImage                         string `tfschema:"docker_image"`
+	DockerComposeFile                   string `tfschema:"docker_compose_file"`
 	RubyVersion                         string `tfschema:"ruby_version"`
 }
 
@@ -414,7 +415,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"7.0",
 					}, false),
 					ExactlyOneOf: []string{
-						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.registry_url",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -433,7 +434,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"1.18",
 					}, false),
 					ExactlyOneOf: []string{
-						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.registry_url",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -454,7 +455,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"8.2",
 					}, false),
 					ExactlyOneOf: []string{
-						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.registry_url",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -476,7 +477,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.11",
 					}, false),
 					ExactlyOneOf: []string{
-						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.registry_url",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -497,7 +498,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"18-lts",
 					}, false),
 					ExactlyOneOf: []string{
-						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.registry_url",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -516,7 +517,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"2.7", // EOL 31/03/2023 https://github.com/Azure/app-service-linux-docs/blob/master/Runtime_Support/ruby_support.md Remove Ruby support in 4.0?
 					}, false),
 					ExactlyOneOf: []string{
-						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.registry_url",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -536,7 +537,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"17",
 					}, false),
 					ExactlyOneOf: []string{
-						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.registry_url",
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -583,9 +584,6 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.ruby_version",
 						"site_config.0.application_stack.0.go_version",
 					},
-					RequiredWith: []string{
-						"site_config.0.application_stack.0.docker_image",
-					},
 				},
 
 				"registry_username": {
@@ -609,6 +607,9 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.registry_url",
 					},
+					ConflictsWith: []string{
+						"site_config.0.application_stack.0.docker_compose_file",
+					},
 				},
 
 				"docker_image_tag": {
@@ -616,6 +617,27 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					RequiredWith: []string{
+						"site_config.0.application_stack.0.docker_image",
+					},
+				},
+
+				"docker_compose_file": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.docker_compose_file",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.ruby_version",
+					},
+					RequiredWith: []string{
+						"site_config.0.application_stack.0.registry_url",
+					},
+					ConflictsWith: []string{
 						"site_config.0.application_stack.0.docker_image",
 					},
 				},
@@ -637,6 +659,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{
 				"site_config.0.application_stack.0.docker_image",
+				"site_config.0.application_stack.0.docker_compose_file",
 				"site_config.0.application_stack.0.dotnet_version",
 				"site_config.0.application_stack.0.java_version",
 				"site_config.0.application_stack.0.node_version",
@@ -647,6 +670,24 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 			},
 			RequiredWith: []string{
 				"site_config.0.application_stack.0.docker_image_tag",
+			},
+		}
+
+		s.Elem.(*pluginsdk.Resource).Schema["docker_compose_file"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			AtLeastOneOf: []string{
+				"site_config.0.application_stack.0.docker_image",
+				"site_config.0.application_stack.0.docker_compose_file",
+				"site_config.0.application_stack.0.dotnet_version",
+				"site_config.0.application_stack.0.java_version",
+				"site_config.0.application_stack.0.node_version",
+				"site_config.0.application_stack.0.php_version",
+				"site_config.0.application_stack.0.python_version",
+				"site_config.0.application_stack.0.ruby_version",
+			},
+			ConflictsWith: []string{
+				"site_config.0.application_stack.0.docker_image",
 			},
 		}
 	}
@@ -704,12 +745,32 @@ func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"registry_url": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"registry_username": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"registry_password": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
 				"docker_image": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
 				"docker_image_tag": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"docker_compose_file": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
