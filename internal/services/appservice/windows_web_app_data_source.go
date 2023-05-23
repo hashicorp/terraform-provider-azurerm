@@ -326,7 +326,11 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)
+			userSetDefault := false
+			if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
+				userSetDefault = true
+			}
+			webApp.AuthSettings = helpers.FlattenAuthSettings(auth, userSetDefault)
 
 			webApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 

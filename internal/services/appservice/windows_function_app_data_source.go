@@ -365,7 +365,11 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 			functionApp.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
-			functionApp.AuthSettings = helpers.FlattenAuthSettings(auth)
+			userSetDefault := false
+			if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
+				userSetDefault = true
+			}
+			functionApp.AuthSettings = helpers.FlattenAuthSettings(auth, userSetDefault)
 
 			functionApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
