@@ -110,12 +110,12 @@ resource "azurerm_key_vault_certificate" "example" {
   }
 }
 
-resource "azurerm_nginx_certificate" "test" {
+resource "azurerm_nginx_certificate" "example" {
   name                     = "examplecert"
-  nginx_deployment_id      = azurerm_nginx_deployment.test.id
+  nginx_deployment_id      = azurerm_nginx_deployment.example.id
   key_virtual_path         = "/src/cert/soservermekey.key"
   certificate_virtual_path = "/src/cert/server.cert"
-  key_vault_secret_id      = azurerm_key_vault_certificate.test.secret_id
+  key_vault_secret_id      = azurerm_key_vault_certificate.example.secret_id
 }
 ```
 

@@ -48,10 +48,10 @@ resource "azurerm_automation_runbook" "example" {
 
 resource "azurerm_automation_watcher" "example" {
   name                           = "example"
-  automation_account_id          = azurerm_automation_account.test.id
+  automation_account_id          = azurerm_automation_account.example.id
   location                       = "West Europe"
-  script_name                    = azurerm_automation_runbook.test.name
-  script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
+  script_name                    = azurerm_automation_runbook.example.name
+  script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.example.name
   description                    = "example-watcher desc"
   execution_frequency_in_seconds = 42
 

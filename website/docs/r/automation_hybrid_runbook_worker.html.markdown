@@ -83,10 +83,10 @@ resource "azurerm_linux_virtual_machine" "example" {
 }
 
 resource "azurerm_automation_hybrid_runbook_worker" "example" {
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
-  worker_group_name       = azurerm_automation_hybrid_runbook_worker_group.test.name
-  vm_resource_id          = azurerm_linux_virtual_machine.test.id
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
+  worker_group_name       = azurerm_automation_hybrid_runbook_worker_group.example.name
+  vm_resource_id          = azurerm_linux_virtual_machine.example.id
   worker_id               = "00000000-0000-0000-0000-000000000000" #unique uuid
 }
 ```

@@ -24,9 +24,10 @@ resource "azurerm_automation_account" "example" {
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "Basic"
 }
+
 resource "azurerm_automation_source_control" "example" {
   name                  = "example"
-  automation_account_id = azurerm_automation_account.test.id
+  automation_account_id = azurerm_automation_account.example.id
   folder_path           = "runbook"
 
   security {

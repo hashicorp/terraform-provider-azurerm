@@ -70,8 +70,8 @@ resource "azurerm_nginx_deployment" "example" {
   }
 }
 
-resource "azurerm_nginx_configuration" "test" {
-  nginx_deployment_id = azurerm_nginx_deployment.test.id
+resource "azurerm_nginx_configuration" "example" {
+  nginx_deployment_id = azurerm_nginx_deployment.example.id
   root_file           = "/etc/nginx/nginx.conf"
 
   config_file {
