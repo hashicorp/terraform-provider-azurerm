@@ -12,6 +12,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil [GH-21867]
 * `azurerm_application_insights_web_test` - normalizing the value for `application_insights_id` [GH-21837]
+* `azurerm_subnet` - `Microsoft.BareMetal/AzureHostedService` is now an option for `service_delegation`  [GH-21871]
 
 ## 3.57.0 (May 19, 2023)
 

@@ -28,6 +28,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.ApiManagement/service",
 	"Microsoft.App/environments",
 	"Microsoft.AzureCosmosDB/clusters",
+	"Microsoft.BareMetal/AzureHostedService",
 	"Microsoft.BareMetal/AzureVMware",
 	"Microsoft.BareMetal/CrayServers",
 	"Microsoft.Batch/batchAccounts",
