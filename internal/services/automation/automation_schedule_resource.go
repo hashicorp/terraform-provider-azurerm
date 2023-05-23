@@ -86,7 +86,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: suppress.RFC3339Time,
+				DiffSuppressFunc: suppress.RFC3339MinuteTime,
 				ValidateFunc:     validation.IsRFC3339Time,
 				// defaults to now + 7 minutes in create function if not set
 			},
@@ -95,7 +95,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true, // same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.RFC3339MinuteTime,
 				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
@@ -263,7 +263,11 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if v, ok := d.GetOk("expiry_time"); ok {
 		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
-		parameters.Properties.SetExpiryTimeAsTime(t.In(loc))
+		// fixes: https://github.com/hashicorp/terraform-provider-azurerm/issues/21854. that year 9999 may return by API
+		if t.In(loc).Year() <= 9999 {
+			t = t.In(loc)
+		}
+		parameters.Properties.SetExpiryTimeAsTime(t)
 	}
 
 	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
