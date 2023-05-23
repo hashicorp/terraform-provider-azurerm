@@ -24,8 +24,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_ip_group" "example" {
   name                = "test-ipgroup"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_ip_group_cidr" "example" {
