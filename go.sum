@@ -289,8 +289,8 @@ github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ
 github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/tombuildsstuff/giovanni v0.20.0 h1:IM/I/iNWMXnPYwcSq8uxV7TKDlv7Nejq0bRK9i6O/C0=
 github.com/tombuildsstuff/giovanni v0.20.0/go.mod h1:66KVLYma2whJhEdxPSPL3GQHkulhK+C5CluKfHGfPF4=
-github.com/tombuildsstuff/kermit v0.20230424.1090808 h1:p4vmVTBAeZyERLf6J5C9BIwHJ2ty1y+4Dvdoxzo3rB0=
-github.com/tombuildsstuff/kermit v0.20230424.1090808/go.mod h1:YleYDYRKTGy5ihWHG9u3CwyVTr0l8dOLkYtVEPjnzGI=
+github.com/tombuildsstuff/kermit v0.20230518.1143920 h1:V3ZVMuXREY0qcAVXfZbM6ZmkzwYINZihAyvE7wcnm8U=
+github.com/tombuildsstuff/kermit v0.20230518.1143920/go.mod h1:YleYDYRKTGy5ihWHG9u3CwyVTr0l8dOLkYtVEPjnzGI=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 github.com/vmihailenco/msgpack v4.0.4+incompatible h1:dSLoQfGFAo3F6OoNhwUmLwVgaUXK79GlxNBwueZn0xI=
 github.com/vmihailenco/msgpack v4.0.4+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
