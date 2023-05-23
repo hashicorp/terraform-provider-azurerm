@@ -158,7 +158,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 					"1.0",
 					"1.1",
 					"1.2",
-					"Disabled",
 					"None"
 				}, false),
 			},
@@ -738,7 +737,7 @@ func flattenSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListR
 
 func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
-	if old != "" && old != "Disabled" && old != "None" && new == "None" {
+	if old != "" && old != "None" && new == "None" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
 	}
 	return
