@@ -736,6 +736,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Linux Function App Slot.
 
+* `hosting_environment_id` - The ID of the App Service Environment used by Function App Slot.
+
 * `identity` - An `identity` block as defined below.
 
 * `kind` - The Kind value for this Linux Function App Slot.

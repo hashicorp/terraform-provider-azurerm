@@ -42,19 +42,19 @@ func ParseWebHookID(input string) (*WebHookId, error) {
 	id := WebHookId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'registryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
 	}
 
 	if id.WebHookName, ok = parsed.Parsed["webHookName"]; !ok {
-		return nil, fmt.Errorf("the segment 'webHookName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "webHookName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseWebHookIDInsensitively(input string) (*WebHookId, error) {
 	id := WebHookId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'registryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
 	}
 
 	if id.WebHookName, ok = parsed.Parsed["webHookName"]; !ok {
-		return nil, fmt.Errorf("the segment 'webHookName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "webHookName", *parsed)
 	}
 
 	return &id, nil

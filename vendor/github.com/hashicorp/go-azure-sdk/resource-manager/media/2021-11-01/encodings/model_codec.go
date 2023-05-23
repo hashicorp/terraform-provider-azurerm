@@ -83,6 +83,22 @@ func unmarshalCodecImplementation(input []byte) (Codec, error) {
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "#Microsoft.Media.JpgImage") {
+		var out JpgImage
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into JpgImage: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "#Microsoft.Media.PngImage") {
+		var out PngImage
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into PngImage: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "#Microsoft.Media.Video") {
 		var out Video
 		if err := json.Unmarshal(input, &out); err != nil {

@@ -44,23 +44,23 @@ func ParseSourceRegionTargetRegionID(input string) (*SourceRegionTargetRegionId,
 	id := SourceRegionTargetRegionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
 	}
 
 	if id.SourceRegionName, ok = parsed.Parsed["sourceRegionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sourceRegionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sourceRegionName", *parsed)
 	}
 
 	if id.TargetRegionName, ok = parsed.Parsed["targetRegionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'targetRegionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "targetRegionName", *parsed)
 	}
 
 	return &id, nil
@@ -79,23 +79,23 @@ func ParseSourceRegionTargetRegionIDInsensitively(input string) (*SourceRegionTa
 	id := SourceRegionTargetRegionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
 	}
 
 	if id.SourceRegionName, ok = parsed.Parsed["sourceRegionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sourceRegionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sourceRegionName", *parsed)
 	}
 
 	if id.TargetRegionName, ok = parsed.Parsed["targetRegionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'targetRegionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "targetRegionName", *parsed)
 	}
 
 	return &id, nil

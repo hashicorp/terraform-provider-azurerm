@@ -207,6 +207,10 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 ```
 
+* `service_mesh_profile` - (Optional) A `service_mesh_profile` block as defined below.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureServiceMeshPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-addon#register-the-azureservicemeshpreview-feature-flag) for more information.
+
 * `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
 
 * `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
@@ -702,6 +706,12 @@ An `ingress_application_gateway` block supports the following:
 
 ---
 
+A `service_mesh_profile` block supports the following:
+
+* `mode` - (Required) The mode of the service mesh. Possible value is `Istio`.
+
+---
+
 A `service_principal` block supports the following:
 
 * `client_id` - (Required) The Client ID for the Service Principal.
@@ -842,7 +852,7 @@ A `http_proxy_config` block supports the following:
 
 * `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS. Changing this forces a new resource to be created.
 
-* `no_proxy` - (Optional) The list of domains that will not use the proxy for communication. Changing this forces a new resource to be created.
+* `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
 
 -> **Note:** If you specify the `default_node_pool.0.vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
 

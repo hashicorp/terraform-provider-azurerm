@@ -46,27 +46,27 @@ func ParseUserDefinedFunctionID(input string) (*UserDefinedFunctionId, error) {
 	id := UserDefinedFunctionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
 	}
 
 	if id.SqlDatabaseName, ok = parsed.Parsed["sqlDatabaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sqlDatabaseName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlDatabaseName", *parsed)
 	}
 
 	if id.ContainerName, ok = parsed.Parsed["containerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'containerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "containerName", *parsed)
 	}
 
 	if id.UserDefinedFunctionName, ok = parsed.Parsed["userDefinedFunctionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'userDefinedFunctionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "userDefinedFunctionName", *parsed)
 	}
 
 	return &id, nil
@@ -85,27 +85,27 @@ func ParseUserDefinedFunctionIDInsensitively(input string) (*UserDefinedFunction
 	id := UserDefinedFunctionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
 	}
 
 	if id.SqlDatabaseName, ok = parsed.Parsed["sqlDatabaseName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sqlDatabaseName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlDatabaseName", *parsed)
 	}
 
 	if id.ContainerName, ok = parsed.Parsed["containerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'containerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "containerName", *parsed)
 	}
 
 	if id.UserDefinedFunctionName, ok = parsed.Parsed["userDefinedFunctionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'userDefinedFunctionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "userDefinedFunctionName", *parsed)
 	}
 
 	return &id, nil

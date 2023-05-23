@@ -23,7 +23,7 @@ jobs:
       - name: Get Artifact
         id: get_artifact
         continue-on-error: true
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@246dbf436b23d7c49e21a7ab8204ca9ecd1fe615 # v2.27.0
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           workflow: pull-request-reviewed.yaml
@@ -32,10 +32,10 @@ jobs:
         id: env_vars
         if: steps.get_artifact.outcome == 'success'
         run: |
-          echo "::set-output name=ghrepo::$(cat artifact/ghrepo.txt)"
-          echo "::set-output name=ghowner::$(cat artifact/ghowner.txt)"
-          echo "::set-output name=prnumber::$(cat artifact/prnumber.txt)"
-          echo "::set-output name=action::$(cat artifact/action.txt)"
+          echo "ghrepo=$(cat artifact/ghrepo.txt)" >>${GITHUB_OUTPUT}
+          echo "ghowner=$(cat artifact/ghowner.txt)" >>${GITHUB_OUTPUT}
+          echo "prnumber=$(cat artifact/prnumber.txt)" >>${GITHUB_OUTPUT}
+          echo "action=$(cat artifact/action.txt)" >>${GITHUB_OUTPUT}
 
       - name: add waiting-reponse
         if: steps.get_artifact.outcome == 'success' && steps.env_vars.outputs.action == 'add-waiting-response'

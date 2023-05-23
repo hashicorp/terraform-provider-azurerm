@@ -40,15 +40,15 @@ func ParseSqlVirtualMachineID(input string) (*SqlVirtualMachineId, error) {
 	id := SqlVirtualMachineId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.SqlVirtualMachineName, ok = parsed.Parsed["sqlVirtualMachineName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sqlVirtualMachineName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseSqlVirtualMachineIDInsensitively(input string) (*SqlVirtualMachineId, 
 	id := SqlVirtualMachineId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.SqlVirtualMachineName, ok = parsed.Parsed["sqlVirtualMachineName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sqlVirtualMachineName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineName", *parsed)
 	}
 
 	return &id, nil
