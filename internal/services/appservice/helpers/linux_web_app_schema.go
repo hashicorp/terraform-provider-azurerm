@@ -898,7 +898,7 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinux {
+func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int, metadata sdk.ResourceMetaData) []SiteConfigLinux {
 	if appSiteConfig == nil {
 		return []SiteConfigLinux{}
 	}
@@ -930,8 +930,13 @@ func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int
 		UseManagedIdentityACR:   pointer.From(appSiteConfig.AcrUseManagedIdentityCreds),
 		WebSockets:              pointer.From(appSiteConfig.WebSocketsEnabled),
 		VnetRouteAllEnabled:     pointer.From(appSiteConfig.VnetRouteAllEnabled),
-		Cors:                    FlattenCorsSettings(appSiteConfig.Cors),
 	}
+
+	userSetDefault := false
+	if len(metadata.ResourceData.Get("site_config.0.cors").([]interface{})) > 0 {
+		userSetDefault = true
+	}
+	siteConfig.Cors = FlattenCorsSettings(appSiteConfig.Cors, userSetDefault)
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
 		siteConfig.ApiManagementConfigId = *appSiteConfig.APIManagementConfig.ID

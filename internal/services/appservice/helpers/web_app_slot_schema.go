@@ -715,7 +715,7 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinuxWebAppSlot {
+func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthCheckCount *int, metadata sdk.ResourceMetaData) []SiteConfigLinuxWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
 	}
@@ -727,7 +727,6 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 		AutoHealSettings:        flattenAutoHealSettingsLinux(appSiteSlotConfig.AutoHealRules),
 		AutoSwapSlotName:        pointer.From(appSiteSlotConfig.AutoSwapSlotName),
 		ContainerRegistryMSI:    pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID),
-		Cors:                    FlattenCorsSettings(appSiteSlotConfig.Cors),
 		DetailedErrorLogging:    pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled),
 		Http2Enabled:            pointer.From(appSiteSlotConfig.HTTP20Enabled),
 		IpRestriction:           FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions),
@@ -750,6 +749,12 @@ func FlattenSiteConfigLinuxWebAppSlot(appSiteSlotConfig *web.SiteConfig, healthC
 		WebSockets:              pointer.From(appSiteSlotConfig.WebSocketsEnabled),
 		VnetRouteAllEnabled:     pointer.From(appSiteSlotConfig.VnetRouteAllEnabled),
 	}
+
+	userSetDefault := false
+	if len(metadata.ResourceData.Get("site_config.0.cors").([]interface{})) > 0 {
+		userSetDefault = true
+	}
+	siteConfig.Cors = FlattenCorsSettings(appSiteSlotConfig.Cors, userSetDefault)
 
 	if appSiteSlotConfig.APIManagementConfig != nil && appSiteSlotConfig.APIManagementConfig.ID != nil {
 		siteConfig.ApiManagementConfigId = *appSiteSlotConfig.APIManagementConfig.ID
@@ -1001,7 +1006,7 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int) []SiteConfigWindowsWebAppSlot {
+func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentStack string, healthCheckCount *int, metadata sdk.ResourceMetaData) []SiteConfigWindowsWebAppSlot {
 	if appSiteSlotConfig == nil {
 		return nil
 	}
@@ -1013,7 +1018,6 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteSlotConfig.AutoHealRules),
 		AutoSwapSlotName:         pointer.From(appSiteSlotConfig.AutoSwapSlotName),
 		ContainerRegistryUserMSI: pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID),
-		Cors:                     FlattenCorsSettings(appSiteSlotConfig.Cors),
 		DetailedErrorLogging:     pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled),
 		FtpsState:                string(appSiteSlotConfig.FtpsState),
 		HealthCheckPath:          pointer.From(appSiteSlotConfig.HealthCheckPath),
@@ -1037,6 +1041,12 @@ func FlattenSiteConfigWindowsAppSlot(appSiteSlotConfig *web.SiteConfig, currentS
 		WebSockets:               pointer.From(appSiteSlotConfig.WebSocketsEnabled),
 		VnetRouteAllEnabled:      pointer.From(appSiteSlotConfig.VnetRouteAllEnabled),
 	}
+
+	userSetDefault := false
+	if len(metadata.ResourceData.Get("site_config.0.cors").([]interface{})) > 0 {
+		userSetDefault = true
+	}
+	siteConfig.Cors = FlattenCorsSettings(appSiteSlotConfig.Cors, userSetDefault)
 
 	if appSiteSlotConfig.APIManagementConfig != nil && appSiteSlotConfig.APIManagementConfig.ID != nil {
 		siteConfig.ApiManagementConfigId = *appSiteSlotConfig.APIManagementConfig.ID

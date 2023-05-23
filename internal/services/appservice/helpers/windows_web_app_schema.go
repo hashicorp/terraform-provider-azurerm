@@ -654,7 +654,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 	return expanded, &currentStack, nil
 }
 
-func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int) ([]SiteConfigWindows, error) {
+func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string, healthCheckCount *int, metadata sdk.ResourceMetaData) ([]SiteConfigWindows, error) {
 	if appSiteConfig == nil {
 		return nil, nil
 	}
@@ -665,7 +665,6 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		AutoHeal:                 pointer.From(appSiteConfig.AutoHealEnabled),
 		AutoHealSettings:         flattenAutoHealSettingsWindows(appSiteConfig.AutoHealRules),
 		ContainerRegistryUserMSI: pointer.From(appSiteConfig.AcrUserManagedIdentityID),
-		Cors:                     FlattenCorsSettings(appSiteConfig.Cors),
 		DetailedErrorLogging:     pointer.From(appSiteConfig.DetailedErrorLoggingEnabled),
 		FtpsState:                string(appSiteConfig.FtpsState),
 		HealthCheckPath:          pointer.From(appSiteConfig.HealthCheckPath),
@@ -689,6 +688,12 @@ func FlattenSiteConfigWindows(appSiteConfig *web.SiteConfig, currentStack string
 		WebSockets:               pointer.From(appSiteConfig.WebSocketsEnabled),
 		VnetRouteAllEnabled:      pointer.From(appSiteConfig.VnetRouteAllEnabled),
 	}
+
+	userSetDefault := false
+	if len(metadata.ResourceData.Get("site_config.0.cors").([]interface{})) > 0 {
+		userSetDefault = true
+	}
+	siteConfig.Cors = FlattenCorsSettings(appSiteConfig.Cors, userSetDefault)
 
 	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
 		apiId, err := parse.ApiIDInsensitively(*appSiteConfig.APIManagementConfig.ID)

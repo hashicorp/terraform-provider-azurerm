@@ -566,7 +566,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			state.SiteConfig = helpers.FlattenSiteConfigLinuxWebAppSlot(webAppSiteConfig.SiteConfig, healthCheckCount)
+			state.SiteConfig = helpers.FlattenSiteConfigLinuxWebAppSlot(webAppSiteConfig.SiteConfig, healthCheckCount, metadata)
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 

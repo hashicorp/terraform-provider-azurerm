@@ -315,13 +315,13 @@ func CorsSettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func FlattenCorsSettings(input *web.CorsSettings) []CorsSetting {
+func FlattenCorsSettings(input *web.CorsSettings, userSetDefault bool) []CorsSetting {
 	if input == nil {
 		return []CorsSetting{}
 	}
 
 	cors := *input
-	if len(pointer.From(cors.AllowedOrigins)) == 0 && !pointer.From(cors.SupportCredentials) {
+	if len(pointer.From(cors.AllowedOrigins)) == 0 && !pointer.From(cors.SupportCredentials) && !userSetDefault {
 		return []CorsSetting{}
 	}
 
