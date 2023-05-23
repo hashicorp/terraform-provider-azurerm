@@ -464,14 +464,12 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"token_refresh_extension_hours": {
 					Type:        pluginsdk.TypeFloat,
 					Optional:    true,
-					Default:     72,
 					Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
 				},
 
 				"token_store_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Default:     false,
 					Description: "Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.",
 				},
 
@@ -1216,9 +1214,17 @@ func ExpandAuthSettings(auth []AuthSettings) *web.SiteAuthSettings {
 
 	props.RuntimeVersion = utils.String(v.RuntimeVersion)
 
-	props.TokenStoreEnabled = utils.Bool(v.TokenStoreEnabled)
+	tokenStoreEnabled := false
+	if v.TokenStoreEnabled {
+		tokenStoreEnabled = true
+	}
+	props.TokenStoreEnabled = utils.Bool(tokenStoreEnabled)
 
-	props.TokenRefreshExtensionHours = utils.Float(v.TokenRefreshExtensionHours)
+	tokenRefreshExtensionHours := 72.0
+	if v.TokenRefreshExtensionHours > 0 {
+		tokenRefreshExtensionHours = v.TokenRefreshExtensionHours
+	}
+	props.TokenRefreshExtensionHours = utils.Float(tokenRefreshExtensionHours)
 
 	props.UnauthenticatedClientAction = web.UnauthenticatedClientAction(v.UnauthenticatedClientAction)
 
@@ -1288,8 +1294,8 @@ func ExpandAuthSettings(auth []AuthSettings) *web.SiteAuthSettings {
 	return result
 }
 
-func FlattenAuthSettings(auth web.SiteAuthSettings) []AuthSettings {
-	if auth.SiteAuthSettingsProperties == nil || !pointer.From(auth.Enabled) || strings.ToLower(pointer.From(auth.ConfigVersion)) != "v1" {
+func FlattenAuthSettings(auth web.SiteAuthSettings, userSetDefault bool) []AuthSettings {
+	if auth.SiteAuthSettingsProperties == nil || (!pointer.From(auth.Enabled) && !userSetDefault) || strings.ToLower(pointer.From(auth.ConfigVersion)) != "v1" {
 		return []AuthSettings{}
 	}
 

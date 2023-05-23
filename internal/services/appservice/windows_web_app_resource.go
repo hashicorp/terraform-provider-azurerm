@@ -555,7 +555,6 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				ResourceGroup:               id.ResourceGroup,
 				ServicePlanId:               pointer.From(props.ServerFarmID),
 				Location:                    location.NormalizeNilable(webApp.Location),
-				AuthSettings:                helpers.FlattenAuthSettings(auth),
 				AuthV2Settings:              helpers.FlattenAuthV2Settings(authV2),
 				Backup:                      helpers.FlattenBackupConfig(backup),
 				ClientAffinityEnabled:       pointer.From(props.ClientAffinityEnabled),
@@ -575,6 +574,12 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
+
+			userSetDefault := false
+			if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
+				userSetDefault = true
+			}
+			state.AuthSettings = helpers.FlattenAuthSettings(auth, userSetDefault)
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 				state.HostingEnvId = pointer.From(hostingEnv.ID)

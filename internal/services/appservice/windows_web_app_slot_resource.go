@@ -514,7 +514,6 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			state := WindowsWebAppSlotModel{
 				Name:                        id.SlotName,
 				AppServiceId:                parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				AuthSettings:                helpers.FlattenAuthSettings(auth),
 				AuthV2Settings:              helpers.FlattenAuthV2Settings(authV2),
 				Backup:                      helpers.FlattenBackupConfig(backup),
 				ClientAffinityEnabled:       pointer.From(props.ClientAffinityEnabled),
@@ -533,6 +532,12 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
 				Tags:                        tags.ToTypedObject(webAppSlot.Tags),
 			}
+
+			userSetDefault := false
+			if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
+				userSetDefault = true
+			}
+			state.AuthSettings = helpers.FlattenAuthSettings(auth, userSetDefault)
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 				state.HostingEnvId = pointer.From(hostingEnv.ID)
