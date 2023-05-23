@@ -4,7 +4,7 @@ name: Increment Milestone
 on:
   push:
     tags:
-      - 'v*.*.0'
+      - 'v*.*.*'
 
 permissions:
   issues: write

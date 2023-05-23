@@ -36,35 +36,38 @@ if [[ $milestone_number != 0 ]]; then
   "${milestone_url}/${milestone_number}" \
   -d '{"state":"closed"}'
 
-  # Get next release version
   major=0
   weekly=0
+  patch=0
   regex="v([0-9]+).([0-9]+).([0-9]+)"
   if [[ $release =~ $regex ]]; then
     major="${BASH_REMATCH[1]}"
     weekly="${BASH_REMATCH[2]}"
+    patch="${BASH_REMATCH[3]}"
   fi
-  weekly=$((weekly + 1 ))
-  new_milestone="v$major.$weekly.0"
 
-  if [[ $major != 0 ]]; then
+  if [[ $patch == 0 ]]; then
+    if [[ $major != 0 ]]; then
 
-    # Get next release due date
-    date=$(date -d "next Thursday" +%Y-%m-%d)
-    date+="T12:00:00Z"
+      # Get next release version
+      weekly=$((weekly + 1 ))
+      new_milestone="v$major.$weekly.0"
+      # Get next release due date
+      date=$(date -d "next Thursday" +%Y-%m-%d)
+      date+="T12:00:00Z"
 
-    echo "Creating new milestone..."
-    curl -L \
-    -X POST \
-    -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer $token" \
-    -H "X-GitHub-Api-Version: 2022-11-28" \
-    "${milestone_url}" \
-    -d "{\"title\":\"$new_milestone\", \"state\":\"open\", \"due_on\":\"$date\"}"
-
-  else
-    echo "Could not increment milestone"
-    exit 1
+      echo "Creating new milestone..."
+      curl -L \
+      -X POST \
+      -H "Accept: application/vnd.github+json" \
+      -H "Authorization: Bearer $token" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "${milestone_url}" \
+      -d "{\"title\":\"$new_milestone\", \"state\":\"open\", \"due_on\":\"$date\"}"
+    else
+      echo "Could not increment milestone"
+      exit 1
+    fi
   fi
 
 else
