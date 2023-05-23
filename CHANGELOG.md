@@ -1,5 +1,9 @@
 ## 3.58.0 (Unreleased)
 
+FEATURES:
+
+* **New  Resource:** `azurerm_site_recovery_hyperv_network_mapping` [GH-21788]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230523.1080931` of `github.com/hashicorp/go-azure-sdk` [GH-21898]
