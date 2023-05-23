@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New data Source:** `azurerm_mobile_network_packet_core_control_plane` [GH-21071]
+* **New Resource:** `azurerm_mobile_network_packet_core_control_plane` [GH-21071]
 * **New Resource:** `azurerm_mysql_flexible_server_active_directory_administrator` [GH-21786]
 * **New Resource:** `azurerm_site_recovery_hyperv_network_mapping` [GH-21788]
 
