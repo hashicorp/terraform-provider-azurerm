@@ -1,3 +1,21 @@
+## 3.58.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230523.1080931` of `github.com/hashicorp/go-azure-sdk` [GH-21898]
+* dependencies: updating to `v0.20230518.1143920` of `github.com/tombuildsstuff/kermit` [GH-21899]
+* `nginx`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `portal`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `redis`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `redisenterprise`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `azurerm_subnet` - `name` within the `subnet_delegation` block can now be set to `Microsoft.App/environments` [GH-21893]
+
+BUG FIXES:
+
+* Data Source: `azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil [GH-21867]
+* `azurerm_application_insights_web_test` - normalizing the value for `application_insights_id` [GH-21837]
+* `azurerm_subnet` - `Microsoft.BareMetal/AzureHostedService` is now an option for `service_delegation`  [GH-21871]
+
 ## 3.57.0 (May 19, 2023)
 
 FEATURES:
