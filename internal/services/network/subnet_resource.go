@@ -26,6 +26,7 @@ var SubnetResourceName = "azurerm_subnet"
 
 var subnetDelegationServiceNames = []string{
 	"Microsoft.ApiManagement/service",
+	"Microsoft.App/environments",
 	"Microsoft.AzureCosmosDB/clusters",
 	"Microsoft.BareMetal/AzureHostedService",
 	"Microsoft.BareMetal/AzureVMware",
