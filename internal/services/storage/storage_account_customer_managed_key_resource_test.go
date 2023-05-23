@@ -591,8 +591,7 @@ func (r StorageAccountCustomerManagedKeyResource) federatedIdentity(
 	clientSecretAltTenant string,
 	data acceptance.TestData,
 ) string {
-	return fmt.Sprintf(
-		`locals {
+	return fmt.Sprintf(`locals {
   random_string  = "%s"
   random_integer = "%d"
   location       = "%s"
@@ -624,7 +623,7 @@ provider "azurerm-alt" {
 provider "azuread" {}
 
 provider "azuread" {
-  alias			= "alt"
+  alias         = "alt"
   tenant_id     = local.alt_tenant_id
   client_id     = local.alt_client_id
   client_secret = local.alt_client_secret
@@ -744,8 +743,7 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
   user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
   federated_identity_client_id = azuread_application.test.application_id
 }
-`,
-		data.RandomString,
+`, data.RandomString,
 		data.RandomInteger,
 		data.Locations.Primary,
 		altTenantID,
