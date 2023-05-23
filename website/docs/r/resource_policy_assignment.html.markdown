@@ -19,9 +19,10 @@ data "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_policy_definition" "example" {
-  name        = "only-deploy-in-westeurope"
-  policy_type = "Custom"
-  mode        = "All"
+  name         = "only-deploy-in-westeurope"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "my-policy-definition"
 
   policy_rule = <<POLICY_RULE
  {
