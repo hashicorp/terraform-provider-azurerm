@@ -531,12 +531,26 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 
 	for _, upstreamSetting := range input {
 		setting := upstreamSetting.(map[string]interface{})
-
+		authTypeNone := signalr.UpstreamAuthTypeNone
+		authTypeManagedIdentity := signalr.UpstreamAuthTypeManagedIdentity
+		auth := signalr.UpstreamAuthSettings{
+			Type: &authTypeNone,
+		}
 		upstreamTemplate := signalr.UpstreamTemplate{
 			HubPattern:      utils.String(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
 			EventPattern:    utils.String(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
 			CategoryPattern: utils.String(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
 			UrlTemplate:     setting["url_template"].(string),
+			Auth:            &auth,
+		}
+
+		if setting["user_assigned_identity_id"].(string) != "" {
+			upstreamTemplate.Auth = &signalr.UpstreamAuthSettings{
+				Type: &authTypeManagedIdentity,
+				ManagedIdentity: &signalr.ManagedIdentitySettings{
+					Resource: utils.String(setting["user_assigned_identity_id"].(string)),
+				},
+			}
 		}
 
 		upstreamTemplates = append(upstreamTemplates, upstreamTemplate)
@@ -572,11 +586,19 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 			hubPattern = utils.FlattenStringSlice(&hubPatterns)
 		}
 
+		var managedIdentityId string
+		if upstreamAuth := settings.Auth; upstreamAuth != nil && upstreamAuth.Type != nil && *upstreamAuth.Type != signalr.UpstreamAuthTypeNone {
+			if upstreamAuth.ManagedIdentity != nil && upstreamAuth.ManagedIdentity.Resource != nil {
+				managedIdentityId = *upstreamAuth.ManagedIdentity.Resource
+			}
+		}
+
 		result = append(result, map[string]interface{}{
-			"url_template":     settings.UrlTemplate,
-			"hub_pattern":      hubPattern,
-			"event_pattern":    eventPattern,
-			"category_pattern": categoryPattern,
+			"url_template":              settings.UrlTemplate,
+			"hub_pattern":               hubPattern,
+			"event_pattern":             eventPattern,
+			"category_pattern":          categoryPattern,
+			"user_assigned_identity_id": managedIdentityId,
 		})
 	}
 	return result
@@ -950,6 +972,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: signalrValidate.UrlTemplate,
+					},
+
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsUUID,
 					},
 				},
 			},
