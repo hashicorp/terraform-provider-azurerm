@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
+* `activate_config` - (Optional) A `activate_config` block used to activate this Managed HSM as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
 ---
@@ -80,6 +82,14 @@ A `network_acls` block supports the following:
 
 * `default_action` - (Required) The Default Action to use. Possible values are `Allow` and `Deny`.
 
+---
+
+A `activate_config` block supports the following:
+
+* `security_domain_certificate` - (Required) A list of KeyVault certificates resource ID(minimum of three and up to a maximum of 10) to activate this Managed HSM. More information see [activate-your-managed-hsm](https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/quick-create-cli#activate-your-managed-hsm)
+
+* `security_domain_quorum` - (Required) Specifies the minimum number of shares required to decrypt the security domain for recovery. This is required the `security_domain_certificate` is provided. The value must between 2 and 10 (inclusive).
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -87,6 +97,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The Key Vault Secret Managed Hardware Security Module ID.
 
 * `hsm_uri` - The URI of the Key Vault Managed Hardware Security Module, used for performing operations on keys.
+
+* `security_domain_enc_data` - The sensitive data will be used for disaster recovery or for creating another Managed HSM that shares same security domain so the two can share keys.
 
 ## Timeouts
 
