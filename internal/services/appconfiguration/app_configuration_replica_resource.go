@@ -164,6 +164,9 @@ func (r ReplicaResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByName(id.ConfigurationStoreName, r.ResourceType())
+			defer locks.UnlockByName(id.ConfigurationStoreName, r.ResourceType())
+
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
