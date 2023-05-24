@@ -20,7 +20,7 @@ data "azuread_service_principal" "example" {
 }
 
 resource "azurerm_resource_group" "example" {
-  name     = "example-psql"
+  name     = "example-resources"
   location = "West Europe"
 }
 
