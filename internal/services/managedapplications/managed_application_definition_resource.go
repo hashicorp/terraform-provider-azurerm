@@ -198,7 +198,7 @@ func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta in
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] Managed Application Definition %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
