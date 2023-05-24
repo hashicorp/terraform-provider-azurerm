@@ -82,6 +82,7 @@ var services = mapOf(
         "mysql" to "MySQL",
         "netapp" to "NetApp",
         "network" to "Network",
+        "newrelic" to "New Relic",
         "nginx" to "Nginx",
         "notificationhub" to "Notification Hub",
         "orbital" to "Orbital",
