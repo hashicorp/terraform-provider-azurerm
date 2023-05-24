@@ -1,3 +1,51 @@
+## 3.58.0 (Unreleased)
+
+FEATURES:
+
+* **New data Source:** `azurerm_mobile_network_packet_core_control_plane` [GH-21071]
+* **New Resource:** `azurerm_cosmosdb_mongo_role_definition` [GH-21754]
+* **New Resource:** `azurerm_mobile_network_packet_core_control_plane` [GH-21071]
+* **New Resource:** `azurerm_mysql_flexible_server_active_directory_administrator` [GH-21786]
+* **New Resource:** `azurerm_monitor_alert_prometheus_rule_group` [GH-21751]
+* **New Resource:** `azurerm_site_recovery_hyperv_network_mapping` [GH-21788]
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230523.1080931` of `github.com/hashicorp/go-azure-sdk` [GH-21898]
+* dependencies: updating to `v0.20230518.1143920` of `github.com/tombuildsstuff/kermit` [GH-21899]
+* `nginx`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `portal`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `redis`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `redisenterprise`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `azurerm_backup_policy_vm` - Support for the `days` and `include_last_days` properties [GH-21434]
+* `azurerm_subnet` - `name` within the `subnet_delegation` block can now be set to `Microsoft.App/environments` [GH-21893]
+* `azurerm_signalr_service` - support for the `user_assigned_identity_id` property [GH-21055]
+
+BUG FIXES:
+
+* Data Source: `azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil [GH-21867]
+* `azurerm_application_insights_web_test` - normalizing the value for `application_insights_id` [GH-21837]
+* `azurerm_spring_cloud_gateway_route_config` -  `filters` and `predicates` will be omitted when not specified [GH-21745]
+* `azurerm_subnet` - `Microsoft.BareMetal/AzureHostedService` is now an option for `service_delegation`  [GH-21871]
+
+## 3.57.0 (May 19, 2023)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_virtual_hub_connection` ([#21681](https://github.com/hashicorp/terraform-provider-azurerm/issues/21681))
+
+ENHANCEMENTS:
+
+* `synapse`: refactoring to use `tombuildsstuff/kermit` rather than `Azure/azure-sdk-for-go` for Data Plane ([#21792](https://github.com/hashicorp/terraform-provider-azurerm/issues/21792))
+* `azurerm_batch_account` - support versionless keys for CMK ([#21677](https://github.com/hashicorp/terraform-provider-azurerm/issues/21677))
+* `azurerm_kubernetes_cluster` - changing the `http_proxy_config.no_proxy` no longer creates a new resource ([#21793](https://github.com/hashicorp/terraform-provider-azurerm/issues/21793))
+* `azurerm_media_transform` - support for the `jpg_image` and `png_image` blocks within the `custom_preset` block ([#21709](https://github.com/hashicorp/terraform-provider-azurerm/issues/21709))
+* `azurerm_recovery_services_vault` - support the `monitoring` block ([#21691](https://github.com/hashicorp/terraform-provider-azurerm/issues/21691))
+
+BUG FIXES:
+
+* `data.azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil ([#21850](https://github.com/hashicorp/terraform-provider-azurerm/issues/21850))
+
 ## 3.56.0 (May 11, 2023)
 
 FEATURES:

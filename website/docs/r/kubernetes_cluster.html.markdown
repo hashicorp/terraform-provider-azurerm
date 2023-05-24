@@ -852,7 +852,7 @@ A `http_proxy_config` block supports the following:
 
 * `https_proxy` - (Optional) The proxy address to be used when communicating over HTTPS. Changing this forces a new resource to be created.
 
-* `no_proxy` - (Optional) The list of domains that will not use the proxy for communication. Changing this forces a new resource to be created.
+* `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
 
 -> **Note:** If you specify the `default_node_pool.0.vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
 

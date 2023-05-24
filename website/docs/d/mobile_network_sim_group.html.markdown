@@ -54,7 +54,7 @@ An `identity` block supports the following:
 
 * `type` - The type of Managed Service Identity. Possible values are `SystemAssigned`, `UserAssigned`.
 
-* `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - A list of User Assigned Managed Identity IDs assigned to this resource.
 
 ## Timeouts
 

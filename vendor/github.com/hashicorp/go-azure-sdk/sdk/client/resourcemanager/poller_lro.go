@@ -164,6 +164,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			"Creating": pollers.PollingStatusInProgress,
 			// SignalR@2022-02-01 returns `Running` rather than `InProgress` during creation
 			"Running": pollers.PollingStatusInProgress,
+			// KubernetesConfiguration@2022-11-01 returns `Updating` rather than `InProgress` during update
+			"Updating": pollers.PollingStatusInProgress,
 		}
 		for k, v := range statuses {
 			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {
