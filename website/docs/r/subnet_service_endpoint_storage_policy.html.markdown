@@ -83,7 +83,7 @@ A `definition` block supports the following:
 
 ~> **NOTE** The `service_resources` property must contain either Aliases or Resource IDs, but not both.
 
-* `description` - (Optional) The description of this Subnet Service Endpoint Storage Policy Definition.
+* `description` - (Optional) The description of this Subnet Service Endpoint Storage Policy Definition
 
 ---
 
