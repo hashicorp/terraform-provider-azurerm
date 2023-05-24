@@ -253,7 +253,7 @@ func resourceManagedApplicationDefinitionDelete(d *pluginsdk.ResourceData, meta 
 			return nil
 		}
 
-		return fmt.Errorf("issuing AzureRM delete request for Managed Application Definition '%s': %+v", id.String(), err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
