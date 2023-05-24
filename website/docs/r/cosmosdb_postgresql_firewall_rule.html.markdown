@@ -29,7 +29,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "example" {
 }
 
 resource "azurerm_cosmosdb_postgresql_firewall_rule" "example" {
-  name             = "example-postgresqlfirewallrule"
+  name             = "example-firewallrule"
   cluster_id       = azurerm_cosmosdb_postgresql_cluster.example.id
   start_ip_address = "10.0.17.62"
   end_ip_address   = "10.0.17.64"
