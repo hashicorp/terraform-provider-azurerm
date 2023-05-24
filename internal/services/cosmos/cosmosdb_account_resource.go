@@ -1664,6 +1664,7 @@ func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *pluginsdk.ResourceData) 
 			IgnoreMissingVNetServiceEndpoint: pointer.FromBool(m["ignore_missing_vnet_service_endpoint"].(bool)),
 		}
 	}
+
 	return &s
 }
 
@@ -1684,17 +1685,21 @@ func flattenAzureRmCosmosDBAccountGeoLocations(account *documentdb.DatabaseAccou
 	locationSet := pluginsdk.Set{
 		F: resourceAzureRMCosmosDBAccountGeoLocationHash,
 	}
-	if account == nil || *account.FailoverPolicies == nil {
+	if account == nil || account.FailoverPolicies == nil {
 		return &locationSet
 	}
 
 	for _, l := range *account.FailoverPolicies {
+		if l.ID == nil {
+			continue
+		}
+
 		id := *l.ID
 		lb := map[string]interface{}{
 			"id":                id,
-			"location":          azure.NormalizeLocation(*l.LocationName),
-			"failover_priority": int(*l.FailoverPriority),
-			// there is not zone redundancy information in the FailoverPolicies currently, we have to search it by `id` in the Locations property.
+			"location":          location.NormalizeNilable(l.LocationName),
+			"failover_priority": int(pointer.From(l.FailoverPriority)),
+			// there is no zone redundancy information in FailoverPolicies currently, we have to search it by `id` in the Locations property.
 			"zone_redundant": findZoneRedundant(account.Locations, id),
 		}
 
@@ -1708,6 +1713,7 @@ func findZoneRedundant(locations *[]documentdb.Location, id string) bool {
 	if locations == nil {
 		return false
 	}
+
 	for _, location := range *locations {
 		if location.ID != nil && *location.ID == id {
 			if location.IsZoneRedundant != nil {
@@ -1715,6 +1721,7 @@ func findZoneRedundant(locations *[]documentdb.Location, id string) bool {
 			}
 		}
 	}
+
 	return false
 }
 
@@ -1726,6 +1733,7 @@ func isServerlessCapacityMode(accResp documentdb.DatabaseAccountGetResults) bool
 			}
 		}
 	}
+
 	return false
 }
 
@@ -1768,7 +1776,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		location := azure.NormalizeLocation(m["location"].(string))
+		location := location.Normalize(m["location"].(string))
 		priority := int32(m["failover_priority"].(int))
 
 		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
