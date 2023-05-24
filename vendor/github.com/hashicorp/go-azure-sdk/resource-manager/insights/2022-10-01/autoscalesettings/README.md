@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/autoscalesettings` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings` Documentation
 
-The `autoscalesettings` SDK allows for interaction with the Azure Resource Manager Service `insights` (API Version `2015-04-01`).
+The `autoscalesettings` SDK allows for interaction with the Azure Resource Manager Service `insights` (API Version `2022-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/autoscalesettings"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings"
 ```
 
 
