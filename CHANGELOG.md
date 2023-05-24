@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `portal`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
 * `redis`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
 * `redisenterprise`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `azurerm_monitor_activity_log_alert` - support for the `levels`, `resource_providers`, `resource_types`, `resource_groups`, `resource_ids`, `statuses`, and `sub_statuses` properties [GH-21367]
 * `azurerm_media_transform` - support for the `experimental_options` property [GH-21873]
 * `azurerm_backup_policy_vm` - Support for the `days` and `include_last_days` properties [GH-21434]
 * `azurerm_subnet` - `name` within the `subnet_delegation` block can now be set to `Microsoft.App/environments` [GH-21893]
