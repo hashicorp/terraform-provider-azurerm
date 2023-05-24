@@ -440,6 +440,7 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 		if !ok {
 			continue
 		}
+
 		keyID, _ := parse.ParseNestedItemID(certIDStr)
 		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseUrl, keyID.Name, keyID.Version)
 		if err != nil {
@@ -448,6 +449,7 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 		if certRes.Cer == nil {
 			return "", fmt.Errorf("got nil key for %s", certID)
 		}
+
 		cert := kv74.SecurityDomainJSONWebKey{
 			Kty:    pointer.FromString("RSA"),
 			KeyOps: &[]string{""},
@@ -456,6 +458,7 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 		if certRes.Policy != nil && certRes.Policy.KeyProperties != nil {
 			cert.Kty = pointer.FromString(string(certRes.Policy.KeyProperties.KeyType))
 		}
+
 		x5c := ""
 		if contents := certRes.Cer; contents != nil {
 			x5c = base64.StdEncoding.EncodeToString(*contents)
@@ -494,36 +497,31 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 		return "", fmt.Errorf("unmarshal EncData: %v", err)
 	}
 
-	err = waitHSMPendingStatus(ctx, vaultBaseURL, sdClient, false)
+	err = waitHSMPendingStatus(ctx, vaultBaseURL, sdClient)
 	return encData.Value, err
 }
 
 // if isUpload is false, then check the download pending
 // the generated SDK of `future.WaitForCompletionRef` not work, see:
 // https://github.com/Azure/azure-rest-api-specs/issues/23035
-func waitHSMPendingStatus(ctx context.Context, baseURL string, client *kv74.HSMSecurityDomainClient, isUpload bool) (err error) {
-	maxRetry := 30
-	var maxAttempt = client.RetryAttempts
-
-	var res kv74.SecurityDomainOperationStatus
-	for try := 0; try < maxRetry; try++ {
-		if isUpload {
-			res, err = client.UploadPending(ctx, baseURL)
-		} else {
-			res, err = client.DownloadPending(ctx, baseURL)
-		}
-
-		if err != nil {
-			maxAttempt--
-			if maxAttempt <= 0 {
-				return err
+func waitHSMPendingStatus(ctx context.Context, baseURL string, client *kv74.HSMSecurityDomainClient) (err error) {
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{string(kv74.OperationStatusInProgress)},
+		Target:  []string{string(kv74.OperationStatusSuccess)},
+		Refresh: func() (result interface{}, state string, err error) {
+			res, err := client.DownloadPending(ctx, baseURL)
+			if res.Status == kv74.OperationStatusFailed && err == nil {
+				err = fmt.Errorf("waiting download Security Domain failed within %s", baseURL)
 			}
-		}
 
-		if res.Status == kv74.OperationStatusSuccess {
-			return nil
-		}
-		time.Sleep(client.PollingDuration)
+			return res, string(res.Status), err
+		},
+		Delay:   5 * time.Second,
+		Timeout: time.Second * 30,
 	}
-	return fmt.Errorf("time out for polling operation status")
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting download Security Doamin within %s: %+v", baseURL, err)
+	}
+	return nil
 }
