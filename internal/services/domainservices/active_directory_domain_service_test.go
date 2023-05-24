@@ -486,10 +486,10 @@ resource "azurerm_virtual_network_peering" "test_primary_secondary" {
   allow_virtual_network_access = true
   use_remote_gateways          = false
 
-  depends_on = {
-  	azurerm_subent.aadds_secondary,
-  	azurerm_subent.workload_secondary,
-  }
+  depends_on = [
+    azurerm_subent.aadds_secondary,
+    azurerm_subent.workload_secondary,
+  ]
 }
 
 resource "azurerm_virtual_network_peering" "test_secondary_primary" {
@@ -503,10 +503,10 @@ resource "azurerm_virtual_network_peering" "test_secondary_primary" {
   allow_virtual_network_access = true
   use_remote_gateways          = false
 
-  depends_on = {
-  	azurerm_subent.aadds_secondary,
-  	azurerm_subent.workload_secondary,
-  }
+  depends_on = [
+    azurerm_subent.aadds_secondary,
+    azurerm_subent.workload_secondary,
+  ]
 }
 
 resource "azurerm_active_directory_domain_service_replica_set" "test_secondary" {
