@@ -26,6 +26,7 @@ ENHANCEMENTS:
 * `azurerm_subnet` - `name` within the `subnet_delegation` block can now be set to `Microsoft.App/environments` [GH-21893]
 * `azurerm_signalr_service` - support for the `user_assigned_identity_id` property [GH-21055]
 * `azurerm_site_recovery_replication_recovery_plan` - support for the `azure_to_azure_settings` block [GH-21666]
+* `azurerm_cosmosdb_postgresql_cluster` - support for value `11.3` in `citus_version` [GH-21916]
 
 BUG FIXES:
 
