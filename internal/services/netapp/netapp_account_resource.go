@@ -262,7 +262,7 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 func waitForAccountCreateOrUpdate(ctx context.Context, client *netappaccounts.NetAppAccountsClient, id netappaccounts.NetAppAccountId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("context had no deadline")
+		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,

@@ -1,4 +1,4 @@
-package fleets
+package replicationnetworks
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -16,14 +15,14 @@ import (
 
 type ListOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *[]Fleet
+	Model        *[]Network
 
 	nextLink     *string
 	nextPageFunc func(ctx context.Context, nextLink string) (ListOperationResponse, error)
 }
 
 type ListCompleteResult struct {
-	Items []Fleet
+	Items []Network
 }
 
 func (r ListOperationResponse) HasMore() bool {
@@ -39,29 +38,29 @@ func (r ListOperationResponse) LoadMore(ctx context.Context) (resp ListOperation
 }
 
 // List ...
-func (c FleetsClient) List(ctx context.Context, id commonids.SubscriptionId) (resp ListOperationResponse, err error) {
+func (c ReplicationNetworksClient) List(ctx context.Context, id VaultId) (resp ListOperationResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "fleets.FleetsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "replicationnetworks.ReplicationNetworksClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "fleets.FleetsClient", "List", resp.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "replicationnetworks.ReplicationNetworksClient", "List", resp.HttpResponse, "Failure sending request")
 		return
 	}
 
 	resp, err = c.responderForList(resp.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "fleets.FleetsClient", "List", resp.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "replicationnetworks.ReplicationNetworksClient", "List", resp.HttpResponse, "Failure responding to request")
 		return
 	}
 	return
 }
 
 // preparerForList prepares the List request.
-func (c FleetsClient) preparerForList(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
+func (c ReplicationNetworksClient) preparerForList(ctx context.Context, id VaultId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -70,13 +69,13 @@ func (c FleetsClient) preparerForList(ctx context.Context, id commonids.Subscrip
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.ContainerService/fleets", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/replicationNetworks", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // preparerForListWithNextLink prepares the List request with the given nextLink token.
-func (c FleetsClient) preparerForListWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+func (c ReplicationNetworksClient) preparerForListWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
 	uri, err := url.Parse(nextLink)
 	if err != nil {
 		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
@@ -102,10 +101,10 @@ func (c FleetsClient) preparerForListWithNextLink(ctx context.Context, nextLink 
 
 // responderForList handles the response to the List request. The method always
 // closes the http.Response Body.
-func (c FleetsClient) responderForList(resp *http.Response) (result ListOperationResponse, err error) {
+func (c ReplicationNetworksClient) responderForList(resp *http.Response) (result ListOperationResponse, err error) {
 	type page struct {
-		Values   []Fleet `json:"value"`
-		NextLink *string `json:"nextLink"`
+		Values   []Network `json:"value"`
+		NextLink *string   `json:"nextLink"`
 	}
 	var respObj page
 	err = autorest.Respond(
@@ -120,19 +119,19 @@ func (c FleetsClient) responderForList(resp *http.Response) (result ListOperatio
 		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListOperationResponse, err error) {
 			req, err := c.preparerForListWithNextLink(ctx, nextLink)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "fleets.FleetsClient", "List", nil, "Failure preparing request")
+				err = autorest.NewErrorWithError(err, "replicationnetworks.ReplicationNetworksClient", "List", nil, "Failure preparing request")
 				return
 			}
 
 			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "fleets.FleetsClient", "List", result.HttpResponse, "Failure sending request")
+				err = autorest.NewErrorWithError(err, "replicationnetworks.ReplicationNetworksClient", "List", result.HttpResponse, "Failure sending request")
 				return
 			}
 
 			result, err = c.responderForList(result.HttpResponse)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "fleets.FleetsClient", "List", result.HttpResponse, "Failure responding to request")
+				err = autorest.NewErrorWithError(err, "replicationnetworks.ReplicationNetworksClient", "List", result.HttpResponse, "Failure responding to request")
 				return
 			}
 
@@ -143,13 +142,13 @@ func (c FleetsClient) responderForList(resp *http.Response) (result ListOperatio
 }
 
 // ListComplete retrieves all of the results into a single object
-func (c FleetsClient) ListComplete(ctx context.Context, id commonids.SubscriptionId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, FleetOperationPredicate{})
+func (c ReplicationNetworksClient) ListComplete(ctx context.Context, id VaultId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, NetworkOperationPredicate{})
 }
 
 // ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c FleetsClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate FleetOperationPredicate) (resp ListCompleteResult, err error) {
-	items := make([]Fleet, 0)
+func (c ReplicationNetworksClient) ListCompleteMatchingPredicate(ctx context.Context, id VaultId, predicate NetworkOperationPredicate) (resp ListCompleteResult, err error) {
+	items := make([]Network, 0)
 
 	page, err := c.List(ctx, id)
 	if err != nil {

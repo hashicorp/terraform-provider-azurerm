@@ -1,17 +1,40 @@
 ## 3.58.0 (Unreleased)
 
+FEATURES:
+
+* **New data Source:** `azurerm_mobile_network_packet_core_control_plane` [GH-21071]
+* **New Resource:** `azurerm_cosmosdb_mongo_role_definition` [GH-21754]
+* **New Resource:** `azurerm_mobile_network_packet_core_control_plane` [GH-21071]
+* **New Resource:** `azurerm_mysql_flexible_server_active_directory_administrator` [GH-21786]
+* **New Resource:** `azurerm_monitor_alert_prometheus_rule_group` [GH-21751]
+* **New Resource:** `azurerm_site_recovery_hyperv_network_mapping` [GH-21788]
+* **New Resource:** `azurerm_site_recovery_vmware_replication_policy_association` [GH-21389]
+
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230516.1215417` of `github.com/hashicorp/go-azure-sdk` [GH-21810]
+* dependencies: updating to `v0.20230523.1080931` of `github.com/hashicorp/go-azure-sdk` [GH-21898]
+* dependencies: updating to `v0.20230518.1143920` of `github.com/tombuildsstuff/kermit` [GH-21899]
+* `cosmosdb.gremlin`: updating to use `hashicorp/go-azure-sdk` and api version `2023-04-15` [GH-21813]
+* `cosmosdb.sql_container`: updating to use `hashicorp/go-azure-sdk` and api version `2023-04-15` [GH-21813]
 * `nginx`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
 * `portal`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
 * `redis`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
 * `redisenterprise`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `azurerm_monitor_activity_log_alert` - support for the `levels`, `resource_providers`, `resource_types`, `resource_groups`, `resource_ids`, `statuses`, and `sub_statuses` properties [GH-21367]
+* `azurerm_media_transform` - support for the `experimental_options` property [GH-21873]
+* `azurerm_backup_policy_vm` - Support for the `days` and `include_last_days` properties [GH-21434]
+* `azurerm_subnet` - `name` within the `subnet_delegation` block can now be set to `Microsoft.App/environments` [GH-21893]
+* `azurerm_signalr_service` - support for the `user_assigned_identity_id` property [GH-21055]
+* `azurerm_site_recovery_replication_recovery_plan` - support for the `azure_to_azure_settings` block [GH-21666]
 
 BUG FIXES:
 
 * Data Source: `azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil [GH-21867]
 * `azurerm_application_insights_web_test` - normalizing the value for `application_insights_id` [GH-21837]
+* `azurerm_api_management` - correctly set `triple_des_ciphers_enabled` value [GH-21789]
+* `azurerm_key_vault` - on creation if not recovering `createMode` will now be `default` instead of left as `nil` [GH-21668]
+* `azurerm_spring_cloud_gateway_route_config` -  the `filters` and `predicates` properties will now be omitted when not specified [GH-21745]
+* `azurerm_subnet` - permit `Microsoft.BareMetal/AzureHostedService` as an option for the `service_delegation` property [GH-21871]
 
 ## 3.57.0 (May 19, 2023)
 
