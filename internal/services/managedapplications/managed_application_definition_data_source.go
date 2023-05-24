@@ -55,7 +55,7 @@ func dataSourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta 
 
 	d.Set("name", id.ApplicationDefinitionName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	if model := resp.Model; m != nil {
+	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 	}
 
