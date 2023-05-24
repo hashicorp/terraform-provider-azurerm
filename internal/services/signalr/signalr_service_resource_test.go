@@ -934,10 +934,10 @@ resource "azurerm_signalr_service" "test" {
   }
 
   upstream_endpoint {
-    category_pattern             = ["connections", "messages"]
-    event_pattern                = ["*"]
-    hub_pattern                  = ["hub1"]
-    url_template                 = "http://foo.com"
+    category_pattern          = ["connections", "messages"]
+    event_pattern             = ["*"]
+    hub_pattern               = ["hub1"]
+    url_template              = "http://foo.com"
     user_assigned_identity_id = azurerm_user_assigned_identity.test.client_id
   }
 }
