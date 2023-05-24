@@ -1,0 +1,80 @@
+---
+name: Provider Tests
+on:
+  pull_request:
+    types: ["opened", "synchronize"]
+    paths:
+      - '.github/workflows/provider-test.yaml'
+      - 'internal/**.go'
+      - 'vendor/github.com/hashicorp/go-azure-sdk/sdk/auth/**'
+      - 'vendor/github.com/hashicorp/go-azure-sdk/sdk/environments/**'
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  secrets-check:
+    runs-on: ubuntu-latest
+    outputs:
+      available: "${{ steps.check-secrets.outputs.available }}"
+    steps:
+      # we check for the ACTIONS_ID_TOKEN_REQUEST_URL variable as a proxy for other secrets
+      # it will be unset when running for a PR from a fork, in which case we don't run these tests
+      - id: check-secrets
+        run: |
+          if [[ "${ACTIONS_ID_TOKEN_REQUEST_URL}" == "" ]]; then
+            echo "available=false" | tee ${GITHUB_OUTPUT}
+          else
+            echo "available=true" | tee ${GITHUB_OUTPUT}
+          fi
+
+  provider-tests:
+    runs-on: [custom, linux, large]
+    needs: [secrets-check]
+    if: needs.secrets-check.outputs.available == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+
+      - name: Install Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version-file: ./.go-version
+
+      - name: Azure CLI login
+        run: az login --output none --username="${{ secrets.AZCLI_USERNAME }}" --password="${{ secrets.AZCLI_PASSWORD }}"
+
+      - name: Set OIDC Token
+        run: |
+          echo "ARM_OIDC_TOKEN=$(curl -H "Accept: application/json; api-version=2.0" -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" -H "Content-Type: application/json" -G --data-urlencode "audience=api://AzureADTokenExchange" "${ACTIONS_ID_TOKEN_REQUEST_URL}" | jq -r '.value')" >>${GITHUB_ENV}
+
+      - name: Set OIDC Token File Path
+        run: echo "${ARM_OIDC_TOKEN}" >"${RUNNER_TEMP}/oidc-token.jwt" && echo "ARM_OIDC_TOKEN_FILE_PATH=${RUNNER_TEMP}/oidc-token.jwt" >>${GITHUB_ENV}
+
+      - name: Run provider tests
+        run: make testacc TEST=./internal/provider TESTARGS="-run '^TestAcc'"
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_CERTIFICATE: ${{ secrets.ARM_CLIENT_CERTIFICATE }}
+          ARM_CLIENT_CERTIFICATE_PASSWORD: ${{ secrets.ARM_CLIENT_CERTIFICATE_PASSWORD }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+      - name: Clean Up OIDC Token File Path
+        run: rm -f "${RUNNER_TEMP}/oidc-token.jwt"
+        if: always()
+
+      - name: Add waiting-response on fail
+        if: failure()
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["waiting-response"]
+            })

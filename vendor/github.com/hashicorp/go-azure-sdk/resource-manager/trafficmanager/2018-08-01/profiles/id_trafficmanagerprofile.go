@@ -40,15 +40,15 @@ func ParseTrafficManagerProfileID(input string) (*TrafficManagerProfileId, error
 	id := TrafficManagerProfileId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.TrafficManagerProfileName, ok = parsed.Parsed["trafficManagerProfileName"]; !ok {
-		return nil, fmt.Errorf("the segment 'trafficManagerProfileName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trafficManagerProfileName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseTrafficManagerProfileIDInsensitively(input string) (*TrafficManagerPro
 	id := TrafficManagerProfileId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.TrafficManagerProfileName, ok = parsed.Parsed["trafficManagerProfileName"]; !ok {
-		return nil, fmt.Errorf("the segment 'trafficManagerProfileName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trafficManagerProfileName", *parsed)
 	}
 
 	return &id, nil

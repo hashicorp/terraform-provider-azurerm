@@ -16,6 +16,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var CosmosDbPostgreSQLClusterResourceName = "azurerm_cosmosdb_postgresql_cluster"
+
 type CosmosDbPostgreSQLClusterModel struct {
 	Name                             string              `tfschema:"name"`
 	ResourceGroupName                string              `tfschema:"resource_group_name"`
@@ -54,7 +56,7 @@ type CosmosDbPostgreSQLClusterResource struct{}
 var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLClusterResource{}
 
 func (r CosmosDbPostgreSQLClusterResource) ResourceType() string {
-	return "azurerm_cosmosdb_postgresql_cluster"
+	return CosmosDbPostgreSQLClusterResourceName
 }
 
 func (r CosmosDbPostgreSQLClusterResource) ModelObject() interface{} {
@@ -136,6 +138,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"11.0",
 				"11.1",
 				"11.2",
+				"11.3",
 			}, false),
 		},
 

@@ -42,19 +42,19 @@ func ParseDeleteQueryKeyID(input string) (*DeleteQueryKeyId, error) {
 	id := DeleteQueryKeyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.SearchServiceName, ok = parsed.Parsed["searchServiceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'searchServiceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", *parsed)
 	}
 
 	if id.DeleteQueryKeyName, ok = parsed.Parsed["deleteQueryKeyName"]; !ok {
-		return nil, fmt.Errorf("the segment 'deleteQueryKeyName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deleteQueryKeyName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseDeleteQueryKeyIDInsensitively(input string) (*DeleteQueryKeyId, error)
 	id := DeleteQueryKeyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.SearchServiceName, ok = parsed.Parsed["searchServiceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'searchServiceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", *parsed)
 	}
 
 	if id.DeleteQueryKeyName, ok = parsed.Parsed["deleteQueryKeyName"]; !ok {
-		return nil, fmt.Errorf("the segment 'deleteQueryKeyName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deleteQueryKeyName", *parsed)
 	}
 
 	return &id, nil

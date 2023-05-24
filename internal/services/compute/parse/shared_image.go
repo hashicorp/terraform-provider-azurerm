@@ -44,7 +44,7 @@ func (id SharedImageId) ID() string {
 func SharedImageID(input string) (*SharedImageId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an SharedImage ID: %+v", input, err)
 	}
 
 	resourceId := SharedImageId{

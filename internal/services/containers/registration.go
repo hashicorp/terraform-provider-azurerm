@@ -56,7 +56,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	dataSources := []sdk.DataSource{}
+	dataSources := []sdk.DataSource{
+		KubernetesNodePoolSnapshotDataSource{},
+	}
 	dataSources = append(dataSources, r.autoRegistration.DataSources()...)
 	return dataSources
 }
