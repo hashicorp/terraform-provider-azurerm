@@ -160,7 +160,7 @@ func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	parameters := applications.Application{
-		Location: pointer.To(location.Normalize(d.Get("location"))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     d.Get("kind").(string),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
