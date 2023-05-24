@@ -415,7 +415,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	client.NotificationHubs = notificationhub.NewClient(o)
 	client.Orbital = orbital.NewClient(o)
-	client.Policy = policy.NewClient(o)
+	if client.Policy, err = policy.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Policy: %+v", err)
+	}
 	if client.Portal, err = portal.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Portal: %+v", err)
 	}
