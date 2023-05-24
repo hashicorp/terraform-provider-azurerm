@@ -36,7 +36,7 @@ func ParseApplicationIdID(input string) (*ApplicationIdId, error) {
 	id := ApplicationIdId{}
 
 	if id.ApplicationId, ok = parsed.Parsed["applicationId"]; !ok {
-		return nil, fmt.Errorf("the segment 'applicationId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationId", *parsed)
 	}
 
 	return &id, nil
@@ -55,7 +55,7 @@ func ParseApplicationIdIDInsensitively(input string) (*ApplicationIdId, error) {
 	id := ApplicationIdId{}
 
 	if id.ApplicationId, ok = parsed.Parsed["applicationId"]; !ok {
-		return nil, fmt.Errorf("the segment 'applicationId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationId", *parsed)
 	}
 
 	return &id, nil
