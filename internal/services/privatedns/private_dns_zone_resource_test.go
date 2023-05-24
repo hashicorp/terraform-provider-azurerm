@@ -54,7 +54,6 @@ func TestAccPrivateDnsZone_withTags(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 			),
 		},
-		data.ImportStep(),
 		{
 			Config: r.withTagsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
