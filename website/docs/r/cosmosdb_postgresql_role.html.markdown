@@ -3,7 +3,7 @@ subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_postgresql_role"
 description: |-
-Manages an Azure Cosmos DB for PostgreSQL Role.
+  Manages an Azure Cosmos DB for PostgreSQL Role.
 ---
 
 # azurerm_cosmosdb_postgresql_role

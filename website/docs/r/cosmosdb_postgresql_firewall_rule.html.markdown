@@ -3,7 +3,7 @@ subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_postgresql_firewall_rule"
 description: |-
-Manages an Azure Cosmos DB for PostgreSQL Firewall Rule.
+  Manages an Azure Cosmos DB for PostgreSQL Firewall Rule.
 ---
 
 # azurerm_cosmosdb_postgresql_firewall_rule
