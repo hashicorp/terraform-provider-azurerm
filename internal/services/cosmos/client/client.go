@@ -4,6 +4,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations"
@@ -21,7 +22,9 @@ type Client struct {
 	CosmosDBClient                   *cosmosdb.CosmosDBClient
 	DatabaseClient                   *documentdb.DatabaseAccountsClient
 	FirewallRulesClient              *firewallrules.FirewallRulesClient
+	GremlinClient                    *documentdb.GremlinResourcesClient
 	MongoDbClient                    *documentdb.MongoDBResourcesClient
+	MongoRBACClient                  *mongorbacs.MongorbacsClient
 	NotebookWorkspaceClient          *documentdb.NotebookWorkspacesClient
 	RestorableDatabaseAccountsClient *documentdb.RestorableDatabaseAccountsClient
 	RolesClient                      *roles.RolesClient
@@ -56,8 +59,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	firewallRulesClient := firewallrules.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&firewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	gremlinClient := documentdb.NewGremlinResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&gremlinClient.Client, o.ResourceManagerAuthorizer)
+
 	mongoDbClient := documentdb.NewMongoDBResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&mongoDbClient.Client, o.ResourceManagerAuthorizer)
+
+	mongorbacsClient := mongorbacs.NewMongorbacsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&mongorbacsClient.Client, o.ResourceManagerAuthorizer)
 
 	notebookWorkspaceClient := documentdb.NewNotebookWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&notebookWorkspaceClient.Client, o.ResourceManagerAuthorizer)
@@ -89,7 +98,9 @@ func NewClient(o *common.ClientOptions) *Client {
 		CosmosDBClient:                   &cosmosdbClient,
 		DatabaseClient:                   &databaseClient,
 		FirewallRulesClient:              &firewallRulesClient,
+		GremlinClient:                    &gremlinClient,
 		MongoDbClient:                    &mongoDbClient,
+		MongoRBACClient:                  &mongorbacsClient,
 		NotebookWorkspaceClient:          &notebookWorkspaceClient,
 		RestorableDatabaseAccountsClient: &restorableDatabaseAccountsClient,
 		RolesClient:                      &rolesClient,

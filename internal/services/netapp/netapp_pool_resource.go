@@ -299,7 +299,7 @@ func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *capacitypools
 func waitForPoolCreateOrUpdate(ctx context.Context, client *capacitypools.CapacityPoolsClient, id capacitypools.CapacityPoolId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("context had no deadline")
+		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,

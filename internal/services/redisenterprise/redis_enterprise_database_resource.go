@@ -304,7 +304,7 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err := future.Poller.PollUntilDone(); err != nil {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
@@ -442,13 +442,8 @@ func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta inter
 		},
 	}
 
-	future, err := client.Create(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updatig %s: %+v", id, err)
-	}
-
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

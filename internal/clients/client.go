@@ -410,19 +410,27 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Network, err = network.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Network: %+v", err)
 	}
-	client.Nginx = nginx.NewClient(o)
+	if client.Nginx, err = nginx.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Nginx: %+v", err)
+	}
 	client.NotificationHubs = notificationhub.NewClient(o)
 	client.Orbital = orbital.NewClient(o)
 	client.Policy = policy.NewClient(o)
-	client.Portal = portal.NewClient(o)
+	if client.Portal, err = portal.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Portal: %+v", err)
+	}
 	client.Postgres = postgres.NewClient(o)
 	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
 	client.PrivateDnsResolver = dnsresolver.NewClient(o)
 	client.Purview = purview.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
-	client.Redis = redis.NewClient(o)
-	client.RedisEnterprise = redisenterprise.NewClient(o)
+	if client.Redis, err = redis.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Redis: %+v", err)
+	}
+	if client.RedisEnterprise, err = redisenterprise.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for RedisEnterprise: %+v", err)
+	}
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
 	if client.Search, err = search.NewClient(o); err != nil {
