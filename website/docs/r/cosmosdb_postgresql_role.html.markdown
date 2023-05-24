@@ -3,7 +3,7 @@ subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_postgresql_role"
 description: |-
-  Manages an Azure Cosmos DB for PostgreSQL Role.
+Manages an Azure Cosmos DB for PostgreSQL Role.
 ---
 
 # azurerm_cosmosdb_postgresql_role
@@ -29,7 +29,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "example" {
 }
 
 resource "azurerm_cosmosdb_postgresql_role" "example" {
-  name       = "example-pshscr"
+  name       = "examplepostgresqlrole"
   cluster_id = azurerm_cosmosdb_postgresql_cluster.example.id
   password   = "H@Sh1CoR3!"
 }
