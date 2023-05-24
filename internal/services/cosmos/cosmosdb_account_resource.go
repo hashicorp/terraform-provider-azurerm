@@ -1211,8 +1211,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("updating 'default_identity_type' %q: %+v", id, err)
 			}
 		}
-
-		d.SetId(id.ID())
 	}
 
 	return resourceCosmosDbAccountRead(d, meta)
