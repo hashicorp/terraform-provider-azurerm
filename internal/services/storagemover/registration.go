@@ -35,5 +35,6 @@ func (r Registration) Resources() []sdk.Resource {
 		StorageMoverSourceEndpointResource{},
 		StorageMoverTargetEndpointResource{},
 		StorageMoverProjectResource{},
+		StorageMoverJobDefinitionResource{},
 	}
 }

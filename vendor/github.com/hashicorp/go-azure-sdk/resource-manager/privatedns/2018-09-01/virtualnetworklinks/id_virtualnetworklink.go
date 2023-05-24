@@ -42,19 +42,19 @@ func ParseVirtualNetworkLinkID(input string) (*VirtualNetworkLinkId, error) {
 	id := VirtualNetworkLinkId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateDnsZoneName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneName", *parsed)
 	}
 
 	if id.VirtualNetworkLinkName, ok = parsed.Parsed["virtualNetworkLinkName"]; !ok {
-		return nil, fmt.Errorf("the segment 'virtualNetworkLinkName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkLinkName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseVirtualNetworkLinkIDInsensitively(input string) (*VirtualNetworkLinkId
 	id := VirtualNetworkLinkId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateDnsZoneName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneName", *parsed)
 	}
 
 	if id.VirtualNetworkLinkName, ok = parsed.Parsed["virtualNetworkLinkName"]; !ok {
-		return nil, fmt.Errorf("the segment 'virtualNetworkLinkName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkLinkName", *parsed)
 	}
 
 	return &id, nil

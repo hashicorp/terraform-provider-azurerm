@@ -38,11 +38,11 @@ func ParseScopedBudgetID(input string) (*ScopedBudgetId, error) {
 	id := ScopedBudgetId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.BudgetName, ok = parsed.Parsed["budgetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'budgetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "budgetName", *parsed)
 	}
 
 	return &id, nil
@@ -61,11 +61,11 @@ func ParseScopedBudgetIDInsensitively(input string) (*ScopedBudgetId, error) {
 	id := ScopedBudgetId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.BudgetName, ok = parsed.Parsed["budgetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'budgetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "budgetName", *parsed)
 	}
 
 	return &id, nil

@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -16,6 +17,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -131,6 +134,12 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
+			"transparent_data_encryption_key_vault_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.NestedItemId,
+			},
+
 			"primary_user_assigned_identity_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -245,8 +254,29 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Identity = expandedIdentity
 	}
 
+	if v, ok := d.GetOk("transparent_data_encryption_key_vault_key_id"); ok {
+		keyVaultKeyId := v.(string)
+
+		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		if err != nil {
+			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+		}
+
+		if keyId.NestedItemType == "keys" {
+			// msSql requires the versioned key URL...
+			props.KeyID = pointer.To(keyId.ID())
+		} else {
+			return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
+		}
+	}
+
 	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
 		props.PrimaryUserAssignedIdentityID = utils.String(primaryUserAssignedIdentityID.(string))
+	}
+
+	// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
+	if props.KeyID != nil && props.PrimaryUserAssignedIdentityID == nil {
+		return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'transparent_data_encryption_key_vault_key_id' in %s", id)
 	}
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
@@ -330,8 +360,28 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Identity = existing.Identity
 	}
 
+	if d.HasChange("key_vault_key_id") {
+		keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
+
+		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		if err != nil {
+			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+		}
+
+		if keyId.NestedItemType == "keys" {
+			props.KeyID = pointer.To(keyId.ID())
+		} else {
+			return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
+		}
+	}
+
 	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
 		props.PrimaryUserAssignedIdentityID = utils.String(primaryUserAssignedIdentityID.(string))
+	}
+
+	// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
+	if props.KeyID != nil && props.PrimaryUserAssignedIdentityID == nil {
+		return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'transparent_data_encryption_key_vault_key_id' in %s", id)
 	}
 
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
@@ -483,6 +533,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			primaryUserAssignedIdentityID = parsedPrimaryUserAssignedIdentityID.ID()
 		}
 		d.Set("primary_user_assigned_identity_id", primaryUserAssignedIdentityID)
+		d.Set("transparent_data_encryption_key_vault_key_id", props.KeyID)
 		if props.Administrators != nil {
 			d.Set("azuread_administrator", flatternMsSqlServerAdministrators(*props.Administrators))
 		}

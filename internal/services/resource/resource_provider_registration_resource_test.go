@@ -7,10 +7,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -91,17 +96,25 @@ func TestAccResourceProviderRegistration_feature(t *testing.T) {
 }
 
 func (ResourceProviderRegistrationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	resp, err := client.Resource.ProvidersClient.Get(ctx, name, "")
+	id, err := providers.ParseSubscriptionProviderID(state.ID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		return nil, err
+	}
+
+	resp, err := client.Resource.ResourceProvidersClient.Get(ctx, *id, providers.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 
-		return nil, fmt.Errorf("Bad: Get on ProvidersClient: %+v", err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.RegistrationState != nil && strings.EqualFold(*resp.RegistrationState, "Registered")), nil
+	isRegistered := false
+	if model := resp.Model; model != nil && model.RegistrationState != nil {
+		isRegistered = strings.EqualFold(*model.RegistrationState, "Registered")
+	}
+	return pointer.To(isRegistered), nil
 }
 
 func (ResourceProviderRegistrationResource) basic(name string) string {
@@ -150,50 +163,33 @@ func (r ResourceProviderRegistrationResource) unRegisterProvider(client *clients
 	ctx, cancel := context.WithDeadline(client.StopContext, time.Now().Add(30*time.Minute))
 	defer cancel()
 
-	providersClient := client.Resource.ProvidersClient
-	provider, err := providersClient.Get(ctx, resourceProvider, "")
+	providersClient := client.Resource.ResourceProvidersClient
+	id := providers.NewSubscriptionProviderID(client.Account.SubscriptionId, resourceProvider)
+	provider, err := providersClient.Get(ctx, id, providers.DefaultGetOperationOptions())
 	if err != nil {
-		return fmt.Errorf("retrieving Resource Provider %q: %+v", resourceProvider, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if provider.RegistrationState == nil {
+	registrationState := ""
+	if model := provider.Model; model != nil && model.RegistrationState != nil {
+		registrationState = *model.RegistrationState
+	}
+	if registrationState == "" {
 		return fmt.Errorf("retrieving Resource Provider %q: `registrationState` was nil", resourceProvider)
 	}
 
-	if !strings.EqualFold(*provider.RegistrationState, "Registered") {
+	if !strings.EqualFold(registrationState, "Registered") {
 		return nil
 	}
 
-	if _, err := providersClient.Unregister(ctx, resourceProvider); err != nil {
-		return fmt.Errorf("unregistering Resource Provider %q: %+v", resourceProvider, err)
+	if _, err := providersClient.Unregister(ctx, id); err != nil {
+		return fmt.Errorf("unregistering %s: %+v", id, err)
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("could not retrieve context deadline")
-	}
-
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"Processing"},
-		Target:  []string{"Unregistered"},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := providersClient.Get(ctx, resourceProvider, "")
-			if err != nil {
-				return resp, "Failed", err
-			}
-
-			if resp.RegistrationState != nil && strings.EqualFold(*resp.RegistrationState, "Unregistered") {
-				return resp, "Unregistered", nil
-			}
-
-			return resp, "Processing", nil
-		},
-		MinTimeout: 15 * time.Second,
-		Timeout:    time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Resource Provider %q to become unregistered: %+v", resourceProvider, err)
+	pollerType := custompollers.NewResourceProviderUnregistrationPoller(providersClient, id)
+	poller := pollers.NewPoller(pollerType, 10*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become unregistered: %+v", id, err)
 	}
 
 	return nil

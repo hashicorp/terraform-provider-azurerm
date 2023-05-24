@@ -349,7 +349,8 @@ A `record_sets` block exports:
 ## Example HCL Configurations
 
 * How to connect a `Private Endpoint` to a [Application Gateway](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/application-gateway)
-* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/cosmos-db)
+* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/cosmos-db/mongodb)
+* How to connect a `Private Endpoint` to a [Cosmos PostgreSQL](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/cosmos-db/postgresql)
 * How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/postgresql)
 * How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-link-service)
 * How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-dns-group)

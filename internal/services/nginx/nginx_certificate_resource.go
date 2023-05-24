@@ -165,14 +165,11 @@ func (m CertificateResource) Delete() sdk.ResourceFunc {
 
 			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Nginx.NginxCertificate
-			future, err := client.CertificatesDelete(ctx, *id)
-			if err != nil {
+
+			if err := client.CertificatesDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
 
-			if err := future.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting for delete of %s: %v", id, err)
-			}
 			return nil
 		},
 	}

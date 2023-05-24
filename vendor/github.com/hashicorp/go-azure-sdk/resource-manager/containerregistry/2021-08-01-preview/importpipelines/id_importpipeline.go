@@ -42,19 +42,19 @@ func ParseImportPipelineID(input string) (*ImportPipelineId, error) {
 	id := ImportPipelineId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'registryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
 	}
 
 	if id.ImportPipelineName, ok = parsed.Parsed["importPipelineName"]; !ok {
-		return nil, fmt.Errorf("the segment 'importPipelineName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "importPipelineName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseImportPipelineIDInsensitively(input string) (*ImportPipelineId, error)
 	id := ImportPipelineId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'registryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
 	}
 
 	if id.ImportPipelineName, ok = parsed.Parsed["importPipelineName"]; !ok {
-		return nil, fmt.Errorf("the segment 'importPipelineName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "importPipelineName", *parsed)
 	}
 
 	return &id, nil

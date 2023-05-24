@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -96,6 +97,9 @@ func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 			keyVaultSecretName := keyVaultCertificateId.Name
 
 			id := webpubsub.NewCustomCertificateID(webPubsubId.SubscriptionId, webPubsubId.ResourceGroupName, webPubsubId.WebPubSubName, customCertWebPubsub.Name)
+
+			locks.ByID(webPubsubId.ID())
+			defer locks.UnlockByID(webPubsubId.ID())
 
 			existing, err := client.CustomCertificatesGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -196,8 +200,31 @@ func (r CustomCertWebPubsubResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			webPubsubId := webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName)
+
+			locks.ByID(webPubsubId.ID())
+			defer locks.UnlockByID(webPubsubId.ID())
+
 			if _, err := client.CustomCertificatesDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Exists"},
+				Target:                    []string{"NotFound"},
+				Refresh:                   webPubsubCustomCertificateDeleteRefreshFunc(ctx, client, *id),
+				Timeout:                   time.Until(deadline),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 20,
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 			}
 			return nil
 		},
@@ -206,4 +233,19 @@ func (r CustomCertWebPubsubResource) Delete() sdk.ResourceFunc {
 
 func (r CustomCertWebPubsubResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return webpubsub.ValidateCustomCertificateID
+}
+
+func webPubsubCustomCertificateDeleteRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.CustomCertificateId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.CustomCertificatesGet(ctx, id)
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
+		}
+
+		return res, "Exists", nil
+	}
 }

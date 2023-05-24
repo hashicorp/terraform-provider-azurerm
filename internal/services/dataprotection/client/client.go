@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupvaults"
@@ -15,23 +17,35 @@ type Client struct {
 	ResourceGuardClient  *resourceguards.ResourceGuardsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	backupVaultClient := backupvaults.NewBackupVaultsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&backupVaultClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	backupVaultClient, err := backupvaults.NewBackupVaultsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building BackupVaults client: %+v", err)
+	}
+	o.Configure(backupVaultClient.Client, o.Authorizers.ResourceManager)
 
-	backupPolicyClient := backuppolicies.NewBackupPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&backupPolicyClient.Client, o.ResourceManagerAuthorizer)
+	backupPolicyClient, err := backuppolicies.NewBackupPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building BackupPolicies client: %+v", err)
+	}
+	o.Configure(backupPolicyClient.Client, o.Authorizers.ResourceManager)
 
-	backupInstanceClient := backupinstances.NewBackupInstancesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&backupInstanceClient.Client, o.ResourceManagerAuthorizer)
+	backupInstanceClient, err := backupinstances.NewBackupInstancesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building BackupInstances client: %+v", err)
+	}
+	o.Configure(backupInstanceClient.Client, o.Authorizers.ResourceManager)
 
-	resourceGuardClient := resourceguards.NewResourceGuardsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&resourceGuardClient.Client, o.ResourceManagerAuthorizer)
+	resourceGuardClient, err := resourceguards.NewResourceGuardsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ResourceGuards client: %+v", err)
+	}
+	o.Configure(resourceGuardClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		BackupVaultClient:    &backupVaultClient,
-		BackupPolicyClient:   &backupPolicyClient,
-		BackupInstanceClient: &backupInstanceClient,
-		ResourceGuardClient:  &resourceGuardClient,
-	}
+		BackupVaultClient:    backupVaultClient,
+		BackupPolicyClient:   backupPolicyClient,
+		BackupInstanceClient: backupInstanceClient,
+		ResourceGuardClient:  resourceGuardClient,
+	}, nil
 }
