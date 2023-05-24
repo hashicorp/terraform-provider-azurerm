@@ -458,6 +458,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroup
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers
+github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors
+github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/tagrules
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01/nginxcertificate
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01/nginxconfiguration

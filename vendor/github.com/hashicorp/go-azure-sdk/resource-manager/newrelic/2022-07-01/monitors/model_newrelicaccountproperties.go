@@ -1,0 +1,11 @@
+package monitors
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type NewRelicAccountProperties struct {
+	AccountInfo            *AccountInfo                    `json:"accountInfo,omitempty"`
+	OrganizationInfo       *OrganizationInfo               `json:"organizationInfo,omitempty"`
+	SingleSignOnProperties *NewRelicSingleSignOnProperties `json:"singleSignOnProperties,omitempty"`
+	UserId                 *string                         `json:"userId,omitempty"`
+}
