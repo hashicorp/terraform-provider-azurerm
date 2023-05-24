@@ -14,7 +14,7 @@ type Client struct {
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	applicationClient, err := applications.NewApplicationsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, nil
+		return nil, fmt.Errorf("building Applications client: %+v", err)
 	}
 	o.Configure(applicationClient.Client, o.Authorizers.ResourceManager)
 
