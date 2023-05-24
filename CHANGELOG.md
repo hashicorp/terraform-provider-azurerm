@@ -14,6 +14,8 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230523.1080931` of `github.com/hashicorp/go-azure-sdk` [GH-21898]
 * dependencies: updating to `v0.20230518.1143920` of `github.com/tombuildsstuff/kermit` [GH-21899]
+* `cosmosdb.gremlin`: updating to use `hashicorp/go-azure-sdk` and api version `2023-04-15` [GH-21813]
+* `cosmosdb.sql_container`: updating to use `hashicorp/go-azure-sdk` and api version `2023-04-15` [GH-21813]
 * `nginx`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
 * `portal`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
 * `redis`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
