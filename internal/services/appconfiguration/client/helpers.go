@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
@@ -62,7 +63,13 @@ func (c Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, configurat
 	}
 
 	if len(result.Items) != 0 {
-		return result.Items[0].Id, nil
+		configurationStoreId, err := configurationstores.ParseConfigurationStoreID(*result.Items[0].Id)
+		if err != nil {
+			return nil, fmt.Errorf("parsing Configuration Store ID: %+v", err)
+		}
+		c.AddToCache(*configurationStoreId, configurationStoreEndpoint)
+
+		return pointer.To(configurationStoreId.ID()), nil
 	}
 
 	// we haven't found it, but Data Sources and Resources need to handle this error separately
