@@ -69,6 +69,15 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
+			"analytical_storage_ttl": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				ValidateFunc: validation.All(
+					validation.IntBetween(-1, 2147483647),
+					validation.IntNotInSlice([]int{0}),
+				),
+			},
+
 			"default_ttl": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
@@ -205,6 +214,10 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
+	if v, ok := d.GetOk("analytical_storage_ttl"); ok {
+		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(v.(int)))
+	}
+
 	if partitionkeypaths != "" {
 		partitionKindHash := cosmosdb.PartitionKindHash
 		db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
@@ -291,6 +304,10 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 		db.Properties.Resource.UniqueKeyPolicy = &cosmosdb.UniqueKeyPolicy{
 			UniqueKeys: keys,
 		}
+	}
+
+	if v, ok := d.GetOk("analytical_storage_ttl"); ok {
+		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(v.(int)))
 	}
 
 	if defaultTTL, hasDefaultTTL := d.GetOk("default_ttl"); hasDefaultTTL {
@@ -380,6 +397,10 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 					if err := d.Set("unique_key", flattenCosmosGremlinGraphUniqueKeys(ukp.UniqueKeys)); err != nil {
 						return fmt.Errorf("setting `unique_key`: %+v", err)
 					}
+				}
+
+				if v := props.AnalyticalStorageTtl; v != nil {
+					d.Set("analytical_storage_ttl", v)
 				}
 
 				if defaultTTL := props.DefaultTtl; defaultTTL != nil {
