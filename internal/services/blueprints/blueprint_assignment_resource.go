@@ -275,7 +275,7 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 
 		// Locks
 		if locks := p.Locks; locks != nil {
-			d.Set("lock_mode", locks.Mode)
+			d.Set("lock_mode", string(pointer.From(locks.Mode)))
 			if locks.ExcludedPrincipals != nil {
 				d.Set("lock_exclude_principals", locks.ExcludedPrincipals)
 			}
