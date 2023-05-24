@@ -171,7 +171,7 @@ func (ManagedApplicationResource) Exists(ctx context.Context, clients *clients.C
 
 	resp, err := clients.ManagedApplication.ApplicationClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Managed Application %s: %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

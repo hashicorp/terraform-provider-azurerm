@@ -277,7 +277,7 @@ func resourceManagedApplicationDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("failed to delete Managed Application %s: %+v", id, err)
+		return fmt.Errorf("failed to delete %s: %+v", *id, err)
 	}
 
 	return nil
