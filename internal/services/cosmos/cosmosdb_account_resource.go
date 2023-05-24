@@ -1698,7 +1698,7 @@ func flattenAzureRmCosmosDBAccountGeoLocations(account *documentdb.DatabaseAccou
 		lb := map[string]interface{}{
 			"id":                id,
 			"location":          location.NormalizeNilable(l.LocationName),
-			"failover_priority": pointer.From(l.FailoverPriority),
+			"failover_priority": int(pointer.From(l.FailoverPriority)),
 			// there is no zone redundancy information in FailoverPolicies currently, we have to search it by `id` in the Locations property.
 			"zone_redundant": findZoneRedundant(account.Locations, id),
 		}
@@ -1776,7 +1776,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		location := azure.NormalizeLocation(m["location"].(string))
+		location := location.Normalize(m["location"].(string))
 		priority := int32(m["failover_priority"].(int))
 
 		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
