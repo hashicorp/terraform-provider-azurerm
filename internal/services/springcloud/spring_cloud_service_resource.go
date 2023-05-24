@@ -87,13 +87,6 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"default_build_service_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-				ForceNew: true,
-			},
-
 			"log_stream_public_endpoint_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -420,7 +413,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if defaultBuildServiceEnabled := d.Get("default_build_service_enabled").(bool); defaultBuildServiceEnabled && skuName == "E0" {
+	if skuName == "E0" {
 		buildResource := appplatform.BuildService{
 			Properties: &appplatform.BuildServiceProperties{},
 		}
@@ -568,7 +561,6 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
-	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -603,21 +595,6 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	if utils.ResponseWasNotFound(serviceRegistry.Response) {
 		serviceRegistryEnabled = false
 	}
-
-	defaultBuildServiceEnabled := true
-	if resp.Sku != nil && resp.Sku.Name != nil && *resp.Sku.Name == "E0" {
-		defaultBuildService, err := buildServiceClient.GetBuildService(ctx, id.ResourceGroup, id.SpringName, "default")
-		if err != nil {
-			if !utils.ResponseWasNotFound(defaultBuildService.Response) {
-				return fmt.Errorf("retrieving default build service of %s: %+v", id, err)
-			}
-			defaultBuildServiceEnabled = false
-		}
-		if utils.ResponseWasNotFound(defaultBuildService.Response) {
-			defaultBuildServiceEnabled = false
-		}
-	}
-	d.Set("default_build_service_enabled", defaultBuildServiceEnabled)
 
 	agentPool, err := agentPoolClient.Get(ctx, id.ResourceGroup, id.SpringName, "default", "default")
 	if err == nil && agentPool.Properties != nil && agentPool.Properties.PoolSize != nil {
