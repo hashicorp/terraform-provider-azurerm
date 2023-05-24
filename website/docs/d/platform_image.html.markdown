@@ -17,7 +17,7 @@ data "azurerm_platform_image" "example" {
   location  = "West Europe"
   publisher = "Canonical"
   offer     = "UbuntuServer"
-  sku       = "16.04-LTS"
+  sku       = "20.04-LTS"
 }
 
 output "id" {
