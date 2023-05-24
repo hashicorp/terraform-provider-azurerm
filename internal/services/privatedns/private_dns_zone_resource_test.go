@@ -55,6 +55,14 @@ func TestAccPrivateDnsZone_withTags(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.withTagsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -114,26 +122,6 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
   resource_group_name = azurerm_resource_group.test.name
-
-  tags = {
-    Env1 = "Test1"
-    Env2 = "Test2"
-    Env3 = "Test3"
-    Env4 = "Test4"
-    Env5 = "Test5"
-    Env6 = "Test6"
-    Env7 = "Test7"
-    Env8 = "Test8"
-    Env9 = "Test9"
-    Env10 = "Test0"
-    Env11 = "Test11"
-    Env12 = "Test12"
-    Env13 = "Test13"
-    Env14 = "Test14"
-    Env15 = "Test15"
-    Env16 = "Test16"
-    Env17 = "Test17"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
