@@ -31,6 +31,7 @@ BUG FIXES:
 * Data Source: `azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil [GH-21867]
 * `azurerm_application_insights_web_test` - normalizing the value for `application_insights_id` [GH-21837]
 * `azurerm_api_management` - correctly set `triple_des_ciphers_enabled` value [GH-21789]
+* `azurerm_key_vault` - on creation if not recovering `createMode` will now be `default` instead of left as `nil` [GH-21668]
 * `azurerm_spring_cloud_gateway_route_config` -  the `filters` and `predicates` properties will now be omitted when not specified [GH-21745]
 * `azurerm_subnet` - permit `Microsoft.BareMetal/AzureHostedService` as an option for the `service_delegation` property [GH-21871]
 
