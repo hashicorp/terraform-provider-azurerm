@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applicationdefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
@@ -161,7 +160,7 @@ func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	parameters := applications.Application{
-		Location: pointer.To(azure.NormalizeLocation(d.Get("location"))),
+		Location: pointer.To(location.Normalize(d.Get("location"))),
 		Kind:     d.Get("kind").(string),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -217,18 +216,19 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("failed to read Managed Application %s: %+v", id, err)
 	}
 
-	if m := resp.Model; m != nil {
-		p := m.Properties
+	d.Set("name", id.ApplicationName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-		d.Set("name", m.Name)
-		d.Set("resource_group_name", id.ResourceGroupName)
-		d.Set("location", location.NormalizeNilable(m.Location))
-		d.Set("kind", m.Kind)
-		if err := d.Set("plan", flattenManagedApplicationPlan(m.Plan)); err != nil {
+	if model := resp.Model; model != nil {
+		p := model.Properties
+
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("kind", model.Kind)
+		if err := d.Set("plan", flattenManagedApplicationPlan(model.Plan)); err != nil {
 			return fmt.Errorf("setting `plan`: %+v", err)
 		}
 
-		id, err := resourcesParse.ResourceGroupIDInsensitively(*p.ManagedResourceGroupId)
+		id, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(p.ManagedResourceGroupId))
 		if err != nil {
 			return err
 		}
@@ -258,7 +258,9 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 			return err
 		}
 
-		return tags.FlattenAndSet(d, m.Tags)
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 
 	return nil
@@ -274,8 +276,7 @@ func resourceManagedApplicationDelete(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("failed to delete Managed Application %s: %+v", id, err)
 	}
 

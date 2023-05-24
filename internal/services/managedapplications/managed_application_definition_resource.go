@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applicationdefinitions"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
@@ -95,6 +94,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				ConflictsWith:    []string{"package_file_uri"},
+				RequiredWith:     []string{"main_template"},
 			},
 
 			"description": {
@@ -109,6 +109,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				ConflictsWith:    []string{"package_file_uri"},
+				RequiredWith:     []string{"create_ui_definition"},
 			},
 
 			"package_enabled": {
@@ -149,7 +150,7 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	parameters := applicationdefinitions.ApplicationDefinition{
-		Location: pointer.To(azure.NormalizeLocation(d.Get("location"))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: applicationdefinitions.ApplicationDefinitionProperties{
 			Authorizations: expandManagedApplicationDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List()),
 			Description:    pointer.To(d.Get("description").(string)),
@@ -166,10 +167,6 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData,
 
 	if v, ok := d.GetOk("main_template"); ok {
 		parameters.Properties.MainTemplate = &v
-	}
-
-	if (parameters.Properties.CreateUiDefinition != nil && parameters.Properties.MainTemplate == nil) || (parameters.Properties.CreateUiDefinition == nil && parameters.Properties.MainTemplate != nil) {
-		return fmt.Errorf("if either `create_ui_definition` or `main_template` is set the other one must be too")
 	}
 
 	if v, ok := d.GetOk("package_file_uri"); ok {
@@ -205,12 +202,13 @@ func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("failed to read Managed Application Definition %s: %+v", id, err)
 	}
 
-	if m := resp.Model; m != nil {
-		p := m.Properties
+	d.Set("name", id.ApplicationDefinitionName)
+	d.Set("resource_group_name", id.ResourceGroupName) // missing from response?
 
-		d.Set("name", m.Name)
-		d.Set("resource_group_name", id.ResourceGroupName) // missing from response?
-		d.Set("location", location.NormalizeNilable(m.Location))
+	if model := resp.Model; model != nil {
+		p := model.Properties
+
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if err := d.Set("authorization", flattenManagedApplicationDefinitionAuthorization(p.Authorizations)); err != nil {
 			return fmt.Errorf("setting `authorization`: %+v", err)
@@ -231,7 +229,9 @@ func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta in
 			d.Set("package_file_uri", v.(string))
 		}
 
-		return tags.FlattenAndSet(d, m.Tags)
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 
 	return nil
@@ -247,12 +247,7 @@ func resourceManagedApplicationDefinitionDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	resp, err := client.Delete(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return nil
-		}
-
+	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("issuing AzureRM delete request for Managed Application Definition '%s': %+v", id.String(), err)
 	}
 
