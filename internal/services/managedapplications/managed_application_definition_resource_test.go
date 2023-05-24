@@ -114,7 +114,7 @@ func (ManagedApplicationDefinitionResource) Exists(ctx context.Context, clients 
 
 	resp, err := clients.ManagedApplication.ApplicationDefinitionClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Managed Definition %s : %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
