@@ -17,10 +17,10 @@ import (
 )
 
 type CosmosDbMongoUserDefinitionResourceModel struct {
-	DbId               string   `tfschema:"db_id"`
-	Username           string   `tfschema:"username"`
-	Password           string   `tfschema:"password"`
-	InheritedRoleNames []string `tfschema:"inherited_role_names"`
+	CosmosMongoDatabaseId string   `tfschema:"cosmos_mongo_database_id"`
+	Username              string   `tfschema:"username"`
+	Password              string   `tfschema:"password"`
+	InheritedRoleNames    []string `tfschema:"inherited_role_names"`
 }
 
 type CosmosDbMongoUserDefinitionResource struct{}
@@ -41,7 +41,7 @@ func (r CosmosDbMongoUserDefinitionResource) IDValidationFunc() pluginsdk.Schema
 
 func (r CosmosDbMongoUserDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"db_id": {
+		"cosmos_mongo_database_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -87,7 +87,7 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Cosmos.MongoRBACClient
-			databaseId, err := parse.MongodbDatabaseID(model.DbId)
+			databaseId, err := parse.MongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
@@ -156,7 +156,7 @@ func (r CosmosDbMongoUserDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			databaseId, err := parse.MongodbDatabaseID(model.DbId)
+			databaseId, err := parse.MongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
@@ -206,7 +206,7 @@ func (r CosmosDbMongoUserDefinitionResource) Read() sdk.ResourceFunc {
 				if properties := model.Properties; properties != nil {
 					databaseId := parse.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, *properties.DatabaseName)
 
-					state.DbId = databaseId.ID()
+					state.CosmosMongoDatabaseId = databaseId.ID()
 					state.Username = pointer.From(properties.UserName)
 					state.Password = metadata.ResourceData.Get("password").(string)
 					state.InheritedRoleNames = flattenInheritedRole(properties.Roles)

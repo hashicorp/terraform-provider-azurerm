@@ -50,9 +50,9 @@ resource "azurerm_cosmosdb_mongo_database" "example" {
 }
 
 resource "azurerm_cosmosdb_mongo_user_definition" "example" {
-  db_id    = azurerm_cosmosdb_mongo_database.example.id
-  username = "myUserName"
-  password = "myPassword"
+  cosmos_mongo_database_id = azurerm_cosmosdb_mongo_database.example.id
+  username                 = "myUserName"
+  password                 = "myPassword"
 }
 ```
 
@@ -60,7 +60,7 @@ resource "azurerm_cosmosdb_mongo_user_definition" "example" {
 
 The following arguments are supported:
 
-* `db_id` - (Required) The resource ID of the Mongo DB. Changing this forces a new resource to be created.
+* `cosmos_mongo_database_id` - (Required) The resource ID of the Mongo DB. Changing this forces a new resource to be created.
 
 * `username` - (Required) The username for the Mongo User Definition. Changing this forces a new resource to be created.
 
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `inherited_role_names` - (Optional) A list of Mongo Roles that are inherited to the Mongo User Definition.
 
-~> **Note:** The role that needs to be inherited should exist in the Mongo DB of `db_id`.
+~> **Note:** The role that needs to be inherited should exist in the Mongo DB of `cosmos_mongo_database_id`.
 
 ## Attributes Reference
 
@@ -82,7 +82,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cosmos DB Mongo User Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cosmos DB Mongo User Definition.
-* `create` - (Defaults to 30 minutes) Used when updating the Cosmos DB Mongo User Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Cosmos DB Mongo User Definition.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Cosmos DB Mongo User Definition.
 
 ## Import
