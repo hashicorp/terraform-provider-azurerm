@@ -202,7 +202,7 @@ func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta in
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to read Managed Application Definition %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if m := resp.Model; m != nil {
