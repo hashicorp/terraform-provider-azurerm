@@ -20,7 +20,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	applicationDefinitionClient, err := applicationdefinitions.NewApplicationDefinitionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, nil
+		return nil, fmt.Errorf("building Application Definitions client: %+v", err)
 	}
 	o.Configure(applicationDefinitionClient.Client, o.Authorizers.ResourceManager)
 
