@@ -1295,14 +1295,8 @@ func ExpandAuthSettings(auth []AuthSettings) *web.SiteAuthSettings {
 }
 
 func FlattenAuthSettings(auth web.SiteAuthSettings, userSetDefault bool) []AuthSettings {
-	if auth.SiteAuthSettingsProperties == nil || strings.ToLower(pointer.From(auth.ConfigVersion)) != "v1" {
+	if auth.SiteAuthSettingsProperties == nil || (!pointer.From(auth.Enabled) && !userSetDefault) || strings.ToLower(pointer.From(auth.ConfigVersion)) != "v1" {
 		return []AuthSettings{}
-	}
-
-	if !pointer.From(auth.Enabled) && userSetDefault {
-		return []AuthSettings{
-			{Enabled: false},
-		}
 	}
 
 	props := *auth.SiteAuthSettingsProperties
@@ -1342,7 +1336,7 @@ func FlattenAuthSettings(auth web.SiteAuthSettings, userSetDefault bool) []AuthS
 		result.RuntimeVersion = *props.RuntimeVersion
 	}
 
-	if props.TokenRefreshExtensionHours != nil && !*props.Enabled {
+	if props.TokenRefreshExtensionHours != nil && *props.Enabled {
 		result.TokenRefreshExtensionHours = *props.TokenRefreshExtensionHours
 	}
 
