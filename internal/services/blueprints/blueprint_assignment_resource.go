@@ -200,8 +200,7 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		a.Properties.ResourceGroups = expandArmBlueprintAssignmentResourceGroups("{}")
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, a)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, a); err != nil {
 		return err
 	}
 
@@ -248,14 +247,11 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("Read failed for Blueprint Assignment (%q): %+v", id.String(), err)
 	}
 
-	if m := resp.Model; m != nil {
-		p := m.Properties
+	d.Set("name", id.BlueprintAssignmentName)
+	if model := resp.Model; model != nil {
+		p := model.Properties
 
-		if m.Name != nil {
-			d.Set("name", m.Name)
-		}
-
-		d.Set("location", azure.NormalizeLocation(m.Location))
+		d.Set("location", azure.NormalizeLocation(model.Location))
 		d.Set("target_subscription_id", pointer.From(p.Scope))
 		d.Set("version_id", pointer.From(p.BlueprintId))
 		d.Set("display_name", pointer.From(p.DisplayName))
@@ -288,7 +284,7 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		i, err := identity.FlattenSystemOrUserAssignedMap(&m.Identity)
+		i, err := identity.FlattenSystemOrUserAssignedMap(&model.Identity)
 		if err != nil {
 			return err
 		}
@@ -312,11 +308,7 @@ func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta interface
 
 	// We use none here to align the previous behaviour of the blueprint resource
 	// TODO: we could add a features flag for the blueprint to empower terraform when deleting the blueprint to delete all the generated resources as well
-	resp, err := client.Delete(ctx, *id, assignment.DeleteOperationOptions{})
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return nil
-		}
+	if _, err := client.Delete(ctx, *id, assignment.DeleteOperationOptions{}); err != nil {
 		return fmt.Errorf("failed to delete Blueprint Assignment %q from scope %q: %+v", id.BlueprintAssignmentName, id.ResourceScope, err)
 	}
 
