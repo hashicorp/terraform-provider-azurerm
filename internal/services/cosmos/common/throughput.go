@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func GetThroughputFromResult(throughputResponse documentdb.ThroughputSettingsGetResults) *int32 {
+func GetThroughputFromResultLegacy(throughputResponse documentdb.ThroughputSettingsGetResults) *int32 {
 	props := throughputResponse.ThroughputSettingsGetProperties
 	if props == nil {
 		return nil
@@ -23,7 +23,7 @@ func GetThroughputFromResult(throughputResponse documentdb.ThroughputSettingsGet
 	return res.Throughput
 }
 
-func GetThroughputFromResultForGremlin(throughputResponse cosmosdb.ThroughputSettingsGetResults) *int64 {
+func GetThroughputFromResult(throughputResponse cosmosdb.ThroughputSettingsGetResults) *int64 {
 	props := throughputResponse.Properties
 	if props == nil {
 		return nil
@@ -37,15 +37,15 @@ func GetThroughputFromResultForGremlin(throughputResponse cosmosdb.ThroughputSet
 	return res.Throughput
 }
 
-func ConvertThroughputFromResourceData(throughput interface{}) *int32 {
+func ConvertThroughputFromResourceDataLegacy(throughput interface{}) *int32 {
 	return utils.Int32(int32(throughput.(int)))
 }
 
-func ConvertThroughputFromResourceDataForGremlinAndSqlContainer(throughput interface{}) *int64 {
+func ConvertThroughputFromResourceData(throughput interface{}) *int64 {
 	return utils.Int64(int64(throughput.(int)))
 }
 
-func ExpandCosmosDBThroughputSettingsUpdateParameters(d *pluginsdk.ResourceData) *documentdb.ThroughputSettingsUpdateParameters {
+func ExpandCosmosDBThroughputSettingsUpdateParametersLegacy(d *pluginsdk.ResourceData) *documentdb.ThroughputSettingsUpdateParameters {
 	throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
 		ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
 			Resource: &documentdb.ThroughputSettingsResource{},
@@ -53,19 +53,19 @@ func ExpandCosmosDBThroughputSettingsUpdateParameters(d *pluginsdk.ResourceData)
 	}
 
 	if v, exists := d.GetOk("throughput"); exists {
-		throughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput = ConvertThroughputFromResourceData(v)
+		throughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput = ConvertThroughputFromResourceDataLegacy(v)
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
 		// If updating the autoscale throughput, set the manual throughput to nil to ensure the autoscale throughput is applied
 		throughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput = nil
-		throughputParameters.ThroughputSettingsUpdateProperties.Resource.AutoscaleSettings = ExpandCosmosDbAutoscaleSettingsResource(d)
+		throughputParameters.ThroughputSettingsUpdateProperties.Resource.AutoscaleSettings = ExpandCosmosDbAutoscaleSettingsResourceLegacy(d)
 	}
 
 	return &throughputParameters
 }
 
-func ExpandCosmosDBThroughputSettingsUpdateParametersForGremlinAndSqlContainer(d *pluginsdk.ResourceData) *cosmosdb.ThroughputSettingsUpdateParameters {
+func ExpandCosmosDBThroughputSettingsUpdateParameters(d *pluginsdk.ResourceData) *cosmosdb.ThroughputSettingsUpdateParameters {
 	throughputParameters := cosmosdb.ThroughputSettingsUpdateParameters{
 		Properties: cosmosdb.ThroughputSettingsUpdateProperties{
 			Resource: cosmosdb.ThroughputSettingsResource{},
@@ -73,29 +73,29 @@ func ExpandCosmosDBThroughputSettingsUpdateParametersForGremlinAndSqlContainer(d
 	}
 
 	if v, exists := d.GetOk("throughput"); exists {
-		throughputParameters.Properties.Resource.Throughput = ConvertThroughputFromResourceDataForGremlinAndSqlContainer(v)
+		throughputParameters.Properties.Resource.Throughput = ConvertThroughputFromResourceData(v)
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
 		// If updating the autoscale throughput, set the manual throughput to nil to ensure the autoscale throughput is applied
 		throughputParameters.Properties.Resource.Throughput = nil
-		throughputParameters.Properties.Resource.AutoScaleSettings = ExpandCosmosDbAutoscaleSettingsResourceForGremlin(d)
+		throughputParameters.Properties.Resource.AutoScaleSettings = ExpandCosmosDbAutoscaleSettingsResource(d)
 	}
 
 	return &throughputParameters
 }
 
-func SetResourceDataThroughputFromResponse(throughputResponse documentdb.ThroughputSettingsGetResults, d *pluginsdk.ResourceData) {
-	d.Set("throughput", GetThroughputFromResult(throughputResponse))
+func SetResourceDataThroughputFromResponseLegacy(throughputResponse documentdb.ThroughputSettingsGetResults, d *pluginsdk.ResourceData) {
+	d.Set("throughput", GetThroughputFromResultLegacy(throughputResponse))
 
-	autoscaleSettings := FlattenCosmosDbAutoscaleSettings(throughputResponse)
+	autoscaleSettings := FlattenCosmosDbAutoscaleSettingsLegacy(throughputResponse)
 	d.Set("autoscale_settings", autoscaleSettings)
 }
 
-func SetResourceDataThroughputFromResponseForGremlinAndSqlContainer(throughputResponse cosmosdb.ThroughputSettingsGetResults, d *pluginsdk.ResourceData) {
-	d.Set("throughput", GetThroughputFromResultForGremlin(throughputResponse))
+func SetResourceDataThroughputFromResponse(throughputResponse cosmosdb.ThroughputSettingsGetResults, d *pluginsdk.ResourceData) {
+	d.Set("throughput", GetThroughputFromResult(throughputResponse))
 
-	autoscaleSettings := FlattenCosmosDbAutoscaleSettingsForGremlin(throughputResponse)
+	autoscaleSettings := FlattenCosmosDbAutoscaleSettings(throughputResponse)
 	d.Set("autoscale_settings", autoscaleSettings)
 }
 

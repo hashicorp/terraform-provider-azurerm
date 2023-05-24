@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func ExpandCosmosDbAutoscaleSettings(d *pluginsdk.ResourceData) *documentdb.AutoscaleSettings {
+func ExpandCosmosDbAutoscaleSettingsLegacy(d *pluginsdk.ResourceData) *documentdb.AutoscaleSettings {
 	i := d.Get("autoscale_settings").([]interface{})
 	if len(i) == 0 || i[0] == nil {
 		log.Printf("[DEBUG] Cosmos DB autoscale settings are not set on the resource")
@@ -26,7 +26,7 @@ func ExpandCosmosDbAutoscaleSettings(d *pluginsdk.ResourceData) *documentdb.Auto
 	return &autoscaleSettings
 }
 
-func ExpandCosmosDbAutoscaleSettingsForGremlinAndSqlContainer(d *pluginsdk.ResourceData) *cosmosdb.AutoScaleSettings {
+func ExpandCosmosDbAutoscaleSettings(d *pluginsdk.ResourceData) *cosmosdb.AutoScaleSettings {
 	i := d.Get("autoscale_settings").([]interface{})
 	if len(i) == 0 || i[0] == nil {
 		log.Printf("[DEBUG] Cosmos DB autoscale settings are not set on the resource")
@@ -43,7 +43,7 @@ func ExpandCosmosDbAutoscaleSettingsForGremlinAndSqlContainer(d *pluginsdk.Resou
 	return &autoscaleSettings
 }
 
-func FlattenCosmosDbAutoscaleSettings(throughputResponse documentdb.ThroughputSettingsGetResults) []interface{} {
+func FlattenCosmosDbAutoscaleSettingsLegacy(throughputResponse documentdb.ThroughputSettingsGetResults) []interface{} {
 	results := make([]interface{}, 0)
 
 	props := throughputResponse.ThroughputSettingsGetProperties
@@ -71,7 +71,7 @@ func FlattenCosmosDbAutoscaleSettings(throughputResponse documentdb.ThroughputSe
 	return append(results, result)
 }
 
-func FlattenCosmosDbAutoscaleSettingsForGremlin(throughputResponse cosmosdb.ThroughputSettingsGetResults) []interface{} {
+func FlattenCosmosDbAutoscaleSettings(throughputResponse cosmosdb.ThroughputSettingsGetResults) []interface{} {
 	results := make([]interface{}, 0)
 
 	props := throughputResponse.Properties
@@ -97,8 +97,8 @@ func FlattenCosmosDbAutoscaleSettingsForGremlin(throughputResponse cosmosdb.Thro
 	return append(results, result)
 }
 
-func ExpandCosmosDbAutoscaleSettingsResource(d *pluginsdk.ResourceData) *documentdb.AutoscaleSettingsResource {
-	autoscaleSettings := ExpandCosmosDbAutoscaleSettings(d)
+func ExpandCosmosDbAutoscaleSettingsResourceLegacy(d *pluginsdk.ResourceData) *documentdb.AutoscaleSettingsResource {
+	autoscaleSettings := ExpandCosmosDbAutoscaleSettingsLegacy(d)
 
 	if autoscaleSettings == nil {
 		return nil
@@ -109,8 +109,8 @@ func ExpandCosmosDbAutoscaleSettingsResource(d *pluginsdk.ResourceData) *documen
 	}
 }
 
-func ExpandCosmosDbAutoscaleSettingsResourceForGremlin(d *pluginsdk.ResourceData) *cosmosdb.AutoscaleSettingsResource {
-	autoscaleSettings := ExpandCosmosDbAutoscaleSettingsForGremlinAndSqlContainer(d)
+func ExpandCosmosDbAutoscaleSettingsResource(d *pluginsdk.ResourceData) *cosmosdb.AutoscaleSettingsResource {
+	autoscaleSettings := ExpandCosmosDbAutoscaleSettings(d)
 
 	if autoscaleSettings == nil {
 		return nil
