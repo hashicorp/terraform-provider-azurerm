@@ -31,6 +31,7 @@ func (r Registration) Resources() []sdk.Resource {
 		HyperVReplicationPolicyAssociationResource{},
 		HyperVNetworkMappingResource{},
 		VMWareReplicationPolicyResource{},
+		VMWareReplicationPolicyAssociationResource{},
 	}
 }
 
