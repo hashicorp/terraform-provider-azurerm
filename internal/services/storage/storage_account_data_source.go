@@ -367,7 +367,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		var doesntHavePermissions bool
 		if e, ok := err.(azautorest.DetailedError); ok {
 			if status, ok := e.StatusCode.(int); ok {
-				hasWriteLock = status == http.StatusConflictgita
+				hasWriteLock = status == http.StatusConflict
 				doesntHavePermissions = (status == http.StatusUnauthorized || status == http.StatusForbidden)
 			}
 		}
