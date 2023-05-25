@@ -18,7 +18,6 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-
 resource "azurerm_public_ip" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
@@ -68,10 +67,6 @@ resource "azurerm_nginx_deployment" "example" {
   }
   network_interface {
     subnet_id = azurerm_subnet.example.id
-  }
-
-  tags = {
-    foo = "bar"
   }
 }
 ```

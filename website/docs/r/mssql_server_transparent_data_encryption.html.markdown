@@ -72,19 +72,16 @@ resource "azurerm_mssql_server" "example" {
     object_id      = "00000000-0000-0000-0000-000000000000"
   }
 
-  extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
-
   tags = {
     environment = "production"
   }
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [transparent_data_encryption_key_vault_key_id]
   }
 }
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2021-12-01/protectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -545,6 +545,36 @@ func TestAccBackupProtectionPolicyVM_withCustomRGName(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectionPolicyVM_basicDays(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.daysBasic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_completeDays(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.daysComplete(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t BackupProtectionPolicyVMResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
@@ -903,6 +933,74 @@ resource "azurerm_backup_policy_vm" "test" {
   retention_daily {
     count = 10
   }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyVMResource) daysBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_monthly {
+    count = 10
+    days  = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  }
+
+  retention_yearly {
+    count  = 10
+    months = ["January", "July"]
+    days   = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  }
+
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyVMResource) daysComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_monthly {
+    count             = 10
+    days              = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    include_last_days = true
+  }
+
+  retention_yearly {
+    count             = 10
+    months            = ["January", "July"]
+    days              = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    include_last_days = true
+  }
+
 }
 `, r.template(data), data.RandomInteger)
 }

@@ -41,7 +41,7 @@ func (id PublicIpAddressId) ID() string {
 func PublicIpAddressID(input string) (*PublicIpAddressId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an PublicIpAddress ID: %+v", input, err)
 	}
 
 	resourceId := PublicIpAddressId{

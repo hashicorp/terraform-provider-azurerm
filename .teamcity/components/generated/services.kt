@@ -76,6 +76,7 @@ var services = mapOf(
         "mariadb" to "MariaDB",
         "media" to "Media",
         "mssql" to "Microsoft SQL Server / Azure SQL",
+        "mssqlmanagedinstance" to "Microsoft SQL Server Managed Instances",
         "mixedreality" to "Mixed Reality",
         "mobilenetwork" to "Mobile Network",
         "monitor" to "Monitor",

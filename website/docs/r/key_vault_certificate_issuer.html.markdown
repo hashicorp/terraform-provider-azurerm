@@ -31,7 +31,7 @@ resource "azurerm_key_vault" "example" {
 resource "azurerm_key_vault_certificate_issuer" "example" {
   name          = "example-issuer"
   org_id        = "ExampleOrgName"
-  key_vault_id  = data.azurerm_key_vault.example.id
+  key_vault_id  = azurerm_key_vault.example.id
   provider_name = "DigiCert"
   account_id    = "0000"
   password      = "example-password"

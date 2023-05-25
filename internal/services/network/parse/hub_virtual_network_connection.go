@@ -44,7 +44,7 @@ func (id HubVirtualNetworkConnectionId) ID() string {
 func HubVirtualNetworkConnectionID(input string) (*HubVirtualNetworkConnectionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an HubVirtualNetworkConnection ID: %+v", input, err)
 	}
 
 	resourceId := HubVirtualNetworkConnectionId{

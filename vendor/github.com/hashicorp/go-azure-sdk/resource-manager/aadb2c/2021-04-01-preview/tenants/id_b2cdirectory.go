@@ -40,15 +40,15 @@ func ParseB2CDirectoryID(input string) (*B2CDirectoryId, error) {
 	id := B2CDirectoryId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
 	}
 
 	if id.DirectoryName, ok = parsed.Parsed["directoryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'directoryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "directoryName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseB2CDirectoryIDInsensitively(input string) (*B2CDirectoryId, error) {
 	id := B2CDirectoryId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
 	}
 
 	if id.DirectoryName, ok = parsed.Parsed["directoryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'directoryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "directoryName", *parsed)
 	}
 
 	return &id, nil
