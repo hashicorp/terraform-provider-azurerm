@@ -162,13 +162,15 @@ func (r CosmosDbMongoUserDefinitionResource) Update() sdk.ResourceFunc {
 			}
 
 			parameters := mongorbacs.MongoUserDefinitionCreateUpdateParameters{
-				Properties: &mongorbacs.MongoUserDefinitionResource{
-					DatabaseName: pointer.To(databaseId.Name),
-					Mechanisms:   pointer.To("SCRAM-SHA-256"),
-					Password:     pointer.To(model.Password),
-					UserName:     pointer.To(model.Username),
-					Roles:        expandInheritedRole(model.InheritedRoleNames, databaseId.Name),
-				},
+				Properties: properties.Properties,
+			}
+
+			if metadata.ResourceData.HasChange("password") {
+				parameters.Properties.Password = pointer.To(model.Password)
+			}
+
+			if metadata.ResourceData.HasChange("inherited_role_names") {
+				parameters.Properties.Roles = expandInheritedRole(model.InheritedRoleNames, databaseId.Name)
 			}
 
 			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, *id, parameters); err != nil {
@@ -246,7 +248,7 @@ func expandInheritedRole(input []string, dbName string) *[]mongorbacs.Role {
 		return nil
 	}
 
-	var result []mongorbacs.Role
+	result := make([]mongorbacs.Role, 0)
 
 	for _, v := range input {
 		role := mongorbacs.Role{
@@ -261,7 +263,7 @@ func expandInheritedRole(input []string, dbName string) *[]mongorbacs.Role {
 }
 
 func flattenInheritedRole(input *[]mongorbacs.Role) []string {
-	var result []string
+	result := make([]string, 0)
 	if input == nil {
 		return result
 	}
