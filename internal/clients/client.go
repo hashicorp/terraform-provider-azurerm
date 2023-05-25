@@ -370,7 +370,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Frontdoor = frontdoor.NewClient(o)
 	client.HPCCache = hpccache.NewClient(o)
 	client.HSM = hsm.NewClient(o)
-	client.HDInsight = hdinsight.NewClient(o)
+	if client.HDInsight, err = hdinsight.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for HDInsight: %+v", err)
+	}
 	if client.HealthCare, err = healthcare.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HealthCare: %+v", err)
 	}

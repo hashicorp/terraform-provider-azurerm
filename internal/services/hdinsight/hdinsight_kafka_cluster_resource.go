@@ -6,14 +6,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -27,7 +32,7 @@ var hdInsightKafkaClusterHeadNodeDefinition = HDInsightNodeDefinition{
 	MinInstanceCount:         2,
 	MaxInstanceCount:         utils.Int(2),
 	CanSpecifyDisks:          false,
-	FixedTargetInstanceCount: utils.Int32(int32(2)),
+	FixedTargetInstanceCount: pointer.To(int64(2)),
 }
 
 var hdInsightKafkaClusterWorkerNodeDefinition = HDInsightNodeDefinition{
@@ -42,14 +47,14 @@ var hdInsightKafkaClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	MinInstanceCount:         3,
 	MaxInstanceCount:         utils.Int(3),
 	CanSpecifyDisks:          false,
-	FixedTargetInstanceCount: utils.Int32(int32(3)),
+	FixedTargetInstanceCount: pointer.To(int64(3)),
 }
 
 var hdInsightKafkaClusterKafkaManagementNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	CanSpecifyDisks:          false,
-	FixedTargetInstanceCount: utils.Int32(int32(2)),
+	FixedTargetInstanceCount: pointer.To(int64(2)),
 }
 
 func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
@@ -60,7 +65,7 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 		Delete: hdinsightClusterDelete("Kafka"),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ClusterID(id)
+			_, err := clusters.ParseClusterID(id)
 			return err
 		}),
 
@@ -167,7 +172,7 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 				}(),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"https_endpoint": {
 				Type:     pluginsdk.TypeString,
@@ -236,20 +241,21 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	id := parse.NewClusterID(subscriptionId, resourceGroup, name)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	clusterVersion := d.Get("cluster_version").(string)
-	t := d.Get("tags").(map[string]interface{})
-	tier := hdinsight.Tier(d.Get("tier").(string))
-	tls := d.Get("tls_min_version").(string)
+	id := clusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	componentVersionsRaw := d.Get("component_version").([]interface{})
-	componentVersions := expandHDInsightKafkaComponentVersion(componentVersionsRaw)
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("failure checking for presence of existing %s: %+v", id, err)
+		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", id.ID())
+	}
 
 	gatewayRaw := d.Get("gateway").([]interface{})
-	configurations := ExpandHDInsightsConfigurations(gatewayRaw)
+	configurations := expandHDInsightsConfigurations(gatewayRaw)
 
 	metastoresRaw := d.Get("metastores").([]interface{})
 	metastores := expandHDInsightsMetastore(metastoresRaw)
@@ -259,13 +265,10 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
-	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
+	storageAccounts, i, err := expandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
 		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
-
-	networkPropertiesRaw := d.Get("network").([]interface{})
-	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
 
 	kafkaRoles := hdInsightRoleDefinition{
 		HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
@@ -279,89 +282,58 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("failure expanding `roles`: %+v", err)
 	}
 
-	existing, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("failure checking for presence of existing HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-	}
-
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", id.ID())
-	}
-
 	kafkaRestProperty := expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{}))
 
-	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
-
-	params := hdinsight.ClusterCreateParametersExtended{
-		Location: utils.String(location),
-		Properties: &hdinsight.ClusterCreateProperties{
-			Tier:                   tier,
-			OsType:                 hdinsight.OSTypeLinux,
-			ClusterVersion:         utils.String(clusterVersion),
-			MinSupportedTLSVersion: utils.String(tls),
-			NetworkProperties:      networkProperties,
-			ClusterDefinition: &hdinsight.ClusterDefinition{
-				Kind:             utils.String("Kafka"),
-				ComponentVersion: componentVersions,
+	params := clusters.ClusterCreateParametersExtended{
+		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
+		Properties: &clusters.ClusterCreateProperties{
+			Tier:                   pointer.To(clusters.Tier(d.Get("tier").(string))),
+			OsType:                 pointer.To(clusters.OSTypeLinux),
+			ClusterVersion:         pointer.To(d.Get("cluster_version").(string)),
+			MinSupportedTlsVersion: pointer.To(d.Get("tls_min_version").(string)),
+			NetworkProperties:      expandHDInsightsNetwork(d.Get("network").([]interface{})),
+			ClusterDefinition: &clusters.ClusterDefinition{
+				Kind:             pointer.To("Kafka"),
+				ComponentVersion: expandHDInsightKafkaComponentVersion(d.Get("component_version").([]interface{})),
 				Configurations:   configurations,
 			},
-			StorageProfile: &hdinsight.StorageProfile{
+			StorageProfile: &clusters.StorageProfile{
 				Storageaccounts: storageAccounts,
 			},
-			ComputeProfile: &hdinsight.ComputeProfile{
+			ComputeProfile: &clusters.ComputeProfile{
 				Roles: roles,
 			},
 			KafkaRestProperties:        kafkaRestProperty,
-			ComputeIsolationProperties: computeIsolationProperties,
+			ComputeIsolationProperties: expandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{})),
 		},
-		Tags:     tags.Expand(t),
-		Identity: identity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Identity: i,
 	}
 
 	if encryptionInTransit, ok := d.GetOk("encryption_in_transit_enabled"); ok {
-		params.Properties.EncryptionInTransitProperties = &hdinsight.EncryptionInTransitProperties{
-			IsEncryptionInTransitEnabled: utils.Bool(encryptionInTransit.(bool)),
+		params.Properties.EncryptionInTransitProperties = &clusters.EncryptionInTransitProperties{
+			IsEncryptionInTransitEnabled: pointer.To(encryptionInTransit.(bool)),
 		}
 	}
 
 	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
-		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		params.Properties.DiskEncryptionProperties, err = expandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
 		if err != nil {
 			return err
 		}
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
-		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
+		params.Properties.SecurityProfile = expandHDInsightSecurityProfile(v.([]interface{}))
 
-		params.Identity = &hdinsight.ClusterIdentity{
-			Type:                   hdinsight.ResourceIdentityTypeUserAssigned,
-			UserAssignedIdentities: make(map[string]*hdinsight.ClusterIdentityUserAssignedIdentitiesValue),
-		}
-
-		if params.Properties.SecurityProfile != nil && params.Properties.SecurityProfile.MsiResourceID != nil {
-			params.Identity.UserAssignedIdentities[*params.Properties.SecurityProfile.MsiResourceID] = &hdinsight.ClusterIdentityUserAssignedIdentitiesValue{}
+		params.Identity = i
+		if params.Properties.SecurityProfile != nil && params.Properties.SecurityProfile.MsiResourceId != nil {
+			params.Identity.IdentityIds[*params.Properties.SecurityProfile.MsiResourceId] = identity.UserAssignedIdentityDetails{}
 		}
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, params)
-	if err != nil {
-		return fmt.Errorf("failure creating HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed waiting for creation of HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("failure retrieving HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("failure reading ID for HDInsight Kafka Cluster %q (Resource Group %q)", name, resourceGroup)
+	if err := client.CreateThenPoll(ctx, id, params); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -369,14 +341,14 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	// We can only enable monitoring after creation
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
-		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+		if err := enableHDInsightMonitoring(ctx, extensionsClient, id, monitorRaw); err != nil {
 			return err
 		}
 	}
 
 	if v, ok := d.GetOk("extension"); ok {
 		extensionRaw := v.([]interface{})
-		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, resourceGroup, name, extensionRaw); err != nil {
+		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, id, extensionRaw); err != nil {
 			return err
 		}
 	}
@@ -391,56 +363,55 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ClusterID(d.Id())
+	id, err := clusters.ParseClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := clustersClient.Get(ctx, resourceGroup, name)
+	resp, err := clustersClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] HDInsight Kafka Cluster %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("failure retrieving HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving %s: %+v", *id, err)
 	}
 
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
-	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
+	configId := configurations.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
+	configurations, err := configurationsClient.List(ctx, configId)
 	if err != nil {
-		return fmt.Errorf("failure retrieving Configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving Configuration for %s: %+v", *id, err)
 	}
 
 	gateway, exists := configurations.Configurations["gateway"]
 	if !exists {
-		return fmt.Errorf("failure retrieving gateway for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving gateway for %s: %+v", *id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.ClusterName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
-	if props := resp.Properties; props != nil {
-		tier := ""
-		// the Azure API is inconsistent here, so rewrite this into the casing we expect
-		for _, v := range hdinsight.PossibleTierValues() {
-			if strings.EqualFold(string(v), string(props.Tier)) {
-				tier = string(v)
+	if model := resp.Model; model != nil {
+
+		d.Set("location", location.Normalize(model.Location))
+
+		// storage_account isn't returned, so I guess we just leave it ¯\_(ツ)_/¯
+		if props := model.Properties; props != nil {
+			tier := ""
+			// the Azure API is inconsistent here, so rewrite this into the casing we expect
+			for _, v := range clusters.PossibleValuesForTier() {
+				if strings.EqualFold(v, string(pointer.From(props.Tier))) {
+					tier = v
+				}
 			}
-		}
-		d.Set("tier", tier)
-		d.Set("cluster_version", props.ClusterVersion)
-		d.Set("tls_min_version", props.MinSupportedTLSVersion)
+			d.Set("tier", tier)
+			d.Set("cluster_version", props.ClusterVersion)
+			d.Set("tls_min_version", props.MinSupportedTlsVersion)
 
-		if def := props.ClusterDefinition; def != nil {
+			def := props.ClusterDefinition
 			if err := d.Set("component_version", flattenHDInsightKafkaComponentVersion(def.ComponentVersion)); err != nil {
 				return fmt.Errorf("failure flattening `component_version`: %+v", err)
 			}
@@ -450,92 +421,98 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			flattenHDInsightsMetastores(d, configurations.Configurations)
-		}
 
-		kafkaRoles := hdInsightRoleDefinition{
-			HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
-			WorkerNodeDef:          hdInsightKafkaClusterWorkerNodeDefinition,
-			ZookeeperNodeDef:       hdInsightKafkaClusterZookeeperNodeDefinition,
-			KafkaManagementNodeDef: &hdInsightKafkaClusterKafkaManagementNodeDefinition,
-		}
-		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, kafkaRoles)
-		if err := d.Set("roles", flattenedRoles); err != nil {
-			return fmt.Errorf("failure flattening `roles`: %+v", err)
-		}
-
-		httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
-		d.Set("https_endpoint", httpEndpoint)
-		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
-		d.Set("ssh_endpoint", sshEndpoint)
-		kafkaRestProxyEndpoint := FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
-		d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
-
-		if props.EncryptionInTransitProperties != nil {
-			d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
-		}
-
-		if props.NetworkProperties != nil {
-			if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
-				return fmt.Errorf("flatten `network`: %+v", err)
+			kafkaRoles := hdInsightRoleDefinition{
+				HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
+				WorkerNodeDef:          hdInsightKafkaClusterWorkerNodeDefinition,
+				ZookeeperNodeDef:       hdInsightKafkaClusterZookeeperNodeDefinition,
+				KafkaManagementNodeDef: &hdInsightKafkaClusterKafkaManagementNodeDefinition,
 			}
-		}
-		if props.ComputeIsolationProperties.EnableComputeIsolation != nil {
-			if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
-				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
+			flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, kafkaRoles)
+			if err := d.Set("roles", flattenedRoles); err != nil {
+				return fmt.Errorf("failure flattening `roles`: %+v", err)
 			}
-		}
 
-		if props.DiskEncryptionProperties != nil {
-			diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
+			httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
+			d.Set("https_endpoint", httpEndpoint)
+			sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
+			d.Set("ssh_endpoint", sshEndpoint)
+			kafkaRestProxyEndpoint := FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
+			d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
+
+			if props.EncryptionInTransitProperties != nil {
+				d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
+			}
+
+			if props.NetworkProperties != nil {
+				if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+					return fmt.Errorf("flatten `network`: %+v", err)
+				}
+			}
+			if props.ComputeIsolationProperties.EnableComputeIsolation != nil {
+				if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
+					return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
+				}
+			}
+
+			if props.DiskEncryptionProperties != nil {
+				diskEncryptionProps, err := flattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
+				if err != nil {
+					return err
+				}
+				if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+					return fmt.Errorf("flattening `disk_encryption`: %+v", err)
+				}
+			}
+
+			monId := extensions.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
+			monitor, err := extensionsClient.GetMonitoringStatus(ctx, monId)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed reading monitor configuration for %s: %+v", *id, err)
 			}
-			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
-				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
+
+			d.Set("monitor", flattenHDInsightMonitoring(monitor.Model))
+
+			if err = d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
+				return fmt.Errorf(`failed setting "rest_proxy" for %s: %+v`, *id, err)
+			}
+
+			extension, err := extensionsClient.GetAzureMonitorStatus(ctx, monId)
+			if err != nil {
+				return fmt.Errorf("reading extension configuration for %s: %+v", *id, err)
+			}
+
+			d.Set("extension", flattenHDInsightAzureMonitor(extension.Model))
+
+			if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
+				return fmt.Errorf("setting `security_profile`: %+v", err)
 			}
 		}
 
-		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("failed reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		d.Set("monitor", flattenHDInsightMonitoring(monitor))
-
-		if err = d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
-			return fmt.Errorf(`failed setting "rest_proxy" for HDInsight Kafka Cluster %q (Resource Group %q): %+v`, name, resourceGroup, err)
-		}
-
-		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
-		}
-
-		d.Set("extension", flattenHDInsightAzureMonitor(extension))
-
-		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
-			return fmt.Errorf("setting `security_profile`: %+v", err)
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting tags: %+v", err)
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func expandHDInsightKafkaComponentVersion(input []interface{}) map[string]*string {
+func expandHDInsightKafkaComponentVersion(input []interface{}) *map[string]string {
 	if len(input) == 0 || input[0] == nil {
-		return map[string]*string{"kafka": utils.String("")}
+		return pointer.To(map[string]string{"kafka": ""})
 	}
+
 	vs := input[0].(map[string]interface{})
-	return map[string]*string{
-		"kafka": utils.String(vs["kafka"].(string)),
-	}
+	return pointer.To(map[string]string{
+		"kafka": vs["kafka"].(string),
+	})
 }
 
-func flattenHDInsightKafkaComponentVersion(input map[string]*string) []interface{} {
+func flattenHDInsightKafkaComponentVersion(input *map[string]string) []interface{} {
 	kafkaVersion := ""
-	if v, ok := input["kafka"]; ok {
-		if v != nil {
-			kafkaVersion = *v
+	if input != nil {
+		if v, ok := (*input)["kafka"]; ok {
+			kafkaVersion = v
 		}
 	}
 	return []interface{}{
@@ -545,7 +522,7 @@ func flattenHDInsightKafkaComponentVersion(input map[string]*string) []interface
 	}
 }
 
-func expandKafkaRestProxyProperty(input []interface{}) *hdinsight.KafkaRestProperties {
+func expandKafkaRestProxyProperty(input []interface{}) *clusters.KafkaRestProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -554,15 +531,15 @@ func expandKafkaRestProxyProperty(input []interface{}) *hdinsight.KafkaRestPrope
 	groupId := raw["security_group_id"].(string)
 	groupName := raw["security_group_name"].(string)
 
-	return &hdinsight.KafkaRestProperties{
-		ClientGroupInfo: &hdinsight.ClientGroupInfo{
-			GroupID:   &groupId,
+	return &clusters.KafkaRestProperties{
+		ClientGroupInfo: &clusters.ClientGroupInfo{
+			GroupId:   &groupId,
 			GroupName: &groupName,
 		},
 	}
 }
 
-func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []interface{} {
+func flattenKafkaRestProxyProperty(input *clusters.KafkaRestProperties) []interface{} {
 	if input == nil || input.ClientGroupInfo == nil {
 		return []interface{}{}
 	}
@@ -570,8 +547,8 @@ func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []inter
 	groupInfo := input.ClientGroupInfo
 
 	groupId := ""
-	if groupInfo.GroupID != nil {
-		groupId = *groupInfo.GroupID
+	if groupInfo.GroupId != nil {
+		groupId = *groupInfo.GroupId
 	}
 
 	groupName := ""

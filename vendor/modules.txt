@@ -341,6 +341,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidre
 github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors
 github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions
 github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08
 github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/dicomservices
