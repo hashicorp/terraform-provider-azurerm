@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync" // nolint: staticcheck
+	`github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync`
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -56,8 +56,8 @@ func resourceStorageSync() *pluginsdk.Resource {
 				Optional: true,
 				Default:  string(storagesync.AllowAllTraffic),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(storagesync.AllowAllTraffic),
-					string(storagesync.AllowVirtualNetworksOnly),
+					string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
+					string(storagesyncservicesresource.IncomingTrafficPolicyAllowVirtualNetworksOnly),
 				}, false),
 			},
 
