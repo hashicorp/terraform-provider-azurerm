@@ -309,7 +309,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Communication, err = communication.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Communication: %+v", err)
 	}
-	client.Compute = compute.NewClient(o)
+	if client.Compute, err = compute.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Compute: %+v", err)
+	}
 	if client.ConfidentialLedger, err = confidentialledger.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ConfidentialLedger: %+v", err)
 	}

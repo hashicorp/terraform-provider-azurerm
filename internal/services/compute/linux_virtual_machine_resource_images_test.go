@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestAccLinuxVirtualMachine_imageFromImage(t *testing.T) {
@@ -412,21 +412,26 @@ provider "azurerm" {
 func (r LinuxVirtualMachineResource) cancelExistingAgreement(publisher string, offer string, sku string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.Compute.MarketplaceAgreementsClient
-		id := parse.NewPlanID(client.SubscriptionID, publisher, offer, sku)
+		subscriptionId := clients.Account.SubscriptionId
 
-		existing, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)
+		idGet := agreements.NewOfferPlanID(subscriptionId, publisher, offer, sku)
+		idCancel := agreements.NewPlanID(subscriptionId, publisher, offer, sku)
+
+		existing, err := client.MarketplaceAgreementsGet(ctx, idGet)
 		if err != nil {
 			return err
 		}
 
-		if props := existing.AgreementProperties; props != nil {
-			if accepted := props.Accepted; accepted != nil && *accepted {
-				resp, err := client.Cancel(ctx, id.AgreementName, id.OfferName, id.Name)
-				if err != nil {
-					if utils.ResponseWasNotFound(resp.Response) {
-						return fmt.Errorf("marketplace agreement %q does not exist", id)
+		if model := existing.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if accepted := props.Accepted; accepted != nil && *accepted {
+					resp, err := client.MarketplaceAgreementsCancel(ctx, idCancel)
+					if err != nil {
+						if response.WasNotFound(resp.HttpResponse) {
+							return fmt.Errorf("marketplace agreement %q does not exist", idGet)
+						}
+						return fmt.Errorf("canceling %s: %+v", idGet, err)
 					}
-					return fmt.Errorf("canceling Marketplace Agreement : %+v", err)
 				}
 			}
 		}

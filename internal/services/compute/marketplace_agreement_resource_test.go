@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -65,23 +67,25 @@ func TestAccMarketplaceAgreement_requiresImport(t *testing.T) {
 }
 
 func (t MarketplaceAgreementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PlanID(state.ID)
+	id, err := agreements.ParseOfferPlanID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.MarketplaceAgreementsClient.Get(ctx, id.AgreementName, id.OfferName, id.Name)
+	resp, err := clients.Compute.MarketplaceAgreementsClient.MarketplaceAgreementsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Compute Marketplace Agreement %q", id)
 	}
 
-	if resp.ID == nil {
-		return utils.Bool(false), nil
+	if resp.Model == nil {
+		return pointer.To(false), fmt.Errorf("retrieving %s, %+v", *id, err)
 	}
 
-	if props := resp.AgreementProperties; props != nil {
-		if accept := props.Accepted; accept != nil && *accept {
-			return utils.Bool(true), nil
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if accept := props.Accepted; accept != nil && *accept {
+				return utils.Bool(true), nil
+			}
 		}
 	}
 
@@ -125,21 +129,26 @@ provider "azurerm" {
 func (r MarketplaceAgreementResource) cancelExistingAgreement(offer string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.Compute.MarketplaceAgreementsClient
-		id := parse.NewPlanID(client.SubscriptionID, "barracudanetworks", offer, "hourly")
+		subscriptionId := clients.Account.SubscriptionId
 
-		existing, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)
+		idGet := agreements.NewOfferPlanID(subscriptionId, "barracudanetworks", offer, "hourly")
+		idCancel := agreements.NewPlanID(subscriptionId, "barracudanetworks", offer, "hourly")
+
+		existing, err := client.MarketplaceAgreementsGet(ctx, idGet)
 		if err != nil {
 			return err
 		}
 
-		if props := existing.AgreementProperties; props != nil {
-			if accepted := props.Accepted; accepted != nil && *accepted {
-				resp, err := client.Cancel(ctx, id.AgreementName, id.OfferName, id.Name)
-				if err != nil {
-					if utils.ResponseWasNotFound(resp.Response) {
-						return fmt.Errorf("marketplace agreement %q does not exist", id)
+		if model := existing.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if accepted := props.Accepted; accepted != nil && *accepted {
+					resp, err := client.MarketplaceAgreementsCancel(ctx, idCancel)
+					if err != nil {
+						if response.WasNotFound(resp.HttpResponse) {
+							return fmt.Errorf("marketplace agreement %q does not exist", idGet)
+						}
+						return fmt.Errorf("canceling %s: %+v", idGet, err)
 					}
-					return fmt.Errorf("canceling Marketplace Agreement : %+v", err)
 				}
 			}
 		}

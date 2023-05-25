@@ -11,7 +11,6 @@ github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid
 github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/guestconfiguration/mgmt/2020-06-25/guestconfiguration
 github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight
-github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers
 github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement
@@ -419,6 +418,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/virtualnetworkrules
+github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accountfilters
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accounts
