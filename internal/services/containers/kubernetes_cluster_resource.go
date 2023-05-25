@@ -3999,19 +3999,19 @@ func flattenKubernetesClusterMaintenanceConfiguration(input *maintenanceconfigur
 		utcOfset = *input.UtcOffset
 	}
 
-	windowResults := map[string]interface{}{
+	windowProperties := map[string]interface{}{
 		"not_allowed": flattenKubernetesClusterMaintenanceConfigurationDateSpans(input.NotAllowedDates),
 		"duration":    int(input.DurationHours),
 		"start_date":  startDate,
 		"start_time":  input.StartTime,
 		"utc_offset":  utcOfset,
 	}
-
+	// Add flattened schedule properties
 	for k, v := range flattenKubernetesClusterMaintenanceConfigurationSchedule(input.Schedule) {
-		windowResults[k] = v
+		windowProperties[k] = v
 	}
 
-	return append(results, windowResults)
+	return append(results, windowProperties)
 }
 
 func flattenKubernetesClusterMaintenanceConfigurationSchedule(input maintenanceconfigurations.Schedule) map[string]interface{} {
