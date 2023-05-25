@@ -57,12 +57,26 @@ func testAccKeyVaultManagedHardwareSecurityModule_download(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.download(data),
+			Config: r.download(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("activate_config", "security_domain_enc_data"),
+		data.ImportStep("activate_config", "security_domain_encrypted_data"),
+		{
+			Config: r.download(data, 4),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("activate_config", "security_domain_encrypted_data"),
+		{
+			Config: r.download(data, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("activate_config", "security_domain_encrypted_data"),
 	})
 }
 
@@ -147,14 +161,22 @@ resource "azurerm_key_vault_managed_hardware_security_module" "import" {
 `, template)
 }
 
-func (r KeyVaultManagedHardwareSecurityModuleResource) download(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleResource) download(data acceptance.TestData, certCount int) string {
 	template := r.template(data)
+	activateConfig := ""
+	if certCount > 0 {
+		activateConfig = `activate_config {
+		certificate_ids 	   = [for cert in azurerm_key_vault_certificate.cert : cert.id]
+		security_domain_quorum = 2
+	}`
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
 resource "azurerm_key_vault" "test" {
   name                       = "acc%[2]d"
@@ -200,7 +222,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "cert" {
-  count        = 3
+  count        = %[3]d
   name         = "acchsmcert${count.index}"
   key_vault_id = azurerm_key_vault.test.id
 
@@ -257,16 +279,9 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   admin_object_ids         = [data.azurerm_client_config.current.object_id]
   purge_protection_enabled = false
 
-  activate_config {
-    security_domain_certificate = [
-      azurerm_key_vault_certificate.cert[0].id,
-      azurerm_key_vault_certificate.cert[1].id,
-      azurerm_key_vault_certificate.cert[2].id,
-    ]
-    security_domain_quorum = 2
-  }
+  %[4]s
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, certCount, activateConfig)
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleResource) complete(data acceptance.TestData) string {

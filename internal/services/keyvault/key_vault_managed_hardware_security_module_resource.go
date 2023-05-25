@@ -148,7 +148,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
-						"security_domain_certificate": {
+						"certificate_ids": {
 							Type:     pluginsdk.TypeSet,
 							MinItems: 3,
 							MaxItems: 10,
@@ -168,7 +168,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				},
 			},
 
-			"security_domain_enc_data": {
+			"security_domain_encrypted_data": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -231,20 +231,19 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && (certs)[0] != nil {
 		// get hsm uri
 		resp, err := hsmClient.Get(ctx, id)
-		if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
-			return fmt.Errorf("get nil HSMUri for %s: %+v", id, err)
-		} else {
-			encData, err := securityDomainDownload(ctx,
-				kvClient,
-				*resp.Model.Properties.HsmUri,
-				certs[0].(map[string]interface{}),
-			)
-			if err == nil {
-				d.Set("security_domain_enc_data", encData)
-			} else {
-				log.Printf("security domain download: %v", err)
-			}
+		hsmUri := ""
+		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.HsmUri != nil {
+			hsmUri = *resp.Model.Properties.HsmUri
 		}
+		if hsmUri == "" {
+			return fmt.Errorf("retrieving %s: `properties.HsmUri` was nil", id)
+		}
+
+		encData, err := securityDomainDownload(ctx, kvClient, hsmUri, certs[0].(map[string]interface{}))
+		if err != nil {
+			return fmt.Errorf("security domain download for %s: %+v", id, err)
+		}
+		d.Set("security_domain_encrypted_data", encData)
 	}
 
 	d.SetId(id.ID())
@@ -264,22 +263,28 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 	}
 
 	resp, err := hsmClient.Get(ctx, *id)
-	if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
+	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
+		return fmt.Errorf("retrieving %s: `properties.HsmUri` was nil", id)
 	}
 
 	// if it has activate_config but with no enc data in stat, try to activate it
-	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && certs[0] != nil && d.Get("security_domain_enc_data").(string) == "" {
+	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && certs[0] != nil &&
+		//d.Get("security_domain_encrypted_data").(string) == "" {
+		d.HasChange("activate_config") {
 		// get hsm uri
 		encData, err := securityDomainDownload(ctx,
 			kvClient,
 			*resp.Model.Properties.HsmUri,
 			certs[0].(map[string]interface{}),
 		)
+
 		if err != nil {
 			return fmt.Errorf("security domain download: %v", err)
 		}
-		d.Set("security_domain_enc_data", encData)
+		d.Set("security_domain_encrypted_data", encData)
 	}
 	return nil
 }
@@ -431,7 +436,7 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 
 	var param kv74.CertificateInfoObject
 	var qourum = config["security_domain_quorum"].(int)
-	certIDs := config["security_domain_certificate"].(*pluginsdk.Set).List()
+	certIDs := config["certificate_ids"].(*pluginsdk.Set).List()
 
 	param.Required = utils.Int32(int32(qourum))
 	var certs []kv74.SecurityDomainJSONWebKey
@@ -517,7 +522,7 @@ func waitHSMPendingStatus(ctx context.Context, baseURL string, client *kv74.HSMS
 			return res, string(res.Status), err
 		},
 		Delay:   5 * time.Second,
-		Timeout: time.Second * 30,
+		Timeout: time.Minute * 10,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
