@@ -12,7 +12,6 @@ type UserFeatures struct {
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 	ResourceGroup          ResourceGroupFeatures
 	ManagedDisk            ManagedDiskFeatures
-	SecurityCenter         SecurityCenterFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -71,8 +70,4 @@ type ManagedDiskFeatures struct {
 type AppConfigurationFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
 	RecoverSoftDeleted       bool
-}
-
-type SecurityCenterFeatures struct {
-	ResetToFreeOnDestroy bool
 }

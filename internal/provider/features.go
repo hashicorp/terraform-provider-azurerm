@@ -279,21 +279,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
-
-		"security_center": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*schema.Schema{
-					"reset_to_free_on_destroy": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-				},
-			},
-		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -477,16 +462,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			managedDiskRaw := items[0].(map[string]interface{})
 			if v, ok := managedDiskRaw["expand_without_downtime"]; ok {
 				featuresMap.ManagedDisk.ExpandWithoutDowntime = v.(bool)
-			}
-		}
-	}
-
-	if raw, ok := val["security_center"]; ok {
-		items := raw.([]interface{})
-		if len(items) > 0 {
-			securityCenterRaw := items[0].(map[string]interface{})
-			if v, ok := securityCenterRaw["reset_to_free_on_destroy"]; ok {
-				featuresMap.SecurityCenter.ResetToFreeOnDestroy = v.(bool)
 			}
 		}
 	}

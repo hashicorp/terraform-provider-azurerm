@@ -77,11 +77,6 @@ provider "azurerm" {
       roll_instances_when_required  = true
       scale_to_zero_before_deletion = true
     }
-
-    security_center {
-      reset_to_free_on_destroy = true
-    }
-
   }
 }
 ```
@@ -222,9 +217,3 @@ The `virtual_machine_scale_set` block supports the following:
 * `roll_instances_when_required` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically roll the instances in the Scale Set when Required (for example when updating the Sku/Image). Defaults to `true`.
 
 * `scale_to_zero_before_deletion` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources scale to 0 instances before deleting the resource. Defaults to `true`.
-
----
-
-The `security_center` block supports the following:
-
-* `reset_to_free_on_destroy` - Should the `azurerm_security_center_subscription_pricing` resources reset `tier` to `Free` on deletion? Defaults to `false`.

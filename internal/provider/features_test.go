@@ -65,9 +65,6 @@ func TestExpandFeatures(t *testing.T) {
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
 				},
-				SecurityCenter: features.SecurityCenterFeatures{
-					ResetToFreeOnDestroy: false,
-				},
 			},
 		},
 		{
@@ -148,11 +145,6 @@ func TestExpandFeatures(t *testing.T) {
 							"scale_to_zero_before_deletion": true,
 						},
 					},
-					"security_center": []interface{}{
-						map[string]interface{}{
-							"reset_to_free_on_destroy": true,
-						},
-					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -202,9 +194,6 @@ func TestExpandFeatures(t *testing.T) {
 					RollInstancesWhenRequired: true,
 					ForceDelete:               true,
 					ScaleToZeroOnDelete:       true,
-				},
-				SecurityCenter: features.SecurityCenterFeatures{
-					ResetToFreeOnDestroy: true,
 				},
 			},
 		},
@@ -286,11 +275,6 @@ func TestExpandFeatures(t *testing.T) {
 							"scale_to_zero_before_deletion": false,
 						},
 					},
-					"security_center": []interface{}{
-						map[string]interface{}{
-							"reset_to_free_on_destroy": false,
-						},
-					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -340,9 +324,6 @@ func TestExpandFeatures(t *testing.T) {
 					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
 					ScaleToZeroOnDelete:       false,
-				},
-				SecurityCenter: features.SecurityCenterFeatures{
-					ResetToFreeOnDestroy: false,
 				},
 			},
 		},
@@ -1219,71 +1200,6 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ManagedDisk, testCase.Expected.ManagedDisk) {
 			t.Fatalf("Expected %+v but got %+v", result.ManagedDisk, testCase.Expected.ManagedDisk)
-		}
-	}
-}
-
-func TestExpandFeaturesSecurityCenter(t *testing.T) {
-	testData := []struct {
-		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
-		Expected features.UserFeatures
-	}{
-		{
-			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"security_center": []interface{}{},
-				},
-			},
-			Expected: features.UserFeatures{
-				SecurityCenter: features.SecurityCenterFeatures{
-					ResetToFreeOnDestroy: false,
-				},
-			},
-		},
-		{
-			Name: "Reset to free tier on destroy Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"security_center": []interface{}{
-						map[string]interface{}{
-							"reset_to_free_on_destroy": true,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				SecurityCenter: features.SecurityCenterFeatures{
-					ResetToFreeOnDestroy: true,
-				},
-			},
-		},
-		{
-			Name: "Reset to free tier on destroy Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"security_center": []interface{}{
-						map[string]interface{}{
-							"reset_to_free_on_destroy": false,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				SecurityCenter: features.SecurityCenterFeatures{
-					ResetToFreeOnDestroy: false,
-				},
-			},
-		},
-	}
-
-	for _, testCase := range testData {
-		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
-		result := expandFeatures(testCase.Input)
-		if !reflect.DeepEqual(result.SecurityCenter, testCase.Expected.SecurityCenter) {
-			t.Fatalf("Expected %+v but got %+v", result.SecurityCenter, testCase.Expected.SecurityCenter)
 		}
 	}
 }
