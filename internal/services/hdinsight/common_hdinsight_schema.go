@@ -666,25 +666,25 @@ func flattenHDInsightsConfigurations(input map[string]string, d *pluginsdk.Resou
 	return []interface{}{out}
 }
 
-func flattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*string) []interface{} {
+func flattenHDInsightsHiveMetastore(env map[string]string, site map[string]string) []interface{} {
 	server := ""
-	if v, exists := env["hive_hostname"]; exists && v != nil {
-		server = *v
+	if v, exists := env["hive_hostname"]; exists {
+		server = v
 	}
 
 	database := ""
-	if v, exists := env["hive_database_name"]; exists && v != nil {
-		database = *v
+	if v, exists := env["hive_database_name"]; exists {
+		database = v
 	}
 
 	username := ""
-	if v, exists := site["javax.jdo.option.ConnectionUserName"]; exists && v != nil {
-		username = *v
+	if v, exists := site["javax.jdo.option.ConnectionUserName"]; exists {
+		username = v
 	}
 
 	password := ""
-	if v, exists := site["javax.jdo.option.ConnectionPassword"]; exists && v != nil {
-		password = *v
+	if v, exists := site["javax.jdo.option.ConnectionPassword"]; exists {
+		password = v
 	}
 
 	if server != "" && database != "" {
@@ -701,25 +701,25 @@ func flattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*str
 	return nil
 }
 
-func flattenHDInsightsOozieMetastore(env map[string]*string, site map[string]*string) []interface{} {
+func flattenHDInsightsOozieMetastore(env map[string]string, site map[string]string) []interface{} {
 	server := ""
-	if v, exists := env["oozie_hostname"]; exists && v != nil {
-		server = *v
+	if v, exists := env["oozie_hostname"]; exists {
+		server = v
 	}
 
 	database := ""
-	if v, exists := env["oozie_database_name"]; exists && v != nil {
-		database = *v
+	if v, exists := env["oozie_database_name"]; exists {
+		database = v
 	}
 
 	username := ""
-	if v, exists := site["oozie.service.JPAService.jdbc.username"]; exists && v != nil {
-		username = *v
+	if v, exists := site["oozie.service.JPAService.jdbc.username"]; exists {
+		username = v
 	}
 
 	password := ""
-	if v, exists := site["oozie.service.JPAService.jdbc.password"]; exists && v != nil {
-		password = *v
+	if v, exists := site["oozie.service.JPAService.jdbc.password"]; exists {
+		password = v
 	}
 
 	if server != "" && database != "" {
