@@ -41,7 +41,7 @@ func (id AutomanageConfigurationId) ID() string {
 func AutomanageConfigurationID(input string) (*AutomanageConfigurationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an AutomanageConfiguration ID: %+v", input, err)
 	}
 
 	resourceId := AutomanageConfigurationId{
