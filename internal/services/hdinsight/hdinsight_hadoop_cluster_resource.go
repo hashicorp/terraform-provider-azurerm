@@ -366,7 +366,7 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("retrieving HDInsight Hadoop Cluster %q (Resource Group %q): %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation

@@ -31,7 +31,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 		if d.HasChange("tags") {
 
 			params := clusters.ClusterPatchParameters{
-				tags.Expand(d.Get("tags").(map[string]interface{})),
+				Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 			}
 			if _, err := client.Update(ctx, *id, params); err != nil {
 				return fmt.Errorf("updating Tags for %s: %+v", *id, err)
