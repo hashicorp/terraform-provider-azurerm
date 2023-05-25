@@ -36,7 +36,7 @@ func ParseScopeID(input string) (*ScopeId, error) {
 	id := ScopeId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	return &id, nil
@@ -55,7 +55,7 @@ func ParseScopeIDInsensitively(input string) (*ScopeId, error) {
 	id := ScopeId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	return &id, nil

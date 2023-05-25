@@ -85,12 +85,14 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							}, false),
 						},
 						"operation_name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"caller": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"level": {
 							Type:     pluginsdk.TypeString,
@@ -102,31 +104,112 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 								"Error",
 								"Critical",
 							}, false),
+							ConflictsWith: []string{"criteria.0.levels"},
+						},
+						"levels": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Verbose",
+									"Informational",
+									"Warning",
+									"Error",
+									"Critical",
+								}, false),
+							},
+							ConflictsWith: []string{"criteria.0.level"},
 						},
 						"resource_provider": {
-							Type:     pluginsdk.TypeString,
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  validation.StringIsNotEmpty,
+							ConflictsWith: []string{"criteria.0.resource_providers"},
+						},
+						"resource_providers": {
+							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							ConflictsWith: []string{"criteria.0.resource_provider"},
 						},
 						"resource_type": {
-							Type:     pluginsdk.TypeString,
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  validation.StringIsNotEmpty,
+							ConflictsWith: []string{"criteria.0.resource_types"},
+						},
+						"resource_types": {
+							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							ConflictsWith: []string{"criteria.0.resource_type"},
 						},
 						"resource_group": {
-							Type:     pluginsdk.TypeString,
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  validation.StringIsNotEmpty,
+							ConflictsWith: []string{"criteria.0.resource_groups"},
+						},
+						"resource_groups": {
+							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							ConflictsWith: []string{"criteria.0.resource_group"},
 						},
 						"resource_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  azure.ValidateResourceID,
+							ConflictsWith: []string{"criteria.0.resource_ids"},
+						},
+						"resource_ids": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							ConflictsWith: []string{"criteria.0.resource_id"},
 						},
 						"status": {
-							Type:     pluginsdk.TypeString,
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  validation.StringIsNotEmpty,
+							ConflictsWith: []string{"criteria.0.statuses"},
+						},
+						"statuses": {
+							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							ConflictsWith: []string{"criteria.0.status"},
 						},
 						"sub_status": {
-							Type:     pluginsdk.TypeString,
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  validation.StringIsNotEmpty,
+							ConflictsWith: []string{"criteria.0.sub_statuses"},
+						},
+						"sub_statuses": {
+							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							ConflictsWith: []string{"criteria.0.sub_status"},
 						},
 						"recommendation_category": {
 							Type:     pluginsdk.TypeString,
@@ -156,6 +239,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						"recommendation_type": {
 							Type:          pluginsdk.TypeString,
 							Optional:      true,
+							ValidateFunc:  validation.StringIsNotEmpty,
 							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
 						// lintignore:XS003
@@ -432,60 +516,112 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 			Equals: utils.String(category),
 		})
 	}
+
 	if op := v["operation_name"].(string); op != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("operationName"),
 			Equals: utils.String(op),
 		})
 	}
+
 	if caller := v["caller"].(string); caller != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("caller"),
 			Equals: utils.String(caller),
 		})
 	}
+
 	if level := v["level"].(string); level != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("level"),
 			Equals: utils.String(level),
 		})
 	}
+
+	if levels := v["levels"].([]interface{}); len(levels) > 0 {
+		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
+			AnyOf: expandAnyOfCondition(levels, "level"),
+		})
+	}
+
 	if resourceProvider := v["resource_provider"].(string); resourceProvider != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("resourceProvider"),
 			Equals: utils.String(resourceProvider),
 		})
 	}
+
+	if resourceProviders := v["resource_providers"].([]interface{}); len(resourceProviders) > 0 {
+		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
+			AnyOf: expandAnyOfCondition(resourceProviders, "resourceProvider"),
+		})
+	}
+
 	if resourceType := v["resource_type"].(string); resourceType != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("resourceType"),
 			Equals: utils.String(resourceType),
 		})
 	}
+
+	if resourceTypes := v["resource_types"].([]interface{}); len(resourceTypes) > 0 {
+		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
+			AnyOf: expandAnyOfCondition(resourceTypes, "resourceType"),
+		})
+	}
+
 	if resourceGroup := v["resource_group"].(string); resourceGroup != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("resourceGroup"),
 			Equals: utils.String(resourceGroup),
 		})
 	}
+
+	if resourceGroups := v["resource_groups"].([]interface{}); len(resourceGroups) > 0 {
+		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
+			AnyOf: expandAnyOfCondition(resourceGroups, "resourceGroup"),
+		})
+	}
+
 	if id := v["resource_id"].(string); id != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("resourceId"),
 			Equals: utils.String(id),
 		})
 	}
+
+	if resourceIds := v["resource_ids"].([]interface{}); len(resourceIds) > 0 {
+		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
+			AnyOf: expandAnyOfCondition(resourceIds, "resourceId"),
+		})
+	}
+
 	if status := v["status"].(string); status != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("status"),
 			Equals: utils.String(status),
 		})
 	}
+
+	if statuses := v["statuses"].([]interface{}); len(statuses) > 0 {
+		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
+			AnyOf: expandAnyOfCondition(statuses, "status"),
+		})
+	}
+
 	if subStatus := v["sub_status"].(string); subStatus != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("subStatus"),
 			Equals: utils.String(subStatus),
 		})
 	}
+
+	if statuses := v["sub_statuses"].([]interface{}); len(statuses) > 0 {
+		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
+			AnyOf: expandAnyOfCondition(statuses, "subStatus"),
+		})
+	}
+
 	if recommendationType := v["recommendation_type"].(string); recommendationType != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("properties.recommendationType"),
@@ -518,6 +654,17 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 	return activitylogalertsapis.AlertRuleAllOfCondition{
 		AllOf: conditions,
 	}
+}
+
+func expandAnyOfCondition(input []interface{}, field string) *[]activitylogalertsapis.AlertRuleLeafCondition {
+	conditions := make([]activitylogalertsapis.AlertRuleLeafCondition, 0)
+	for _, v := range input {
+		conditions = append(conditions, activitylogalertsapis.AlertRuleLeafCondition{
+			Field:  utils.String(field),
+			Equals: utils.String(v.(string)),
+		})
+	}
+	return &conditions
 }
 
 func expandResourceHealth(resourceHealth []interface{}, conditions []activitylogalertsapis.AlertRuleAnyOfOrLeafCondition) []activitylogalertsapis.AlertRuleAnyOfOrLeafCondition {
@@ -668,6 +815,50 @@ func flattenMonitorActivityLogAlertCriteria(input activitylogalertsapis.AlertRul
 				result[*condition.Field] = *condition.Equals
 			}
 		}
+
+		if condition.Field != nil && condition.ContainsAny != nil && len(*condition.ContainsAny) > 0 {
+			switch strings.ToLower(*condition.Field) {
+			case "resourceprovider":
+				result["resource_providers"] = *condition.ContainsAny
+			case "resourcetype":
+				result["resource_types"] = *condition.ContainsAny
+			case "resourcegroup":
+				result["resource_groups"] = *condition.ContainsAny
+			case "resourceid":
+				result["resource_ids"] = *condition.ContainsAny
+			case "substatus":
+				result["sub_statuses"] = *condition.ContainsAny
+			case "level":
+				result["levels"] = *condition.ContainsAny
+			case "status":
+				result["statuses"] = *condition.ContainsAny
+			}
+		}
+
+		if condition.AnyOf != nil && len(*condition.AnyOf) > 0 {
+			values := make([]string, 0)
+			for _, leafCondition := range *condition.AnyOf {
+				if leafCondition.Field != nil && leafCondition.Equals != nil {
+					values = append(values, *leafCondition.Equals)
+				}
+				switch strings.ToLower(*leafCondition.Field) {
+				case "resourceprovider":
+					result["resource_providers"] = values
+				case "resourcetype":
+					result["resource_types"] = values
+				case "resourcegroup":
+					result["resource_groups"] = values
+				case "resourceid":
+					result["resource_ids"] = values
+				case "substatus":
+					result["sub_statuses"] = values
+				case "level":
+					result["levels"] = values
+				case "status":
+					result["statuses"] = values
+				}
+			}
+		}
 	}
 
 	if result["category"] == "ResourceHealth" {
@@ -683,9 +874,10 @@ func flattenMonitorActivityLogAlertCriteria(input activitylogalertsapis.AlertRul
 
 func flattenMonitorActivityLogAlertResourceHealth(input activitylogalertsapis.AlertRuleAllOfCondition, result map[string]interface{}) {
 	rhResult := make(map[string]interface{})
+
 	for _, condition := range input.AllOf {
-		if condition.Field == nil && len(*condition.AnyOf) > 0 {
-			var values []string
+		if condition.Field == nil && condition.AnyOf != nil && len(*condition.AnyOf) > 0 {
+			values := []string{}
 			for _, cond := range *condition.AnyOf {
 				if cond.Field != nil && cond.Equals != nil {
 					values = append(values, *cond.Equals)
@@ -716,7 +908,7 @@ func flattenMonitorActivityLogAlertServiceHealth(input activitylogalertsapis.Ale
 				shResult["services"] = *condition.ContainsAny
 			}
 		}
-		if condition.Field == nil && len(*condition.AnyOf) > 0 {
+		if condition.Field == nil && condition.AnyOf != nil && len(*condition.AnyOf) > 0 {
 			events := []string{}
 			for _, evCond := range *condition.AnyOf {
 				if evCond.Field != nil && evCond.Equals != nil {

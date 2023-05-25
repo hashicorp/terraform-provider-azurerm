@@ -40,12 +40,14 @@ func (h HyperVReplicationPolicyAssociationResource) Arguments() map[string]*plug
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"hyperv_site_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: replicationfabrics.ValidateReplicationFabricID,
 		},
+
 		"policy_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,

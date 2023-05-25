@@ -93,6 +93,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// `sku` is not enum, https://github.com/Azure/azure-rest-api-specs/issues/23902
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,

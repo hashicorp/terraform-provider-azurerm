@@ -47,7 +47,7 @@ func (id ApiSchemaId) ID() string {
 func ApiSchemaID(input string) (*ApiSchemaId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an ApiSchema ID: %+v", input, err)
 	}
 
 	resourceId := ApiSchemaId{

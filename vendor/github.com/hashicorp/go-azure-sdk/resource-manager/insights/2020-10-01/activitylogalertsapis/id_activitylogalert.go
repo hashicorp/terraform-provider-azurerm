@@ -40,15 +40,15 @@ func ParseActivityLogAlertID(input string) (*ActivityLogAlertId, error) {
 	id := ActivityLogAlertId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ActivityLogAlertName, ok = parsed.Parsed["activityLogAlertName"]; !ok {
-		return nil, fmt.Errorf("the segment 'activityLogAlertName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "activityLogAlertName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseActivityLogAlertIDInsensitively(input string) (*ActivityLogAlertId, er
 	id := ActivityLogAlertId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ActivityLogAlertName, ok = parsed.Parsed["activityLogAlertName"]; !ok {
-		return nil, fmt.Errorf("the segment 'activityLogAlertName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "activityLogAlertName", *parsed)
 	}
 
 	return &id, nil
