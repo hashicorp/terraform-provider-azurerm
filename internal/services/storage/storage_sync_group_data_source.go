@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -30,7 +31,7 @@ func dataSourceStorageSyncGroup() *pluginsdk.Resource {
 			"storage_sync_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.StorageSyncId,
+				ValidateFunc: storagesyncservicesresource.ValidateStorageSyncServiceID,
 			},
 		},
 	}

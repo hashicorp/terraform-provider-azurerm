@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"         // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	storage_v2022_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/localusers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -35,10 +35,10 @@ type Client struct {
 	ManagementPoliciesClient    *storage.ManagementPoliciesClient
 	BlobServicesClient          *storage.BlobServicesClient
 	BlobInventoryPoliciesClient *storage.BlobInventoryPoliciesClient
-	CloudEndpointsClient        *storagesync.CloudEndpointsClient
 	EncryptionScopesClient      *storage.EncryptionScopesClient
 	Environment                 azure.Environment
 	FileServicesClient          *storage.FileServicesClient
+	SyncCloudEndpointsClient    *cloudendpointresource.CloudEndpointResourceClient
 	SyncServiceClient           *storagesyncservicesresource.StorageSyncServicesResourceClient
 	SyncGroupsClient            *syncgroupresource.SyncGroupResourceClient
 	SubscriptionId              string
@@ -71,9 +71,6 @@ func NewClient(options *common.ClientOptions) (*Client, error) {
 	blobInventoryPoliciesClient := storage.NewBlobInventoryPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&blobInventoryPoliciesClient.Client, options.ResourceManagerAuthorizer)
 
-	cloudEndpointsClient := storagesync.NewCloudEndpointsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&cloudEndpointsClient.Client, options.ResourceManagerAuthorizer)
-
 	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&encryptionScopesClient.Client, options.ResourceManagerAuthorizer)
 
@@ -85,6 +82,11 @@ func NewClient(options *common.ClientOptions) (*Client, error) {
 			c.Authorizer = options.ResourceManagerAuthorizer
 		})
 
+	syncCloudEndpointsClient, err := cloudendpointresource.NewCloudEndpointResourceClientWithBaseURI(options.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building clients for Cloud EndpointsClient Client: %+v", err)
+	}
+	options.Configure(syncCloudEndpointsClient.Client, options.Authorizers.ResourceManager)
 	syncServiceClient, err := storagesyncservicesresource.NewStorageSyncServicesResourceClientWithBaseURI(options.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building clients for Storage Sync Service Client: %+v", err)
@@ -107,12 +109,12 @@ func NewClient(options *common.ClientOptions) (*Client, error) {
 		ManagementPoliciesClient:    &managementPoliciesClient,
 		BlobServicesClient:          &blobServicesClient,
 		BlobInventoryPoliciesClient: &blobInventoryPoliciesClient,
-		CloudEndpointsClient:        &cloudEndpointsClient,
 		EncryptionScopesClient:      &encryptionScopesClient,
 		Environment:                 options.AzureEnvironment,
 		FileServicesClient:          &fileServicesClient,
 		ResourceManager:             &resourceManager,
 		SubscriptionId:              options.SubscriptionId,
+		SyncCloudEndpointsClient:    syncCloudEndpointsClient,
 		SyncServiceClient:           syncServiceClient,
 		SyncGroupsClient:            syncGroupsClient,
 
