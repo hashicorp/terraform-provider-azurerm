@@ -27,6 +27,11 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
+			"disable_bgp_route_propagation": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -109,11 +114,13 @@ func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 			if err := d.Set("subnets", flattenRouteTableDataSourceSubnets(props.Subnets)); err != nil {
 				return err
 			}
-		}
 
+			if err := d.Set("disable_bgp_route_propagation", props.DisableBgpRoutePropagation); err != nil {
+				return err
+			}
+		}
 		return tags.FlattenAndSet(d, model.Tags)
 	}
-
 	return nil
 }
 

@@ -44,6 +44,8 @@ The following attributes are exported:
 
 The `route` block exports the following:
 
+* `disable_bgp_route_propagation` - Boolean flag which controls propagation of routes learned by BGP on that route table.
+
 * `name` - The name of the Route.
 
 * `address_prefix` - The destination CIDR to which the route applies.
