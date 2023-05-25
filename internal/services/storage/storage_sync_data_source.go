@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -67,7 +68,7 @@ func dataSourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("incoming_traffic_policy", props.IncomingTrafficPolicy)
+			d.Set("incoming_traffic_policy", string(pointer.From(props.IncomingTrafficPolicy)))
 		}
 
 		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
