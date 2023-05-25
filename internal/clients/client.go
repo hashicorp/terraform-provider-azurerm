@@ -448,9 +448,11 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for SignalR: %+v", err)
 	}
 	client.Sql = sql.NewClient(o)
-	client.Storage = storage.NewClient(o)
-	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
+	if client.Storage, err = storage.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for StorageMover: %+v", err)
+	}
+	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
+		return fmt.Errorf("building Storage for StorageMover: %+v", err)
 	}
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
 	client.Subscription = subscription.NewClient(o)
