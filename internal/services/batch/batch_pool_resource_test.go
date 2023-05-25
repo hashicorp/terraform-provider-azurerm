@@ -483,7 +483,7 @@ func TestAccBatchPool_frontEndPortRanges(t *testing.T) {
 				check.That(data.ResourceName).Key("fixed_scale.0.target_dedicated_nodes").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 				check.That(data.ResourceName).Key("network_configuration.#").HasValue("1"),
-				check.That(data.ResourceName).Key("network_configuration.0.dynamic_vnet_assignment_scope").HasValue("None"),
+				check.That(data.ResourceName).Key("network_configuration.0.dynamic_vnet_assignment_scope").HasValue("none"),
 				check.That(data.ResourceName).Key("network_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_configuration.0.public_ips.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_configuration.0.endpoint_configuration.0.network_security_group_rules.0.source_port_ranges.0").HasValue("*"),
