@@ -140,7 +140,6 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 			"rotation_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -436,12 +435,12 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	if v, ok := d.GetOk("rotation_policy"); ok {
-		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
+	if d.HasChange("rotation_policy"); ok {
+		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name, expandKeyVaultKeyRotationPolicy(d.Get("rotation_policy"))); err != nil {
 			if utils.ResponseWasForbidden(respPolicy.Response) {
 				return fmt.Errorf("current client lacks permissions to update Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
 			}
-			return fmt.Errorf("Creating Key Rotation Policy: %+v", err)
+			return fmt.Errorf("creating Key Rotation Policy: %+v", err)
 		}
 	}
 
@@ -698,6 +697,10 @@ func expandKeyVaultKeyOptions(d *pluginsdk.ResourceData) *[]keyvault.JSONWebKeyO
 }
 
 func expandKeyVaultKeyRotationPolicy(v interface{}) keyvault.KeyRotationPolicy {
+	if v == nil || len(v.([]interface{})) == 0 {
+		return keyvault.KeyRotationPolicy{LifetimeActions: &[]keyvault.LifetimeActions{}}
+	}
+
 	policies := v.([]interface{})
 	policy := policies[0].(map[string]interface{})
 
@@ -775,7 +778,11 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 			trigger := ltAction.Trigger
 
 			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
-				policy["notify_before_expiry"] = *trigger.TimeBeforeExpiry
+				// Somehow a default is set after creation for notify_before_expiry
+				// Submitting this set value in the next run will not work though..
+				if policy["expire_after"] != nil {
+					policy["notify_before_expiry"] = *trigger.TimeBeforeExpiry
+				}
 			}
 
 			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionRotate)) {
@@ -791,10 +798,8 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 		}
 	}
 
-	// Somehow a default is set after creation for notify_before_expiry
-	// Submitting this set value in the next run will not work though..
-	if policy["expire_after"] == nil {
-		policy["notify_before_expiry"] = nil
+	if len(policy) == 0 {
+		return []interface{}{}
 	}
 
 	return []interface{}{policy}
