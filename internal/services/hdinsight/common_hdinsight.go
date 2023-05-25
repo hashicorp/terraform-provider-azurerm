@@ -359,24 +359,24 @@ func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
 	return config
 }
 
-func flattenHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[string]map[string]*string) {
+func flattenAndSetHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[string]map[string]string) {
 	result := map[string]interface{}{}
 
 	hiveEnv, envExists := configurations["hive-env"]
 	hiveSite, siteExists := configurations["hive-site"]
 	if envExists && siteExists {
-		result["hive"] = FlattenHDInsightsHiveMetastore(hiveEnv, hiveSite)
+		result["hive"] = flattenHDInsightsHiveMetastore(hiveEnv, hiveSite)
 	}
 
 	oozieEnv, envExists := configurations["oozie-env"]
 	oozieSite, siteExists := configurations["oozie-site"]
 	if envExists && siteExists {
-		result["oozie"] = FlattenHDInsightsOozieMetastore(oozieEnv, oozieSite)
+		result["oozie"] = flattenHDInsightsOozieMetastore(oozieEnv, oozieSite)
 	}
 
 	ambari, ambariExists := configurations["ambari-conf"]
 	if ambariExists {
-		result["ambari"] = FlattenHDInsightsAmbariMetastore(ambari)
+		result["ambari"] = flattenHDInsightsAmbariMetastore(ambari)
 	}
 
 	if len(result) > 0 {

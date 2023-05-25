@@ -645,15 +645,15 @@ func FlattenHDInsightsNetwork(input *clusters.NetworkProperties) []interface{} {
 	}
 }
 
-func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.ResourceData) []interface{} {
+func flattenHDInsightsConfigurations(input map[string]string, d *pluginsdk.ResourceData) []interface{} {
 	username := ""
-	if v, exists := input["restAuthCredential.username"]; exists && v != nil {
-		username = *v
+	if v, exists := input["restAuthCredential.username"]; exists {
+		username = v
 	}
 
 	password := ""
-	if v, exists := input["restAuthCredential.password"]; exists && v != nil {
-		password = *v
+	if v, exists := input["restAuthCredential.password"]; exists {
+		password = v
 	} else {
 		password = d.Get("gateway.0.password").(string)
 	}
@@ -666,7 +666,7 @@ func FlattenHDInsightsConfigurations(input map[string]*string, d *pluginsdk.Reso
 	return []interface{}{out}
 }
 
-func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*string) []interface{} {
+func flattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*string) []interface{} {
 	server := ""
 	if v, exists := env["hive_hostname"]; exists && v != nil {
 		server = *v
@@ -701,7 +701,7 @@ func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*str
 	return nil
 }
 
-func FlattenHDInsightsOozieMetastore(env map[string]*string, site map[string]*string) []interface{} {
+func flattenHDInsightsOozieMetastore(env map[string]*string, site map[string]*string) []interface{} {
 	server := ""
 	if v, exists := env["oozie_hostname"]; exists && v != nil {
 		server = *v
@@ -736,7 +736,7 @@ func FlattenHDInsightsOozieMetastore(env map[string]*string, site map[string]*st
 	return nil
 }
 
-func FlattenHDInsightsAmbariMetastore(conf map[string]*string) []interface{} {
+func flattenHDInsightsAmbariMetastore(conf map[string]*string) []interface{} {
 	server := ""
 	if v, exists := conf["database-server"]; exists && v != nil {
 		server = *v

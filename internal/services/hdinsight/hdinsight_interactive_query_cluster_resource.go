@@ -215,7 +215,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 			ClusterDefinition: &clusters.ClusterDefinition{
 				Kind:             pointer.To("INTERACTIVEHIVE"),
 				ComponentVersion: expandHDInsightInteractiveQueryComponentVersion(d.Get("component_version").([]interface{})),
-				Configurations:   configurations,
+				Configurations:   pointer.To(interface{}(configurations)),
 			},
 			StorageProfile: &clusters.StorageProfile{
 				Storageaccounts: storageAccounts,
@@ -302,10 +302,20 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 	if err != nil {
 		return fmt.Errorf("retrieving Configuration for %s: %+v", *id, err)
 	}
+	if model := configurations.Model; model != nil {
+		if config := configurations.Model.Configurations; config != nil {
+			flattenAndSetHDInsightsMetastores(d, *config)
 
-	gateway, exists := configurations.Configurations["gateway"]
-	if !exists {
-		return fmt.Errorf("retrieving gateway for %s: %+v", *id, err)
+			gateway, exists := (*config)["gateway"]
+			if !exists {
+				return fmt.Errorf("retrieving gateway for %s: %+v", id, err)
+			}
+
+			if err := d.Set("gateway", flattenHDInsightsConfigurations(gateway, d)); err != nil {
+				return fmt.Errorf("flattening `gateway`: %+v", err)
+			}
+
+		}
 	}
 
 	d.Set("name", id.ClusterName)
@@ -332,12 +342,6 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 			if err := d.Set("component_version", flattenHDInsightInteractiveQueryComponentVersion(def.ComponentVersion)); err != nil {
 				return fmt.Errorf("flattening `component_version`: %+v", err)
 			}
-
-			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway, d)); err != nil {
-				return fmt.Errorf("flattening `gateway`: %+v", err)
-			}
-
-			flattenHDInsightsMetastores(d, configurations.Configurations)
 
 			if props.EncryptionInTransitProperties != nil {
 				d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)

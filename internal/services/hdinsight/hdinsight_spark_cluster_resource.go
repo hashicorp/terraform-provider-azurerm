@@ -205,9 +205,9 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	params := clusters.ClusterCreateParametersExtended{
 		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &clusters.ClusterCreateProperties{
-			Tier:           tier,
+			Tier:           pointer.To(clusters.Tier(d.Get("tier").(string))),
 			OsType:         pointer.To(clusters.OSTypeLinux),
-			ClusterVersion: pointer.To(clusterVersion),
+			ClusterVersion: pointer.To(d.Get("cluster_version").(string)),
 			EncryptionInTransitProperties: &clusters.EncryptionInTransitProperties{
 				IsEncryptionInTransitEnabled: &encryptionInTransit,
 			},
@@ -216,7 +216,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			ClusterDefinition: &clusters.ClusterDefinition{
 				Kind:             pointer.To("Spark"),
 				ComponentVersion: expandHDInsightSparkComponentVersion(d.Get("component_version").([]interface{})),
-				Configurations:   configurations,
+				Configurations:   pointer.To(interface{}(configurations)),
 			},
 			StorageProfile: &clusters.StorageProfile{
 				Storageaccounts: storageAccounts,
@@ -303,10 +303,20 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return fmt.Errorf("retrieving Configuration for %s: %+v", id, err)
 	}
+	if model := configurations.Model; model != nil {
+		if config := configurations.Model.Configurations; config != nil {
+			flattenAndSetHDInsightsMetastores(d, *config)
 
-	gateway, exists := configurations.Configurations["gateway"]
-	if !exists {
-		return fmt.Errorf("retrieving gateway for %s: %+v", id, err)
+			gateway, exists := (*config)["gateway"]
+			if !exists {
+				return fmt.Errorf("retrieving gateway for %s: %+v", id, err)
+			}
+
+			if err := d.Set("gateway", flattenHDInsightsConfigurations(gateway, d)); err != nil {
+				return fmt.Errorf("flattening `gateway`: %+v", err)
+			}
+
+		}
 	}
 
 	d.Set("name", id.ClusterName)
@@ -332,12 +342,6 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 			if err := d.Set("component_version", flattenHDInsightSparkComponentVersion(def.ComponentVersion)); err != nil {
 				return fmt.Errorf("flattening `component_version`: %+v", err)
 			}
-
-			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway, d)); err != nil {
-				return fmt.Errorf("flattening `gateway`: %+v", err)
-			}
-
-			flattenHDInsightsMetastores(d, configurations.Configurations)
 
 			sparkRoles := hdInsightRoleDefinition{
 				HeadNodeDef:      hdInsightSparkClusterHeadNodeDefinition,

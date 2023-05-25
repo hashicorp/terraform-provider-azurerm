@@ -260,7 +260,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 			ClusterDefinition: &clusters.ClusterDefinition{
 				Kind:             pointer.To("Hadoop"),
 				ComponentVersion: expandHDInsightHadoopComponentVersion(d.Get("component_version").([]interface{})),
-				Configurations:   configurations,
+				Configurations:   pointer.To(interface{}(configurations)),
 			},
 			StorageProfile: &clusters.StorageProfile{
 				Storageaccounts: storageAccounts,
@@ -375,10 +375,20 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return fmt.Errorf("retrieving Configuration for %s: %+v", *id, err)
 	}
+	if model := configurations.Model; model != nil {
+		if config := configurations.Model.Configurations; config != nil {
+			flattenAndSetHDInsightsMetastores(d, *config)
 
-	gateway, exists := configurations.Configurations["gateway"]
-	if !exists {
-		return fmt.Errorf("retrieving gateway for %s: %+v", *id, err)
+			gateway, exists := (*config)["gateway"]
+			if !exists {
+				return fmt.Errorf("retrieving gateway for %s: %+v", id, err)
+			}
+
+			if err := d.Set("gateway", flattenHDInsightsConfigurations(gateway, d)); err != nil {
+				return fmt.Errorf("flattening `gateway`: %+v", err)
+			}
+
+		}
 	}
 
 	d.Set("name", id.ClusterName)
@@ -404,12 +414,6 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 			if err := d.Set("component_version", flattenHDInsightHadoopComponentVersion(def.ComponentVersion)); err != nil {
 				return fmt.Errorf("flattening `component_version`: %+v", err)
 			}
-
-			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway, d)); err != nil {
-				return fmt.Errorf("flattening `gateway`: %+v", err)
-			}
-
-			flattenHDInsightsMetastores(d, configurations.Configurations)
 
 			if props.NetworkProperties != nil {
 				if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
