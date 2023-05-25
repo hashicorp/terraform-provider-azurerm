@@ -371,12 +371,12 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
 	configId := configurations.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
-	configurations, err := configurationsClient.List(ctx, configId)
+	configs, err := configurationsClient.List(ctx, configId)
 	if err != nil {
 		return fmt.Errorf("retrieving Configuration for %s: %+v", *id, err)
 	}
-	if model := configurations.Model; model != nil {
-		if config := configurations.Model.Configurations; config != nil {
+	if model := configs.Model; model != nil {
+		if config := configs.Model.Configurations; config != nil {
 			flattenAndSetHDInsightsMetastores(d, *config)
 
 			gateway, exists := (*config)["gateway"]

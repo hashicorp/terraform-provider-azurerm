@@ -736,25 +736,25 @@ func flattenHDInsightsOozieMetastore(env map[string]string, site map[string]stri
 	return nil
 }
 
-func flattenHDInsightsAmbariMetastore(conf map[string]*string) []interface{} {
+func flattenHDInsightsAmbariMetastore(conf map[string]string) []interface{} {
 	server := ""
-	if v, exists := conf["database-server"]; exists && v != nil {
-		server = *v
+	if v, exists := conf["database-server"]; exists {
+		server = v
 	}
 
 	database := ""
-	if v, exists := conf["database-name"]; exists && v != nil {
-		database = *v
+	if v, exists := conf["database-name"]; exists {
+		database = v
 	}
 
 	username := ""
-	if v, exists := conf["database-user-name"]; exists && v != nil {
-		username = *v
+	if v, exists := conf["database-user-name"]; exists {
+		username = v
 	}
 
 	password := ""
-	if v, exists := conf["database-user-password"]; exists && v != nil {
-		password = *v
+	if v, exists := conf["database-user-password"]; exists {
+		password = v
 	}
 
 	if server != "" && database != "" {

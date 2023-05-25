@@ -125,9 +125,14 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	configId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, "gateway")
-	configuration, err := configurationsClient.Get(ctx, configId)
+	config, err := configurationsClient.Get(ctx, configId)
 	if err != nil {
 		return fmt.Errorf("retrieving Configuration for %s: %+v", id, err)
+	}
+	if model := config.Model; model != nil {
+		if err := d.Set("gateway", flattenHDInsightsConfigurations(*model, d)); err != nil {
+			return fmt.Errorf("flattening `gateway`: %+v", err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -147,9 +152,6 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("component_versions", flattenHDInsightsDataSourceComponentVersions(def.ComponentVersion))
 			if kind := def.Kind; kind != nil {
 				d.Set("kind", strings.ToLower(*kind))
-			}
-			if err := d.Set("gateway", flattenHDInsightsConfigurations(configuration.Value, d)); err != nil {
-				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 
 			edgeNodeSshEndpoint := FindHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints)
