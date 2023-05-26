@@ -893,6 +893,13 @@ func resourceMediaTransform() *pluginsdk.Resource {
 											},
 										},
 									},
+									"experimental_options": {
+										Type:     pluginsdk.TypeMap,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
 									"filter": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -1404,6 +1411,11 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 			return nil, err
 		}
 
+		experimentalOptions, err := expandExperimentalOptions(preset["experimental_options"].(map[string]interface{}))
+		if err != nil {
+			return nil, err
+		}
+
 		filters, err := expandCustomPresetFilters(preset["filter"].([]interface{}))
 		if err != nil {
 			return nil, err
@@ -1414,9 +1426,10 @@ func expandPreset(transform map[string]interface{}) (encodings.Preset, error) {
 			return nil, err
 		}
 		builtInPreset := &encodings.StandardEncoderPreset{
-			Codecs:  codecs,
-			Filters: filters,
-			Formats: formats,
+			Codecs:              codecs,
+			ExperimentalOptions: experimentalOptions,
+			Filters:             filters,
+			Formats:             formats,
 		}
 		return builtInPreset, nil
 	}
@@ -1514,9 +1527,10 @@ func flattenPreset(input encodings.Preset) flattenedPresets {
 
 	if v, ok := input.(encodings.StandardEncoderPreset); ok {
 		out.customPresets = append(out.customPresets, map[string]interface{}{
-			"codec":  flattenCustomPresetCodecs(v.Codecs),
-			"filter": flattenCustomPresetFilters(v.Filters),
-			"format": flattenCustomPresetFormats(v.Formats),
+			"codec":                flattenCustomPresetCodecs(v.Codecs),
+			"experimental_options": flattenExperimentalOptions(v.ExperimentalOptions),
+			"filter":               flattenCustomPresetFilters(v.Filters),
+			"format":               flattenCustomPresetFormats(v.Formats),
 		})
 	}
 
@@ -1684,7 +1698,7 @@ func expandExperimentalOptions(input map[string]interface{}) (*map[string]string
 		key := k
 		value, ok := v.(string)
 		if !ok {
-			return nil, fmt.Errorf(" experimental options value %q to be a string", value)
+			return nil, fmt.Errorf("expect experimental options value %q to be a string", value)
 		}
 		output[key] = value
 	}
