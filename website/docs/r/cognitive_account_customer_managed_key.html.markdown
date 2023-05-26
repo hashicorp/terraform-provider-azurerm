@@ -35,7 +35,7 @@ resource "azurerm_cognitive_account" "example" {
   sku_name              = "E0"
   custom_subdomain_name = "example-account"
   identity {
-    type         = "UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.example.id]
   }
 }

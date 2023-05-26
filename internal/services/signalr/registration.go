@@ -18,6 +18,8 @@ func (r Registration) AssociatedGitHubLabel() string {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		CustomDomainSignalrServiceResource{},
+		CustomDomainWebPubsubResource{},
 		CustomCertWebPubsubResource{},
 		CustomCertSignalrServiceResource{},
 	}

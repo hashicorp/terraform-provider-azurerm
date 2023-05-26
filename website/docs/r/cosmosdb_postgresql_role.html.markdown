@@ -29,7 +29,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "example" {
 }
 
 resource "azurerm_cosmosdb_postgresql_role" "example" {
-  name       = "example-pshscr"
+  name       = "examplerole"
   cluster_id = azurerm_cosmosdb_postgresql_cluster.example.id
   password   = "H@Sh1CoR3!"
 }
