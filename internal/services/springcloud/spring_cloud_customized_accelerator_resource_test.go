@@ -310,5 +310,5 @@ resource "azurerm_spring_cloud_customized_accelerator" "test" {
     ca_certificate_id = azurerm_spring_cloud_certificate.test.id
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomIntOfLength(10))
 }
