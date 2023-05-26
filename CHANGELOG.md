@@ -29,18 +29,18 @@ ENHANCEMENTS:
 * `azurerm_monitor_activity_log_alert` - support for the `levels`, `resource_providers`, `resource_types`, `resource_groups`, `resource_ids`, `statuses`, and `sub_statuses` properties [GH-21367]
 * `azurerm_media_transform` - support for the `experimental_options` property [GH-21873]
 * `azurerm_backup_policy_vm` - Support for the `days` and `include_last_days` properties [GH-21434]
-* `azurerm_subnet` - `name` within the `subnet_delegation` block can now be set to `Microsoft.App/environments` [GH-21893]
+* `azurerm_subnet` - the `name` property within the `subnet_delegation` block can now be set to `Microsoft.App/environments` [GH-21893]
 * `azurerm_subnet_service_endpoint_policy` - support for the `service` property [GH-21865]
 * `azurerm_signalr_service` - support for the `user_assigned_identity_id` property [GH-21055]
 * `azurerm_site_recovery_replication_recovery_plan` - support for the `azure_to_azure_settings` block [GH-21666]
-* `azurerm_cosmosdb_postgresql_cluster` - support for value `11.3` in `citus_version` [GH-21916]
+* `azurerm_cosmosdb_postgresql_cluster` - the `citus_version` property now supports `11.3` [GH-21916]
 
 BUG FIXES:
 
 * Data Source: `azurerm_kubernetes_cluster` - prevent a panic when some values returned are nil [GH-21867]
-* `azurerm_application_insights_web_test` - normalizing the value for `application_insights_id` [GH-21837]
-* `azurerm_api_management` - correctly set `triple_des_ciphers_enabled` value [GH-21789]
-* `azurerm_key_vault` - on creation if not recovering `createMode` will now be `default` instead of left as `nil` [GH-21668]
+* `azurerm_application_insights_web_test` - normalizing the value for the `application_insights_id` property [GH-21837]
+* `azurerm_api_management` - correctly configure the `triple_des_ciphers_enabled` value [GH-21789]
+* `azurerm_key_vault` - during creation the`createMode` will now be set to `default` instead of `nil` [GH-21668]
 * `azurerm_spring_cloud_gateway_route_config` -  the `filters` and `predicates` properties will now be omitted when not specified [GH-21745]
 * `azurerm_subnet` - permit `Microsoft.BareMetal/AzureHostedService` as an option for the `service_delegation` property [GH-21871]
 
