@@ -28,7 +28,7 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_account` - fix for upstream Microsoft API issue where updating `identity` and `default_identity` at the same time silently fails [GH-21780]
 * `azurerm_monitor_activity_log_alert` - support for the `levels`, `resource_providers`, `resource_types`, `resource_groups`, `resource_ids`, `statuses`, and `sub_statuses` properties [GH-21367]
 * `azurerm_media_transform` - support for the `experimental_options` property [GH-21873]
-* `azurerm_backup_policy_vm` - Support for the `days` and `include_last_days` properties [GH-21434]
+* `azurerm_backup_policy_vm` - support for the `days` and `include_last_days` properties [GH-21434]
 * `azurerm_subnet` - the `name` property within the `subnet_delegation` block can now be set to `Microsoft.App/environments` [GH-21893]
 * `azurerm_subnet_service_endpoint_policy` - support for the `service` property [GH-21865]
 * `azurerm_signalr_service` - support for the `user_assigned_identity_id` property [GH-21055]
