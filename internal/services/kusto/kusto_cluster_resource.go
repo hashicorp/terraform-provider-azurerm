@@ -164,25 +164,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"language_extensions": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
-				},
-			},
-
-			"language_extension_python_image": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      clusters.LanguageExtensionImageNamePythonThreeSixFive,
-				ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
-				RequiredWith: []string{
-					"language_extensions",
-				},
-			},
-
 			"engine": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -257,8 +238,35 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 	if features.FourPointOhBeta() {
 		s.Schema["engine"].Default = string(clusters.EngineTypeVThree)
+		s.Schema["language_extensions"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			ConflictsWith: []string{"language_extensions"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
+					},
+					"image": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
+					},
+				},
+			},
+		}
 	} else {
 		s.Schema["engine"].Default = string(clusters.EngineTypeVTwo)
+		s.Schema["language_extensions"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{"R", "PYTHON", "PYTHON_3.10.8"}, false),
+			},
+		}
 	}
 
 	return s
@@ -359,7 +367,14 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 	clusterProperties.RestrictOutboundNetworkAccess = &restrictOutboundNetworkAccess
 
-	clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensions(d)
+	if features.FourPointOhBeta() {
+		if v, ok := d.GetOk("language_extensions"); ok {
+			extList := v.([]interface{})
+			clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(extList)
+		}
+	} else {
+		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensions(d)
+	}
 
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -448,12 +463,16 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("streaming_ingestion_enabled", props.EnableStreamingIngest)
 			d.Set("purge_enabled", props.EnablePurge)
 			d.Set("virtual_network_configuration", flattenKustoClusterVNET(props.VirtualNetworkConfiguration))
-			d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
-			d.Set("language_extension_python_image", flattenKustoClusterLanguageExtensionPythonImage(props.LanguageExtensions))
 			d.Set("uri", props.Uri)
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
 			d.Set("engine", string(pointer.From(props.EngineType)))
 			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
+
+			if features.FourPointOhBeta() {
+				d.Set("language_extensions", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
+			} else {
+				d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
+			}
 
 		}
 
@@ -582,10 +601,12 @@ func expandKustoClusterLanguageExtensions(d *pluginsdk.ResourceData) *clusters.L
 					lanExt.LanguageExtensionImageName = &imageName
 				} else if name == clusters.LanguageExtensionNamePYTHON {
 					imageName := clusters.LanguageExtensionImageNamePythonThreeSixFive
-					if img, ok := d.GetOk("language_extension_python_image"); ok {
-						imageName = clusters.LanguageExtensionImageName(img.(string))
-					}
 					lanExt.LanguageExtensionImageName = &imageName
+				} else if name == "PYTHON_3.10.8" {
+					imageName := clusters.LanguageExtensionImageNamePythonThreeOneZeroEight
+					lanExt.LanguageExtensionImageName = &imageName
+				} else {
+					continue
 				}
 				extensions = append(extensions, lanExt)
 			}
@@ -594,6 +615,27 @@ func expandKustoClusterLanguageExtensions(d *pluginsdk.ResourceData) *clusters.L
 			}
 		}
 	}
+	return nil
+}
+
+func expandKustoClusterLanguageExtensionList(input []interface{}) *clusters.LanguageExtensionsList {
+	if len(input) > 0 {
+		extensions := make([]clusters.LanguageExtension, 0)
+		for _, ext := range input {
+			extMap := ext.(map[string]interface{})
+			name := clusters.LanguageExtensionName(extMap["name"].(string))
+			image := clusters.LanguageExtensionImageName(extMap["image"].(string))
+			lanExt := clusters.LanguageExtension{
+				LanguageExtensionName:      &name,
+				LanguageExtensionImageName: &image,
+			}
+			extensions = append(extensions, lanExt)
+		}
+		return &clusters.LanguageExtensionsList{
+			Value: &extensions,
+		}
+	}
+
 	return nil
 }
 
@@ -635,21 +677,36 @@ func flattenKustoClusterLanguageExtensions(extensions *clusters.LanguageExtensio
 	output := make([]interface{}, 0)
 	if extensions.Value != nil {
 		for _, v := range *extensions.Value {
-			output = append(output, v.LanguageExtensionName)
+			if *v.LanguageExtensionImageName == clusters.LanguageExtensionImageNameR {
+				output = append(output, "R")
+			} else if *v.LanguageExtensionImageName == clusters.LanguageExtensionImageNamePythonThreeSixFive {
+				output = append(output, "PYTHON")
+			} else if *v.LanguageExtensionImageName == clusters.LanguageExtensionImageNamePythonThreeOneZeroEight {
+				output = append(output, "PYTHON_3.10.8")
+			}
 		}
 	}
 
 	return output
 }
 
-func flattenKustoClusterLanguageExtensionPythonImage(extensions *clusters.LanguageExtensionsList) string {
-	output := string(clusters.LanguageExtensionImageNamePythonThreeSixFive)
-	if extensions != nil && extensions.Value != nil {
+func flattenKustoClusterLanguageExtensionList(extensions *clusters.LanguageExtensionsList) []interface{} {
+	if extensions == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+	if extensions.Value != nil {
 		for _, v := range *extensions.Value {
-			if *v.LanguageExtensionName == clusters.LanguageExtensionNamePYTHON {
-				output = string(*v.LanguageExtensionImageName)
-			}
+			output = append(
+				output,
+				map[string]interface{}{
+					"name":  string(*v.LanguageExtensionName),
+					"image": string(*v.LanguageExtensionImageName),
+				},
+			)
 		}
 	}
+
 	return output
 }
