@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `nginx`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
 * `portal`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
 * `redis`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
+* `appplatform`: updating to API Version `2023-03-01-preview` [GH-21404]
 * `redisenterprise`: updating to use `hashicorp/go-azure-sdk` as a base layer rather than `Azure/go-autorest` [GH-21810]
 * `azurerm_cosmosdb_account` - fix for upstream Microsoft API issue where updating `identity` and `default_identity` at the same time silently fails [GH-21780]
 * `azurerm_monitor_activity_log_alert` - support for the `levels`, `resource_providers`, `resource_types`, `resource_groups`, `resource_ids`, `statuses`, and `sub_statuses` properties [GH-21367]
