@@ -285,7 +285,7 @@ func resourceMonitorAADDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta i
 
 	if d.HasChange("enabled_log") {
 		logsChanged = true
-		logs = expandMonitorAADDiagnosticsSettingsEnabledLogs(d.Get("enabled_log").(*pluginsdk.Set).List())
+		logs = append(logs, expandMonitorAADDiagnosticsSettingsEnabledLogs(d.Get("enabled_log").(*pluginsdk.Set).List())...)
 		valid = true
 	}
 
