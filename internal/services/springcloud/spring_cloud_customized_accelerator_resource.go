@@ -30,6 +30,7 @@ type GitRepositoryModel struct {
 	BasicAuth         []BasicAuthModel `tfschema:"basic_auth"`
 	SshAuth           []SshAuthModel   `tfschema:"ssh_auth"`
 	Branch            string           `tfschema:"branch"`
+	CaCertificateId   string           `tfschema:"ca_certificate_id"`
 	Commit            string           `tfschema:"commit"`
 	GitTag            string           `tfschema:"git_tag"`
 	IntervalInSeconds int              `tfschema:"interval_in_seconds"`
@@ -151,6 +152,12 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 						Optional:     true,
 						ExactlyOneOf: []string{"git_repository.0.branch", "git_repository.0.commit", "git_repository.0.git_tag"},
 						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"ca_certificate_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.SpringCloudCertificateID,
 					},
 
 					"commit": {
@@ -404,12 +411,15 @@ func expandSpringCloudCustomizedAcceleratorGitRepository(repository []GitReposit
 	}
 	repo := repository[0]
 	var authSetting appplatform.BasicAcceleratorAuthSetting
-	authSetting = appplatform.AcceleratorPublicSetting{}
+	authSetting = appplatform.AcceleratorPublicSetting{
+		CaCertResourceID: utils.String(repo.CaCertificateId),
+	}
 	if len(repo.BasicAuth) != 0 {
 		basicAuth := repo.BasicAuth[0]
 		authSetting = appplatform.AcceleratorBasicAuthSetting{
-			Username: utils.String(basicAuth.Username),
-			Password: utils.String(basicAuth.Password),
+			Username:         utils.String(basicAuth.Username),
+			Password:         utils.String(basicAuth.Password),
+			CaCertResourceID: utils.String(repo.CaCertificateId),
 		}
 	}
 	if len(repo.SshAuth) != 0 {
@@ -439,7 +449,15 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 	}
 
 	basicAuth := make([]BasicAuthModel, 0)
+
+	caCertificateId := ""
+	if publicAuthSetting, ok := input.AuthSetting.AsAcceleratorPublicSetting(); ok && publicAuthSetting != nil && publicAuthSetting.CaCertResourceID != nil {
+		caCertificateId = *publicAuthSetting.CaCertResourceID
+	}
 	if basicAuthSetting, ok := input.AuthSetting.AsAcceleratorBasicAuthSetting(); ok && basicAuthSetting != nil {
+		if basicAuthSetting.CaCertResourceID != nil {
+			caCertificateId = *basicAuthSetting.CaCertResourceID
+		}
 		var basicAuthState BasicAuthModel
 		if len(state) != 0 && len(state[0].BasicAuth) != 0 {
 			basicAuthState = state[0].BasicAuth[0]
@@ -489,6 +507,7 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 			BasicAuth:         basicAuth,
 			SshAuth:           sshAuth,
 			Branch:            branch,
+			CaCertificateId:   caCertificateId,
 			Commit:            commit,
 			GitTag:            gitTag,
 			IntervalInSeconds: intervalInSeconds,
