@@ -30,6 +30,9 @@ func appConfigurationGetKeyRefreshFunc(ctx context.Context, client *appconfigura
 				if utils.ResponseWasForbidden(autorest.Response{Response: v.Response}) {
 					return "Forbidden", "Forbidden", nil
 				}
+				if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+					return "NotFound", "NotFound", nil
+				}
 			}
 			return res, "Error", nil
 		}
