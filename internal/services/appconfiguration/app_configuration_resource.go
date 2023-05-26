@@ -309,6 +309,16 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(resourceId.ID())
+
+	resp, err := client.Get(ctx, resourceId)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", resourceId, err)
+	}
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Endpoint == nil {
+		return fmt.Errorf("retrieving %s: `model.properties.Endpoint` was nil", resourceId)
+	}
+	meta.(*clients.Client).AppConfiguration.AddToCache(resourceId, *resp.Model.Properties.Endpoint)
+
 	return resourceAppConfigurationRead(d, meta)
 }
 
@@ -581,6 +591,8 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		}
 		log.Printf("[DEBUG] Purged AppConfiguration %q.", id.ConfigurationStoreName)
 	}
+
+	meta.(*clients.Client).AppConfiguration.RemoveFromCache(*id)
 
 	return nil
 }

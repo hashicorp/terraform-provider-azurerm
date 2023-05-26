@@ -135,7 +135,7 @@ func (c Client) Exists(ctx context.Context, configurationStoreId configurationst
 	return true, nil
 }
 
-func (c Client) Purge(configurationStoreId configurationstores.ConfigurationStoreId) {
+func (c Client) RemoveFromCache(configurationStoreId configurationstores.ConfigurationStoreId) {
 	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigurationStoreName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
