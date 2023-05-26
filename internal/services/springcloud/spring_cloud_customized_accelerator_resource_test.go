@@ -57,6 +57,20 @@ func TestAccSpringCloudCustomizedAccelerator_complete(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudCustomizedAccelerator_caCertificateId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_customized_accelerator", "test")
+	r := SpringCloudCustomizedAcceleratorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.caCertificateId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSpringCloudCustomizedAccelerator_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_customized_accelerator", "test")
 	r := SpringCloudCustomizedAcceleratorResource{}
