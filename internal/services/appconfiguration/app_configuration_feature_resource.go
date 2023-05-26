@@ -223,7 +223,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", featureKey, err)
+				return fmt.Errorf("waiting for App Configuration Feature %q read permission to be propagated: %+v", featureKey, err)
 			}
 
 			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
@@ -248,14 +248,14 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			stateConf = &pluginsdk.StateChangeConf{
 				Pending:                   []string{"NotFound"},
 				Target:                    []string{"Exists"},
-				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
 				PollInterval:              10 * time.Second,
 				ContinuousTargetOccurence: 2,
 				Timeout:                   time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for App Configuration Feature %q read permission to be propagated: %+v", model.Key, err)
+				return fmt.Errorf("waiting for App Configuration Feature %q to be provisioned: %+v", featureKey, err)
 			}
 
 			metadata.SetID(nestedItemId)
