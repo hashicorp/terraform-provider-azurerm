@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -84,11 +85,10 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 			},
 
 			"enabled_log": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      !features.FourPointOhBeta(),
-				ConflictsWith: []string{"log"},
-				AtLeastOneOf:  []string{"enabled_log", "log"},
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				Computed:     !features.FourPointOhBeta(),
+				ExactlyOneOf: []string{"enabled_log", "log"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
@@ -129,7 +129,7 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 			Optional:     true,
 			Computed:     true,
 			Deprecated:   "`log` has been superseded by `enabled_log` and will be removed in version 4.0 of the AzureRM Provider.",
-			AtLeastOneOf: []string{"enabled_log", "log"},
+			ExactlyOneOf: []string{"enabled_log", "log"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"category": {
@@ -457,12 +457,18 @@ func expandMonitorAADDiagnosticsSettingsLogs(input []interface{}) []aad.LogSetti
 	results := make([]aad.LogSettings, 0)
 
 	for _, raw := range input {
+		if raw == nil {
+			continue
+		}
 		v := raw.(map[string]interface{})
 
 		category := v["category"].(string)
 		enabled := v["enabled"].(bool)
 
 		policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
+		if len(v["retention_policy"].([]interface{})) == 0 || v["retention_policy"].([]interface{})[0] == nil {
+			continue
+		}
 		retentionDays := policyRaw["days"].(int)
 		retentionEnabled := policyRaw["enabled"].(bool)
 
@@ -485,9 +491,15 @@ func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []aad.L
 	results := make([]aad.LogSettings, 0)
 
 	for _, raw := range input {
+		if raw == nil {
+			continue
+		}
 		v := raw.(map[string]interface{})
 
 		category := v["category"].(string)
+		if len(v["retention_policy"].([]interface{})) == 0 || v["retention_policy"].([]interface{})[0] == nil {
+			continue
+		}
 		policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
 		retentionDays := policyRaw["days"].(int)
 		retentionEnabled := policyRaw["enabled"].(bool)
@@ -514,34 +526,17 @@ func flattenMonitorAADDiagnosticLogs(input *[]aad.LogSettings) []interface{} {
 	}
 
 	for _, v := range *input {
-		category := string(v.Category)
-
-		enabled := false
-		if v.Enabled != nil {
-			enabled = *v.Enabled
-		}
-
 		policies := make([]interface{}, 0)
 		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-			days := 0
-			if inputPolicy.Days != nil {
-				days = int(*inputPolicy.Days)
-			}
-
-			enabled := false
-			if inputPolicy.Enabled != nil {
-				enabled = *inputPolicy.Enabled
-			}
-
 			policies = append(policies, map[string]interface{}{
-				"days":    days,
-				"enabled": enabled,
+				"days":    int(pointer.From(inputPolicy.Days)),
+				"enabled": pointer.From(inputPolicy.Enabled),
 			})
 		}
 
 		results = append(results, map[string]interface{}{
-			"category":         category,
-			"enabled":          enabled,
+			"category":         string(v.Category),
+			"enabled":          pointer.From(v.Enabled),
 			"retention_policy": policies,
 		})
 	}
@@ -556,36 +551,21 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]aad.LogSettings) []interfac
 	}
 
 	for _, v := range *input {
-		category := string(v.Category)
-
-		enabled := false
-		if v.Enabled != nil {
-			enabled = *v.Enabled
-		}
+		enabled := pointer.From(v.Enabled)
 		if !enabled {
 			continue
 		}
 
 		policies := make([]interface{}, 0)
 		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-			days := 0
-			if inputPolicy.Days != nil {
-				days = int(*inputPolicy.Days)
-			}
-
-			enabled := false
-			if inputPolicy.Enabled != nil {
-				enabled = *inputPolicy.Enabled
-			}
-
 			policies = append(policies, map[string]interface{}{
-				"days":    days,
-				"enabled": enabled,
+				"days":    int(pointer.From(inputPolicy.Days)),
+				"enabled": pointer.From(inputPolicy.Enabled),
 			})
 		}
 
 		results = append(results, map[string]interface{}{
-			"category":         category,
+			"category":         string(v.Category),
 			"retention_policy": policies,
 		})
 	}
