@@ -161,7 +161,7 @@ func resourceVirtualHubConnectionSchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"static_route_propagate_enabled": { // keep it in root block to make default work
+		"static_route_propagation_enabled": { // keep it in root block to make default work
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
@@ -219,7 +219,7 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	connection.HubVirtualNetworkConnectionProperties.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes = pointer.To(d.Get("static_route_propagate_enabled").(bool))
+	connection.HubVirtualNetworkConnectionProperties.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes = pointer.To(d.Get("static_route_propagation_enabled").(bool))
 
 	if v, ok := d.GetOk("vnet_local_route_override_enabled"); ok {
 		// 'Contains' for false, `Equals` for true reference:https://github.com/Azure/azure-powershell/blob/main/src/Network/Network/help/New-AzRoutingConfiguration.md#-vnetlocalrouteoverridecriteria
@@ -316,7 +316,7 @@ func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{
 		if props.RoutingConfiguration != nil && props.RoutingConfiguration.VnetRoutes != nil && props.RoutingConfiguration.VnetRoutes.StaticRoutesConfig != nil {
 			d.Set("vnet_local_route_override_enabled", props.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria == network.VnetLocalRouteOverrideCriteriaEqual)
 			if props.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes != nil {
-				d.Set("static_route_propagate_enabled", pointer.From(props.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes))
+				d.Set("static_route_propagation_enabled", pointer.From(props.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes))
 			}
 		}
 	}

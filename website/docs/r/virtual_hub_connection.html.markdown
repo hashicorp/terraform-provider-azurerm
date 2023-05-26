@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `vnet_local_route_override_enabled` - (Optional) whether the Network Virtual Appliance (NVA) in the spoke virtual network (vnet) should be bypassed for traffic destined for the local vnet. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `static_route_propagate_enabled` - (Optional) Whether static routes on this connection are automatically propagate to route tables which this connection propagates to. Defaults to `true`.
+* `static_route_propagation_enabled` - (Optional) Whether static routes on this connection are automatically propagate to route tables which this connection propagates to. Defaults to `true`.
 
 * `routing` - (Optional) A `routing` block as defined below.
 

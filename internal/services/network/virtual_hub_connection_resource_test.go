@@ -567,7 +567,7 @@ resource "azurerm_virtual_hub_connection" "test" {
     }
   }
   vnet_local_route_override_enabled = %[3]t
-  static_route_propagate_enabled    = false
+  static_route_propagation_enabled  = false
 }
 `, r.template(data), data.RandomInteger, staticPropagate)
 }
