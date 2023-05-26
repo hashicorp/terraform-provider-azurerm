@@ -23,6 +23,7 @@ func TestAccDataSourceAzureRMVirtualMachine_basicLinux(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("private_ip_address").HasValue("10.0.2.4"),
+				check.That(data.ResourceName).Key("power_state").Exists(),
 			),
 		},
 	})
@@ -41,6 +42,7 @@ func TestAccDataSourceAzureRMVirtualMachine_basicWindows(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("private_ip_address").HasValue("10.0.2.4"),
+				check.That(data.ResourceName).Key("power_state").Exists(),
 			),
 		},
 	})
