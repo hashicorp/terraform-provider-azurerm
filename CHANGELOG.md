@@ -4,6 +4,7 @@ FEATURES:
 
 * **New data Source:** `azurerm_mobile_network_packet_core_control_plane` [GH-21071]
 * **New Resource:** `azurerm_cosmosdb_mongo_role_definition` [GH-21754]
+* **New Resource:** `azurerm_cosmosdb_mongo_user_definition` [GH-21914]
 * **New Resource:** `azurerm_iothub_file_upload` [GH-20668]
 * **New Resource:** `azurerm_mobile_network_packet_core_control_plane` [GH-21071]
 * **New Resource:** `azurerm_mysql_flexible_server_active_directory_administrator` [GH-21786]
