@@ -411,15 +411,19 @@ func expandSpringCloudCustomizedAcceleratorGitRepository(repository []GitReposit
 	}
 	repo := repository[0]
 	var authSetting appplatform.BasicAcceleratorAuthSetting
+	var caCertResourceID *string
+	if repo.CaCertificateId != "" {
+		caCertResourceID = utils.String(repo.CaCertificateId)
+	}
 	authSetting = appplatform.AcceleratorPublicSetting{
-		CaCertResourceID: utils.String(repo.CaCertificateId),
+		CaCertResourceID: caCertResourceID,
 	}
 	if len(repo.BasicAuth) != 0 {
 		basicAuth := repo.BasicAuth[0]
 		authSetting = appplatform.AcceleratorBasicAuthSetting{
 			Username:         utils.String(basicAuth.Username),
 			Password:         utils.String(basicAuth.Password),
-			CaCertResourceID: utils.String(repo.CaCertificateId),
+			CaCertResourceID: caCertResourceID,
 		}
 	}
 	if len(repo.SshAuth) != 0 {
