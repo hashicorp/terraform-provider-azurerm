@@ -592,17 +592,21 @@ func expandKustoClusterLanguageExtensions(d *pluginsdk.ResourceData) *clusters.L
 		if len(extList) > 0 {
 			extensions := make([]clusters.LanguageExtension, 0)
 			for _, language := range extList {
-				name := clusters.LanguageExtensionName(language.(string))
-				lanExt := clusters.LanguageExtension{
-					LanguageExtensionName: &name,
-				}
-				if name == clusters.LanguageExtensionNameR {
+				name := language.(string)
+				lanExt := clusters.LanguageExtension{}
+				if name == "R" {
+					n := clusters.LanguageExtensionNameR
+					lanExt.LanguageExtensionName = &n
 					imageName := clusters.LanguageExtensionImageNameR
 					lanExt.LanguageExtensionImageName = &imageName
-				} else if name == clusters.LanguageExtensionNamePYTHON {
+				} else if name == "PYTHON" {
+					n := clusters.LanguageExtensionNamePYTHON
+					lanExt.LanguageExtensionName = &n
 					imageName := clusters.LanguageExtensionImageNamePythonThreeSixFive
 					lanExt.LanguageExtensionImageName = &imageName
 				} else if name == "PYTHON_3.10.8" {
+					n := clusters.LanguageExtensionNamePYTHON
+					lanExt.LanguageExtensionName = &n
 					imageName := clusters.LanguageExtensionImageNamePythonThreeOneZeroEight
 					lanExt.LanguageExtensionImageName = &imageName
 				} else {
