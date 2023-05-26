@@ -762,7 +762,6 @@ resource "azurerm_kusto_cluster" "test" {
   }
 
   language_extensions             = ["PYTHON", "R"]
-  language_extension_python_image = "Python3_6_5"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -788,8 +787,7 @@ resource "azurerm_kusto_cluster" "test" {
     capacity = 2
   }
 
-  language_extensions             = ["PYTHON", "R"]
-  language_extension_python_image = "Python3_10_8"
+  language_extensions             = ["PYTHON_3.10.8", "R"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
