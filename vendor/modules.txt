@@ -546,10 +546,16 @@ github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/querykeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/sharedprivatelinkresources
 github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings
+github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2021-09-01-preview/alertruletemplates
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/automationrules
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata
+github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/dataconnectors
+github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/securitymlanalyticssettings
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates
+github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/threatintelligence
+github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlistitems
+github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlists
 github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/disasterrecoveryconfigs
 github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule
 github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues
