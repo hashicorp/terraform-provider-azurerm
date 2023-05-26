@@ -37,7 +37,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	guestConfigurationAssignmentsClient, err := guestconfigurationassignments.NewGuestConfigurationAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Guest Configuration Assignments Client client: %+v", err)
+		return nil, fmt.Errorf("building Guest Configuration Assignments Client:  %+v", err)
 	}
 	o.Configure(guestConfigurationAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
