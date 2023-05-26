@@ -42,19 +42,19 @@ func ParseSimPolicyID(input string) (*SimPolicyId, error) {
 	id := SimPolicyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.MobileNetworkName, ok = parsed.Parsed["mobileNetworkName"]; !ok {
-		return nil, fmt.Errorf("the segment 'mobileNetworkName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", *parsed)
 	}
 
 	if id.SimPolicyName, ok = parsed.Parsed["simPolicyName"]; !ok {
-		return nil, fmt.Errorf("the segment 'simPolicyName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "simPolicyName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseSimPolicyIDInsensitively(input string) (*SimPolicyId, error) {
 	id := SimPolicyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.MobileNetworkName, ok = parsed.Parsed["mobileNetworkName"]; !ok {
-		return nil, fmt.Errorf("the segment 'mobileNetworkName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", *parsed)
 	}
 
 	if id.SimPolicyName, ok = parsed.Parsed["simPolicyName"]; !ok {
-		return nil, fmt.Errorf("the segment 'simPolicyName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "simPolicyName", *parsed)
 	}
 
 	return &id, nil

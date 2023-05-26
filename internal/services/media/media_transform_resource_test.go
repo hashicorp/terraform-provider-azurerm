@@ -433,6 +433,44 @@ resource "azurerm_media_transform" "test" {
         }
       }
 
+      codec {
+        jpg_image {
+          stretch_mode  = "AutoSize"
+          sync_mode     = "Auto"
+          start         = "10"
+          range         = "100%%"
+          sprite_column = 1
+          step          = "10"
+          layer {
+            quality = 70
+            height  = "180"
+            label   = "test"
+            width   = "120"
+          }
+        }
+      }
+
+      codec {
+        png_image {
+          stretch_mode = "AutoSize"
+          sync_mode    = "Auto"
+          start        = "{Best}"
+          range        = "80"
+          step         = "10"
+          layer {
+            height = "180"
+            label  = "test"
+            width  = "120"
+          }
+        }
+      }
+
+      format {
+        jpg {
+          filename_pattern = "test{Basename}"
+        }
+      }
+
       format {
         mp4 {
           filename_pattern = "test{Bitrate}"
@@ -443,12 +481,22 @@ resource "azurerm_media_transform" "test" {
       }
 
       format {
+        png {
+          filename_pattern = "test{Basename}"
+        }
+      }
+
+      format {
         transport_stream {
           filename_pattern = "test{Bitrate}"
           output_file {
             labels = ["prod"]
           }
         }
+      }
+
+      experimental_options = {
+        env = "prod"
       }
 
       filter {

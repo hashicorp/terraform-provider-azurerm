@@ -44,7 +44,7 @@ func (id OutboundFirewallRuleId) ID() string {
 func OutboundFirewallRuleID(input string) (*OutboundFirewallRuleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an OutboundFirewallRule ID: %+v", input, err)
 	}
 
 	resourceId := OutboundFirewallRuleId{

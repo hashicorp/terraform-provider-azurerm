@@ -161,6 +161,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		mobilenetwork.Registration{},
 		mssql.Registration{},
 		mssqlmanagedinstance.Registration{},
+		mysql.Registration{},
 		network.Registration{},
 		netapp.Registration{},
 		nginx.Registration{},

@@ -243,6 +243,28 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremium
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPS(data, 3001, 126),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPS(data, 3002, 127),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumZRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -806,6 +828,57 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPS(data acceptance.TestData, iops int, mbps int) string {
+	// Limited regional availability for `PremiumV2_LRS`
+	data.Locations.Primary = "westeurope"
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2s_v2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  zones               = ["1"]
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  data_disk {
+    storage_account_type           = "PremiumV2_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_iops_read_write = %d
+    ultra_ssd_disk_mbps_read_write = %d
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), iops, mbps)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypeUltraSSDLRS(data acceptance.TestData) string {

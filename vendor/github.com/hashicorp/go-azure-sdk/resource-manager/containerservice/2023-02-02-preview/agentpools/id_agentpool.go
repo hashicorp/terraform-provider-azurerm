@@ -42,19 +42,19 @@ func ParseAgentPoolID(input string) (*AgentPoolId, error) {
 	id := AgentPoolId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterName", *parsed)
 	}
 
 	if id.AgentPoolName, ok = parsed.Parsed["agentPoolName"]; !ok {
-		return nil, fmt.Errorf("the segment 'agentPoolName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "agentPoolName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseAgentPoolIDInsensitively(input string) (*AgentPoolId, error) {
 	id := AgentPoolId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'managedClusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterName", *parsed)
 	}
 
 	if id.AgentPoolName, ok = parsed.Parsed["agentPoolName"]; !ok {
-		return nil, fmt.Errorf("the segment 'agentPoolName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "agentPoolName", *parsed)
 	}
 
 	return &id, nil

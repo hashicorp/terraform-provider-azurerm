@@ -44,7 +44,7 @@ func (id ManagedInstanceEncryptionProtectorId) ID() string {
 func ManagedInstanceEncryptionProtectorID(input string) (*ManagedInstanceEncryptionProtectorId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an ManagedInstanceEncryptionProtector ID: %+v", input, err)
 	}
 
 	resourceId := ManagedInstanceEncryptionProtectorId{

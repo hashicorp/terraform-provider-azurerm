@@ -41,7 +41,7 @@ func (id ClusterId) ID() string {
 func ClusterID(input string) (*ClusterId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an Cluster ID: %+v", input, err)
 	}
 
 	resourceId := ClusterId{
