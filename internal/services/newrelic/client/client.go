@@ -19,7 +19,14 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(monitorsClient.Client, o.Authorizers.ResourceManager)
 
+	tagRulesClient, err := tagrules.NewTagRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, err
+	}
+	o.Configure(tagRulesClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		MonitorsClient: monitorsClient,
+		TagRulesClient: tagRulesClient,
 	}, nil
 }
