@@ -166,8 +166,8 @@ func (r KeyVaultManagedHardwareSecurityModuleResource) download(data acceptance.
 	activateConfig := ""
 	if certCount > 0 {
 		activateConfig = `activate_config {
-		certificate_ids 	   = [for cert in azurerm_key_vault_certificate.cert : cert.id]
-		security_domain_quorum = 2
+		activation_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
+		security_domain_quorum 				 = 2
 	}`
 	}
 

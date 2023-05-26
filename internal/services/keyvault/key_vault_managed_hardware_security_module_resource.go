@@ -110,7 +110,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				//Computed: true,
+				// Computed: true,
 				Default:  true,
 				ForceNew: true,
 			},
@@ -148,7 +148,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
-						"certificate_ids": {
+						"activation_key_vault_certificate_ids": {
 							Type:     pluginsdk.TypeSet,
 							MinItems: 3,
 							MaxItems: 10,
@@ -230,7 +230,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	// security domain download to activate this module
 	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && (certs)[0] != nil {
 		// get hsm uri
-		resp, err := hsmClient.Get(ctx, id)
+		resp, _ := hsmClient.Get(ctx, id)
 		hsmUri := ""
 		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.HsmUri != nil {
 			hsmUri = *resp.Model.Properties.HsmUri
@@ -272,7 +272,6 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 
 	// if it has activate_config but with no enc data in stat, try to activate it
 	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && certs[0] != nil &&
-		//d.Get("security_domain_encrypted_data").(string) == "" {
 		d.HasChange("activate_config") {
 		// get hsm uri
 		encData, err := securityDomainDownload(ctx,
@@ -436,7 +435,7 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 
 	var param kv74.CertificateInfoObject
 	var qourum = config["security_domain_quorum"].(int)
-	certIDs := config["certificate_ids"].(*pluginsdk.Set).List()
+	certIDs := config["activation_key_vault_certificate_ids"].(*pluginsdk.Set).List()
 
 	param.Required = utils.Int32(int32(qourum))
 	var certs []kv74.SecurityDomainJSONWebKey
