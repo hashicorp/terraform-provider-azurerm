@@ -37,9 +37,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Azure Arc machine.
 
-* `ad_fqdn` - Specifies the AD fully qualified display name.
+* `active_directory_fqdn` - Specifies the AD fully qualified display name.
 
-* `agent_configuration` - A `agent_configuration` block as defined below.
+* `agent` - A `agent` block as defined below.
 
 * `agent_version` - The Azure Arc machine agent full version.
 
@@ -59,7 +59,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
-* `last_status_change` - The time of the last status change.
+* `last_status_change_time` - The time of the last status change.
 
 * `location` - The Azure Region where the Azure Arc machine exists.
 
@@ -95,15 +95,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `additional_info` block exports the following:
-
-* `info` - The additional information message.
-
-* `type` - The additional information type.
-
----
-
-A `agent_configuration` block exports the following:
+A `agent` block exports the following:
 
 * `extensions_allow_list` - A `extensions_allow_list` block as defined below.
 
@@ -181,9 +173,9 @@ A `identity` block exports the following:
 
 ---
 
-A `linux_configuration` block exports the following:
+A `linux` block exports the following:
 
-* `patch_settings` - A `patch_settings` block as defined below.
+* `patch` - A `patch` block as defined below.
 
 ---
 
@@ -203,13 +195,13 @@ A `os_profile` block exports the following:
 
 * `computer_name` - Specifies the host OS name of the Azure Arc machine.
 
-* `linux_configuration` - A `linux_configuration` block as defined above.
+* `linux` - A `linux` block as defined above.
 
-* `windows_configuration` - A `windows_configuration` block as defined below.
+* `windows` - A `windows` block as defined below.
 
 ---
 
-A `patch_settings` block exports the following:
+A `patch` block exports the following:
 
 * `assessment_mode` - Specifies the assessment mode.
 
@@ -225,9 +217,9 @@ A `service_status` block exports the following:
 
 ---
 
-A `windows_configuration` block exports the following:
+A `windows` block exports the following:
 
-* `patch_settings` - A `patch_settings` block as defined above.
+* `patch` - A `patch` block as defined above.
 
 ## Timeouts
 

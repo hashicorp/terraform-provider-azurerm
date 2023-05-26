@@ -34,7 +34,7 @@ func generateRandomPassword(n int) string {
 }
 
 func TestAccArcMachine_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_hybrid_compute_machine", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_arc_machine", "test")
 	d := ArcMachineDataSource{}
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	randomUUID, _ := uuid.GenerateUUID()
@@ -43,7 +43,7 @@ func TestAccArcMachine_basic(t *testing.T) {
 		{
 			Config: d.basic(data, clientSecret, randomUUID, password),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("agent_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("agent.#").HasValue("1"),
 				check.That(data.ResourceName).Key("mssql_discovered").HasValue("false"),
 				check.That(data.ResourceName).Key("os_name").HasValue("linux"),
 				check.That(data.ResourceName).Key("os_profile.#").HasValue("1"),
@@ -194,7 +194,7 @@ func (r ArcMachineDataSource) basic(data acceptance.TestData, secret string, ran
 	return fmt.Sprintf(`
 				%s
 
-data "azurerm_hybrid_compute_machine" "test" {
+data "azurerm_arc_machine" "test" {
   name                = azurerm_linux_virtual_machine.test.name
   resource_group_name = azurerm_resource_group.test.name
   depends_on = [

@@ -20,7 +20,7 @@ import (
 type ArcMachineModel struct {
 	Name                       string                    `tfschema:"name"`
 	ResourceGroupName          string                    `tfschema:"resource_group_name"`
-	AgentConfiguration         []AgentConfigurationModel `tfschema:"agent_configuration"`
+	AgentConfiguration         []AgentConfigurationModel `tfschema:"agent"`
 	ClientPublicKey            string                    `tfschema:"client_public_key"`
 	CloudMetadata              []CloudMetadataModel      `tfschema:"cloud_metadata"`
 	DetectedProperties         map[string]string         `tfschema:"detected_properties"`
@@ -34,12 +34,12 @@ type ArcMachineModel struct {
 	ServiceStatuses            []ServiceStatusesModel    `tfschema:"service_status"`
 	Tags                       map[string]string         `tfschema:"tags"`
 	VmId                       string                    `tfschema:"vm_id"`
-	AdFqdn                     string                    `tfschema:"ad_fqdn"`
+	AdFqdn                     string                    `tfschema:"active_directory_fqdn"`
 	AgentVersion               string                    `tfschema:"agent_version"`
 	DisplayName                string                    `tfschema:"display_name"`
 	DnsFqdn                    string                    `tfschema:"dns_fqdn"`
 	DomainName                 string                    `tfschema:"domain_name"`
-	LastStatusChange           string                    `tfschema:"last_status_change"`
+	LastStatusChange           string                    `tfschema:"last_status_change_time"`
 	MachineFqdn                string                    `tfschema:"machine_fqdn"`
 	OsName                     string                    `tfschema:"os_name"`
 	OsSku                      string                    `tfschema:"os_sku"`
@@ -76,12 +76,12 @@ type LocationDataModel struct {
 
 type OSProfileModel struct {
 	ComputerName         string                               `tfschema:"computer_name"`
-	LinuxConfiguration   []OSProfileLinuxConfigurationModel   `tfschema:"linux_configuration"`
-	WindowsConfiguration []OSProfileWindowsConfigurationModel `tfschema:"windows_configuration"`
+	LinuxConfiguration   []OSProfileLinuxConfigurationModel   `tfschema:"linux"`
+	WindowsConfiguration []OSProfileWindowsConfigurationModel `tfschema:"windows"`
 }
 
 type OSProfileLinuxConfigurationModel struct {
-	PatchSettings []PatchSettingsModel `tfschema:"patch_settings"`
+	PatchSettings []PatchSettingsModel `tfschema:"patch"`
 }
 
 type PatchSettingsModel struct {
@@ -90,7 +90,7 @@ type PatchSettingsModel struct {
 }
 
 type OSProfileWindowsConfigurationModel struct {
-	PatchSettings []PatchSettingsModel `tfschema:"patch_settings"`
+	PatchSettings []PatchSettingsModel `tfschema:"patch"`
 }
 
 type ServiceStatusesModel struct {
@@ -121,7 +121,7 @@ func (a ArcMachineDataSource) Arguments() map[string]*schema.Schema {
 
 func (a ArcMachineDataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
-		"agent_configuration": {
+		"agent": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 
@@ -197,7 +197,7 @@ func (a ArcMachineDataSource) Attributes() map[string]*schema.Schema {
 			},
 		},
 
-		"ad_fqdn": {
+		"active_directory_fqdn": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -251,7 +251,7 @@ func (a ArcMachineDataSource) Attributes() map[string]*schema.Schema {
 
 		"identity": commonschema.SystemAssignedIdentityComputed(),
 
-		"last_status_change": {
+		"last_status_change_time": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -313,13 +313,13 @@ func (a ArcMachineDataSource) Attributes() map[string]*schema.Schema {
 						Computed: true,
 					},
 
-					"linux_configuration": {
+					"linux": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"patch_settings": {
+								"patch": {
 									Type:     pluginsdk.TypeList,
 									Computed: true,
 
@@ -341,13 +341,13 @@ func (a ArcMachineDataSource) Attributes() map[string]*schema.Schema {
 						},
 					},
 
-					"windows_configuration": {
+					"windows": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"patch_settings": {
+								"patch": {
 									Type:     pluginsdk.TypeList,
 									Computed: true,
 
@@ -478,12 +478,12 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.HybridCompute.MachinesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var hybridComputeMachineModel ArcMachineModel
-			if err := metadata.Decode(&hybridComputeMachineModel); err != nil {
+			var arcMachineModel ArcMachineModel
+			if err := metadata.Decode(&arcMachineModel); err != nil {
 				return err
 			}
 
-			id := machines.NewMachineID(subscriptionId, hybridComputeMachineModel.ResourceGroupName, hybridComputeMachineModel.Name)
+			id := machines.NewMachineID(subscriptionId, arcMachineModel.ResourceGroupName, arcMachineModel.Name)
 
 			resp, err := client.Get(ctx, id, machines.GetOperationOptions{})
 			if err != nil {
