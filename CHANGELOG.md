@@ -28,6 +28,7 @@ ENHANCEMENTS:
 * `azurerm_media_transform` - support for the `experimental_options` property [GH-21873]
 * `azurerm_backup_policy_vm` - Support for the `days` and `include_last_days` properties [GH-21434]
 * `azurerm_subnet` - `name` within the `subnet_delegation` block can now be set to `Microsoft.App/environments` [GH-21893]
+* `azurerm_subnet_service_endpoint_policy` - support for the `service` property [GH-21865]
 * `azurerm_signalr_service` - support for the `user_assigned_identity_id` property [GH-21055]
 * `azurerm_site_recovery_replication_recovery_plan` - support for the `azure_to_azure_settings` block [GH-21666]
 * `azurerm_cosmosdb_postgresql_cluster` - support for value `11.3` in `citus_version` [GH-21916]
