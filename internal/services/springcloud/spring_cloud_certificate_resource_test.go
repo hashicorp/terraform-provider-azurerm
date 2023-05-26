@@ -85,6 +85,7 @@ resource "azurerm_spring_cloud_certificate" "test" {
   resource_group_name      = azurerm_spring_cloud_service.test.resource_group_name
   service_name             = azurerm_spring_cloud_service.test.name
   key_vault_certificate_id = azurerm_key_vault_certificate.test.id
+  exclude_private_key      = true
 }
 `, r.template(data), data.RandomInteger)
 }
