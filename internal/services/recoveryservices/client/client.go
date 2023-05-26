@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectioncontainers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationnetworkmappings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationnetworks"
@@ -47,6 +48,7 @@ type Client struct {
 	ReplicationProtectedItemsClient           *replicationprotecteditems.ReplicationProtectedItemsClient
 	ReplicationRecoveryPlansClient            *replicationrecoveryplans.ReplicationRecoveryPlansClient
 	ReplicationNetworksClient                 *replicationnetworks.ReplicationNetworksClient
+	ResourceGuardProxyClient                  *resourceguardproxy.ResourceGuardProxyClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -113,6 +115,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	replicationNetworksClient := replicationnetworks.NewReplicationNetworksClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&replicationNetworksClient.Client, o.ResourceManagerAuthorizer)
 
+	resourceGuardProxyClient := resourceguardproxy.NewResourceGuardProxyClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&resourceGuardProxyClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ProtectableItemsClient:                    &protectableItemsClient,
 		ProtectedItemsClient:                      &protectedItemsClient,
@@ -135,5 +140,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ReplicationProtectedItemsClient:           &replicationMigrationItemsClient,
 		ReplicationRecoveryPlansClient:            &replicationRecoveryPlanClient,
 		ReplicationNetworksClient:                 &replicationNetworksClient,
+		ResourceGuardProxyClient:                  &resourceGuardProxyClient,
 	}
 }
