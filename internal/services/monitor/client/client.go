@@ -5,7 +5,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"          // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/autoscalesettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	scheduledqueryrules2018 "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionruleassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-04-03/azuremonitorworkspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -39,6 +40,7 @@ type Client struct {
 	ActionGroupsClient                   *actiongroupsapis.ActionGroupsAPIsClient
 	ActivityLogsClient                   *classic.ActivityLogsClient
 	ActivityLogAlertsClient              *activitylogalertsapis.ActivityLogAlertsAPIsClient
+	AlertPrometheusRuleGroupClient       *prometheusrulegroups.PrometheusRuleGroupsClient
 	AlertRulesClient                     *classic.AlertRulesClient
 	DataCollectionEndpointsClient        *datacollectionendpoints.DataCollectionEndpointsClient
 	DataCollectionRuleAssociationsClient *datacollectionruleassociations.DataCollectionRuleAssociationsClient
@@ -78,6 +80,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ActivityLogAlertsClient := activitylogalertsapis.NewActivityLogAlertsAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ActivityLogAlertsClient.Client, o.ResourceManagerAuthorizer)
+
+	AlertPrometheusRuleGroupClient := prometheusrulegroups.NewPrometheusRuleGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&AlertPrometheusRuleGroupClient.Client, o.ResourceManagerAuthorizer)
 
 	AlertRulesClient := classic.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AlertRulesClient.Client, o.ResourceManagerAuthorizer)
@@ -126,6 +131,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ActionGroupsClient:                   &ActionGroupsClient,
 		ActivityLogsClient:                   &activityLogsClient,
 		ActivityLogAlertsClient:              &ActivityLogAlertsClient,
+		AlertPrometheusRuleGroupClient:       &AlertPrometheusRuleGroupClient,
 		AlertRulesClient:                     &AlertRulesClient,
 		AlertProcessingRulesClient:           &AlertProcessingRulesClient,
 		DataCollectionEndpointsClient:        &DataCollectionEndpointsClient,

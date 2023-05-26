@@ -144,6 +144,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants
 github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2020-01-01/getrecommendations
 github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules
+github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/analysisservices
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers
@@ -255,6 +256,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-p
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/managedcassandras
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway
+github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs
+github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb
 github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports
 github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-preview/scheduledactions
 github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/scheduledactions
@@ -349,7 +352,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/mach
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privateendpointconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters
-github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/autoscalesettings
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules
@@ -363,6 +365,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-09-01/actiongro
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionruleassociations
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules
+github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-04-03/azuremonitorworkspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/managedhsms
@@ -439,6 +442,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingpol
 github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/datanetwork
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork
+github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcorecontrolplane
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/service
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simgroup
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simpolicy
@@ -446,6 +450,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/site
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/slice
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers
+github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/azureadadministrators
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/capacitypools
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/netappaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshotpolicy
@@ -512,8 +517,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-0
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectioncontainers
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies
+github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationnetworkmappings
+github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationnetworks
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings
@@ -818,7 +825,7 @@ github.com/tombuildsstuff/giovanni/version
 # github.com/tombuildsstuff/kermit v0.20230518.1143920
 ## explicit; go 1.18
 github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration
-github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform
+github.com/tombuildsstuff/kermit/sdk/appplatform/2023-03-01-preview/appplatform
 github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation
 github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch
 github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice
