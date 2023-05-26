@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-09-01/actiongroupsapis` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis` Documentation
 
-The `actiongroupsapis` SDK allows for interaction with the Azure Resource Manager Service `insights` (API Version `2021-09-01`).
+The `actiongroupsapis` SDK allows for interaction with the Azure Resource Manager Service `insights` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-09-01/actiongroupsapis"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
 ```
 
 
@@ -32,23 +32,6 @@ payload := actiongroupsapis.NotificationRequestBody{
 
 
 if err := client.ActionGroupsCreateNotificationsAtActionGroupResourceLevelThenPoll(ctx, id, payload); err != nil {
-	// handle the error
-}
-```
-
-
-### Example Usage: `ActionGroupsAPIsClient.ActionGroupsCreateNotificationsAtResourceGroupLevel`
-
-```go
-ctx := context.TODO()
-id := actiongroupsapis.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
-
-payload := actiongroupsapis.NotificationRequestBody{
-	// ...
-}
-
-
-if err := client.ActionGroupsCreateNotificationsAtResourceGroupLevelThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -128,45 +111,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ActionGroupsAPIsClient.ActionGroupsGetTestNotifications`
-
-```go
-ctx := context.TODO()
-id := actiongroupsapis.NewNotificationStatusID("12345678-1234-9876-4563-123456789012", "notificationIdValue")
-
-read, err := client.ActionGroupsGetTestNotifications(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
 ### Example Usage: `ActionGroupsAPIsClient.ActionGroupsGetTestNotificationsAtActionGroupResourceLevel`
 
 ```go
 ctx := context.TODO()
-id := actiongroupsapis.NewActionGroupNotificationStatusID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupValue", "notificationIdValue")
+id := actiongroupsapis.NewNotificationStatusID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupValue", "notificationIdValue")
 
 read, err := client.ActionGroupsGetTestNotificationsAtActionGroupResourceLevel(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
-### Example Usage: `ActionGroupsAPIsClient.ActionGroupsGetTestNotificationsAtResourceGroupLevel`
-
-```go
-ctx := context.TODO()
-id := actiongroupsapis.NewProviderNotificationStatusID("12345678-1234-9876-4563-123456789012", "example-resource-group", "notificationIdValue")
-
-read, err := client.ActionGroupsGetTestNotificationsAtResourceGroupLevel(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -204,23 +155,6 @@ if err != nil {
 }
 if model := read.Model; model != nil {
 	// do something with the model/response object
-}
-```
-
-
-### Example Usage: `ActionGroupsAPIsClient.ActionGroupsPostTestNotifications`
-
-```go
-ctx := context.TODO()
-id := actiongroupsapis.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
-
-payload := actiongroupsapis.NotificationRequestBody{
-	// ...
-}
-
-
-if err := client.ActionGroupsPostTestNotificationsThenPoll(ctx, id, payload); err != nil {
-	// handle the error
 }
 ```
 
