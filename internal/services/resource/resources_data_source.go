@@ -3,7 +3,6 @@ package resource
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -166,8 +166,10 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 
 			resResourceGroupName := ""
 			if res.ID != nil {
-				re := regexp.MustCompile(`.+/resourceGroups/([^/]+).?`)
-				resResourceGroupName = string(re.FindSubmatch([]byte(*res.ID))[1])
+				resourceObj, err := resourceids.ParseAzureResourceID(*res.ID)
+				if err == nil {
+					resResourceGroupName = resourceObj.ResourceGroup
+				}
 			}
 
 			resType := ""
