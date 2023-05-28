@@ -208,7 +208,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					"ultra_ssd_enabled": {
 						Type:     pluginsdk.TypeBool,
-						ForceNew: true,
 						Default:  false,
 						Optional: true,
 					},
@@ -216,7 +215,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"vnet_subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ForceNew:     true,
 						ValidateFunc: networkValidate.SubnetID,
 					},
 					"orchestrator_version": {
@@ -228,7 +226,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"pod_subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ForceNew:     true,
 						ValidateFunc: networkValidate.SubnetID,
 					},
 					"proximity_placement_group_id": {
