@@ -1000,6 +1000,15 @@ func TestAccLinuxFunctionApp_appStackPythonUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.appStackPython(data, SkuBasicPlan, "3.11"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.11"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
