@@ -116,14 +116,6 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"node_public_ip_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true,
-				Default:      true,
-				ForceNew:     true,
-				RequiredWith: []string{"subnet_resource_id"},
-			},
-
 			"ssh": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -200,7 +192,6 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Subnet:                          subnet,
 			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
 			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
-			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
 		},
 		ComputeLocation:  utils.String(d.Get("location").(string)),
 		Description:      utils.String(d.Get("description").(string)),
@@ -282,7 +273,6 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("authorization_type", string(pointer.From(props.Properties.ComputeInstanceAuthorizationType)))
 		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
-		d.Set("node_public_ip_enabled", props.Properties.EnableNodePublicIP)
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)
