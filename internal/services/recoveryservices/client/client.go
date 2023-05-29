@@ -4,7 +4,11 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
+	vmwaremachines "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
+	vmwarerunasaccounts "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotectableitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
@@ -54,9 +58,11 @@ type Client struct {
 	ReplicationRecoveryPlansClient            *replicationrecoveryplans.ReplicationRecoveryPlansClient
 	ReplicationNetworksClient                 *replicationnetworks.ReplicationNetworksClient
 	ResourceGuardProxyClient                  *resourceguardproxy.ResourceGuardProxyClient
+	VMWareMachinesClient                      *vmwaremachines.MachinesClient
+	VMWareRunAsAccountsClient                 *vmwarerunasaccounts.RunAsAccountsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	vaultConfigsClient := backupresourcevaultconfigs.NewBackupResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&vaultConfigsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -126,6 +132,18 @@ func NewClient(o *common.ClientOptions) *Client {
 	resourceGuardProxyClient := resourceguardproxy.NewResourceGuardProxyClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&resourceGuardProxyClient.Client, o.ResourceManagerAuthorizer)
 
+	vmwareMachinesClient, err := vmwaremachines.NewMachinesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VMWare Machine client: %+v", err)
+	}
+	o.Configure(vmwareMachinesClient.Client, o.Authorizers.ResourceManager)
+
+	vmwareRunAsAccountsClient, err := vmwarerunasaccounts.NewRunAsAccountsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VMWare Machine client: %+v", err)
+	}
+	o.Configure(vmwareRunAsAccountsClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		ProtectableItemsClient:                    &protectableItemsClient,
 		ProtectedItemsClient:                      &protectedItemsClient,
@@ -150,5 +168,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ReplicationRecoveryPlansClient:            &replicationRecoveryPlanClient,
 		ReplicationNetworksClient:                 &replicationNetworksClient,
 		ResourceGuardProxyClient:                  &resourceGuardProxyClient,
-	}
+		VMWareMachinesClient:                      vmwareMachinesClient,
+		VMWareRunAsAccountsClient:                 vmwareRunAsAccountsClient,
+	}, nil
 }
