@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
@@ -33,7 +34,7 @@ type DataConnectorMicrosoftThreatIntelligenceDataType struct {
 }
 
 func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+	res := map[string]*schema.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -57,6 +58,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 		},
 
 		"bing_safety_phishing_url_lookback_date": {
+			Deprecated:   "This field is deprecated and will be removed in version 4.0 of the AzureRM Provider.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -72,6 +74,21 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 			AtLeastOneOf: []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"},
 		},
 	}
+
+	if !features.FourPointOh() {
+		// this has been removed in newer API version, and it's acutally not working in current API version
+		// TODO Remove in 4.0
+		res["bing_safety_phishing_url_lookback_date"] = &schema.Schema{
+			Deprecated:   "This field is deprecated and will be removed in version 4.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+			AtLeastOneOf: []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"},
+		}
+	}
+
+	return res
 }
 
 func (s DataConnectorMicrosoftThreatIntelligenceResource) Attributes() map[string]*schema.Schema {

@@ -36,7 +36,6 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
 resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "example" {
   name                                         = "example-dc-msti"
   log_analytics_workspace_id                   = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
-  bing_safety_phishing_url_lookback_date       = "1970-01-01T00:00:00Z"
   microsoft_emerging_threat_feed_lookback_date = "1970-01-01T00:00:00Z"
 }
 ```
@@ -50,6 +49,8 @@ The following arguments are supported:
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace. Changing this forces a new Data Connector to be created.
 
 * `bing_safety_phishing_url_lookback_date` - (Optional) The lookback date for the Bing Safety Phishing Url in RFC3339. Changing this forces a new Data Connector to be created.
+
+-> **Note:** `bing_safety_phishing_url_lookback_date` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
 
 * `microsoft_emerging_threat_feed_lookback_date` - (Optional) The lookback date for the Microsoft Emerging Threat Feed in RFC3339. Changing this forces a new Data Connector to be created.
 
