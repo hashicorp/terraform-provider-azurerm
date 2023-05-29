@@ -249,26 +249,24 @@ func resourceArmLoadBalancerRuleDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.Name, err)
 	}
 
-	if loadBalancer.LoadBalancerPropertiesFormat == nil {
-		return fmt.Errorf("retrieving Load Balancer %q (resource group %q) for Rule %q: `properties` was nil", id.LoadBalancerName, id.ResourceGroup, id.Name)
-	}
+	if loadBalancer.LoadBalancerPropertiesFormat != nil && loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules != nil {
+		_, index, exists := FindLoadBalancerRuleByName(&loadBalancer, d.Get("name").(string))
+		if !exists {
+			return nil
+		}
 
-	_, index, exists := FindLoadBalancerRuleByName(&loadBalancer, d.Get("name").(string))
-	if !exists {
-		return nil
-	}
+		lbRules := *loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules
+		lbRules = append(lbRules[:index], lbRules[index+1:]...)
+		loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &lbRules
 
-	lbRules := *loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules
-	lbRules = append(lbRules[:index], lbRules[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &lbRules
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
+		if err != nil {
+			return fmt.Errorf("Creating/Updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
-	if err != nil {
-		return fmt.Errorf("Creating/Updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for completion of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		}
 	}
 
 	return nil

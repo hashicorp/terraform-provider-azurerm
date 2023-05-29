@@ -407,11 +407,9 @@ func (r ContainerConnectedRegistryResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", id)
-			}
 
-			if props := existing.Model.Properties; props != nil {
+			if existing.Model != nil && existing.Model.Properties != nil {
+				props := existing.Model.Properties
 				if metadata.ResourceData.HasChange("mode") {
 					props.Mode = connectedregistries.ConnectedRegistryMode(state.Mode)
 				}
