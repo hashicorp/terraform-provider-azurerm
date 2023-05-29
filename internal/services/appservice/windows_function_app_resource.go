@@ -927,11 +927,11 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
+			}
 			if sendContentSettings {
-				appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
-				if err != nil {
-					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
-				}
 				if state.AppSettings == nil {
 					state.AppSettings = make(map[string]string)
 				}
@@ -960,6 +960,14 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 						state.AppSettings["AzureWebJobsStorage__accountName"] = storageString
 					}
 				}
+			}
+
+			if appSettingsResp.Properties != nil && appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"] != nil {
+				if state.AppSettings == nil {
+					state.AppSettings = make(map[string]string)
+				}
+				state.WebsiteRunFromPackage = true
+				state.AppSettings["WEBSITE_RUN_FROM_PACKAGE"] = *appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"]
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
