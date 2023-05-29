@@ -76,7 +76,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 	}
 
 	if !features.FourPointOh() {
-		// this has been removed in newer API version, and it's acutally not working in current API version
+		// this has been removed in newer API version, and it's actually not working in current API version
 		// TODO Remove in 4.0
 		res["bing_safety_phishing_url_lookback_date"] = &schema.Schema{
 			Deprecated:   "This field is deprecated and will be removed in version 4.0 of the AzureRM Provider.",
