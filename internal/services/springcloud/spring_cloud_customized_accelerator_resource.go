@@ -456,11 +456,17 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 
 	caCertificateId := ""
 	if publicAuthSetting, ok := input.AuthSetting.AsAcceleratorPublicSetting(); ok && publicAuthSetting != nil && publicAuthSetting.CaCertResourceID != nil {
-		caCertificateId = *publicAuthSetting.CaCertResourceID
+		certificatedId, err := parse.SpringCloudCertificateIDInsensitively(*publicAuthSetting.CaCertResourceID)
+		if err == nil {
+			caCertificateId = certificatedId.ID()
+		}
 	}
 	if basicAuthSetting, ok := input.AuthSetting.AsAcceleratorBasicAuthSetting(); ok && basicAuthSetting != nil {
 		if basicAuthSetting.CaCertResourceID != nil {
-			caCertificateId = *basicAuthSetting.CaCertResourceID
+			certificatedId, err := parse.SpringCloudCertificateIDInsensitively(*basicAuthSetting.CaCertResourceID)
+			if err == nil {
+				caCertificateId = certificatedId.ID()
+			}
 		}
 		var basicAuthState BasicAuthModel
 		if len(state) != 0 && len(state[0].BasicAuth) != 0 {

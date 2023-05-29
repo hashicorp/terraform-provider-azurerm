@@ -182,7 +182,7 @@ resource "azurerm_spring_cloud_customized_accelerator" "test" {
 
   git_repository {
     url                 = "https://github.com/Azure-Samples/piggymetrics"
-    git_tag             = "spring.version.2.0.3"
+    branch              = "Azure"
     interval_in_seconds = 100
   }
 
@@ -306,7 +306,7 @@ resource "azurerm_spring_cloud_customized_accelerator" "test" {
 
   git_repository {
     url               = "https://github.com/Azure-Samples/piggymetrics"
-    git_tag           = "spring.version.2.0.3"
+    branch            = "Azure"
     ca_certificate_id = azurerm_spring_cloud_certificate.test.id
   }
 }
