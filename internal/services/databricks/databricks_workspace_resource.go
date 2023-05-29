@@ -243,6 +243,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
+						// Per Service Team: This field is actually changeable so the ForceNew is no longer required, however we agreed to not change the current behavior for consistency purposes
 						"storage_account_sku_name": {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,

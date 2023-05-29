@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-03-01-preview/appplatform"
 )
 
 func resourceSpringCloudService() *pluginsdk.Resource {
@@ -322,6 +322,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
+	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -409,6 +410,19 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for creation service registry of %s: %+v", id, err)
+		}
+	}
+
+	if skuName == "E0" {
+		buildResource := appplatform.BuildService{
+			Properties: &appplatform.BuildServiceProperties{},
+		}
+		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
+		if err != nil {
+			return fmt.Errorf("creating build service %s: %+v", id, err)
+		}
+		if err := buildServiceCreateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation build service of %s: %+v", id, err)
 		}
 	}
 
@@ -581,6 +595,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	if utils.ResponseWasNotFound(serviceRegistry.Response) {
 		serviceRegistryEnabled = false
 	}
+
 	agentPool, err := agentPoolClient.Get(ctx, id.ResourceGroup, id.SpringName, "default", "default")
 	if err == nil && agentPool.Properties != nil && agentPool.Properties.PoolSize != nil {
 		d.Set("build_agent_pool_size", agentPool.Properties.PoolSize.Name)

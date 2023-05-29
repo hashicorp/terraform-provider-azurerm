@@ -125,10 +125,12 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForServerVersion(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				// TODO: Remove "15" after this issue has been resolved:
+				// https://github.com/Azure/azure-rest-api-specs/issues/24186
+				ValidateFunc: validation.StringInSlice(append(servers.PossibleValuesForServerVersion(), "15"), false),
 			},
 
 			"zone": commonschema.ZoneSingleOptional(),

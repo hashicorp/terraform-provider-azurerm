@@ -333,6 +333,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.Properties.SoftDeleteRetentionInDays = pointer.To(int64(v.(int)))
 	}
 
+	parameters.Properties.CreateMode = pointer.To(vaults.CreateModeDefault)
 	if recoverSoftDeletedKeyVault {
 		parameters.Properties.CreateMode = pointer.To(vaults.CreateModeRecover)
 	}
