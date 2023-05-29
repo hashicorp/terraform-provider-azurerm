@@ -39,6 +39,9 @@ type LinuxFunctionAppModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
+	// for function deployment
+	WebsiteRunFromPackage bool `tfschema:"website_run_from_package"`
+
 	AppSettings                 map[string]string                    `tfschema:"app_settings"`
 	StickySettings              []helpers.StickySettings             `tfschema:"sticky_settings"`
 	AuthSettings                []helpers.AuthSettings               `tfschema:"auth_settings"`
@@ -274,6 +277,13 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
+
+		"website_run_from_package": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "whether to run the function app from a package",
+		},
 	}
 }
 
@@ -473,6 +483,14 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 			siteConfig.LinuxFxVersion = helpers.EncodeFunctionAppLinuxFxVersion(functionApp.SiteConfig[0].ApplicationStack)
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionApp.AppSettings)
+
+			if functionApp.WebsiteRunFromPackage && functionApp.AppSettings["WEBSITE_RUN_FROM_PACKAGE"] == "" {
+				if helpers.PlanIsConsumption(planSKU) {
+					return fmt.Errorf("for linux function app running in a consumption plan, please sets a URL that is the remote location of the specific package file you want to run for WEBSITE_RUN_FROM_PACKAGE in app_setting")
+				} else {
+					functionApp.AppSettings["WEBSITE_RUN_FROM_PACKAGE"] = "1"
+				}
+			}
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
@@ -718,6 +736,9 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 
 			state.unpackLinuxFunctionAppSettings(appSettingsResp, metadata)
 
+			if appSettingsResp.Properties != nil && appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"] != nil {
+				state.WebsiteRunFromPackage = true
+			}
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
@@ -907,11 +928,11 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
+			}
 			if sendContentSettings {
-				appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
-				if err != nil {
-					return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
-				}
 				if state.AppSettings == nil {
 					state.AppSettings = make(map[string]string)
 				}
@@ -940,6 +961,14 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 						state.AppSettings["AzureWebJobsStorage__accountName"] = storageString
 					}
 				}
+			}
+
+			if appSettingsResp.Properties != nil && appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"] != nil {
+				if state.AppSettings == nil {
+					state.AppSettings = make(map[string]string)
+				}
+				state.WebsiteRunFromPackage = true
+				state.AppSettings["WEBSITE_RUN_FROM_PACKAGE"] = *appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"]
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later

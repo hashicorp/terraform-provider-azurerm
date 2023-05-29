@@ -39,6 +39,9 @@ type WindowsFunctionAppModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
+	// for function deployment
+	WebsiteRunFromPackage bool `tfschema:"website_run_from_package"`
+
 	AppSettings                 map[string]string                      `tfschema:"app_settings"`
 	StickySettings              []helpers.StickySettings               `tfschema:"sticky_settings"`
 	AuthSettings                []helpers.AuthSettings                 `tfschema:"auth_settings"`
@@ -274,6 +277,13 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Function App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`.",
 		},
+
+		"website_run_from_package": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "whether to run the function app from a package",
+		},
 	}
 }
 
@@ -470,6 +480,10 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 			}
 
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionApp.AppSettings)
+
+			if functionApp.WebsiteRunFromPackage && functionApp.AppSettings["WEBSITE_RUN_FROM_PACKAGE"] == "" {
+				functionApp.AppSettings["WEBSITE_RUN_FROM_PACKAGE"] = "1"
+			}
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
@@ -716,6 +730,9 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
 
+			if appSettingsResp.Properties != nil && appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"] != nil {
+				state.WebsiteRunFromPackage = true
+			}
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
@@ -1263,7 +1280,13 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 			m.BuiltinLogging = true
 
 		case "WEBSITE_VNET_ROUTE_ALL":
-			// Filter out - handled by site_config setting `vnet_route_all_enabled`
+		// Filter out - handled by site_config setting `vnet_route_all_enabled`
+
+		case "WEBSITE_RUN_FROM_PACKAGE":
+			// Keep if user explicitly set, otherwise filter out as will have been added by ADO et al
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_RUN_FROM_PACKAGE"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
 
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)

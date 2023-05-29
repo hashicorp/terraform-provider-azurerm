@@ -135,6 +135,8 @@ The following arguments are supported:
 			
 ~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
 
+* `website_run_from_package` - (Optional) Does the function App deployed from a package file? Defaults to `false`.
+
 ---
 
 An `active_directory` block supports the following:
