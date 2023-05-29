@@ -129,13 +129,6 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, id, d); err != nil {
 			return err
 		}
-		err := resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, id, d)
-		if err != nil {
-			return err
-		}
-
-		d.SetId(id.ID())
-		d.SetId(id.ID())
 	}
 
 	if requireAdditionalUpdate {
@@ -188,7 +181,6 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		if _, err := opState.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
-
 	}
 
 	return resourceRecoveryServicesBackupProtectedVMRead(d, meta)
