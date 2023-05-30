@@ -256,7 +256,7 @@ func TestAccBatchAccount_autoStorageBatchAuthMode(t *testing.T) {
 	})
 }
 
-func TestAccBatchAccount_removeStorageAccount(t *testing.T) {
+func TestAccBatchAccount_removeStorageAccountId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	r := BatchAccountResource{}
 
@@ -272,7 +272,7 @@ func TestAccBatchAccount_removeStorageAccount(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.removeStorageAccount(data),
+			Config: r.removeStorageAccountId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
@@ -775,7 +775,7 @@ resource "azurerm_key_vault_key" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
 }
 
-func (BatchAccountResource) removeStorageAccount(data acceptance.TestData) string {
+func (BatchAccountResource) removeStorageAccountId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -784,6 +784,14 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-batch-%d"
   location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "test" {
@@ -798,7 +806,7 @@ resource "azurerm_batch_account" "test" {
     env = "test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (BatchAccountResource) authenticationModes(data acceptance.TestData) string {
