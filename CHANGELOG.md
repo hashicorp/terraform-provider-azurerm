@@ -1,3 +1,10 @@
+## 3.59.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_nginx_certificate` - `key_vault_secret_id` now accepts version-less key vault secret ids [GH-21949]
+* `azurerm_postgresql_flexible_server` - Add support for `version` `15` [GH-21934]
+
 ## 3.58.0 (May 25, 2023)
 
 FEATURES:
