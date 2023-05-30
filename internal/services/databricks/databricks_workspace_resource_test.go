@@ -1330,6 +1330,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -1349,6 +1350,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]
@@ -1433,6 +1435,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -1452,6 +1455,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]
@@ -1466,6 +1470,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]
@@ -1543,6 +1548,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -1562,6 +1568,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "List",
     "Encrypt",
     "Decrypt",
@@ -1579,6 +1586,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]
@@ -1749,6 +1757,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -1768,6 +1777,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]
@@ -1782,6 +1792,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]

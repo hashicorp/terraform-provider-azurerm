@@ -251,7 +251,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
-	"GetRotationPolicy",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -273,7 +273,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
   key_permissions = [
     "Get",
-	"GetRotationPolicy",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
     "Delete",
