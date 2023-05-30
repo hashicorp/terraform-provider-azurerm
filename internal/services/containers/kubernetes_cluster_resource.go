@@ -84,6 +84,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return true
 			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if d.HasChange("oidc_issuer_enabled") {
+					d.SetNewComputed("oidc_issuer_url")
+				}
+				return nil
+			},
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
