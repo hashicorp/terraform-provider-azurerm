@@ -17,7 +17,7 @@ type ActionGroupsGetTestNotificationsAtActionGroupResourceLevelOperationResponse
 }
 
 // ActionGroupsGetTestNotificationsAtActionGroupResourceLevel ...
-func (c ActionGroupsAPIsClient) ActionGroupsGetTestNotificationsAtActionGroupResourceLevel(ctx context.Context, id ActionGroupNotificationStatusId) (result ActionGroupsGetTestNotificationsAtActionGroupResourceLevelOperationResponse, err error) {
+func (c ActionGroupsAPIsClient) ActionGroupsGetTestNotificationsAtActionGroupResourceLevel(ctx context.Context, id NotificationStatusId) (result ActionGroupsGetTestNotificationsAtActionGroupResourceLevelOperationResponse, err error) {
 	req, err := c.preparerForActionGroupsGetTestNotificationsAtActionGroupResourceLevel(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "actiongroupsapis.ActionGroupsAPIsClient", "ActionGroupsGetTestNotificationsAtActionGroupResourceLevel", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c ActionGroupsAPIsClient) ActionGroupsGetTestNotificationsAtActionGroupRes
 }
 
 // preparerForActionGroupsGetTestNotificationsAtActionGroupResourceLevel prepares the ActionGroupsGetTestNotificationsAtActionGroupResourceLevel request.
-func (c ActionGroupsAPIsClient) preparerForActionGroupsGetTestNotificationsAtActionGroupResourceLevel(ctx context.Context, id ActionGroupNotificationStatusId) (*http.Request, error) {
+func (c ActionGroupsAPIsClient) preparerForActionGroupsGetTestNotificationsAtActionGroupResourceLevel(ctx context.Context, id NotificationStatusId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
