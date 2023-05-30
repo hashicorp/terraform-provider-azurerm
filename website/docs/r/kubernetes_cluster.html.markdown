@@ -394,8 +394,7 @@ A `default_node_pool` block supports the following:
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`.
 
-* `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
-
+* `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created. `temporary_name_for_rotation` must be specified when changing this property.
 
 * `message_of_the_day` - (Optional) A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script). Changing this forces a new resource to be created.
 
