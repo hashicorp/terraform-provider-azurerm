@@ -204,10 +204,10 @@ func (r NewRelicTagRuleResource) update(data acceptance.TestData, email string) 
 
 resource "azurerm_new_relic_tag_rule" "test" {
   monitor_id = azurerm_new_relic_monitor.test.id
-  aad_log_enabled          = true
-  activity_log_enabled     = true
-  metric_enabled = true
-  subscription_log_enabled = true
+  aad_log_enabled          = false
+  activity_log_enabled     = false
+  metric_enabled = false
+  subscription_log_enabled = false
 
   log_tag_filter {
     name   = "log2"

@@ -122,9 +122,15 @@ func (r NewRelicTagRuleResource) Create() sdk.ResourceFunc {
 				SendSubscriptionLogs: pointer.To(tagrules.SendSubscriptionLogsStatusDisabled),
 			}
 
+			email, err := r.getEmail(ctx, metadata, monitorId)
+			if err != nil {
+				return err
+			}
+
 			metricRules := tagrules.MetricRules{
 				FilteringTags: expandFilteringTagModelArray(model.MetricTagFilter),
 				SendMetrics:   pointer.To(tagrules.SendMetricsStatusDisabled),
+				UserEmail:     &email,
 			}
 
 			if model.AadLogEnabled {
@@ -171,11 +177,6 @@ func (r NewRelicTagRuleResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model NewRelicTagRuleModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -186,7 +187,70 @@ func (r NewRelicTagRuleResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			properties.SystemData = nil
+			if properties.Properties.LogRules == nil {
+				return fmt.Errorf("retrieving %s: log rules was nil", id)
+			}
+
+			if properties.Properties.MetricRules == nil {
+				return fmt.Errorf("retrieving %s: metric rules was nil", id)
+			}
+
+			var model NewRelicTagRuleModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			monitorId, err := monitors.ParseMonitorID(model.NewRelicMonitorId)
+			if err != nil {
+				return err
+			}
+
+			email, err := r.getEmail(ctx, metadata, monitorId)
+			if err != nil {
+				return err
+			}
+
+			properties.Properties.MetricRules.UserEmail = &email
+
+			if metadata.ResourceData.HasChange("aad_log_enabled") {
+				if model.AadLogEnabled {
+					properties.Properties.LogRules.SendAadLogs = pointer.To(tagrules.SendAadLogsStatusEnabled)
+				} else {
+					properties.Properties.LogRules.SendAadLogs = pointer.To(tagrules.SendAadLogsStatusDisabled)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("activity_log_enabled") {
+				if model.ActivityLogEnabled {
+					properties.Properties.LogRules.SendActivityLogs = pointer.To(tagrules.SendActivityLogsStatusEnabled)
+				} else {
+					properties.Properties.LogRules.SendActivityLogs = pointer.To(tagrules.SendActivityLogsStatusDisabled)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("log_tag_filter") {
+				properties.Properties.LogRules.FilteringTags = expandFilteringTagModelArray(model.LogTagFilter)
+			}
+
+			if metadata.ResourceData.HasChange("metric_enabled") {
+				if model.MetricEnabled {
+					properties.Properties.MetricRules.SendMetrics = pointer.To(tagrules.SendMetricsStatusEnabled)
+				} else {
+					properties.Properties.MetricRules.SendMetrics = pointer.To(tagrules.SendMetricsStatusDisabled)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("metric_tag_filter") {
+				properties.Properties.MetricRules.FilteringTags = expandFilteringTagModelArray(model.MetricTagFilter)
+			}
+
+			if metadata.ResourceData.HasChange("subscription_log_enabled") {
+				if model.SubscriptionLogEnabled {
+					properties.Properties.LogRules.SendSubscriptionLogs = pointer.To(tagrules.SendSubscriptionLogsStatusEnabled)
+				} else {
+					properties.Properties.LogRules.SendSubscriptionLogs = pointer.To(tagrules.SendSubscriptionLogsStatusDisabled)
+				}
+			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -289,6 +353,20 @@ func (r NewRelicTagRuleResource) tagFilterSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func (r NewRelicTagRuleResource) getEmail(ctx context.Context, metadata sdk.ResourceMetaData, monitorId *monitors.MonitorId) (string, error) {
+	monitorClient := metadata.Client.NewRelic.MonitorsClient
+	monitor, err := monitorClient.Get(ctx, *monitorId)
+	if err != nil {
+		return "", fmt.Errorf("getting monitor: %+v", err)
+	}
+
+	if monitor.Model == nil || monitor.Model.Properties.UserInfo == nil || monitor.Model.Properties.UserInfo.EmailAddress == nil || *monitor.Model.Properties.UserInfo.EmailAddress == "" {
+		return "", fmt.Errorf("failed to get user email address from monitor")
+	}
+
+	return *monitor.Model.Properties.UserInfo.EmailAddress, nil
 }
 
 func expandFilteringTagModelArray(inputList []FilteringTagModel) *[]tagrules.FilteringTag {
