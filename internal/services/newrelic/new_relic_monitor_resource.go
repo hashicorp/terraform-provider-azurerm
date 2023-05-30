@@ -7,21 +7,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 const (
-	PlanSuffix = "@TIDgmz7xq9ge3py"
+	PlanSuffix = "@TIDgmz7xq9ge3py@PUBIDnewrelicinc1635200720692.newrelic_liftr_payg"
 )
 
 type NewRelicMonitorModel struct {
@@ -34,7 +32,6 @@ type NewRelicMonitorModel struct {
 	OrganizationId        string                         `tfschema:"organization_id"`
 	OrgCreationSource     monitors.OrgCreationSource     `tfschema:"org_creation_source"`
 	PlanData              []PlanDataModel                `tfschema:"plan"`
-	Tags                  map[string]string              `tfschema:"tags"`
 	UserId                string                         `tfschema:"user_id"`
 	UserInfo              []UserInfoModel                `tfschema:"user"`
 }
@@ -55,7 +52,7 @@ type UserInfoModel struct {
 
 type NewRelicMonitorResource struct{}
 
-var _ sdk.ResourceWithUpdate = NewRelicMonitorResource{}
+var _ sdk.Resource = NewRelicMonitorResource{}
 
 func (r NewRelicMonitorResource) ResourceType() string {
 	return "azurerm_new_relic_monitor"
@@ -226,8 +223,6 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-
-		"tags": commonschema.Tags(),
 	}
 }
 
@@ -265,7 +260,6 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 					PlanData:                  expandPlanDataModel(model.PlanData),
 					UserInfo:                  expandUserInfoModel(model.UserInfo),
 				},
-				Tags: &model.Tags,
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
@@ -273,45 +267,6 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
-		},
-	}
-}
-
-func (r NewRelicMonitorResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.NewRelic.MonitorsClient
-
-			id, err := monitors.ParseMonitorID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var model NewRelicMonitorModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			properties := resp.Model
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
-			}
-
-			if metadata.ResourceData.HasChange("tags") {
-				properties.Tags = &model.Tags
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
-			}
-
 			return nil
 		},
 	}
@@ -375,9 +330,6 @@ func (r NewRelicMonitorResource) Read() sdk.ResourceFunc {
 				state.PlanData = flattenPlanDataModel(properties.PlanData)
 
 				state.UserInfo = flattenUserInfoModel(properties.UserInfo)
-				if model.Tags != nil {
-					state.Tags = *model.Tags
-				}
 			}
 
 			return metadata.Encode(&state)
@@ -390,13 +342,21 @@ func (r NewRelicMonitorResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NewRelic.MonitorsClient
-
 			id, err := monitors.ParseMonitorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id, monitors.DefaultDeleteOperationOptions()); err != nil {
+			var model NewRelicMonitorModel
+			if err = metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if len(model.UserInfo) == 0 {
+				return fmt.Errorf("deleting: `user` not found")
+			}
+
+			if err = client.DeleteThenPoll(ctx, *id, monitors.DeleteOperationOptions{UserEmail: &model.UserInfo[0].EmailAddress}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

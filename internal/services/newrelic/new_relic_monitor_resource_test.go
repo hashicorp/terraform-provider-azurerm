@@ -69,29 +69,6 @@ func TestAccNewRelicMonitor_complete(t *testing.T) {
 	})
 }
 
-func TestAccNewRelicMonitor_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
-	r := NewRelicMonitorResource{}
-	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
-	email := "e5ba51fe-bd2d-44cb-b5f2-ff095726b718@example.com"
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data, effectiveDate, email),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("ingestion_key"),
-		{
-			Config: r.update(data, effectiveDate, email),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("ingestion_key"),
-	})
-}
-
 func (r NewRelicMonitorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitors.ParseMonitorID(state.ID)
 	if err != nil {
@@ -135,7 +112,7 @@ resource "azurerm_new_relic_monitor" "test" {
     effective_date = "%s"
   }
   user {
-    email = "%s"
+    email        = "%s"
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
@@ -157,7 +134,7 @@ resource "azurerm_new_relic_monitor" "import" {
     effective_date = azurerm_new_relic_monitor.test.plan[0].effective_date
   }
   user {
-    email = azurerm_new_relic_monitor.test.user[0].email
+    email        = azurerm_new_relic_monitor.test.user[0].email
     first_name   = azurerm_new_relic_monitor.test.user[0].first_name
     last_name    = azurerm_new_relic_monitor.test.user[0].last_name
     phone_number = azurerm_new_relic_monitor.test.user[0].phone_number
@@ -179,7 +156,7 @@ resource "azurerm_new_relic_monitor" "org" {
     effective_date = "%[4]s"
   }
   user {
-    email = "%[5]s"
+    email        = "%[5]s"
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
@@ -187,81 +164,27 @@ resource "azurerm_new_relic_monitor" "org" {
 }
 
 resource "azurerm_new_relic_monitor" "test" {
-  name                    = "acctest-nrm-%[2]d"
-  resource_group_name     = azurerm_new_relic_monitor.org.resource_group_name
-  location                = azurerm_new_relic_monitor.org.location
+  name                = "acctest-nrm-%[2]d"
+  resource_group_name = azurerm_new_relic_monitor.org.resource_group_name
+  location            = azurerm_new_relic_monitor.org.location
   plan {
-    billing_cycle = azurerm_new_relic_monitor.org.plan[0].billing_cycle
-    effective_date = azurerm_new_relic_monitor.org.plan[0].effective_date
-    plan_id = azurerm_new_relic_monitor.org.plan[0].plan_id
-    usage_type = azurerm_new_relic_monitor.org.plan[0].usage_type
-  }
-  user {
-    email = azurerm_new_relic_monitor.org.user[0].email
-    first_name   = azurerm_new_relic_monitor.org.user[0].first_name
-    last_name    = azurerm_new_relic_monitor.org.user[0].last_name
-    phone_number = azurerm_new_relic_monitor.org.user[0].phone_number
-  }
-  account_creation_source = azurerm_new_relic_monitor.org.account_creation_source
-  account_id    = azurerm_new_relic_monitor.org.account_id
-  ingestion_key = "wltnimmhqt"
-  organization_id = azurerm_new_relic_monitor.org.organization_id
-  org_creation_source     = azurerm_new_relic_monitor.org.org_creation_source
-  user_id = "123456"
-
-  tags = {
-    key = "value"
-  }
-}
-`, template, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
-}
-
-func (r NewRelicMonitorResource) update(data acceptance.TestData, effectiveDate string, email string) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-			%[1]s
-
-resource "azurerm_new_relic_monitor" "org" {
-  name                = "acctest-nrmo-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-  plan {
+    billing_cycle  = azurerm_new_relic_monitor.org.plan[0].billing_cycle
     effective_date = "%[4]s"
+    plan_id        = azurerm_new_relic_monitor.org.plan[0].plan_id
+    usage_type     = azurerm_new_relic_monitor.org.plan[0].usage_type
   }
   user {
-    email = "%[5]s"
-    first_name   = "first"
-    last_name    = "last"
-    phone_number = "123456"
-  }
-}
-
-resource "azurerm_new_relic_monitor" "test" {
-  name                    = "acctest-nrm-%[2]d"
-  resource_group_name     = azurerm_new_relic_monitor.org.resource_group_name
-  location                = azurerm_new_relic_monitor.org.location
-  plan {
-    billing_cycle = azurerm_new_relic_monitor.org.plan[0].billing_cycle
-    effective_date = azurerm_new_relic_monitor.org.plan[0].effective_date
-    plan_id = azurerm_new_relic_monitor.org.plan[0].plan_id
-    usage_type = azurerm_new_relic_monitor.org.plan[0].usage_type
-  }
-  user {
-    email = azurerm_new_relic_monitor.org.user[0].email
+    email        = azurerm_new_relic_monitor.org.user[0].email
     first_name   = azurerm_new_relic_monitor.org.user[0].first_name
     last_name    = azurerm_new_relic_monitor.org.user[0].last_name
     phone_number = azurerm_new_relic_monitor.org.user[0].phone_number
   }
   account_creation_source = azurerm_new_relic_monitor.org.account_creation_source
-  account_id    = azurerm_new_relic_monitor.org.account_id
-  ingestion_key = "wltnimmhqt"
-  organization_id = azurerm_new_relic_monitor.org.organization_id
+  account_id              = azurerm_new_relic_monitor.org.account_id
+  ingestion_key           = "wltnimmhqt"
+  organization_id         = azurerm_new_relic_monitor.org.organization_id
   org_creation_source     = azurerm_new_relic_monitor.org.org_creation_source
-  user_id = "123456"
-
-  tags = {
-    key = "value2"
-  }
+  user_id                 = "123456"
 }
 `, template, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
 }

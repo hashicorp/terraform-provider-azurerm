@@ -60,8 +60,6 @@ The following arguments are supported:
 
 * `user_id` - (Optional) Specifies the user id. Changing this forces a new Azure Native New Relic Monitor to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Azure Native New Relic Monitor.
-
 ---
 
 A `plan` block supports the following:
@@ -78,13 +76,13 @@ A `plan` block supports the following:
 
 A `user` block supports the following:
 
-* `email` - (Required) Specifies the user Email.
+* `email` - (Required) Specifies the user Email. Changing this forces a new Azure Native New Relic Monitor to be created.
 
-* `first_name` - (Required) Specifies the first name.
+* `first_name` - (Required) Specifies the first name. Changing this forces a new Azure Native New Relic Monitor to be created.
 
-* `last_name` - (Required) Specifies the last name.
+* `last_name` - (Required) Specifies the last name. Changing this forces a new Azure Native New Relic Monitor to be created.
 
-* `phone_number` - (Required) Specifies the contact phone number.
+* `phone_number` - (Required) Specifies the contact phone number. Changing this forces a new Azure Native New Relic Monitor to be created.
 
 ## Attributes Reference
 
