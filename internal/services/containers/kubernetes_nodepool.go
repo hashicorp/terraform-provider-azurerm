@@ -277,18 +277,16 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 	}
 }
 
-func schemaNodePoolKubeletConfig(forceNew bool) *pluginsdk.Schema {
+func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		ForceNew: forceNew,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"cpu_manager_policy": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ForceNew: forceNew,
 					ValidateFunc: validation.StringInSlice([]string{
 						"none",
 						"static",
@@ -298,33 +296,28 @@ func schemaNodePoolKubeletConfig(forceNew bool) *pluginsdk.Schema {
 				"cpu_cfs_quota_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					ForceNew: forceNew,
 				},
 
 				"cpu_cfs_quota_period": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ForceNew: forceNew,
 				},
 
 				"image_gc_high_threshold": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ForceNew:     forceNew,
 					ValidateFunc: validation.IntBetween(0, 100),
 				},
 
 				"image_gc_low_threshold": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ForceNew:     forceNew,
 					ValidateFunc: validation.IntBetween(0, 100),
 				},
 
 				"topology_manager_policy": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ForceNew: forceNew,
 					ValidateFunc: validation.StringInSlice([]string{
 						"none",
 						"best-effort",
@@ -336,7 +329,6 @@ func schemaNodePoolKubeletConfig(forceNew bool) *pluginsdk.Schema {
 				"allowed_unsafe_sysctls": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
-					ForceNew: forceNew,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -345,32 +337,117 @@ func schemaNodePoolKubeletConfig(forceNew bool) *pluginsdk.Schema {
 				"container_log_max_size_mb": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
-					ForceNew: forceNew,
 				},
 
 				// TODO 4.0: change this to `container_log_max_files`
 				"container_log_max_line": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ForceNew:     forceNew,
 					ValidateFunc: validation.IntAtLeast(2),
 				},
 
 				"pod_max_pid": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
-					ForceNew: forceNew,
 				},
 			},
 		},
 	}
 }
 
-func schemaNodePoolLinuxOSConfig(forceNew bool) *pluginsdk.Schema {
+func schemaNodePoolKubeletConfigForceNew() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		ForceNew: forceNew,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"cpu_manager_policy": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"none",
+						"static",
+					}, false),
+				},
+
+				"cpu_cfs_quota_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					ForceNew: true,
+				},
+
+				"cpu_cfs_quota_period": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+				},
+
+				"image_gc_high_threshold": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+
+				"image_gc_low_threshold": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+
+				"topology_manager_policy": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"none",
+						"best-effort",
+						"restricted",
+						"single-numa-node",
+					}, false),
+				},
+
+				"allowed_unsafe_sysctls": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"container_log_max_size_mb": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					ForceNew: true,
+				},
+
+				// TODO 4.0: change this to `container_log_max_files`
+				"container_log_max_line": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.IntAtLeast(2),
+				},
+
+				"pod_max_pid": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					ForceNew: true,
+				},
+			},
+		},
+	}
+}
+
+func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -379,7 +456,6 @@ func schemaNodePoolLinuxOSConfig(forceNew bool) *pluginsdk.Schema {
 				"transparent_huge_page_enabled": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ForceNew: forceNew,
 					ValidateFunc: validation.StringInSlice([]string{
 						"always",
 						"madvise",
@@ -390,7 +466,6 @@ func schemaNodePoolLinuxOSConfig(forceNew bool) *pluginsdk.Schema {
 				"transparent_huge_page_defrag": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ForceNew: forceNew,
 					ValidateFunc: validation.StringInSlice([]string{
 						"always",
 						"defer",
@@ -403,7 +478,50 @@ func schemaNodePoolLinuxOSConfig(forceNew bool) *pluginsdk.Schema {
 				"swap_file_size_mb": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
-					ForceNew: forceNew,
+				},
+			},
+		},
+	}
+}
+
+func schemaNodePoolLinuxOSConfigForceNew() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"sysctl_config": schemaNodePoolSysctlConfig(),
+
+				"transparent_huge_page_enabled": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"always",
+						"madvise",
+						"never",
+					}, false),
+				},
+
+				"transparent_huge_page_defrag": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"always",
+						"defer",
+						"defer+madvise",
+						"madvise",
+						"never",
+					}, false),
+				},
+
+				"swap_file_size_mb": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					ForceNew: true,
 				},
 			},
 		},
