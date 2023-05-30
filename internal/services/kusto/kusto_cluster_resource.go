@@ -594,22 +594,23 @@ func expandKustoClusterLanguageExtensions(d *pluginsdk.ResourceData) *clusters.L
 			for _, language := range extList {
 				name := language.(string)
 				lanExt := clusters.LanguageExtension{}
-				if name == "R" {
+				switch name {
+				case "R":
 					n := clusters.LanguageExtensionNameR
 					lanExt.LanguageExtensionName = &n
 					imageName := clusters.LanguageExtensionImageNameR
 					lanExt.LanguageExtensionImageName = &imageName
-				} else if name == "PYTHON" {
+				case "PYTHON":
 					n := clusters.LanguageExtensionNamePYTHON
 					lanExt.LanguageExtensionName = &n
 					imageName := clusters.LanguageExtensionImageNamePythonThreeSixFive
 					lanExt.LanguageExtensionImageName = &imageName
-				} else if name == "PYTHON_3.10.8" {
+				case "PYTHON_3.10.8":
 					n := clusters.LanguageExtensionNamePYTHON
 					lanExt.LanguageExtensionName = &n
 					imageName := clusters.LanguageExtensionImageNamePythonThreeOneZeroEight
 					lanExt.LanguageExtensionImageName = &imageName
-				} else {
+				default:
 					continue
 				}
 				extensions = append(extensions, lanExt)
@@ -681,12 +682,15 @@ func flattenKustoClusterLanguageExtensions(extensions *clusters.LanguageExtensio
 	output := make([]interface{}, 0)
 	if extensions.Value != nil {
 		for _, v := range *extensions.Value {
-			if *v.LanguageExtensionImageName == clusters.LanguageExtensionImageNameR {
-				output = append(output, "R")
-			} else if *v.LanguageExtensionImageName == clusters.LanguageExtensionImageNamePythonThreeSixFive {
-				output = append(output, "PYTHON")
-			} else if *v.LanguageExtensionImageName == clusters.LanguageExtensionImageNamePythonThreeOneZeroEight {
-				output = append(output, "PYTHON_3.10.8")
+			if v.LanguageExtensionImageName != nil {
+				switch *v.LanguageExtensionImageName {
+				case clusters.LanguageExtensionImageNameR:
+					output = append(output, "R")
+				case clusters.LanguageExtensionImageNamePythonThreeSixFive:
+					output = append(output, "PYTHON")
+				case clusters.LanguageExtensionImageNamePythonThreeOneZeroEight:
+					output = append(output, "PYTHON_3.10.8")
+				}
 			}
 		}
 	}
