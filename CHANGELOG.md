@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230523.1140858` of `github.com/hashicorp/go-azure-sdk` [GH-21910]
+* dependencies: `azurem_monitor_action_group` - upgrading `actiongroupsapis` from `2021-09-01` to `2023-01-01` [GH-21948]
 * `azurerm_nginx_certificate` - `key_vault_secret_id` now accepts version-less key vault secret ids [GH-21949]
 * `azurerm_postgresql_flexible_server` - Add support for `version` `15` [GH-21934]
 
