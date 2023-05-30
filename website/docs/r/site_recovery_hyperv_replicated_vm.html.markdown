@@ -6,7 +6,7 @@ description: |-
     Manages a HyperV VM protected with Azure Site Recovery on Azure.
 ---
 
-# azurerm_site_recovery_replicated_vm
+# azurerm_site_recovery_hyperv_replicated_vm
 
 Manages a HyperV VM replicated using Azure Site Recovery (HyperV to Azure only). A replicated VM keeps a copiously updated image of the VM in Azure in order to be able to start the VM in Azure in case of a disaster.
 
@@ -63,8 +63,8 @@ resource "azurerm_virtual_network" "example" {
 
 resource "azurerm_subnet" "example" {
   name                 = "example-subnet"
-  resource_group_name  = azurerm_resource_group.primary.name
-  virtual_network_name = azurerm_virtual_network.primary.name
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["192.168.2.0/24"]
 }
 
