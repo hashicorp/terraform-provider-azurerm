@@ -93,9 +93,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional: true,
 					},
 
-					"kubelet_config": schemaNodePoolKubeletConfig(false),
+					"kubelet_config": schemaNodePoolKubeletConfig(),
 
-					"linux_os_config": schemaNodePoolLinuxOSConfig(false),
+					"linux_os_config": schemaNodePoolLinuxOSConfig(),
 
 					"fips_enabled": {
 						Type:     pluginsdk.TypeBool,

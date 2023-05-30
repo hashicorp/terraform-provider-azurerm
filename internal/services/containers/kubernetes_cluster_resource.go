@@ -2061,28 +2061,34 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		cycleNodePool := false
-		cycleNodePoolProperty := ""
-		cycleNodePoolProperties := []string{"name", "enable_host_encryption", "enable_node_public_ip", "kubelet_config", "linux_os_config",
-			"max_pods", "node_taints", "only_critical_addons_enabled", "os_disk_size_gb", "os_disk_type", "os_sku", "pod_subnet_id",
-			"ultra_ssd_enabled", "vnet_subnet_id", "vm_size", "zones"}
-
-		for _, property := range cycleNodePoolProperties {
-			if d.HasChange("default_node_pool.0." + property) {
-				cycleNodePool = true
-				cycleNodePoolProperty = property
-			}
+		cycleNodePoolProperties := []string{
+		"default_node_pool.0.name", 
+		"default_node_pool.0.enable_host_encryption",
+		"default_node_pool.0.enable_node_public_ip", 
+		"default_node_pool.0.kubelet_config", 
+		"default_node_pool.0.linux_os_config",
+		"default_node_pool.0.max_pods", 
+		"default_node_pool.0.node_taints", 
+		"default_node_pool.0.only_critical_addons_enabled",
+		"default_node_pool.0.os_disk_size_gb", 
+		"default_node_pool.0.os_disk_type", 
+		"default_node_pool.0.os_sku", 
+		"default_node_pool.0.pod_subnet_id",
+		"default_node_pool.0.ultra_ssd_enabled", 
+		"default_node_pool.0.vnet_subnet_id", 
+		"default_node_pool.0.vm_size", 
+		"default_node_pool.0.zones"
 		}
-
+			
 		// if the default node pool name has changed, it means the initial attempt at resizing failed
-		if cycleNodePool {
+		if d.HasChanges(cycleNodePoolProperties...) {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
 			// to provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
 			// bringing up the new one.
 
 			if v := d.Get("default_node_pool.0.temporary_name_for_rotation").(string); v == "" {
-				return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating `%s`", cycleNodePoolProperty)
+				return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating any of the following properties %q", cycleNodePoolProperties)
 			}
 
 			temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name_for_rotation").(string)
