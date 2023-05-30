@@ -2062,24 +2062,24 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		cycleNodePoolProperties := []string{
-		"default_node_pool.0.name", 
-		"default_node_pool.0.enable_host_encryption",
-		"default_node_pool.0.enable_node_public_ip", 
-		"default_node_pool.0.kubelet_config", 
-		"default_node_pool.0.linux_os_config",
-		"default_node_pool.0.max_pods", 
-		"default_node_pool.0.node_taints", 
-		"default_node_pool.0.only_critical_addons_enabled",
-		"default_node_pool.0.os_disk_size_gb", 
-		"default_node_pool.0.os_disk_type", 
-		"default_node_pool.0.os_sku", 
-		"default_node_pool.0.pod_subnet_id",
-		"default_node_pool.0.ultra_ssd_enabled", 
-		"default_node_pool.0.vnet_subnet_id", 
-		"default_node_pool.0.vm_size", 
-		"default_node_pool.0.zones"
+			"default_node_pool.0.name",
+			"default_node_pool.0.enable_host_encryption",
+			"default_node_pool.0.enable_node_public_ip",
+			"default_node_pool.0.kubelet_config",
+			"default_node_pool.0.linux_os_config",
+			"default_node_pool.0.max_pods",
+			"default_node_pool.0.node_taints",
+			"default_node_pool.0.only_critical_addons_enabled",
+			"default_node_pool.0.os_disk_size_gb",
+			"default_node_pool.0.os_disk_type",
+			"default_node_pool.0.os_sku",
+			"default_node_pool.0.pod_subnet_id",
+			"default_node_pool.0.ultra_ssd_enabled",
+			"default_node_pool.0.vnet_subnet_id",
+			"default_node_pool.0.vm_size",
+			"default_node_pool.0.zones",
 		}
-			
+
 		// if the default node pool name has changed, it means the initial attempt at resizing failed
 		if d.HasChanges(cycleNodePoolProperties...) {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
