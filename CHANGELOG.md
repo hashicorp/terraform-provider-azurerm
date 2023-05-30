@@ -7,6 +7,10 @@ ENHANCEMENTS:
 * `azurerm_nginx_certificate` - `key_vault_secret_id` now accepts version-less key vault secret ids [GH-21949]
 * `azurerm_postgresql_flexible_server` - Add support for `version` `15` [GH-21934]
 
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - recompute the field `oidc_issuer_url` if the value of `oidc_issuer_enabled` has changed [GH-21911]
+
 ## 3.58.0 (May 25, 2023)
 
 FEATURES:
