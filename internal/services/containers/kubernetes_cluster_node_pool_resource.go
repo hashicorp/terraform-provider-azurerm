@@ -133,9 +133,9 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"kubelet_config": schemaNodePoolKubeletConfig(),
+			"kubelet_config": schemaNodePoolKubeletConfigForceNew(),
 
-			"linux_os_config": schemaNodePoolLinuxOSConfig(),
+			"linux_os_config": schemaNodePoolLinuxOSConfigForceNew(),
 
 			"fips_enabled": {
 				Type:     pluginsdk.TypeBool,
