@@ -60,24 +60,26 @@ const (
 	databaseAccountCapabilitiesEnableMongoRetryableWrites        databaseAccountCapabilities = "EnableMongoRetryableWrites"
 	databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl databaseAccountCapabilities = "EnableMongoRoleBasedAccessControl"
 	databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs    databaseAccountCapabilities = "EnableUniqueCompoundNestedDocs"
+	databaseAccountCapabilitiesEnableTTLOnCustomPath             databaseAccountCapabilities = "EnableTtlOnCustomPath"
 )
 
 /*
 	The mapping of capabilities and kinds of cosmosdb account confirmed by service team is as follows:
 
-EnableMongo :                    	MongoDB
-EnableCassandra :                	GlobalDocumentDB, Parse
-EnableGremlin :                  	GlobalDocumentDB, Parse
-EnableTable :                    	GlobalDocumentDB, Parse
-EnableAggregationPipeline :      	GlobalDocumentDB, MongoDB, Parse
-EnableServerless :               	GlobalDocumentDB, MongoDB, Parse
-MongoDBv3.4 :                    	GlobalDocumentDB, MongoDB, Parse
-mongoEnableDocLevelTTL :         	GlobalDocumentDB, MongoDB, Parse
-DisableRateLimitingResponses :   	GlobalDocumentDB, MongoDB, Parse
-AllowSelfServeUpgradeToMongo36 : 	GlobalDocumentDB, MongoDB, Parse
-EnableMongoRetryableWrites :		MongoDB
+EnableMongo :                    	  MongoDB
+EnableCassandra :                	  GlobalDocumentDB, Parse
+EnableGremlin :                  	  GlobalDocumentDB, Parse
+EnableTable :                    	  GlobalDocumentDB, Parse
+EnableAggregationPipeline :      	  GlobalDocumentDB, MongoDB, Parse
+EnableServerless :               	  GlobalDocumentDB, MongoDB, Parse
+MongoDBv3.4 :                    	  GlobalDocumentDB, MongoDB, Parse
+mongoEnableDocLevelTTL :         	  GlobalDocumentDB, MongoDB, Parse
+DisableRateLimitingResponses :   	  GlobalDocumentDB, MongoDB, Parse
+AllowSelfServeUpgradeToMongo36 : 	  GlobalDocumentDB, MongoDB, Parse
+EnableMongoRetryableWrites :		    MongoDB
 EnableMongoRoleBasedAccessControl : MongoDB
-EnableUniqueCompoundNestedDocs : 	MongoDB
+EnableUniqueCompoundNestedDocs : 	  MongoDB
+EnableTTLOnCustomPath :             MongoDB
 */
 var capabilitiesToKindMap = map[string]interface{}{
 	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo)):                    []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
@@ -85,6 +87,7 @@ var capabilitiesToKindMap = map[string]interface{}{
 	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)):     []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)):     []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableTTLOnCustomPath)):          []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableCassandra)):                []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableGremlin)):                  []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableTable)):                    []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
@@ -411,6 +414,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								string(databaseAccountCapabilitiesEnableMongoRetryableWrites),
 								string(databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl),
 								string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs),
+								string(databaseAccountCapabilitiesEnableTTLOnCustomPath),
 							}, false),
 						},
 					},
@@ -2097,6 +2101,7 @@ func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]documentdb.Ca
 		strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnableTTLOnCustomPath)),
 	}
 
 	// The feedback from service team: capabilities that can be removed from an existing account
