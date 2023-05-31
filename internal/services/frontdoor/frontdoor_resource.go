@@ -135,8 +135,7 @@ func resourceFrontDoorUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	// remove in 3.0
 	// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
 	// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
-	location := "Global"
-	cfgLocation, hasLocation := d.GetOk("location")
+	var location string
 
 	exists, err := client.Get(ctx, id)
 	if err != nil || exists.Model == nil {
@@ -145,6 +144,7 @@ func resourceFrontDoorUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		location = azure.NormalizeLocation(*exists.Model.Location)
 	}
 
+	cfgLocation, hasLocation := d.GetOk("location")
 	if hasLocation {
 		if location != azure.NormalizeLocation(cfgLocation) {
 			return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", name, resourceGroup, location, cfgLocation)
