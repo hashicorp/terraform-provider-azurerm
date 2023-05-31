@@ -24,8 +24,6 @@ resource "azurerm_automanage_configuration" "example" {
   location            = azurerm_resource_group.example.location
 
   antimalware {
-    enabled = true
-
     exclusions {
       extensions = "exe;dll"
       paths      = "C:\\Windows\\Temp;D:\\Temp"
@@ -76,8 +74,6 @@ The following arguments are supported:
 ---
 
 * `antimalware` supports the following:
-
-* `enabled` - (Required) Whether the antimalware is enabled. Defaults to `false`.
 
 * `exclusions` - (Optional) A `exclusions` block as defined below.
 

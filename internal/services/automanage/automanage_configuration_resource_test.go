@@ -25,7 +25,6 @@ func TestAccAutoManageConfigurationProfile_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("antimalware.#").HasValue("1"),
-				check.That(data.ResourceName).Key("antimalware.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("antimalware.0.exclusions.#").HasValue("1"),
 				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.extensions").HasValue("exe;dll"),
 				check.That(data.ResourceName).Key("antimalware.0.real_time_protection_enabled").HasValue("true"),
@@ -59,7 +58,6 @@ func TestAccAutoManageConfigurationProfile_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("antimalware.#").HasValue("1"),
-				check.That(data.ResourceName).Key("antimalware.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("antimalware.0.exclusions.#").HasValue("1"),
 				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.extensions").HasValue("exe;dll"),
 				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.processes").HasValue("svchost.exe;notepad.exe"),
@@ -95,7 +93,6 @@ func TestAccAutoManageConfigurationProfile_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("antimalware.#").HasValue("1"),
-				check.That(data.ResourceName).Key("antimalware.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("antimalware.0.exclusions.#").HasValue("1"),
 				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.extensions").HasValue("exe"),
 				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.processes").HasValue("svchost.exe"),
@@ -155,7 +152,6 @@ resource "azurerm_automanage_configuration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
   antimalware {
-    enabled = true
     exclusions {
       extensions = "exe;dll"
     }
@@ -176,7 +172,6 @@ resource "azurerm_automanage_configuration" "import" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
   antimalware {
-    enabled = true
     exclusions {
       extensions = "exe;dll"
     }
@@ -197,7 +192,6 @@ resource "azurerm_automanage_configuration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
   antimalware {
-    enabled = true
     exclusions {
       extensions = "exe;dll"
       paths      = "C:\\Windows\\Temp;D:\\Temp"
@@ -231,7 +225,6 @@ resource "azurerm_automanage_configuration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
   antimalware {
-    enabled = true
     exclusions {
       extensions = "exe"
       processes  = "svchost.exe"

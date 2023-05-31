@@ -33,7 +33,6 @@ type ConfigurationModel struct {
 }
 
 type AntimalwareConfiguration struct {
-	Enabled                   bool                    `tfschema:"enabled"`
 	Exclusions                []AntimalwareExclusions `tfschema:"exclusions"`
 	RealTimeProtectionEnabled bool                    `tfschema:"real_time_protection_enabled"`
 	ScheduledScanEnabled      bool                    `tfschema:"scheduled_scan_enabled"`
@@ -77,7 +76,7 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 
 		"location": commonschema.Location(),
 
-		// "Antimalware/Enable": boolean,
+		// "Antimalware/Enable": boolean, true if block exists
 		// "Antimalware/EnableRealTimeProtection": boolean,
 		// "Antimalware/RunScheduledScan": boolean,
 		// "Antimalware/ScanType": string ("Quick", "Full"),
@@ -92,11 +91,6 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
 					"real_time_protection_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -229,7 +223,7 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 
 			if model.Antimalware != nil && len(model.Antimalware) > 0 {
 				antimalwareConfig := model.Antimalware[0]
-				jsonConfig["Antimalware/Enable"] = antimalwareConfig.Enabled
+				jsonConfig["Antimalware/Enable"] = true
 				jsonConfig["Antimalware/EnableRealTimeProtection"] = antimalwareConfig.RealTimeProtectionEnabled
 				jsonConfig["Antimalware/RunScheduledScan"] = antimalwareConfig.ScheduledScanEnabled
 				jsonConfig["Antimalware/ScanType"] = antimalwareConfig.ScanType
@@ -303,7 +297,7 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 
 			if model.Antimalware != nil {
 				antimalwareConfig := model.Antimalware[0]
-				jsonConfig["Antimalware/Enable"] = antimalwareConfig.Enabled
+				jsonConfig["Antimalware/Enable"] = true
 				jsonConfig["Antimalware/EnableRealTimeProtection"] = antimalwareConfig.RealTimeProtectionEnabled
 				jsonConfig["Antimalware/RunScheduledScan"] = antimalwareConfig.ScheduledScanEnabled
 				jsonConfig["Antimalware/ScanType"] = antimalwareConfig.ScanType
@@ -445,10 +439,6 @@ func flattenAntimarewareConfig(configMap map[string]interface{}) []AntimalwareCo
 	antimalware := make([]AntimalwareConfiguration, 1)
 	antimalware[0] = AntimalwareConfiguration{}
 	antimalware[0].Exclusions = make([]AntimalwareExclusions, 1)
-
-	if val, ok := configMap["Antimalware/Enable"]; ok {
-		antimalware[0].Enabled = val.(bool)
-	}
 
 	if val, ok := configMap["Antimalware/EnableRealTimeProtection"]; ok {
 		antimalware[0].RealTimeProtectionEnabled = val.(bool)
