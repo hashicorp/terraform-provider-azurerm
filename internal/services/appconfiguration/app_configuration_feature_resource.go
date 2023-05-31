@@ -211,8 +211,8 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
-			// allow some time for role permission to be done propagated
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q read permission to be done propagated", featureKey)
+			// allow some time for role permission to be propagated
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q read permission to be propagated", featureKey)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Forbidden"},
 				Target:                    []string{"Error", "Exists", "NotFound"},
@@ -244,7 +244,8 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("while creating feature: %+v", err)
 			}
 
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q to be done provisioned", model.Key)
+			// https://github.com/Azure/AppConfiguration/issues/763
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q to be provisioned", model.Key)
 			stateConf = &pluginsdk.StateChangeConf{
 				Pending:                   []string{"NotFound"},
 				Target:                    []string{"Exists"},
