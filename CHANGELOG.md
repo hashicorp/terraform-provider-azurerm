@@ -11,6 +11,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_kubernetes_cluster` - recompute the field `oidc_issuer_url` if the value of `oidc_issuer_enabled` has changed [GH-21911]
+* `azurerm_kubernetes_cluster` - set correct value for `default_node_pool.os_sku` when resizing the `default_node_pool` [GH-21976]
 
 ## 3.58.0 (May 25, 2023)
 
