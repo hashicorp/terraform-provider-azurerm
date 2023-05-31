@@ -57,15 +57,6 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 			ValidateFunc: validation.IsUUID,
 		},
 
-		"bing_safety_phishing_url_lookback_date": {
-			Deprecated:   "This field is deprecated and will be removed in version 4.0 of the AzureRM Provider.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsRFC3339Time,
-			AtLeastOneOf: []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"},
-		},
-
 		"microsoft_emerging_threat_feed_lookback_date": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
