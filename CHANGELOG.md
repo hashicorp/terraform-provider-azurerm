@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230523.1140858` of `github.com/hashicorp/go-azure-sdk` [GH-21910]
 * dependencies: `azurem_monitor_action_group` - upgrading `actiongroupsapis` from `2021-09-01` to `2023-01-01` [GH-21948]
+* `azurerm_kubernetes_cluster` - the properties `enable_host_encryption`, `enable_node_public_ip`, `kubelet_config`, `linux_os_config`, `max_pods`, `node_taints`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `ultra_ssd_enabled`, `vnet_subnet_id` and `zones` are now updateable through cycling of the system node pool [GH-21719]
 * `azurerm_nginx_certificate` - `key_vault_secret_id` now accepts version-less key vault secret ids [GH-21949]
 * `azurerm_postgresql_flexible_server` - Add support for `version` `15` [GH-21934]
 
