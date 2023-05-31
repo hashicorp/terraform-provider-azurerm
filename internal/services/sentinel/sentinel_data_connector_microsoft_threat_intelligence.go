@@ -60,9 +60,15 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 		"microsoft_emerging_threat_feed_lookback_date": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
-			Optional:     true,
+			Optional:     !features.FourPointOh(),
+			Required:     features.FourPointOh(),
 			ValidateFunc: validation.IsRFC3339Time,
-			AtLeastOneOf: []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"},
+			AtLeastOneOf: func() []string {
+				if !features.FourPointOh() {
+					return []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"}
+				}
+				return []string{}
+			}(),
 		},
 	}
 
