@@ -188,7 +188,7 @@ func (r WatchlistItemResource) Update() sdk.ResourceFunc {
 				update.Properties.ItemsKeyValue = model.Properties
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, *watchlistId, update); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, update); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
