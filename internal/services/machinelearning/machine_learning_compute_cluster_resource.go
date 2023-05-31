@@ -101,11 +101,10 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			},
 
 			"node_public_ip_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true,
-				Default:      true,
-				ForceNew:     true,
-				RequiredWith: []string{"subnet_resource_id"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
 			},
 
 			"ssh": {
@@ -181,6 +180,10 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
+	}
+
+	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" {
+		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
 	}
 
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
