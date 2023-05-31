@@ -140,9 +140,7 @@ func resourceFrontDoorUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	exists, err := client.Get(ctx, id)
 	if err != nil || exists.Model == nil {
-		if !response.WasNotFound(exists.HttpResponse) {
-			return fmt.Errorf("locating %s: %+v", id, err)
-		}
+		return fmt.Errorf("locating %s: %+v", id, err)
 	} else {
 		location = azure.NormalizeLocation(*exists.Model.Location)
 	}
