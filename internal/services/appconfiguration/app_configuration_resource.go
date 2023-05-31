@@ -674,7 +674,5 @@ the credentials Terraform is using has insufficient permissions to check for an 
 You can opt out of this behaviour by using the "features" block (located within the "provider" block) - more information
 can be found here:
 https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
-Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
-this into Terraform via "terraform import".
 `, name, location)
 }
