@@ -108,9 +108,7 @@ A `kustomizations` block supports the following:
 
 An `blob_storage` block supports the following:
 
-* `container_name` - (Required) Specifies the Azure Blob container name to sync from the url endpoint for the flux configuration.
-
-* `url` - (Required) Specifies the URL to sync for the flux configuration Azure Blob storage account.
+* `container_id` - (Required) Specifies the Azure Blob container ID.
 
 * `account_key` - (Optional) Specifies the account key (shared key) to access the storage account.
 

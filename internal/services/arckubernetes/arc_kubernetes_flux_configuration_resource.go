@@ -4,16 +4,18 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
-
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -40,13 +42,12 @@ type ArcKubernetesFluxConfigurationModel struct {
 
 type AzureBlobDefinitionModel struct {
 	AccountKey            string                            `tfschema:"account_key"`
-	ContainerName         string                            `tfschema:"container_name"`
+	ContainerID           string                            `tfschema:"container_id"`
 	LocalAuthRef          string                            `tfschema:"local_auth_reference"`
 	SasToken              string                            `tfschema:"sas_token"`
 	ServicePrincipal      []ServicePrincipalDefinitionModel `tfschema:"service_principal"`
 	SyncIntervalInSeconds int64                             `tfschema:"sync_interval_in_seconds"`
 	TimeoutInSeconds      int64                             `tfschema:"timeout_in_seconds"`
-	Url                   string                            `tfschema:"url"`
 }
 
 type ServicePrincipalDefinitionModel struct {
@@ -213,16 +214,10 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 			ExactlyOneOf: []string{"blob_storage", "bucket", "git_repository"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"container_name": {
+					"container_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"url": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: storageValidate.StorageContainerDataPlaneID,
 					},
 
 					"account_key": {
@@ -733,8 +728,10 @@ func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) *fl
 		output.AccountKey = &input.AccountKey
 	}
 
-	if input.ContainerName != "" {
-		output.ContainerName = &input.ContainerName
+	if input.ContainerID != "" {
+		id, _ := parse.StorageContainerDataPlaneID(input.ContainerID)
+		output.ContainerName = &id.Name
+		output.Url = pointer.To(strings.TrimSuffix(input.ContainerID, "/"+id.Name))
 	}
 
 	if input.LocalAuthRef != "" {
@@ -743,10 +740,6 @@ func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) *fl
 
 	if input.SasToken != "" {
 		output.SasToken = &input.SasToken
-	}
-
-	if input.Url != "" {
-		output.Url = &input.Url
 	}
 
 	return &output
@@ -930,11 +923,10 @@ func flattenArcAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefini
 	}
 
 	output := AzureBlobDefinitionModel{
-		ContainerName:         pointer.From(input.ContainerName),
+		ContainerID:           fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)),
 		LocalAuthRef:          pointer.From(input.LocalAuthRef),
 		SyncIntervalInSeconds: pointer.From(input.SyncIntervalInSeconds),
 		TimeoutInSeconds:      pointer.From(input.TimeoutInSeconds),
-		Url:                   pointer.From(input.Url),
 	}
 
 	var servicePrincipal []ServicePrincipalDefinitionModel

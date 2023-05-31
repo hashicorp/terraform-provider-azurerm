@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,6 +14,8 @@ import (
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -39,14 +42,13 @@ type KubernetesFluxConfigurationModel struct {
 
 type AzureBlobDefinitionModel struct {
 	AccountKey            string                            `tfschema:"account_key"`
-	ContainerName         string                            `tfschema:"container_name"`
+	ContainerID           string                            `tfschema:"container_id"`
 	LocalAuthRef          string                            `tfschema:"local_auth_reference"`
 	ManagedIdentity       []ManagedIdentityDefinitionModel  `tfschema:"managed_identity"`
 	SasToken              string                            `tfschema:"sas_token"`
 	ServicePrincipal      []ServicePrincipalDefinitionModel `tfschema:"service_principal"`
 	SyncIntervalInSeconds int64                             `tfschema:"sync_interval_in_seconds"`
 	TimeoutInSeconds      int64                             `tfschema:"timeout_in_seconds"`
-	Url                   string                            `tfschema:"url"`
 }
 
 type ServicePrincipalDefinitionModel struct {
@@ -217,16 +219,10 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 			ExactlyOneOf: []string{"blob_storage", "bucket", "git_repository"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"container_name": {
+					"container_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"url": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: storageValidate.StorageContainerDataPlaneID,
 					},
 
 					"account_key": {
@@ -754,8 +750,10 @@ func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) *fluxc
 		output.AccountKey = &input.AccountKey
 	}
 
-	if input.ContainerName != "" {
-		output.ContainerName = &input.ContainerName
+	if input.ContainerID != "" {
+		id, _ := parse.StorageContainerDataPlaneID(input.ContainerID)
+		output.ContainerName = &id.Name
+		output.Url = pointer.To(strings.TrimSuffix(input.ContainerID, "/"+id.Name))
 	}
 
 	if input.LocalAuthRef != "" {
@@ -764,10 +762,6 @@ func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) *fluxc
 
 	if input.SasToken != "" {
 		output.SasToken = &input.SasToken
-	}
-
-	if input.Url != "" {
-		output.Url = &input.Url
 	}
 
 	return &output
@@ -964,12 +958,11 @@ func flattenAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinitio
 		return outputList
 	}
 	output := AzureBlobDefinitionModel{
-		ContainerName:         pointer.From(input.ContainerName),
+		ContainerID:           fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)),
 		LocalAuthRef:          pointer.From(input.LocalAuthRef),
 		ManagedIdentity:       flattenManagedIdentityDefinitionModel(input.ManagedIdentity),
 		SyncIntervalInSeconds: pointer.From(input.SyncIntervalInSeconds),
 		TimeoutInSeconds:      pointer.From(input.TimeoutInSeconds),
-		Url:                   pointer.From(input.Url),
 	}
 
 	var servicePrincipal []ServicePrincipalDefinitionModel

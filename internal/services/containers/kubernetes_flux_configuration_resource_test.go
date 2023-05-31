@@ -409,8 +409,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   namespace  = "flux"
 
   blob_storage {
-    container_name           = azurerm_storage_container.test.name
-    url                      = azurerm_storage_account.test.primary_blob_endpoint
+    container_id             = azurerm_storage_container.test.id
     account_key              = azurerm_storage_account.test.primary_access_key
     sync_interval_in_seconds = 800
     timeout_in_seconds       = 800
@@ -463,8 +462,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   namespace  = "flux"
 
   blob_storage {
-    container_name = azurerm_storage_container.test.name
-    url            = azurerm_storage_account.test.primary_blob_endpoint
+    container_id = azurerm_storage_container.test.id
     managed_identity {
       client_id = azurerm_kubernetes_cluster.test.kubelet_identity.0.client_id
     }
@@ -546,9 +544,8 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   namespace  = "flux"
 
   blob_storage {
-    container_name = azurerm_storage_container.test.name
-    url            = azurerm_storage_account.test.primary_blob_endpoint
-    sas_token      = data.azurerm_storage_account_sas.test.sas
+    container_id = azurerm_storage_container.test.id
+    sas_token    = data.azurerm_storage_account_sas.test.sas
   }
 
   kustomizations {
@@ -601,8 +598,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   namespace  = "flux"
 
   blob_storage {
-    container_name = azurerm_storage_container.test.name
-    url            = azurerm_storage_account.test.primary_blob_endpoint
+    container_id = azurerm_storage_container.test.id
     service_principal {
       client_id     = "%[3]s"
       tenant_id     = "%[4]s"
@@ -662,8 +658,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   namespace  = "flux"
 
   blob_storage {
-    container_name = azurerm_storage_container.test.name
-    url            = azurerm_storage_account.test.primary_blob_endpoint
+    container_id = azurerm_storage_container.test.id
     service_principal {
       client_id                     = "%[3]s"
       tenant_id                     = "%[4]s"
