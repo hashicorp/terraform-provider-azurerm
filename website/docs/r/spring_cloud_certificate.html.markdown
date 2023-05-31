@@ -26,7 +26,7 @@ data "azurerm_client_config" "current" {
 }
 
 data "azuread_service_principal" "example" {
-  display_name = "Azure Spring Cloud Domain-Management"
+  display_name = "Azure Spring Cloud Resource Provider"
 }
 
 resource "azurerm_key_vault" "example" {
