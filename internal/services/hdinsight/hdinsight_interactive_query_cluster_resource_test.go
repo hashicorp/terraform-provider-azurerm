@@ -568,21 +568,6 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_autoscale(t *testing.T) {
 	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.autoscale_capacity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("https_endpoint").Exists(),
-				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
-			),
-		},
-		data.ImportStep("roles.0.head_node.0.password",
-			"roles.0.head_node.0.vm_size",
-			"roles.0.worker_node.0.password",
-			"roles.0.worker_node.0.vm_size",
-			"roles.0.zookeeper_node.0.password",
-			"roles.0.zookeeper_node.0.vm_size",
-			"storage_account"),
-		{
 			Config: r.autoscale_schedule(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -2004,55 +1989,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 }
 `, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
-}
-
-func (r HDInsightInteractiveQueryClusterResource) autoscale_capacity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-resource "azurerm_hdinsight_interactive_query_cluster" "test" {
-  name                = "acctesthdi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
-  tier                = "Standard"
-  component_version {
-    interactive_hive = "3.1"
-  }
-  gateway {
-    username = "acctestusrgw"
-    password = "TerrAform123!"
-  }
-  storage_account {
-    storage_container_id = azurerm_storage_container.test.id
-    storage_account_key  = azurerm_storage_account.test.primary_access_key
-    is_default           = true
-  }
-  roles {
-    head_node {
-      vm_size  = "Standard_D13_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-    worker_node {
-      vm_size               = "Standard_D14_V2"
-      username              = "acctestusrvm"
-      password              = "AccTestvdSC4daf986!"
-      target_instance_count = 2
-      autoscale {
-        capacity {
-          min_instance_count = 2
-          max_instance_count = 3
-        }
-      }
-    }
-    zookeeper_node {
-      vm_size  = "Standard_A4_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-  }
-}
-`, r.template(data), data.RandomInteger)
 }
 
 func (r HDInsightInteractiveQueryClusterResource) autoscale_schedule(data acceptance.TestData) string {

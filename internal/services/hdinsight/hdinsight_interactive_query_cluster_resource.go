@@ -32,7 +32,7 @@ var hdInsightInteractiveQueryClusterWorkerNodeDefinition = HDInsightNodeDefiniti
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
-	CanAutoScaleByCapacity:  true,
+	CanAutoScaleByCapacity:  false,
 	CanAutoScaleOnSchedule:  true,
 }
 
