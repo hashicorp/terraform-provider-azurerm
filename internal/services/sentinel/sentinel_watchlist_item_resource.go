@@ -165,7 +165,7 @@ func (r WatchlistItemResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			watchlistId, err := watchlistitems.ParseWatchlistItemID(model.WatchlistID)
+			watchlistId, err := watchlistitems.ParseWatchlistID(model.WatchlistID)
 			if err != nil {
 				return err
 			}
