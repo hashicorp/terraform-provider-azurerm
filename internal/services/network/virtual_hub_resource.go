@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -136,7 +135,6 @@ func resourceVirtualHub() *pluginsdk.Resource {
 			"virtual_router_auto_scale_min_capacity": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(2),
 			},
 		},
@@ -175,14 +173,12 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	t := d.Get("tags").(map[string]interface{})
 
 	hubRoutingPreference := d.Get("hub_routing_preference").(string)
-	autoscale := expandAutoScaleConfig(d)
 
 	parameters := network.VirtualHub{
 		Location: utils.String(location),
 		VirtualHubProperties: &network.VirtualHubProperties{
-			RouteTable:                          expandVirtualHubRoute(route),
-			HubRoutingPreference:                network.HubRoutingPreference(hubRoutingPreference),
-			VirtualRouterAutoScaleConfiguration: autoscale,
+			RouteTable:           expandVirtualHubRoute(route),
+			HubRoutingPreference: network.HubRoutingPreference(hubRoutingPreference),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -198,6 +194,12 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if v, ok := d.GetOk("virtual_wan_id"); ok {
 		parameters.VirtualHubProperties.VirtualWan = &network.SubResource{
 			ID: utils.String(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("virtual_router_auto_scale_min_capacity"); ok {
+		parameters.VirtualHubProperties.VirtualRouterAutoScaleConfiguration = &network.VirtualRouterAutoScaleConfiguration{
+			MinCapacity: utils.Int32(int32(v.(int))),
 		}
 	}
 
@@ -372,19 +374,6 @@ func flattenVirtualHubRoute(input *network.VirtualHubRouteTable) []interface{} {
 	}
 
 	return results
-}
-
-func expandAutoScaleConfig(input *schema.ResourceData) *network.VirtualRouterAutoScaleConfiguration {
-	minCapacity, ok := input.GetOk("virtual_router_auto_scale_min_capacity")
-
-	if !ok {
-		return nil
-	}
-
-	minCapacity32 := utils.Int32(int32(minCapacity.(int)))
-	return &network.VirtualRouterAutoScaleConfiguration{
-		MinCapacity: minCapacity32,
-	}
 }
 
 func virtualHubCreateRefreshFunc(ctx context.Context, client *network.VirtualHubsClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
