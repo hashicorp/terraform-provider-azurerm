@@ -129,9 +129,13 @@ An `application_logs` block exports the following:
 
 An `application_stack` block exports the following:
 
-* `docker_image` - The Docker image reference, including repository.
+* `docker_image_name` - (Optional) The docker image, including tag, to be used
 
-* `docker_image_tag` - The image Tag.
+* `docker_registry_url` - (Optional) The URL of the container registry where the `docker_image_name` is located. e.g. `https://index.docker.io` or `https://mcr.microsoft.com`. This value is required with `docker_image_name`.
+
+* `docker_registry_username` - (Optional) The User Name to use for authentication against the registry to pull the image.
+
+* `docker_registry_password` - (Optional) The User Name to use for authentication against the registry to pull the image.
 
 * `dotnet_version` - The version of .NET in use.
 

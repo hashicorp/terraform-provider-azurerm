@@ -131,11 +131,13 @@ An `application_stack` block exports the following:
 
 * `current_stack` - The Current Stack value of the Windows Web App.
 
-* `docker_container_name` - The name of the Docker Container in used.
+* `docker_image_name` - (Optional) The docker image, including tag, to be used
 
-* `docker_container_registry` - The Container Registry where the Docker Container is pulled from.
+* `docker_registry_url` - (Optional) The URL of the container registry where the `docker_image_name` is located. e.g. `https://index.docker.io` or `https://mcr.microsoft.com`. This value is required with `docker_image_name`.
 
-* `docker_container_tag` - The Docker Container Tag of the Container in use.
+* `docker_registry_username` - (Optional) The User Name to use for authentication against the registry to pull the image.
+
+* `docker_registry_password` - (Optional) The User Name to use for authentication against the registry to pull the image.
 
 * `dotnet_version` - The version of .NET in use.
 

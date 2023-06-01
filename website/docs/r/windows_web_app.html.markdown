@@ -142,11 +142,13 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** Whilst this property is Optional omitting it can cause unexpected behaviour, in particular for display of settings in the Azure Portal.
 
-* `docker_container_name` - (Optional) The name of the Docker Container. For example `azure-app-service/samples/aspnethelloworld`
+* `docker_image_name` - (Optional) The docker image, including tag, to be used
 
-* `docker_container_registry` - (Optional) The registry Host on which the specified Docker Container can be located. For example `mcr.microsoft.com`
+* `docker_registry_url` - (Optional) The URL of the container registry where the `docker_image_name` is located. e.g. `https://index.docker.io` or `https://mcr.microsoft.com`. This value is required with `docker_image_name`.
 
-* `docker_container_tag` - (Optional) The Image Tag of the specified Docker Container to use. For example `latest`
+* `docker_registry_username` - (Optional) The User Name to use for authentication against the registry to pull the image.
+
+* `docker_registry_password` - (Optional) The User Name to use for authentication against the registry to pull the image.
 
 * `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`,`v3.0`, `v4.0`, `v5.0`, `v6.0` and `v7.0`.
 
