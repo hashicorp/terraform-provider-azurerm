@@ -1,5 +1,9 @@
 ## 3.59.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_automanage_configuration` [GH-21490]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230523.1140858` of `github.com/hashicorp/go-azure-sdk` [GH-21910]
@@ -13,6 +17,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_configuration` - prevent errors when deleting by checking that the name of the app configuration store has been released [GH-21750]
 * `azurerm_kubernetes_cluster` - recompute the field `oidc_issuer_url` if the value of `oidc_issuer_enabled` has changed [GH-21911]
 * `azurerm_kubernetes_cluster` - set correct value for `default_node_pool.os_sku` when resizing the `default_node_pool` [GH-21976]
 
