@@ -268,7 +268,7 @@ The following arguments are supported:
 
 * `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor. Defaults to `true`.
 
-* `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account.
+* `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account. **Note:** Required if a storage_endpoint has been specified.  
 
 ## Attributes Reference
 
