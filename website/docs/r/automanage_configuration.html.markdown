@@ -3,12 +3,12 @@ subcategory: "Automanage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automanage_configuration"
 description: |-
-  Manages a automanage ConfigurationProfile.
+  Manages an Automanage Configuration.
 ---
 
 # azurerm_automanage_configuration
 
-Manages a automanage ConfigurationProfile.
+Manages an Automanage Configuration.
 
 ## Example Usage
 
@@ -53,17 +53,17 @@ resource "azurerm_automanage_configuration" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this automanage ConfigurationProfile. Changing this forces a new automanage ConfigurationProfile to be created.
+* `name` - (Required) The name which should be used for this Automanage Configuration. Changing this forces a new Automanage Configuration to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the automanage ConfigurationProfile should exist. Changing this forces a new automanage ConfigurationProfile to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Automanage Configuration should exist. Changing this forces a new Automanage Configuration to be created.
 
-* `location` - (Required) The Azure Region where the automanage ConfigurationProfile should exist. Changing this forces a new automanage ConfigurationProfile to be created.
+* `location` - (Required) The Azure Region where the Automanage Configuration should exist. Changing this forces a new Automanage Configuration to be created.
 
 * `antimalware` - (Optional) A `antimalware` block as defined below.
 
 * `automation_account_enabled` - (Optional) Whether the automation account is enabled. Defaults to `false`.
 
-* `boot_diagnostics_enabled` - (Optional) Whether the boot diagnostics is enabled. Defaults to `false`.
+* `boot_diagnostics_enabled` - (Optional) Whether the boot diagnostics are enabled. Defaults to `false`.
 
 * `defender_for_cloud_enabled` - (Optional) Whether the defender for cloud is enabled. Defaults to `false`.
 
@@ -97,13 +97,13 @@ The following arguments are supported:
 
 * `processes` - (Optional) The processes to exclude from the antimalware scan, separated by `;`. For example `svchost.exe;notepad.exe`.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the automanage ConfigurationProfile.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Automanage Configuration.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the automanage ConfigurationProfile.
+* `id` - The ID of the Automanage Configuration.
 
 * `type` - The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts".
 
@@ -111,14 +111,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the automanage ConfigurationProfile.
-* `read` - (Defaults to 5 minutes) Used when retrieving the automanage ConfigurationProfile.
-* `update` - (Defaults to 30 minutes) Used when updating the automanage ConfigurationProfile.
-* `delete` - (Defaults to 30 minutes) Used when deleting the automanage ConfigurationProfile.
+* `create` - (Defaults to 30 minutes) Used when creating the Automanage Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automanage Configuration.
+* `update` - (Defaults to 30 minutes) Used when updating the Automanage Configuration.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Automanage Configuration.
 
 ## Import
 
-automanage ConfigurationProfiles can be imported using the `resource id`, e.g.
+Automanage Configuration can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_automanage_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1
