@@ -440,7 +440,7 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 	}
 }
 
-func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) *web.SiteConfig {
+func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web.SiteConfig, error) {
 	expanded := &web.SiteConfig{}
 
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
@@ -543,8 +543,7 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) *web.
 	if len(s.IpRestriction) != 0 {
 		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
 		if err != nil {
-			// TODO
-			//return nil, nil, fmt.Errorf("expanding IP Restrictions: %+v", err)
+			return nil, fmt.Errorf("expanding IP Restrictions: %+v", err)
 		}
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
@@ -552,8 +551,7 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) *web.
 	if len(s.ScmIpRestriction) != 0 {
 		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
 		if err != nil {
-			// TODO
-			//return nil, nil, fmt.Errorf("expanding SCM IP Restrictions: %+v", err)
+			return nil, fmt.Errorf("expanding SCM IP Restrictions: %+v", err)
 		}
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
@@ -578,10 +576,10 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) *web.
 		expanded.AutoHealRules = expandAutoHealSettingsWindows(s.AutoHealSettings)
 	}
 
-	return expanded
+	return expanded, nil
 }
 
-func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *web.SiteConfig, appSettings map[string]string) *web.SiteConfig {
+func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *web.SiteConfig, appSettings map[string]string) (*web.SiteConfig, error) {
 	expanded := web.SiteConfig{}
 	if existing != nil {
 		expanded = *existing
@@ -684,15 +682,19 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
-		// TODO
-		ipRestrictions, _ := ExpandIpRestrictions(s.IpRestriction)
+		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
+		if err != nil {
+			return nil, err
+		}
 
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
-		// TODO
-		scmIpRestrictions, _ := ExpandIpRestrictions(s.ScmIpRestriction)
+		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
+		if err != nil {
+			return nil, err
+		}
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
@@ -745,7 +747,7 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	}
 
-	return &expanded
+	return &expanded, nil
 }
 
 func (s *SiteConfigWindows) Flatten(appSiteConfig *web.SiteConfig, currentStack string) error {

@@ -540,7 +540,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 	}
 }
 
-func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]string) *web.SiteConfig {
+func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]string) (*web.SiteConfig, error) {
 	expanded := &web.SiteConfig{}
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
@@ -603,7 +603,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 		if linuxAppStack.JavaServer != "" {
 			javaString, err := JavaLinuxFxStringBuilder(linuxAppStack.JavaVersion, linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion)
 			if err != nil {
-				// TODO return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
+				return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
 			}
 			expanded.LinuxFxVersion = javaString
 		}
@@ -635,7 +635,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 	if len(s.IpRestriction) != 0 {
 		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
 		if err != nil {
-			// TODO - Needs errors?
+			return nil, err
 		}
 
 		expanded.IPSecurityRestrictions = ipRestrictions
@@ -644,7 +644,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 	if len(s.ScmIpRestriction) != 0 {
 		ipRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
 		if err != nil {
-			// TODO - Needs errors?
+			return nil, err
 		}
 
 		expanded.ScmIPSecurityRestrictions = ipRestrictions
@@ -666,10 +666,10 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
-	return expanded
+	return expanded, nil
 }
 
-func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *web.SiteConfig, appSettings map[string]string) *web.SiteConfig {
+func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *web.SiteConfig, appSettings map[string]string) (*web.SiteConfig, error) {
 	expanded := *existing
 
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
@@ -728,8 +728,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 			if linuxAppStack.JavaServer != "" {
 				javaString, err := JavaLinuxFxStringBuilder(linuxAppStack.JavaVersion, linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion)
 				if err != nil {
-					// TODO
-					//return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
+					return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
 				}
 				expanded.LinuxFxVersion = javaString
 			}
@@ -762,8 +761,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
 		if err != nil {
-			// TODO
-			//return nil, err
+			return nil, err
 		}
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
@@ -771,8 +769,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
 		if err != nil {
-			// TODO
-			//return nil, err
+			return nil, err
 		}
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
@@ -819,7 +816,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
-	return &expanded
+	return &expanded, nil
 }
 
 func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *web.SiteConfig) {
@@ -938,7 +935,7 @@ func (s *SiteConfigLinuxWebAppSlot) DecodeDockerDeprecatedAppStack(input map[str
 	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
 }
 
-func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]string) *web.SiteConfig {
+func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]string) (*web.SiteConfig, error) {
 	expanded := &web.SiteConfig{}
 
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
@@ -1041,8 +1038,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 	if len(s.IpRestriction) != 0 {
 		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
 		if err != nil {
-			// TODO
-			//return nil, nil, fmt.Errorf("expanding IP Restrictions: %+v", err)
+			return nil, fmt.Errorf("expanding IP Restrictions: %+v", err)
 		}
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
@@ -1050,8 +1046,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 	if len(s.ScmIpRestriction) != 0 {
 		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
 		if err != nil {
-			// TODO
-			//return nil, nil, fmt.Errorf("expanding SCM IP Restrictions: %+v", err)
+			return nil, fmt.Errorf("expanding SCM IP Restrictions: %+v", err)
 		}
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
@@ -1075,10 +1070,10 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 	if len(s.AutoHealSettings) != 0 {
 		expanded.AutoHealRules = expandAutoHealSettingsWindows(s.AutoHealSettings)
 	}
-	return expanded
+	return expanded, nil
 }
 
-func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *web.SiteConfig, appSettings map[string]string) *web.SiteConfig {
+func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *web.SiteConfig, appSettings map[string]string) (*web.SiteConfig, error) {
 	expanded := web.SiteConfig{}
 	if existing != nil {
 		expanded = *existing
@@ -1181,15 +1176,19 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
-		// TODO
-		ipRestrictions, _ := ExpandIpRestrictions(s.IpRestriction)
+		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
+		if err != nil {
+			return nil, err
+		}
 
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
-		// TODO
-		scmIpRestrictions, _ := ExpandIpRestrictions(s.ScmIpRestriction)
+		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
+		if err != nil {
+			return nil, err
+		}
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
@@ -1242,7 +1241,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	}
 
-	return &expanded
+	return &expanded, nil
 }
 
 func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *web.SiteConfig, currentStack string) {

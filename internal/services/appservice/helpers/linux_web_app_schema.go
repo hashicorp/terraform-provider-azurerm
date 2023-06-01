@@ -2,12 +2,12 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -724,7 +724,7 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 	}
 }
 
-func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) *web.SiteConfig {
+func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*web.SiteConfig, error) {
 	expanded := &web.SiteConfig{}
 
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
@@ -788,7 +788,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) *web.Si
 		if linuxAppStack.JavaServer != "" {
 			javaString, err := JavaLinuxFxStringBuilder(linuxAppStack.JavaVersion, linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion)
 			if err != nil {
-				// TODO return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
+				return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
 			}
 			expanded.LinuxFxVersion = javaString
 		}
@@ -820,7 +820,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) *web.Si
 	if len(s.IpRestriction) != 0 {
 		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
 		if err != nil {
-			// TODO - Needs errors?
+			return nil, err
 		}
 
 		expanded.IPSecurityRestrictions = ipRestrictions
@@ -829,7 +829,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) *web.Si
 	if len(s.ScmIpRestriction) != 0 {
 		ipRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
 		if err != nil {
-			// TODO - Needs errors?
+			return nil, err
 		}
 
 		expanded.ScmIPSecurityRestrictions = ipRestrictions
@@ -855,10 +855,10 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) *web.Si
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
-	return expanded
+	return expanded, nil
 }
 
-func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *web.SiteConfig, appSettings map[string]string) *web.SiteConfig {
+func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *web.SiteConfig, appSettings map[string]string) (*web.SiteConfig, error) {
 	expanded := *existing
 
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
@@ -917,8 +917,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 			if linuxAppStack.JavaServer != "" {
 				javaString, err := JavaLinuxFxStringBuilder(linuxAppStack.JavaVersion, linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion)
 				if err != nil {
-					// TODO
-					//return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
+					return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
 				}
 				expanded.LinuxFxVersion = javaString
 			}
@@ -951,8 +950,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
 		if err != nil {
-			// TODO
-			//return nil, err
+			return nil, err
 		}
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
@@ -960,8 +958,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
 		if err != nil {
-			// TODO
-			//return nil, err
+			return nil, err
 		}
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
@@ -1012,7 +1009,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
-	return &expanded
+	return &expanded, nil
 }
 
 func (s *SiteConfigLinux) Flatten(appSiteConfig *web.SiteConfig) {

@@ -3,7 +3,6 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -292,7 +292,10 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			sc := webAppSlot.SiteConfig[0]
-			siteConfig := sc.ExpandForCreate(webAppSlot.AppSettings)
+			siteConfig, err := sc.ExpandForCreate(webAppSlot.AppSettings)
+			if err != nil {
+				return err
+			}
 
 			currentStack := ""
 			if len(sc.ApplicationStack) == 1 {
@@ -735,7 +738,10 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {
-				existing.SiteConfig = sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
+				existing.SiteConfig, err = sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
+				if err != nil {
+					return err
+				}
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
