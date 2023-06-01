@@ -354,7 +354,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("rotation_policy"); ok {
-		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, *keyVaultBaseUri, name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
+		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, *keyVaultBaseUri, name, expandKeyVaultKeyRotationPolicy(v.([]interface{}))); err != nil {
 			if utils.ResponseWasForbidden(respPolicy.Response) {
 				return fmt.Errorf("current client lacks permissions to create Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", name, *keyVaultId, *keyVaultBaseUri, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
 			}
@@ -436,7 +436,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("rotation_policy"); ok {
-		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name, expandKeyVaultKeyRotationPolicy(d.Get("rotation_policy"))); err != nil {
+		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name, expandKeyVaultKeyRotationPolicy(d.Get("rotation_policy").([]interface{}))); err != nil {
 			if utils.ResponseWasForbidden(respPolicy.Response) {
 				return fmt.Errorf("current client lacks permissions to update Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
 			}
@@ -696,13 +696,12 @@ func expandKeyVaultKeyOptions(d *pluginsdk.ResourceData) *[]keyvault.JSONWebKeyO
 	return &results
 }
 
-func expandKeyVaultKeyRotationPolicy(v interface{}) keyvault.KeyRotationPolicy {
-	if v == nil || len(v.([]interface{})) == 0 {
+func expandKeyVaultKeyRotationPolicy(v []interface{}) keyvault.KeyRotationPolicy {
+	if len(v) == 0 {
 		return keyvault.KeyRotationPolicy{LifetimeActions: &[]keyvault.LifetimeActions{}}
 	}
 
-	policies := v.([]interface{})
-	policy := policies[0].(map[string]interface{})
+	policy := v[0].(map[string]interface{})
 
 	var expiryTime *string = nil // needs to be set to nil if not set
 	if rawExpiryTime := policy["expire_after"]; rawExpiryTime != nil && rawExpiryTime.(string) != "" {
