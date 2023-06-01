@@ -5,6 +5,7 @@ package galleryapplicationversions
 
 type TargetRegion struct {
 	Encryption           *EncryptionImages   `json:"encryption,omitempty"`
+	ExcludeFromLatest    *bool               `json:"excludeFromLatest,omitempty"`
 	Name                 string              `json:"name"`
 	RegionalReplicaCount *int64              `json:"regionalReplicaCount,omitempty"`
 	StorageAccountType   *StorageAccountType `json:"storageAccountType,omitempty"`
