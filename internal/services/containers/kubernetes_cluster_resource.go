@@ -1348,9 +1348,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	// supplied by the user which will result in a diff in some cases, so if versions have been supplied check that they
 	// are identical
 	agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
-	if nodePoolVersion := agentProfile.Properties.CurrentOrchestratorVersion; nodePoolVersion != nil {
-		if kubernetesVersion != "" && kubernetesVersion != *nodePoolVersion {
-			return fmt.Errorf("version mismatch between the control plane running %s and default node pool running %s, they must use the same kubernetes versions", kubernetesVersion, *nodePoolVersion)
+	if prop := agentProfile.Properties; prop != nil {
+		if nodePoolVersion := prop.CurrentOrchestratorVersion; nodePoolVersion != nil {
+			if kubernetesVersion != "" && kubernetesVersion != *nodePoolVersion {
+				return fmt.Errorf("version mismatch between the control plane running %s and default node pool running %s, they must use the same kubernetes versions", kubernetesVersion, *nodePoolVersion)
+			}
 		}
 	}
 
@@ -1742,6 +1744,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("network_profile") {
 		updateCluster = true
 
+		if existing.Model.Properties.NetworkProfile == nil {
+			return fmt.Errorf("updating %s: `network_profile` was nil", *id)
+		}
+
 		networkProfile := *existing.Model.Properties.NetworkProfile
 
 		if networkProfile.LoadBalancerProfile == nil && networkProfile.NatGatewayProfile == nil {
@@ -1935,6 +1941,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		updateCluster = true
 		azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
 		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
@@ -1942,6 +1951,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
 		microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
 		existing.Model.Properties.SecurityProfile.Defender = microsoftDefender
 	}
 

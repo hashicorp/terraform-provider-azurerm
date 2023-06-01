@@ -74,6 +74,10 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.Name, err)
 	}
 
+	if loadBalancer.LoadBalancerPropertiesFormat == nil {
+		return fmt.Errorf("retrieving Load Balancer %s: `properties` was nil", id)
+	}
+
 	newLbRule, err := expandAzureRmLoadBalancerRule(d, &loadBalancer)
 	if err != nil {
 		return fmt.Errorf("expanding Load Balancer Rule: %+v", err)
@@ -245,22 +249,24 @@ func resourceArmLoadBalancerRuleDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.Name, err)
 	}
 
-	_, index, exists := FindLoadBalancerRuleByName(&loadBalancer, d.Get("name").(string))
-	if !exists {
-		return nil
-	}
+	if loadBalancer.LoadBalancerPropertiesFormat != nil && loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules != nil {
+		_, index, exists := FindLoadBalancerRuleByName(&loadBalancer, d.Get("name").(string))
+		if !exists {
+			return nil
+		}
 
-	lbRules := *loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules
-	lbRules = append(lbRules[:index], lbRules[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &lbRules
+		lbRules := *loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules
+		lbRules = append(lbRules[:index], lbRules[index+1:]...)
+		loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &lbRules
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
-	if err != nil {
-		return fmt.Errorf("Creating/Updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
+		if err != nil {
+			return fmt.Errorf("Creating/Updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for completion of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		}
 	}
 
 	return nil
@@ -297,7 +303,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *network.LoadBa
 	}
 
 	var isGateway bool
-	if lb.Sku != nil && lb.Sku.Name == network.LoadBalancerSkuNameGateway {
+	if lb != nil && lb.Sku != nil && lb.Sku.Name == network.LoadBalancerSkuNameGateway {
 		isGateway = true
 	}
 

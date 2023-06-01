@@ -168,15 +168,17 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking availability of `domain_name`: %v", err)
 			}
 
-			if availabilityResult.Model.NameAvailable == nil || !*availabilityResult.Model.NameAvailable {
-				reason := "unknown reason"
-				if availabilityResult.Model.Reason != nil {
-					reason = *availabilityResult.Model.Reason
+			if availabilityResult.Model != nil {
+				if availabilityResult.Model.NameAvailable == nil || !*availabilityResult.Model.NameAvailable {
+					reason := "unknown reason"
+					if availabilityResult.Model.Reason != nil {
+						reason = *availabilityResult.Model.Reason
+					}
+					if availabilityResult.Model.Message != nil {
+						reason = fmt.Sprintf("%s (%s)", reason, *availabilityResult.Model.Message)
+					}
+					return fmt.Errorf("checking availability of `domain_name`: the specified domain %q is unavailable: %s", model.DomainName, reason)
 				}
-				if availabilityResult.Model.Message != nil {
-					reason = fmt.Sprintf("%s (%s)", reason, *availabilityResult.Model.Message)
-				}
-				return fmt.Errorf("checking availability of `domain_name`: the specified domain %q is unavailable: %s", model.DomainName, reason)
 			}
 
 			metadata.Logger.Infof("Creating %s", id)
