@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
@@ -27,8 +27,11 @@ func appConfigurationGetKeyRefreshFunc(ctx context.Context, client *appconfigura
 		res, err := client.GetKeyValue(ctx, key, label, "", "", "", []appconfiguration.KeyValueFields{})
 		if err != nil {
 			if v, ok := err.(autorest.DetailedError); ok {
-				if utils.ResponseWasForbidden(autorest.Response{Response: v.Response}) {
+				if response.WasForbidden(v.Response) {
 					return "Forbidden", "Forbidden", nil
+				}
+				if response.WasNotFound(v.Response) {
+					return "NotFound", "NotFound", nil
 				}
 			}
 			return res, "Error", nil

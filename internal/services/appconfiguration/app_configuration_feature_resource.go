@@ -211,18 +211,19 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
-			// allow some time for role permission to be done propagated
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be done propagated", featureKey)
+			// allow some time for role permission to be propagated
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q read permission to be propagated", featureKey)
 			stateConf := &pluginsdk.StateChangeConf{
-				Pending:      []string{"Forbidden"},
-				Target:       []string{"Error", "Exists"},
-				Refresh:      appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
-				PollInterval: 20 * time.Second,
-				Timeout:      time.Until(deadline),
+				Pending:                   []string{"Forbidden"},
+				Target:                    []string{"Error", "Exists", "NotFound"},
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Timeout:                   time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", featureKey, err)
+				return fmt.Errorf("waiting for App Configuration Feature %q read permission to be propagated: %+v", featureKey, err)
 			}
 
 			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
@@ -243,6 +244,21 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("while creating feature: %+v", err)
 			}
 
+			// https://github.com/Azure/AppConfiguration/issues/763
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q to be provisioned", model.Key)
+			stateConf = &pluginsdk.StateChangeConf{
+				Pending:                   []string{"NotFound"},
+				Target:                    []string{"Exists"},
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Feature %q to be provisioned: %+v", featureKey, err)
+			}
+
 			metadata.SetID(nestedItemId)
 			return nil
 		},
@@ -258,8 +274,9 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			resourceClient := metadata.Client.Resource
-			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, resourceClient, nestedItemId.ConfigurationStoreEndpoint)
+			configurationStoresClient := metadata.Client.AppConfiguration.ConfigurationStoresClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, configurationStoresClient, nestedItemId.ConfigurationStoreEndpoint, subscriptionId)
 			if err != nil {
 				return fmt.Errorf("while retrieving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
 			}
@@ -294,8 +311,6 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
 						return metadata.MarkAsGone(nestedItemId)
 					}
-				} else {
-					return fmt.Errorf("while checking for key %q existence: %+v", *nestedItemId, err)
 				}
 				return fmt.Errorf("while checking for key %q existence: %+v", *nestedItemId, err)
 			}
