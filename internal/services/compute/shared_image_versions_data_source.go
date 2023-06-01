@@ -45,6 +45,11 @@ func dataSourceSharedImageVersions() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -141,7 +146,7 @@ func flattenSharedImageVersions(input []compute.GalleryImageVersion, filterTags 
 	results := make([]interface{}, 0)
 
 	for _, imageVersion := range input {
-		flattenedIPAddress := flattenSharedImageVersion(imageVersion)
+		flattenedImageVersion := flattenSharedImageVersion(imageVersion)
 		found := true
 		// Loop through our filter tags and see if they match
 		for k, v := range filterTags {
@@ -154,7 +159,7 @@ func flattenSharedImageVersions(input []compute.GalleryImageVersion, filterTags 
 		}
 
 		if found {
-			results = append(results, flattenedIPAddress)
+			results = append(results, flattenedImageVersion)
 		}
 	}
 
@@ -164,6 +169,7 @@ func flattenSharedImageVersions(input []compute.GalleryImageVersion, filterTags 
 func flattenSharedImageVersion(input compute.GalleryImageVersion) map[string]interface{} {
 	output := make(map[string]interface{})
 
+	output["id"] = input.ID
 	output["name"] = input.Name
 	output["location"] = location.NormalizeNilable(input.Location)
 
