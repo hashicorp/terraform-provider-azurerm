@@ -38,6 +38,7 @@ func (a *AzureQuery) LoadSDKTags(tags map[string][]string) {
 	if tags == nil {
 		return
 	}
+	a.Tags = nil
 	for k, vs := range tags {
 		t := Tag{}
 		t.Tag = k
@@ -181,12 +182,14 @@ func (s *Schedule) LoadSDKModel(info *softwareupdateconfiguration.SUCSchedulePro
 	if setting := info.AdvancedSchedule; setting != nil {
 		s.AdvancedWeekDays = pointer.ToSliceOfStrings(setting.WeekDays)
 		if setting.MonthDays != nil {
+			s.AdvancedMonthDays = nil
 			for _, v := range *(setting.MonthDays) {
 				s.AdvancedMonthDays = append(s.AdvancedMonthDays, int(v))
 			}
 		}
 
 		if setting.MonthlyOccurrences != nil {
+			s.MonthlyOccurrence = nil
 			for _, occ := range *setting.MonthlyOccurrences {
 
 				day := ""
