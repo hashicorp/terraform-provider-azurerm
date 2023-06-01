@@ -208,8 +208,9 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 			},
 
 			"docker_registry_password": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:      pluginsdk.TypeString,
+				Optional:  true,
+				Sensitive: true,
 			},
 
 			"current_stack": {
@@ -375,8 +376,9 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 			},
 
 			"docker_registry_password": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -572,8 +574,9 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 			},
 
 			"docker_registry_password": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:      pluginsdk.TypeString,
+				Optional:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -687,8 +690,9 @@ func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 			},
 
 			"docker_registry_password": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
