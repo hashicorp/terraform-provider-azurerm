@@ -45,6 +45,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `auth_settings_v2` - An `auth_settings_v2` block as defined below.
 
+* `availability` - The current availability state. Possible values are `Normal`, `Limited`, and `DisasterRecoveryMode`.
+* 
 * `backup` - A `backup` block as defined below.
 
 * `client_affinity_enabled` - Is Client Affinity enabled?
@@ -94,6 +96,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `storage_account` - A `storage_account` block as defined below.
 
 * `virtual_network_subnet_id` - The subnet id which the Linux Web App is vNet Integrated with.
+
+* `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
 
 * `tags` - A mapping of tags assigned to the Linux Web App.
 
