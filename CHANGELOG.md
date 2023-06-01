@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_machine_learning_compute_cluster` - add support for the `node_public_ip_enabled` property [GH-21377]
 * `azurerm_nginx_certificate` - `key_vault_secret_id` now accepts version-less key vault secret ids [GH-21949]
 * `azurerm_postgresql_flexible_server` - Add support for `version` `15` [GH-21934]
+* `azurerm_spring_cloud_certificate` - support for the `exclude_private_key` property [GH-21942]
 
 BUG FIXES:
 
