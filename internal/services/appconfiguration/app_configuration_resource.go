@@ -768,7 +768,7 @@ func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client 
 
 	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf("waiting for the Configuration Store %s Name Available: %+v", configurationStoreId, err)
+		return fmt.Errorf("waiting for the Name from %s to become available: %+v", configurationStoreId, err)
 	}
 
 	return nil
@@ -777,7 +777,7 @@ func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client 
 
 func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Checking to see if Configuration Store %s is name available ..", configurationStoreId)
+		log.Printf("[DEBUG] Checking to see if the name for %s is available ..", configurationStoreId)
 
 		subscriptionId := commonids.NewSubscriptionID(configurationStoreId.SubscriptionId)
 
