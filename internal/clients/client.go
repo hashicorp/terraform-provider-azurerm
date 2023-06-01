@@ -27,6 +27,7 @@ import (
 	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
 	attestation "github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	authorization "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
+	automanage "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
 	automation "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	azureStackHCI "github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/client"
 	batch "github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/client"
@@ -153,6 +154,7 @@ type Client struct {
 	ArcKubernetes         *arckubernetes.Client
 	Attestation           *attestation.Client
 	Authorization         *authorization.Client
+	Automanage            *automanage.Client
 	Automation            *automation.Client
 	AzureStackHCI         *azurestackhci_v2022_12_01.Client
 	Batch                 *batch.Client
@@ -295,6 +297,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Attestation: %+v", err)
 	}
 	client.Authorization = authorization.NewClient(o)
+	client.Automanage = automanage.NewClient(o)
 	client.Automation = automation.NewClient(o)
 	client.AzureStackHCI = azureStackHCI.NewClient(o)
 	if client.Batch, err = batch.NewClient(o); err != nil {
