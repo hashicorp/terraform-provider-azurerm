@@ -24,11 +24,34 @@ func TestAccAutoManageConfigurationProfile_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAutoManageConfigurationProfile_antimalware(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
+	r := AutoManageConfigurationProfileResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.antimalware(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("antimalware.#").HasValue("1"),
 				check.That(data.ResourceName).Key("antimalware.0.exclusions.#").HasValue("1"),
 				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.extensions").HasValue("exe;dll"),
 				check.That(data.ResourceName).Key("antimalware.0.real_time_protection_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("automation_account_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("antimalware.#").HasValue("0"),
+				check.That(data.ResourceName).Key("automation_account_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -151,6 +174,19 @@ resource "azurerm_automanage_configuration" "test" {
   name                = "acctest-amcp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r AutoManageConfigurationProfileResource) antimalware(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_automanage_configuration" "test" {
+  name                = "acctest-amcp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
   antimalware {
     exclusions {
       extensions = "exe;dll"
@@ -163,7 +199,7 @@ resource "azurerm_automanage_configuration" "test" {
 }
 
 func (r AutoManageConfigurationProfileResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+	config := r.antimalware(data)
 	return fmt.Sprintf(`
 			%s
 
@@ -171,13 +207,6 @@ resource "azurerm_automanage_configuration" "import" {
   name                = azurerm_automanage_configuration.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  antimalware {
-    exclusions {
-      extensions = "exe;dll"
-    }
-    real_time_protection_enabled = true
-  }
-  automation_account_enabled = true
 }
 `, config, data.Locations.Primary)
 }

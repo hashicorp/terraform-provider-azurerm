@@ -291,11 +291,7 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 
 			jsonConfig := make(map[string]interface{})
 
-			if resp.Properties != nil && resp.Properties.Configuration != nil {
-				jsonConfig = resp.Properties.Configuration.(map[string]interface{})
-			}
-
-			if model.Antimalware != nil {
+			if model.Antimalware != nil && len(model.Antimalware) > 0 {
 				antimalwareConfig := model.Antimalware[0]
 				jsonConfig["Antimalware/Enable"] = true
 				jsonConfig["Antimalware/EnableRealTimeProtection"] = antimalwareConfig.RealTimeProtectionEnabled
@@ -379,9 +375,6 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 
 			if resp.Properties != nil && resp.Properties.Configuration != nil {
 				configMap := resp.Properties.Configuration.(map[string]interface{})
-				if err != nil {
-					return fmt.Errorf("unmarshalling %s: %+v", *id, err)
-				}
 
 				state.Antimalware = flattenAntimarewareConfig(configMap)
 
@@ -436,6 +429,10 @@ func (r AutoManageConfigurationResource) Delete() sdk.ResourceFunc {
 }
 
 func flattenAntimarewareConfig(configMap map[string]interface{}) []AntimalwareConfiguration {
+	if val, ok := configMap["Antimalware/Enable"]; !ok || (val == nil) {
+		return nil
+	}
+
 	antimalware := make([]AntimalwareConfiguration, 1)
 	antimalware[0] = AntimalwareConfiguration{}
 	antimalware[0].Exclusions = make([]AntimalwareExclusions, 1)
