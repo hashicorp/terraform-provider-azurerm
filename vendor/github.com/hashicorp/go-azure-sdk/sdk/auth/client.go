@@ -5,6 +5,7 @@ package auth
 
 import (
 	"context"
+	"log"
 	"math"
 	"net"
 	"net/http"
@@ -15,6 +16,26 @@ import (
 
 	"github.com/hashicorp/go-retryablehttp"
 )
+
+var (
+	// Client is the HTTP client used for sending authentication requests and obtaining tokens
+	Client HTTPClient
+
+	// MetadataClient is the HTTP client used for obtaining tokens from the Instance Metadata Service
+	MetadataClient HTTPClient
+)
+
+func init() {
+	Client = httpClient(defaultHttpClientParams())
+	MetadataClient = httpClient(httpClientParams{
+		instanceMetadataService: true,
+
+		retryWaitMin:  2 * time.Second,
+		retryWaitMax:  60 * time.Second,
+		retryMaxCount: 5,
+		useProxy:      false,
+	})
+}
 
 type httpClientParams struct {
 	instanceMetadataService bool
@@ -40,6 +61,8 @@ func defaultHttpClientParams() httpClientParams {
 // retry settings which can be customized per instance as needed.
 func httpClient(params httpClientParams) *http.Client {
 	r := retryablehttp.NewClient()
+
+	r.Logger = log.Default()
 
 	r.Backoff = func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
 		// note: min and max contain the values of r.RetryWaitMin and r.RetryWaitMax

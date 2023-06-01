@@ -34,10 +34,6 @@ func RuleActionUrlRedirectQueryString() pluginsdk.SchemaValidateFunc {
 	return func(i interface{}, s string) ([]string, []error) {
 		querystring := i.(string)
 
-		if len(querystring) > 100 {
-			return nil, []error{fmt.Errorf("the Url Query String's max length is 100")}
-		}
-
 		re := regexp.MustCompile("^[?&]")
 		if re.MatchString(querystring) {
 			return nil, []error{fmt.Errorf("the Url Query String must not start with a question mark or ampersand")}

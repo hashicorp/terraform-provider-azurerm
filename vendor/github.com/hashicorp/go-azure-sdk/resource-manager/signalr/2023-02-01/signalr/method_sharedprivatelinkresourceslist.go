@@ -49,7 +49,7 @@ func (c SignalRClient) SharedPrivateLinkResourcesList(ctx context.Context, id Si
 	}
 
 	var values struct {
-		Values *[]SharedPrivateLinkResource `json:"values"`
+		Values *[]SharedPrivateLinkResource `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

@@ -3,7 +3,8 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/accessconnector"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/vnetpeering"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -11,6 +12,7 @@ import (
 type Client struct {
 	AccessConnectorClient *accessconnector.AccessConnectorClient
 	WorkspacesClient      *workspaces.WorkspacesClient
+	VnetPeeringClient     *vnetpeering.VNetPeeringClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -26,8 +28,15 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(workspacesClient.Client, o.Authorizers.ResourceManager)
 
+	vnetPeeringClient, err := vnetpeering.NewVNetPeeringClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VNetPeering client: %+v", err)
+	}
+	o.Configure(vnetPeeringClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		AccessConnectorClient: accessConnectorClient,
 		WorkspacesClient:      workspacesClient,
+		VnetPeeringClient:     vnetPeeringClient,
 	}, nil
 }

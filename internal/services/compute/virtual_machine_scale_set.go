@@ -6,10 +6,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleryapplicationversions"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -167,7 +167,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					ValidateFunc: networkValidate.NetworkSecurityGroupID,
 				},
 				"primary": {
 					Type:     pluginsdk.TypeBool,
@@ -634,7 +634,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: networkValidate.ApplicationSecurityGroupID,
 					},
 					Set:      pluginsdk.HashString,
 					MaxItems: 20,
@@ -665,7 +665,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				"subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: networkValidate.SubnetID,
 				},
 
 				"version": {
@@ -808,7 +808,7 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					ValidateFunc: networkValidate.PublicIpPrefixID,
 				},
 			},
 		},
@@ -1329,16 +1329,20 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
+				// TODO rename `ultra_ssd_disk_iops_read_write` to `disk_iops_read_write` in 4.0
 				"ultra_ssd_disk_iops_read_write": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Computed: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+					Computed:     true,
 				},
 
+				// TODO rename `ultra_ssd_disk_mbps_read_write` to `disk_mbps_read_write` in 4.0
 				"ultra_ssd_disk_mbps_read_write": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Computed: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+					Computed:     true,
 				},
 			},
 		},
@@ -1351,12 +1355,13 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 
+		storageAccountType := compute.StorageAccountTypes(raw["storage_account_type"].(string))
 		disk := compute.VirtualMachineScaleSetDataDisk{
 			Caching:    compute.CachingTypes(raw["caching"].(string)),
 			DiskSizeGB: utils.Int32(int32(raw["disk_size_gb"].(int))),
 			Lun:        utils.Int32(int32(raw["lun"].(int))),
 			ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
-				StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
+				StorageAccountType: storageAccountType,
 			},
 			WriteAcceleratorEnabled: utils.Bool(raw["write_accelerator_enabled"].(bool)),
 			CreateOption:            compute.DiskCreateOptionTypes(raw["create_option"].(string)),
@@ -1373,25 +1378,21 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 		}
 
 		var iops int
-		if diskIops, ok := raw["disk_iops_read_write"]; ok && diskIops.(int) > 0 {
+		if diskIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && diskIops.(int) > 0 {
 			iops = diskIops.(int)
-		} else if ssdIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && ssdIops.(int) > 0 {
-			iops = ssdIops.(int)
 		}
 
-		if iops > 0 && !ultraSSDEnabled {
-			return nil, fmt.Errorf("disk_iops_read_write and ultra_ssd_disk_iops_read_write are only available for UltraSSD disks")
+		if iops > 0 && !ultraSSDEnabled && storageAccountType != compute.StorageAccountTypesPremiumV2LRS {
+			return nil, fmt.Errorf("`ultra_ssd_disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		var mbps int
-		if diskMbps, ok := raw["disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
+		if diskMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
 			mbps = diskMbps.(int)
-		} else if ssdMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && ssdMbps.(int) > 0 {
-			mbps = ssdMbps.(int)
 		}
 
-		if mbps > 0 && !ultraSSDEnabled {
-			return nil, fmt.Errorf("disk_mbps_read_write and ultra_ssd_disk_mbps_read_write are only available for UltraSSD disks")
+		if mbps > 0 && !ultraSSDEnabled && storageAccountType != compute.StorageAccountTypesPremiumV2LRS {
+			return nil, fmt.Errorf("`ultra_ssd_disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
@@ -1458,24 +1459,16 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 		}
 
 		dataDisk := map[string]interface{}{
-			"name":                      name,
-			"caching":                   string(v.Caching),
-			"create_option":             string(v.CreateOption),
-			"lun":                       lun,
-			"disk_encryption_set_id":    diskEncryptionSetId,
-			"disk_size_gb":              diskSizeGb,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
-		}
-
-		// Do not set value unless value is greater than 0 - issue 15516
-		if iops > 0 {
-			dataDisk["ultra_ssd_disk_iops_read_write"] = iops
-		}
-
-		// Do not set value unless value is greater than 0 - issue 15516
-		if mbps > 0 {
-			dataDisk["ultra_ssd_disk_mbps_read_write"] = mbps
+			"name":                           name,
+			"caching":                        string(v.Caching),
+			"create_option":                  string(v.CreateOption),
+			"lun":                            lun,
+			"disk_encryption_set_id":         diskEncryptionSetId,
+			"disk_size_gb":                   diskSizeGb,
+			"storage_account_type":           storageAccountType,
+			"ultra_ssd_disk_iops_read_write": iops,
+			"ultra_ssd_disk_mbps_read_write": mbps,
+			"write_accelerator_enabled":      writeAcceleratorEnabled,
 		}
 
 		output = append(output, dataDisk)

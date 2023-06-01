@@ -109,60 +109,91 @@ func (r MobileNetworkDataNetworkResource) Exists(ctx context.Context, clients *c
 }
 
 func (r MobileNetworkDataNetworkResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_mobile_network_data_network" "test" {
   name              = "acctest-mndn-%d"
   mobile_network_id = azurerm_mobile_network.test.id
-  location          = "%s"
+  location          = azurerm_resource_group.test.location
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r MobileNetworkDataNetworkResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+	template := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_mobile_network_data_network" "import" {
   name              = azurerm_mobile_network_data_network.test.name
-  mobile_network_id = azurerm_mobile_network.test.id
-  location          = "%s"
+  mobile_network_id = azurerm_mobile_network_data_network.test.mobile_network_id
+  location          = azurerm_mobile_network_data_network.test.location
 }
-`, config, data.Locations.Primary)
+`, template)
 }
 
 func (r MobileNetworkDataNetworkResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_mobile_network_data_network" "test" {
   name              = "acctest-mndn-%d"
   mobile_network_id = azurerm_mobile_network.test.id
-  location          = "%s"
+  location          = azurerm_resource_group.test.location
   description       = "my favourite data network"
   tags = {
     key = "value"
   }
-
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r MobileNetworkDataNetworkResource) update(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_mobile_network_data_network" "test" {
   name              = "acctest-mndn-%d"
   mobile_network_id = azurerm_mobile_network.test.id
-  location          = "%s"
+  location          = azurerm_resource_group.test.location
   description       = "my favourite data network 2"
   tags = {
     key = "updated"
   }
 
 }
-`, MobileNetworkResource{}.basic(data), data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
+}
+
+func (r MobileNetworkDataNetworkResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-mn-%[1]d"
+  location = %[2]q
+}
+
+resource "azurerm_mobile_network" "test" {
+  name                = "acctest-mn-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  mobile_country_code = "001"
+  mobile_network_code = "01"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

@@ -44,7 +44,7 @@ func (id SpringCloudCertificateId) ID() string {
 func SpringCloudCertificateID(input string) (*SpringCloudCertificateId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an SpringCloudCertificate ID: %+v", input, err)
 	}
 
 	resourceId := SpringCloudCertificateId{

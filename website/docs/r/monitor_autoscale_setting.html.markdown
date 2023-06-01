@@ -65,7 +65,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "20.04-LTS"
     version   = "latest"
   }
 
@@ -201,7 +201,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "20.04-LTS"
     version   = "latest"
   }
 
@@ -338,7 +338,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "20.04-LTS"
     version   = "latest"
   }
 
@@ -574,7 +574,7 @@ A `dimensions` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the AutoScale Setting.
 

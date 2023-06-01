@@ -81,7 +81,7 @@ func (c SubscriptionsClient) ListByTopic(ctx context.Context, id TopicId, option
 	}
 
 	var values struct {
-		Values *[]SBSubscription `json:"values"`
+		Values *[]SBSubscription `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

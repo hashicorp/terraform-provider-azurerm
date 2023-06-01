@@ -182,8 +182,6 @@ func (r PrivateDNSResolverInboundEndpointResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			properties.SystemData = nil
-
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
 			}
@@ -258,7 +256,7 @@ func (r PrivateDNSResolverInboundEndpointResource) Delete() sdk.ResourceFunc {
 			log.Printf("[DEBUG] waiting for %s to be deleted", id)
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("context had no deadline")
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Pending"},

@@ -1,6 +1,8 @@
 package compute
 
 import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -26,11 +28,7 @@ func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 					ValidateFunc: keyVaultValidate.NestedItemId,
 				},
 
-				"source_vault_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: keyVaultValidate.VaultID,
-				},
+				"source_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
 			},
 		},
 	}

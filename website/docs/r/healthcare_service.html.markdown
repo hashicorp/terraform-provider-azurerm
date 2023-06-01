@@ -81,13 +81,13 @@ A `cors_configuration` block supports the following:
 
 * `allowed_origins` - (Optional) A set of origins to be allowed via CORS.
 * `allowed_headers` - (Optional) A set of headers to be allowed via CORS.
-* `allowed_methods` - (Optional) The methods to be allowed via CORS. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
+* `allowed_methods` - (Optional) The methods to be allowed via CORS. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PATCH` and `PUT`.
 * `max_age_in_seconds` - (Optional) The max age to be allowed via CORS.
 * `allow_credentials` - (Optional) (Boolean) If credentials are allowed via CORS.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Healthcare Service.
 

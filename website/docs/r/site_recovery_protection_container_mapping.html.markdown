@@ -107,7 +107,13 @@ An `automatic_update` block supports the following:
 
 * `automation_account_id` - (Optional) The automation account ID which holds the automatic update runbook and authenticates to Azure resources.
 
-~> **Note:** `automation_account_id` is required when `enabled` is sepcified.
+~> **Note:** `automation_account_id` is required when `enabled` is specified.
+
+* `authentication_type` - (Optional) The authentication type used for automation account. Possible values are `RunAsAccount` and `SystemAssignedIdentity`.
+
+~> **Note:** `RunAsAccount` of `authentication_type` is deprecated and will retire on September 30, 2023. Details could be found [here](https://learn.microsoft.com/en-us/azure/automation/whats-new#support-for-run-as-accounts).
+
+~> **Note:**: `authentication_type` will default to `SystemAssignedIdentity` in version 4.0.
 
 ## Attributes Reference
 

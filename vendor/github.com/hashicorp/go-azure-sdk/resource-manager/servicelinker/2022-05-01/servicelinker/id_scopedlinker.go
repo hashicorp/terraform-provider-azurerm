@@ -38,11 +38,11 @@ func ParseScopedLinkerID(input string) (*ScopedLinkerId, error) {
 	id := ScopedLinkerId{}
 
 	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceUri' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
 	}
 
 	if id.LinkerName, ok = parsed.Parsed["linkerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'linkerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "linkerName", *parsed)
 	}
 
 	return &id, nil
@@ -61,11 +61,11 @@ func ParseScopedLinkerIDInsensitively(input string) (*ScopedLinkerId, error) {
 	id := ScopedLinkerId{}
 
 	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceUri' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
 	}
 
 	if id.LinkerName, ok = parsed.Parsed["linkerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'linkerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "linkerName", *parsed)
 	}
 
 	return &id, nil

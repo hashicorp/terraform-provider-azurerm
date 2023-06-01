@@ -107,6 +107,7 @@ resource "azurerm_key_vault_access_policy" "example" {
     "Get",
     "Delete",
     "Purge",
+    "GetRotationPolicy",
   ]
 }
 
@@ -241,6 +242,7 @@ resource "azurerm_key_vault_access_policy" "example-sp" {
     "Recover",
     "Delete",
     "Purge",
+    "GetRotationPolicy",
   ]
 }
 
@@ -408,11 +410,13 @@ An `encryption` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Machine Learning Workspace.
 
 * `discovery_url` - The url for the discovery service to identify regional endpoints for machine learning experimentation services.
+
+* `workspace_id` - The immutable id associated with this workspace.
 
 ---
 

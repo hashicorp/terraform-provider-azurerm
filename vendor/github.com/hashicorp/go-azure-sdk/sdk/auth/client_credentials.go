@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp Inc. All rights reserved.
+// Licensed under the MPL-2.0 License. See NOTICE.txt in the project root for license information.
+
 package auth
 
 import (
@@ -23,9 +26,6 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"golang.org/x/oauth2"
 )
-
-// Copyright (c) HashiCorp Inc. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type clientCredentialsType string
 
@@ -86,15 +86,15 @@ type clientCredentialsConfig struct {
 	Audience string
 }
 
-// TokenSource provides a source for obtaining access tokens using clientAssertionAuthorizer or clientSecretAuthorizer.
+// TokenSource provides a source for obtaining access tokens using ClientAssertionAuthorizer or ClientSecretAuthorizer.
 func (c *clientCredentialsConfig) TokenSource(_ context.Context, authType clientCredentialsType) (Authorizer, error) {
 	switch authType {
 	case clientCredentialsAssertionType:
-		return NewCachedAuthorizer(&clientAssertionAuthorizer{
+		return NewCachedAuthorizer(&ClientAssertionAuthorizer{
 			conf: c,
 		})
 	case clientCredentialsSecretType:
-		return NewCachedAuthorizer(&clientSecretAuthorizer{
+		return NewCachedAuthorizer(&ClientSecretAuthorizer{
 			conf: c,
 		})
 	}
@@ -192,13 +192,21 @@ func (c *clientAssertionToken) encode(key crypto.PrivateKey) (*string, error) {
 	return &ret, nil
 }
 
-var _ Authorizer = &clientAssertionAuthorizer{}
+var _ Authorizer = &ClientAssertionAuthorizer{}
 
-type clientAssertionAuthorizer struct {
+type ClientAssertionAuthorizer struct {
 	conf *clientCredentialsConfig
 }
 
-func (a *clientAssertionAuthorizer) assertion(tokenUrl string) (*string, error) {
+func (a *ClientAssertionAuthorizer) assertion(tokenUrl string) (*string, error) {
+	if a.conf == nil {
+		return nil, fmt.Errorf("internal-error: ClientAssertionAuthorizer not configured")
+	}
+
+	if a.conf.Certificate == nil {
+		return nil, fmt.Errorf("internal-error: ClientAssertionAuthorizer misconfigured; Certificate was nil")
+	}
+
 	keySig := sha1.Sum(a.conf.Certificate.Raw)
 	keyId := base64.URLEncoding.EncodeToString(keySig[:])
 
@@ -218,15 +226,20 @@ func (a *clientAssertionAuthorizer) assertion(tokenUrl string) (*string, error) 
 			Subject:  a.conf.ClientID,
 		},
 	}
+
 	assertion, err := t.encode(a.conf.PrivateKey)
 	if err != nil {
-		return nil, fmt.Errorf("clientAssertionAuthorizer: failed to encode and sign JWT assertion: %v", err)
+		return nil, fmt.Errorf("ClientAssertionAuthorizer: failed to encode and sign JWT assertion: %v", err)
 	}
 
 	return assertion, nil
 }
 
-func (a *clientAssertionAuthorizer) token(ctx context.Context, tokenUrl string) (*oauth2.Token, error) {
+func (a *ClientAssertionAuthorizer) token(ctx context.Context, tokenUrl string) (*oauth2.Token, error) {
+	if a.conf == nil {
+		return nil, fmt.Errorf("internal-error: ClientAssertionAuthorizer not configured")
+	}
+
 	assertion := a.conf.FederatedAssertion
 	if assertion == "" {
 		a, err := a.assertion(tokenUrl)
@@ -234,7 +247,7 @@ func (a *clientAssertionAuthorizer) token(ctx context.Context, tokenUrl string) 
 			return nil, err
 		}
 		if a == nil {
-			return nil, fmt.Errorf("clientAssertionAuthorizer: assertion was nil")
+			return nil, fmt.Errorf("ClientAssertionAuthorizer: assertion was nil")
 		}
 		assertion = *a
 	}
@@ -253,7 +266,7 @@ func (a *clientAssertionAuthorizer) token(ctx context.Context, tokenUrl string) 
 	return clientCredentialsToken(ctx, tokenUrl, &v)
 }
 
-func (a *clientAssertionAuthorizer) Token(ctx context.Context, _ *http.Request) (*oauth2.Token, error) {
+func (a *ClientAssertionAuthorizer) Token(ctx context.Context, _ *http.Request) (*oauth2.Token, error) {
 	if a.conf == nil {
 		return nil, fmt.Errorf("could not request token: conf is nil")
 	}
@@ -270,7 +283,7 @@ func (a *clientAssertionAuthorizer) Token(ctx context.Context, _ *http.Request) 
 }
 
 // AuxiliaryTokens returns additional tokens for auxiliary tenant IDs, for use in multi-tenant scenarios
-func (a *clientAssertionAuthorizer) AuxiliaryTokens(ctx context.Context, _ *http.Request) ([]*oauth2.Token, error) {
+func (a *ClientAssertionAuthorizer) AuxiliaryTokens(ctx context.Context, _ *http.Request) ([]*oauth2.Token, error) {
 	if a.conf == nil {
 		return nil, fmt.Errorf("could not request token: conf is nil")
 	}
@@ -310,8 +323,7 @@ func clientCredentialsToken(ctx context.Context, endpoint string, params *url.Va
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	client := httpClient(defaultHttpClientParams())
-	resp, err := client.Do(req)
+	resp, err := Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("clientCredentialsToken: cannot request token: %v", err)
 	}

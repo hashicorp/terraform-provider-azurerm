@@ -28,6 +28,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   admin_username      = "adminuser"
   instances           = 1
 
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "20.04-LTS"
+    version   = "latest"
+  }
+
   network_interface {
     name = "example"
 
@@ -112,7 +119,7 @@ A `protected_settings_from_key_vault` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Machine Scale Set Extension.
 

@@ -188,37 +188,6 @@ func parseHighAvailabilityMode(input string) (*HighAvailabilityMode, error) {
 	return &out, nil
 }
 
-type IdentityType string
-
-const (
-	IdentityTypeNone           IdentityType = "None"
-	IdentityTypeSystemAssigned IdentityType = "SystemAssigned"
-	IdentityTypeUserAssigned   IdentityType = "UserAssigned"
-)
-
-func PossibleValuesForIdentityType() []string {
-	return []string{
-		string(IdentityTypeNone),
-		string(IdentityTypeSystemAssigned),
-		string(IdentityTypeUserAssigned),
-	}
-}
-
-func parseIdentityType(input string) (*IdentityType, error) {
-	vals := map[string]IdentityType{
-		"none":           IdentityTypeNone,
-		"systemassigned": IdentityTypeSystemAssigned,
-		"userassigned":   IdentityTypeUserAssigned,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := IdentityType(input)
-	return &out, nil
-}
-
 type PasswordAuthEnum string
 
 const (
@@ -252,24 +221,16 @@ type ReplicationRole string
 const (
 	ReplicationRoleAsyncReplica    ReplicationRole = "AsyncReplica"
 	ReplicationRoleGeoAsyncReplica ReplicationRole = "GeoAsyncReplica"
-	ReplicationRoleGeoSyncReplica  ReplicationRole = "GeoSyncReplica"
 	ReplicationRoleNone            ReplicationRole = "None"
 	ReplicationRolePrimary         ReplicationRole = "Primary"
-	ReplicationRoleSecondary       ReplicationRole = "Secondary"
-	ReplicationRoleSyncReplica     ReplicationRole = "SyncReplica"
-	ReplicationRoleWalReplica      ReplicationRole = "WalReplica"
 )
 
 func PossibleValuesForReplicationRole() []string {
 	return []string{
 		string(ReplicationRoleAsyncReplica),
 		string(ReplicationRoleGeoAsyncReplica),
-		string(ReplicationRoleGeoSyncReplica),
 		string(ReplicationRoleNone),
 		string(ReplicationRolePrimary),
-		string(ReplicationRoleSecondary),
-		string(ReplicationRoleSyncReplica),
-		string(ReplicationRoleWalReplica),
 	}
 }
 
@@ -277,12 +238,8 @@ func parseReplicationRole(input string) (*ReplicationRole, error) {
 	vals := map[string]ReplicationRole{
 		"asyncreplica":    ReplicationRoleAsyncReplica,
 		"geoasyncreplica": ReplicationRoleGeoAsyncReplica,
-		"geosyncreplica":  ReplicationRoleGeoSyncReplica,
 		"none":            ReplicationRoleNone,
 		"primary":         ReplicationRolePrimary,
-		"secondary":       ReplicationRoleSecondary,
-		"syncreplica":     ReplicationRoleSyncReplica,
-		"walreplica":      ReplicationRoleWalReplica,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

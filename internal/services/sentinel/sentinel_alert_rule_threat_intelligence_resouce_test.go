@@ -123,7 +123,7 @@ func (r SentinelAlertRuleThreatIntelligenceResource) basic(data acceptance.TestD
 
 resource "azurerm_sentinel_alert_rule_threat_intelligence" "test" {
   name                       = "acctest-SentinelAlertRule-ThreatIntelligence-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
 }
 `, r.template(data), data.RandomInteger)
@@ -135,11 +135,10 @@ func (r SentinelAlertRuleThreatIntelligenceResource) complete(data acceptance.Te
 
 resource "azurerm_sentinel_alert_rule_threat_intelligence" "test" {
   name                       = "acctest-SentinelAlertRule-ThreatIntelligence-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   enabled                    = false
 }
-
 
 `, r.template(data), data.RandomInteger)
 }
@@ -174,22 +173,13 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 
 data "azurerm_sentinel_alert_rule_template" "test" {
-  display_name               = "(Preview) Microsoft Threat Intelligence Analytics"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  display_name               = "(Preview) Microsoft Defender Threat Intelligence Analytics"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

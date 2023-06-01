@@ -13,10 +13,22 @@ Manages a Automation Hybrid Runbook Worker Group.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_automation_account" "example" {
+  name                = "example-account"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Basic"
+}
+
 resource "azurerm_automation_hybrid_runbook_worker_group" "example" {
   name                    = "example"
-  resource_group_name     = "example"
-  automation_account_name = "example"
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
 }
 ```
 
