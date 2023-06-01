@@ -24,6 +24,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_app_configuration` - prevent errors when deleting by checking that the name of the app configuration store has been released [GH-21750]
+* `azurerm_express_route_port_authorization`: add a lock when create/update/delete authorization of express route port [GH-21959]
 * `azurerm_kubernetes_cluster` - recompute the field `oidc_issuer_url` if the value of `oidc_issuer_enabled` has changed [GH-21911]
 * `azurerm_kubernetes_cluster` - set correct value for `default_node_pool.os_sku` when resizing the `default_node_pool` [GH-21976]
 * `azurerm_postgresql_flexible_server` - fix issue updating `storage_mb` and `backup_retention_days` together [GH-21987]
