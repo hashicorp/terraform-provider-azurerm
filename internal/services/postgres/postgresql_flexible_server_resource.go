@@ -710,6 +710,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("storage_mb") {
+		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storageUpdateParameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
 				Storage: expandArmServerStorage(d),
