@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,7 +33,7 @@ var hdInsightInteractiveQueryClusterWorkerNodeDefinition = HDInsightNodeDefiniti
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
-	CanAutoScaleByCapacity:  false,
+	CanAutoScaleByCapacity:  true,
 	CanAutoScaleOnSchedule:  true,
 }
 
@@ -45,7 +46,7 @@ var hdInsightInteractiveQueryClusterZookeeperNodeDefinition = HDInsightNodeDefin
 }
 
 func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceHDInsightInteractiveQueryClusterCreate,
 		Read:   resourceHDInsightInteractiveQueryClusterRead,
 		Update: hdinsightClusterUpdate("Interactive Query", resourceHDInsightInteractiveQueryClusterRead),
@@ -146,6 +147,42 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 			"extension": SchemaHDInsightsExtension(),
 		},
 	}
+
+	if !features.FourPointOh() {
+		resource.Schema["roles"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightInteractiveQueryClusterHeadNodeDefinition, true),
+
+					"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightInteractiveQueryClusterWorkerNodeDefinition, true),
+
+					"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightInteractiveQueryClusterZookeeperNodeDefinition, true),
+				},
+			},
+			Deprecated: "HDInsight interactive query clusters can only be configured for schedule-based scaling, not load-based.",
+		}
+	} else {
+		hdInsightInteractiveQueryClusterWorkerNodeDefinition.CanAutoScaleByCapacity = false
+		resource.Schema["roles"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightInteractiveQueryClusterHeadNodeDefinition, true),
+
+					"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightInteractiveQueryClusterWorkerNodeDefinition, true),
+
+					"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightInteractiveQueryClusterZookeeperNodeDefinition, true),
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
