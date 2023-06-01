@@ -217,7 +217,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 -> **Note:** To enable Azure AD Workload Identity `oidc_issuer_enabled` must be set to `true`.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableWorkloadIdentityPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster#register-the-enableworkloadidentitypreview-feature-flag) for more information.
+-> **Note:** Enabling this option will allocate Workload Identity resources to the `kube-system` namespace in Kubernetes. If you wish to customize the deployment of Workload Identity, you can refer to [the documentation on Azure AD Workload Identity.](https://azure.github.io/azure-workload-identity/docs/installation/mutating-admission-webhook.html) The documentation provides guidance on how to install the mutating admission webhook, which allows for the customization of Workload Identity deployment.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
 
