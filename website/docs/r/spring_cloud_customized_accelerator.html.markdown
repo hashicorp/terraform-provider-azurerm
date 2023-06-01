@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `accelerator_tags` - (Optional) Specifies a list of accelerator tags.
 
+* `ca_certificate_id` - (Optional) Specifies the ID of the CA Spring Cloud Certificate for https URL of Git repository.
+
 * `description` - (Optional) Specifies the description of the Spring Cloud Customized Accelerator.
 
 * `display_name` - (Optional) Specifies the display name of the Spring Cloud Customized Accelerator..
