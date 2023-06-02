@@ -87,6 +87,53 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"container_registry": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"server": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"username": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"default_build_service": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"container_registry_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"log_stream_public_endpoint_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -323,6 +370,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
 	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
+	containerRegistryClient := meta.(*clients.Client).AppPlatform.ContainerRegistryClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -414,8 +462,12 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if skuName == "E0" {
+		new := expandSpringCloudContainerRegistries(d.Get("container_registry").([]interface{}))
+		if err = applyContainerRegistries(ctx, containerRegistryClient, id, nil, new); err != nil {
+			return fmt.Errorf("applying container registries for %s: %+v", id, err)
+		}
 		buildResource := appplatform.BuildService{
-			Properties: &appplatform.BuildServiceProperties{},
+			Properties: utils.ToPtr(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), id)),
 		}
 		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
 		if err != nil {
@@ -453,6 +505,8 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
+	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
+	containerRegistryClient := meta.(*clients.Client).AppPlatform.ContainerRegistryClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -534,6 +588,24 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
+	skuName := d.Get("sku_name").(string)
+	if skuName == "E0" {
+		new := expandSpringCloudContainerRegistries(d.Get("container_registry").([]interface{}))
+		if err = applyContainerRegistries(ctx, containerRegistryClient, *id, nil, new); err != nil {
+			return fmt.Errorf("applying container registries for %s: %+v", id, err)
+		}
+		buildResource := appplatform.BuildService{
+			Properties: utils.ToPtr(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), *id)),
+		}
+		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
+		if err != nil {
+			return fmt.Errorf("creating build service %s: %+v", id, err)
+		}
+		if err := buildServiceCreateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation build service of %s: %+v", id, err)
+		}
+	}
+
 	if size := d.Get("build_agent_pool_size").(string); len(size) > 0 {
 		agentPoolResource := appplatform.BuildServiceAgentPoolResource{
 			Properties: &appplatform.BuildServiceAgentPoolProperties{
@@ -561,6 +633,8 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
+	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
+	containerRegistryClient := meta.(*clients.Client).AppPlatform.ContainerRegistryClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -594,6 +668,28 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 	if utils.ResponseWasNotFound(serviceRegistry.Response) {
 		serviceRegistryEnabled = false
+	}
+
+	containerRegistryList, err := containerRegistryClient.ListComplete(ctx, id.ResourceGroup, id.SpringName)
+	if err == nil {
+		containerRegistries := make([]appplatform.ContainerRegistryResource, 0)
+		for containerRegistryList.NotDone() {
+			containerRegistries = append(containerRegistries, containerRegistryList.Value())
+			if err := containerRegistryList.NextWithContext(ctx); err != nil {
+				return fmt.Errorf("going to next container registry value of %s: %+v", id, err)
+			}
+		}
+		containerRegistriesState := expandSpringCloudContainerRegistries(d.Get("container_registry").([]interface{}))
+		d.Set("container_registry", flattenSpringCloudContainerRegistries(containerRegistriesState, containerRegistries))
+	} else {
+		log.Printf("[WARN] unable to list container registries for %s: %+v", id, err)
+	}
+
+	buildService, err := buildServiceClient.GetBuildService(ctx, id.ResourceGroup, id.SpringName, "default")
+	if err == nil {
+		d.Set("default_build_service", flattenSpringCloudBuildService(buildService.Properties))
+	} else {
+		log.Printf("[WARN] unable to get build service for %s: %+v", id, err)
 	}
 
 	agentPool, err := agentPoolClient.Get(ctx, id.ResourceGroup, id.SpringName, "default", "default")
@@ -712,6 +808,39 @@ func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigS
 		}
 	}
 	log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
+	return nil
+}
+
+func applyContainerRegistries(ctx context.Context, client *appplatform.ContainerRegistriesClient, springId parse.SpringCloudServiceId, old []appplatform.ContainerRegistryResource, new []appplatform.ContainerRegistryResource) error {
+	containerRegistriesToRemove := make(map[string]bool)
+	for _, oldRegistry := range old {
+		containerRegistriesToRemove[*oldRegistry.Name] = true
+	}
+	for _, newRegistry := range new {
+		containerRegistriesToRemove[*newRegistry.Name] = false
+	}
+	for name, _ := range containerRegistriesToRemove {
+		if containerRegistriesToRemove[name] {
+			id := parse.NewSpringCloudContainerRegistryID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, name)
+			future, err := client.Delete(ctx, springId.ResourceGroup, springId.SpringName, name)
+			if err != nil {
+				return fmt.Errorf("removing %s: %+v", id, err)
+			}
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for removal of %s: %+v", id, err)
+			}
+		}
+	}
+	for _, newRegistry := range new {
+		id := parse.NewSpringCloudContainerRegistryID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, *newRegistry.Name)
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, *newRegistry.Name, newRegistry)
+		if err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+		}
+	}
 	return nil
 }
 
@@ -856,6 +985,39 @@ func expandSpringCloudTrace(input []interface{}) *appplatform.MonitoringSettingP
 		AppInsightsInstrumentationKey: utils.String(v["connection_string"].(string)),
 		AppInsightsSamplingRate:       utils.Float(v["sample_rate"].(float64)),
 	}
+}
+
+func expandSpringCloudContainerRegistries(input []interface{}) []appplatform.ContainerRegistryResource {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]appplatform.ContainerRegistryResource, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		out = append(out, appplatform.ContainerRegistryResource{
+			Name: utils.String(v["name"].(string)),
+			Properties: &appplatform.ContainerRegistryProperties{
+				Credentials: &appplatform.ContainerRegistryBasicCredentials{
+					Username: utils.String(v["username"].(string)),
+					Password: utils.String(v["password"].(string)),
+					Server:   utils.String(v["server"].(string)),
+				},
+			},
+		})
+	}
+	return out
+}
+
+func expandSpringCloudBuildService(input []interface{}, springId parse.SpringCloudServiceId) appplatform.BuildServiceProperties {
+	if len(input) == 0 || input[0] == nil {
+		return appplatform.BuildServiceProperties{}
+	}
+	v := input[0].(map[string]interface{})
+	out := appplatform.BuildServiceProperties{}
+	if value := v["container_registry_name"].(string); value != "" {
+		out.ContainerRegistry = utils.String(parse.NewSpringCloudContainerRegistryID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, value).ID())
+	}
+	return out
 }
 
 func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerProperties, d *pluginsdk.ResourceData) []interface{} {
@@ -1173,4 +1335,64 @@ func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
 		})
 	}
 	return result
+}
+
+func flattenSpringCloudContainerRegistries(state []appplatform.ContainerRegistryResource, input []appplatform.ContainerRegistryResource) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	statePasswordMap := make(map[string]string)
+	for _, v := range state {
+		if v.Name == nil || v.Properties == nil || v.Properties.Credentials == nil {
+			continue
+		}
+		if basicCredential, ok := v.Properties.Credentials.AsContainerRegistryBasicCredentials(); ok && basicCredential.Password != nil {
+			statePasswordMap[*v.Name] = *basicCredential.Password
+		}
+	}
+	result := make([]interface{}, 0)
+	for _, v := range input {
+		name := ""
+		username := ""
+		password := ""
+		server := ""
+		if v.Name != nil {
+			name = *v.Name
+			password = statePasswordMap[name]
+		}
+		if v.Properties != nil && v.Properties.Credentials != nil {
+			if basicCredential, ok := v.Properties.Credentials.AsContainerRegistryBasicCredentials(); ok {
+				if basicCredential.Username != nil {
+					username = *basicCredential.Username
+				}
+				if basicCredential.Server != nil {
+					server = *basicCredential.Server
+				}
+			}
+		}
+
+		result = append(result, map[string]interface{}{
+			"name":     name,
+			"username": username,
+			"password": password,
+			"server":   server,
+		})
+	}
+	return result
+}
+
+func flattenSpringCloudBuildService(input *appplatform.BuildServiceProperties) []interface{} {
+	if input == nil || input.ContainerRegistry == nil {
+		return []interface{}{}
+	}
+	id, err := parse.SpringCloudContainerRegistryIDInsensitively(*input.ContainerRegistry)
+	if err == nil {
+		return []interface{}{
+			map[string]interface{}{
+				"container_registry_name": id.ContainerRegistryName,
+			},
+		}
+	}
+	return []interface{}{}
 }

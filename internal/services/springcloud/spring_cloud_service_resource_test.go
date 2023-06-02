@@ -218,6 +218,28 @@ func TestAccSpringCloudService_zoneRedundant(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudService_containerRegistry(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+	r := SpringCloudServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerRegistry(data, "first"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("container_registry.0.password", "container_registry.1.password"),
+		{
+			Config: r.containerRegistry(data, "second"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("container_registry.0.password", "container_registry.1.password"),
+	})
+}
+
 func (t SpringCloudServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SpringCloudServiceID(state.ID)
 	if err != nil {
@@ -528,6 +550,60 @@ resource "azurerm_spring_cloud_service" "test" {
   depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (SpringCloudServiceResource) containerRegistry(data acceptance.TestData, containerRegistryName string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-spring-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_container_registry" "first" {
+  name                = "acctestacr%[2]d1"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  admin_enabled       = true
+}
+
+resource "azurerm_container_registry" "second" {
+  name                = "acctestacr%[2]d2"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  admin_enabled       = true
+}
+
+resource "azurerm_spring_cloud_service" "test" {
+  name                  = "acctest-sc-%[2]d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  sku_name              = "E0"
+
+  container_registry {
+	name                = "first"
+    server = azurerm_container_registry.first.login_server
+    username = azurerm_container_registry.first.admin_username
+    password = azurerm_container_registry.first.admin_password
+  }
+
+  container_registry {
+	name                = "second"
+    server = azurerm_container_registry.second.login_server
+    username = azurerm_container_registry.second.admin_username
+    password = azurerm_container_registry.second.admin_password
+  }
+
+  default_build_service {
+    container_registry_name = "%[3]s"  
+}
+}
+`, data.Locations.Primary, data.RandomInteger, containerRegistryName)
 }
 
 func (r SpringCloudServiceResource) requiresImport(data acceptance.TestData) string {
