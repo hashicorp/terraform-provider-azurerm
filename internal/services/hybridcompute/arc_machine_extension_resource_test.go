@@ -20,7 +20,7 @@ import (
 type ArcMachineExtensionResource struct {
 }
 
-func TestAccHybridComputeMachineExtension_basic(t *testing.T) {
+func TestAccArcMachineExtension_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
 	r := ArcMachineExtensionResource{}
 	template := r.template(data)
@@ -37,7 +37,7 @@ func TestAccHybridComputeMachineExtension_basic(t *testing.T) {
 	})
 }
 
-func TestAccHybridComputeMachineExtension_requiresImport(t *testing.T) {
+func TestAccArcMachineExtension_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
 	r := ArcMachineExtensionResource{}
 	template := r.template(data)
@@ -56,7 +56,7 @@ func TestAccHybridComputeMachineExtension_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccHybridComputeMachineExtension_complete(t *testing.T) {
+func TestAccArcMachineExtension_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
 	r := ArcMachineExtensionResource{}
 	template := r.template(data)
@@ -76,7 +76,7 @@ func TestAccHybridComputeMachineExtension_complete(t *testing.T) {
 	})
 }
 
-func TestAccHybridComputeMachineExtension_update(t *testing.T) {
+func TestAccArcMachineExtension_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
 	r := ArcMachineExtensionResource{}
 	template := r.template(data)
