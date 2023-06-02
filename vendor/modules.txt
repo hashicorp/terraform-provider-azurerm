@@ -825,10 +825,10 @@ github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/giovanni/version
-# github.com/tombuildsstuff/kermit v0.20230518.1143920
+# github.com/tombuildsstuff/kermit v0.20230526.1080329
 ## explicit; go 1.18
 github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration
-github.com/tombuildsstuff/kermit/sdk/appplatform/2023-03-01-preview/appplatform
+github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform
 github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation
 github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage
 github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch
