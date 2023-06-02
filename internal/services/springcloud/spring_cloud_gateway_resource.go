@@ -665,7 +665,7 @@ func flattenGatewayGatewayApmTypess(input *[]appplatform.ApmType) []interface{} 
 }
 
 func flattenGatewayClientAuth(input *appplatform.GatewayPropertiesClientAuth) []interface{} {
-	if input == nil {
+	if input == nil || input.Certificates == nil || len(*input.Certificates) == 0 {
 		return make([]interface{}, 0)
 	}
 	certificateIds := make([]string, 0)

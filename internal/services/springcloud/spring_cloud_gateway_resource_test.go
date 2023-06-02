@@ -333,5 +333,5 @@ resource "azurerm_spring_cloud_gateway" "test" {
     verification_enabled = true
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomIntOfLength(10))
 }
