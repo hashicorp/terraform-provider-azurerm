@@ -1,0 +1,183 @@
+package hybridcompute_test
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"regexp"
+	"testing"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machineextensions"
+	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+type HybridComputeMachineExtensionResource struct {
+}
+
+func TestAccHybridComputeMachineExtension_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
+	r := HybridComputeMachineExtensionResource{}
+	template := r.template(data)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, template),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("publisher").HasValue("Microsoft.Azure.Monitor"),
+				check.That(data.ResourceName).Key("type").HasValue("AzureMonitorLinuxAgent"),
+			),
+		},
+		data.ImportStep("protected_settings"),
+	})
+}
+
+func TestAccHybridComputeMachineExtension_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
+	r := HybridComputeMachineExtensionResource{}
+	template := r.template(data)
+	basicConfig := r.basic(data, template)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: basicConfig,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(basicConfig),
+			ExpectError: acceptance.RequiresImportError("azurerm_arc_machine_extension"),
+		},
+	})
+}
+
+func TestAccHybridComputeMachineExtension_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
+	r := HybridComputeMachineExtensionResource{}
+	template := r.template(data)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, template),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("publisher").HasValue("Microsoft.Azure.Monitor"),
+				check.That(data.ResourceName).Key("type").HasValue("AzureMonitorLinuxAgent"),
+				check.That(data.ResourceName).Key("type_handler_version").MatchesRegex(regexp.MustCompile("^1[.]24.*$")),
+			),
+		},
+		data.ImportStep("protected_settings"),
+	})
+}
+
+func TestAccHybridComputeMachineExtension_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
+	r := HybridComputeMachineExtensionResource{}
+	template := r.template(data)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, template),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("protected_settings"),
+		{
+			Config: r.update(data, template),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("protected_settings"),
+	})
+}
+
+func (r HybridComputeMachineExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := machineextensions.ParseExtensionID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	client := clients.HybridCompute.MachineExtensionsClient
+	resp, err := client.Get(ctx, *id)
+	exists := false
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return &exists, nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	return pointer.To(resp.Model != nil), nil
+}
+
+func (r HybridComputeMachineExtensionResource) basic(data acceptance.TestData, template string) string {
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_arc_machine_extension" "test" {
+  name                      = "acctest-hcme-%d"
+  arc_machine_id            = data.azurerm_arc_machine.test.id
+  publisher                 = "Microsoft.Azure.Monitor"
+  type                      = "AzureMonitorLinuxAgent"
+  location                  = "%s"
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r HybridComputeMachineExtensionResource) requiresImport(basicConfig string) string {
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_arc_machine_extension" "import" {
+  name                      = azurerm_arc_machine_extension.test.name
+  arc_machine_id            = azurerm_arc_machine_extension.test.arc_machine_id
+  publisher                 = azurerm_arc_machine_extension.test.publisher
+  type                      = azurerm_arc_machine_extension.test.type
+  location                  = azurerm_arc_machine_extension.test.location
+}
+`, basicConfig)
+}
+
+func (r HybridComputeMachineExtensionResource) complete(data acceptance.TestData, template string) string {
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_arc_machine_extension" "test" {
+  name                               = "acctest-hcme-%d"
+  arc_machine_id                     = data.azurerm_arc_machine.test.id
+  location                           = "%s"
+  automatic_upgrade_enabled          = false
+  publisher                          = "Microsoft.Azure.Monitor"
+  type                               = "AzureMonitorLinuxAgent"
+  type_handler_version               = "1.24"
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r HybridComputeMachineExtensionResource) update(data acceptance.TestData, template string) string {
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_arc_machine_extension" "test" {
+  name                               = "acctest-hcme-%d"
+  arc_machine_id                     = data.azurerm_arc_machine.test.id
+  location                           = "%s"
+  automatic_upgrade_enabled          = true
+  publisher                          = "Microsoft.Azure.Monitor"
+  type                               = "AzureMonitorLinuxAgent"
+  type_handler_version               = "1.25"
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r HybridComputeMachineExtensionResource) template(data acceptance.TestData) string {
+	d := HybridComputeMachineDataSource{}
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	randomUUID, _ := uuid.GenerateUUID()
+	password := generateRandomPassword(10)
+	return d.basic(data, clientSecret, randomUUID, password)
+}
