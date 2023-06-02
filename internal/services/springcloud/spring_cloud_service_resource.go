@@ -820,7 +820,7 @@ func applyContainerRegistries(ctx context.Context, client *appplatform.Container
 	for _, newRegistry := range new {
 		containerRegistriesToRemove[*newRegistry.Name] = false
 	}
-	for name, _ := range containerRegistriesToRemove {
+	for name := range containerRegistriesToRemove {
 		if containerRegistriesToRemove[name] {
 			id := parse.NewSpringCloudContainerRegistryID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, name)
 			future, err := client.Delete(ctx, springId.ResourceGroup, springId.SpringName, name)
