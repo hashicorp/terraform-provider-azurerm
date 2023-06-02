@@ -757,7 +757,7 @@ resource "azurerm_kusto_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Standard_D32d_v5"
+    name     = "Standard_E4d_v4"
     capacity = 2
   }
 
@@ -783,7 +783,7 @@ resource "azurerm_kusto_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Standard_D32d_v5"
+    name     = "Standard_E4d_v4"
     capacity = 2
   }
 
@@ -809,7 +809,7 @@ resource "azurerm_kusto_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Standard_D32d_v5"
+    name     = "Standard_E4d_v4"
     capacity = 2
   }
 
