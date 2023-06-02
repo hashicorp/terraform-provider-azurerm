@@ -101,6 +101,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 						"password": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
