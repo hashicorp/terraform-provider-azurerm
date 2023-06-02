@@ -65,11 +65,11 @@ func TestAccArcMachineExtension_complete(t *testing.T) {
 			Config: r.complete(data, template),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("publisher").HasValue("Microsoft.Azure.Monitor"),
-				check.That(data.ResourceName).Key("type").HasValue("AzureMonitorLinuxAgent"),
-				check.That(data.ResourceName).Key("type_handler_version").MatchesRegex(regexp.MustCompile("^1[.]24.*$")),
-				check.That(data.ResourceName).Key("auto_upgrade_minor_version").HasValue("false"),
-				check.That(data.ResourceName).Key("settings").HasValue(`{"test":"test"}`),
+				check.That(data.ResourceName).Key("publisher").HasValue("Microsoft.Azure.Extensions"),
+				check.That(data.ResourceName).Key("type").HasValue("CustomScript"),
+				check.That(data.ResourceName).Key("type_handler_version").MatchesRegex(regexp.MustCompile("^2[.]1.*$")),
+				check.That(data.ResourceName).Key("automatic_upgrade_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("settings").HasValue(`{"timestamp":123456789}`),
 			),
 		},
 		data.ImportStep("protected_settings"),
@@ -82,7 +82,7 @@ func TestAccArcMachineExtension_update(t *testing.T) {
 	template := r.template(data)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, template),
+			Config: r.basic(data, template),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -153,11 +153,11 @@ resource "azurerm_arc_machine_extension" "test" {
   arc_machine_id                     = data.azurerm_arc_machine.test.id
   location                           = "%s"
   automatic_upgrade_enabled          = false
-  publisher                          = "Microsoft.Azure.Monitor"
-  settings                           = {"test": "test"}
-  protected_settings                 = {"test": "test"}
-  type                               = "AzureMonitorLinuxAgent"
-  type_handler_version               = "1.24"
+  publisher                          = "Microsoft.Azure.Extensions"
+  settings                           = jsonencode({"timestamp": 123456789})
+  protected_settings                 = jsonencode({"commandToExecute": "echo 'Hello World!'"})
+  type                               = "CustomScript"
+  type_handler_version               = "2.1"
   
   tags = {
 	Environment = "Production"
@@ -177,7 +177,7 @@ resource "azurerm_arc_machine_extension" "test" {
   automatic_upgrade_enabled          = true
   publisher                          = "Microsoft.Azure.Monitor"
   type                               = "AzureMonitorLinuxAgent"
-  type_handler_version               = "1.25"
+  type_handler_version               = "1.24"
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }

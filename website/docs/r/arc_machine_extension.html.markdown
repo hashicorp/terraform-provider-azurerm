@@ -66,34 +66,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Hybrid Compute Machine Extension.
 
-* `instance_view` - A `instance_view` block as defined below.
-
----
-
-A `instance_view` block exports the following:
-
-* `name` - The name of this Hybrid Compute Machine Extension.
-
-* `status` - A `status` block as defined below.
-
-* `type` - Specifies the type of the extension.
-
-* `type_handler_version` - Specifies the version of the script handler.
-
----
-
-A `status` block exports the following:
-
-* `code` - The status code of the instance.
-
-* `display_status` - The short localizable label for the status.
-
-* `level` - The level code. Possible values are `Info`, `Warning` or `Error`.
-
-* `message` - The detailed status message, including for alerts and error messages.
-
-* `time` - The time of the status.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
