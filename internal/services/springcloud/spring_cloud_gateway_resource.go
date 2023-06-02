@@ -112,6 +112,29 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				},
 			},
 
+			"client_auth": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"certificate_ids": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.SpringCloudCertificateID,
+							},
+						},
+
+						"verification_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"cors": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -315,6 +338,7 @@ func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	gatewayResource := appplatform.GatewayResource{
 		Properties: &appplatform.GatewayProperties{
+			ClientAuth:            expandGatewayClientAuth(d.Get("client_auth").([]interface{})),
 			APIMetadataProperties: expandGatewayGatewayAPIMetadataProperties(d.Get("api_metadata").([]interface{})),
 			ApmTypes:              expandGatewayGatewayApmTypes(d.Get("application_performance_monitoring_types").([]interface{})),
 			CorsProperties:        expandGatewayGatewayCorsProperties(d.Get("cors").([]interface{})),
@@ -374,6 +398,9 @@ func resourceSpringCloudGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		if err := d.Set("application_performance_monitoring_types", flattenGatewayGatewayApmTypess(props.ApmTypes)); err != nil {
 			return fmt.Errorf("setting `application_performance_monitoring_types`: %+v", err)
+		}
+		if err := d.Set("client_auth", flattenGatewayClientAuth(props.ClientAuth)); err != nil {
+			return fmt.Errorf("setting `client_auth`: %+v", err)
 		}
 		if err := d.Set("cors", flattenGatewayGatewayCorsProperties(props.CorsProperties)); err != nil {
 			return fmt.Errorf("setting `cors`: %+v", err)
@@ -489,6 +516,21 @@ func expandGatewayGatewayEnvironmentVariables(env map[string]interface{}, secret
 	return &appplatform.GatewayPropertiesEnvironmentVariables{
 		Properties: utils.ExpandMapStringPtrString(env),
 		Secrets:    utils.ExpandMapStringPtrString(secrets),
+	}
+}
+
+func expandGatewayClientAuth(input []interface{}) *appplatform.GatewayPropertiesClientAuth {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	verificationEnabled := appplatform.GatewayCertificateVerificationDisabled
+	if v["verification_enabled"].(bool) {
+		verificationEnabled = appplatform.GatewayCertificateVerificationEnabled
+	}
+	return &appplatform.GatewayPropertiesClientAuth{
+		Certificates:            utils.ExpandStringSlice(v["certificate_ids"].([]interface{})),
+		CertificateVerification: verificationEnabled,
 	}
 }
 
@@ -620,4 +662,25 @@ func flattenGatewayGatewayApmTypess(input *[]appplatform.ApmType) []interface{} 
 		out = append(out, string(v))
 	}
 	return out
+}
+
+func flattenGatewayClientAuth(input *appplatform.GatewayPropertiesClientAuth) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+	certificateIds := make([]string, 0)
+	if input.Certificates != nil {
+		for _, v := range *input.Certificates {
+			certId, err := parse.SpringCloudCertificateIDInsensitively(v)
+			if err == nil {
+				certificateIds = append(certificateIds, certId.ID())
+			}
+		}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"certificate_ids":      certificateIds,
+			"verification_enabled": input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled,
+		},
+	}
 }

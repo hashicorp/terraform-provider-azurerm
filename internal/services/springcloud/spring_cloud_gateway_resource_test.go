@@ -60,6 +60,20 @@ func TestAccSpringCloudGateway_complete(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudGateway_clientAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway", "test")
+	r := SpringCloudGatewayResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clientAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSpringCloudGateway_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -203,4 +217,121 @@ resource "azurerm_spring_cloud_gateway" "test" {
   }
 }
 `, template, clientId, clientSecret)
+}
+
+func (r SpringCloudGatewayResource) clientAuth(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {
+}
+
+data "azuread_service_principal" "test" {
+  display_name = "Azure Spring Cloud Resource Provider"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest-kv-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "Set",
+    ]
+
+    certificate_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azuread_service_principal.test.object_id
+
+    secret_permissions = [
+      "Get",
+      "List",
+    ]
+
+    certificate_permissions = [
+      "Get",
+      "List",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctest-cert-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=contoso.com"
+      validity_in_months = 12
+    }
+  }
+}
+
+resource "azurerm_spring_cloud_certificate" "test" {
+  name                     = "acctest-scc-%[2]d"
+  resource_group_name      = azurerm_spring_cloud_service.test.resource_group_name
+  service_name             = azurerm_spring_cloud_service.test.name
+  key_vault_certificate_id = azurerm_key_vault_certificate.test.id
+  exclude_private_key      = true
+}
+
+resource "azurerm_spring_cloud_gateway" "test" {
+  name                    = "default"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  client_auth {
+    certificate_ids      = [azurerm_spring_cloud_certificate.test.id]
+    verification_enabled = true
+  }
+}
+`, template, data.RandomInteger)
 }
