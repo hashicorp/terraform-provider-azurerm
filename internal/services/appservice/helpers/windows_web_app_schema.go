@@ -2,12 +2,12 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -823,21 +823,6 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *web.SiteConfig, currentStack 
 	}
 
 	s.WindowsFxVersion = pointer.From(appSiteConfig.WindowsFxVersion)
-	//if s.WindowsFxVersion != "" {
-	//	// TODO - These are deprecated and will be removed in 4.0, need to wrap in feature flag
-	//	// Decode the string to docker values
-	//	parts := strings.Split(strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|"), ":")
-	//	if len(parts) == 2 {
-	//		winAppStack.DockerContainerTag = parts[1]
-	//		path := strings.Split(parts[0], "/")
-	//		if len(path) > 1 {
-	//			winAppStack.DockerContainerRegistry = path[0]
-	//			winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
-	//		} else {
-	//			winAppStack.DockerContainerName = path[0]
-	//		}
-	//	}
-	//}
 
 	winAppStack.CurrentStack = currentStack
 
