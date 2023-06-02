@@ -608,7 +608,9 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			siteConfig := helpers.SiteConfigWindows{}
-			siteConfig.Flatten(webAppSiteConfig.SiteConfig, currentStack)
+			if err := siteConfig.Flatten(webAppSiteConfig.SiteConfig, currentStack); err != nil {
+				return err
+			}
 			siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 			state.AppSettings = siteConfig.ParseNodeVersion(state.AppSettings)
 

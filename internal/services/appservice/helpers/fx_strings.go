@@ -94,14 +94,7 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 		result.RubyVersion = parts[1]
 
 	case "COMPOSE":
-		// TODO ?
-	default:
-		// Deprecated / bugged - to be removed post 4.0
-		// new docker parsing is done later
-		//if dockerParts := strings.Split(parts[1], ":"); len(dockerParts) == 2 {
-		//	result.DockerImage = dockerParts[0]
-		//	result.DockerImageTag = dockerParts[1]
-		//}
+		// TODO
 	}
 
 	return result
