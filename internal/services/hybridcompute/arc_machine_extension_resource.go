@@ -19,33 +19,17 @@ import (
 )
 
 type MachineExtensionModel struct {
-	Name                   string                              `tfschema:"name"`
-	HybridComputeMachineId string                              `tfschema:"arc_machine_id"`
-	EnableAutomaticUpgrade bool                                `tfschema:"automatic_upgrade_enabled"`
-	ForceUpdateTag         string                              `tfschema:"force_update_tag"`
-	InstanceView           []MachineExtensionInstanceViewModel `tfschema:"instance_view"`
-	Location               string                              `tfschema:"location"`
-	ProtectedSettings      string                              `tfschema:"protected_settings"`
-	Publisher              string                              `tfschema:"publisher"`
-	Settings               string                              `tfschema:"settings"`
-	Tags                   map[string]string                   `tfschema:"tags"`
-	Type                   string                              `tfschema:"type"`
-	TypeHandlerVersion     string                              `tfschema:"type_handler_version"`
-}
-
-type MachineExtensionInstanceViewModel struct {
-	Name               string                                    `tfschema:"name"`
-	Status             []MachineExtensionInstanceViewStatusModel `tfschema:"status"`
-	Type               string                                    `tfschema:"type"`
-	TypeHandlerVersion string                                    `tfschema:"type_handler_version"`
-}
-
-type MachineExtensionInstanceViewStatusModel struct {
-	Code          string                             `tfschema:"code"`
-	DisplayStatus string                             `tfschema:"display_status"`
-	Level         machineextensions.StatusLevelTypes `tfschema:"level"`
-	Message       string                             `tfschema:"message"`
-	Time          string                             `tfschema:"time"`
+	Name                   string            `tfschema:"name"`
+	HybridComputeMachineId string            `tfschema:"arc_machine_id"`
+	EnableAutomaticUpgrade bool              `tfschema:"automatic_upgrade_enabled"`
+	ForceUpdateTag         string            `tfschema:"force_update_tag"`
+	Location               string            `tfschema:"location"`
+	ProtectedSettings      string            `tfschema:"protected_settings"`
+	Publisher              string            `tfschema:"publisher"`
+	Settings               string            `tfschema:"settings"`
+	Tags                   map[string]string `tfschema:"tags"`
+	Type                   string            `tfschema:"type"`
+	TypeHandlerVersion     string            `tfschema:"type_handler_version"`
 }
 
 type ArcMachineExtensionResource struct{}
@@ -149,63 +133,7 @@ func (r ArcMachineExtensionResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r ArcMachineExtensionResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"instance_view": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"status": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"code": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"display_status": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"level": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"message": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"time": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"type_handler_version": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
@@ -402,67 +330,60 @@ func (r ArcMachineExtensionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			state := MachineExtensionModel{
 				Name:                   id.ExtensionName,
 				HybridComputeMachineId: machines.NewMachineID(id.SubscriptionId, id.ResourceGroupName, id.MachineName).ID(),
-				Location:               location.Normalize(model.Location),
 			}
 
-			if properties := model.Properties; properties != nil {
-				if properties.EnableAutomaticUpgrade != nil {
-					state.EnableAutomaticUpgrade = *properties.EnableAutomaticUpgrade
-				}
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
 
-				if properties.ForceUpdateTag != nil {
-					state.ForceUpdateTag = *properties.ForceUpdateTag
-				}
-
-				instanceViewValue := flattenMachineExtensionInstanceViewModel(properties.InstanceView)
-				if err != nil {
-					return err
-				}
-
-				state.InstanceView = instanceViewValue
-
-				if properties.ProtectedSettings != nil && *properties.ProtectedSettings != nil {
-
-					protectedSettingsValue, err := json.Marshal(*properties.ProtectedSettings)
-					if err != nil {
-						return err
+				if properties := model.Properties; properties != nil {
+					if properties.EnableAutomaticUpgrade != nil {
+						state.EnableAutomaticUpgrade = *properties.EnableAutomaticUpgrade
 					}
 
-					state.ProtectedSettings = string(protectedSettingsValue)
-				}
-
-				if properties.Publisher != nil {
-					state.Publisher = *properties.Publisher
-				}
-
-				if properties.Settings != nil && *properties.Settings != nil {
-
-					settingsValue, err := json.Marshal(*properties.Settings)
-					if err != nil {
-						return err
+					if properties.ForceUpdateTag != nil {
+						state.ForceUpdateTag = *properties.ForceUpdateTag
 					}
 
-					state.Settings = string(settingsValue)
+					if properties.ProtectedSettings != nil && *properties.ProtectedSettings != nil {
+
+						protectedSettingsValue, err := json.Marshal(*properties.ProtectedSettings)
+						if err != nil {
+							return err
+						}
+
+						state.ProtectedSettings = string(protectedSettingsValue)
+					}
+
+					if properties.Publisher != nil {
+						state.Publisher = *properties.Publisher
+					}
+
+					if properties.Settings != nil && *properties.Settings != nil {
+
+						settingsValue, err := json.Marshal(*properties.Settings)
+						if err != nil {
+							return err
+						}
+
+						state.Settings = string(settingsValue)
+					}
+
+					if properties.Type != nil {
+						state.Type = *properties.Type
+					}
+
+					if properties.TypeHandlerVersion != nil {
+						state.TypeHandlerVersion = *properties.TypeHandlerVersion
+					}
 				}
 
-				if properties.Type != nil {
-					state.Type = *properties.Type
+				if model.Tags != nil {
+					state.Tags = *model.Tags
 				}
 
-				if properties.TypeHandlerVersion != nil {
-					state.TypeHandlerVersion = *properties.TypeHandlerVersion
-				}
-			}
-			if model.Tags != nil {
-				state.Tags = *model.Tags
 			}
 
 			return metadata.Encode(&state)
@@ -488,62 +409,4 @@ func (r ArcMachineExtensionResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func flattenMachineExtensionInstanceViewModel(input *machineextensions.MachineExtensionInstanceView) []MachineExtensionInstanceViewModel {
-	var outputList []MachineExtensionInstanceViewModel
-	if input == nil {
-		return outputList
-	}
-
-	output := MachineExtensionInstanceViewModel{}
-
-	if input.Name != nil {
-		output.Name = *input.Name
-	}
-
-	statusValue := flattenMachineExtensionInstanceViewStatusModel(input.Status)
-
-	output.Status = statusValue
-
-	if input.Type != nil {
-		output.Type = *input.Type
-	}
-
-	if input.TypeHandlerVersion != nil {
-		output.TypeHandlerVersion = *input.TypeHandlerVersion
-	}
-
-	return append(outputList, output)
-}
-
-func flattenMachineExtensionInstanceViewStatusModel(input *machineextensions.MachineExtensionInstanceViewStatus) []MachineExtensionInstanceViewStatusModel {
-	var outputList []MachineExtensionInstanceViewStatusModel
-	if input == nil {
-		return outputList
-	}
-
-	output := MachineExtensionInstanceViewStatusModel{}
-
-	if input.Code != nil {
-		output.Code = *input.Code
-	}
-
-	if input.DisplayStatus != nil {
-		output.DisplayStatus = *input.DisplayStatus
-	}
-
-	if input.Level != nil {
-		output.Level = *input.Level
-	}
-
-	if input.Message != nil {
-		output.Message = *input.Message
-	}
-
-	if input.Time != nil {
-		output.Time = *input.Time
-	}
-
-	return append(outputList, output)
 }
