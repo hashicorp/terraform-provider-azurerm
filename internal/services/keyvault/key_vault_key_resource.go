@@ -16,6 +16,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -786,12 +787,8 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 
 			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionRotate)) {
 				autoRotation := make(map[string]interface{}, 0)
-				if timeAfterCreate := trigger.TimeAfterCreate; timeAfterCreate != nil {
-					autoRotation["time_after_creation"] = *timeAfterCreate
-				}
-				if timeBeforeExpiry := trigger.TimeBeforeExpiry; timeBeforeExpiry != nil {
-					autoRotation["time_before_expiry"] = *timeBeforeExpiry
-				}
+				autoRotation["time_after_creation"] = pointer.From(trigger.TimeAfterCreate)
+				autoRotation["time_before_expiry"] = pointer.From(trigger.TimeBeforeExpiry)
 				policy["automatic"] = []map[string]interface{}{autoRotation}
 			}
 		}
