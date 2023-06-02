@@ -1,29 +1,25 @@
 ---
 subcategory: "Hybrid Compute"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_hybrid_compute_machine"
+page_title: "Azure Resource Manager: Data Source: azurerm_arc_machine"
 description: |-
-  Gets information about an existing hybrid compute machine.
+  Gets information about an existing Azure Arc machine.
 ---
 
-# Data Source: azurerm_hybrid_compute_machine
+# Data Source: azurerm_arc_machine
 
-Use this data source to access information about an existing Hybrid Compute.
-
-## Disclaimers
-
--> **Note:** The  Data Source `azurerm_hybrid_compute_machine` is deprecated will be removed in v4.0 of the Azure Provider - a replacement can be found in the form of the [`azurerm_arc_machine`](arc_machine.html) Data Source.
+Use this data source to access information about an existing Azure Arc machine.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_hybrid_compute_machine" "example" {
+data "azurerm_arc_machine" "example" {
   name                = "existing-hcmachine"
   resource_group_name = "existing-rg"
 }
 
 output "id" {
-  value = data.azurerm_hybrid_compute_machine.example.id
+  value = data.azurerm_arc_machine.example.id
 }
 ```
 
@@ -31,21 +27,21 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this hybrid compute machine.
+* `name` - (Required) The name of this Azure Arc machine.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Hybrid Compute exists.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the hybrid compute machine.
+* `id` - The ID of the Azure Arc machine.
 
-* `ad_fqdn` - Specifies the AD fully qualified display name.
+* `active_directory_fqdn` - Specifies the AD fully qualified display name.
 
-* `agent_configuration` - A `agent_configuration` block as defined below.
+* `agent` - A `agent` block as defined below.
 
-* `agent_version` - The hybrid machine agent full version.
+* `agent_version` - The Azure Arc machine agent full version.
 
 * `client_public_key` - Public Key that the client provides to be used during initial resource onboarding.
 
@@ -53,7 +49,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `detected_properties` - A `detected_properties` block as defined below.
 
-* `display_name` - Specifies the hybrid machine display name.
+* `display_name` - Specifies the Azure Arc machine display name.
 
 * `dns_fqdn` - Specifies the DNS fully qualified display name.
 
@@ -63,17 +59,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
-* `last_status_change` - The time of the last status change.
+* `last_status_change_time` - The time of the last status change.
 
-* `location` - The Azure Region where the hybrid compute machine exists.
+* `location` - The Azure Region where the Azure Arc machine exists.
 
 * `location_data` - A `location_data` block as defined below.
 
-* `machine_fqdn` - Specifies the hybrid machine fully qualified display name.
+* `machine_fqdn` - Specifies the Azure Arc machine fully qualified display name.
 
 * `mssql_discovered` - Specifies whether any MS SQL instance is discovered on the machine.
 
-* `os_name` - The Operating System running on the hybrid machine.
+* `os_name` - The Operating System running on the Azure Arc machine.
 
 * `os_profile` - A `os_profile` block as defined below.
 
@@ -81,7 +77,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `os_type` - The type of Operating System. Possible values are `windows` and `linux`.
 
-* `os_version` - The version of Operating System running on the hybrid machine.
+* `os_version` - The version of Operating System running on the Azure Arc machine.
 
 * `parent_cluster_resource_id` - The resource id of the parent cluster (Azure HCI) this machine is assigned to, if any.
 
@@ -89,25 +85,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `service_status` - A `service_status` block as defined below.
 
-* `status` - The status of the hybrid machine agent.
+* `status` - The status of the Azure Arc machine agent.
 
 * `tags` - A mapping of tags assigned to the Hybrid Compute.
 
-* `vm_id` - Specifies the hybrid machine unique ID.
+* `vm_id` - Specifies the Azure Arc machine unique ID.
 
 * `vm_uuid` - Specifies the Arc Machine's unique SMBIOS ID.
 
 ---
 
-A `additional_info` block exports the following:
-
-* `info` - The additional information message.
-
-* `type` - The additional information type.
-
----
-
-A `agent_configuration` block exports the following:
+A `agent` block exports the following:
 
 * `extensions_allow_list` - A `extensions_allow_list` block as defined below.
 
@@ -185,9 +173,9 @@ A `identity` block exports the following:
 
 ---
 
-A `linux_configuration` block exports the following:
+A `linux` block exports the following:
 
-* `patch_settings` - A `patch_settings` block as defined below.
+* `patch` - A `patch` block as defined below.
 
 ---
 
@@ -205,15 +193,15 @@ A `location_data` block exports the following:
 
 A `os_profile` block exports the following:
 
-* `computer_name` - Specifies the host OS name of the hybrid machine.
+* `computer_name` - Specifies the host OS name of the Azure Arc machine.
 
-* `linux_configuration` - A `linux_configuration` block as defined above.
+* `linux` - A `linux` block as defined above.
 
-* `windows_configuration` - A `windows_configuration` block as defined below.
+* `windows` - A `windows` block as defined below.
 
 ---
 
-A `patch_settings` block exports the following:
+A `patch` block exports the following:
 
 * `assessment_mode` - Specifies the assessment mode.
 
@@ -229,12 +217,12 @@ A `service_status` block exports the following:
 
 ---
 
-A `windows_configuration` block exports the following:
+A `windows` block exports the following:
 
-* `patch_settings` - A `patch_settings` block as defined above.
+* `patch` - A `patch` block as defined above.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Hybrid Compute.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Arc machine.

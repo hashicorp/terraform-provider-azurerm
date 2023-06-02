@@ -2,7 +2,6 @@ package hybridcompute
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -12,134 +11,103 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// HybridComputeMachineModel is deprecated and will be removed after 4.0 version.
-// Please add new features to azurerm_arc_machine instead.
-
-type HybridComputeMachineModel struct {
-	Name                       string                              `tfschema:"name"`
-	ResourceGroupName          string                              `tfschema:"resource_group_name"`
-	AgentConfiguration         []DeprecatedAgentConfigurationModel `tfschema:"agent_configuration"`
-	ClientPublicKey            string                              `tfschema:"client_public_key"`
-	CloudMetadata              []DeprecatedCloudMetadataModel      `tfschema:"cloud_metadata"`
-	DetectedProperties         map[string]string                   `tfschema:"detected_properties"`
-	Location                   string                              `tfschema:"location"`
-	LocationData               []DeprecatedLocationDataModel       `tfschema:"location_data"`
-	MssqlDiscovered            bool                                `tfschema:"mssql_discovered"`
-	OsProfile                  []DeprecatedOSProfileModel          `tfschema:"os_profile"`
-	OsType                     string                              `tfschema:"os_type"`
-	ParentClusterResourceId    string                              `tfschema:"parent_cluster_resource_id"`
-	PrivateLinkScopeResourceId string                              `tfschema:"private_link_scope_resource_id"`
-	ServiceStatuses            []DeprecatedServiceStatusesModel    `tfschema:"service_status"`
-	Tags                       map[string]string                   `tfschema:"tags"`
-	VmId                       string                              `tfschema:"vm_id"`
-	AdFqdn                     string                              `tfschema:"ad_fqdn"`
-	AgentVersion               string                              `tfschema:"agent_version"`
-	DisplayName                string                              `tfschema:"display_name"`
-	DnsFqdn                    string                              `tfschema:"dns_fqdn"`
-	DomainName                 string                              `tfschema:"domain_name"`
-	ErrorDetails               []DeprecatedErrorDetailModel        `tfschema:"error_details"`
-	LastStatusChange           string                              `tfschema:"last_status_change"`
-	MachineFqdn                string                              `tfschema:"machine_fqdn"`
-	OsName                     string                              `tfschema:"os_name"`
-	OsSku                      string                              `tfschema:"os_sku"`
-	OsVersion                  string                              `tfschema:"os_version"`
-	Status                     machines.StatusTypes                `tfschema:"status"`
-	VmUuid                     string                              `tfschema:"vm_uuid"`
+type ArcMachineModel struct {
+	Name                       string                    `tfschema:"name"`
+	ResourceGroupName          string                    `tfschema:"resource_group_name"`
+	AgentConfiguration         []AgentConfigurationModel `tfschema:"agent"`
+	ClientPublicKey            string                    `tfschema:"client_public_key"`
+	CloudMetadata              []CloudMetadataModel      `tfschema:"cloud_metadata"`
+	DetectedProperties         map[string]string         `tfschema:"detected_properties"`
+	Location                   string                    `tfschema:"location"`
+	LocationData               []LocationDataModel       `tfschema:"location_data"`
+	MssqlDiscovered            bool                      `tfschema:"mssql_discovered"`
+	OsProfile                  []OSProfileModel          `tfschema:"os_profile"`
+	OsType                     string                    `tfschema:"os_type"`
+	ParentClusterResourceId    string                    `tfschema:"parent_cluster_resource_id"`
+	PrivateLinkScopeResourceId string                    `tfschema:"private_link_scope_resource_id"`
+	ServiceStatuses            []ServiceStatusesModel    `tfschema:"service_status"`
+	Tags                       map[string]string         `tfschema:"tags"`
+	VmId                       string                    `tfschema:"vm_id"`
+	AdFqdn                     string                    `tfschema:"active_directory_fqdn"`
+	AgentVersion               string                    `tfschema:"agent_version"`
+	DisplayName                string                    `tfschema:"display_name"`
+	DnsFqdn                    string                    `tfschema:"dns_fqdn"`
+	DomainName                 string                    `tfschema:"domain_name"`
+	LastStatusChange           string                    `tfschema:"last_status_change_time"`
+	MachineFqdn                string                    `tfschema:"machine_fqdn"`
+	OsName                     string                    `tfschema:"os_name"`
+	OsSku                      string                    `tfschema:"os_sku"`
+	OsVersion                  string                    `tfschema:"os_version"`
+	Status                     machines.StatusTypes      `tfschema:"status"`
+	VmUuid                     string                    `tfschema:"vm_uuid"`
 }
 
-type DeprecatedAgentConfigurationModel struct {
-	ExtensionsAllowList       []DeprecatedConfigurationExtensionModel `tfschema:"extensions_allow_list"`
-	ExtensionsBlockList       []DeprecatedConfigurationExtensionModel `tfschema:"extensions_block_list"`
-	ExtensionsEnabled         bool                                    `tfschema:"extensions_enabled"`
-	GuestConfigurationEnabled bool                                    `tfschema:"guest_configuration_enabled"`
-	IncomingConnectionsPorts  []string                                `tfschema:"incoming_connections_ports"`
-	ProxyBypass               []string                                `tfschema:"proxy_bypass"`
-	ProxyUrl                  string                                  `tfschema:"proxy_url"`
+type AgentConfigurationModel struct {
+	ExtensionsAllowList       []ConfigurationExtensionModel `tfschema:"extensions_allow_list"`
+	ExtensionsBlockList       []ConfigurationExtensionModel `tfschema:"extensions_block_list"`
+	ExtensionsEnabled         bool                          `tfschema:"extensions_enabled"`
+	GuestConfigurationEnabled bool                          `tfschema:"guest_configuration_enabled"`
+	IncomingConnectionsPorts  []string                      `tfschema:"incoming_connections_ports"`
+	ProxyBypass               []string                      `tfschema:"proxy_bypass"`
+	ProxyUrl                  string                        `tfschema:"proxy_url"`
 }
 
-type DeprecatedConfigurationExtensionModel struct {
+type ConfigurationExtensionModel struct {
 	Publisher string `tfschema:"publisher"`
 	Type      string `tfschema:"type"`
 }
 
-type DeprecatedCloudMetadataModel struct {
+type CloudMetadataModel struct {
 	Provider string `tfschema:"provider"`
 }
 
-type DeprecatedLocationDataModel struct {
+type LocationDataModel struct {
 	City            string `tfschema:"city"`
 	CountryOrRegion string `tfschema:"country_or_region"`
 	District        string `tfschema:"district"`
 	Name            string `tfschema:"name"`
 }
 
-type DeprecatedOSProfileModel struct {
-	ComputerName         string                                         `tfschema:"computer_name"`
-	LinuxConfiguration   []DeprecatedOSProfileLinuxConfigurationModel   `tfschema:"linux_configuration"`
-	WindowsConfiguration []DeprecatedOSProfileWindowsConfigurationModel `tfschema:"windows_configuration"`
+type OSProfileModel struct {
+	ComputerName         string                               `tfschema:"computer_name"`
+	LinuxConfiguration   []OSProfileLinuxConfigurationModel   `tfschema:"linux"`
+	WindowsConfiguration []OSProfileWindowsConfigurationModel `tfschema:"windows"`
 }
 
-type DeprecatedOSProfileLinuxConfigurationModel struct {
-	PatchSettings []DeprecatedPatchSettingsModel `tfschema:"patch_settings"`
+type OSProfileLinuxConfigurationModel struct {
+	PatchSettings []PatchSettingsModel `tfschema:"patch"`
 }
 
-type DeprecatedPatchSettingsModel struct {
+type PatchSettingsModel struct {
 	AssessmentMode machines.AssessmentModeTypes `tfschema:"assessment_mode"`
 	PatchMode      machines.PatchModeTypes      `tfschema:"patch_mode"`
 }
 
-type DeprecatedOSProfileWindowsConfigurationModel struct {
-	PatchSettings []DeprecatedPatchSettingsModel `tfschema:"patch_settings"`
+type OSProfileWindowsConfigurationModel struct {
+	PatchSettings []PatchSettingsModel `tfschema:"patch"`
 }
 
-type DeprecatedServiceStatusesModel struct {
-	ExtensionService          []DeprecatedServiceStatusModel `tfschema:"extension_service"`
-	GuestConfigurationService []DeprecatedServiceStatusModel `tfschema:"guest_configuration_service"`
+type ServiceStatusesModel struct {
+	ExtensionService          []ServiceStatusModel `tfschema:"extension_service"`
+	GuestConfigurationService []ServiceStatusModel `tfschema:"guest_configuration_service"`
 }
 
-type DeprecatedServiceStatusModel struct {
+type ServiceStatusModel struct {
 	StartupType string `tfschema:"startup_type"`
 	Status      string `tfschema:"status"`
 }
 
-type DeprecatedErrorDetailModel struct {
-	AdditionalInfo []DeprecatedErrorAdditionalInfoModel `tfschema:"additional_info"`
-	Code           string                               `tfschema:"code"`
-	Message        string                               `tfschema:"message"`
-	Target         string                               `tfschema:"target"`
-}
+type ArcMachineDataSource struct{}
 
-type DeprecatedErrorAdditionalInfoModel struct {
-	Info string `tfschema:"info"`
-	Type string `tfschema:"type"`
-}
+var _ sdk.DataSource = ArcMachineDataSource{}
 
-type HybridComputeMachineDataSource struct{}
-
-func (r HybridComputeMachineDataSource) DeprecatedInFavourOfDataSource() string {
-	return "azurerm_arc_machine"
-}
-
-var _ sdk.DataSourceWithDeprecationReplacedBy = HybridComputeMachineDataSource{}
-
-func (r HybridComputeMachineDataSource) ResourceType() string {
-	return "azurerm_hybrid_compute_machine"
-}
-
-func (r HybridComputeMachineDataSource) ModelObject() interface{} {
-	return &HybridComputeMachineModel{}
-}
-
-func (r HybridComputeMachineDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return machines.ValidateMachineID
-}
-
-func (r HybridComputeMachineDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (a ArcMachineDataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -151,9 +119,9 @@ func (r HybridComputeMachineDataSource) Arguments() map[string]*pluginsdk.Schema
 	}
 }
 
-func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (a ArcMachineDataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
-		"agent_configuration": {
+		"agent": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 
@@ -229,7 +197,7 @@ func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schem
 			},
 		},
 
-		"ad_fqdn": {
+		"active_directory_fqdn": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -281,50 +249,9 @@ func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schem
 			Computed: true,
 		},
 
-		"error_details": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"additional_info": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"info": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"type": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-
-					"code": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"message": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"target": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
 		"identity": commonschema.SystemAssignedIdentityComputed(),
 
-		"last_status_change": {
+		"last_status_change_time": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -386,13 +313,13 @@ func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schem
 						Computed: true,
 					},
 
-					"linux_configuration": {
+					"linux": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"patch_settings": {
+								"patch": {
 									Type:     pluginsdk.TypeList,
 									Computed: true,
 
@@ -414,13 +341,13 @@ func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schem
 						},
 					},
 
-					"windows_configuration": {
+					"windows": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"patch_settings": {
+								"patch": {
 									Type:     pluginsdk.TypeList,
 									Computed: true,
 
@@ -536,19 +463,27 @@ func (r HybridComputeMachineDataSource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
+func (a ArcMachineDataSource) ModelObject() interface{} {
+	return &ArcMachineDataSource{}
+}
+
+func (a ArcMachineDataSource) ResourceType() string {
+	return "azurerm_arc_machine"
+}
+
+func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.HybridCompute.MachinesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var hybridComputeMachineModel HybridComputeMachineModel
-			if err := metadata.Decode(&hybridComputeMachineModel); err != nil {
+			var arcMachineModel ArcMachineModel
+			if err := metadata.Decode(&arcMachineModel); err != nil {
 				return err
 			}
 
-			id := machines.NewMachineID(subscriptionId, hybridComputeMachineModel.ResourceGroupName, hybridComputeMachineModel.Name)
+			id := machines.NewMachineID(subscriptionId, arcMachineModel.ResourceGroupName, arcMachineModel.Name)
 
 			resp, err := client.Get(ctx, id, machines.GetOperationOptions{})
 			if err != nil {
@@ -564,7 +499,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := HybridComputeMachineModel{
+			state := ArcMachineModel{
 				Name:              id.MachineName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
@@ -581,7 +516,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.AdFqdn = *properties.AdFqdn
 				}
 
-				agentConfigurationValue, err := deprecatedFlattenAgentConfigurationModel(properties.AgentConfiguration)
+				agentConfigurationValue, err := flattenAgentConfigurationModel(properties.AgentConfiguration)
 				if err != nil {
 					return err
 				}
@@ -596,7 +531,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.ClientPublicKey = *properties.ClientPublicKey
 				}
 
-				cloudMetadataValue := deprecatedFlattenCloudMetadataModel(properties.CloudMetadata)
+				cloudMetadataValue := flattenCloudMetadataModel(properties.CloudMetadata)
 
 				state.CloudMetadata = cloudMetadataValue
 
@@ -616,15 +551,17 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.DomainName = *properties.DomainName
 				}
 
-				errorDetailsValue := deprecatedFlattenErrorDetailModel(properties.ErrorDetails)
-
-				state.ErrorDetails = errorDetailsValue
+				if properties.ErrorDetails != nil {
+					if len(*properties.ErrorDetails) > 0 {
+						return fmt.Errorf("retrieving %s: error details: %+v", id, *properties.ErrorDetails)
+					}
+				}
 
 				if properties.LastStatusChange != nil {
 					state.LastStatusChange = *properties.LastStatusChange
 				}
 
-				locationDataValue := deprecatedFlattenLocationDataModel(properties.LocationData)
+				locationDataValue := flattenLocationDataModel(properties.LocationData)
 
 				state.LocationData = locationDataValue
 
@@ -643,7 +580,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.OsName = *properties.OsName
 				}
 
-				osProfileValue := deprecatedFlattenOSProfileModel(properties.OsProfile)
+				osProfileValue := flattenOSProfileModel(properties.OsProfile)
 
 				state.OsProfile = osProfileValue
 
@@ -667,7 +604,7 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 					state.PrivateLinkScopeResourceId = *properties.PrivateLinkScopeResourceId
 				}
 
-				serviceStatusesValue := deprecatedFlattenServiceStatusesModel(properties.ServiceStatuses)
+				serviceStatusesValue := flattenServiceStatusesModel(properties.ServiceStatuses)
 
 				state.ServiceStatuses = serviceStatusesValue
 
@@ -693,19 +630,19 @@ func (r HybridComputeMachineDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func deprecatedFlattenAgentConfigurationModel(input *machines.AgentConfiguration) ([]DeprecatedAgentConfigurationModel, error) {
-	var outputList []DeprecatedAgentConfigurationModel
+func flattenAgentConfigurationModel(input *machines.AgentConfiguration) ([]AgentConfigurationModel, error) {
+	var outputList []AgentConfigurationModel
 	if input == nil {
 		return outputList, nil
 	}
 
-	output := DeprecatedAgentConfigurationModel{}
+	output := AgentConfigurationModel{}
 
-	extensionsAllowListValue := deprecatedFlattenConfigurationExtensionModel(input.ExtensionsAllowList)
+	extensionsAllowListValue := flattenConfigurationExtensionModel(input.ExtensionsAllowList)
 
 	output.ExtensionsAllowList = extensionsAllowListValue
 
-	extensionsBlockListValue := deprecatedFlattenConfigurationExtensionModel(input.ExtensionsBlockList)
+	extensionsBlockListValue := flattenConfigurationExtensionModel(input.ExtensionsBlockList)
 
 	output.ExtensionsBlockList = extensionsBlockListValue
 
@@ -740,14 +677,14 @@ func deprecatedFlattenAgentConfigurationModel(input *machines.AgentConfiguration
 	return append(outputList, output), nil
 }
 
-func deprecatedFlattenConfigurationExtensionModel(inputList *[]machines.ConfigurationExtension) []DeprecatedConfigurationExtensionModel {
-	var outputList []DeprecatedConfigurationExtensionModel
+func flattenConfigurationExtensionModel(inputList *[]machines.ConfigurationExtension) []ConfigurationExtensionModel {
+	var outputList []ConfigurationExtensionModel
 	if inputList == nil {
 		return outputList
 	}
 
 	for _, input := range *inputList {
-		output := DeprecatedConfigurationExtensionModel{}
+		output := ConfigurationExtensionModel{}
 
 		if input.Publisher != nil {
 			output.Publisher = *input.Publisher
@@ -763,13 +700,13 @@ func deprecatedFlattenConfigurationExtensionModel(inputList *[]machines.Configur
 	return outputList
 }
 
-func deprecatedFlattenCloudMetadataModel(input *machines.CloudMetadata) []DeprecatedCloudMetadataModel {
-	var outputList []DeprecatedCloudMetadataModel
+func flattenCloudMetadataModel(input *machines.CloudMetadata) []CloudMetadataModel {
+	var outputList []CloudMetadataModel
 	if input == nil {
 		return outputList
 	}
 
-	output := DeprecatedCloudMetadataModel{}
+	output := CloudMetadataModel{}
 
 	if input.Provider != nil {
 		output.Provider = *input.Provider
@@ -778,73 +715,13 @@ func deprecatedFlattenCloudMetadataModel(input *machines.CloudMetadata) []Deprec
 	return append(outputList, output)
 }
 
-func deprecatedFlattenErrorDetailModel(inputList *[]machines.ErrorDetail) []DeprecatedErrorDetailModel {
-	var outputList []DeprecatedErrorDetailModel
-	if inputList == nil {
-		return outputList
-	}
-
-	for _, input := range *inputList {
-		output := DeprecatedErrorDetailModel{}
-
-		additionalInfoValue := deprecatedFlattenErrorAdditionalInfoModel(input.AdditionalInfo)
-
-		output.AdditionalInfo = additionalInfoValue
-
-		if input.Code != nil {
-			output.Code = *input.Code
-		}
-
-		if input.Message != nil {
-			output.Message = *input.Message
-		}
-
-		if input.Target != nil {
-			output.Target = *input.Target
-		}
-
-		outputList = append(outputList, output)
-	}
-
-	return outputList
-}
-
-func deprecatedFlattenErrorAdditionalInfoModel(inputList *[]machines.ErrorAdditionalInfo) []DeprecatedErrorAdditionalInfoModel {
-	var outputList []DeprecatedErrorAdditionalInfoModel
-	if inputList == nil {
-		return outputList
-	}
-
-	for _, input := range *inputList {
-		output := DeprecatedErrorAdditionalInfoModel{}
-
-		if input.Info != nil && *input.Info != nil {
-
-			infoValue, err := json.Marshal(*input.Info)
-			if err != nil {
-				return nil
-			}
-
-			output.Info = string(infoValue)
-		}
-
-		if input.Type != nil {
-			output.Type = *input.Type
-		}
-
-		outputList = append(outputList, output)
-	}
-
-	return outputList
-}
-
-func deprecatedFlattenLocationDataModel(input *machines.LocationData) []DeprecatedLocationDataModel {
-	var outputList []DeprecatedLocationDataModel
+func flattenLocationDataModel(input *machines.LocationData) []LocationDataModel {
+	var outputList []LocationDataModel
 	if input == nil {
 		return outputList
 	}
 
-	output := DeprecatedLocationDataModel{
+	output := LocationDataModel{
 		Name: input.Name,
 	}
 
@@ -863,50 +740,50 @@ func deprecatedFlattenLocationDataModel(input *machines.LocationData) []Deprecat
 	return append(outputList, output)
 }
 
-func deprecatedFlattenOSProfileModel(input *machines.OSProfile) []DeprecatedOSProfileModel {
-	var outputList []DeprecatedOSProfileModel
+func flattenOSProfileModel(input *machines.OSProfile) []OSProfileModel {
+	var outputList []OSProfileModel
 	if input == nil {
 		return outputList
 	}
 
-	output := DeprecatedOSProfileModel{}
+	output := OSProfileModel{}
 
 	if input.ComputerName != nil {
 		output.ComputerName = *input.ComputerName
 	}
 
-	linuxConfigurationValue := deprecatedFlattenOSProfileLinuxConfigurationModel(input.LinuxConfiguration)
+	linuxConfigurationValue := flattenOSProfileLinuxConfigurationModel(input.LinuxConfiguration)
 
 	output.LinuxConfiguration = linuxConfigurationValue
 
-	windowsConfigurationValue := deprecatedFlattenOSProfileWindowsConfigurationModel(input.WindowsConfiguration)
+	windowsConfigurationValue := flattenOSProfileWindowsConfigurationModel(input.WindowsConfiguration)
 	output.WindowsConfiguration = windowsConfigurationValue
 
 	return append(outputList, output)
 }
 
-func deprecatedFlattenOSProfileLinuxConfigurationModel(input *machines.OSProfileLinuxConfiguration) []DeprecatedOSProfileLinuxConfigurationModel {
-	var outputList []DeprecatedOSProfileLinuxConfigurationModel
+func flattenOSProfileLinuxConfigurationModel(input *machines.OSProfileLinuxConfiguration) []OSProfileLinuxConfigurationModel {
+	var outputList []OSProfileLinuxConfigurationModel
 	if input == nil {
 		return outputList
 	}
 
-	output := DeprecatedOSProfileLinuxConfigurationModel{}
+	output := OSProfileLinuxConfigurationModel{}
 
-	patchSettingsValue := deprecatedFlattenPatchSettingsModel(input.PatchSettings)
+	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
 
 	output.PatchSettings = patchSettingsValue
 
 	return append(outputList, output)
 }
 
-func deprecatedFlattenPatchSettingsModel(input *machines.PatchSettings) []DeprecatedPatchSettingsModel {
-	var outputList []DeprecatedPatchSettingsModel
+func flattenPatchSettingsModel(input *machines.PatchSettings) []PatchSettingsModel {
+	var outputList []PatchSettingsModel
 	if input == nil {
 		return outputList
 	}
 
-	output := DeprecatedPatchSettingsModel{}
+	output := PatchSettingsModel{}
 
 	if input.AssessmentMode != nil {
 		output.AssessmentMode = *input.AssessmentMode
@@ -919,43 +796,43 @@ func deprecatedFlattenPatchSettingsModel(input *machines.PatchSettings) []Deprec
 	return append(outputList, output)
 }
 
-func deprecatedFlattenOSProfileWindowsConfigurationModel(input *machines.OSProfileWindowsConfiguration) []DeprecatedOSProfileWindowsConfigurationModel {
-	var outputList []DeprecatedOSProfileWindowsConfigurationModel
+func flattenOSProfileWindowsConfigurationModel(input *machines.OSProfileWindowsConfiguration) []OSProfileWindowsConfigurationModel {
+	var outputList []OSProfileWindowsConfigurationModel
 	if input == nil {
 		return outputList
 	}
 
-	output := DeprecatedOSProfileWindowsConfigurationModel{}
-	patchSettingsValue := deprecatedFlattenPatchSettingsModel(input.PatchSettings)
+	output := OSProfileWindowsConfigurationModel{}
+	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
 	output.PatchSettings = patchSettingsValue
 
 	return append(outputList, output)
 }
 
-func deprecatedFlattenServiceStatusesModel(input *machines.ServiceStatuses) []DeprecatedServiceStatusesModel {
-	var outputList []DeprecatedServiceStatusesModel
+func flattenServiceStatusesModel(input *machines.ServiceStatuses) []ServiceStatusesModel {
+	var outputList []ServiceStatusesModel
 	if input == nil {
 		return outputList
 	}
 
-	output := DeprecatedServiceStatusesModel{}
+	output := ServiceStatusesModel{}
 
-	extensionServiceValue := deprecatedFlattenServiceStatusModel(input.ExtensionService)
+	extensionServiceValue := flattenServiceStatusModel(input.ExtensionService)
 	output.ExtensionService = extensionServiceValue
 
-	guestConfigurationServiceValue := deprecatedFlattenServiceStatusModel(input.GuestConfigurationService)
+	guestConfigurationServiceValue := flattenServiceStatusModel(input.GuestConfigurationService)
 	output.GuestConfigurationService = guestConfigurationServiceValue
 
 	return append(outputList, output)
 }
 
-func deprecatedFlattenServiceStatusModel(input *machines.ServiceStatus) []DeprecatedServiceStatusModel {
-	var outputList []DeprecatedServiceStatusModel
+func flattenServiceStatusModel(input *machines.ServiceStatus) []ServiceStatusModel {
+	var outputList []ServiceStatusModel
 	if input == nil {
 		return outputList
 	}
 
-	output := DeprecatedServiceStatusModel{}
+	output := ServiceStatusModel{}
 
 	if input.StartupType != nil {
 		output.StartupType = *input.StartupType
