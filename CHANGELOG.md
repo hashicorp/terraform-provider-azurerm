@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_arc_machine` [GH-21796]
 * **New Resource:** `azurerm_automanage_configuration` [GH-21490]
 
 ENHANCEMENTS:
