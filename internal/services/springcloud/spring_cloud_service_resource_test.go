@@ -580,28 +580,28 @@ resource "azurerm_container_registry" "second" {
 }
 
 resource "azurerm_spring_cloud_service" "test" {
-  name                  = "acctest-sc-%[2]d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  sku_name              = "E0"
+  name                = "acctest-sc-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "E0"
 
   container_registry {
-	name                = "first"
-    server = azurerm_container_registry.first.login_server
+    name     = "first"
+    server   = azurerm_container_registry.first.login_server
     username = azurerm_container_registry.first.admin_username
     password = azurerm_container_registry.first.admin_password
   }
 
   container_registry {
-	name                = "second"
-    server = azurerm_container_registry.second.login_server
+    name     = "second"
+    server   = azurerm_container_registry.second.login_server
     username = azurerm_container_registry.second.admin_username
     password = azurerm_container_registry.second.admin_password
   }
 
   default_build_service {
-    container_registry_name = "%[3]s"  
-}
+    container_registry_name = "%[3]s"
+  }
 }
 `, data.Locations.Primary, data.RandomInteger, containerRegistryName)
 }
