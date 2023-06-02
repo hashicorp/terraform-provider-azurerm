@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `data.azurerm_cdn_frontdoor_secret`: Add support for `expiration_date` [GH-21945]
 * `data.azurerm_virtual_machine`: Add support for `power_state` [GH-21945]
 * `data.azurerm_virtual_machine_scale_set` Add support for `power_state` [GH-21945]
+* `data.azurerm_azurerm_resources` - now exports the `resource_group_name` attribute for each resource [GH-21676]
 * `security.watchitems`: updating to use `hashicorp/go-azure-sdk` [GH-21944]
 * `azurerm_cosmosdb_account` - Support new capabilities for `MongoDB` [GH-21974]
 * `azurerm_kubernetes_cluster` - the properties `enable_host_encryption`, `enable_node_public_ip`, `kubelet_config`, `linux_os_config`, `max_pods`, `node_taints`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `ultra_ssd_enabled`, `vnet_subnet_id` and `zones` are now updateable through cycling of the system node pool [GH-21719]
