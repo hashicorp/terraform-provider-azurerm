@@ -27,8 +27,8 @@ resource "azurerm_windows_web_app" "example" {
 
   site_config {
     application_stack {
-      docker_image_name    = "traefik:windowsservercore-1809"
-      docker_registry_url  = "https://index.docker.io"
+      docker_image_name   = "traefik:windowsservercore-1809"
+      docker_registry_url = "https://index.docker.io"
     }
   }
 }
