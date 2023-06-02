@@ -762,27 +762,27 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*web.S
 	if len(s.ApplicationStack) == 1 {
 		linuxAppStack := s.ApplicationStack[0]
 		if linuxAppStack.NetFrameworkVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixDotNetCore, linuxAppStack.NetFrameworkVersion))
 		}
 
 		if linuxAppStack.GoVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("GO|%s", linuxAppStack.GoVersion))
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixGo, linuxAppStack.GoVersion))
 		}
 
 		if linuxAppStack.PhpVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixPhp, linuxAppStack.PhpVersion))
 		}
 
 		if linuxAppStack.NodeVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixNode, linuxAppStack.NodeVersion))
 		}
 
 		if linuxAppStack.RubyVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixRuby, linuxAppStack.RubyVersion))
 		}
 
 		if linuxAppStack.PythonVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixPython, linuxAppStack.PythonVersion))
 		}
 
 		if linuxAppStack.JavaServer != "" {

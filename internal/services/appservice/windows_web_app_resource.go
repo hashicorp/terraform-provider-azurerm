@@ -327,7 +327,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			currentStack := ""
 			if len(sc.ApplicationStack) == 1 {
 				currentStack = sc.ApplicationStack[0].CurrentStack
-				if currentStack == helpers.CurrentStackNode {
+				if currentStack == helpers.CurrentStackNode || sc.ApplicationStack[0].NodeVersion != "" {
 					if webApp.AppSettings == nil {
 						webApp.AppSettings = make(map[string]string, 0)
 					}

@@ -11,10 +11,11 @@ import (
 const (
 	FxStringPrefixDocker         FxStringPrefix = "DOCKER"
 	FxStringPrefixDotNet         FxStringPrefix = "DOTNET"
+	FxStringPrefixDotNetCore     FxStringPrefix = "DOTNETCORE"
 	FxStringPrefixDotNetIsolated FxStringPrefix = "DOTNET-ISOLATED"
 	FxStringPrefixGo             FxStringPrefix = "GO"
 	FxStringPrefixJava           FxStringPrefix = "JAVA"
-	FxStringPrefixJBoss          FxStringPrefix = "JBOSS"
+	FxStringPrefixJBoss          FxStringPrefix = "JBOSSEAP"
 	FxStringPrefixNode           FxStringPrefix = "NODE"
 	FxStringPrefixPhp            FxStringPrefix = "PHP"
 	FxStringPrefixPowerShell     FxStringPrefix = "POWERSHELL"
@@ -40,7 +41,7 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 	}
 
 	switch FxStringPrefix(strings.ToUpper(parts[0])) {
-	case FxStringPrefixDotNetIsolated, FxStringPrefixDotNet:
+	case FxStringPrefixDotNetIsolated, FxStringPrefixDotNet, FxStringPrefixDotNetCore:
 		result.NetFrameworkVersion = parts[1]
 
 	case FxStringPrefixGo:

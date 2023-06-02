@@ -1906,8 +1906,8 @@ resource "azurerm_windows_web_app_slot" "test" {
 
   site_config {
     application_stack {
-      docker_container_name = "azure-app-service/windows/parkingpage"
-      docker_container_tag  = "latest"
+      docker_container_name = "windows-cssc/python3.7.2nanoserver"
+      docker_container_tag  = "ltsc2022"
     }
   }
 }
