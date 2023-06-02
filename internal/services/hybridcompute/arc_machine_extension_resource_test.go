@@ -121,11 +121,11 @@ func (r ArcMachineExtensionResource) basic(data acceptance.TestData, template st
 				%s
 
 resource "azurerm_arc_machine_extension" "test" {
-  name                      = "acctest-hcme-%d"
-  arc_machine_id            = data.azurerm_arc_machine.test.id
-  publisher                 = "Microsoft.Azure.Monitor"
-  type                      = "AzureMonitorLinuxAgent"
-  location                  = "%s"
+  name           = "acctest-hcme-%d"
+  arc_machine_id = data.azurerm_arc_machine.test.id
+  publisher      = "Microsoft.Azure.Monitor"
+  type           = "AzureMonitorLinuxAgent"
+  location       = "%s"
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
@@ -135,11 +135,11 @@ func (r ArcMachineExtensionResource) requiresImport(basicConfig string) string {
 			%s
 
 resource "azurerm_arc_machine_extension" "import" {
-  name                      = azurerm_arc_machine_extension.test.name
-  arc_machine_id            = azurerm_arc_machine_extension.test.arc_machine_id
-  publisher                 = azurerm_arc_machine_extension.test.publisher
-  type                      = azurerm_arc_machine_extension.test.type
-  location                  = azurerm_arc_machine_extension.test.location
+  name           = azurerm_arc_machine_extension.test.name
+  arc_machine_id = azurerm_arc_machine_extension.test.arc_machine_id
+  publisher      = azurerm_arc_machine_extension.test.publisher
+  type           = azurerm_arc_machine_extension.test.type
+  location       = azurerm_arc_machine_extension.test.location
 }
 `, basicConfig)
 }
@@ -149,18 +149,18 @@ func (r ArcMachineExtensionResource) complete(data acceptance.TestData, template
 			%s
 
 resource "azurerm_arc_machine_extension" "test" {
-  name                               = "acctest-hcme-%d"
-  arc_machine_id                     = data.azurerm_arc_machine.test.id
-  location                           = "%s"
-  automatic_upgrade_enabled          = false
-  publisher                          = "Microsoft.Azure.Extensions"
-  settings                           = jsonencode({"timestamp": 123456789})
-  protected_settings                 = jsonencode({"commandToExecute": "echo 'Hello World!'"})
-  type                               = "CustomScript"
-  type_handler_version               = "2.1"
-  
+  name                      = "acctest-hcme-%d"
+  arc_machine_id            = data.azurerm_arc_machine.test.id
+  location                  = "%s"
+  automatic_upgrade_enabled = false
+  publisher                 = "Microsoft.Azure.Extensions"
+  settings                  = jsonencode({ "timestamp" : 123456789 })
+  protected_settings        = jsonencode({ "commandToExecute" : "echo 'Hello World!'" })
+  type                      = "CustomScript"
+  type_handler_version      = "2.1"
+
   tags = {
-	Environment = "Production"
+    Environment = "Production"
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
@@ -171,13 +171,13 @@ func (r ArcMachineExtensionResource) update(data acceptance.TestData, template s
 			%s
 
 resource "azurerm_arc_machine_extension" "test" {
-  name                               = "acctest-hcme-%d"
-  arc_machine_id                     = data.azurerm_arc_machine.test.id
-  location                           = "%s"
-  automatic_upgrade_enabled          = true
-  publisher                          = "Microsoft.Azure.Monitor"
-  type                               = "AzureMonitorLinuxAgent"
-  type_handler_version               = "1.24"
+  name                      = "acctest-hcme-%d"
+  arc_machine_id            = data.azurerm_arc_machine.test.id
+  location                  = "%s"
+  automatic_upgrade_enabled = true
+  publisher                 = "Microsoft.Azure.Monitor"
+  type                      = "AzureMonitorLinuxAgent"
+  type_handler_version      = "1.24"
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
