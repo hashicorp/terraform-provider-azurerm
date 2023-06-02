@@ -61,6 +61,26 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withPostActions(t *testing.T) {
 	})
 }
 
+func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiActions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
+	r := SiteRecoveryReplicationRecoveryPlan{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withMultiActions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// to check the actions are in the correct order
+				check.That(data.ResourceName).Key("recovery_group.0.pre_action.0.name").HasValue("testPreAction1"),
+				check.That(data.ResourceName).Key("recovery_group.0.pre_action.1.name").HasValue("testPreAction2"),
+				check.That(data.ResourceName).Key("recovery_group.0.post_action.0.name").HasValue("testPostAction1"),
+				check.That(data.ResourceName).Key("recovery_group.0.post_action.1.name").HasValue("testPostAction2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSiteRecoveryReplicationRecoveryPlan_withZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
 	r := SiteRecoveryReplicationRecoveryPlan{}
@@ -406,6 +426,63 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 }
 `, r.template(data), data.RandomInteger)
 
+}
+
+func (r SiteRecoveryReplicationRecoveryPlan) withMultiActions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_site_recovery_replication_recovery_plan" "test" {
+  name                      = "acctest-%[2]d"
+  recovery_vault_id         = azurerm_recovery_services_vault.test.id
+  source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
+  target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
+
+  recovery_group {
+    type                       = "Boot"
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+    pre_action {
+      name                      = "testPreAction1"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+    }
+
+    pre_action {
+      name                      = "testPreAction2"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+    }
+
+    post_action {
+      name                      = "testPostAction1"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+    }
+
+    post_action {
+      name                      = "testPostAction2"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+    }
+  }
+
+  recovery_group {
+    type = "Failover"
+  }
+
+  recovery_group {
+    type = "Shutdown"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SiteRecoveryReplicationRecoveryPlan) withZones(data acceptance.TestData) string {
