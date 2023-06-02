@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230523.1140858` of `github.com/hashicorp/go-azure-sdk` [GH-21910]
 * dependencies: `azurem_monitor_action_group` - upgrading `actiongroupsapis` from `2021-09-01` to `2023-01-01` [GH-21948]
 * dependencies: `policy.guestconfigurationassignments`: migrate to `hashicorp/go-azure-sdk` [GH-21927]
+* dependencies: `azurerm_monitor_autoscale_setting`  upgrade API version from to `2023-05-01-preview` [GH-21953]
 * `data.azurerm_linux_web_app`: Add support for `availability` and `usage` [GH-21945]
 * `data.azurerm_linux_function_app`: Add support for `availability` and `usage` [GH-21945]
 * `data.azurerm_cdn_frontdoor_secret`: Add support for `expiration_date` [GH-21945]
