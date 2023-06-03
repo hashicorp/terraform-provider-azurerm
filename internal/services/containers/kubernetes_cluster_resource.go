@@ -1280,6 +1280,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 				Default:  false,
 			},
+
+			"custom_ca_trust_certificates": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 10,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsBase64,
+				},
+			},
 		},
 	}
 
@@ -1484,6 +1494,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	if nodeOsChannelUpgrade != "" {
 		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
 	}
+
+	customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates").([]interface{})
+	securityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
 
 	parameters := managedclusters.ManagedCluster{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
@@ -1977,6 +1990,12 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
 		}
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
+	}
+
+	if d.HasChanges("custom_ca_trust_certificates") {
+		updateCluster = true
+		customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates").([]interface{})
+		existing.Model.Properties.SecurityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
 	}
 
 	if d.HasChanges("microsoft_defender") {
@@ -3998,4 +4017,19 @@ func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPo
 	}
 
 	return err
+}
+
+func convertCustomCaTrustCertsInput(input []interface{}) *[]string {
+	if len(input) == 0 {
+		return nil
+	}
+
+	customCaTrustCertList := make([]string, 0)
+
+	for _, value := range input {
+		customCaTrustCertList = append(customCaTrustCertList, value.(string))
+	}
+
+	return &customCaTrustCertList
+
 }

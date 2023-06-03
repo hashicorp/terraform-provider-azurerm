@@ -2606,3 +2606,38 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, nodeOsUpgradeChannel)
 }
+
+func (KubernetesClusterResource) customCATrustCertificates(data acceptance.TestData, certsList []string) string {
+
+	certsString := ""
+
+	if certsList != nil {
+		certsString = "\"" + strings.Join(certsList, "\" ,\"") + "\""
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                              = "acctestaks%d"
+  location                          = azurerm_resource_group.test.location
+  resource_group_name               = azurerm_resource_group.test.name
+  dns_prefix                        = "acctestaks%d"
+  role_based_access_control_enabled = true
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  custom_ca_trust_certificates = [%s]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, certsString)
+}
