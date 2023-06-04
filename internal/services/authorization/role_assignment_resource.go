@@ -231,7 +231,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
 	}
 
-	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta, tenantId)); err != nil {
+	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta.(*clients.Client), tenantId)); err != nil {
 		return err
 	}
 
@@ -316,10 +316,10 @@ func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}, tenantId string) func() *pluginsdk.RetryError {
+func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, client *clients.Client, tenantId string) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
-		roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
-		ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+		roleAssignmentsClient := client.Authorization.RoleAssignmentsClient
+		ctx, cancel := timeouts.ForCreate(client.StopContext, d)
 		defer cancel()
 
 		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
