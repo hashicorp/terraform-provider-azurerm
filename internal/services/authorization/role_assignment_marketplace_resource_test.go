@@ -44,7 +44,7 @@ func TestAccRoleAssignmentMarketplace_roleName(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("role_definition_id").Exists(),
-				check.That(data.ResourceName).Key("role_definition_name").HasValue("Marketplace Admin"),
+				check.That(data.ResourceName).Key("role_definition_name").HasValue("Log Analytics Reader"),
 			),
 		},
 		data.ImportStep("skip_service_principal_aad_check"),
@@ -63,7 +63,7 @@ func TestAccRoleAssignmentMarketplace_requiresImport(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("role_definition_id").Exists(),
-				check.That(data.ResourceName).Key("role_definition_name").HasValue("Marketplace Admin"),
+				check.That(data.ResourceName).Key("role_definition_name").HasValue("Log Analytics Reader"),
 			),
 		},
 		{
@@ -181,7 +181,7 @@ data "azurerm_client_config" "test" {
 
 resource "azurerm_role_assignment_marketplace" "test" {
   name                 = "%s"
-  role_definition_name = "Marketplace Admin"
+  role_definition_name = "Log Analytics Reader"
   principal_id         = data.azurerm_client_config.test.object_id
 }
 `, id)
