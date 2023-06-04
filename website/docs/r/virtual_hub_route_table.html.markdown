@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `labels` - (Optional) List of labels associated with this route table.
 
-* `route` - (Optional) One or more `route` block as defined below.
+* `route` - (Optional) One or more `route` blocks as defined below.
 
 ---
 
