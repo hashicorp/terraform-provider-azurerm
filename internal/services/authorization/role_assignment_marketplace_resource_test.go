@@ -63,7 +63,7 @@ func TestAccRoleAssignmentMarketplace_requiresImport(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("role_definition_id").Exists(),
-				check.That(data.ResourceName).Key("role_definition_name").HasValue("Log Analytics Reader"),
+				check.That(data.ResourceName).Key("role_definition_name").HasValue("Marketplace Admin"),
 			),
 		},
 		{
