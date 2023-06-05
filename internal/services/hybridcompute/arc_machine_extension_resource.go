@@ -346,18 +346,18 @@ func (r ArcMachineExtensionResource) Read() sdk.ResourceFunc {
 						state.ForceUpdateTag = *properties.ForceUpdateTag
 					}
 
-					if properties.ProtectedSettings != nil && *properties.ProtectedSettings != nil {
+					if properties.Publisher != nil {
+						state.Publisher = *properties.Publisher
+					}
 
-						protectedSettingsValue, err := json.Marshal(*properties.ProtectedSettings)
+					// ProtectedSettings is sensitive data, and we could not get it from the API
+					if val, ok := metadata.ResourceData.GetOk("protected_settings"); ok {
+						protectedSettingsValue, err := json.Marshal(val)
 						if err != nil {
 							return err
 						}
 
 						state.ProtectedSettings = string(protectedSettingsValue)
-					}
-
-					if properties.Publisher != nil {
-						state.Publisher = *properties.Publisher
 					}
 
 					if properties.Settings != nil && *properties.Settings != nil {
