@@ -50,6 +50,10 @@ The following arguments are supported:
 
 * `automatic_upgrade_enabled` - (Optional) Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available. Supported values are `true` and `false`.
 
+**NOTE:** When `automatic_upgrade_enabled` can only be set once at creation time. Any later change will be ignored.
+
+**NOTE:** When `automatic_upgrade_enabled` is set to `true`, the `type_handler_version` is automatically updated by the Azure platform when a new version is available and any change in `type_handler_version` will be automatically ignored.
+
 * `force_update_tag` - (Optional) How the extension handler should be forced to update even if the extension configuration has not changed.
 
 * `protected_settings` - (Optional) Json formatted protected settings for the extension.
@@ -59,6 +63,8 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags which should be assigned to the Hybrid Compute Machine Extension.
 
 * `type_handler_version` - (Optional) Specifies the version of the script handler.
+
+**NOTE:** 1. When `automatic_upgrade_enabled` is set to `false` and no `type_handler_version` is specified, the `type_handler_version` change should be manually ignored by `ignore_changes` lifecycle block. This is because the `type_handler_version` is set by the Azure platform when the extension is created. 2. When `automatic_upgrade_enabled` is set to `false` and `type_handler_version` is specified, the provider will check whether the version prefix is aligned with user input. For example, if user specifies `1.24` in `type_handler_version`, `1.24.1` will be considered as no diff. 
 
 ## Attributes Reference
 

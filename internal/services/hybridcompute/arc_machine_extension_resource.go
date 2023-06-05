@@ -60,6 +60,8 @@ func (r ArcMachineExtensionResource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 
+		"location": commonschema.Location(),
+
 		"arc_machine_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -78,8 +80,6 @@ func (r ArcMachineExtensionResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-
-		"location": commonschema.Location(),
 
 		"protected_settings": {
 			Type:             pluginsdk.TypeString,
@@ -113,7 +113,6 @@ func (r ArcMachineExtensionResource) Arguments() map[string]*pluginsdk.Schema {
 		"type_handler_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
 				// suppress any diff if automatic_upgrade_enabled is true

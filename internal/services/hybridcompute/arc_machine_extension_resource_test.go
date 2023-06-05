@@ -126,6 +126,9 @@ resource "azurerm_arc_machine_extension" "test" {
   publisher      = "Microsoft.Azure.Monitor"
   type           = "AzureMonitorLinuxAgent"
   location       = "%s"
+  lifecycle {
+	ignore_changes = [type_handler_version]
+  }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
@@ -140,6 +143,9 @@ resource "azurerm_arc_machine_extension" "import" {
   publisher      = azurerm_arc_machine_extension.test.publisher
   type           = azurerm_arc_machine_extension.test.type
   location       = azurerm_arc_machine_extension.test.location
+  lifecycle {
+	ignore_changes = [type_handler_version]
+  }
 }
 `, basicConfig)
 }
