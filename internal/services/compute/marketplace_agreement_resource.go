@@ -172,12 +172,13 @@ func resourceMarketplaceAgreementDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := agreements.ParsePlanID(d.Id())
+	id, err := agreements.ParseOfferPlanID(d.Id())
 	if err != nil {
 		return err
 	}
+	idCancel := agreements.NewPlanID(id.SubscriptionId, id.PublisherId, id.OfferId, id.PlanId)
 
-	if _, err := client.MarketplaceAgreementsCancel(ctx, *id); err != nil {
+	if _, err := client.MarketplaceAgreementsCancel(ctx, idCancel); err != nil {
 		return fmt.Errorf("cancelling agreement for %s: %s", *id, err)
 	}
 

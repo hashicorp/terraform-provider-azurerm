@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements"
@@ -413,6 +414,8 @@ func (r LinuxVirtualMachineResource) cancelExistingAgreement(publisher string, o
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.Compute.MarketplaceAgreementsClient
 		subscriptionId := clients.Account.SubscriptionId
+		ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+		defer cancel()
 
 		idGet := agreements.NewOfferPlanID(subscriptionId, publisher, offer, sku)
 		idCancel := agreements.NewPlanID(subscriptionId, publisher, offer, sku)
