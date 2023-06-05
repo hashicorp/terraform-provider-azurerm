@@ -1013,6 +1013,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "Get",
     "Purge",
     "Update",
+    "GetRotationPolicy",
   ]
 }
 
@@ -1067,6 +1068,7 @@ resource "azurerm_key_vault_access_policy" "service-principal2" {
     "Get",
     "UnwrapKey",
     "WrapKey",
+    "GetRotationPolicy",
   ]
 }
 
