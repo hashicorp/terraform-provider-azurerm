@@ -178,7 +178,7 @@ func resourceMarketplaceAgreementDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 	idCancel := agreements.NewPlanID(id.SubscriptionId, id.PublisherId, id.OfferId, id.PlanId)
 
-	if _, err := client.MarketplaceAgreementsCancel(ctx, idCancel); err != nil {
+	if _, err = client.MarketplaceAgreementsCancel(ctx, idCancel); err != nil {
 		return fmt.Errorf("cancelling agreement for %s: %s", *id, err)
 	}
 
