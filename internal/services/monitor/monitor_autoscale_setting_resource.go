@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -70,6 +71,19 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"predictive_scale_look_ahead_time": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azValidate.ISO8601DurationBetween("PT1M", "PT1H"),
+			},
+
+			"predictive_scale_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(autoscalesettings.PredictiveAutoscalePolicyScaleModeDisabled),
+				ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForPredictiveAutoscalePolicyScaleMode(), false),
 			},
 
 			"profile": {
@@ -441,13 +455,22 @@ func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	t := d.Get("tags").(map[string]interface{})
 
+	predictiveAutoscalePolicy := autoscalesettings.PredictiveAutoscalePolicy{
+		ScaleMode: autoscalesettings.PredictiveAutoscalePolicyScaleMode(d.Get("predictive_scale_mode").(string)),
+	}
+
+	if scaleLookAheadTime := d.Get("predictive_scale_look_ahead_time").(string); scaleLookAheadTime != "" {
+		predictiveAutoscalePolicy.ScaleLookAheadTime = &scaleLookAheadTime
+	}
+
 	parameters := autoscalesettings.AutoscaleSettingResource{
 		Location: location,
 		Properties: autoscalesettings.AutoscaleSetting{
-			Enabled:           &enabled,
-			Profiles:          profiles,
-			Notifications:     notifications,
-			TargetResourceUri: &targetResourceId,
+			Enabled:                   &enabled,
+			Profiles:                  profiles,
+			PredictiveAutoscalePolicy: &predictiveAutoscalePolicy,
+			Notifications:             notifications,
+			TargetResourceUri:         &targetResourceId,
 		},
 		Tags: utils.ExpandPtrMapStringString(t),
 	}
@@ -498,6 +521,21 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 		}
 		if err = d.Set("profile", profile); err != nil {
 			return fmt.Errorf("setting `profile` of %s: %+v", *id, err)
+		}
+
+		var scaleMode, scaleLookAheadTime string
+		if props.PredictiveAutoscalePolicy != nil {
+			scaleMode = string(props.PredictiveAutoscalePolicy.ScaleMode)
+			if props.PredictiveAutoscalePolicy.ScaleLookAheadTime != nil {
+				scaleLookAheadTime = *props.PredictiveAutoscalePolicy.ScaleLookAheadTime
+			}
+		}
+
+		if err = d.Set("predictive_scale_mode", scaleMode); err != nil {
+			return fmt.Errorf("setting `predictive_scale_mode` of %s: %+v", *id, err)
+		}
+		if err = d.Set("predictive_scale_look_ahead_time", scaleLookAheadTime); err != nil {
+			return fmt.Errorf("setting `predictive_scale_look_ahead_time` of %s: %+v", *id, err)
 		}
 
 		notifications := flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)

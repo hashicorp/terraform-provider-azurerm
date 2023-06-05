@@ -136,6 +136,9 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     }
   }
 
+  predictive_scale_mode            = "Enabled"
+  predictive_scale_look_ahead_time = "PT5M"
+
   notification {
     email {
       send_to_subscription_administrator    = true
@@ -437,6 +440,10 @@ The following arguments are supported:
 * `enabled` - (Optional) Specifies whether automatic scaling is enabled for the target resource. Defaults to `true`.
 
 * `notification` - (Optional) Specifies a `notification` block as defined below.
+
+* `predictive_scale_mode` - (Optional) Specifies the predictive scale mode. Possible values are `Disabled`, `Enabled` and `ForecastOnly`. Default to `Disabled`.
+
+* `predictive_scale_look_ahead_time` - (Optional) Specifies the amount of time by which instances are launched in advance. It must be between `PT1M` and `PT1H` in ISO 8601 format.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
