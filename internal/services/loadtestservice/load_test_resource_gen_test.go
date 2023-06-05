@@ -132,7 +132,6 @@ func (r LoadTestTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-
 resource "azurerm_load_test" "test" {
   location            = azurerm_resource_group.test.location
   name                = "acctest-${local.random_integer}"
@@ -167,5 +166,5 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestrg-${local.random_integer}"
   location = local.primary_location
 }
-`, data.RandomInteger, data.Locations.Primary)
+`)
 }

@@ -142,7 +142,6 @@ func (r KubernetesFleetManagerTestResource) complete(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 
-
 resource "azurerm_kubernetes_fleet_manager" "test" {
   location            = azurerm_resource_group.test.location
   name                = "acctest-${local.random_integer}"
@@ -176,5 +175,5 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestrg-${local.random_integer}"
   location = local.primary_location
 }
-`, data.RandomInteger, data.Locations.Primary)
+`)
 }
