@@ -317,7 +317,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
 				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
 					if sc.AlwaysOn {
-						return fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+						return fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 					}
 				}
 			}
