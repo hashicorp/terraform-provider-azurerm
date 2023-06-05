@@ -192,7 +192,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The `id` of the HPC Cache.
 
+* `identity` - An `identity` block as documented below.
+
 * `mount_addresses` - A list of IP Addresses where the HPC Cache can be mounted.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 
