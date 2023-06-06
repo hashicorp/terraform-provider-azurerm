@@ -497,6 +497,14 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Publishing Credential information for Linux %s: %+v", id, err)
 			}
 
+			webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading parent Web App for Linux %s: %+v", *id, err)
+			}
+			if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
+				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
+			}
+
 			state := LinuxWebAppSlotModel{}
 			if props := webAppSlot.SiteProperties; props != nil {
 				state = LinuxWebAppSlotModel{
@@ -527,25 +535,17 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.VirtualNetworkSubnetID = subnetId
 				}
 
-				parentAppFarmId, err := parse.ServicePlanIDInsensitively(*webAppSlot.SiteProperties.ServerFarmID)
+				parentAppFarmId, err := parse.ServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
 				if err != nil {
 					return err
 				}
-				if slotPlanId := props.ServerFarmID; slotPlanId != nil && parentAppFarmId.ID() != *slotPlanId {
+				if slotPlanId := props.ServerFarmID; slotPlanId != nil && !strings.EqualFold(parentAppFarmId.ID(), *slotPlanId) {
 					state.ServicePlanID = *slotPlanId
 				}
 
 				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
 					state.VirtualNetworkSubnetID = subnetId
 				}
-			}
-
-			webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("reading parent Web App for Linux %s: %+v", *id, err)
-			}
-			if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
-				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
 			}
 
 			state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)

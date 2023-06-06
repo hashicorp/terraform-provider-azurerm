@@ -520,6 +520,14 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
+			webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading parent Web App for Linux %s: %+v", *id, err)
+			}
+			if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
+				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
+			}
+
 			state := WindowsWebAppSlotModel{}
 			if props := webAppSlot.SiteProperties; props != nil {
 				state = WindowsWebAppSlotModel{
@@ -552,7 +560,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 					state.HostingEnvId = pointer.From(hostingEnv.ID)
 				}
-				parentAppFarmId, err := parse.ServicePlanIDInsensitively(*webAppSlot.SiteProperties.ServerFarmID)
+				parentAppFarmId, err := parse.ServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
 				if err != nil {
 					return err
 				}
@@ -563,14 +571,6 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
 					state.VirtualNetworkSubnetID = subnetId
 				}
-			}
-
-			webApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("reading parent Web App for Linux %s: %+v", *id, err)
-			}
-			if webApp.SiteProperties == nil || webApp.SiteProperties.ServerFarmID == nil {
-				return fmt.Errorf("reading parent Function App Service Plan information for Linux %s: %+v", *id, err)
 			}
 
 			state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
