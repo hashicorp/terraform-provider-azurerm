@@ -226,6 +226,9 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 						Source:            expandGalleryApplicationVersionSource(state.Source),
 						TargetRegions:     expandGalleryApplicationVersionTargetRegion(state.TargetRegion),
 					},
+					SafetyProfile: &galleryapplicationversions.GalleryArtifactSafetyProfileBase{
+						AllowDeletionOfReplicatedLocations: pointer.To(true),
+					},
 				},
 				Tags: pointer.To(state.Tags),
 			}
