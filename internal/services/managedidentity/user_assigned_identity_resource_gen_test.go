@@ -108,9 +108,13 @@ func (r UserAssignedIdentityTestResource) basic(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
-  name                = "acctest-${local.random_integer}"
+  name                = "acctestuai-${var.random_integer}"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, r.template(data))
@@ -121,9 +125,9 @@ func (r UserAssignedIdentityTestResource) requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_user_assigned_identity" "import" {
-  location            = azurerm_resource_group.test.location
-  name                = "acctest-${local.random_integer}"
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_user_assigned_identity.test.resource_group_name
+  name                = azurerm_user_assigned_identity.test.name
+  location            = azurerm_user_assigned_identity.test.location
 }
 `, r.basic(data))
 }
@@ -132,14 +136,17 @@ func (r UserAssignedIdentityTestResource) complete(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
-  name                = "acctest-${local.random_integer}"
+  name                = "acctestuai-${var.random_integer}"
   resource_group_name = azurerm_resource_group.test.name
   tags = {
-    env  = "Production"
-    test = "Acceptance"
+    environment = "terraform-acctests"
+    some_key    = "some-value"
   }
 }
 `, r.template(data))
@@ -147,19 +154,16 @@ resource "azurerm_user_assigned_identity" "test" {
 
 func (r UserAssignedIdentityTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+variable "primary_location" {
+  default = %q
 }
-
-locals {
-  random_integer   = %[1]d
-  primary_location = %[2]q
+variable "random_integer" {
+  default = %d
 }
-
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-${local.random_integer}"
-  location = local.primary_location
+  name     = "acctestrg-${var.random_integer}"
+  location = var.primary_location
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.Locations.Primary, data.RandomInteger)
 }

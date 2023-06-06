@@ -18,14 +18,13 @@ Manages a Kubernetes Fleet Manager
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_kubernetes_fleet_manager" "example" {
-
-  hub_profile {
-    dns_prefix = "example"
-  }
-
   location            = azurerm_resource_group.example.location
-  name                = "example"
+  name                = "examplekfm"
   resource_group_name = azurerm_resource_group.example.name
 }
 ```
