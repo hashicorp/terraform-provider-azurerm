@@ -1359,13 +1359,13 @@ func (s *SiteConfigWindowsWebAppSlot) SetHealthCheckEvictionTime(input map[strin
 }
 
 func (s *SiteConfigWindowsWebAppSlot) ParseNodeVersion(input map[string]string) map[string]string {
-	if nodeVer, ok := input["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
+	if nodeVer, ok := input["WEBSITE_NODE_DEFAULT_VERSION"]; ok && nodeVer != "6.9.1" {
 		if s.ApplicationStack == nil {
 			s.ApplicationStack = make([]ApplicationStackWindows, 0)
 		}
 		s.ApplicationStack[0].NodeVersion = nodeVer
-		delete(input, "WEBSITE_NODE_DEFAULT_VERSION")
 	}
+	delete(input, "WEBSITE_NODE_DEFAULT_VERSION")
 
 	return input
 }
