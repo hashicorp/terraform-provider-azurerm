@@ -28,11 +28,12 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_batch_account" "example" {
-  name                 = "testaccbatch"
-  resource_group_name  = azurerm_resource_group.example.name
-  location             = azurerm_resource_group.example.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.example.id
+  name                                = "testaccbatch"
+  resource_group_name                 = azurerm_resource_group.example.name
+  location                            = azurerm_resource_group.example.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.example.id
+  storage_account_authentication_mode = "StorageKeys"
 
   tags = {
     env = "test"
@@ -535,7 +536,7 @@ Windows operating system settings on the virtual machine. This property must not
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Batch Pool.
 

@@ -11,6 +11,8 @@ description: |-
 
 Manages an Azure App Configuration Feature.
 
+-> **Note:** App Configuration Features are provisioned using a Data Plane API which requires the role `App Configuration Data Owner` on either the App Configuration or a parent scope (such as the Resource Group/Subscription). [More information can be found in the Azure Documentation for App Configuration](https://docs.microsoft.com/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration). This is similar to providing App Configuration Keys.
+
 ## Example Usage
 
 ```hcl
@@ -25,11 +27,19 @@ resource "azurerm_app_configuration" "appconf" {
   location            = azurerm_resource_group.example.location
 }
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_role_assignment" "appconf_dataowner" {
+  scope                = azurerm_app_configuration.appconf.id
+  role_definition_name = "App Configuration Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
 resource "azurerm_app_configuration_feature" "test" {
   configuration_store_id = azurerm_app_configuration.appconf.id
   description            = "test description"
-  name                   = "acctest-ackey-%d"
-  label                  = "acctest-ackeylabel-%d"
+  name                   = "test-ackey"
+  label                  = "test-ackeylabel"
   enabled                = true
 }
 ```
@@ -43,6 +53,8 @@ The following arguments are supported:
 * `description` - (Optional) The description of the App Configuration Feature. 
 
 * `enabled` - (Optional) The status of the App Configuration Feature. By default, this is set to false.
+
+* `key` - (Optional) The key of the App Configuration Feature. The value for `name` will be used if this is unspecified. Changing this forces a new resource to be created.
 
 * `label` - (Optional) The label of the App Configuration Feature. Changing this forces a new resource to be created.
 
@@ -88,7 +100,7 @@ A `timewindow_filter` block represents a feature filter of type `Microsoft.TimeW
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The App Configuration Feature ID.
 

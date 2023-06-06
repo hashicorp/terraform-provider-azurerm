@@ -34,13 +34,13 @@ The following arguments are supported:
 
 * `description` - (Optional) Description of the resource. Changing this forces a new Load Test to be created.
 
-* `identity` - (Optional) Specifies the Managed Identity which should be assigned to this Load Test.
+* `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Load Test.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Load Test.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Load Test.
 
@@ -48,7 +48,20 @@ The following attributes are exported:
 
 ---
 
+## Blocks Reference
 
+### `identity` Block
+
+
+The `identity` block supports the following arguments:
+
+* `type` - (Required) Specifies the type of Managed Identity that should be assigned to this Load Test. The only possible value is `SystemAssigned`.
+
+
+In addition to the arguments defined above, the `identity` block exports the following attributes:
+
+* `principal_id` - The Principal ID for the System-Assigned Managed Identity assigned to this Load Test.
+* `tenant_id` - The Tenant ID for the System-Assigned Managed Identity assigned to this Load Test.
 
 ## Timeouts
 

@@ -1,6 +1,10 @@
 package sapcentralinstances
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -27,6 +31,19 @@ func PossibleValuesForCentralServerVirtualMachineType() []string {
 		string(CentralServerVirtualMachineTypeStandby),
 		string(CentralServerVirtualMachineTypeUnknown),
 	}
+}
+
+func (s *CentralServerVirtualMachineType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCentralServerVirtualMachineType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCentralServerVirtualMachineType(input string) (*CentralServerVirtualMachineType, error) {
@@ -62,6 +79,19 @@ func PossibleValuesForEnqueueReplicationServerType() []string {
 	}
 }
 
+func (s *EnqueueReplicationServerType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEnqueueReplicationServerType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEnqueueReplicationServerType(input string) (*EnqueueReplicationServerType, error) {
 	vals := map[string]EnqueueReplicationServerType{
 		"enqueuereplicator1": EnqueueReplicationServerTypeEnqueueReplicatorOne,
@@ -92,6 +122,19 @@ func PossibleValuesForSAPHealthState() []string {
 		string(SAPHealthStateUnhealthy),
 		string(SAPHealthStateUnknown),
 	}
+}
+
+func (s *SAPHealthState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPHealthState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSAPHealthState(input string) (*SAPHealthState, error) {
@@ -134,6 +177,19 @@ func PossibleValuesForSAPVirtualInstanceStatus() []string {
 	}
 }
 
+func (s *SAPVirtualInstanceStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPVirtualInstanceStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSAPVirtualInstanceStatus(input string) (*SAPVirtualInstanceStatus, error) {
 	vals := map[string]SAPVirtualInstanceStatus{
 		"offline":          SAPVirtualInstanceStatusOffline,
@@ -171,6 +227,19 @@ func PossibleValuesForSapVirtualInstanceProvisioningState() []string {
 		string(SapVirtualInstanceProvisioningStateSucceeded),
 		string(SapVirtualInstanceProvisioningStateUpdating),
 	}
+}
+
+func (s *SapVirtualInstanceProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSapVirtualInstanceProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSapVirtualInstanceProvisioningState(input string) (*SapVirtualInstanceProvisioningState, error) {

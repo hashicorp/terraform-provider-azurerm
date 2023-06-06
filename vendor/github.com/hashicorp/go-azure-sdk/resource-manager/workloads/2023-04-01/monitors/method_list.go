@@ -50,7 +50,7 @@ func (c MonitorsClient) List(ctx context.Context, id commonids.SubscriptionId) (
 	}
 
 	var values struct {
-		Values *[]Monitor `json:"values"`
+		Values *[]Monitor `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

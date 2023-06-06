@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 type Client struct {
@@ -15,6 +15,7 @@ type Client struct {
 	BuildPackBindingClient       *appplatform.BuildpackBindingClient
 	BuildServiceAgentPoolClient  *appplatform.BuildServiceAgentPoolClient
 	BuildServiceBuilderClient    *appplatform.BuildServiceBuilderClient
+	BuildServiceClient           *appplatform.BuildServiceClient
 	CertificatesClient           *appplatform.CertificatesClient
 	ConfigServersClient          *appplatform.ConfigServersClient
 	ConfigurationServiceClient   *appplatform.ConfigurationServicesClient
@@ -58,6 +59,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	buildServiceBuilderClient := appplatform.NewBuildServiceBuilderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&buildServiceBuilderClient.Client, o.ResourceManagerAuthorizer)
+
+	buildServiceClient := appplatform.NewBuildServiceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&buildServiceClient.Client, o.ResourceManagerAuthorizer)
 
 	certificatesClient := appplatform.NewCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&certificatesClient.Client, o.ResourceManagerAuthorizer)
@@ -111,6 +115,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		BuildPackBindingClient:       &buildpackBindingClient,
 		BuildServiceAgentPoolClient:  &buildServiceAgentPoolClient,
 		BuildServiceBuilderClient:    &buildServiceBuilderClient,
+		BuildServiceClient:           &buildServiceClient,
 		CertificatesClient:           &certificatesClient,
 		ConfigServersClient:          &configServersClient,
 		ConfigurationServiceClient:   &configurationServiceClient,

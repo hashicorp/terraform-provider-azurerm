@@ -6,9 +6,10 @@ package pollers
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"sync"
 	"time"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 )
 
 const DefaultNumberOfDroppedConnectionsToAllow = 3

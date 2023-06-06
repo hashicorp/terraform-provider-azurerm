@@ -25,6 +25,7 @@ func (c SAPDatabaseInstancesClient) Update(ctx context.Context, id DatabaseInsta
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
+			http.StatusCreated,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPatch,

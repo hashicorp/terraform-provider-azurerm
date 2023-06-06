@@ -1,5 +1,5 @@
 ---
-subcategory: "Containers"
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_fleet_manager"
 description: |-
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Fleet Manager.
 
@@ -56,17 +56,16 @@ The following attributes are exported:
 
 ### `hub_profile` Block
 
+
 The `hub_profile` block supports the following arguments:
 
 * `dns_prefix` - (Required) 
 
-The `hub_profile` block exports the following arguments:
+
+In addition to the arguments defined above, the `hub_profile` block exports the following attributes:
 
 * `fqdn` - 
-
-* `kubernetes_version` - 
-
----
+* `kubernetes_version` -
 
 ## Timeouts
 

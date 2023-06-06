@@ -34,6 +34,8 @@ func resourceMonitorActionRuleActionGroup() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		DeprecationMessage: `This resource has been deprecated in favour of the 'azurerm_monitor_alert_processing_rule_action_group' resource and will be removed in v4.0 of the AzureRM Provider`,
+
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.ActionRuleID(id)
 			return err

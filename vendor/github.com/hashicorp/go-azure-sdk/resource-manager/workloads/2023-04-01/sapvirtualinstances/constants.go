@@ -1,6 +1,10 @@
 package sapvirtualinstances
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForConfigurationType() []string {
 		string(ConfigurationTypeMount),
 		string(ConfigurationTypeSkip),
 	}
+}
+
+func (s *ConfigurationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseConfigurationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseConfigurationType(input string) (*ConfigurationType, error) {
@@ -60,6 +77,19 @@ func PossibleValuesForDiskSkuName() []string {
 	}
 }
 
+func (s *DiskSkuName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDiskSkuName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDiskSkuName(input string) (*DiskSkuName, error) {
 	vals := map[string]DiskSkuName{
 		"premium_lrs":     DiskSkuNamePremiumLRS,
@@ -91,6 +121,19 @@ func PossibleValuesForNamingPatternType() []string {
 	}
 }
 
+func (s *NamingPatternType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNamingPatternType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseNamingPatternType(input string) (*NamingPatternType, error) {
 	vals := map[string]NamingPatternType{
 		"fullresourcename": NamingPatternTypeFullResourceName,
@@ -116,6 +159,19 @@ func PossibleValuesForOSType() []string {
 		string(OSTypeLinux),
 		string(OSTypeWindows),
 	}
+}
+
+func (s *OSType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOSType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOSType(input string) (*OSType, error) {
@@ -148,6 +204,19 @@ func PossibleValuesForSAPConfigurationType() []string {
 	}
 }
 
+func (s *SAPConfigurationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPConfigurationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSAPConfigurationType(input string) (*SAPConfigurationType, error) {
 	vals := map[string]SAPConfigurationType{
 		"deployment":             SAPConfigurationTypeDeployment,
@@ -175,6 +244,19 @@ func PossibleValuesForSAPDatabaseType() []string {
 		string(SAPDatabaseTypeDBTwo),
 		string(SAPDatabaseTypeHANA),
 	}
+}
+
+func (s *SAPDatabaseType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPDatabaseType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSAPDatabaseType(input string) (*SAPDatabaseType, error) {
@@ -205,6 +287,19 @@ func PossibleValuesForSAPDeploymentType() []string {
 	}
 }
 
+func (s *SAPDeploymentType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPDeploymentType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSAPDeploymentType(input string) (*SAPDeploymentType, error) {
 	vals := map[string]SAPDeploymentType{
 		"singleserver": SAPDeploymentTypeSingleServer,
@@ -231,6 +326,19 @@ func PossibleValuesForSAPEnvironmentType() []string {
 		string(SAPEnvironmentTypeNonProd),
 		string(SAPEnvironmentTypeProd),
 	}
+}
+
+func (s *SAPEnvironmentType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPEnvironmentType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSAPEnvironmentType(input string) (*SAPEnvironmentType, error) {
@@ -265,6 +373,19 @@ func PossibleValuesForSAPHealthState() []string {
 	}
 }
 
+func (s *SAPHealthState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPHealthState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSAPHealthState(input string) (*SAPHealthState, error) {
 	vals := map[string]SAPHealthState{
 		"degraded":  SAPHealthStateDegraded,
@@ -293,6 +414,19 @@ func PossibleValuesForSAPHighAvailabilityType() []string {
 		string(SAPHighAvailabilityTypeAvailabilitySet),
 		string(SAPHighAvailabilityTypeAvailabilityZone),
 	}
+}
+
+func (s *SAPHighAvailabilityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPHighAvailabilityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSAPHighAvailabilityType(input string) (*SAPHighAvailabilityType, error) {
@@ -325,6 +459,19 @@ func PossibleValuesForSAPProductType() []string {
 	}
 }
 
+func (s *SAPProductType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPProductType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSAPProductType(input string) (*SAPProductType, error) {
 	vals := map[string]SAPProductType{
 		"ecc":    SAPProductTypeECC,
@@ -354,6 +501,19 @@ func PossibleValuesForSAPSoftwareInstallationType() []string {
 		string(SAPSoftwareInstallationTypeSAPInstallWithoutOSConfig),
 		string(SAPSoftwareInstallationTypeServiceInitiated),
 	}
+}
+
+func (s *SAPSoftwareInstallationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPSoftwareInstallationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSAPSoftwareInstallationType(input string) (*SAPSoftwareInstallationType, error) {
@@ -405,6 +565,19 @@ func PossibleValuesForSAPVirtualInstanceState() []string {
 	}
 }
 
+func (s *SAPVirtualInstanceState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPVirtualInstanceState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSAPVirtualInstanceState(input string) (*SAPVirtualInstanceState, error) {
 	vals := map[string]SAPVirtualInstanceState{
 		"discoveryfailed":                    SAPVirtualInstanceStateDiscoveryFailed,
@@ -453,6 +626,19 @@ func PossibleValuesForSAPVirtualInstanceStatus() []string {
 	}
 }
 
+func (s *SAPVirtualInstanceStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPVirtualInstanceStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSAPVirtualInstanceStatus(input string) (*SAPVirtualInstanceStatus, error) {
 	vals := map[string]SAPVirtualInstanceStatus{
 		"offline":          SAPVirtualInstanceStatusOffline,
@@ -490,6 +676,19 @@ func PossibleValuesForSapVirtualInstanceProvisioningState() []string {
 		string(SapVirtualInstanceProvisioningStateSucceeded),
 		string(SapVirtualInstanceProvisioningStateUpdating),
 	}
+}
+
+func (s *SapVirtualInstanceProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSapVirtualInstanceProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSapVirtualInstanceProvisioningState(input string) (*SapVirtualInstanceProvisioningState, error) {

@@ -42,19 +42,19 @@ func ParseDatabaseInstanceID(input string) (*DatabaseInstanceId, error) {
 	id := DatabaseInstanceId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.SapVirtualInstanceName, ok = parsed.Parsed["sapVirtualInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sapVirtualInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sapVirtualInstanceName", *parsed)
 	}
 
 	if id.DatabaseInstanceName, ok = parsed.Parsed["databaseInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseInstanceName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseDatabaseInstanceIDInsensitively(input string) (*DatabaseInstanceId, er
 	id := DatabaseInstanceId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.SapVirtualInstanceName, ok = parsed.Parsed["sapVirtualInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sapVirtualInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sapVirtualInstanceName", *parsed)
 	}
 
 	if id.DatabaseInstanceName, ok = parsed.Parsed["databaseInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'databaseInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseInstanceName", *parsed)
 	}
 
 	return &id, nil

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -85,6 +86,11 @@ func resourceExpressRoutePortAuthorizationCreate(d *pluginsdk.ResourceData, meta
 		ExpressRoutePortAuthorizationPropertiesFormat: &network.ExpressRoutePortAuthorizationPropertiesFormat{},
 	}
 
+	// can run only one create/update/delete operation of expressRoutePort at the same time
+	portID := parse.NewExpressRoutePortID(id.SubscriptionId, id.ResourceGroup, id.ExpressRoutePortName)
+	locks.ByID(portID.ID())
+	defer locks.UnlockByID(portID.ID())
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRoutePortName, id.AuthorizationName, properties)
 	if err != nil {
 		return fmt.Errorf("Creating/Updating %s: %+v", id, err)
@@ -139,6 +145,10 @@ func resourceExpressRoutePortAuthorizationDelete(d *pluginsdk.ResourceData, meta
 	if err != nil {
 		return err
 	}
+
+	portID := parse.NewExpressRoutePortID(id.SubscriptionId, id.ResourceGroup, id.ExpressRoutePortName)
+	locks.ByID(portID.ID())
+	defer locks.UnlockByID(portID.ID())
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ExpressRoutePortName, id.AuthorizationName)
 	if err != nil {

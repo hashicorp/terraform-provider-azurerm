@@ -1,6 +1,10 @@
 package backupvaults
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForAlertsState() []string {
 		string(AlertsStateDisabled),
 		string(AlertsStateEnabled),
 	}
+}
+
+func (s *AlertsState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAlertsState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAlertsState(input string) (*AlertsState, error) {
@@ -51,6 +68,19 @@ func PossibleValuesForProvisioningState() []string {
 		string(ProvisioningStateUnknown),
 		string(ProvisioningStateUpdating),
 	}
+}
+
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
@@ -100,6 +130,19 @@ func PossibleValuesForResourceMoveState() []string {
 	}
 }
 
+func (s *ResourceMoveState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseResourceMoveState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseResourceMoveState(input string) (*ResourceMoveState, error) {
 	vals := map[string]ResourceMoveState{
 		"commitfailed":    ResourceMoveStateCommitFailed,
@@ -138,6 +181,19 @@ func PossibleValuesForStorageSettingStoreTypes() []string {
 	}
 }
 
+func (s *StorageSettingStoreTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageSettingStoreTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseStorageSettingStoreTypes(input string) (*StorageSettingStoreTypes, error) {
 	vals := map[string]StorageSettingStoreTypes{
 		"archivestore":  StorageSettingStoreTypesArchiveStore,
@@ -165,6 +221,19 @@ func PossibleValuesForStorageSettingTypes() []string {
 		string(StorageSettingTypesGeoRedundant),
 		string(StorageSettingTypesLocallyRedundant),
 	}
+}
+
+func (s *StorageSettingTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageSettingTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStorageSettingTypes(input string) (*StorageSettingTypes, error) {

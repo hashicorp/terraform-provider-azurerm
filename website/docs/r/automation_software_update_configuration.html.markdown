@@ -17,21 +17,41 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-rg"
   location = "East US"
 }
 
-resource "azurerm_automation_account" "test" {
+resource "azurerm_automation_account" "example" {
   name                = "example"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku_name            = "Basic"
+}
+
+resource "azurerm_automation_runbook" "example" {
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a example runbook for terraform acceptance example"
+  runbook_type = "Python3"
+
+  content = <<CONTENT
+# Some example content
+# for Terraform acceptance example
+CONTENT
+  tags = {
+    ENV = "runbook_test"
+  }
 }
 
 resource "azurerm_automation_software_update_configuration" "example" {
   name                  = "example"
-  automation_account_id = azurerm_automation_account.test.id
+  automation_account_id = azurerm_automation_account.example.id
   operating_system      = "Linux"
 
   linux {
@@ -39,6 +59,13 @@ resource "azurerm_automation_software_update_configuration" "example" {
     excluded_packages       = ["apt"]
     included_packages       = ["vim"]
     reboot                  = "IfRequired"
+  }
+
+  pre_task {
+    source = azurerm_automation_runbook.example.name
+    parameters = {
+      COMPUTER_NAME = "Foo"
+    }
   }
 
   duration = "PT2H2M2S"
@@ -169,7 +196,7 @@ A `schedule` block supports the following:
 
 * `expiry_time` - (Optional) The end time of the schedule.
 
-* `time_zone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
+* `time_zone` - (Optional) The timezone of the start time. Defaults to `Etc/UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
 
 * `advanced_week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`.
 

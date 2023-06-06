@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `local_authentication_enabled` - (Optional) Whether requests using non-AAD authentication are blocked. Defaults to `true`.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the automation account. Defaults to `true`.
 
 ---
 
@@ -78,7 +78,7 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Automation Account.
 

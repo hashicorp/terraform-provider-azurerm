@@ -251,8 +251,13 @@ resource "azurerm_linux_web_app" "test" {
     active_directory_v2 {
       client_id                  = data.azurerm_client_config.current.client_id
       client_secret_setting_name = "%[3]s"
-      tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+      tenant_auth_endpoint = "https://sts.windows.net/%[5]s/v2.0"
     }
+
+
     login {}
   }
 }
@@ -705,6 +710,7 @@ resource "azurerm_linux_web_app" "test" {
   auth_settings_v2 {
     auth_enabled           = true
     unauthenticated_action = "RedirectToLoginPage"
+    default_provider       = "apple"
 
     apple_v2 {
       client_id                  = "testAppleID"

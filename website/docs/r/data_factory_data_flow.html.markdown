@@ -122,13 +122,13 @@ EOT
 
 resource "azurerm_data_factory_flowlet_data_flow" "example1" {
   name            = "example"
-  data_factory_id = azurerm_data_factory.test.id
+  data_factory_id = azurerm_data_factory.example.id
 
   source {
     name = "source1"
 
     linked_service {
-      name = azurerm_data_factory_linked_custom_service.test.name
+      name = azurerm_data_factory_linked_custom_service.example.name
     }
   }
 
@@ -136,7 +136,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "example1" {
     name = "sink1"
 
     linked_service {
-      name = azurerm_data_factory_linked_custom_service.test.name
+      name = azurerm_data_factory_linked_custom_service.example.name
     }
   }
 
@@ -157,13 +157,13 @@ EOT
 
 resource "azurerm_data_factory_flowlet_data_flow" "example2" {
   name            = "example"
-  data_factory_id = azurerm_data_factory.test.id
+  data_factory_id = azurerm_data_factory.example.id
 
   source {
     name = "source1"
 
     linked_service {
-      name = azurerm_data_factory_linked_custom_service.test.name
+      name = azurerm_data_factory_linked_custom_service.example.name
     }
   }
 
@@ -171,7 +171,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "example2" {
     name = "sink1"
 
     linked_service {
-      name = azurerm_data_factory_linked_custom_service.test.name
+      name = azurerm_data_factory_linked_custom_service.example.name
     }
   }
 
@@ -309,7 +309,7 @@ A `transformation` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Data Flow.
 

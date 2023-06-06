@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type KeysDataSource struct{}
@@ -135,17 +136,17 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 			// Link: "</kv?somepath...>; rel=next;"
 			// whereas the client expects a complete URI to be present and therefore fails to fetch all results if
 			// store contains more than 100 entries
-			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(*configurationStoreEndpoint)
+			client, err := metadata.Client.AppConfiguration.LinkWorkaroundDataPlaneClientWithEndpoint(*configurationStoreEndpoint)
 			if err != nil {
 				return err
 			}
 
-			nestedItemId, err := parse.NewNestedItemID(client.Endpoint, model.Key, model.Label)
+			nestedItemId, err := parse.NewNestedItemID(*configurationStoreEndpoint, model.Key, model.Label)
 			if err != nil {
 				return err
 			}
 
-			iter, err := client.GetKeyValuesComplete(ctx, model.Key, model.Label, "", "", []string{})
+			iter, err := client.GetKeyValuesComplete(ctx, model.Key, model.Label, "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {

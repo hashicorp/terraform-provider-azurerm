@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `messaging_logs_enabled` - (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
 
+* `http_request_logs_enabled` - (Optional) Specifies if Http Request Logs are enabled or not. Defaults to `false`.
+
 * `live_trace_enabled` - (Optional) Specifies if Live Trace is enabled or not. Defaults to `false`.
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -109,6 +111,8 @@ An `upstream_endpoint` block supports the following:
 
 * `hub_pattern` - (Required) The hubs to match on, or `*` for all.
 
+* `user_assigned_identity_id` - (Optional) Specifies the Managed Identity IDs to be assigned to this signalR upstream setting by using resource uuid as both system assigned and user assigned identity is supported. 
+
 ---
 
 A `live_trace` block supports the following:
@@ -127,7 +131,7 @@ A `sku` block supports the following:
 
 * `name` - (Required) Specifies which tier to use. Valid values are `Free_F1`, `Standard_S1` and `Premium_P1`.
 
-* `capacity` - (Required) Specifies the number of units associated with this SignalR service. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
+* `capacity` - (Required) Specifies the number of units associated with this SignalR service. Valid values are `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, `10`, `20`, `30`, `40`, `50`, `60`, `70`, `80`, `90` and `100`.
 
 ---
 
@@ -141,7 +145,7 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the SignalR service.
 

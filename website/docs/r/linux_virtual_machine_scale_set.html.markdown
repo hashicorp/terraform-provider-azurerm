@@ -66,7 +66,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "20.04-LTS"
     version   = "latest"
   }
 
@@ -168,7 +168,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
-* `gallery_application` - (Optional) A `gallery_application` block as defined below.
+* `gallery_application` - (Optional) One or more `gallery_application` blocks as defined below.
 
 * `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
@@ -310,9 +310,9 @@ A `data_disk` block supports the following:
 
 -> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
-* `ultra_ssd_disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable for UltraSSD disks.
+* `ultra_ssd_disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
 
-* `ultra_ssd_disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable for UltraSSD disks.
+* `ultra_ssd_disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be enabled for this Data Disk? Defaults to `false`.
 
@@ -590,7 +590,7 @@ A `spot_restore` block supports the following:
 
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Linux Virtual Machine Scale Set.
 

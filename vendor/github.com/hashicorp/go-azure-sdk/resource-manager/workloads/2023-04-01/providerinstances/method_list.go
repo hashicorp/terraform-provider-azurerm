@@ -49,7 +49,7 @@ func (c ProviderInstancesClient) List(ctx context.Context, id MonitorId) (result
 	}
 
 	var values struct {
-		Values *[]ProviderInstance `json:"values"`
+		Values *[]ProviderInstance `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

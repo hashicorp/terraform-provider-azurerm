@@ -50,7 +50,7 @@ func (c SAPVirtualInstancesClient) ListByResourceGroup(ctx context.Context, id c
 	}
 
 	var values struct {
-		Values *[]SAPVirtualInstance `json:"values"`
+		Values *[]SAPVirtualInstance `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

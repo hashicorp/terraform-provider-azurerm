@@ -25,6 +25,7 @@ func (c SAPCentralInstancesClient) Update(ctx context.Context, id CentralInstanc
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
+			http.StatusCreated,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPatch,

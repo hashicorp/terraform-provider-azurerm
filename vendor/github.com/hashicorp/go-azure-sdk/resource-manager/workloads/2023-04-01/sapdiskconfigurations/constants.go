@@ -1,6 +1,10 @@
 package sapdiskconfigurations
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -27,6 +31,19 @@ func PossibleValuesForDiskSkuName() []string {
 		string(DiskSkuNameStandardSSDZRS),
 		string(DiskSkuNameUltraSSDLRS),
 	}
+}
+
+func (s *DiskSkuName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDiskSkuName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDiskSkuName(input string) (*DiskSkuName, error) {
@@ -62,6 +79,19 @@ func PossibleValuesForSAPDatabaseType() []string {
 	}
 }
 
+func (s *SAPDatabaseType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPDatabaseType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSAPDatabaseType(input string) (*SAPDatabaseType, error) {
 	vals := map[string]SAPDatabaseType{
 		"db2":  SAPDatabaseTypeDBTwo,
@@ -88,6 +118,19 @@ func PossibleValuesForSAPDeploymentType() []string {
 		string(SAPDeploymentTypeSingleServer),
 		string(SAPDeploymentTypeThreeTier),
 	}
+}
+
+func (s *SAPDeploymentType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPDeploymentType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSAPDeploymentType(input string) (*SAPDeploymentType, error) {
@@ -118,6 +161,19 @@ func PossibleValuesForSAPEnvironmentType() []string {
 	}
 }
 
+func (s *SAPEnvironmentType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPEnvironmentType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSAPEnvironmentType(input string) (*SAPEnvironmentType, error) {
 	vals := map[string]SAPEnvironmentType{
 		"nonprod": SAPEnvironmentTypeNonProd,
@@ -146,6 +202,19 @@ func PossibleValuesForSAPProductType() []string {
 		string(SAPProductTypeOther),
 		string(SAPProductTypeSFourHANA),
 	}
+}
+
+func (s *SAPProductType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSAPProductType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSAPProductType(input string) (*SAPProductType, error) {

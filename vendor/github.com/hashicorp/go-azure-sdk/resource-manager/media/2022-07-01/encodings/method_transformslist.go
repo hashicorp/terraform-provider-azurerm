@@ -81,7 +81,7 @@ func (c EncodingsClient) TransformsList(ctx context.Context, id MediaServiceId, 
 	}
 
 	var values struct {
-		Values *[]Transform `json:"values"`
+		Values *[]Transform `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

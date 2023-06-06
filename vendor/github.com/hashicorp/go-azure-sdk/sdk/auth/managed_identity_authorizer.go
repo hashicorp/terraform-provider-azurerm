@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp Inc. All rights reserved.
+// Licensed under the MPL-2.0 License. See NOTICE.txt in the project root for license information.
+
 package auth
 
 import (
@@ -14,9 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"golang.org/x/oauth2"
 )
-
-// Copyright (c) HashiCorp Inc. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedIdentityAuthorizerOptions struct {
 	// Api describes the Azure API being used
@@ -166,18 +166,9 @@ func azureMetadata(ctx context.Context, url string) (body []byte, err error) {
 		"Metadata": []string{"true"},
 	}
 
-	client := httpClient(httpClientParams{
-		instanceMetadataService: true,
-
-		retryWaitMin:  2 * time.Second,
-		retryWaitMax:  60 * time.Second,
-		retryMaxCount: 5,
-		useProxy:      false,
-	})
-
 	var resp *http.Response
 	log.Printf("[DEBUG] Performing %s Request to %q", req.Method, url)
-	resp, err = client.Do(req)
+	resp, err = MetadataClient.Do(req)
 	if err != nil {
 		return
 	}

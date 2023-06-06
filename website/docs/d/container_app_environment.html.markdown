@@ -58,7 +58,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
-* `static_ip` - The Static IP of the Environment.
+* `static_ip_address` - The Static IP address of the Environment.
 
 ~> **NOTE:** If `internal_load_balancer_enabled` is true, this will be a Private IP in the subnet, otherwise this will be allocated a Public IPv4 address. 
 

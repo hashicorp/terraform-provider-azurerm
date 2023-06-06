@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -130,6 +130,21 @@ func TestAccMonitorActivityLogAlert_criteria(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.criteria(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorActivityLogAlert_listCriteria(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.listCriteria(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -578,6 +593,68 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
+func (MonitorActivityLogAlertResource) listCriteria(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-%[1]d"
+  location = "%[2]s"
+}
+
+data "azurerm_subscription" "current" {
+}
+
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctestsec%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  enabled             = true
+  description         = "This is just a test acceptance."
+
+  scopes = [
+    data.azurerm_subscription.current.id,
+  ]
+
+  criteria {
+    operation_name     = "Microsoft.Storage/storageAccounts/write"
+    category           = "Administrative"
+    resource_providers = ["Microsoft.Storage", "Microsoft.OperationInsights"]
+    resource_types     = ["Microsoft.Storage/storageAccounts", "Microsoft.OperationInsights/workspaces"]
+    resource_groups    = [azurerm_resource_group.test.name, azurerm_resource_group.test2.name]
+    resource_ids       = [azurerm_storage_account.test.id, azurerm_storage_account.test2.id]
+    caller             = "test email address"
+    levels             = ["Critical", "Informational"]
+    statuses           = ["Succeeded", "Failed"]
+    sub_statuses       = ["Succeeded"]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (MonitorActivityLogAlertResource) criteria(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -651,6 +728,9 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_subscription" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -683,8 +763,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   description         = "This is just a test acceptance."
 
   scopes = [
-    azurerm_resource_group.test.id,
-    azurerm_storage_account.test.id,
+    data.azurerm_subscription.current.id
   ]
 
   criteria {
@@ -718,6 +797,9 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_subscription" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -750,8 +832,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   description         = "This is just a test acceptance."
 
   scopes = [
-    azurerm_resource_group.test.id,
-    azurerm_storage_account.test.id,
+    data.azurerm_subscription.current.id
   ]
 
   criteria {
@@ -795,6 +876,9 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_subscription" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -827,8 +911,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   description         = "This is just a test acceptance."
 
   scopes = [
-    azurerm_resource_group.test.id,
-    azurerm_storage_account.test.id,
+    data.azurerm_subscription.current.id
   ]
 
   criteria {
@@ -1058,15 +1141,15 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 }
 
 func (t MonitorActivityLogAlertResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ActivityLogAlertID(state.ID)
+	id, err := activitylogalertsapis.ParseActivityLogAlertID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Monitor.ActivityLogAlertsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Monitor.ActivityLogAlertsClient.ActivityLogAlertsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }

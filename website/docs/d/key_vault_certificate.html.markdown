@@ -73,6 +73,10 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags to assign to the resource.
 
+* `resource_manager_id` - The (Versioned) ID for this Key Vault Certificate. This property points to a specific version of a Key Vault Certificate, as such using this won't auto-rotate values if used in other Azure Services.
+
+* `resource_manager_versionless_id` - The Versionless ID of the Key Vault Certificate. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Certificate is updated.
+
 ---
 
 `certificate_policy` exports the following:

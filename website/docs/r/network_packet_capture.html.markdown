@@ -63,7 +63,7 @@ resource "azurerm_virtual_machine" "example" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "20.04-LTS"
     version   = "latest"
   }
 
@@ -168,7 +168,7 @@ A `filter` block contains:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Packet Capture ID.
 

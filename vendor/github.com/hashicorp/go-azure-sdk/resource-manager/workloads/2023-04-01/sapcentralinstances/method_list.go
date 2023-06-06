@@ -49,7 +49,7 @@ func (c SAPCentralInstancesClient) List(ctx context.Context, id SapVirtualInstan
 	}
 
 	var values struct {
-		Values *[]SAPCentralServerInstance `json:"values"`
+		Values *[]SAPCentralServerInstance `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return

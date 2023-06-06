@@ -72,6 +72,8 @@ The `resource` block exports the following:
 
 * `id` - The ID of this Resource.
 
+* `resource_group_name` - The name of the Resource Group in which this Resource exists.
+
 * `type` - The type of this Resource. (e.g. `Microsoft.Network/virtualNetworks`).
 
 * `location` - The Azure Region in which this Resource exists.

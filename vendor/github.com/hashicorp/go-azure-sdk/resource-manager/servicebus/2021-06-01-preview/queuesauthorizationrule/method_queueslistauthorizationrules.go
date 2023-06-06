@@ -49,7 +49,7 @@ func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRules(ctx context.
 	}
 
 	var values struct {
-		Values *[]SBAuthorizationRule `json:"values"`
+		Values *[]SBAuthorizationRule `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
