@@ -3,6 +3,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
@@ -212,6 +213,8 @@ type Client struct {
 	MachineLearning       *machinelearning.Client
 	Maintenance           *maintenance.Client
 	ManagedApplication    *managedapplication.Client
+	// @stephybun: temporary and manual definition of ManagedIdentity Client to make upstream changes in Pandora's generator-terraform
+	ManagedIdentityManual *managedidentity.Client
 	ManagementGroups      *managementgroup.Client
 	Maps                  *maps.Client
 	MariaDB               *mariadb.Client
@@ -395,6 +398,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.MachineLearning = machinelearning.NewClient(o)
 	client.Maintenance = maintenance.NewClient(o)
 	client.ManagedApplication = managedapplication.NewClient(o)
+	if client.ManagedIdentityManual, err = managedidentity.NewManagedIdentityClient(o); err != nil {
+		return fmt.Errorf("building clients for ManagedIdentity: %+v", err)
+	}
 	client.ManagementGroups = managementgroup.NewClient(o)
 	if client.Maps, err = maps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Maps: %+v", err)

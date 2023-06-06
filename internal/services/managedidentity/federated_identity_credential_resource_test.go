@@ -51,7 +51,7 @@ func (r FederatedIdentityCredentialTestResource) Exists(ctx context.Context, cli
 		return nil, err
 	}
 
-	resp, err := clients.ManagedIdentity.ManagedIdentities.FederatedIdentityCredentialsGet(ctx, *id)
+	resp, err := clients.ManagedIdentityManual.ManagedIdentityClient.FederatedIdentityCredentialsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
