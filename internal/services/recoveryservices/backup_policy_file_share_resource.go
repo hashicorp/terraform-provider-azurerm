@@ -507,7 +507,7 @@ func flattenBackupProtectionPolicyFileShareRetentionMonthly(monthly *protectionp
 	}
 
 	if daily := monthly.RetentionScheduleDaily; daily != nil {
-		block["days"], block["include_last_days"] = flattenBackupProtectionPolicyVMRetentionDailyFormat(daily)
+		block["days"], block["include_last_days"] = flattenBackupProtectionPolicyFileRetentionDailyFormat(daily)
 	}
 
 	return []interface{}{block}
@@ -527,7 +527,7 @@ func flattenBackupProtectionPolicyFileShareRetentionYearly(yearly *protectionpol
 	}
 
 	if daily := yearly.RetentionScheduleDaily; daily != nil {
-		block["days"], block["include_last_days"] = flattenBackupProtectionPolicyVMRetentionDailyFormat(daily)
+		block["days"], block["include_last_days"] = flattenBackupProtectionPolicyFileRetentionDailyFormat(daily)
 	}
 
 	if months := yearly.MonthsOfYear; months != nil {
@@ -561,7 +561,7 @@ func flattenBackupProtectionPolicyFileShareRetentionWeeklyFormat(retention *prot
 	return weekdays, weeks
 }
 
-func flattenBackupProtectionPolicyVMRetentionDailyFormat(retention *protectionpolicies.DailyRetentionFormat) (days []interface{}, includeLastDay bool) {
+func flattenBackupProtectionPolicyFileRetentionDailyFormat(retention *protectionpolicies.DailyRetentionFormat) (days []interface{}, includeLastDay bool) {
 	if dotm := retention.DaysOfTheMonth; dotm != nil {
 		for _, d := range *dotm {
 			// for the last date, the service will return a record with date == 0.
