@@ -885,7 +885,7 @@ func TestAccWindowsWebAppSlot_withDockerDeprecatedUpgrade(t *testing.T) {
 }
 
 func TestAccWindowsWebAppSlot_withDockerImageMCR(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -900,7 +900,7 @@ func TestAccWindowsWebAppSlot_withDockerImageMCR(t *testing.T) {
 }
 
 func TestAccWindowsWebAppSlot_withDockerImageDockerHub(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
