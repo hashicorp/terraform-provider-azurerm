@@ -147,7 +147,7 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 					"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightInteractiveQueryClusterZookeeperNodeDefinition, true),
 				},
 			},
-			Deprecated: "HDInsight interactive query clusters can only be configured for schedule-based scaling, not load-based.",
+			Deprecated: "HDInsight interactive query clusters can no longer be configured through `autoscale.0.capacity`. Use `autoscale.0.recurrence` instead.",
 		}
 	} else {
 		hdInsightInteractiveQueryClusterWorkerNodeDefinition.CanAutoScaleByCapacity = false
