@@ -76,7 +76,7 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.ManagedIdentities
+			client := metadata.Client.ManagedIdentity.V20220131Preview.ManagedIdentities
 
 			var config UserAssignedIdentityResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -114,7 +114,7 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.ManagedIdentities
+			client := metadata.Client.ManagedIdentity.V20220131Preview.ManagedIdentities
 			schema := UserAssignedIdentityResourceSchema{}
 
 			id, err := commonids.ParseUserAssignedIdentityID(metadata.ResourceData.Id())
@@ -146,7 +146,7 @@ func (r UserAssignedIdentityResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.ManagedIdentities
+			client := metadata.Client.ManagedIdentity.V20220131Preview.ManagedIdentities
 
 			id, err := commonids.ParseUserAssignedIdentityID(metadata.ResourceData.Id())
 			if err != nil {
@@ -165,7 +165,7 @@ func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.ManagedIdentities
+			client := metadata.Client.ManagedIdentity.V20220131Preview.ManagedIdentities
 
 			id, err := commonids.ParseUserAssignedIdentityID(metadata.ResourceData.Id())
 			if err != nil {

@@ -2,13 +2,19 @@ package client
 
 import (
 	"github.com/Azure/go-autorest/autorest"
-	loadtestservice_v2021_12_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview"
+	loadtestserviceV20211201Preview "github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-func NewClient(o *common.ClientOptions) (*loadtestservice_v2021_12_01_preview.Client, error) {
-	client := loadtestservice_v2021_12_01_preview.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
+type AutoClient struct {
+	V20211201Preview loadtestserviceV20211201Preview.Client
+}
+
+func NewClient(o *common.ClientOptions) (*AutoClient, error) {
+	v20211201PreviewClient := loadtestserviceV20211201Preview.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
 		c.Authorizer = o.ResourceManagerAuthorizer
 	})
-	return &client, nil
+	return &AutoClient{
+		V20211201Preview: v20211201PreviewClient,
+	}, nil
 }
