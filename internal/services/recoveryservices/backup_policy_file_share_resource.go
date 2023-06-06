@@ -251,16 +251,20 @@ func expandBackupProtectionPolicyFileShareSchedule(d *pluginsdk.ResourceData, ti
 			schedule.ScheduleRunFrequency = pointer.To(protectionpolicies.ScheduleRunType(v))
 		}
 
-		if schedule.ScheduleRunFrequency != nil && *schedule.ScheduleRunFrequency == protectionpolicies.ScheduleRunTypeHourly {
-			schedule.HourlySchedule = &protectionpolicies.HourlySchedule{}
-			if v, ok := block["hourly_interval"].(int); ok {
-				schedule.HourlySchedule.Interval = pointer.To(int64(v))
-			}
-			if t, ok := block["hourly_start_time"].(string); ok {
-				schedule.HourlySchedule.ScheduleWindowStartTime = pointer.To(fmt.Sprintf("2018-07-30T%s:00.000Z", t))
-			}
-			if v, ok := block["hourly_window_duration"].(int); ok {
-				schedule.HourlySchedule.ScheduleWindowDuration = pointer.To(int64(v))
+		if v, ok := block["hourly"].([]interface{}); ok && len(v) > 0 {
+			hourlyBlock := v[0].(map[string]interface{})
+
+			if schedule.ScheduleRunFrequency != nil && *schedule.ScheduleRunFrequency == protectionpolicies.ScheduleRunTypeHourly {
+				schedule.HourlySchedule = &protectionpolicies.HourlySchedule{}
+				if v, ok := hourlyBlock["interval"].(int); ok {
+					schedule.HourlySchedule.Interval = pointer.To(int64(v))
+				}
+				if t, ok := hourlyBlock["start_time"].(string); ok {
+					schedule.HourlySchedule.ScheduleWindowStartTime = pointer.To(fmt.Sprintf("2018-07-30T%s:00.000Z", t))
+				}
+				if v, ok := hourlyBlock["window_duration"].(int); ok {
+					schedule.HourlySchedule.ScheduleWindowDuration = pointer.To(int64(v))
+				}
 			}
 		}
 
@@ -439,16 +443,19 @@ func flattenBackupProtectionPolicyFileShareSchedule(schedule protectionpolicies.
 		policyTime, _ := time.Parse(time.RFC3339, (*times)[0])
 		block["time"] = policyTime.Format("15:04")
 	}
+
 	if hourly := schedule.HourlySchedule; hourly != nil {
+		hourlyBlock := make(map[string]interface{}, 0)
 		if hourly.ScheduleWindowStartTime != nil {
 			startTime, err := time.Parse(time.RFC3339, *hourly.ScheduleWindowStartTime)
 			if err != nil {
 				return nil, fmt.Errorf("error parsing schedule window start time: %s", err)
 			}
-			block["hourly_start_time"] = startTime.Format("15:04")
+			hourlyBlock["start_time"] = startTime.Format("15:04")
 		}
-		block["hourly_interval"] = pointer.From(hourly.Interval)
-		block["hourly_window_duration"] = pointer.From(hourly.ScheduleWindowDuration)
+		hourlyBlock["interval"] = pointer.From(hourly.Interval)
+		hourlyBlock["window_duration"] = pointer.From(hourly.ScheduleWindowDuration)
+		block["hourly"] = []interface{}{hourlyBlock}
 	}
 
 	return []interface{}{block}, nil
@@ -677,67 +684,47 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 						),
 						AtLeastOneOf: []string{
 							"backup.0.time",
-							"backup.0.hourly_interval",
-						},
-					},
-
-					"hourly_interval": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntInSlice([]int{4, 6, 8, 12}),
-						AtLeastOneOf: []string{
-							"backup.0.time",
-							"backup.0.hourly_interval",
-							"backup.0.hourly_start_time",
-							"backup.0.hourly_window_duration",
+							"backup.0.hourly",
 						},
 						ConflictsWith: []string{
-							"backup.0.time",
-						},
-						RequiredWith: []string{
-							"backup.0.hourly_start_time",
-							"backup.0.hourly_window_duration",
+							"backup.0.hourly",
 						},
 					},
 
-					"hourly_start_time": {
-						Type:     pluginsdk.TypeString,
+					"hourly": {
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ValidateFunc: validation.StringMatch(
-							regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
-							"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
-						),
+						MaxItems: 1,
 						AtLeastOneOf: []string{
 							"backup.0.time",
-							"backup.0.hourly_interval",
-							"backup.0.hourly_start_time",
-							"backup.0.hourly_window_duration",
-						},
-						RequiredWith: []string{
-							"backup.0.hourly_interval",
-							"backup.0.hourly_window_duration",
+							"backup.0.hourly",
 						},
 						ConflictsWith: []string{
 							"backup.0.time",
 						},
-					},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"interval": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntInSlice([]int{4, 6, 8, 12}),
+								},
 
-					"hourly_window_duration": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntBetween(4, 24),
-						AtLeastOneOf: []string{
-							"backup.0.time",
-							"backup.0.hourly_interval",
-							"backup.0.hourly_start_time",
-							"backup.0.hourly_window_duration",
-						},
-						RequiredWith: []string{
-							"backup.0.hourly_interval",
-							"backup.0.hourly_start_time",
-						},
-						ConflictsWith: []string{
-							"backup.0.time",
+								"start_time": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
+										"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
+									),
+								},
+
+								"window_duration": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(4, 24),
+								},
+							},
 						},
 					},
 				},

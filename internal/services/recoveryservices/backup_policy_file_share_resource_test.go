@@ -43,9 +43,9 @@ func TestAccBackupProtectionPolicyFileShare_basicHourly(t *testing.T) {
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Hourly"),
-				check.That(data.ResourceName).Key("backup.0.hourly_interval").HasValue("4"),
-				check.That(data.ResourceName).Key("backup.0.hourly_start_time").HasValue("10:00"),
-				check.That(data.ResourceName).Key("backup.0.hourly_window_duration").HasValue("12"),
+				check.That(data.ResourceName).Key("backup.0.hourly.0.interval").HasValue("4"),
+				check.That(data.ResourceName).Key("backup.0.hourly.0.start_time").HasValue("10:00"),
+				check.That(data.ResourceName).Key("backup.0.hourly.0.window_duration").HasValue("12"),
 				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
 			),
 		},
@@ -448,10 +448,13 @@ resource "azurerm_backup_policy_file_share" "test" {
   recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
-    frequency              = "Hourly"
-    hourly_interval        = 4
-    hourly_start_time      = "10:00"
-    hourly_window_duration = 12
+    frequency = "Hourly"
+
+    hourly {
+      interval        = 4
+      start_time      = "10:00"
+      window_duration = 12
+    }
   }
 
   retention_daily {
