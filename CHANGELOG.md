@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_backup_policy_file_share` - support for day-based retention policies and hourly backups [GH-21529]
+* `azurerm_spring_cloud_service` - support for the `container_registry` block [GH-22017]
 
 ## 3.59.0 (June 01, 2023)
 
