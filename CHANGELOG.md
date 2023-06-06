@@ -1,3 +1,9 @@
+## 3.60.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_backup_policy_file_share` - support for day-based retention policies and hourly backups [GH-21529]
+
 ## 3.59.0 (June 01, 2023)
 
 FEATURES:
