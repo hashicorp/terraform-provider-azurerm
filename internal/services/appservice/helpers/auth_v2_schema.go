@@ -92,7 +92,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					// ValidateFunc: validation.StringInSlice([]string{}, false), // TODO - find the correct strings for the Auth names
-					Description: "The Default Authentication Provider to use when the `unauthenticated_action` is set to `RedirectToLoginPage`.",
+					Description: "The Default Authentication Provider to use when the `unauthenticated_action` is set to `RedirectToLoginPage`. Possible values include: `apple`, `azureactivedirectory`, `facebook`, `github`, `google`, `twitter` and the `name` of your `custom_oidc_v2` provider.",
 				},
 
 				"excluded_paths": {
@@ -976,7 +976,9 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirector
 			if result.Validation == nil {
 				result.Validation = &web.AzureActiveDirectoryValidation{}
 			}
-			result.Validation.DefaultAuthorizationPolicy = &web.DefaultAuthorizationPolicy{}
+			result.Validation.DefaultAuthorizationPolicy = &web.DefaultAuthorizationPolicy{
+				AllowedPrincipals: &web.AllowedPrincipals{},
+			}
 			if len(aad.AllowedGroups) > 0 {
 				result.Validation.DefaultAuthorizationPolicy.AllowedPrincipals.Groups = pointer.To(aad.AllowedGroups)
 			}

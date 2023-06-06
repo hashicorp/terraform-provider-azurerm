@@ -80,7 +80,7 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.ManagedIdentities
+			client := metadata.Client.ManagedIdentityManual.ManagedIdentityClient
 
 			var config FederatedIdentityCredentialResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -124,7 +124,7 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.ManagedIdentities
+			client := metadata.Client.ManagedIdentityManual.ManagedIdentityClient
 			schema := FederatedIdentityCredentialResourceSchema{}
 
 			id, err := managedidentities.ParseFederatedIdentityCredentialID(metadata.ResourceData.Id())
@@ -156,7 +156,7 @@ func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.ManagedIdentities
+			client := metadata.Client.ManagedIdentityManual.ManagedIdentityClient
 
 			var config FederatedIdentityCredentialResourceSchema
 			if err := metadata.Decode(&config); err != nil {

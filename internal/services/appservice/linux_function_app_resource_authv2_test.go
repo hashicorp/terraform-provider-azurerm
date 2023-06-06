@@ -248,12 +248,19 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread" {}
+
 %s
 
 data "azurerm_client_config" "current" {}
 
+resource "azuread_group" "test" {
+  display_name     = "acctestspa-%d"
+  security_enabled = true
+}
+
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctest-LFA-%d"
+  name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -278,6 +285,7 @@ resource "azurerm_linux_function_app" "test" {
       client_id                  = data.azurerm_client_config.current.client_id
       client_secret_setting_name = "%[3]s"
       tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
+      allowed_groups             = [azuread_group.test.object_id]
     }
 
     login {

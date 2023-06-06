@@ -2,6 +2,7 @@ package containers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -449,18 +450,24 @@ PasswordGenLoop:
 		}
 
 		registryId := registries.NewRegistryID(id.SubscriptionId, id.ResourceGroupName, id.RegistryName)
-		if err := clients.ContainerRegistryClient_v2021_08_01_preview.Registries.GenerateCredentialsThenPoll(ctx, registryId, param); err != nil {
+
+		result, err := clients.ContainerRegistryClient_v2021_08_01_preview.Registries.GenerateCredentials(ctx, registryId, param)
+		if err != nil {
 			return nil, fmt.Errorf("generating password credential %s: %v", string(*password.Name), err)
 		}
 
-		res, err := clients.ContainerRegistryClient_v2021_08_01_preview.Registries.ListCredentials(ctx, registryId)
-		if err != nil {
-			return nil, fmt.Errorf("retrieving credentials for %s: %+v", registryId, err)
+		if err := result.Poller.PollUntilDone(ctx); err != nil {
+			return nil, fmt.Errorf("polling generation of password credential %s: %v", string(*password.Name), err)
+		}
+
+		var res registries.GenerateCredentialsResult
+		if err := json.NewDecoder(result.HttpResponse.Body).Decode(&res); err != nil {
+			return nil, fmt.Errorf("decoding generated password credentials: %v", err)
 		}
 
 		value := ""
-		if model := res.Model; model != nil {
-			value = *(*res.Model.Passwords)[idx].Value
+		if res.Passwords != nil && len(*res.Passwords) > idx && (*res.Passwords)[idx].Value != nil {
+			value = *(*res.Passwords)[idx].Value
 		}
 
 		genPasswords = append(genPasswords, tokens.TokenPassword{

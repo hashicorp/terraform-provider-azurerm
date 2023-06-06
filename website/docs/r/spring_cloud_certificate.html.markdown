@@ -26,7 +26,7 @@ data "azurerm_client_config" "current" {
 }
 
 data "azuread_service_principal" "example" {
-  display_name = "Azure Spring Cloud Domain-Management"
+  display_name = "Azure Spring Cloud Resource Provider"
 }
 
 resource "azurerm_key_vault" "example" {
@@ -108,6 +108,7 @@ resource "azurerm_spring_cloud_certificate" "example" {
   resource_group_name      = azurerm_spring_cloud_service.example.resource_group_name
   service_name             = azurerm_spring_cloud_service.example.name
   key_vault_certificate_id = azurerm_key_vault_certificate.example.id
+  exclude_private_key      = true
 }
 ```
 
@@ -120,6 +121,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) Specifies the name of the resource group in which to create the Spring Cloud Certificate. Changing this forces a new resource to be created.
 
 * `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
+
+* `exclude_private_key` - (Optional) Specifies whether the private key should be excluded from the Key Vault Certificate. Defaults to `false`.
 
 * `key_vault_certificate_id` - (Optional) Specifies the ID of the Key Vault Certificate resource. Changing this forces a new resource to be created.
 

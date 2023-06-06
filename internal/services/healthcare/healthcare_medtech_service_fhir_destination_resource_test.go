@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -90,15 +90,15 @@ func TestAccHealthCareMedTechServiceFhirDestination_updateResolutionType(t *test
 }
 
 func (r HealthCareMedTechServiceFhirDestinationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MedTechServiceFhirDestinationID(state.ID)
+	id, err := iotconnectors.ParseFhirDestinationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.HealthCare.HealthcareWorkspaceMedTechServiceFhirDestinationClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotConnectorName, id.FhirDestinationName)
+	resp, err := client.HealthCare.HealthcareWorkspaceIotConnectorsClient.IotConnectorFhirDestinationGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s, %+v", *id, err)
 	}
-	return utils.Bool(resp.IotFhirDestinationProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r HealthCareMedTechServiceFhirDestinationResource) basic(data acceptance.TestData) string {

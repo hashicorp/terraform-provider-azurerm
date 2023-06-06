@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,6 +26,8 @@ func TestAccKeyVaultCertificate_basicImportPFX(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("resource_manager_id").Exists(),
+				check.That(data.ResourceName).Key("resource_manager_versionless_id").Exists(),
 				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.secret_properties.0.content_type").HasValue("application/x-pkcs12"),
 				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkeyvault%s.vault.azure.net/certificates/acctestcert%s", data.RandomString, data.RandomString)),
@@ -390,7 +393,7 @@ func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *client
 	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +425,7 @@ func (KeyVaultCertificateResource) destroyParentKeyVault(ctx context.Context, cl
 
 func (KeyVaultCertificateResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
-	keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
+	keyVaultId, err := commonids.ParseKeyVaultID(state.Attributes["key_vault_id"])
 	if err != nil {
 		return nil, err
 	}

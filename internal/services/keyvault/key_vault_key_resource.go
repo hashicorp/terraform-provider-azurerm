@@ -16,6 +16,9 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -58,12 +61,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
-			"key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: keyVaultValidate.VaultID,
-			},
+			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
 
 			"key_type": {
 				Type:     pluginsdk.TypeString,
@@ -266,7 +264,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
 	name := d.Get("name").(string)
-	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
@@ -394,7 +392,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
@@ -471,7 +469,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.SetId("")
 		return nil
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
@@ -584,8 +582,8 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
-	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
+	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())
+	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID())
 
 	respPolicy, err := client.GetKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
@@ -627,14 +625,14 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	if keyVaultIdRaw == nil {
 		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
 
-	kv, err := keyVaultsClient.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
+	kv, err := keyVaultsClient.VaultsClient.Get(ctx, *keyVaultId)
 	if err != nil {
-		if utils.ResponseWasNotFound(kv.Response) {
+		if response.WasNotFound(kv.HttpResponse) {
 			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
 			d.SetId("")
 			return nil
@@ -643,7 +641,7 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
-	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
+	if shouldPurge && kv.Model != nil && utils.NormaliseNilableBool(kv.Model.Properties.EnablePurgeProtection) {
 		log.Printf("[DEBUG] cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
 		shouldPurge = false
 	}

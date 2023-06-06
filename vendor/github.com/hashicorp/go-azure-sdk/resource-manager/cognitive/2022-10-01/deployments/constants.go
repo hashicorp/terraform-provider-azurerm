@@ -1,6 +1,10 @@
 package deployments
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -25,6 +29,19 @@ func PossibleValuesForDeploymentProvisioningState() []string {
 		string(DeploymentProvisioningStateMoving),
 		string(DeploymentProvisioningStateSucceeded),
 	}
+}
+
+func (s *DeploymentProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDeploymentProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDeploymentProvisioningState(input string) (*DeploymentProvisioningState, error) {
@@ -57,6 +74,19 @@ func PossibleValuesForDeploymentScaleType() []string {
 		string(DeploymentScaleTypeManual),
 		string(DeploymentScaleTypeStandard),
 	}
+}
+
+func (s *DeploymentScaleType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDeploymentScaleType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDeploymentScaleType(input string) (*DeploymentScaleType, error) {

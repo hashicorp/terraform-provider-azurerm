@@ -13,49 +13,41 @@ Allows you to set a user or group as the AD administrator for a PostgreSQL Flexi
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
-provider "azuread" {
-
-}
-
 data "azurerm_client_config" "current" {}
 
-resource "azuread_service_principal" "postgresql" {
-  application_id = "5657e26c-cc92-45d9-bc47-9da6cfdb4ed9"
-  use_existing   = true
+data "azuread_service_principal" "example" {
+  object_id = data.azurerm_client_config.current.object_id
 }
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
-  name                         = "example-psqlserver"
-  resource_group_name          = azurerm_resource_group.example.name
-  location                     = azurerm_resource_group.example.location
-  version                      = "12"
-  administrator_login          = "4dm1n157r470r"
-  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
-  sku_name                     = "GP_Standard_D2s_v3"
-  zone                         = "2"
+  name                   = "example-fs"
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 32768
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 
   authentication {
     active_directory_auth_enabled = true
     tenant_id                     = data.azurerm_client_config.current.tenant_id
   }
 
-  depends_on = [azuread_service_principal.postgresql]
 }
 
 resource "azurerm_postgresql_flexible_server_active_directory_administrator" "example" {
-  server_name         = azurerm_postgresql_server.example.name
+  server_name         = azurerm_postgresql_flexible_server.example.name
   resource_group_name = azurerm_resource_group.example.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
-  object_id           = data.azurerm_client_config.current.object_id
-  principal_name      = "example-sp"
+  object_id           = data.azuread_service_principal.example.object_id
+  principal_name      = data.azuread_service_principal.example.display_name
   principal_type      = "ServicePrincipal"
 }
 ```

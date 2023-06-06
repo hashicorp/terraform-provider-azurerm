@@ -46,27 +46,27 @@ func ParseRequestHistoryID(input string) (*RequestHistoryId, error) {
 	id := RequestHistoryId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, fmt.Errorf("the segment 'workflowName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
 	}
 
 	if id.RunName, ok = parsed.Parsed["runName"]; !ok {
-		return nil, fmt.Errorf("the segment 'runName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runName", *parsed)
 	}
 
 	if id.ActionName, ok = parsed.Parsed["actionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'actionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "actionName", *parsed)
 	}
 
 	if id.RequestHistoryName, ok = parsed.Parsed["requestHistoryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestHistoryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "requestHistoryName", *parsed)
 	}
 
 	return &id, nil
@@ -85,27 +85,27 @@ func ParseRequestHistoryIDInsensitively(input string) (*RequestHistoryId, error)
 	id := RequestHistoryId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.WorkflowName, ok = parsed.Parsed["workflowName"]; !ok {
-		return nil, fmt.Errorf("the segment 'workflowName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workflowName", *parsed)
 	}
 
 	if id.RunName, ok = parsed.Parsed["runName"]; !ok {
-		return nil, fmt.Errorf("the segment 'runName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runName", *parsed)
 	}
 
 	if id.ActionName, ok = parsed.Parsed["actionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'actionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "actionName", *parsed)
 	}
 
 	if id.RequestHistoryName, ok = parsed.Parsed["requestHistoryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'requestHistoryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "requestHistoryName", *parsed)
 	}
 
 	return &id, nil

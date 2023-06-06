@@ -47,7 +47,7 @@ func (id PrivateDnsZoneConfigId) ID() string {
 func PrivateDnsZoneConfigID(input string) (*PrivateDnsZoneConfigId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an PrivateDnsZoneConfig ID: %+v", input, err)
 	}
 
 	resourceId := PrivateDnsZoneConfigId{
