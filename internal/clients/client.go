@@ -3,7 +3,6 @@ package clients
 import (
 	"context"
 	"fmt"
-	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
@@ -86,6 +85,7 @@ import (
 	machinelearning "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
+	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 	managementgroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	maps "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/client"
 	mariadb "github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/client"
