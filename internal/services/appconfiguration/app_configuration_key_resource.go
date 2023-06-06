@@ -211,7 +211,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			// https://github.com/Azure/AppConfiguration/issues/763
 			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q to be provisioned", model.Key)
 			stateConf = &pluginsdk.StateChangeConf{
-				Pending:                   []string{"NotFound"},
+				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},
 				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
 				PollInterval:              10 * time.Second,
