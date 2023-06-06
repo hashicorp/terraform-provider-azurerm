@@ -19,6 +19,7 @@ type Client struct {
 	CertificatesClient           *appplatform.CertificatesClient
 	ConfigServersClient          *appplatform.ConfigServersClient
 	ConfigurationServiceClient   *appplatform.ConfigurationServicesClient
+	ContainerRegistryClient      *appplatform.ContainerRegistriesClient
 	CustomDomainsClient          *appplatform.CustomDomainsClient
 	CustomizedAcceleratorClient  *appplatform.CustomizedAcceleratorsClient
 	DevToolPortalClient          *appplatform.DevToolPortalsClient
@@ -72,6 +73,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	configurationServiceClient := appplatform.NewConfigurationServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configurationServiceClient.Client, o.ResourceManagerAuthorizer)
 
+	containerRegistryClient := appplatform.NewContainerRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&containerRegistryClient.Client, o.ResourceManagerAuthorizer)
+
 	customDomainsClient := appplatform.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&customDomainsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -119,6 +123,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		CertificatesClient:           &certificatesClient,
 		ConfigServersClient:          &configServersClient,
 		ConfigurationServiceClient:   &configurationServiceClient,
+		ContainerRegistryClient:      &containerRegistryClient,
 		CustomDomainsClient:          &customDomainsClient,
 		CustomizedAcceleratorClient:  &customizedAcceleratorClient,
 		DeploymentsClient:            &deploymentsClient,
