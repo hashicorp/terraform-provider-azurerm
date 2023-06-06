@@ -19,6 +19,7 @@ type PoolProperties struct {
 	CreationTime                    *string                        `json:"creationTime,omitempty"`
 	CurrentDedicatedNodes           *int64                         `json:"currentDedicatedNodes,omitempty"`
 	CurrentLowPriorityNodes         *int64                         `json:"currentLowPriorityNodes,omitempty"`
+	CurrentNodeCommunicationMode    *NodeCommunicationMode         `json:"currentNodeCommunicationMode,omitempty"`
 	DeploymentConfiguration         *DeploymentConfiguration       `json:"deploymentConfiguration,omitempty"`
 	DisplayName                     *string                        `json:"displayName,omitempty"`
 	InterNodeCommunication          *InterNodeCommunicationState   `json:"interNodeCommunication,omitempty"`
@@ -31,6 +32,7 @@ type PoolProperties struct {
 	ResizeOperationStatus           *ResizeOperationStatus         `json:"resizeOperationStatus,omitempty"`
 	ScaleSettings                   *ScaleSettings                 `json:"scaleSettings,omitempty"`
 	StartTask                       *StartTask                     `json:"startTask,omitempty"`
+	TargetNodeCommunicationMode     *NodeCommunicationMode         `json:"targetNodeCommunicationMode,omitempty"`
 	TaskSchedulingPolicy            *TaskSchedulingPolicy          `json:"taskSchedulingPolicy,omitempty"`
 	TaskSlotsPerNode                *int64                         `json:"taskSlotsPerNode,omitempty"`
 	UserAccounts                    *[]UserAccount                 `json:"userAccounts,omitempty"`

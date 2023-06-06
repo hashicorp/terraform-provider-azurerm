@@ -14,6 +14,8 @@ type BatchAccountProperties struct {
 	Encryption                            *EncryptionProperties            `json:"encryption,omitempty"`
 	KeyVaultReference                     *KeyVaultReference               `json:"keyVaultReference,omitempty"`
 	LowPriorityCoreQuota                  *int64                           `json:"lowPriorityCoreQuota,omitempty"`
+	NetworkProfile                        *NetworkProfile                  `json:"networkProfile,omitempty"`
+	NodeManagementEndpoint                *string                          `json:"nodeManagementEndpoint,omitempty"`
 	PoolAllocationMode                    *PoolAllocationMode              `json:"poolAllocationMode,omitempty"`
 	PoolQuota                             *int64                           `json:"poolQuota,omitempty"`
 	PrivateEndpointConnections            *[]PrivateEndpointConnection     `json:"privateEndpointConnections,omitempty"`

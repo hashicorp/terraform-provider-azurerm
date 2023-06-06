@@ -7,4 +7,6 @@ type BatchAccountUpdateProperties struct {
 	AllowedAuthenticationModes *[]AuthenticationMode      `json:"allowedAuthenticationModes,omitempty"`
 	AutoStorage                *AutoStorageBaseProperties `json:"autoStorage,omitempty"`
 	Encryption                 *EncryptionProperties      `json:"encryption,omitempty"`
+	NetworkProfile             *NetworkProfile            `json:"networkProfile,omitempty"`
+	PublicNetworkAccess        *PublicNetworkAccessType   `json:"publicNetworkAccess,omitempty"`
 }

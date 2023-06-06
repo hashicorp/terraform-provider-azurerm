@@ -759,6 +759,50 @@ func parseNetworkSecurityGroupRuleAccess(input string) (*NetworkSecurityGroupRul
 	return &out, nil
 }
 
+type NodeCommunicationMode string
+
+const (
+	NodeCommunicationModeClassic    NodeCommunicationMode = "Classic"
+	NodeCommunicationModeDefault    NodeCommunicationMode = "Default"
+	NodeCommunicationModeSimplified NodeCommunicationMode = "Simplified"
+)
+
+func PossibleValuesForNodeCommunicationMode() []string {
+	return []string{
+		string(NodeCommunicationModeClassic),
+		string(NodeCommunicationModeDefault),
+		string(NodeCommunicationModeSimplified),
+	}
+}
+
+func (s *NodeCommunicationMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNodeCommunicationMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseNodeCommunicationMode(input string) (*NodeCommunicationMode, error) {
+	vals := map[string]NodeCommunicationMode{
+		"classic":    NodeCommunicationModeClassic,
+		"default":    NodeCommunicationModeDefault,
+		"simplified": NodeCommunicationModeSimplified,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := NodeCommunicationMode(input)
+	return &out, nil
+}
+
 type NodePlacementPolicyType string
 
 const (

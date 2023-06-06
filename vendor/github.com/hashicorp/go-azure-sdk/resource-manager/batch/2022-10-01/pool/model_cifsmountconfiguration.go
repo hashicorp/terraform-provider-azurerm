@@ -8,5 +8,5 @@ type CIFSMountConfiguration struct {
 	Password          string  `json:"password"`
 	RelativeMountPath string  `json:"relativeMountPath"`
 	Source            string  `json:"source"`
-	Username          string  `json:"username"`
+	UserName          string  `json:"userName"`
 }
