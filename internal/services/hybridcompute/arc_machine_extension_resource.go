@@ -304,6 +304,8 @@ func (r ArcMachineExtensionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
+			metadata.SetID(id)
+
 			return nil
 		},
 	}
