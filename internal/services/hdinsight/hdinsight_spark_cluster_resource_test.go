@@ -1005,9 +1005,9 @@ resource "azurerm_hdinsight_spark_cluster" "import" {
       dynamic "head_node" {
         for_each = lookup(roles.value, "head_node", [])
         content {
-          password           = lookup(head_node.value, "password", null)
-          username           = head_node.value.username
-          vm_size            = head_node.value.vm_size
+          password = lookup(head_node.value, "password", null)
+          username = head_node.value.username
+          vm_size  = head_node.value.vm_size
         }
       }
 
@@ -1024,9 +1024,9 @@ resource "azurerm_hdinsight_spark_cluster" "import" {
       dynamic "zookeeper_node" {
         for_each = lookup(roles.value, "zookeeper_node", [])
         content {
-          password           = lookup(zookeeper_node.value, "password", null)
-          username           = zookeeper_node.value.username
-          vm_size            = zookeeper_node.value.vm_size
+          password = lookup(zookeeper_node.value, "password", null)
+          username = zookeeper_node.value.username
+          vm_size  = zookeeper_node.value.vm_size
         }
       }
     }
