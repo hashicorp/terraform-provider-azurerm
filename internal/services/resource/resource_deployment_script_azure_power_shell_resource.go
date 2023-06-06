@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -73,7 +74,7 @@ func (r ResourceDeploymentScriptAzurePowerShellResource) Create() sdk.ResourceFu
 				},
 			}
 
-			identityValue, err := expandManagedServiceIdentityModel(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
 				return err
 			}
@@ -149,7 +150,7 @@ func (r ResourceDeploymentScriptAzurePowerShellResource) Read() sdk.ResourceFunc
 				Location:          location.Normalize(model.Location),
 			}
 
-			identityValue, err := flattenManagedServiceIdentityModel(model.Identity)
+			identityValue, err := identity.FlattenUserAssignedMap(model.Identity)
 			if err != nil {
 				return err
 			}
