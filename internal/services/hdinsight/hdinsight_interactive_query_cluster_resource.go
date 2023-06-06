@@ -30,11 +30,11 @@ var hdInsightInteractiveQueryClusterHeadNodeDefinition = HDInsightNodeDefinition
 }
 
 var hdInsightInteractiveQueryClusterWorkerNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount: true,
-	MinInstanceCount:        1,
-	CanSpecifyDisks:         false,
-	CanAutoScaleByCapacity:  true,
-	CanAutoScaleOnSchedule:  true,
+	CanSpecifyInstanceCount:                  true,
+	MinInstanceCount:                         1,
+	CanSpecifyDisks:                          false,
+	CanAutoScaleByCapacityDeprecated4PointOh: true,
+	CanAutoScaleOnSchedule:                   true,
 }
 
 var hdInsightInteractiveQueryClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
@@ -147,10 +147,9 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 					"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightInteractiveQueryClusterZookeeperNodeDefinition, true),
 				},
 			},
-			Deprecated: "HDInsight interactive query clusters can no longer be configured through `autoscale.0.capacity`. Use `autoscale.0.recurrence` instead.",
 		}
 	} else {
-		hdInsightInteractiveQueryClusterWorkerNodeDefinition.CanAutoScaleByCapacity = false
+		hdInsightInteractiveQueryClusterWorkerNodeDefinition.CanAutoScaleByCapacityDeprecated4PointOh = false
 		resource.Schema["roles"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Required: true,
