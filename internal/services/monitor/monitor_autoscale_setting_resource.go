@@ -853,13 +853,13 @@ func flattenAzureRmMonitorAutoScaleSettingProfile(profiles []autoscalesettings.A
 
 func flattenAzureRmMonitorAutoScaleSettingPredictive(input *autoscalesettings.PredictiveAutoscalePolicy) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-
-	result["look_ahead_time"] = pointer.From(input.ScaleLookAheadTime)
-	result["scale_mode"] = string(input.ScaleMode)
+	result := map[string]interface{}{
+		"look_ahead_time": pointer.From(input.ScaleLookAheadTime),
+		"scale_mode":      string(input.ScaleMode),
+	}
 
 	return []interface{}{result}
 }
