@@ -624,6 +624,10 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 
 	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
+	if s.AutoSwapSlotName != "" {
+		expanded.AutoSwapSlotName = pointer.To(s.AutoSwapSlotName)
+	}
+
 	if s.ContainerRegistryMSI != "" {
 		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryMSI)
 	}
@@ -748,6 +752,10 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 		} else {
 			expanded.LinuxFxVersion = pointer.To("")
 		}
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
+		expanded.AutoSwapSlotName = pointer.To(s.AutoSwapSlotName)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
@@ -1027,6 +1035,10 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 		expanded.WindowsFxVersion = pointer.To("")
 	}
 
+	if s.AutoSwapSlotName != "" {
+		expanded.AutoSwapSlotName = pointer.To(s.AutoSwapSlotName)
+	}
+
 	if s.ContainerRegistryUserMSI != "" {
 		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryUserMSI)
 	}
@@ -1159,6 +1171,10 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 		} else {
 			expanded.WindowsFxVersion = pointer.To("")
 		}
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
+		expanded.AutoSwapSlotName = pointer.To(s.AutoSwapSlotName)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.virtual_application") {

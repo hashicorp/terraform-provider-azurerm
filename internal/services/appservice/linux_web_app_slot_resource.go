@@ -516,6 +516,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
 					PossibleOutboundIPAddresses:   pointer.From(props.PossibleOutboundIPAddresses),
 					PossibleOutboundIPAddressList: strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ","),
+					ServicePlanID:                 pointer.From(props.ServerFarmID),
 					Tags:                          tags.ToTypedObject(webAppSlot.Tags),
 				}
 
