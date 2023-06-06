@@ -127,7 +127,7 @@ resource "azurerm_arc_machine_extension" "test" {
   type           = "AzureMonitorLinuxAgent"
   location       = "%s"
   lifecycle {
-	ignore_changes = [type_handler_version]
+    ignore_changes = [type_handler_version]
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
@@ -144,7 +144,7 @@ resource "azurerm_arc_machine_extension" "import" {
   type           = azurerm_arc_machine_extension.test.type
   location       = azurerm_arc_machine_extension.test.location
   lifecycle {
-	ignore_changes = [type_handler_version]
+    ignore_changes = [type_handler_version]
   }
 }
 `, basicConfig)
