@@ -430,7 +430,7 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		if existing.Model == nil || existing.Model.Properties.Criteria == nil {
 			return fmt.Errorf("unexpected nil properties of Monitor %s", id)
 		}
-		_, isLegacy = existing.Model.Properties.Criteria.(metricalerts.MetricAlertMultipleResourceMultipleMetricCriteria)
+		_, isLegacy = existing.Model.Properties.Criteria.(metricalerts.MetricAlertSingleResourceMultipleMetricCriteria)
 
 	}
 

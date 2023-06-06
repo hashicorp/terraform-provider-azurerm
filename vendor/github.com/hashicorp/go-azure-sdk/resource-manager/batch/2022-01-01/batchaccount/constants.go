@@ -1,6 +1,10 @@
 package batchaccount
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForAccountKeyType() []string {
 		string(AccountKeyTypePrimary),
 		string(AccountKeyTypeSecondary),
 	}
+}
+
+func (s *AccountKeyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAccountKeyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAccountKeyType(input string) (*AccountKeyType, error) {
@@ -49,6 +66,19 @@ func PossibleValuesForAuthenticationMode() []string {
 	}
 }
 
+func (s *AuthenticationMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAuthenticationMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseAuthenticationMode(input string) (*AuthenticationMode, error) {
 	vals := map[string]AuthenticationMode{
 		"aad":                     AuthenticationModeAAD,
@@ -76,6 +106,19 @@ func PossibleValuesForAutoStorageAuthenticationMode() []string {
 		string(AutoStorageAuthenticationModeBatchAccountManagedIdentity),
 		string(AutoStorageAuthenticationModeStorageKeys),
 	}
+}
+
+func (s *AutoStorageAuthenticationMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAutoStorageAuthenticationMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAutoStorageAuthenticationMode(input string) (*AutoStorageAuthenticationMode, error) {
@@ -106,6 +149,19 @@ func PossibleValuesForKeySource() []string {
 	}
 }
 
+func (s *KeySource) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKeySource(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseKeySource(input string) (*KeySource, error) {
 	vals := map[string]KeySource{
 		"microsoft.batch":    KeySourceMicrosoftPointBatch,
@@ -132,6 +188,19 @@ func PossibleValuesForPoolAllocationMode() []string {
 		string(PoolAllocationModeBatchService),
 		string(PoolAllocationModeUserSubscription),
 	}
+}
+
+func (s *PoolAllocationMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePoolAllocationMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePoolAllocationMode(input string) (*PoolAllocationMode, error) {
@@ -162,6 +231,19 @@ func PossibleValuesForPrivateEndpointConnectionProvisioningState() []string {
 		string(PrivateEndpointConnectionProvisioningStateSucceeded),
 		string(PrivateEndpointConnectionProvisioningStateUpdating),
 	}
+}
+
+func (s *PrivateEndpointConnectionProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateEndpointConnectionProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePrivateEndpointConnectionProvisioningState(input string) (*PrivateEndpointConnectionProvisioningState, error) {
@@ -195,6 +277,19 @@ func PossibleValuesForPrivateLinkServiceConnectionStatus() []string {
 		string(PrivateLinkServiceConnectionStatusPending),
 		string(PrivateLinkServiceConnectionStatusRejected),
 	}
+}
+
+func (s *PrivateLinkServiceConnectionStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateLinkServiceConnectionStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePrivateLinkServiceConnectionStatus(input string) (*PrivateLinkServiceConnectionStatus, error) {
@@ -235,6 +330,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"cancelled": ProvisioningStateCancelled,
@@ -265,6 +373,19 @@ func PossibleValuesForPublicNetworkAccessType() []string {
 		string(PublicNetworkAccessTypeDisabled),
 		string(PublicNetworkAccessTypeEnabled),
 	}
+}
+
+func (s *PublicNetworkAccessType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePublicNetworkAccessType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePublicNetworkAccessType(input string) (*PublicNetworkAccessType, error) {

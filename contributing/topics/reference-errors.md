@@ -36,7 +36,7 @@ return nil
 Note that when calling code from within a Terraform Data Source/Resource, the Resource ID type (**note: not** the raw Resource ID) can be used as a formatting argument, for example:
 
 ```go
-id := parse.NewResourceGroupId("subscription-id", "my-resource-group")
+id := someResource.NewResourceGroupID("subscription-id", "my-resource-group")
 return fmt.Errorf("deleting %s: %+v", id, err)
 ```
 
@@ -44,6 +44,26 @@ which will output:
 
 ```
 deleting Resource Group "my-resource-group" (Subscription ID "subscription-id"): some error"
+```
+
+When parsing existing Resource IDs it is sufficient to return the error as is since all the parsing functions return standardised and descriptive error messages:
+
+```go
+id, err := someResource.ParseResourceID(state.ID)
+if err != nil {
+    return err
+}
+```
+
+# Internal Errors
+
+Internal errors, which are entirely outside the users control (such as failed expectations) that occur within the provider should be prefixed with `internal-error`, for example:
+
+```go
+deadline, ok := ctx.Deadline()
+if !ok {
+    return fmt.Errorf("internal-error: context had no deadline")
+}
 ```
 
 ### Notes

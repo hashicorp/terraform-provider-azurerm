@@ -125,10 +125,12 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForServerVersion(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				// TODO: Remove "15" after this issue has been resolved:
+				// https://github.com/Azure/azure-rest-api-specs/issues/24186
+				ValidateFunc: validation.StringInSlice(append(servers.PossibleValuesForServerVersion(), "15"), false),
 			},
 
 			"zone": commonschema.ZoneSingleOptional(),
@@ -460,7 +462,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = authConfig
 	}
 
-	identity, err := expandFlexibleServerIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`")
 	}
@@ -571,11 +573,11 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
-			id, err := flattenFlexibleServerIdentity(model.Identity)
+			identity, err := identity.FlattenUserAssignedMap(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
-			if err := d.Set("identity", id); err != nil {
+			if err := d.Set("identity", identity); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 		}
@@ -708,7 +710,16 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("storage_mb") {
-		parameters.Properties.Storage = expandArmServerStorage(d)
+		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
+		storageUpdateParameters := servers.ServerForUpdate{
+			Properties: &servers.ServerPropertiesForUpdate{
+				Storage: expandArmServerStorage(d),
+			},
+		}
+
+		if err := client.UpdateThenPoll(ctx, *id, storageUpdateParameters); err != nil {
+			return fmt.Errorf("updating `storage_mb` for %s: %+v", *id, err)
+		}
 	}
 
 	if d.HasChange("backup_retention_days") {
@@ -740,9 +751,9 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("identity") {
-		identity, err := expandFlexibleServerIdentity(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
-			return fmt.Errorf("expanding `identity` for Mysql Flexible Server %s (Resource Group %q): %v", id.FlexibleServerName, id.ResourceGroupName, err)
+			return fmt.Errorf("expanding `identity` for %s: %+v", *id, err)
 		}
 		parameters.Identity = identity
 	}
@@ -1075,41 +1086,4 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 	}
 
 	return []interface{}{item}, nil
-}
-
-func expandFlexibleServerIdentity(input []interface{}) (*servers.UserAssignedIdentity, error) {
-	expanded, err := identity.ExpandUserAssignedMap(input)
-	if err != nil || expanded.Type != identity.TypeUserAssigned {
-		return nil, err
-	}
-
-	idUserAssigned := servers.IdentityTypeUserAssigned
-	out := servers.UserAssignedIdentity{
-		Type: idUserAssigned,
-	}
-	if expanded.Type == identity.TypeUserAssigned {
-		ids := make(map[string]servers.UserIdentity)
-		for k := range expanded.IdentityIds {
-			ids[k] = servers.UserIdentity{}
-		}
-		out.UserAssignedIdentities = &ids
-	}
-
-	return &out, nil
-}
-
-func flattenFlexibleServerIdentity(input *servers.UserAssignedIdentity) (*[]interface{}, error) {
-	var transform *identity.UserAssignedMap
-
-	if input != nil {
-		transform = &identity.UserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-		for k := range *input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{}
-		}
-	}
-
-	return identity.FlattenUserAssignedMap(transform)
 }

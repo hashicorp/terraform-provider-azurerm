@@ -343,7 +343,21 @@ func TestAccPostgresqlFlexibleServer_upgradeVersion(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.upgradeVersion(data),
+			Config: r.upgradeVersion(data, "13"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.upgradeVersion(data, "14"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.upgradeVersion(data, "15"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -876,7 +890,7 @@ resource "azurerm_postgresql_flexible_server" "replica" {
 `, r.basic(data), data.RandomInteger)
 }
 
-func (r PostgresqlFlexibleServerResource) upgradeVersion(data acceptance.TestData) string {
+func (r PostgresqlFlexibleServerResource) upgradeVersion(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -888,9 +902,9 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
   create_mode            = "Update"
-  version                = "13"
+  version                = "%s"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, version)
 }

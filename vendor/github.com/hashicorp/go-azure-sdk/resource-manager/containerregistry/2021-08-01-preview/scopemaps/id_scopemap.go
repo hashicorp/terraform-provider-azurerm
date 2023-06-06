@@ -42,19 +42,19 @@ func ParseScopeMapID(input string) (*ScopeMapId, error) {
 	id := ScopeMapId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'registryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
 	}
 
 	if id.ScopeMapName, ok = parsed.Parsed["scopeMapName"]; !ok {
-		return nil, fmt.Errorf("the segment 'scopeMapName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopeMapName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseScopeMapIDInsensitively(input string) (*ScopeMapId, error) {
 	id := ScopeMapId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'registryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
 	}
 
 	if id.ScopeMapName, ok = parsed.Parsed["scopeMapName"]; !ok {
-		return nil, fmt.Errorf("the segment 'scopeMapName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopeMapName", *parsed)
 	}
 
 	return &id, nil

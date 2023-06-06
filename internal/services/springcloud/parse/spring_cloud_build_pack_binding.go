@@ -50,7 +50,7 @@ func (id SpringCloudBuildPackBindingId) ID() string {
 func SpringCloudBuildPackBindingID(input string) (*SpringCloudBuildPackBindingId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an SpringCloudBuildPackBinding ID: %+v", input, err)
 	}
 
 	resourceId := SpringCloudBuildPackBindingId{

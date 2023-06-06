@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -303,6 +303,9 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+
 	if existing.Model != nil {
 		return tf.ImportAsExistsError("azurerm_eventhub_namespace", id.ID())
 	}
@@ -405,6 +408,9 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
+	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	capacity := int32(d.Get("capacity").(int))
@@ -471,7 +477,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.MaximumThroughputUnits = utils.Int64(0)
 	}
 
-	if _, err := client.Update(ctx, id, parameters); err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -495,19 +501,6 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
 			return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
 		}
-	}
-
-	deadline, _ := ctx.Deadline()
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:      []string{"Activating", "ActivatingIdentity", "Updating", "Pending"},
-		Target:       []string{"Succeeded"},
-		Refresh:      eventHubNamespaceProvisioningStateRefreshFunc(ctx, client, id),
-		Timeout:      time.Until(deadline),
-		PollInterval: 10 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be updated: %+v", id, err)
 	}
 
 	return resourceEventHubNamespaceRead(d, meta)
@@ -621,103 +614,14 @@ func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	// need to wait for namespace status to be ready before deleting.
-	if err := waitForEventHubNamespaceStatusToBeReady(ctx, meta, *id, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
-		return fmt.Errorf("waiting for eventHub namespace %s state to be ready error: %+v", *id, err)
-	}
+	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	future, err := client.Delete(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(future.HttpResponse) {
-			return nil
-		}
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	return waitForEventHubNamespaceToBeDeleted(ctx, client, *id)
-}
-
-func waitForEventHubNamespaceStatusToBeReady(ctx context.Context, meta interface{}, id namespaces.NamespaceId, timeout time.Duration) error {
-	namespaceClient := meta.(*clients.Client).Eventhub.NamespacesClient
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			string(namespaces.EndPointProvisioningStateUpdating),
-			string(namespaces.EndPointProvisioningStateCreating),
-			string(namespaces.EndPointProvisioningStateDeleting),
-		},
-		Target:                    []string{string(namespaces.EndPointProvisioningStateSucceeded)},
-		Refresh:                   eventHubNamespaceProvisioningStateRefreshFunc(ctx, namespaceClient, id),
-		Timeout:                   timeout,
-		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 5,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return err
-	}
 	return nil
-}
-
-func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context has no deadline")
-	}
-
-	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
-	log.Printf("[DEBUG] Waiting for %s to be deleted..", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"200"},
-		Target:  []string{"404"},
-		Refresh: eventHubNamespaceStateStatusCodeRefreshFunc(ctx, client, id),
-		Timeout: time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
-	}
-
-	return nil
-}
-
-func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		status := "dropped connection"
-		if res.HttpResponse != nil {
-			status = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-		log.Printf("Retrieving %s returned Status %q", id, status)
-
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, status, nil
-			}
-			return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
-		}
-
-		return res, status, nil
-	}
-}
-
-func eventHubNamespaceProvisioningStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-
-		provisioningState := "Pending"
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, provisioningState, nil
-			}
-			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
-		}
-
-		if res.Model != nil && res.Model.Properties != nil && res.Model.Properties.ProvisioningState != nil {
-			provisioningState = *res.Model.Properties.ProvisioningState
-		}
-
-		return res, provisioningState, nil
-	}
 }
 
 func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets.NetworkRuleSetProperties {

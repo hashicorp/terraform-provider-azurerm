@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch"
@@ -130,14 +131,16 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		applicationinsights.Registration{},
 		appservice.Registration{},
 		arckubernetes.Registration{},
+		automanage.Registration{},
 		automation.Registration{},
 		batch.Registration{},
 		bot.Registration{},
 		cognitive.Registration{},
+		communication.Registration{},
 		compute.Registration{},
 		consumption.Registration{},
-		cosmos.Registration{},
 		containerapps.Registration{},
+		cosmos.Registration{},
 		costmanagement.Registration{},
 		dashboard.Registration{},
 		databoxedge.Registration{},
@@ -160,6 +163,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		mobilenetwork.Registration{},
 		mssql.Registration{},
 		mssqlmanagedinstance.Registration{},
+		mysql.Registration{},
 		network.Registration{},
 		netapp.Registration{},
 		nginx.Registration{},
@@ -205,7 +209,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			bot.Registration{},
 			cdn.Registration{},
 			cognitive.Registration{},
-			communication.Registration{},
 			compute.Registration{},
 			confidentialledger.Registration{},
 			connections.Registration{},

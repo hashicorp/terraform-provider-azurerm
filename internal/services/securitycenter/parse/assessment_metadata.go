@@ -38,7 +38,7 @@ func (id AssessmentMetadataId) ID() string {
 func AssessmentMetadataID(input string) (*AssessmentMetadataId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an AssessmentMetadata ID: %+v", input, err)
 	}
 
 	resourceId := AssessmentMetadataId{

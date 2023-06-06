@@ -92,7 +92,7 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if model := resp.Model; model != nil {
+	if model := resp.Model; model != nil && model.Properties != nil {
 		props := model.Properties
 
 		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {

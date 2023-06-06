@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudCertificate() *pluginsdk.Resource {
@@ -68,6 +68,12 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"exclude_private_key": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"key_vault_certificate_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -112,8 +118,9 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 			return err
 		}
 		cert.Properties = &appplatform.KeyVaultCertificateProperties{
-			VaultURI:         utils.String(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseUrl, "/")),
-			KeyVaultCertName: &keyVaultCertificateId.Name,
+			VaultURI:          utils.String(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseUrl, "/")),
+			KeyVaultCertName:  &keyVaultCertificateId.Name,
+			ExcludePrivateKey: utils.Bool(d.Get("exclude_private_key").(bool)),
 		}
 	}
 	if value, ok := d.GetOk("certificate_content"); ok {
@@ -159,6 +166,7 @@ func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta interfac
 
 	if props, ok := resp.Properties.AsKeyVaultCertificateProperties(); ok && props != nil {
 		d.Set("thumbprint", props.Thumbprint)
+		d.Set("exclude_private_key", props.ExcludePrivateKey)
 	}
 	if props, ok := resp.Properties.AsContentCertificateProperties(); ok && props != nil {
 		d.Set("thumbprint", props.Thumbprint)

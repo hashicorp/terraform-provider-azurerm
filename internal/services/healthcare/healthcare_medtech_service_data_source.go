@@ -39,7 +39,7 @@ func dataSourceHealthcareIotConnector() *pluginsdk.Resource {
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"eventhub_namespace_name": {
 				Type:     pluginsdk.TypeString,

@@ -153,6 +153,49 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 	})
 }
 
+func TestAccKubernetesCluster_cycleSystemNodePool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withHostTempDiskVmSize(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateOsDisk(data, "Ephemeral", 75),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.updateOsSku(data, "Mariner"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.updateZones(data, "Standard_D2ads_v5", "[1,2,3]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.updateLinuxKernelSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+	})
+}
+
 func TestAccKubernetesCluster_addAgent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -458,6 +501,41 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) withHostTempDiskVmSize(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2ads_v5"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) basicWithTempName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -516,7 +594,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     temporary_name_for_rotation = "temp"
     node_count                  = 1
     vm_size                     = "%s"
-    enable_host_encryption      = true
+    enable_host_encryption      = false
   }
 
   identity {
@@ -529,6 +607,190 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, vmSize)
+}
+
+func (KubernetesClusterResource) updateZones(data acceptance.TestData, vmSize, zones string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                         = "default"
+    temporary_name_for_rotation  = "temp"
+    node_count                   = 1
+    vm_size                      = "%s"
+    zones                        = %s
+    enable_node_public_ip        = true
+    max_pods                     = 60
+    only_critical_addons_enabled = true
+
+    kubelet_config {
+      pod_max_pid = 12346
+    }
+
+    linux_os_config {
+      sysctl_config {
+        vm_swappiness = 40
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, vmSize, zones)
+}
+
+func (KubernetesClusterResource) updateLinuxKernelSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                         = "default"
+    temporary_name_for_rotation  = "temp"
+    node_count                   = 1
+    vm_size                      = "Standard_D2ads_v5"
+    enable_node_public_ip        = true
+    max_pods                     = 60
+    only_critical_addons_enabled = true
+
+    kubelet_config {
+      pod_max_pid = 12347
+    }
+
+    linux_os_config {
+      sysctl_config {
+        vm_swappiness = 45
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) updateOsDisk(data acceptance.TestData, osDiskType string, osDiskSize int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                        = "default"
+    temporary_name_for_rotation = "temp"
+    node_count                  = 1
+    os_disk_type                = "%s"
+    os_disk_size_gb             = %d
+    vm_size                     = "Standard_D2ads_v5"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osDiskType, osDiskSize)
+}
+
+func (KubernetesClusterResource) updateOsSku(data acceptance.TestData, osSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                        = "default"
+    temporary_name_for_rotation = "temp"
+    node_count                  = 1
+    os_sku                      = "%s"
+    vm_size                     = "Standard_D2ads_v5"
+
+    kubelet_config {
+      pod_max_pid = 12346
+    }
+
+    linux_os_config {
+      sysctl_config {
+        vm_swappiness = 40
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSku)
 }
 
 func (KubernetesClusterResource) addAgentConfig(data acceptance.TestData, numberOfAgents int) string {

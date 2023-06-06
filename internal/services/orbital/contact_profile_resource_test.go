@@ -101,7 +101,6 @@ resource "azurerm_orbital_contact_profile" "test" {
       center_frequency_mhz = 101
       end_point {
         end_point_name = "AQUA_command"
-        ip_address     = "10.0.1.0"
         port           = "49513"
         protocol       = "TCP"
       }

@@ -28,6 +28,7 @@ type LinuxWebAppDataSourceModel struct {
 	AppSettings                   map[string]string          `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings     `tfschema:"auth_settings"`
 	AuthV2Settings                []helpers.AuthV2Settings   `tfschema:"auth_settings_v2"`
+	Availability                  string                     `tfschema:"availability"`
 	Backup                        []helpers.Backup           `tfschema:"backup"`
 	ClientAffinityEnabled         bool                       `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                       `tfschema:"client_certificate_enabled"`
@@ -51,6 +52,7 @@ type LinuxWebAppDataSourceModel struct {
 	OutboundIPAddressList         []string                   `tfschema:"outbound_ip_address_list"`
 	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
+	Usage                         string                     `tfschema:"usage"`
 	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
 	VirtualNetworkSubnetID        string                     `tfschema:"virtual_network_subnet_id"`
 }
@@ -95,6 +97,11 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+
+		"availability": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
@@ -190,6 +197,11 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+
+		"usage": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"site_credential": helpers.SiteCredentialSchema(),
@@ -305,6 +317,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
 			if props := existing.SiteProperties; props != nil {
+				webApp.Availability = string(props.AvailabilityState)
 				if props.ClientAffinityEnabled != nil {
 					webApp.ClientAffinityEnabled = *props.ClientAffinityEnabled
 				}
@@ -326,6 +339,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
 				webApp.PossibleOutboundIPAddresses = utils.NormalizeNilableString(props.PossibleOutboundIPAddresses)
 				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
+				webApp.Usage = string(props.UsageState)
 				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 					webApp.HostingEnvId = pointer.From(hostingEnv.ID)
 				}

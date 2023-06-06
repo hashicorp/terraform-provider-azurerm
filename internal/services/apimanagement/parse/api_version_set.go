@@ -44,7 +44,7 @@ func (id ApiVersionSetId) ID() string {
 func ApiVersionSetID(input string) (*ApiVersionSetId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an ApiVersionSet ID: %+v", input, err)
 	}
 
 	resourceId := ApiVersionSetId{

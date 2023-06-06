@@ -115,28 +115,28 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	keyVault, err := vaultsClient.Get(ctx, keyVaultID.ResourceGroupName, keyVaultID.VaultName)
+	keyVault, err := vaultsClient.Get(ctx, *keyVaultID)
 	if err != nil {
-		return fmt.Errorf("retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.VaultName, keyVaultID.ResourceGroupName, err)
+		return fmt.Errorf("retrieving %s: %+v", *keyVaultID, err)
 	}
 
 	softDeleteEnabled := false
 	purgeProtectionEnabled := false
-	if props := keyVault.Properties; props != nil {
-		if esd := props.EnableSoftDelete; esd != nil {
+	if model := keyVault.Model; model != nil {
+		if esd := model.Properties.EnableSoftDelete; esd != nil {
 			softDeleteEnabled = *esd
 		}
-		if epp := props.EnablePurgeProtection; epp != nil {
+		if epp := model.Properties.EnablePurgeProtection; epp != nil {
 			purgeProtectionEnabled = *epp
 		}
 	}
 	if !softDeleteEnabled || !purgeProtectionEnabled {
-		return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.VaultName, keyVaultID.ResourceGroupName)
+		return fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultID)
 	}
 
 	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
 	if err != nil {
-		return fmt.Errorf("looking up Key Vault URI from Key Vault %q (Resource Group %q): %+v", keyVaultID.VaultName, keyVaultID.ResourceGroupName, err)
+		return fmt.Errorf("looking up Key Vault URI from %s: %+v", *keyVaultID, err)
 	}
 
 	keyName := d.Get("key_name").(string)

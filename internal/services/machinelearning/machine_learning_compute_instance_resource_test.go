@@ -195,7 +195,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
     Label1 = "Value1"
   }
   depends_on = [
-    azurerm_subnet_network_security_group_association.test
+    azurerm_subnet_network_security_group_association.test,
   ]
 }
 `, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
@@ -287,7 +287,11 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 func (r ComputeInstanceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -338,5 +342,6 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary,
 		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
-		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		data.RandomInteger, data.RandomInteger)
 }

@@ -69,7 +69,7 @@ An `identity` block exports the following:
 * `private_ip_addresses` - A list of Private IP Addresses assigned to this Virtual Machine.
 * `public_ip_address` - The Primary Public IP Address assigned to this Virtual Machine.
 * `public_ip_addresses` - A list of the Public IP Addresses assigned to this Virtual Machine.
-* `provisioning_state` - The provisioning state of the virtual machine.
+* `power_state` - The power state of the virtual machine.
 * `virtual_machine_id` - The unique ID of the virtual machine.
 * `zone` - The zones of the virtual machine.
 

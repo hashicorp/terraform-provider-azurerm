@@ -34,7 +34,7 @@ func (r AadB2cDirectoryDataSource) ResourceType() string {
 }
 
 func (r AadB2cDirectoryDataSource) ModelObject() interface{} {
-	return &AadB2cDirectoryModel{}
+	return &AadB2cDirectoryDataSourceModel{}
 }
 
 func (r AadB2cDirectoryDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

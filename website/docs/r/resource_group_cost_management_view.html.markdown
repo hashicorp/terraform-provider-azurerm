@@ -35,11 +35,6 @@ resource "azurerm_resource_group_cost_management_view" "example" {
       name        = "totalCost"
       column_name = "Cost"
     }
-
-    totalCost {
-      name     = "Cost"
-      function = "Sum"
-    }
   }
 }
 ```

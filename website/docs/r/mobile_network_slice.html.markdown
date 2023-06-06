@@ -29,7 +29,7 @@ resource "azurerm_mobile_network" "example" {
 
 resource "azurerm_mobile_network_slice" "example" {
   name              = "example-mns"
-  mobile_network_id = azurerm_mobile_network.test.id
+  mobile_network_id = azurerm_mobile_network.example.id
   location          = azurerm_resource_group.example.location
   description       = "an example slice"
 
