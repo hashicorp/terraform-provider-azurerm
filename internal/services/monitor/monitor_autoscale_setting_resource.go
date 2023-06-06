@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings"
@@ -72,17 +73,26 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"predictive_scale_look_ahead_time": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.ISO8601DurationBetween("PT1M", "PT1H"),
-			},
+			"predictive": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				MinItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"scale_mode": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForPredictiveAutoscalePolicyScaleMode(), false),
+						},
 
-			"predictive_scale_mode": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(autoscalesettings.PredictiveAutoscalePolicyScaleModeDisabled),
-				ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForPredictiveAutoscalePolicyScaleMode(), false),
+						"look_ahead_time": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.ISO8601DurationBetween("PT1M", "PT1H"),
+						},
+					},
+				},
 			},
 
 			"profile": {
@@ -454,20 +464,12 @@ func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	t := d.Get("tags").(map[string]interface{})
 
-	predictiveAutoscalePolicy := autoscalesettings.PredictiveAutoscalePolicy{
-		ScaleMode: autoscalesettings.PredictiveAutoscalePolicyScaleMode(d.Get("predictive_scale_mode").(string)),
-	}
-
-	if scaleLookAheadTime := d.Get("predictive_scale_look_ahead_time").(string); scaleLookAheadTime != "" {
-		predictiveAutoscalePolicy.ScaleLookAheadTime = &scaleLookAheadTime
-	}
-
 	parameters := autoscalesettings.AutoscaleSettingResource{
 		Location: location,
 		Properties: autoscalesettings.AutoscaleSetting{
 			Enabled:                   &enabled,
 			Profiles:                  profiles,
-			PredictiveAutoscalePolicy: &predictiveAutoscalePolicy,
+			PredictiveAutoscalePolicy: expandAzureRmMonitorAutoScaleSettingPredictive(d.Get("predictive").([]interface{})),
 			Notifications:             notifications,
 			TargetResourceUri:         &targetResourceId,
 		},
@@ -522,19 +524,8 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("setting `profile` of %s: %+v", *id, err)
 		}
 
-		var scaleMode, scaleLookAheadTime string
-		if props.PredictiveAutoscalePolicy != nil {
-			scaleMode = string(props.PredictiveAutoscalePolicy.ScaleMode)
-			if props.PredictiveAutoscalePolicy.ScaleLookAheadTime != nil {
-				scaleLookAheadTime = *props.PredictiveAutoscalePolicy.ScaleLookAheadTime
-			}
-		}
-
-		if err = d.Set("predictive_scale_mode", scaleMode); err != nil {
+		if err = d.Set("predictive", flattenAzureRmMonitorAutoScaleSettingPredictive(props.PredictiveAutoscalePolicy)); err != nil {
 			return fmt.Errorf("setting `predictive_scale_mode` of %s: %+v", *id, err)
-		}
-		if err = d.Set("predictive_scale_look_ahead_time", scaleLookAheadTime); err != nil {
-			return fmt.Errorf("setting `predictive_scale_look_ahead_time` of %s: %+v", *id, err)
 		}
 
 		notifications := flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)
@@ -613,6 +604,23 @@ func expandAzureRmMonitorAutoScaleSettingProfile(input []interface{}) ([]autosca
 	}
 
 	return results, nil
+}
+
+func expandAzureRmMonitorAutoScaleSettingPredictive(input []interface{}) *autoscalesettings.PredictiveAutoscalePolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	predictive := autoscalesettings.PredictiveAutoscalePolicy{
+		ScaleMode: autoscalesettings.PredictiveAutoscalePolicyScaleMode(raw["scale_mode"].(string)),
+	}
+
+	if lookAheadTime := raw["look_ahead_time"].(string); lookAheadTime != "" {
+		predictive.ScaleLookAheadTime = pointer.To(lookAheadTime)
+	}
+
+	return &predictive
 }
 
 func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) []autoscalesettings.ScaleRule {
@@ -841,6 +849,19 @@ func flattenAzureRmMonitorAutoScaleSettingProfile(profiles []autoscalesettings.A
 		results = append(results, result)
 	}
 	return results, nil
+}
+
+func flattenAzureRmMonitorAutoScaleSettingPredictive(input *autoscalesettings.PredictiveAutoscalePolicy) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	result := make(map[string]interface{})
+
+	result["look_ahead_time"] = pointer.From(input.ScaleLookAheadTime)
+	result["scale_mode"] = string(input.ScaleMode)
+
+	return []interface{}{result}
 }
 
 func flattenAzureRmMonitorAutoScaleSettingCapacity(input autoscalesettings.ScaleCapacity) ([]interface{}, error) {

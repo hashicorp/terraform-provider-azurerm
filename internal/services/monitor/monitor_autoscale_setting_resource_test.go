@@ -74,13 +74,13 @@ func TestAccMonitorAutoScaleSetting_multipleProfiles(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAutoScaleSetting_predictiveAutoscalePolicy(t *testing.T) {
+func TestAccMonitorAutoScaleSetting_predictive(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.predictiveAutoscalePolicy(data, "Enabled", "PT1M"),
+			Config: r.predictive(data, "Enabled", "PT1M"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -89,7 +89,7 @@ func TestAccMonitorAutoScaleSetting_predictiveAutoscalePolicy(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAutoScaleSetting_predictiveAutoscalePolicyUpdated(t *testing.T) {
+func TestAccMonitorAutoScaleSetting_predictiveUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 	r := MonitorAutoScaleSettingResource{}
 
@@ -102,14 +102,14 @@ func TestAccMonitorAutoScaleSetting_predictiveAutoscalePolicyUpdated(t *testing.
 		},
 		data.ImportStep(),
 		{
-			Config: r.predictiveAutoscalePolicy(data, "Enabled", "PT1H"),
+			Config: r.predictive(data, "Enabled", "PT1H"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.predictiveAutoscalePolicy(data, "ForecastOnly", "PT1M"),
+			Config: r.predictive(data, "ForecastOnly", "PT1M"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -386,6 +386,9 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       }
     }
   }
+  predictive {
+    scale_mode = "Disabled"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -430,11 +433,14 @@ resource "azurerm_monitor_autoscale_setting" "import" {
       }
     }
   }
+  predictive {
+    scale_mode = "Disabled"
+  }
 }
 `, template)
 }
 
-func (MonitorAutoScaleSettingResource) predictiveAutoscalePolicy(data acceptance.TestData, scaleMode, scaleLookAheadTime string) string {
+func (MonitorAutoScaleSettingResource) predictive(data acceptance.TestData, scaleMode, scaleLookAheadTime string) string {
 	template := MonitorAutoScaleSettingResource{}.template(data)
 	return fmt.Sprintf(`
 %s
@@ -476,12 +482,11 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 
-  predictive_scale_mode            = %q
-  predictive_scale_look_ahead_time = %q
-
+  predictive {
+    scale_mode      = %q
+    look_ahead_time = %q
+  }
 }
-
-
 `, template, data.RandomInteger, scaleMode, scaleLookAheadTime)
 }
 
@@ -568,6 +573,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       minutes = [0]
     }
   }
+
+  predictive {
+    scale_mode = "Disabled"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -612,6 +621,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         cooldown  = "PT1M"
       }
     }
+  }
+
+  predictive {
+    scale_mode = "Disabled"
   }
 }
 `, template, data.RandomInteger, defaultVal, min, max)
@@ -680,6 +693,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       }
     }
   }
+
+  predictive {
+    scale_mode = "Disabled"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -731,6 +748,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       send_to_subscription_co_administrator = false
       custom_emails                         = ["acctest1-%d@example.com"]
     }
+  }
+
+  predictive {
+    scale_mode = "Disabled"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -784,6 +805,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       custom_emails                         = ["acctest1-%d@example.com", "acctest2-%d@example.com"]
     }
   }
+
+  predictive {
+    scale_mode = "Disabled"
+  }
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -827,6 +852,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       send_to_subscription_administrator    = false
       send_to_subscription_co_administrator = false
     }
+  }
+
+  predictive {
+    scale_mode = "Disabled"
   }
 }
 `, template, data.RandomInteger)
@@ -872,6 +901,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       send_to_subscription_co_administrator = false
     }
   }
+
+  predictive {
+    scale_mode = "Disabled"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -901,6 +934,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       start    = "2020-06-18T00:00:00Z"
       end      = "2020-06-18T23:59:59Z"
     }
+  }
+
+  predictive {
+    scale_mode = "Disabled"
   }
 }
 `, template, data.RandomInteger)
@@ -974,6 +1011,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         cooldown  = "PT1M"
       }
     }
+  }
+
+  predictive {
+    scale_mode = "Disabled"
   }
 }
 `, template, data.RandomInteger)
@@ -1052,6 +1093,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         cooldown  = "PT1M"
       }
     }
+  }
+
+  predictive {
+    scale_mode = "Disabled"
   }
 }
 `, template, data.RandomInteger)
