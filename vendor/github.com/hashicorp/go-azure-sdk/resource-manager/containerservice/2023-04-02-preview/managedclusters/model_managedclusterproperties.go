@@ -43,6 +43,7 @@ type ManagedClusterProperties struct {
 	ServiceMeshProfile        *ServiceMeshProfile                        `json:"serviceMeshProfile,omitempty"`
 	ServicePrincipalProfile   *ManagedClusterServicePrincipalProfile     `json:"servicePrincipalProfile,omitempty"`
 	StorageProfile            *ManagedClusterStorageProfile              `json:"storageProfile,omitempty"`
+	SupportPlan               *KubernetesSupportPlan                     `json:"supportPlan,omitempty"`
 	UpgradeSettings           *ClusterUpgradeSettings                    `json:"upgradeSettings,omitempty"`
 	WindowsProfile            *ManagedClusterWindowsProfile              `json:"windowsProfile,omitempty"`
 	WorkloadAutoScalerProfile *ManagedClusterWorkloadAutoScalerProfile   `json:"workloadAutoScalerProfile,omitempty"`

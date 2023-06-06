@@ -185,6 +185,7 @@ func parseOSDiskType(input string) (*OSDiskType, error) {
 type OSSKU string
 
 const (
+	OSSKUAzureLinux            OSSKU = "AzureLinux"
 	OSSKUCBLMariner            OSSKU = "CBLMariner"
 	OSSKUMariner               OSSKU = "Mariner"
 	OSSKUUbuntu                OSSKU = "Ubuntu"
@@ -194,6 +195,7 @@ const (
 
 func PossibleValuesForOSSKU() []string {
 	return []string{
+		string(OSSKUAzureLinux),
 		string(OSSKUCBLMariner),
 		string(OSSKUMariner),
 		string(OSSKUUbuntu),
@@ -204,6 +206,7 @@ func PossibleValuesForOSSKU() []string {
 
 func parseOSSKU(input string) (*OSSKU, error) {
 	vals := map[string]OSSKU{
+		"azurelinux":  OSSKUAzureLinux,
 		"cblmariner":  OSSKUCBLMariner,
 		"mariner":     OSSKUMariner,
 		"ubuntu":      OSSKUUbuntu,

@@ -409,6 +409,34 @@ func parseKubeletDiskType(input string) (*KubeletDiskType, error) {
 	return &out, nil
 }
 
+type KubernetesSupportPlan string
+
+const (
+	KubernetesSupportPlanAKSLongTermSupport KubernetesSupportPlan = "AKSLongTermSupport"
+	KubernetesSupportPlanKubernetesOfficial KubernetesSupportPlan = "KubernetesOfficial"
+)
+
+func PossibleValuesForKubernetesSupportPlan() []string {
+	return []string{
+		string(KubernetesSupportPlanAKSLongTermSupport),
+		string(KubernetesSupportPlanKubernetesOfficial),
+	}
+}
+
+func parseKubernetesSupportPlan(input string) (*KubernetesSupportPlan, error) {
+	vals := map[string]KubernetesSupportPlan{
+		"akslongtermsupport": KubernetesSupportPlanAKSLongTermSupport,
+		"kubernetesofficial": KubernetesSupportPlanKubernetesOfficial,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := KubernetesSupportPlan(input)
+	return &out, nil
+}
+
 type Level string
 
 const (
@@ -565,12 +593,14 @@ type ManagedClusterSKUTier string
 
 const (
 	ManagedClusterSKUTierFree     ManagedClusterSKUTier = "Free"
+	ManagedClusterSKUTierPremium  ManagedClusterSKUTier = "Premium"
 	ManagedClusterSKUTierStandard ManagedClusterSKUTier = "Standard"
 )
 
 func PossibleValuesForManagedClusterSKUTier() []string {
 	return []string{
 		string(ManagedClusterSKUTierFree),
+		string(ManagedClusterSKUTierPremium),
 		string(ManagedClusterSKUTierStandard),
 	}
 }
@@ -578,6 +608,7 @@ func PossibleValuesForManagedClusterSKUTier() []string {
 func parseManagedClusterSKUTier(input string) (*ManagedClusterSKUTier, error) {
 	vals := map[string]ManagedClusterSKUTier{
 		"free":     ManagedClusterSKUTierFree,
+		"premium":  ManagedClusterSKUTierPremium,
 		"standard": ManagedClusterSKUTierStandard,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -707,7 +738,7 @@ func parseNetworkPlugin(input string) (*NetworkPlugin, error) {
 type NetworkPluginMode string
 
 const (
-	NetworkPluginModeOverlay NetworkPluginMode = "Overlay"
+	NetworkPluginModeOverlay NetworkPluginMode = "overlay"
 )
 
 func PossibleValuesForNetworkPluginMode() []string {
@@ -825,6 +856,7 @@ func parseOSDiskType(input string) (*OSDiskType, error) {
 type OSSKU string
 
 const (
+	OSSKUAzureLinux            OSSKU = "AzureLinux"
 	OSSKUCBLMariner            OSSKU = "CBLMariner"
 	OSSKUMariner               OSSKU = "Mariner"
 	OSSKUUbuntu                OSSKU = "Ubuntu"
@@ -834,6 +866,7 @@ const (
 
 func PossibleValuesForOSSKU() []string {
 	return []string{
+		string(OSSKUAzureLinux),
 		string(OSSKUCBLMariner),
 		string(OSSKUMariner),
 		string(OSSKUUbuntu),
@@ -844,6 +877,7 @@ func PossibleValuesForOSSKU() []string {
 
 func parseOSSKU(input string) (*OSSKU, error) {
 	vals := map[string]OSSKU{
+		"azurelinux":  OSSKUAzureLinux,
 		"cblmariner":  OSSKUCBLMariner,
 		"mariner":     OSSKUMariner,
 		"ubuntu":      OSSKUUbuntu,
