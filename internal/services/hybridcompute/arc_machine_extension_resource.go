@@ -350,14 +350,14 @@ func (r ArcMachineExtensionResource) Read() sdk.ResourceFunc {
 						state.Publisher = *properties.Publisher
 					}
 
-					// ProtectedSettings is sensitive data, and we could not get it from the API
-					if val, ok := metadata.ResourceData.GetOk("protected_settings"); ok {
-						protectedSettingsValue, err := json.Marshal(val)
-						if err != nil {
-							return err
-						}
+					var extModel MachineExtensionModel
+					err := metadata.Decode(&extModel)
+					if err != nil {
+						return err
+					}
 
-						state.ProtectedSettings = string(protectedSettingsValue)
+					if extModel.ProtectedSettings != "" {
+						state.ProtectedSettings = extModel.ProtectedSettings
 					}
 
 					if properties.Settings != nil && *properties.Settings != nil {
