@@ -108,9 +108,13 @@ func (r LoadTestTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_load_test" "test" {
   location            = azurerm_resource_group.test.location
-  name                = "acctest-${local.random_integer}"
+  name                = "acctestlt-${var.random_integer}"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, r.template(data))
@@ -121,9 +125,9 @@ func (r LoadTestTestResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_load_test" "import" {
-  location            = azurerm_resource_group.test.location
-  name                = "acctest-${local.random_integer}"
-  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_load_test.test.name
+  location            = azurerm_load_test.test.location
+  resource_group_name = azurerm_load_test.test.resource_group_name
 }
 `, r.basic(data))
 }
@@ -132,20 +136,21 @@ func (r LoadTestTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_load_test" "test" {
   location            = azurerm_resource_group.test.location
-  name                = "acctest-${local.random_integer}"
+  name                = "acctestlt-${var.random_integer}"
   resource_group_name = azurerm_resource_group.test.name
-  description         = "foo"
-
+  description         = "Description for the Load Test"
+  tags = {
+    environment = "terraform-acctests"
+    some_key    = "some-value"
+  }
   identity {
     type = "SystemAssigned"
-  }
-
-  tags = {
-    env  = "Production"
-    test = "Acceptance"
   }
 }
 `, r.template(data))
@@ -153,19 +158,16 @@ resource "azurerm_load_test" "test" {
 
 func (r LoadTestTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+variable "primary_location" {
+  default = %q
 }
-
-locals {
-  random_integer   = %[1]d
-  primary_location = %[2]q
+variable "random_integer" {
+  default = %d
 }
-
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-${local.random_integer}"
-  location = local.primary_location
+  name     = "acctestrg-${var.random_integer}"
+  location = var.primary_location
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.Locations.Primary, data.RandomInteger)
 }
