@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
@@ -34,7 +34,7 @@ func (c Client) AddToCache(configurationStoreId configurationstores.Configuratio
 	keysmith.Unlock()
 }
 
-func (c Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, configurationStoresClient *configurationstores.ConfigurationStoresClient, configurationStoreEndpoint string, subscriptionId string) (*string, error) {
+func (c Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, resourcesClient *resourcesClient.Client, configurationStoreEndpoint string) (*string, error) {
 	configurationStoreName, err := c.parseNameFromEndpoint(configurationStoreEndpoint)
 	if err != nil {
 		return nil, err
@@ -53,23 +53,42 @@ func (c Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, configurat
 		return &v.configurationStoreId, nil
 	}
 
-	subscriptionIdStruct := commonids.NewSubscriptionID(subscriptionId)
-	predicate := configurationstores.ConfigurationStoreOperationPredicate{
-		Name: configurationStoreName,
-	}
-	result, err := configurationStoresClient.ListCompleteMatchingPredicate(ctx, subscriptionIdStruct, predicate)
+	filter := fmt.Sprintf("resourceType eq 'Microsoft.AppConfiguration/configurationStores' and name eq '%s'", *configurationStoreName)
+	result, err := resourcesClient.ResourcesClient.List(ctx, filter, "", utils.Int32(5))
 	if err != nil {
-		return nil, fmt.Errorf("listing Configuration Stores: %+v", err)
+		return nil, fmt.Errorf("listing resources matching %q: %+v", filter, err)
 	}
 
-	if len(result.Items) != 0 {
-		configurationStoreId, err := configurationstores.ParseConfigurationStoreID(*result.Items[0].Id)
-		if err != nil {
-			return nil, fmt.Errorf("parsing Configuration Store ID: %+v", err)
-		}
-		c.AddToCache(*configurationStoreId, configurationStoreEndpoint)
+	for result.NotDone() {
+		for _, v := range result.Values() {
+			if v.ID == nil {
+				continue
+			}
 
-		return pointer.To(configurationStoreId.ID()), nil
+			id, err := configurationstores.ParseConfigurationStoreIDInsensitively(*v.ID)
+			if err != nil {
+				return nil, fmt.Errorf("parsing %q: %+v", *v.ID, err)
+			}
+			if !strings.EqualFold(id.ConfigurationStoreName, *configurationStoreName) {
+				continue
+			}
+
+			resp, err := c.ConfigurationStoresClient.Get(ctx, *id)
+			if err != nil {
+				return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Endpoint == nil {
+				return nil, fmt.Errorf("retrieving %s: `model.properties.Endpoint` was nil", *id)
+			}
+
+			c.AddToCache(*id, *resp.Model.Properties.Endpoint)
+
+			return utils.String(id.ID()), nil
+		}
+
+		if err := result.NextWithContext(ctx); err != nil {
+			return nil, fmt.Errorf("iterating over results: %+v", err)
+		}
 	}
 
 	// we haven't found it, but Data Sources and Resources need to handle this error separately
