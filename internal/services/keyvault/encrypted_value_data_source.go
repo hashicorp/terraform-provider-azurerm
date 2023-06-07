@@ -3,7 +3,9 @@ package keyvault
 import (
 	"context"
 	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -20,10 +22,11 @@ var _ sdk.DataSource = EncryptedValueDataSource{}
 type EncryptedValueDataSource struct{}
 
 type EncryptedValueDataSourceModel struct {
-	KeyVaultKeyId  string `tfschema:"key_vault_key_id"`
-	Algorithm      string `tfschema:"algorithm"`
-	EncryptedData  string `tfschema:"encrypted_data"`
-	PlainTextValue string `tfschema:"plain_text_value"`
+	KeyVaultKeyId         string `tfschema:"key_vault_key_id"`
+	Algorithm             string `tfschema:"algorithm"`
+	EncryptedData         string `tfschema:"encrypted_data"`
+	PlainTextValue        string `tfschema:"plain_text_value"`
+	DecodedPlainTextValue string `tfschema:"decoded_plain_text_value"`
 }
 
 func (EncryptedValueDataSource) Arguments() map[string]*schema.Schema {
@@ -56,7 +59,13 @@ func (EncryptedValueDataSource) Arguments() map[string]*schema.Schema {
 }
 
 func (EncryptedValueDataSource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{}
+	return map[string]*schema.Schema{
+		"decoded_plain_text_value": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+	}
 }
 
 func (EncryptedValueDataSource) ModelObject() interface{} {
@@ -102,6 +111,11 @@ func (EncryptedValueDataSource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("decrypting plain-text value using Key Vault Key ID %q: `result` was nil", model.KeyVaultKeyId)
 				}
 				model.PlainTextValue = *result.Result
+				if decodedResult, err := base64.RawURLEncoding.DecodeString(*result.Result); err == nil {
+					model.DecodedPlainTextValue = string(decodedResult)
+				} else {
+					log.Printf("[WARN] Failed to decode plain-text value: %+v", err)
+				}
 			} else {
 				params := keyvault.KeyOperationsParameters{
 					Algorithm: keyvault.JSONWebKeyEncryptionAlgorithm(model.Algorithm),
