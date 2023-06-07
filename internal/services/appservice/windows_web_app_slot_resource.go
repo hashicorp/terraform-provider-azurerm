@@ -761,6 +761,15 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("wating to update %s: %+v", id, err)
 			}
 
+			// (@jackofallops) - Windows Web App Slots need the siteConfig sending individually to actually accept the `windowsFxVersion` value or it's set as `DOCKER|` only.
+			siteConfigUpdate := web.SiteConfigResource{
+				SiteConfig: existing.SiteConfig,
+			}
+			_, err = client.UpdateConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, siteConfigUpdate, id.SlotName)
+			if err != nil {
+				return fmt.Errorf("updating %s site config: %+v", id, err)
+			}
+
 			siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
 			siteMetadata.Properties["CURRENT_STACK"] = pointer.To(currentStack)
 			if _, err := client.UpdateMetadataSlot(ctx, id.ResourceGroup, id.SiteName, siteMetadata, id.SlotName); err != nil {

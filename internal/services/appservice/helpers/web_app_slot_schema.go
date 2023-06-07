@@ -1024,7 +1024,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 		}
 
 		if winAppStack.DockerImageName != "" {
-			expanded.WindowsFxVersion = pointer.To(EncodeDockerFxString(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
+			expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
 			appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
@@ -1161,7 +1161,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 			}
 
 			if winAppStack.DockerImageName != "" {
-				expanded.WindowsFxVersion = pointer.To(EncodeDockerFxString(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
+				expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
 				appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
 				appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
 				appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
@@ -1249,6 +1249,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 		}
 		expanded.Cors = cors
 	}
+
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
 		expanded.AutoHealRules = expandAutoHealSettingsWindows(s.AutoHealSettings)
 	}
@@ -1331,20 +1332,6 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *web.SiteConfig,
 	}
 
 	s.WindowsFxVersion = pointer.From(appSiteSlotConfig.WindowsFxVersion)
-	if s.WindowsFxVersion != "" {
-		// Decode the string to docker values
-		parts := strings.Split(strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|"), ":")
-		if len(parts) == 2 {
-			winAppStack.DockerContainerTag = parts[1]
-			path := strings.Split(parts[0], "/")
-			if len(path) > 1 {
-				winAppStack.DockerContainerRegistry = path[0]
-				winAppStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
-			} else {
-				winAppStack.DockerContainerName = path[0]
-			}
-		}
-	}
 	winAppStack.CurrentStack = currentStack
 
 	s.ApplicationStack = []ApplicationStackWindows{winAppStack}

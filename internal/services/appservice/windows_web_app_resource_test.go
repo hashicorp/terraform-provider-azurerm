@@ -823,33 +823,6 @@ func TestAccWindowsWebApp_withJava110414Tomcat10020(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebApp_dockerMCR(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skippped as deprecated property removed in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
-	r := WindowsWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.dockerMCR(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|windows-cssc/python3.7.2nanoserver:ltsc2022"),
-			),
-		},
-		data.ImportStep("app_settings.%",
-			"site_config.0.application_stack.0.docker_container_name",
-			"site_config.0.application_stack.0.docker_container_tag",
-			"site_config.0.application_stack.0.docker_image_name",
-			"site_config.0.application_stack.0.docker_registry_url",
-			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
-			"app_settings.DOCKER_REGISTRY_SERVER_URL",
-			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME"),
-	})
-}
-
 func TestAccWindowsWebApp_dockerHub(t *testing.T) {
 	if features.FourPointOhBeta() {
 		t.Skipf("Skippped as deprecated property removed in 4.0")
@@ -890,7 +863,7 @@ func TestAccWindowsWebApp_withDockerDeprecatedUpgrade(t *testing.T) {
 			Config: r.dockerHub(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|hello-world:latest"),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
 			),
 		},
 		data.ImportStep("app_settings.%",
@@ -2358,8 +2331,8 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     application_stack {
-      docker_container_name = "hello-world"
-      docker_container_tag  = "latest"
+      docker_container_name = "windows-cssc/python3.7servercore"
+      docker_container_tag  = "ltsc2022"
     }
   }
 }
