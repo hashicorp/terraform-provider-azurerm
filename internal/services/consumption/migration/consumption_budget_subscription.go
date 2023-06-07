@@ -3,7 +3,6 @@ package migration
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
@@ -246,9 +245,7 @@ func (SubscriptionConsumptionBudgetV1ToV2) UpgradeFunc() pluginsdk.StateUpgrader
 			return nil, fmt.Errorf("parsing %q: %+v", idRaw, err)
 		}
 
-		oldSubscriptionId := rawState["subscription_id"]
 		newSubscriptionId := commonids.NewSubscriptionID(id.Scope).ID()
-		log.Printf("[DEBUG] Updating subscription_id from %q to %q", oldSubscriptionId, newSubscriptionId)
 		rawState["subscription_id"] = newSubscriptionId
 
 		return rawState, nil
