@@ -505,17 +505,12 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
 			properties := automanage.ConfigurationProfile{
-				Location: utils.String(metadata.ResourceData.Get("location").(string)),
+				Location: utils.String(location.Normalize(metadata.ResourceData.Get("location").(string))),
 				Properties: &automanage.ConfigurationProfileProperties{
 					Configuration: expandAutomanageConfigurationProfile(model),
 				},
-				Tags: resp.Tags,
+				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroup, properties); err != nil {
@@ -817,60 +812,101 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 		backup[0].InstantRpRetentionRangeInDays = int(val.(float64))
 	}
 
-	backup[0].SchedulePolicy = make([]SchedulePolicyConfiguration, 1)
-	backup[0].SchedulePolicy[0] = SchedulePolicyConfiguration{}
+	schedulePolicy := SchedulePolicyConfiguration{}
+	schedulePolicyChanged := false
 	if val, ok := configMap["Backup/SchedulePolicy/ScheduleRunFrequency"]; ok {
-		backup[0].SchedulePolicy[0].ScheduleRunFrequency = val.(string)
+		schedulePolicy.ScheduleRunFrequency = val.(string)
+		schedulePolicyChanged = true
 	}
 
 	if val, ok := configMap["Backup/SchedulePolicy/ScheduleRunTimes"]; ok {
-		backup[0].SchedulePolicy[0].ScheduleRunTimes = flattenToListOfString(val)
+		schedulePolicy.ScheduleRunTimes = flattenToListOfString(val)
+		schedulePolicyChanged = true
 	}
 
 	if val, ok := configMap["Backup/SchedulePolicy/ScheduleRunDays"]; ok {
-		backup[0].SchedulePolicy[0].ScheduleRunDays = flattenToListOfString(val)
+		schedulePolicy.ScheduleRunDays = flattenToListOfString(val)
+		schedulePolicyChanged = true
 	}
 
 	if val, ok := configMap["Backup/SchedulePolicy/SchedulePolicyType"]; ok {
-		backup[0].SchedulePolicy[0].SchedulePolicyType = val.(string)
+		schedulePolicy.SchedulePolicyType = val.(string)
+		schedulePolicyChanged = true
 	}
 
-	backup[0].RetentionPolicy = make([]RetentionPolicyConfiguration, 1)
-	backup[0].RetentionPolicy[0] = RetentionPolicyConfiguration{}
+	if schedulePolicyChanged {
+		backup[0].SchedulePolicy = make([]SchedulePolicyConfiguration, 1)
+		backup[0].SchedulePolicy[0] = schedulePolicy
+	}
+
+	retentionPolicy := RetentionPolicyConfiguration{}
+	retentionPolicyChanged := false
 	if val, ok := configMap["Backup/RetentionPolicy/RetentionPolicyType"]; ok {
-		backup[0].RetentionPolicy[0].RetentionPolicyType = val.(string)
+		retentionPolicy.RetentionPolicyType = val.(string)
+		retentionPolicyChanged = true
 	}
 
-	backup[0].RetentionPolicy[0].DailySchedule = make([]ScheduleConfiguration, 1)
-	backup[0].RetentionPolicy[0].DailySchedule[0] = ScheduleConfiguration{}
+	dailySchedule := ScheduleConfiguration{}
+	dailyScheduleChanged := false
 	if val, ok := configMap["Backup/RetentionPolicy/DailySchedule/RetentionTimes"]; ok {
-		backup[0].RetentionPolicy[0].DailySchedule[0].RetentionTimes = flattenToListOfString(val)
+		dailySchedule.RetentionTimes = flattenToListOfString(val)
+		dailyScheduleChanged = true
 	}
 
-	backup[0].RetentionPolicy[0].DailySchedule[0].RetentionDuration = make([]RetentionDurationConfiguration, 1)
-	backup[0].RetentionPolicy[0].DailySchedule[0].RetentionDuration[0] = RetentionDurationConfiguration{}
+	retentionDuration := RetentionDurationConfiguration{}
+	retentionDurationChanged := false
 	if val, ok := configMap["Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count"]; ok {
-		backup[0].RetentionPolicy[0].DailySchedule[0].RetentionDuration[0].Count = int(val.(float64))
+		retentionDuration.Count = int(val.(float64))
+		retentionDurationChanged = true
 	}
 
 	if val, ok := configMap["Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType"]; ok {
-		backup[0].RetentionPolicy[0].DailySchedule[0].RetentionDuration[0].DurationType = val.(string)
+		retentionDuration.DurationType = val.(string)
+		retentionDurationChanged = true
 	}
 
-	backup[0].RetentionPolicy[0].WeeklySchedule = make([]ScheduleConfiguration, 1)
-	backup[0].RetentionPolicy[0].WeeklySchedule[0] = ScheduleConfiguration{}
+	if retentionDurationChanged {
+		dailySchedule.RetentionDuration = make([]RetentionDurationConfiguration, 1)
+		dailySchedule.RetentionDuration[0] = retentionDuration
+	}
+
+	if dailyScheduleChanged || retentionDurationChanged {
+		retentionPolicy.DailySchedule = make([]ScheduleConfiguration, 1)
+		retentionPolicy.DailySchedule[0] = dailySchedule
+	}
+
+	weeklySchedule := ScheduleConfiguration{}
+	weeklyScheduleChanged := false
 	if val, ok := configMap["Backup/RetentionPolicy/WeeklySchedule/RetentionTimes"]; ok {
-		backup[0].RetentionPolicy[0].WeeklySchedule[0].RetentionTimes = flattenToListOfString(val)
+		weeklySchedule.RetentionTimes = flattenToListOfString(val)
+		weeklyScheduleChanged = true
 	}
 
-	backup[0].RetentionPolicy[0].WeeklySchedule[0].RetentionDuration = make([]RetentionDurationConfiguration, 1)
-	backup[0].RetentionPolicy[0].WeeklySchedule[0].RetentionDuration[0] = RetentionDurationConfiguration{}
+	weeklyRetentionDuration := RetentionDurationConfiguration{}
+	weeklyRetentionDurationChanged := false
 	if val, ok := configMap["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count"]; ok {
-		backup[0].RetentionPolicy[0].WeeklySchedule[0].RetentionDuration[0].Count = int(val.(float64))
+		weeklyRetentionDuration.Count = int(val.(float64))
+		weeklyRetentionDurationChanged = true
 	}
 
 	if val, ok := configMap["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType"]; ok {
-		backup[0].RetentionPolicy[0].WeeklySchedule[0].RetentionDuration[0].DurationType = val.(string)
+		weeklyRetentionDuration.DurationType = val.(string)
+		weeklyRetentionDurationChanged = true
+	}
+
+	if weeklyRetentionDurationChanged {
+		weeklySchedule.RetentionDuration = make([]RetentionDurationConfiguration, 1)
+		weeklySchedule.RetentionDuration[0] = weeklyRetentionDuration
+	}
+
+	if weeklyScheduleChanged || weeklyRetentionDurationChanged {
+		retentionPolicy.WeeklySchedule = make([]ScheduleConfiguration, 1)
+		retentionPolicy.WeeklySchedule[0] = weeklySchedule
+	}
+
+	if retentionPolicyChanged || dailyScheduleChanged || retentionDurationChanged || weeklyScheduleChanged || weeklyRetentionDurationChanged {
+		backup[0].RetentionPolicy = make([]RetentionPolicyConfiguration, 1)
+		backup[0].RetentionPolicy[0] = retentionPolicy
 	}
 
 	return backup
