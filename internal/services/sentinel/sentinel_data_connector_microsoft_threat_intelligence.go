@@ -57,6 +57,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 			ValidateFunc: validation.IsUUID,
 		},
 
+		//lintignore: S013
 		"microsoft_emerging_threat_feed_lookback_date": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
