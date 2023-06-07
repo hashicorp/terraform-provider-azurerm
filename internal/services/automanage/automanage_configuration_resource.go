@@ -3,6 +3,7 @@ package automanage
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -17,19 +18,8 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage"
 )
 
-type ConfigurationModel struct {
-	Name              string `tfschema:"name"`
-	ResourceGroupName string `tfschema:"resource_group_name"`
-
-	Antimalware               []AntimalwareConfiguration `tfschema:"antimalware"`
-	AutomationAccountEnabled  bool                       `tfschema:"automation_account_enabled"`
-	BootDiagnosticsEnabled    bool                       `tfschema:"boot_diagnostics_enabled"`
-	DefenderForCloudEnabled   bool                       `tfschema:"defender_for_cloud_enabled"`
-	GuestConfigurationEnabled bool                       `tfschema:"guest_configuration_enabled"`
-	StatusChangeAlertEnabled  bool                       `tfschema:"status_change_alert_enabled"`
-
-	Location string            `tfschema:"location"`
-	Tags     map[string]string `tfschema:"tags"`
+type AzureSecurityBaselineConfiguration struct {
+	AssignmentType string `tfschema:"assignment_type"`
 }
 
 type AntimalwareConfiguration struct {
@@ -45,6 +35,54 @@ type AntimalwareExclusions struct {
 	Extensions string `tfschema:"extensions"`
 	Paths      string `tfschema:"paths"`
 	Processes  string `tfschema:"processes"`
+}
+
+type BackupConfiguration struct {
+	PolicyName                    string                         `tfschema:"policy_name"`
+	TimeZone                      string                         `tfschema:"time_zone"`
+	InstantRpRetentionRangeInDays int                            `tfschema:"instant_rp_retention_range_in_days"`
+	SchedulePolicy                []SchedulePolicyConfiguration  `tfschema:"schedule_policy"`
+	RetentionPolicy               []RetentionPolicyConfiguration `tfschema:"retention_policy"`
+}
+
+type ConfigurationModel struct {
+	Name              string `tfschema:"name"`
+	ResourceGroupName string `tfschema:"resource_group_name"`
+
+	Antimalware               []AntimalwareConfiguration           `tfschema:"antimalware"`
+	AzureSecurityBaseline     []AzureSecurityBaselineConfiguration `tfschema:"azure_security_baseline"`
+	Backup                    []BackupConfiguration                `tfschema:"backup"`
+	AutomationAccountEnabled  bool                                 `tfschema:"automation_account_enabled"`
+	BootDiagnosticsEnabled    bool                                 `tfschema:"boot_diagnostics_enabled"`
+	DefenderForCloudEnabled   bool                                 `tfschema:"defender_for_cloud_enabled"`
+	GuestConfigurationEnabled bool                                 `tfschema:"guest_configuration_enabled"`
+	StatusChangeAlertEnabled  bool                                 `tfschema:"status_change_alert_enabled"`
+
+	Location string            `tfschema:"location"`
+	Tags     map[string]string `tfschema:"tags"`
+}
+
+type ScheduleConfiguration struct {
+	RetentionTimes    []string                         `tfschema:"retention_times"`
+	RetentionDuration []RetentionDurationConfiguration `tfschema:"retention_duration"`
+}
+
+type RetentionPolicyConfiguration struct {
+	RetentionPolicyType string                  `tfschema:"retention_policy_type"`
+	DailySchedule       []ScheduleConfiguration `tfschema:"daily_schedule"`
+	WeeklySchedule      []ScheduleConfiguration `tfschema:"weekly_schedule"`
+}
+
+type RetentionDurationConfiguration struct {
+	Count        int    `tfschema:"count"`
+	DurationType string `tfschema:"duration_type"`
+}
+
+type SchedulePolicyConfiguration struct {
+	ScheduleRunFrequency string   `tfschema:"schedule_run_frequency"`
+	ScheduleRunTimes     []string `tfschema:"schedule_run_times"`
+	ScheduleRunDays      []string `tfschema:"schedule_run_days"`
+	SchedulePolicyType   string   `tfschema:"schedule_policy_type"`
 }
 
 type AutoManageConfigurationResource struct{}
@@ -149,6 +187,227 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
+		//"AzureSecurityBaseline/Enable": boolean, true if block exists
+		//"AzureSecurityBaseline/AssignmentType": string ("ApplyAndAutoCorrect", "ApplyAndMonitor", "Audit", "DeployAndAutoCorrect"),
+		"azure_security_baseline": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"assignment_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "ApplyAndAutoCorrect",
+						ValidateFunc: validation.StringInSlice([]string{
+							"ApplyAndAutoCorrect",
+							"ApplyAndMonitor",
+							"Audit",
+							"DeployAndAutoCorrect",
+						}, false),
+					},
+				},
+			},
+		},
+
+		//"Backup/Enable": boolean, true if block exists
+		//"Backup/PolicyName": string (length 3 - 150, begin with alphanumeric char, only contain alphanumeric chars and hyphens),
+		//"Backup/TimeZone": timezone,
+		//"Backup/InstantRpRetentionRangeInDays": int (1 - 5 if ScheduleRunFrequency is Daily, 5 if ScheduleRunFrequency is Weekly),
+		//"Backup/SchedulePolicy/ScheduleRunFrequency": string ("Daily", "Weekly"),
+		//"Backup/SchedulePolicy/ScheduleRunTimes": list of DateTime,
+		//"Backup/SchedulePolicy/ScheduleRunDays": list of strings (["Sunday", "Monday", "Wednesday", "Thursday", "Friday", "Saturday"]),
+		//"Backup/SchedulePolicy/SchedulePolicyType": string ("SimpleSchedulePolicy"),
+		//"Backup/RetentionPolicy/RetentionPolicyType": string ("LongTermRetentionPolicy"),
+		//"Backup/RetentionPolicy/DailySchedule/RetentionTimes": list of DateTime,
+		//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count": int (7 - 9999),
+		//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType": string ("Days"),
+		//"Backup/RetentionPolicy/WeeklySchedule/RetentionTimes":, list of DateTime
+		//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count":, int (1 - 5163)
+		//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType": string ("Weeks"),
+		"backup": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"policy_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,149}$`), "Policy name must be 3 - 150 characters long, begin with an alphanumeric character, and only contain alphanumeric characters and hyphens."),
+					},
+					"time_zone": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "UTC",
+					},
+					"instant_rp_retention_range_in_days": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      5,
+						ValidateFunc: validation.IntBetween(1, 5),
+					},
+					"schedule_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"schedule_run_frequency": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "Daily",
+									ValidateFunc: validation.StringInSlice([]string{
+										"Daily",
+										"Weekly",
+									}, false),
+								},
+								"schedule_run_times": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+										ValidateFunc: validation.StringMatch(
+											regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
+											"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
+										),
+									},
+								},
+								"schedule_run_days": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Sunday",
+											"Monday",
+											"Tuesday",
+											"Wednesday",
+											"Thursday",
+											"Friday",
+											"Saturday",
+										}, false),
+									},
+								},
+								"schedule_policy_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "SimpleSchedulePolicy",
+									ValidateFunc: validation.StringInSlice([]string{
+										"SimpleSchedulePolicy",
+									}, false),
+								},
+							},
+						},
+					},
+					"retention_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"retention_policy_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "LongTermRetentionPolicy",
+									ValidateFunc: validation.StringInSlice([]string{
+										"LongTermRetentionPolicy",
+									}, false),
+								},
+								"daily_schedule": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"retention_times": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+													ValidateFunc: validation.StringMatch(
+														regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
+														"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
+													),
+												},
+											},
+											"retention_duration": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"count": {
+															Type:         pluginsdk.TypeInt,
+															Optional:     true,
+															Default:      7,
+															ValidateFunc: validation.IntBetween(7, 9999),
+														},
+														"duration_type": {
+															Type:     pluginsdk.TypeString,
+															Optional: true,
+															Default:  "Days",
+															ValidateFunc: validation.StringInSlice([]string{
+																"Days",
+															}, false),
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+								"weekly_schedule": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"retention_times": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+													ValidateFunc: validation.StringMatch(
+														regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
+														"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
+													),
+												},
+											},
+											"retention_duration": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"count": {
+															Type:         pluginsdk.TypeInt,
+															Optional:     true,
+															Default:      4,
+															ValidateFunc: validation.IntBetween(4, 9999),
+														},
+														"duration_type": {
+															Type:     pluginsdk.TypeString,
+															Optional: true,
+															Default:  "Weeks",
+															ValidateFunc: validation.StringInSlice([]string{
+																"Weeks",
+															}, false),
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
 		// "AutomationAccount/Enable": boolean,
 		"automation_account_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -218,45 +477,7 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 				Tags:       tags.FromTypedObject(model.Tags),
 			}
 
-			// building configuration profile in json format
-			jsonConfig := make(map[string]interface{})
-
-			if model.Antimalware != nil && len(model.Antimalware) > 0 {
-				antimalwareConfig := model.Antimalware[0]
-				jsonConfig["Antimalware/Enable"] = true
-				jsonConfig["Antimalware/EnableRealTimeProtection"] = antimalwareConfig.RealTimeProtectionEnabled
-				jsonConfig["Antimalware/RunScheduledScan"] = antimalwareConfig.ScheduledScanEnabled
-				jsonConfig["Antimalware/ScanType"] = antimalwareConfig.ScanType
-				jsonConfig["Antimalware/ScanDay"] = antimalwareConfig.ScanDay
-				jsonConfig["Antimalware/ScanTimeInMinutes"] = antimalwareConfig.ScanTimeInMinutes
-				if antimalwareConfig.Exclusions != nil && len(antimalwareConfig.Exclusions) > 0 {
-					jsonConfig["Antimalware/Exclusions/Extensions"] = antimalwareConfig.Exclusions[0].Extensions
-					jsonConfig["Antimalware/Exclusions/Paths"] = antimalwareConfig.Exclusions[0].Paths
-					jsonConfig["Antimalware/Exclusions/Processes"] = antimalwareConfig.Exclusions[0].Processes
-				}
-			}
-
-			if model.AutomationAccountEnabled {
-				jsonConfig["AutomationAccount/Enable"] = model.AutomationAccountEnabled
-			}
-
-			if model.BootDiagnosticsEnabled {
-				jsonConfig["BootDiagnostics/Enable"] = model.BootDiagnosticsEnabled
-			}
-
-			if model.DefenderForCloudEnabled {
-				jsonConfig["DefenderForCloud/Enable"] = model.DefenderForCloudEnabled
-			}
-
-			if model.GuestConfigurationEnabled {
-				jsonConfig["GuestConfiguration/Enable"] = model.GuestConfigurationEnabled
-			}
-
-			if model.StatusChangeAlertEnabled {
-				jsonConfig["Alerts/AutomanageStatusChanges/Enable"] = model.StatusChangeAlertEnabled
-			}
-
-			properties.Properties.Configuration = &jsonConfig
+			properties.Properties.Configuration = expandAutomanageConfigurationProfile(model)
 
 			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroup, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -289,51 +510,10 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			jsonConfig := make(map[string]interface{})
-
-			if model.Antimalware != nil && len(model.Antimalware) > 0 {
-				antimalwareConfig := model.Antimalware[0]
-				jsonConfig["Antimalware/Enable"] = true
-				jsonConfig["Antimalware/EnableRealTimeProtection"] = antimalwareConfig.RealTimeProtectionEnabled
-				jsonConfig["Antimalware/RunScheduledScan"] = antimalwareConfig.ScheduledScanEnabled
-				jsonConfig["Antimalware/ScanType"] = antimalwareConfig.ScanType
-				jsonConfig["Antimalware/ScanDay"] = antimalwareConfig.ScanDay
-				jsonConfig["Antimalware/ScanTimeInMinutes"] = antimalwareConfig.ScanTimeInMinutes
-				if antimalwareConfig.Exclusions != nil && len(antimalwareConfig.Exclusions) > 0 {
-					jsonConfig["Antimalware/Exclusions/Extensions"] = antimalwareConfig.Exclusions[0].Extensions
-					jsonConfig["Antimalware/Exclusions/Paths"] = antimalwareConfig.Exclusions[0].Paths
-					jsonConfig["Antimalware/Exclusions/Processes"] = antimalwareConfig.Exclusions[0].Processes
-				}
-			}
-
-			if metadata.ResourceData.HasChange("automation_account_enabled") {
-				jsonConfig["AutomationAccount/Enable"] = model.AutomationAccountEnabled
-			}
-
-			if metadata.ResourceData.HasChange("boot_diagnostics_enabled") {
-				jsonConfig["BootDiagnostics/Enable"] = model.BootDiagnosticsEnabled
-			}
-
-			if metadata.ResourceData.HasChange("defender_for_cloud_enabled") {
-				jsonConfig["DefenderForCloud/Enable"] = model.DefenderForCloudEnabled
-			}
-
-			if metadata.ResourceData.HasChange("guest_configuration_enabled") {
-				jsonConfig["GuestConfiguration/Enable"] = model.GuestConfigurationEnabled
-			}
-
-			if metadata.ResourceData.HasChange("status_change_alert_enabled") {
-				jsonConfig["Alerts/AutomanageStatusChanges/Enable"] = model.StatusChangeAlertEnabled
-			}
-
-			if metadata.ResourceData.HasChange("tags") {
-				resp.Tags = tags.FromTypedObject(model.Tags)
-			}
-
 			properties := automanage.ConfigurationProfile{
 				Location: utils.String(metadata.ResourceData.Get("location").(string)),
 				Properties: &automanage.ConfigurationProfileProperties{
-					Configuration: &jsonConfig,
+					Configuration: expandAutomanageConfigurationProfile(model),
 				},
 				Tags: resp.Tags,
 			}
@@ -377,6 +557,10 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 				configMap := resp.Properties.Configuration.(map[string]interface{})
 
 				state.Antimalware = flattenAntimarewareConfig(configMap)
+
+				state.AzureSecurityBaseline = flattenAzureSecurityBaselineConfig(configMap)
+
+				state.Backup = flattenBackupConfig(configMap)
 
 				if val, ok := configMap["AutomationAccount/Enable"]; ok {
 					state.AutomationAccountEnabled = val.(bool)
@@ -428,6 +612,117 @@ func (r AutoManageConfigurationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
+func expandAutomanageConfigurationProfile(model ConfigurationModel) *map[string]interface{} {
+	// building configuration profile in json format
+	jsonConfig := make(map[string]interface{})
+
+	if model.Antimalware != nil && len(model.Antimalware) > 0 {
+		antimalwareConfig := model.Antimalware[0]
+		jsonConfig["Antimalware/Enable"] = true
+		jsonConfig["Antimalware/EnableRealTimeProtection"] = antimalwareConfig.RealTimeProtectionEnabled
+		jsonConfig["Antimalware/RunScheduledScan"] = antimalwareConfig.ScheduledScanEnabled
+		jsonConfig["Antimalware/ScanType"] = antimalwareConfig.ScanType
+		jsonConfig["Antimalware/ScanDay"] = antimalwareConfig.ScanDay
+		jsonConfig["Antimalware/ScanTimeInMinutes"] = antimalwareConfig.ScanTimeInMinutes
+		if antimalwareConfig.Exclusions != nil && len(antimalwareConfig.Exclusions) > 0 {
+			jsonConfig["Antimalware/Exclusions/Extensions"] = antimalwareConfig.Exclusions[0].Extensions
+			jsonConfig["Antimalware/Exclusions/Paths"] = antimalwareConfig.Exclusions[0].Paths
+			jsonConfig["Antimalware/Exclusions/Processes"] = antimalwareConfig.Exclusions[0].Processes
+		}
+	}
+
+	if model.AzureSecurityBaseline != nil && len(model.AzureSecurityBaseline) > 0 {
+		azureSecurityBaselineConfig := model.AzureSecurityBaseline[0]
+		jsonConfig["AzureSecurityBaseline/Enable"] = true
+		jsonConfig["AzureSecurityBaseline/AssignmentType"] = azureSecurityBaselineConfig.AssignmentType
+	}
+
+	//"Backup/Enable": boolean, true if block exists
+	//"Backup/PolicyName": string (length 3 - 150, begin with alphanumeric char, only contain alphanumeric chars and hyphens),
+	//"Backup/TimeZone": timezone,
+	//"Backup/InstantRpRetentionRangeInDays": int (1 - 5 if ScheduleRunFrequency is Daily, 5 if ScheduleRunFrequency is Weekly),
+	//"Backup/SchedulePolicy/ScheduleRunFrequency": string ("Daily", "Weekly"),
+	//"Backup/SchedulePolicy/ScheduleRunTimes": list of DateTime,
+	//"Backup/SchedulePolicy/ScheduleRunDays": list of strings (["Sunday", "Monday", "Wednesday", "Thursday", "Friday", "Saturday"]),
+	//"Backup/SchedulePolicy/SchedulePolicyType": string ("SimpleSchedulePolicy"),
+	//"Backup/RetentionPolicy/RetentionPolicyType": string ("LongTermRetentionPolicy"),
+	//"Backup/RetentionPolicy/DailySchedule/RetentionTimes": list of DateTime,
+	//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count": int (7 - 9999),
+	//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType": string ("Days"),
+	//"Backup/RetentionPolicy/WeeklySchedule/RetentionTimes":, list of DateTime
+	//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count":, int (1 - 5163)
+	//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType": string ("Weeks"),
+	if model.Backup != nil && len(model.Backup) > 0 {
+		backupConfig := model.Backup[0]
+		jsonConfig["Backup/Enable"] = true
+		if backupConfig.PolicyName != "" {
+			jsonConfig["Backup/PolicyName"] = backupConfig.PolicyName
+		}
+		jsonConfig["Backup/TimeZone"] = backupConfig.TimeZone
+		jsonConfig["Backup/InstantRpRetentionRangeInDays"] = backupConfig.InstantRpRetentionRangeInDays
+		if backupConfig.SchedulePolicy != nil && len(backupConfig.SchedulePolicy) > 0 {
+			schedulePolicyConfig := backupConfig.SchedulePolicy[0]
+			jsonConfig["Backup/SchedulePolicy/ScheduleRunFrequency"] = schedulePolicyConfig.ScheduleRunFrequency
+			if schedulePolicyConfig.ScheduleRunTimes != nil && len(schedulePolicyConfig.ScheduleRunTimes) > 0 {
+				jsonConfig["Backup/SchedulePolicy/ScheduleRunTimes"] = schedulePolicyConfig.ScheduleRunTimes
+			}
+			if schedulePolicyConfig.ScheduleRunDays != nil && len(schedulePolicyConfig.ScheduleRunDays) > 0 {
+				jsonConfig["Backup/SchedulePolicy/ScheduleRunDays"] = schedulePolicyConfig.ScheduleRunDays
+			}
+			jsonConfig["Backup/SchedulePolicy/SchedulePolicyType"] = schedulePolicyConfig.SchedulePolicyType
+		}
+
+		if backupConfig.RetentionPolicy != nil && len(backupConfig.RetentionPolicy) > 0 {
+			retentionPolicyConfig := backupConfig.RetentionPolicy[0]
+			jsonConfig["Backup/RetentionPolicy/RetentionPolicyType"] = retentionPolicyConfig.RetentionPolicyType
+			if retentionPolicyConfig.DailySchedule != nil && len(retentionPolicyConfig.DailySchedule) > 0 {
+				dailyScheduleConfig := retentionPolicyConfig.DailySchedule[0]
+				if dailyScheduleConfig.RetentionTimes != nil && len(dailyScheduleConfig.RetentionTimes) > 0 {
+					jsonConfig["Backup/RetentionPolicy/DailySchedule/RetentionTimes"] = dailyScheduleConfig.RetentionTimes
+				}
+
+				if dailyScheduleConfig.RetentionDuration != nil && len(dailyScheduleConfig.RetentionDuration) > 0 {
+					jsonConfig["Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count"] = dailyScheduleConfig.RetentionDuration[0].Count
+					jsonConfig["Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType"] = dailyScheduleConfig.RetentionDuration[0].DurationType
+				}
+			}
+
+			if retentionPolicyConfig.WeeklySchedule != nil && len(retentionPolicyConfig.WeeklySchedule) > 0 {
+				weeklyScheduleConfig := retentionPolicyConfig.WeeklySchedule[0]
+				if weeklyScheduleConfig.RetentionTimes != nil && len(weeklyScheduleConfig.RetentionTimes) > 0 {
+					jsonConfig["Backup/RetentionPolicy/WeeklySchedule/RetentionTimes"] = weeklyScheduleConfig.RetentionTimes
+				}
+
+				if weeklyScheduleConfig.RetentionDuration != nil && len(weeklyScheduleConfig.RetentionDuration) > 0 {
+					jsonConfig["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count"] = weeklyScheduleConfig.RetentionDuration[0].Count
+					jsonConfig["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType"] = weeklyScheduleConfig.RetentionDuration[0].DurationType
+				}
+			}
+		}
+	}
+
+	if model.AutomationAccountEnabled {
+		jsonConfig["AutomationAccount/Enable"] = model.AutomationAccountEnabled
+	}
+
+	if model.BootDiagnosticsEnabled {
+		jsonConfig["BootDiagnostics/Enable"] = model.BootDiagnosticsEnabled
+	}
+
+	if model.DefenderForCloudEnabled {
+		jsonConfig["DefenderForCloud/Enable"] = model.DefenderForCloudEnabled
+	}
+
+	if model.GuestConfigurationEnabled {
+		jsonConfig["GuestConfiguration/Enable"] = model.GuestConfigurationEnabled
+	}
+
+	if model.StatusChangeAlertEnabled {
+		jsonConfig["Alerts/AutomanageStatusChanges/Enable"] = model.StatusChangeAlertEnabled
+	}
+	return &jsonConfig
+}
+
 func flattenAntimarewareConfig(configMap map[string]interface{}) []AntimalwareConfiguration {
 	if val, ok := configMap["Antimalware/Enable"]; !ok || (val == nil) {
 		return nil
@@ -470,4 +765,122 @@ func flattenAntimarewareConfig(configMap map[string]interface{}) []AntimalwareCo
 	}
 
 	return antimalware
+}
+
+func flattenAzureSecurityBaselineConfig(configMap map[string]interface{}) []AzureSecurityBaselineConfiguration {
+	if val, ok := configMap["AzureSecurityBaseline/Enable"]; !ok || (val == nil) {
+		return nil
+	}
+
+	azureSecurityBaseline := make([]AzureSecurityBaselineConfiguration, 1)
+	azureSecurityBaseline[0] = AzureSecurityBaselineConfiguration{}
+
+	if val, ok := configMap["AzureSecurityBaseline/AssignmentType"]; ok {
+		azureSecurityBaseline[0].AssignmentType = val.(string)
+	}
+
+	return azureSecurityBaseline
+}
+
+// "Backup/Enable": boolean, true if block exists
+// "Backup/PolicyName": string (length 3 - 150, begin with alphanumeric char, only contain alphanumeric chars and hyphens),
+// "Backup/TimeZone": timezone,
+// "Backup/InstantRpRetentionRangeInDays": int (1 - 5 if ScheduleRunFrequency is Daily, 5 if ScheduleRunFrequency is Weekly),
+// "Backup/SchedulePolicy/ScheduleRunFrequency": string ("Daily", "Weekly"),
+// "Backup/SchedulePolicy/ScheduleRunTimes": list of DateTime,
+// "Backup/SchedulePolicy/ScheduleRunDays": list of strings (["Sunday", "Monday", "Wednesday", "Thursday", "Friday", "Saturday"]),
+// "Backup/SchedulePolicy/SchedulePolicyType": string ("SimpleSchedulePolicy"),
+// "Backup/RetentionPolicy/RetentionPolicyType": string ("LongTermRetentionPolicy"),
+// "Backup/RetentionPolicy/DailySchedule/RetentionTimes": list of DateTime,
+// "Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count": int (7 - 9999),
+// "Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType": string ("Days"),
+// "Backup/RetentionPolicy/WeeklySchedule/RetentionTimes":, list of DateTime
+// "Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count":, int (1 - 5163)
+// "Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType": string ("Weeks"),
+func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration {
+	if val, ok := configMap["Backup/Enable"]; !ok || (val == nil) {
+		return nil
+	}
+
+	backup := make([]BackupConfiguration, 1)
+	backup[0] = BackupConfiguration{}
+
+	if val, ok := configMap["Backup/PolicyName"]; ok {
+		backup[0].PolicyName = val.(string)
+	}
+
+	if val, ok := configMap["Backup/TimeZone"]; ok {
+		backup[0].TimeZone = val.(string)
+	}
+
+	if val, ok := configMap["Backup/InstantRpRetentionRangeInDays"]; ok {
+		backup[0].InstantRpRetentionRangeInDays = int(val.(float64))
+	}
+
+	backup[0].SchedulePolicy = make([]SchedulePolicyConfiguration, 1)
+	backup[0].SchedulePolicy[0] = SchedulePolicyConfiguration{}
+	if val, ok := configMap["Backup/SchedulePolicy/ScheduleRunFrequency"]; ok {
+		backup[0].SchedulePolicy[0].ScheduleRunFrequency = val.(string)
+	}
+
+	if val, ok := configMap["Backup/SchedulePolicy/ScheduleRunTimes"]; ok {
+		backup[0].SchedulePolicy[0].ScheduleRunTimes = flattenToListOfString(val)
+	}
+
+	if val, ok := configMap["Backup/SchedulePolicy/ScheduleRunDays"]; ok {
+		backup[0].SchedulePolicy[0].ScheduleRunDays = flattenToListOfString(val)
+	}
+
+	if val, ok := configMap["Backup/SchedulePolicy/SchedulePolicyType"]; ok {
+		backup[0].SchedulePolicy[0].SchedulePolicyType = val.(string)
+	}
+
+	backup[0].RetentionPolicy = make([]RetentionPolicyConfiguration, 1)
+	backup[0].RetentionPolicy[0] = RetentionPolicyConfiguration{}
+	if val, ok := configMap["Backup/RetentionPolicy/RetentionPolicyType"]; ok {
+		backup[0].RetentionPolicy[0].RetentionPolicyType = val.(string)
+	}
+
+	backup[0].RetentionPolicy[0].DailySchedule = make([]ScheduleConfiguration, 1)
+	backup[0].RetentionPolicy[0].DailySchedule[0] = ScheduleConfiguration{}
+	if val, ok := configMap["Backup/RetentionPolicy/DailySchedule/RetentionTimes"]; ok {
+		backup[0].RetentionPolicy[0].DailySchedule[0].RetentionTimes = flattenToListOfString(val)
+	}
+
+	backup[0].RetentionPolicy[0].DailySchedule[0].RetentionDuration = make([]RetentionDurationConfiguration, 1)
+	backup[0].RetentionPolicy[0].DailySchedule[0].RetentionDuration[0] = RetentionDurationConfiguration{}
+	if val, ok := configMap["Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count"]; ok {
+		backup[0].RetentionPolicy[0].DailySchedule[0].RetentionDuration[0].Count = int(val.(float64))
+	}
+
+	if val, ok := configMap["Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType"]; ok {
+		backup[0].RetentionPolicy[0].DailySchedule[0].RetentionDuration[0].DurationType = val.(string)
+	}
+
+	backup[0].RetentionPolicy[0].WeeklySchedule = make([]ScheduleConfiguration, 1)
+	backup[0].RetentionPolicy[0].WeeklySchedule[0] = ScheduleConfiguration{}
+	if val, ok := configMap["Backup/RetentionPolicy/WeeklySchedule/RetentionTimes"]; ok {
+		backup[0].RetentionPolicy[0].WeeklySchedule[0].RetentionTimes = flattenToListOfString(val)
+	}
+
+	backup[0].RetentionPolicy[0].WeeklySchedule[0].RetentionDuration = make([]RetentionDurationConfiguration, 1)
+	backup[0].RetentionPolicy[0].WeeklySchedule[0].RetentionDuration[0] = RetentionDurationConfiguration{}
+	if val, ok := configMap["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count"]; ok {
+		backup[0].RetentionPolicy[0].WeeklySchedule[0].RetentionDuration[0].Count = int(val.(float64))
+	}
+
+	if val, ok := configMap["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType"]; ok {
+		backup[0].RetentionPolicy[0].WeeklySchedule[0].RetentionDuration[0].DurationType = val.(string)
+	}
+
+	return backup
+}
+
+func flattenToListOfString(val interface{}) []string {
+	lis := val.([]interface{})
+	strs := make([]string, len(lis))
+	for i, v := range lis {
+		strs[i] = v.(string)
+	}
+	return strs
 }
