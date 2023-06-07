@@ -31,7 +31,7 @@ type AutoHealRequestTrigger struct {
 type AutoHealStatusCodeTrigger struct {
 	StatusCodeRange string `tfschema:"status_code_range"` // Conflicts with `StatusCode`, `Win32Code`, and `SubStatus` when not a single value...
 	SubStatus       int    `tfschema:"sub_status"`
-	Win32Status     string `tfschema:"win32_status"`
+	Win32Status     int    `tfschema:"win32_status"`
 	Path            string `tfschema:"path"`
 	Count           int    `tfschema:"count"`
 	Interval        string `tfschema:"interval"` // Format - hh:mm:ss
@@ -238,7 +238,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							},
 
 							"win32_status": {
-								Type:     pluginsdk.TypeString,
+								Type:     pluginsdk.TypeInt,
 								Optional: true,
 							},
 
@@ -343,7 +343,7 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 							},
 
 							"win32_status": {
-								Type:     pluginsdk.TypeString,
+								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},
 
@@ -447,6 +447,12 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 				if s.Path != "" {
 					statusCodeTrigger.Path = pointer.To(s.Path)
 				}
+				if s.SubStatus != 0 {
+					statusCodeTrigger.SubStatus = pointer.To(int32(s.SubStatus))
+				}
+				if s.Win32Status != 0 {
+					statusCodeTrigger.Win32Status = pointer.To(int32(s.Win32Status))
+				}
 				statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 			}
 		}
@@ -511,6 +517,10 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 
 				if s.SubStatus != nil {
 					t.SubStatus = int(*s.SubStatus)
+				}
+
+				if s.Win32Status != nil {
+					t.Win32Status = int(pointer.From(s.Win32Status))
 				}
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}
