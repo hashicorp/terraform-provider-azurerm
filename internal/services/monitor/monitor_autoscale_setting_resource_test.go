@@ -567,7 +567,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       minutes = [0]
     }
   }
-
 }
 `, template, data.RandomInteger)
 }
@@ -613,7 +612,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       }
     }
   }
-
 }
 `, template, data.RandomInteger, defaultVal, min, max)
 }
@@ -681,7 +679,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       }
     }
   }
-
 }
 `, template, data.RandomInteger)
 }
@@ -734,7 +731,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       custom_emails                         = ["acctest1-%d@example.com"]
     }
   }
-
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -787,7 +783,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       custom_emails                         = ["acctest1-%d@example.com", "acctest2-%d@example.com"]
     }
   }
-
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -832,7 +827,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       send_to_subscription_co_administrator = false
     }
   }
-
 }
 `, template, data.RandomInteger)
 }
@@ -877,7 +871,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       send_to_subscription_co_administrator = false
     }
   }
-
 }
 `, template, data.RandomInteger)
 }
@@ -908,7 +901,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       end      = "2020-06-18T23:59:59Z"
     }
   }
-
 }
 `, template, data.RandomInteger)
 }
@@ -982,7 +974,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       }
     }
   }
-
 }
 `, template, data.RandomInteger)
 }
@@ -1061,7 +1052,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       }
     }
   }
-
 }
 `, template, data.RandomInteger)
 }
