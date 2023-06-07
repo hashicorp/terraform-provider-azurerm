@@ -141,6 +141,11 @@ func resourceNetworkInterfaceSecurityGroupAssociationRead(d *pluginsdk.ResourceD
 		return err
 	}
 
+	nsgID, err := parse.NetworkSecurityGroupID(splitId[1])
+	if err != nil {
+		return err
+	}
+
 	read, err := client.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
@@ -165,8 +170,11 @@ func resourceNetworkInterfaceSecurityGroupAssociationRead(d *pluginsdk.ResourceD
 
 	d.Set("network_interface_id", read.ID)
 
-	// nil-checked above
-	d.Set("network_security_group_id", props.NetworkSecurityGroup.ID)
+	if strings.EqualFold(nsgID.ID(), *props.NetworkSecurityGroup.ID) {
+		d.Set("network_security_group_id", nsgID.ID())
+	} else {
+		d.Set("network_security_group_id", props.NetworkSecurityGroup.ID)
+	}
 
 	return nil
 }
