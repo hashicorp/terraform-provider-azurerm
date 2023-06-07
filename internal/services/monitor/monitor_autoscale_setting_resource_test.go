@@ -386,9 +386,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
       }
     }
   }
-  predictive {
-    scale_mode = "Disabled"
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -432,9 +429,6 @@ resource "azurerm_monitor_autoscale_setting" "import" {
         cooldown  = "PT1M"
       }
     }
-  }
-  predictive {
-    scale_mode = "Disabled"
   }
 }
 `, template)
@@ -574,9 +568,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 
-  predictive {
-    scale_mode = "Disabled"
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -623,9 +614,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 
-  predictive {
-    scale_mode = "Disabled"
-  }
 }
 `, template, data.RandomInteger, defaultVal, min, max)
 }
@@ -694,9 +682,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 
-  predictive {
-    scale_mode = "Disabled"
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -750,9 +735,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 
-  predictive {
-    scale_mode = "Disabled"
-  }
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -806,9 +788,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 
-  predictive {
-    scale_mode = "Disabled"
-  }
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -854,9 +833,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 
-  predictive {
-    scale_mode = "Disabled"
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -902,9 +878,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 
-  predictive {
-    scale_mode = "Disabled"
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -936,9 +909,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 
-  predictive {
-    scale_mode = "Disabled"
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -1013,9 +983,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 
-  predictive {
-    scale_mode = "Disabled"
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -1095,9 +1062,6 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     }
   }
 
-  predictive {
-    scale_mode = "Disabled"
-  }
 }
 `, template, data.RandomInteger)
 }

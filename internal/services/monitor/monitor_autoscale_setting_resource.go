@@ -81,9 +81,13 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"scale_mode": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForPredictiveAutoscalePolicyScaleMode(), false),
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							// Disabled is not exposed, omission of this block to mean disabled
+							ValidateFunc: validation.StringInSlice([]string{
+								string(autoscalesettings.PredictiveAutoscalePolicyScaleModeEnabled),
+								string(autoscalesettings.PredictiveAutoscalePolicyScaleModeForecastOnly),
+							}, false),
 						},
 
 						"look_ahead_time": {
@@ -853,6 +857,11 @@ func flattenAzureRmMonitorAutoScaleSettingProfile(profiles []autoscalesettings.A
 
 func flattenAzureRmMonitorAutoScaleSettingPredictive(input *autoscalesettings.PredictiveAutoscalePolicy) []interface{} {
 	if input == nil {
+		return []interface{}{}
+	}
+
+	// omit the block if disabled
+	if input.ScaleMode == autoscalesettings.PredictiveAutoscalePolicyScaleModeDisabled {
 		return []interface{}{}
 	}
 
