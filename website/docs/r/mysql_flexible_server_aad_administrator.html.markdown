@@ -28,6 +28,11 @@ resource "azurerm_mysql_flexible_server" "example" {
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
   zone                   = "2"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.example.id]
+  }
 }
 
 resource "azurerm_user_assigned_identity" "example" {
