@@ -93,11 +93,6 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"resource_manager_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"metadata": MetaDataSchema(),
 		},
 	}
@@ -324,9 +319,6 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("content_length", int(*props.ContentLength))
-
-	resourceManagerId := parse.NewStorageShareFileResourceManagerID(storageClient.SubscriptionId, account.ResourceGroup, id.AccountName, "default", id.ShareName)
-	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil
 }

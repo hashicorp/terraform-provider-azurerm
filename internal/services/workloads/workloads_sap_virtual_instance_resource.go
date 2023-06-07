@@ -569,7 +569,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
-												ValidateFunc: storageValidate.StorageShareFileResourceManagerID,
+												ValidateFunc: storageValidate.StorageShareResourceManagerID,
 											},
 
 											"private_endpoint_id": {
