@@ -254,20 +254,23 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	deletedConfigurationStoresId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, location, name)
-	deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
-	if err != nil {
-		if !response.WasNotFound(deleted.HttpResponse) {
-			return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
-		}
-	}
 
 	recoverSoftDeleted := false
-	if !response.WasNotFound(deleted.HttpResponse) && !response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
-		if !meta.(*clients.Client).Features.AppConfiguration.RecoverSoftDeleted {
-			return fmt.Errorf(optedOutOfRecoveringSoftDeletedAppConfigurationErrorFmt(name, location))
+	if meta.(*clients.Client).Features.AppConfiguration.RecoverSoftDeleted {
+		deletedConfigurationStoresId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, location, name)
+		deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
+		if err != nil {
+			if response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
+				return fmt.Errorf(userIsMissingNecessaryPermission(name, location))
+			}
+			if !response.WasNotFound(deleted.HttpResponse) {
+				return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
+			}
+			// if the soft deleted is not found, skip the recovering
+		} else {
+			log.Printf("[DEBUG] Soft Deleted App Configuration exists, marked for recover")
+			recoverSoftDeleted = true
 		}
-		recoverSoftDeleted = true
 	}
 
 	parameters := configurationstores.ConfigurationStore{
@@ -555,7 +558,7 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		if purgeProtectionEnabled {
 			deletedInfo, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedId)
 			if err != nil {
-				return fmt.Errorf("retrieving the Deletion Details for %s: %+v", *id, err)
+				return fmt.Errorf("while purging the soft-deleted, retrieving the Deletion Details for %s: %+v", *id, err)
 			}
 
 			if deletedInfo.Model != nil && deletedInfo.Model.Properties != nil && deletedInfo.Model.Properties.DeletionDate != nil && deletedInfo.Model.Properties.ScheduledPurgeDate != nil {
@@ -722,22 +725,6 @@ func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interf
 	}
 }
 
-func optedOutOfRecoveringSoftDeletedAppConfigurationErrorFmt(name, location string) string {
-	return fmt.Sprintf(`
-An existing soft-deleted App Configuration exists with the Name %q in the location %q, however
-automatically recovering this App Configuration has been disabled via the "features" block.
-
-Terraform can automatically recover the soft-deleted App Configuration when this behaviour is
-enabled within the "features" block (located within the "provider" block) - more information
-can be found here:
-
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
-
-Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
-this into Terraform via "terraform import", or pick a different name/location.
-`, name, location)
-}
-
 func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAccess {
 	vals := map[string]configurationstores.PublicNetworkAccess{
 		"disabled": configurationstores.PublicNetworkAccessDisabled,
@@ -750,6 +737,16 @@ func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAc
 	// otherwise presume it's an undefined value and best-effort it
 	out := configurationstores.PublicNetworkAccess(input)
 	return &out
+}
+
+func userIsMissingNecessaryPermission(name, location string) string {
+	return fmt.Sprintf(`
+An existing soft-deleted App Configuration exists with the Name %q in the location %q, however
+the credentials Terraform is using has insufficient permissions to check for an existing soft-deleted App Configuration.
+You can opt out of this behaviour by using the "features" block (located within the "provider" block) - more information
+can be found here:
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+`, name, location)
 }
 
 func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) error {
