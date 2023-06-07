@@ -136,6 +136,7 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(2),
+				Default:      2,
 			},
 		},
 	}
