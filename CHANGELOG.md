@@ -9,6 +9,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_hdinsight_interactive_query_cluster`: deprecating `*_node.0.autoscale.0.capacity` [GH-21981]
+* `azurerm_sentinel_data_connector_microsoft_threat_intelligence`: deprecate `bing_safety_phishing_url_lookback_date` [GH-21954]
 
 ## 3.59.0 (June 01, 2023)
 
