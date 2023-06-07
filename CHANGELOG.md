@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * provider: adding the `client_id_file_path` and `client_secret_file_path` provider properties [GH-21764]
+* `data.azurerm_key_vault_encrypted_value`: add support for `decoded_plain_text_value` [GH-21682]
 * `azurerm_app_configuration` - support toggling of user permission error on soft deleted stores through `app_configuration.recover_soft_deleted` feature flag
 * `azurerm_backup_policy_file_share` - support for day-based retention policies and hourly backups [GH-21529]
 * `azurerm_spring_cloud_service` - support for the `container_registry` block [GH-22017]
