@@ -2338,37 +2338,6 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, dotNetVersion)
 }
 
-func (r WindowsWebAppResource) dockerMCR(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_windows_web_app" "test" {
-  name                = "acctestWA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://mcr.microsoft.com"
-    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
-    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-  }
-
-  site_config {
-    application_stack {
-      docker_container_name = "windows-cssc/python3.7servercore"
-      docker_container_tag  = "ltsc2022"
-    }
-  }
-}
-`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger)
-}
-
 func (r WindowsWebAppResource) dockerHub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2674,17 +2643,17 @@ resource "azurerm_windows_web_app" "test" {
     auto_heal_setting {
       trigger {
         status_code {
-          count = 1
+          count             = 1
           status_code_range = 500
-          sub_status = 37
-          interval = "00:01:00"
+          sub_status        = 37
+          interval          = "00:01:00"
         }
         status_code {
-         count = 1
-         status_code_range = 500
-         sub_status = 30
-         win32_status = 0
-         interval = "00:10:00"
+          count             = 1
+          status_code_range = 500
+          sub_status        = 30
+          win32_status      = 0
+          interval          = "00:10:00"
         }
       }
       action {
@@ -2716,18 +2685,18 @@ resource "azurerm_windows_web_app" "test" {
     auto_heal_setting {
       trigger {
         status_code {
-          count = 4
-          interval = "00:10:00"
+          count             = 4
+          interval          = "00:10:00"
           status_code_range = "403"
         }
         status_code {
-          count = 4
-          interval = "00:20:00"
+          count             = 4
+          interval          = "00:20:00"
           status_code_range = "500-599"
         }
         status_code {
-          count = 4
-          interval = "00:12:00"
+          count             = 4
+          interval          = "00:12:00"
           status_code_range = "400-401"
         }
       }

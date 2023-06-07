@@ -1860,35 +1860,6 @@ resource "azurerm_windows_web_app_slot" "test" {
 `, r.premiumV3PlanContainerTemplateDocker(data), data.RandomInteger)
 }
 
-func (r WindowsWebAppSlotResource) dockerMCR(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_windows_web_app_slot" "test" {
-  name           = "acctestWAS-%d"
-  app_service_id = azurerm_windows_web_app.test.id
-
-  app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://mcr.microsoft.com"
-    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
-    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-  }
-
-  site_config {
-    application_stack {
-      docker_container_name = "windows-cssc/python3.7servercore"
-      docker_container_tag  = "ltsc2022"
-    }
-  }
-}
-`, r.premiumV3PlanContainerTemplate(data), data.RandomInteger)
-}
-
 func (r WindowsWebAppSlotResource) dockerImageName(data acceptance.TestData, registryUrl, containerImage string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
