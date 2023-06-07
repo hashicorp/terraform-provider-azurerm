@@ -97,7 +97,7 @@ func (r UserAssignedIdentityTestResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.ManagedIdentity.ManagedIdentities.UserAssignedIdentitiesGet(ctx, *id)
+	resp, err := clients.ManagedIdentity.V20220131Preview.ManagedIdentities.UserAssignedIdentitiesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -125,9 +125,9 @@ func (r UserAssignedIdentityTestResource) requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_user_assigned_identity" "import" {
-  resource_group_name = azurerm_user_assigned_identity.test.resource_group_name
   name                = azurerm_user_assigned_identity.test.name
   location            = azurerm_user_assigned_identity.test.location
+  resource_group_name = azurerm_user_assigned_identity.test.resource_group_name
 }
 `, r.basic(data))
 }

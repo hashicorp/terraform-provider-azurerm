@@ -74,7 +74,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.LoadTests
+			client := metadata.Client.LoadTestService.V20211201Preview.LoadTests
 
 			var config LoadTestResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -112,7 +112,7 @@ func (r LoadTestResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.LoadTests
+			client := metadata.Client.LoadTestService.V20211201Preview.LoadTests
 			schema := LoadTestResourceSchema{}
 
 			id, err := loadtests.ParseLoadTestID(metadata.ResourceData.Id())
@@ -144,7 +144,7 @@ func (r LoadTestResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.LoadTests
+			client := metadata.Client.LoadTestService.V20211201Preview.LoadTests
 
 			id, err := loadtests.ParseLoadTestID(metadata.ResourceData.Id())
 			if err != nil {
@@ -163,7 +163,7 @@ func (r LoadTestResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.LoadTests
+			client := metadata.Client.LoadTestService.V20211201Preview.LoadTests
 
 			id, err := loadtests.ParseLoadTestID(metadata.ResourceData.Id())
 			if err != nil {

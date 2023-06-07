@@ -97,7 +97,7 @@ func (r LoadTestTestResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, err
 	}
 
-	resp, err := clients.LoadTestService.LoadTests.Get(ctx, *id)
+	resp, err := clients.LoadTestService.V20211201Preview.LoadTests.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
