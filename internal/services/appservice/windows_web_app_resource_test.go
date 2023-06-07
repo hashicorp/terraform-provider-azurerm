@@ -1151,6 +1151,7 @@ func TestAccWindowsWebApp_withAutoHealRulesStatusCodeRange(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccWindowsWebApp_withAutoHealRulesSubStatus(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
@@ -1158,6 +1159,21 @@ func TestAccWindowsWebApp_withAutoHealRulesSubStatus(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoHealRulesSubStatus(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebApp_withAutoHealRulesMultiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoHealRulesMultipleRules(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2669,6 +2685,50 @@ resource "azurerm_windows_web_app" "test" {
          sub_status = 30
          win32_status = 0
          interval = "00:10:00"
+        }
+      }
+      action {
+        action_type = "Recycle"
+      }
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) autoHealRulesMultipleRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    auto_heal_enabled = true
+
+    auto_heal_setting {
+      trigger {
+        status_code {
+          count = 4
+          interval = "00:10:00"
+          status_code_range = "403"
+        }
+        status_code {
+          count = 4
+          interval = "00:20:00"
+          status_code_range = "500-599"
+        }
+        status_code {
+          count = 4
+          interval = "00:12:00"
+          status_code_range = "400-401"
         }
       }
       action {
