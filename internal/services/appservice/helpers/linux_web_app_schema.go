@@ -579,7 +579,7 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 							},
 
 							"win32_status": {
-								Type:         pluginsdk.TypeString,
+								Type:         pluginsdk.TypeInt,
 								Optional:     true,
 								ValidateFunc: nil, // TODO - no docs on this, needs investigation
 							},
@@ -680,7 +680,7 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 							},
 
 							"win32_status": {
-								Type:     pluginsdk.TypeString,
+								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},
 
