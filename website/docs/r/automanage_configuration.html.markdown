@@ -37,7 +37,45 @@ resource "azurerm_automanage_configuration" "example" {
     scheduled_scan_time_in_minutes = 1339
   }
 
-  automation_account_enabled  = true
+  azure_security_baseline {
+    assignment_type = "ApplyAndAutoCorrect"
+  }
+
+  automation_account_enabled = true
+
+  backup {
+    policy_name                        = "acctest-backup-policy-%d"
+    time_zone                          = "UTC"
+    instant_rp_retention_range_in_days = 2
+
+    schedule_policy {
+      schedule_run_frequency = "Daily"
+      schedule_run_days      = ["Monday", "Tuesday"]
+      schedule_run_times     = ["12:00"]
+      schedule_policy_type   = "SimpleSchedulePolicy"
+    }
+
+    retention_policy {
+      retention_policy_type = "LongTermRetentionPolicy"
+
+      daily_schedule {
+        retention_times = ["12:00"]
+        retention_duration {
+          count         = 7
+          duration_type = "Days"
+        }
+      }
+
+      weekly_schedule {
+        retention_times = ["14:00"]
+        retention_duration {
+          count         = 4
+          duration_type = "Weeks"
+        }
+      }
+    }
+  }
+
   boot_diagnostics_enabled    = true
   defender_for_cloud_enabled  = true
   guest_configuration_enabled = true
@@ -61,6 +99,10 @@ The following arguments are supported:
 
 * `antimalware` - (Optional) A `antimalware` block as defined below.
 
+* `azure_security_baseline` - (Optional) A `azure_security_baseline` block as defined below.
+
+* `backup` - (Optional) A `backup` block as defined below.
+
 * `automation_account_enabled` - (Optional) Whether the automation account is enabled. Defaults to `false`.
 
 * `boot_diagnostics_enabled` - (Optional) Whether the boot diagnostics are enabled. Defaults to `false`.
@@ -70,6 +112,8 @@ The following arguments are supported:
 * `guest_configuration_enabled` - (Optional) Whether the guest configuration is enabled. Defaults to `false`.
 
 * `status_change_alert_enabled` - (Optional) Whether the status change alert is enabled. Defaults to `false`.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -97,8 +141,73 @@ The following arguments are supported:
 
 * `processes` - (Optional) The processes to exclude from the antimalware scan, separated by `;`. For example `svchost.exe;notepad.exe`.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Automanage Configuration.
+---
 
+* `azure_security_baseline` supports the following:
+
+* `assignment_type` - (Optional) The assignment type of the azure security baseline. Possible values are `ApplyAndAutoCorrect`, `ApplyAndMonitor`, `Audit` and `DeployAndAutoCorrect`. Defaults to `ApplyAndAutoCorrect`.
+
+---
+
+* `backup` supports the following:
+
+* `policy_name` - (Optional) The name of the backup policy.
+
+* `time_zone` - (Optional) The timezone of the backup policy. Defaults to `UTC`.
+
+* `instant_rp_retention_range_in_days` - (Optional) The retention range in days of the backup policy. Defaults to `5`.
+
+* `schedule_policy` - (Optional) A `schedule_policy` block as defined below.
+
+* `retention_policy` - (Optional) A `retention_policy` block as defined below.
+
+---
+
+* `schedule_policy` supports the following:
+
+* `schedule_run_frequency` - (Optional) The schedule run frequency of the backup policy. Possible values are `Daily` and `Weekly`. Defaults to `Daily`.
+
+* `schedule_run_times` - (Optional) The schedule run times of the backup policy.
+
+* `schedule_run_days` - (Optional) The schedule run days of the backup policy. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
+
+* `schedule_policy_type` - (Optional) The schedule policy type of the backup policy. Possible value is `SimpleSchedulePolicy`.
+
+---
+
+* `retention_policy` supports the following:
+
+* `retention_policy_type` - (Optional) The retention policy type of the backup policy. Possible value is `LongTermRetentionPolicy`.
+
+* `daily_schedule` - (Optional) A `daily_schedule` block as defined below.
+
+* `weekly_schedule` - (Optional) A `weekly_schedule` block as defined below.
+
+---
+
+* `daily_schedule` supports the following:
+
+* `retention_times` - (Optional) The retention times of the backup policy.
+
+* `retention_duration` - (Optional) A `retention_duration` block as defined below.
+
+---
+
+* `weekly_schedule` supports the following:
+
+* `retention_times` - (Optional) The retention times of the backup policy.
+
+* `retention_duration` - (Optional) A `retention_duration` block as defined below.
+
+---
+
+* `retention_duration` supports the following:
+
+* `count` - (Optional) The count of the retention duration of the backup policy. Valid value inside `daily_schedule` is `7` to `9999` and inside `weekly_schedule` is `1` to `5163`.
+
+* `duration_type` - (Optional) The duration type of the retention duration of the backup policy. Valid value inside `daily_schedule` is `Days` and inside `weekly_schedule` is `Weeks`.
+
+---
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

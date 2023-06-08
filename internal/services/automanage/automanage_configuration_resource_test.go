@@ -40,9 +40,6 @@ func TestAccAutoManageConfigurationProfile_antimalware(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("antimalware.#").HasValue("1"),
 				check.That(data.ResourceName).Key("antimalware.0.exclusions.#").HasValue("1"),
-				check.That(data.ResourceName).Key("antimalware.0.exclusions.0.extensions").HasValue("exe;dll"),
-				check.That(data.ResourceName).Key("antimalware.0.real_time_protection_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("automation_account_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -52,6 +49,39 @@ func TestAccAutoManageConfigurationProfile_antimalware(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("antimalware.#").HasValue("0"),
 				check.That(data.ResourceName).Key("automation_account_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAutoManageConfigurationProfile_azureSecurityBaseline(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
+	r := AutoManageConfigurationProfileResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureSecurityBaseline(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("azure_security_baseline.#").HasValue("1"),
+				check.That(data.ResourceName).Key("azure_security_baseline.0.assignment_type").HasValue("ApplyAndAutoCorrect"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.azureSecurityBaselineUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("azure_security_baseline.#").HasValue("1"),
+				check.That(data.ResourceName).Key("azure_security_baseline.0.assignment_type").HasValue("DeployAndAutoCorrect"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("azure_security_baseline.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -69,6 +99,80 @@ func TestAccAutoManageConfigurationProfile_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccAutoManageConfigurationProfile_backup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
+	r := AutoManageConfigurationProfileResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.backup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.policy_name").Exists(),
+				check.That(data.ResourceName).Key("backup.0.time_zone").HasValue("UTC"),
+				check.That(data.ResourceName).Key("backup.0.instant_rp_retention_range_in_days").HasValue("2"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_run_frequency").HasValue("Daily"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_run_days.#").HasValue("2"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_run_days.0").HasValue("Monday"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_run_days.1").HasValue("Tuesday"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_run_times.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_run_times.0").HasValue("12:00"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_policy_type").HasValue("SimpleSchedulePolicy"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.retention_policy_type").HasValue("LongTermRetentionPolicy"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_times.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_times.0").HasValue("12:00"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_duration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_duration.0.count").HasValue("7"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_duration.0.duration_type").HasValue("Days"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.weekly_schedule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.weekly_schedule.0.retention_times.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.weekly_schedule.0.retention_times.0").HasValue("14:00"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.weekly_schedule.0.retention_duration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.weekly_schedule.0.retention_duration.0.count").HasValue("4"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.weekly_schedule.0.retention_duration.0.duration_type").HasValue("Weeks"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.backupUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.policy_name").Exists(),
+				check.That(data.ResourceName).Key("backup.0.time_zone").HasValue("UTC"),
+				check.That(data.ResourceName).Key("backup.0.instant_rp_retention_range_in_days").HasValue("5"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_run_frequency").HasValue("Daily"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_run_days.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_run_days.0").HasValue("Monday"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_run_times.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.schedule_policy.0.schedule_run_times.0").HasValue("12:00"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.retention_policy_type").HasValue("LongTermRetentionPolicy"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_times.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_times.0").HasValue("12:00"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_duration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_duration.0.count").HasValue("7"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_duration.0.duration_type").HasValue("Days"),
+				check.That(data.ResourceName).Key("backup.0.retention_policy.0.weekly_schedule.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -269,4 +373,117 @@ resource "azurerm_automanage_configuration" "test" {
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r AutoManageConfigurationProfileResource) azureSecurityBaseline(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_automanage_configuration" "test" {
+  name                = "acctest-amcp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  azure_security_baseline {
+    assignment_type = "ApplyAndAutoCorrect"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r AutoManageConfigurationProfileResource) azureSecurityBaselineUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_automanage_configuration" "test" {
+  name                = "acctest-amcp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  azure_security_baseline {
+    assignment_type = "DeployAndAutoCorrect"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r AutoManageConfigurationProfileResource) backup(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_automanage_configuration" "test" {
+  name                = "acctest-amcp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  backup {
+    policy_name                        = "acctest-backup-policy-%d"
+    time_zone                          = "UTC"
+    instant_rp_retention_range_in_days = 2
+
+    schedule_policy {
+      schedule_run_frequency = "Daily"
+      schedule_run_days      = ["Monday", "Tuesday"]
+      schedule_run_times     = ["12:00"]
+      schedule_policy_type   = "SimpleSchedulePolicy"
+    }
+
+    retention_policy {
+      retention_policy_type = "LongTermRetentionPolicy"
+
+      daily_schedule {
+        retention_times = ["12:00"]
+        retention_duration {
+          count         = 7
+          duration_type = "Days"
+        }
+      }
+
+      weekly_schedule {
+        retention_times = ["14:00"]
+        retention_duration {
+          count         = 4
+          duration_type = "Weeks"
+        }
+      }
+    }
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r AutoManageConfigurationProfileResource) backupUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_automanage_configuration" "test" {
+  name                = "acctest-amcp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  backup {
+    policy_name                        = "acctest-backup-policy-%d"
+    time_zone                          = "UTC"
+    instant_rp_retention_range_in_days = 5
+
+    schedule_policy {
+      schedule_run_frequency = "Daily"
+      schedule_run_days      = ["Monday"]
+      schedule_run_times     = ["12:00"]
+    }
+
+    retention_policy {
+      retention_policy_type = "LongTermRetentionPolicy"
+
+      daily_schedule {
+        retention_times = ["12:00"]
+        retention_duration {
+          count         = 7
+          duration_type = "Days"
+        }
+      }
+    }
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
 }
