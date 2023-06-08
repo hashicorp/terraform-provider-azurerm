@@ -38,3 +38,31 @@ func parseResourceState(input string) (*ResourceState, error) {
 	out := ResourceState(input)
 	return &out, nil
 }
+
+type Type string
+
+const (
+	TypeSystemAssigned Type = "SystemAssigned"
+	TypeUserAssigned   Type = "UserAssigned"
+)
+
+func PossibleValuesForType() []string {
+	return []string{
+		string(TypeSystemAssigned),
+		string(TypeUserAssigned),
+	}
+}
+
+func parseType(input string) (*Type, error) {
+	vals := map[string]Type{
+		"systemassigned": TypeSystemAssigned,
+		"userassigned":   TypeUserAssigned,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := Type(input)
+	return &out, nil
+}

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview/loadtests"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -97,7 +97,7 @@ func (r LoadTestTestResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, err
 	}
 
-	resp, err := clients.LoadTestService.V20211201Preview.LoadTests.Get(ctx, *id)
+	resp, err := clients.LoadTestService.V20221201.LoadTests.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -150,7 +150,8 @@ resource "azurerm_load_test" "test" {
     some_key    = "some-value"
   }
   identity {
-    type = "SystemAssigned"
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 `, r.template(data))
@@ -168,6 +169,13 @@ variable "random_integer" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-${var.random_integer}"
   location = var.primary_location
+}
+
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-${local.random_integer}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, data.Locations.Primary, data.RandomInteger)
 }
