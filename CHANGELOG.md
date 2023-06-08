@@ -12,8 +12,9 @@ ENHANCEMENTS:
 * `azurerm_automanage_configuration` - support for the `backup` and `azure_security_baseline` blocks [GH-22081]
 * `azurerm_app_configuration` - support toggling of user permission error on soft deleted stores through `app_configuration.recover_soft_deleted` feature flag
 * `azurerm_backup_policy_file_share` - support for day-based retention policies and hourly backups [GH-21529]
-* `azurerm_linux_function_app` - Support Python 3.11 for Linux function app [GH-21956]
-* `azurerm_linux_function_app_slot` - Support Python 3.11 for Linux function app [GH-21956]
+* `azurerm_linux_function_app` - support Python 3.11 for Linux function app [GH-21956]
+* `azurerm_linux_function_app_slot` - support Python 3.11 for Linux function app [GH-21956]
+* `azurerm_machine_learning_compute_instance` - support for the `node_public_ip_enabled` property [GH-22063]
 * `azurerm_spring_cloud_service` - support for the `container_registry` block [GH-22017]
 
 BUG FIXES:
@@ -21,8 +22,6 @@ BUG FIXES:
 * `azurerm_hdinsight_interactive_query_cluster`: deprecating `*_node.0.autoscale.0.capacity` [GH-21981]
 * `azurerm_key_vault_key` - allow `rotation_policy` to be removed [GH-21935]
 * `azurerm_sentinel_data_connector_microsoft_threat_intelligence` - the `bing_safety_phishing_url_lookback_date` property has been deprecated [GH-21954]
-
-
 
 ## 3.59.0 (June 01, 2023)
 
