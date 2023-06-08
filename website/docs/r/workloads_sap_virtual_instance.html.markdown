@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `environment` - (Required) The environment type for the SAP Virtual Instance. Possible values are `NonProd` and `Prod`. Changing this forces a new resource to be created.
 
-* `identity` - (Required) An `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `sap_product` - (Required) The SAP Product type for the SAP Virtual Instance. Possible values are `ECC`, `Other` and `S4HANA`. Changing this forces a new resource to be created.
 

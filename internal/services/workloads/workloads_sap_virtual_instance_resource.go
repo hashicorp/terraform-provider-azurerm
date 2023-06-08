@@ -221,7 +221,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 			}, false),
 		},
 
-		"identity": commonschema.UserAssignedIdentityRequired(),
+		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"sap_product": {
 			Type:     pluginsdk.TypeString,
