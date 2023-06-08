@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview/loadtests` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests` Documentation
 
-The `loadtests` SDK allows for interaction with the Azure Resource Manager Service `loadtestservice` (API Version `2021-12-01-preview`).
+The `loadtests` SDK allows for interaction with the Azure Resource Manager Service `loadtestservice` (API Version `2022-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview/loadtests"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
 ```
 
 
@@ -31,12 +31,8 @@ payload := loadtests.LoadTestResource{
 }
 
 
-read, err := client.CreateOrUpdate(ctx, id, payload)
-if err != nil {
+if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
 }
 ```
 
@@ -114,11 +110,7 @@ payload := loadtests.LoadTestResourcePatchRequestBody{
 }
 
 
-read, err := client.Update(ctx, id, payload)
-if err != nil {
+if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
 }
 ```
