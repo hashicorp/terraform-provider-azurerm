@@ -125,8 +125,8 @@ func (r LoadTestTestResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_load_test" "import" {
-  name                = azurerm_load_test.test.name
   location            = azurerm_load_test.test.location
+  name                = azurerm_load_test.test.name
   resource_group_name = azurerm_load_test.test.resource_group_name
 }
 `, r.basic(data))

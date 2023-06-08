@@ -125,9 +125,9 @@ func (r KubernetesFleetManagerTestResource) requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_kubernetes_fleet_manager" "import" {
-  resource_group_name = azurerm_kubernetes_fleet_manager.test.resource_group_name
-  name                = azurerm_kubernetes_fleet_manager.test.name
   location            = azurerm_kubernetes_fleet_manager.test.location
+  name                = azurerm_kubernetes_fleet_manager.test.name
+  resource_group_name = azurerm_kubernetes_fleet_manager.test.resource_group_name
 }
 `, r.basic(data))
 }
