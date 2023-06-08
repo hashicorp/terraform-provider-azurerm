@@ -67,7 +67,24 @@ func TestAccAutoManageConfigurationProfile_azureSecurityBaseline(t *testing.T) {
 				check.That(data.ResourceName).Key("azure_security_baseline.0.assignment_type").HasValue("ApplyAndAutoCorrect"),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		data.ImportStep(),
+		{
+			Config: r.azureSecurityBaselineUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("azure_security_baseline.#").HasValue("1"),
+				check.That(data.ResourceName).Key("azure_security_baseline.0.assignment_type").HasValue("DeployAndAutoCorrect"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("azure_security_baseline.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -145,6 +162,14 @@ func TestAccAutoManageConfigurationProfile_backup(t *testing.T) {
 				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_duration.0.count").HasValue("7"),
 				check.That(data.ResourceName).Key("backup.0.retention_policy.0.daily_schedule.0.retention_duration.0.duration_type").HasValue("Days"),
 				check.That(data.ResourceName).Key("backup.0.retention_policy.0.weekly_schedule.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -361,6 +386,22 @@ resource "azurerm_automanage_configuration" "test" {
   location            = azurerm_resource_group.test.location
   azure_security_baseline {
     assignment_type = "ApplyAndAutoCorrect"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r AutoManageConfigurationProfileResource) azureSecurityBaselineUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_automanage_configuration" "test" {
+  name                = "acctest-amcp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  azure_security_baseline {
+    assignment_type = "DeployAndAutoCorrect"
   }
 }
 `, template, data.RandomInteger)

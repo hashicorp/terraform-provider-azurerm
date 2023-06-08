@@ -341,7 +341,6 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 														"count": {
 															Type:         pluginsdk.TypeInt,
 															Optional:     true,
-															Default:      7,
 															ValidateFunc: validation.IntBetween(7, 9999),
 														},
 														"duration_type": {
@@ -384,8 +383,7 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 														"count": {
 															Type:         pluginsdk.TypeInt,
 															Optional:     true,
-															Default:      4,
-															ValidateFunc: validation.IntBetween(4, 9999),
+															ValidateFunc: validation.IntBetween(1, 5163),
 														},
 														"duration_type": {
 															Type:     pluginsdk.TypeString,
@@ -632,21 +630,6 @@ func expandAutomanageConfigurationProfile(model ConfigurationModel) *map[string]
 		jsonConfig["AzureSecurityBaseline/AssignmentType"] = azureSecurityBaselineConfig.AssignmentType
 	}
 
-	//"Backup/Enable": boolean, true if block exists
-	//"Backup/PolicyName": string (length 3 - 150, begin with alphanumeric char, only contain alphanumeric chars and hyphens),
-	//"Backup/TimeZone": timezone,
-	//"Backup/InstantRpRetentionRangeInDays": int (1 - 5 if ScheduleRunFrequency is Daily, 5 if ScheduleRunFrequency is Weekly),
-	//"Backup/SchedulePolicy/ScheduleRunFrequency": string ("Daily", "Weekly"),
-	//"Backup/SchedulePolicy/ScheduleRunTimes": list of DateTime,
-	//"Backup/SchedulePolicy/ScheduleRunDays": list of strings (["Sunday", "Monday", "Wednesday", "Thursday", "Friday", "Saturday"]),
-	//"Backup/SchedulePolicy/SchedulePolicyType": string ("SimpleSchedulePolicy"),
-	//"Backup/RetentionPolicy/RetentionPolicyType": string ("LongTermRetentionPolicy"),
-	//"Backup/RetentionPolicy/DailySchedule/RetentionTimes": list of DateTime,
-	//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count": int (7 - 9999),
-	//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType": string ("Days"),
-	//"Backup/RetentionPolicy/WeeklySchedule/RetentionTimes":, list of DateTime
-	//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count":, int (1 - 5163)
-	//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType": string ("Weeks"),
 	if model.Backup != nil && len(model.Backup) > 0 {
 		backupConfig := model.Backup[0]
 		jsonConfig["Backup/Enable"] = true
@@ -725,7 +708,6 @@ func flattenAntimarewareConfig(configMap map[string]interface{}) []AntimalwareCo
 
 	antimalware := make([]AntimalwareConfiguration, 1)
 	antimalware[0] = AntimalwareConfiguration{}
-	antimalware[0].Exclusions = make([]AntimalwareExclusions, 1)
 
 	if val, ok := configMap["Antimalware/EnableRealTimeProtection"]; ok {
 		antimalware[0].RealTimeProtectionEnabled = val.(bool)
@@ -747,16 +729,26 @@ func flattenAntimarewareConfig(configMap map[string]interface{}) []AntimalwareCo
 		antimalware[0].ScanTimeInMinutes = int(val.(float64))
 	}
 
+	exclusions := AntimalwareExclusions{}
+	exclusionsChanged := false
 	if val, ok := configMap["Antimalware/Exclusions/Extensions"]; ok {
-		antimalware[0].Exclusions[0].Extensions = val.(string)
+		exclusions.Extensions = val.(string)
+		exclusionsChanged = true
 	}
 
 	if val, ok := configMap["Antimalware/Exclusions/Paths"]; ok {
-		antimalware[0].Exclusions[0].Paths = val.(string)
+		exclusions.Paths = val.(string)
+		exclusionsChanged = true
 	}
 
 	if val, ok := configMap["Antimalware/Exclusions/Processes"]; ok {
-		antimalware[0].Exclusions[0].Processes = val.(string)
+		exclusions.Processes = val.(string)
+		exclusionsChanged = true
+	}
+
+	if exclusionsChanged {
+		antimalware[0].Exclusions = make([]AntimalwareExclusions, 1)
+		antimalware[0].Exclusions[0] = exclusions
 	}
 
 	return antimalware
@@ -777,21 +769,6 @@ func flattenAzureSecurityBaselineConfig(configMap map[string]interface{}) []Azur
 	return azureSecurityBaseline
 }
 
-// "Backup/Enable": boolean, true if block exists
-// "Backup/PolicyName": string (length 3 - 150, begin with alphanumeric char, only contain alphanumeric chars and hyphens),
-// "Backup/TimeZone": timezone,
-// "Backup/InstantRpRetentionRangeInDays": int (1 - 5 if ScheduleRunFrequency is Daily, 5 if ScheduleRunFrequency is Weekly),
-// "Backup/SchedulePolicy/ScheduleRunFrequency": string ("Daily", "Weekly"),
-// "Backup/SchedulePolicy/ScheduleRunTimes": list of DateTime,
-// "Backup/SchedulePolicy/ScheduleRunDays": list of strings (["Sunday", "Monday", "Wednesday", "Thursday", "Friday", "Saturday"]),
-// "Backup/SchedulePolicy/SchedulePolicyType": string ("SimpleSchedulePolicy"),
-// "Backup/RetentionPolicy/RetentionPolicyType": string ("LongTermRetentionPolicy"),
-// "Backup/RetentionPolicy/DailySchedule/RetentionTimes": list of DateTime,
-// "Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count": int (7 - 9999),
-// "Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType": string ("Days"),
-// "Backup/RetentionPolicy/WeeklySchedule/RetentionTimes":, list of DateTime
-// "Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count":, int (1 - 5163)
-// "Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType": string ("Weeks"),
 func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration {
 	if val, ok := configMap["Backup/Enable"]; !ok || (val == nil) {
 		return nil
