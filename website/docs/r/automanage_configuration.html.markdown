@@ -36,13 +36,13 @@ resource "azurerm_automanage_configuration" "example" {
     scheduled_scan_day             = 1
     scheduled_scan_time_in_minutes = 1339
   }
-  
+
   azure_security_baseline {
     assignment_type = "ApplyAndAutoCorrect"
   }
 
-  automation_account_enabled  = true
-  
+  automation_account_enabled = true
+
   backup {
     policy_name                        = "acctest-backup-policy-%d"
     time_zone                          = "UTC"
@@ -75,7 +75,7 @@ resource "azurerm_automanage_configuration" "example" {
       }
     }
   }
-  
+
   boot_diagnostics_enabled    = true
   defender_for_cloud_enabled  = true
   guest_configuration_enabled = true
