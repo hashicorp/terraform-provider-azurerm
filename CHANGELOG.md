@@ -21,6 +21,7 @@ BUG FIXES:
 
 * `azurerm_hdinsight_interactive_query_cluster`: deprecating `*_node.0.autoscale.0.capacity` [GH-21981]
 * `azurerm_key_vault_key` - allow `rotation_policy` to be removed [GH-21935]
+* `azurerm_mssql_server` - Fix issue where `minimum_tls_version` is being returned as `None` instead of `Disabled` [GH-22067]
 * `azurerm_sentinel_data_connector_microsoft_threat_intelligence` - the `bing_safety_phishing_url_lookback_date` property has been deprecated [GH-21954]
 
 ## 3.59.0 (June 01, 2023)
