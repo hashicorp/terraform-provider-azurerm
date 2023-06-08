@@ -178,7 +178,7 @@ func FlattenCosmosDBIndexingPolicyCompositeIndexes(input *[][]cosmosdb.Composite
 	return indexes
 }
 
-func flattenCosmosDBIndexingPolicyIncludedPaths(input *[]cosmosdb.IncludedPath) []interface{} {
+func flattenCosmosDBIndexingPolicyIncludedPaths(d *pluginsdk.ResourceData, input *[]cosmosdb.IncludedPath) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -190,7 +190,7 @@ func flattenCosmosDBIndexingPolicyIncludedPaths(input *[]cosmosdb.IncludedPath) 
 		// automatically added by the server unless excludedPaths contains
 		// "/*", so this should be excluded in flatten as otherwise user will
 		// not be able to set "/*" in excludedPaths.
-		if *v.Path == "/*" {
+		if *v.Path == "/*" && !containsExplicitIncludeWildcard(d) {
 			continue
 		}
 		block := make(map[string]interface{})
@@ -199,6 +199,19 @@ func flattenCosmosDBIndexingPolicyIncludedPaths(input *[]cosmosdb.IncludedPath) 
 	}
 
 	return includedPaths
+}
+
+func containsExplicitIncludeWildcard(d *pluginsdk.ResourceData) bool {
+	ind := ExpandAzureRmCosmosDbIndexingPolicy(d)
+	if ind == nil || ind.IncludedPaths == nil {
+		return false
+	}
+	for _, p := range *ind.IncludedPaths {
+		if p.Path != nil && *p.Path == "/*" {
+			return true
+		}
+	}
+	return false
 }
 
 func FlattenCosmosDBIndexingPolicySpatialIndexes(input *[]cosmosdb.SpatialSpec) []interface{} {
@@ -236,7 +249,7 @@ func flattenCosmosDBIndexingPolicySpatialIndexesTypes(input *[]cosmosdb.SpatialT
 	return types
 }
 
-func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPolicy) []interface{} {
+func FlattenAzureRmCosmosDbIndexingPolicy(d *pluginsdk.ResourceData, indexingPolicy *cosmosdb.IndexingPolicy) []interface{} {
 	results := make([]interface{}, 0)
 	if indexingPolicy == nil {
 		return results
@@ -244,7 +257,7 @@ func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPolic
 
 	result := make(map[string]interface{})
 	result["indexing_mode"] = indexingPolicy.IndexingMode
-	result["included_path"] = flattenCosmosDBIndexingPolicyIncludedPaths(indexingPolicy.IncludedPaths)
+	result["included_path"] = flattenCosmosDBIndexingPolicyIncludedPaths(d, indexingPolicy.IncludedPaths)
 	result["excluded_path"] = flattenCosmosDBIndexingPolicyExcludedPaths(indexingPolicy.ExcludedPaths)
 	result["composite_index"] = FlattenCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
 	result["spatial_index"] = FlattenCosmosDBIndexingPolicySpatialIndexes(indexingPolicy.SpatialIndexes)
@@ -276,6 +289,7 @@ func ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPoli
 
 	if includedPathsDefined {
 		for _, includedPath := range *indexingPolicy.IncludedPaths {
+			// tflog.Debugln("include", *includedPath.Path)
 			if includedPathsContainRootPath {
 				break
 			}

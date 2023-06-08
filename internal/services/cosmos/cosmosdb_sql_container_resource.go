@@ -359,7 +359,7 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 				}
 
 				if indexingPolicy := res.IndexingPolicy; indexingPolicy != nil {
-					d.Set("indexing_policy", common.FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy))
+					d.Set("indexing_policy", common.FlattenAzureRmCosmosDbIndexingPolicy(d, indexingPolicy))
 				}
 
 				if err := d.Set("conflict_resolution_policy", common.FlattenCosmosDbConflictResolutionPolicy(res.ConflictResolutionPolicy)); err != nil {
