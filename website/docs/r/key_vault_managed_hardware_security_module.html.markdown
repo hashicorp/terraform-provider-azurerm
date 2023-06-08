@@ -86,7 +86,7 @@ A `network_acls` block supports the following:
 
 A `activate_config` block supports the following:
 
-* `certificate_ids` - (Required) A list of Key Vault Certificate IDs which should be used to activate this Managed HSM. More information on [activating the Managed HSM can be found in the Microsoft documentation](https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/quick-create-cli#activate-your-managed-hsm).
+* `activation_key_vault_certificate_ids` - (Required) A list of Key Vault Certificate IDs which should be used to activate this Managed HSM. More information on [activating the Managed HSM can be found in the Microsoft documentation](https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/quick-create-cli#activate-your-managed-hsm).
 
 * `security_domain_quorum` - (Required) Specifies the minimum number of shares required to decrypt the security domain for recovery. The value must between 2 and 10 (inclusive).
 
