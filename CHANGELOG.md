@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * loadtest: updating to API Version `2022-12-01` [GH-22091]
 * provider: adding the `client_id_file_path` and `client_secret_file_path` provider properties [GH-21764]
 * `data.azurerm_key_vault_encrypted_value`: add support for `decoded_plain_text_value` [GH-21682]
+* `azurerm_automanage_configuration` - support for the `backup` and `azure_security_baseline` blocks [GH-22081]
 * `azurerm_app_configuration` - support toggling of user permission error on soft deleted stores through `app_configuration.recover_soft_deleted` feature flag
 * `azurerm_backup_policy_file_share` - support for day-based retention policies and hourly backups [GH-21529]
 * `azurerm_linux_function_app` - Support Python 3.11 for Linux function app [GH-21956]
