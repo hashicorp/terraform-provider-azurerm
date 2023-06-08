@@ -59,7 +59,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `identity` block supports the following arguments:
 
-* `type` - (Required) Specifies the type of Managed Identity that should be assigned to this Load Test. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Identity that should be assigned to this Load Test. Possible values are `SystemAssigned`, `SystemAssigned, UserAssigned` and `UserAssigned`.
+* `identity_ids` - (Optional) A list of the User Assigned Identity IDs that should be assigned to this Load Test.
 
 
 In addition to the arguments defined above, the `identity` block exports the following attributes:

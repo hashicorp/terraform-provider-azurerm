@@ -8,7 +8,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type LoadTestResourcePatchRequestBody struct {
-	Identity   *identity.SystemAssigned                    `json:"identity,omitempty"`
+	Identity   *identity.LegacySystemAndUserAssignedMap    `json:"identity,omitempty"`
 	Properties *LoadTestResourcePatchRequestBodyProperties `json:"properties,omitempty"`
 	Tags       *map[string]string                          `json:"tags,omitempty"`
 }

@@ -2,18 +2,20 @@ package loadtests
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/polling"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UpdateOperationResponse struct {
+	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
-	Model        *LoadTestResource
 }
 
 // Update ...
@@ -24,19 +26,27 @@ func (c LoadTestsClient) Update(ctx context.Context, id LoadTestId, input LoadTe
 		return
 	}
 
-	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
+	result, err = c.senderForUpdate(ctx, req)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "loadtests.LoadTestsClient", "Update", result.HttpResponse, "Failure sending request")
 		return
 	}
 
-	result, err = c.responderForUpdate(result.HttpResponse)
+	return
+}
+
+// UpdateThenPoll performs Update then polls until it's completed
+func (c LoadTestsClient) UpdateThenPoll(ctx context.Context, id LoadTestId, input LoadTestResourcePatchRequestBody) error {
+	result, err := c.Update(ctx, id, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "loadtests.LoadTestsClient", "Update", result.HttpResponse, "Failure responding to request")
-		return
+		return fmt.Errorf("performing Update: %+v", err)
 	}
 
-	return
+	if err := result.Poller.PollUntilDone(); err != nil {
+		return fmt.Errorf("polling after Update: %+v", err)
+	}
+
+	return nil
 }
 
 // preparerForUpdate prepares the Update request.
@@ -55,15 +65,15 @@ func (c LoadTestsClient) preparerForUpdate(ctx context.Context, id LoadTestId, i
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// responderForUpdate handles the response to the Update request. The method always
-// closes the http.Response Body.
-func (c LoadTestsClient) responderForUpdate(resp *http.Response) (result UpdateOperationResponse, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result.Model),
-		autorest.ByClosing())
-	result.HttpResponse = resp
+// senderForUpdate sends the Update request. The method will close the
+// http.Response Body if it receives an error.
+func (c LoadTestsClient) senderForUpdate(ctx context.Context, req *http.Request) (future UpdateOperationResponse, err error) {
+	var resp *http.Response
+	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
+	if err != nil {
+		return
+	}
 
+	future.Poller, err = polling.NewPollerFromResponse(ctx, resp, c.Client, req.Method)
 	return
 }
