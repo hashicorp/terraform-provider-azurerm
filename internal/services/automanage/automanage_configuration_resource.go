@@ -187,8 +187,8 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
-		//"AzureSecurityBaseline/Enable": boolean, true if block exists
-		//"AzureSecurityBaseline/AssignmentType": string ("ApplyAndAutoCorrect", "ApplyAndMonitor", "Audit", "DeployAndAutoCorrect"),
+		// "AzureSecurityBaseline/Enable": boolean, true if block exists
+		// "AzureSecurityBaseline/AssignmentType": string ("ApplyAndAutoCorrect", "ApplyAndMonitor", "Audit", "DeployAndAutoCorrect"),
 		"azure_security_baseline": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -210,21 +210,21 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
-		//"Backup/Enable": boolean, true if block exists
-		//"Backup/PolicyName": string (length 3 - 150, begin with alphanumeric char, only contain alphanumeric chars and hyphens),
-		//"Backup/TimeZone": timezone,
-		//"Backup/InstantRpRetentionRangeInDays": int (1 - 5 if ScheduleRunFrequency is Daily, 5 if ScheduleRunFrequency is Weekly),
-		//"Backup/SchedulePolicy/ScheduleRunFrequency": string ("Daily", "Weekly"),
-		//"Backup/SchedulePolicy/ScheduleRunTimes": list of DateTime,
-		//"Backup/SchedulePolicy/ScheduleRunDays": list of strings (["Sunday", "Monday", "Wednesday", "Thursday", "Friday", "Saturday"]),
-		//"Backup/SchedulePolicy/SchedulePolicyType": string ("SimpleSchedulePolicy"),
-		//"Backup/RetentionPolicy/RetentionPolicyType": string ("LongTermRetentionPolicy"),
-		//"Backup/RetentionPolicy/DailySchedule/RetentionTimes": list of DateTime,
-		//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count": int (7 - 9999),
-		//"Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType": string ("Days"),
-		//"Backup/RetentionPolicy/WeeklySchedule/RetentionTimes":, list of DateTime
-		//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count":, int (1 - 5163)
-		//"Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType": string ("Weeks"),
+		// "Backup/Enable": boolean, true if block exists
+		// "Backup/PolicyName": string (length 3 - 150, begin with alphanumeric char, only contain alphanumeric chars and hyphens),
+		// "Backup/TimeZone": timezone,
+		// "Backup/InstantRpRetentionRangeInDays": int (1 - 5 if ScheduleRunFrequency is Daily, 5 if ScheduleRunFrequency is Weekly),
+		// "Backup/SchedulePolicy/ScheduleRunFrequency": string ("Daily", "Weekly"),
+		// "Backup/SchedulePolicy/ScheduleRunTimes": list of DateTime,
+		// "Backup/SchedulePolicy/ScheduleRunDays": list of strings (["Sunday", "Monday", "Wednesday", "Thursday", "Friday", "Saturday"]),
+		// "Backup/SchedulePolicy/SchedulePolicyType": string ("SimpleSchedulePolicy"),
+		// "Backup/RetentionPolicy/RetentionPolicyType": string ("LongTermRetentionPolicy"),
+		// "Backup/RetentionPolicy/DailySchedule/RetentionTimes": list of DateTime,
+		// "Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count": int (7 - 9999),
+		// "Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType": string ("Days"),
+		// "Backup/RetentionPolicy/WeeklySchedule/RetentionTimes":, list of DateTime
+		// "Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count":, int (1 - 5163)
+		// "Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType": string ("Weeks"),
 		"backup": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
