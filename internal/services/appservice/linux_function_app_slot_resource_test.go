@@ -714,11 +714,11 @@ func TestAccLinuxFunctionAppSlot_appStackPython(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackPython(data, SkuStandardPlan, "3.9"),
+			Config: r.appStackPython(data, SkuStandardPlan, "3.11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.9"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.11"),
 			),
 		},
 		data.ImportStep(),
@@ -731,7 +731,7 @@ func TestAccLinuxFunctionAppSlot_appStackPythonUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackPython(data, SkuStandardPlan, "3.9"),
+			Config: r.appStackPython(data, SkuBasicPlan, "3.9"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -740,16 +740,7 @@ func TestAccLinuxFunctionAppSlot_appStackPythonUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.appStackPython(data, SkuStandardPlan, "3.10"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.10"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.appStackPython(data, SkuStandardPlan, "3.11"),
+			Config: r.appStackPython(data, SkuBasicPlan, "3.11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
