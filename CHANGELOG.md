@@ -6,6 +6,8 @@ ENHANCEMENTS:
 * `data.azurerm_key_vault_encrypted_value`: add support for `decoded_plain_text_value` [GH-21682]
 * `azurerm_app_configuration` - support toggling of user permission error on soft deleted stores through `app_configuration.recover_soft_deleted` feature flag
 * `azurerm_backup_policy_file_share` - support for day-based retention policies and hourly backups [GH-21529]
+* `azurerm_linux_function_app` - Support Python 3.11 for Linux function app [GH-21956]
+* `azurerm_linux_function_app_slot` - Support Python 3.11 for Linux function app [GH-21956]
 * `azurerm_spring_cloud_service` - support for the `container_registry` block [GH-22017]
 
 BUG FIXES:
