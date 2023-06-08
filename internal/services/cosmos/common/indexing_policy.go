@@ -186,6 +186,13 @@ func flattenCosmosDBIndexingPolicyIncludedPaths(input *[]cosmosdb.IncludedPath) 
 	includedPaths := make([]interface{}, 0)
 
 	for _, v := range *input {
+		// similar to the treatment of the _etag in excludedPaths, "/*" is also
+		// automatically added by the server unless excludedPaths contains
+		// "/*", so this should be excluded in flatten as otherwise user will
+		// not be able to set "/*" in excludedPaths.
+		if *v.Path == "/*" {
+			continue
+		}
 		block := make(map[string]interface{})
 		block["path"] = v.Path
 		includedPaths = append(includedPaths, block)
