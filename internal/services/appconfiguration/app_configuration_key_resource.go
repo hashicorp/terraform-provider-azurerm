@@ -238,9 +238,8 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			configurationStoresClient := metadata.Client.AppConfiguration.ConfigurationStoresClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, configurationStoresClient, nestedItemId.ConfigurationStoreEndpoint, subscriptionId)
+			resourceClient := metadata.Client.Resource
+			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, resourceClient, nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return fmt.Errorf("while retrieving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
 			}
