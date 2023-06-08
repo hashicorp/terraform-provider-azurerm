@@ -1,5 +1,9 @@
 ## 3.60.0 (Unreleased)
 
+NOTES:
+
+* `azurerm_security_center_subscription_pricing` - upon deletion will not reset to `Free` tier [GH-21437]
+
 ENHANCEMENTS:
 
 * loadtest: updating to API Version `2022-12-01` [GH-22091]
@@ -14,8 +18,10 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_hdinsight_interactive_query_cluster`: deprecating `*_node.0.autoscale.0.capacity` [GH-21981]
-* `azurerm_sentinel_data_connector_microsoft_threat_intelligence`: deprecate `bing_safety_phishing_url_lookback_date` [GH-21954]
 * `azurerm_key_vault_key` - allow `rotation_policy` to be removed [GH-21935]
+* `azurerm_sentinel_data_connector_microsoft_threat_intelligence` - the `bing_safety_phishing_url_lookback_date` property has been deprecated [GH-21954]
+
+
 
 ## 3.59.0 (June 01, 2023)
 
