@@ -180,12 +180,42 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   network_security_group_id = azurerm_network_security_group.test.id
 }
 
+resource "azurerm_private_dns_zone" "test" {
+  name                = "privatelink.api.azureml.ms"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                  = "test-vlink"
+  resource_group_name   = azurerm_resource_group.test.name
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "test-pe-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+  private_service_connection {
+    name                           = "test-mlworkspace-%d"
+    private_connection_resource_id = azurerm_machine_learning_workspace.test.id
+    subresource_names              = ["amlworkspace"]
+    is_manual_connection           = false
+  }
+  private_dns_zone_group {
+    name                 = "test"
+    private_dns_zone_ids = [azurerm_private_dns_zone.test.id]
+  }
+}
+
 resource "azurerm_machine_learning_compute_instance" "test" {
   name                          = "acctest%d"
   location                      = azurerm_resource_group.test.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
+  node_public_ip_enabled        = false
   ssh {
     public_key = var.ssh_key
   }
@@ -196,9 +226,10 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   }
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
+    azurerm_private_endpoint.test
   ]
 }
-`, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
+`, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 
 func (r ComputeInstanceResource) requiresImport(data acceptance.TestData) string {
@@ -340,8 +371,6 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary,
-		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
-		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger,
-		data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12),
+		data.RandomIntOfLength(15), data.RandomIntOfLength(16))
 }
