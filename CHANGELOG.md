@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `azurerm_monitor_autoscale_setting` - support for `predictive` block [GH-22038]
 * `azurerm_machine_learning_compute_instance` - support for the `node_public_ip_enabled` property [GH-22063]
 * `azurerm_spring_cloud_service` - support for the `container_registry` block [GH-22017]
+* `azurerm_site_recovery_replication_recovery_plan` - the order of the `pre_action` and `post_action` properties is now respected [GH-22019]
 
 BUG FIXES:
 
