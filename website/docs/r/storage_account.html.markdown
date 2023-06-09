@@ -234,6 +234,10 @@ A `delete_retention_policy` block supports the following:
 
 * `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days. Defaults to `7`.
 
+* `allow_permanent_delete` - (Optional) Indicates whether deletion of the soft deleted blob versions and snapshots is allowed. Defaults to `false`.
+
+~> **NOTE:** `allow_permanent_delete` cannot be set to true if a `restore_policy` block is defined.
+
 ---
 
 A `restore_policy` block supports the following:
