@@ -108,7 +108,6 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-				ForceNew: true,
 			},
 
 			"key_vault_reference": {
@@ -395,6 +394,14 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			parameters.Properties.AllowedAuthenticationModes = &[]batchaccount.AuthenticationMode{} // remove all modes need explicit set it to empty array not nil
 		} else {
 			parameters.Properties.AllowedAuthenticationModes = expandAllowedAuthenticationModes(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List())
+		}
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		if d.Get("public_network_access_enabled").(bool) {
+			parameters.Properties.PublicNetworkAccess = utils.ToPtr(batchaccount.PublicNetworkAccessTypeEnabled)
+		} else {
+			parameters.Properties.PublicNetworkAccess = utils.ToPtr(batchaccount.PublicNetworkAccessTypeDisabled)
 		}
 	}
 
