@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_backup_policy_file_share` - support for day-based retention policies and hourly backups [GH-21529]
 * `azurerm_linux_function_app` - support Python 3.11 for Linux function app [GH-21956]
 * `azurerm_linux_function_app_slot` - support Python 3.11 for Linux function app [GH-21956]
+* `azurerm_monitor_autoscale_setting` - support for `predictive` block [GH-22038]
 * `azurerm_machine_learning_compute_instance` - support for the `node_public_ip_enabled` property [GH-22063]
 * `azurerm_spring_cloud_service` - support for the `container_registry` block [GH-22017]
 
