@@ -46,7 +46,7 @@ func BlobPropertiesDefaultServiceVersion(i interface{}, k string) (warnings []st
 		"2021-10-04",
 		"2021-12-02",
 		"2022-11-02",
-		"2023-01-03",		
+		"2023-01-03",
 	}
 	for _, str := range valid {
 		if v == str {
