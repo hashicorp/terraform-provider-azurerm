@@ -165,7 +165,7 @@ A `application_stack` block supports the following:
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16` and `18`.
 
-* `python_version` - (Optional) The version of Python to run. Possible values are `3.10`, `3.9`, `3.8` and `3.7`.
+* `python_version` - (Optional) The version of Python to run. Possible values are `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, and `7.2`.
 
@@ -235,7 +235,9 @@ An `auth_settings_v2` block supports the following:
 
 * `unauthenticated_action` - (Optional) The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.
 
-* `default_provider` - (Optional) The Default Authentication Provider to use when more than one Authentication Provider is configured and the `unauthenticated_action` is set to `RedirectToLoginPage`.
+* `default_provider` - (Optional) The Default Authentication Provider to use when the `unauthenticated_action` is set to `RedirectToLoginPage`. Possible values include: `apple`, `azureactivedirectory`, `facebook`, `github`, `google`, `twitter` and the `name` of your `custom_oidc_v2` provider.
+
+~> **NOTE:** Whilst any value will be accepted by the API for `default_provider`, it can leave the app in an unusable state if this value does not correspond to the name of a known provider (either built-in value, or custom_oidc name) as it is used to build the auth endpoint URI.
 
 * `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
 
@@ -739,6 +741,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Linux Function App.
 
+* `hosting_environment_id` - The ID of the App Service Environment used by Function App.
+
 * `identity` - An `identity` block as defined below.
 
 * `kind` - The Kind value for this Linux Function App.
@@ -749,7 +753,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `possible_outbound_ip_address_list` - A list of possible outbound IP addresses, not all of which are necessarily in use. This is a superset of `outbound_ip_address_list`. For example `["52.23.25.3", "52.143.43.12"]`.
 
-* `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`. For example `["52.23.25.3", "52.143.43.12","52.143.43.17"]`.
+* `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`.
 
 * `site_credential` - A `site_credential` block as defined below.
 

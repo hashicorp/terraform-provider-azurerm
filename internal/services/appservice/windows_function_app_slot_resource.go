@@ -54,6 +54,7 @@ type WindowsFunctionAppSlotModel struct {
 	SiteConfig                    []helpers.SiteConfigWindowsFunctionAppSlot `tfschema:"site_config"`
 	Tags                          map[string]string                          `tfschema:"tags"`
 	CustomDomainVerificationId    string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                  string                                     `tfschema:"hosting_environment_id"`
 	DefaultHostname               string                                     `tfschema:"default_hostname"`
 	Kind                          string                                     `tfschema:"kind"`
 	OutboundIPAddresses           string                                     `tfschema:"outbound_ip_addresses"`
@@ -270,6 +271,11 @@ func (r WindowsFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schem
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Description: "The default hostname of the Windows Function App Slot.",
+		},
+
+		"hosting_environment_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"kind": {
@@ -660,6 +666,10 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
 				DefaultHostname:             pointer.From(props.DefaultHostName),
+			}
+
+			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+				state.HostingEnvId = pointer.From(hostingEnv.ID)
 			}
 
 			functionApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)

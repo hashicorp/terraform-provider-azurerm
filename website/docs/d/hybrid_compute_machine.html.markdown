@@ -10,6 +10,10 @@ description: |-
 
 Use this data source to access information about an existing Hybrid Compute.
 
+## Disclaimers
+
+-> **Note:** The  Data Source `azurerm_hybrid_compute_machine` is deprecated will be removed in v4.0 of the Azure Provider - a replacement can be found in the form of the [`azurerm_arc_machine`](arc_machine.html) Data Source.
+
 ## Example Usage
 
 ```hcl

@@ -84,6 +84,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return true
 			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if d.HasChange("oidc_issuer_enabled") {
+					d.SetNewComputed("oidc_issuer_url")
+				}
+				return nil
+			},
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -434,7 +440,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"no_proxy": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							ForceNew: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
@@ -1093,6 +1098,23 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"service_mesh_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"mode": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(managedclusters.ServiceMeshModeIstio),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"service_principal": {
 				Type:         pluginsdk.TypeList,
 				Optional:     true,
@@ -1326,9 +1348,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	// supplied by the user which will result in a diff in some cases, so if versions have been supplied check that they
 	// are identical
 	agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
-	if nodePoolVersion := agentProfile.Properties.CurrentOrchestratorVersion; nodePoolVersion != nil {
-		if kubernetesVersion != "" && kubernetesVersion != *nodePoolVersion {
-			return fmt.Errorf("version mismatch between the control plane running %s and default node pool running %s, they must use the same kubernetes versions", kubernetesVersion, *nodePoolVersion)
+	if prop := agentProfile.Properties; prop != nil {
+		if nodePoolVersion := prop.CurrentOrchestratorVersion; nodePoolVersion != nil {
+			if kubernetesVersion != "" && kubernetesVersion != *nodePoolVersion {
+				return fmt.Errorf("version mismatch between the control plane running %s and default node pool running %s, they must use the same kubernetes versions", kubernetesVersion, *nodePoolVersion)
+			}
 		}
 	}
 
@@ -1434,24 +1458,25 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Tier: utils.ToPtr(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
-			ApiServerAccessProfile:    apiAccessProfile,
-			AadProfile:                azureADProfile,
-			AddonProfiles:             addonProfiles,
-			AgentPoolProfiles:         agentProfiles,
-			AutoScalerProfile:         autoScalerProfile,
-			AzureMonitorProfile:       azureMonitorProfile,
-			DnsPrefix:                 utils.String(dnsPrefix),
-			EnableRBAC:                utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
-			KubernetesVersion:         utils.String(kubernetesVersion),
-			LinuxProfile:              linuxProfile,
-			WindowsProfile:            windowsProfile,
-			NetworkProfile:            networkProfile,
-			NodeResourceGroup:         utils.String(nodeResourceGroup),
-			PublicNetworkAccess:       &publicNetworkAccess,
-			DisableLocalAccounts:      utils.Bool(d.Get("local_account_disabled").(bool)),
-			HTTPProxyConfig:           httpProxyConfig,
-			OidcIssuerProfile:         oidcIssuerProfile,
-			SecurityProfile:           securityProfile,
+			ApiServerAccessProfile: apiAccessProfile,
+			AadProfile:             azureADProfile,
+			AddonProfiles:          addonProfiles,
+			AgentPoolProfiles:      agentProfiles,
+			AutoScalerProfile:      autoScalerProfile,
+			AzureMonitorProfile:    azureMonitorProfile,
+			DnsPrefix:              utils.String(dnsPrefix),
+			EnableRBAC:             utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
+			KubernetesVersion:      utils.String(kubernetesVersion),
+			LinuxProfile:           linuxProfile,
+			WindowsProfile:         windowsProfile,
+			NetworkProfile:         networkProfile,
+			NodeResourceGroup:      utils.String(nodeResourceGroup),
+			PublicNetworkAccess:    &publicNetworkAccess,
+			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
+			HTTPProxyConfig:        httpProxyConfig,
+			OidcIssuerProfile:      oidcIssuerProfile,
+			SecurityProfile:        securityProfile,
+
 			StorageProfile:            storageProfile,
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
@@ -1520,6 +1545,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	if ingressProfile := expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{})); ingressProfile != nil {
 		parameters.Properties.IngressProfile = ingressProfile
+	}
+
+	if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{}), &managedclusters.ServiceMeshProfile{}); serviceMeshProfile != nil {
+		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id, parameters)
@@ -1715,6 +1744,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("network_profile") {
 		updateCluster = true
 
+		if existing.Model.Properties.NetworkProfile == nil {
+			return fmt.Errorf("updating %s: `network_profile` was nil", *id)
+		}
+
 		networkProfile := *existing.Model.Properties.NetworkProfile
 
 		if networkProfile.LoadBalancerProfile == nil && networkProfile.NatGatewayProfile == nil {
@@ -1829,6 +1862,12 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.NetworkProfile.NatGatewayProfile = &natGatewayProfile
 		}
 	}
+	if d.HasChange("service_mesh_profile") {
+		updateCluster = true
+		if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{}), existing.Model.Properties.ServiceMeshProfile); serviceMeshProfile != nil {
+			existing.Model.Properties.ServiceMeshProfile = serviceMeshProfile
+		}
+	}
 
 	if d.HasChange("tags") {
 		updateCluster = true
@@ -1902,6 +1941,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		updateCluster = true
 		azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
 		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
@@ -1909,6 +1951,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
 		microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
 		existing.Model.Properties.SecurityProfile.Defender = microsoftDefender
 	}
 
@@ -2034,15 +2079,34 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		// if the default node pool name has changed it means the initial attempt at resizing failed
-		if d.HasChange("default_node_pool.0.vm_size") || d.HasChange("default_node_pool.0.name") {
+		cycleNodePoolProperties := []string{
+			"default_node_pool.0.name",
+			"default_node_pool.0.enable_host_encryption",
+			"default_node_pool.0.enable_node_public_ip",
+			"default_node_pool.0.kubelet_config",
+			"default_node_pool.0.linux_os_config",
+			"default_node_pool.0.max_pods",
+			"default_node_pool.0.node_taints",
+			"default_node_pool.0.only_critical_addons_enabled",
+			"default_node_pool.0.os_disk_size_gb",
+			"default_node_pool.0.os_disk_type",
+			"default_node_pool.0.os_sku",
+			"default_node_pool.0.pod_subnet_id",
+			"default_node_pool.0.ultra_ssd_enabled",
+			"default_node_pool.0.vnet_subnet_id",
+			"default_node_pool.0.vm_size",
+			"default_node_pool.0.zones",
+		}
+
+		// if the default node pool name has changed, it means the initial attempt at resizing failed
+		if d.HasChanges(cycleNodePoolProperties...) {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
 			// to provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
 			// bringing up the new one.
 
 			if v := d.Get("default_node_pool.0.temporary_name_for_rotation").(string); v == "" {
-				return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating `vm_size`")
+				return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating any of the following properties %q", cycleNodePoolProperties)
 			}
 
 			temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name_for_rotation").(string)
@@ -2252,6 +2316,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			azureMonitorProfile := flattenKubernetesClusterAzureMonitorProfile(props.AzureMonitorProfile)
 			if err := d.Set("monitor_metrics", azureMonitorProfile); err != nil {
 				return fmt.Errorf("setting `monitor_metrics`: %+v", err)
+			}
+
+			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
+			if err := d.Set("service_mesh_profile", serviceMeshProfile); err != nil {
+				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)
 			}
 
 			flattenedDefaultNodePool, err := FlattenDefaultNodePool(props.AgentPoolProfiles, d)
@@ -3752,6 +3821,28 @@ func base64IsEncoded(data string) bool {
 	return err == nil
 }
 
+func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *managedclusters.ServiceMeshProfile) *managedclusters.ServiceMeshProfile {
+	if (input == nil) || len(input) == 0 {
+		// explicitly disable istio if it was enabled before
+		if existing != nil && existing.Mode == managedclusters.ServiceMeshModeIstio {
+			return &managedclusters.ServiceMeshProfile{
+				Mode: managedclusters.ServiceMeshModeDisabled,
+			}
+		}
+
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	profile := managedclusters.ServiceMeshProfile{}
+	if managedclusters.ServiceMeshMode(raw["mode"].(string)) == managedclusters.ServiceMeshModeIstio {
+		profile.Mode = managedclusters.ServiceMeshMode(raw["mode"].(string))
+		profile.Istio = &managedclusters.IstioServiceMesh{}
+	}
+
+	return &profile
+}
+
 func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []interface{}) *managedclusters.ManagedClusterIngressProfile {
 	if len(input) == 0 && d.HasChange("web_app_routing") {
 		return &managedclusters.ManagedClusterIngressProfile{
@@ -3818,6 +3909,18 @@ func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclu
 				MetricAnnotationsAllowList: utils.String(config["annotations_allowed"].(string)),
 				MetricLabelsAllowlist:      utils.String(config["labels_allowed"].(string)),
 			},
+		},
+	}
+}
+
+func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.ServiceMeshProfile) []interface{} {
+	if input == nil || input.Mode != managedclusters.ServiceMeshModeIstio {
+		return nil
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"mode": string(managedclusters.ServiceMeshModeIstio),
 		},
 	}
 }

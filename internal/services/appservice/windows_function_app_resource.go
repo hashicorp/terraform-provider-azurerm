@@ -64,6 +64,7 @@ type WindowsFunctionAppModel struct {
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                  string   `tfschema:"hosting_environment_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
 	Kind                          string   `tfschema:"kind"`
 	OutboundIPAddresses           string   `tfschema:"outbound_ip_addresses"`
@@ -292,6 +293,11 @@ func (r WindowsFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -694,6 +700,10 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
 				PublicNetworkAccessEnabled:  strings.EqualFold(pointer.From(props.PublicNetworkAccess), "Enabled"),
+			}
+
+			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+				state.HostingEnvId = pointer.From(hostingEnv.ID)
 			}
 
 			if v := props.OutboundIPAddresses; v != nil {

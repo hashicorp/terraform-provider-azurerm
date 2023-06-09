@@ -3,6 +3,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -98,6 +99,11 @@ func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						},
 
 						"zone": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"power_state": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -276,6 +282,16 @@ func flattenVirtualMachineScaleSetVM(input compute.VirtualMachineScaleSetVM, con
 		output["private_ip_addresses"] = connectionInfo.privateAddresses
 		output["public_ip_address"] = connectionInfo.primaryPublicAddress
 		output["public_ip_addresses"] = connectionInfo.publicAddresses
+	}
+
+	if instance := input.InstanceView; instance != nil {
+		if statues := instance.Statuses; statues != nil {
+			for _, status := range *statues {
+				if status.Code != nil && strings.HasPrefix(strings.ToLower(*status.Code), "powerstate/") {
+					output["power_state"] = strings.SplitN(*status.Code, "/", 2)[1]
+				}
+			}
+		}
 	}
 
 	return output

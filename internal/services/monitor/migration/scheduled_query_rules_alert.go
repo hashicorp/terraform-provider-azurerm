@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -25,7 +25,7 @@ func (ScheduledQueryRulesAlertUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgrad
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/scheduledQueryRules/rule1
 		oldId := rawState["id"].(string)
-		id, err := parse.ScheduledQueryRulesIDInsensitively(oldId)
+		id, err := scheduledqueryrules.ParseScheduledQueryRuleIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}

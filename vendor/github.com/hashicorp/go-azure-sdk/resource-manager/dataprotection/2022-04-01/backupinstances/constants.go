@@ -1,6 +1,10 @@
 package backupinstances
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -37,6 +41,19 @@ func PossibleValuesForCurrentProtectionState() []string {
 		string(CurrentProtectionStateSoftDeleting),
 		string(CurrentProtectionStateUpdatingProtection),
 	}
+}
+
+func (s *CurrentProtectionState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCurrentProtectionState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCurrentProtectionState(input string) (*CurrentProtectionState, error) {
@@ -79,6 +96,19 @@ func PossibleValuesForDataStoreTypes() []string {
 	}
 }
 
+func (s *DataStoreTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDataStoreTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDataStoreTypes(input string) (*DataStoreTypes, error) {
 	vals := map[string]DataStoreTypes{
 		"archivestore":     DataStoreTypesArchiveStore,
@@ -104,6 +134,19 @@ func PossibleValuesForRecoveryOption() []string {
 	return []string{
 		string(RecoveryOptionFailIfExists),
 	}
+}
+
+func (s *RecoveryOption) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRecoveryOption(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRecoveryOption(input string) (*RecoveryOption, error) {
@@ -133,6 +176,19 @@ func PossibleValuesForRehydrationPriority() []string {
 		string(RehydrationPriorityInvalid),
 		string(RehydrationPriorityStandard),
 	}
+}
+
+func (s *RehydrationPriority) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRehydrationPriority(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRehydrationPriority(input string) (*RehydrationPriority, error) {
@@ -166,6 +222,19 @@ func PossibleValuesForRestoreTargetLocationType() []string {
 	}
 }
 
+func (s *RestoreTargetLocationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRestoreTargetLocationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseRestoreTargetLocationType(input string) (*RestoreTargetLocationType, error) {
 	vals := map[string]RestoreTargetLocationType{
 		"azureblobs": RestoreTargetLocationTypeAzureBlobs,
@@ -193,6 +262,19 @@ func PossibleValuesForSecretStoreType() []string {
 		string(SecretStoreTypeAzureKeyVault),
 		string(SecretStoreTypeInvalid),
 	}
+}
+
+func (s *SecretStoreType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSecretStoreType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSecretStoreType(input string) (*SecretStoreType, error) {
@@ -223,6 +305,19 @@ func PossibleValuesForSourceDataStoreType() []string {
 		string(SourceDataStoreTypeSnapshotStore),
 		string(SourceDataStoreTypeVaultStore),
 	}
+}
+
+func (s *SourceDataStoreType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSourceDataStoreType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSourceDataStoreType(input string) (*SourceDataStoreType, error) {
@@ -262,6 +357,19 @@ func PossibleValuesForStatus() []string {
 	}
 }
 
+func (s *Status) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseStatus(input string) (*Status, error) {
 	vals := map[string]Status{
 		"configuringprotection":       StatusConfiguringProtection,
@@ -294,6 +402,19 @@ func PossibleValuesForSyncType() []string {
 	}
 }
 
+func (s *SyncType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSyncType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSyncType(input string) (*SyncType, error) {
 	vals := map[string]SyncType{
 		"default":     SyncTypeDefault,
@@ -320,6 +441,19 @@ func PossibleValuesForValidationType() []string {
 		string(ValidationTypeDeepValidation),
 		string(ValidationTypeShallowValidation),
 	}
+}
+
+func (s *ValidationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseValidationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseValidationType(input string) (*ValidationType, error) {

@@ -16,6 +16,10 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -58,12 +62,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
-			"key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: keyVaultValidate.VaultID,
-			},
+			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
 
 			"key_type": {
 				Type:     pluginsdk.TypeString,
@@ -142,7 +141,6 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 			"rotation_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -266,7 +264,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
 	name := d.Get("name").(string)
-	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
@@ -357,7 +355,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("rotation_policy"); ok {
-		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, *keyVaultBaseUri, name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
+		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, *keyVaultBaseUri, name, expandKeyVaultKeyRotationPolicy(v.([]interface{}))); err != nil {
 			if utils.ResponseWasForbidden(respPolicy.Response) {
 				return fmt.Errorf("current client lacks permissions to create Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", name, *keyVaultId, *keyVaultBaseUri, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
 			}
@@ -394,7 +392,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
@@ -438,12 +436,12 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	if v, ok := d.GetOk("rotation_policy"); ok {
-		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name, expandKeyVaultKeyRotationPolicy(v)); err != nil {
+	if d.HasChange("rotation_policy"); ok {
+		if respPolicy, err := client.UpdateKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name, expandKeyVaultKeyRotationPolicy(d.Get("rotation_policy").([]interface{}))); err != nil {
 			if utils.ResponseWasForbidden(respPolicy.Response) {
 				return fmt.Errorf("current client lacks permissions to update Key Rotation Policy for Key %q (%q, Vault url: %q), please update this as described here: %s : %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key#example-usage", err)
 			}
-			return fmt.Errorf("Creating Key Rotation Policy: %+v", err)
+			return fmt.Errorf("creating Key Rotation Policy: %+v", err)
 		}
 	}
 
@@ -471,7 +469,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.SetId("")
 		return nil
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
@@ -584,8 +582,8 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
-	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
+	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())
+	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID())
 
 	respPolicy, err := client.GetKeyRotationPolicy(ctx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
@@ -627,14 +625,14 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	if keyVaultIdRaw == nil {
 		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
 
-	kv, err := keyVaultsClient.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
+	kv, err := keyVaultsClient.VaultsClient.Get(ctx, *keyVaultId)
 	if err != nil {
-		if utils.ResponseWasNotFound(kv.Response) {
+		if response.WasNotFound(kv.HttpResponse) {
 			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
 			d.SetId("")
 			return nil
@@ -643,7 +641,7 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
-	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
+	if shouldPurge && kv.Model != nil && utils.NormaliseNilableBool(kv.Model.Properties.EnablePurgeProtection) {
 		log.Printf("[DEBUG] cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
 		shouldPurge = false
 	}
@@ -699,9 +697,12 @@ func expandKeyVaultKeyOptions(d *pluginsdk.ResourceData) *[]keyvault.JSONWebKeyO
 	return &results
 }
 
-func expandKeyVaultKeyRotationPolicy(v interface{}) keyvault.KeyRotationPolicy {
-	policies := v.([]interface{})
-	policy := policies[0].(map[string]interface{})
+func expandKeyVaultKeyRotationPolicy(v []interface{}) keyvault.KeyRotationPolicy {
+	if len(v) == 0 {
+		return keyvault.KeyRotationPolicy{LifetimeActions: &[]keyvault.LifetimeActions{}}
+	}
+
+	policy := v[0].(map[string]interface{})
 
 	var expiryTime *string = nil // needs to be set to nil if not set
 	if rawExpiryTime := policy["expire_after"]; rawExpiryTime != nil && rawExpiryTime.(string) != "" {
@@ -777,26 +778,24 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 			trigger := ltAction.Trigger
 
 			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
-				policy["notify_before_expiry"] = *trigger.TimeBeforeExpiry
+				// Somehow a default is set after creation for notify_before_expiry
+				// Submitting this set value in the next run will not work though..
+				if policy["expire_after"] != nil {
+					policy["notify_before_expiry"] = *trigger.TimeBeforeExpiry
+				}
 			}
 
 			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionRotate)) {
 				autoRotation := make(map[string]interface{}, 0)
-				if timeAfterCreate := trigger.TimeAfterCreate; timeAfterCreate != nil {
-					autoRotation["time_after_creation"] = *timeAfterCreate
-				}
-				if timeBeforeExpiry := trigger.TimeBeforeExpiry; timeBeforeExpiry != nil {
-					autoRotation["time_before_expiry"] = *timeBeforeExpiry
-				}
+				autoRotation["time_after_creation"] = pointer.From(trigger.TimeAfterCreate)
+				autoRotation["time_before_expiry"] = pointer.From(trigger.TimeBeforeExpiry)
 				policy["automatic"] = []map[string]interface{}{autoRotation}
 			}
 		}
 	}
 
-	// Somehow a default is set after creation for notify_before_expiry
-	// Submitting this set value in the next run will not work though..
-	if policy["expire_after"] == nil {
-		policy["notify_before_expiry"] = nil
+	if len(policy) == 0 {
+		return []interface{}{}
 	}
 
 	return []interface{}{policy}

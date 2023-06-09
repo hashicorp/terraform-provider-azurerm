@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -154,7 +154,7 @@ func (c Client) Exists(ctx context.Context, configurationStoreId configurationst
 	return true, nil
 }
 
-func (c Client) Purge(configurationStoreId configurationstores.ConfigurationStoreId) {
+func (c Client) RemoveFromCache(configurationStoreId configurationstores.ConfigurationStoreId) {
 	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigurationStoreName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {

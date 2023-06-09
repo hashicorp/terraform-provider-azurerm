@@ -1,6 +1,10 @@
 package views
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForAccumulatedType() []string {
 		string(AccumulatedTypeFalse),
 		string(AccumulatedTypeTrue),
 	}
+}
+
+func (s *AccumulatedType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAccumulatedType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAccumulatedType(input string) (*AccumulatedType, error) {
@@ -53,6 +70,19 @@ func PossibleValuesForChartType() []string {
 	}
 }
 
+func (s *ChartType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseChartType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseChartType(input string) (*ChartType, error) {
 	vals := map[string]ChartType{
 		"area":          ChartTypeArea,
@@ -82,6 +112,19 @@ func PossibleValuesForFunctionType() []string {
 	}
 }
 
+func (s *FunctionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFunctionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseFunctionType(input string) (*FunctionType, error) {
 	vals := map[string]FunctionType{
 		"sum": FunctionTypeSum,
@@ -107,6 +150,19 @@ func PossibleValuesForKpiTypeType() []string {
 		string(KpiTypeTypeBudget),
 		string(KpiTypeTypeForecast),
 	}
+}
+
+func (s *KpiTypeType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKpiTypeType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseKpiTypeType(input string) (*KpiTypeType, error) {
@@ -139,6 +195,19 @@ func PossibleValuesForMetricType() []string {
 	}
 }
 
+func (s *MetricType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMetricType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseMetricType(input string) (*MetricType, error) {
 	vals := map[string]MetricType{
 		"ahub":          MetricTypeAHUB,
@@ -166,6 +235,19 @@ func PossibleValuesForOperatorType() []string {
 		string(OperatorTypeContains),
 		string(OperatorTypeIn),
 	}
+}
+
+func (s *OperatorType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperatorType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOperatorType(input string) (*OperatorType, error) {
@@ -196,6 +278,19 @@ func PossibleValuesForPivotTypeType() []string {
 	}
 }
 
+func (s *PivotTypeType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePivotTypeType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parsePivotTypeType(input string) (*PivotTypeType, error) {
 	vals := map[string]PivotTypeType{
 		"dimension": PivotTypeTypeDimension,
@@ -222,6 +317,19 @@ func PossibleValuesForQueryColumnType() []string {
 		string(QueryColumnTypeDimension),
 		string(QueryColumnTypeTagKey),
 	}
+}
+
+func (s *QueryColumnType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseQueryColumnType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseQueryColumnType(input string) (*QueryColumnType, error) {
@@ -252,6 +360,19 @@ func PossibleValuesForReportConfigSortingType() []string {
 	}
 }
 
+func (s *ReportConfigSortingType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReportConfigSortingType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseReportConfigSortingType(input string) (*ReportConfigSortingType, error) {
 	vals := map[string]ReportConfigSortingType{
 		"ascending":  ReportConfigSortingTypeAscending,
@@ -278,6 +399,19 @@ func PossibleValuesForReportGranularityType() []string {
 		string(ReportGranularityTypeDaily),
 		string(ReportGranularityTypeMonthly),
 	}
+}
+
+func (s *ReportGranularityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReportGranularityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseReportGranularityType(input string) (*ReportGranularityType, error) {
@@ -312,6 +446,19 @@ func PossibleValuesForReportTimeframeType() []string {
 	}
 }
 
+func (s *ReportTimeframeType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReportTimeframeType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseReportTimeframeType(input string) (*ReportTimeframeType, error) {
 	vals := map[string]ReportTimeframeType{
 		"custom":      ReportTimeframeTypeCustom,
@@ -338,6 +485,19 @@ func PossibleValuesForReportType() []string {
 	return []string{
 		string(ReportTypeUsage),
 	}
+}
+
+func (s *ReportType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReportType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseReportType(input string) (*ReportType, error) {

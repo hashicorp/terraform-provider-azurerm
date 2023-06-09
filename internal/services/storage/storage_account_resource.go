@@ -2349,28 +2349,24 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 	if keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("unexpected nil Key Vault ID retrieved at URL %s", keyId.KeyVaultBaseUrl)
 	}
-	keyVaultId, err := keyVaultParse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return nil, err
 	}
 
 	vaultsClient := keyVaultClient.VaultsClient
-	if keyVaultId.SubscriptionId != vaultsClient.SubscriptionID {
-		vaultsClient = keyVaultClient.KeyVaultClientForSubscription(keyVaultId.SubscriptionId)
-	}
-
-	keyVault, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
+	keyVault, err := vaultsClient.Get(ctx, *keyVaultId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
 	}
 
 	softDeleteEnabled := false
 	purgeProtectionEnabled := false
-	if props := keyVault.Properties; props != nil {
-		if esd := props.EnableSoftDelete; esd != nil {
+	if model := keyVault.Model; model != nil {
+		if esd := model.Properties.EnableSoftDelete; esd != nil {
 			softDeleteEnabled = *esd
 		}
-		if epp := props.EnablePurgeProtection; epp != nil {
+		if epp := model.Properties.EnablePurgeProtection; epp != nil {
 			purgeProtectionEnabled = *epp
 		}
 	}

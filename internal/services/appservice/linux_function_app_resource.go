@@ -65,6 +65,7 @@ type LinuxFunctionAppModel struct {
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
+	HostingEnvId                  string   `tfschema:"hosting_environment_id"`
 	Kind                          string   `tfschema:"kind"`
 	OutboundIPAddresses           string   `tfschema:"outbound_ip_addresses"`
 	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
@@ -292,6 +293,11 @@ func (r LinuxFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -697,6 +703,10 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				PublicNetworkAccessEnabled:  strings.EqualFold(pointer.From(props.PublicNetworkAccess), "Enabled"),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
+			}
+
+			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+				state.HostingEnvId = pointer.From(hostingEnv.ID)
 			}
 
 			if v := props.OutboundIPAddresses; v != nil {

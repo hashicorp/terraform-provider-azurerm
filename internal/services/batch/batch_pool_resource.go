@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/pool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -1093,7 +1093,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 			d.Set("vm_size", props.VMSize)
-			d.Set("inter_node_communication", props.InterNodeCommunication)
+			d.Set("inter_node_communication", string(pointer.From(props.InterNodeCommunication)))
 
 			if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 				if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
@@ -1196,11 +1196,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					}
 
 					d.Set("storage_image_reference", flattenBatchPoolImageReference(&config.ImageReference))
-
-					if config.LicenseType != nil {
-						d.Set("license_type", *config.LicenseType)
-					}
-
+					d.Set("license_type", config.LicenseType)
 					d.Set("node_agent_sku_id", config.NodeAgentSkuId)
 
 					if config.NodePlacementConfiguration != nil {

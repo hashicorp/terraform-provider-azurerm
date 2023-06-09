@@ -44,7 +44,7 @@ func (id FailoverGroupId) ID() string {
 func FailoverGroupID(input string) (*FailoverGroupId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an FailoverGroup ID: %+v", input, err)
 	}
 
 	resourceId := FailoverGroupId{

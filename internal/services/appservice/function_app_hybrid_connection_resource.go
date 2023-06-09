@@ -225,13 +225,13 @@ func (r FunctionAppHybridConnectionResource) Read() sdk.ResourceFunc {
 					return err
 				}
 
-				if keys, err := relayNamespaceClient.ListKeys(ctx, namespaces.NewAuthorizationRuleID(id.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, appHybridConn.SendKeyName)); err != nil && keys.Model != nil {
+				if keys, err := relayNamespaceClient.ListKeys(ctx, namespaces.NewAuthorizationRuleID(relayId.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, appHybridConn.SendKeyName)); err != nil && keys.Model != nil {
 					appHybridConn.SendKeyValue = utils.NormalizeNilableString(keys.Model.PrimaryKey)
 					return metadata.Encode(&appHybridConn)
 				}
 
 				hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
-				ruleID := hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, *existing.Name, appHybridConn.SendKeyName)
+				ruleID := hybridconnections.NewHybridConnectionAuthorizationRuleID(relayId.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, *existing.Name, appHybridConn.SendKeyName)
 				keys, err := hybridConnectionsClient.ListKeys(ctx, ruleID)
 				if err != nil && keys.Model != nil {
 					appHybridConn.SendKeyValue = utils.NormalizeNilableString(keys.Model.PrimaryKey)

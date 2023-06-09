@@ -119,6 +119,26 @@ func TestAccFirewall_withManagementIpSameName(t *testing.T) {
 	})
 }
 
+func TestAccFirewall_withManagementIpNoMainPublicIp(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withManagementIpNoMainPublicIp(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
+				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("ip_configuration.0.public_ip_address_id").HasValue(""),
+				check.That(data.ResourceName).Key("management_ip_configuration.0.name").HasValue("management_configuration"),
+				check.That(data.ResourceName).Key("management_ip_configuration.0.public_ip_address_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccFirewall_withMultiplePublicIPs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
@@ -682,6 +702,69 @@ resource "azurerm_firewall" "test" {
   threat_intel_mode = "Alert"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (FirewallResource) withManagementIpNoMainPublicIp(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_subnet" "test_mgmt" {
+  name                 = "AzureFirewallManagementSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_public_ip" "test_mgmt" {
+  name                = "acctestmgmtpip%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctestfirewall%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
+
+  ip_configuration {
+    name      = "configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  management_ip_configuration {
+    name                 = "management_configuration"
+    subnet_id            = azurerm_subnet.test_mgmt.id
+    public_ip_address_id = azurerm_public_ip.test_mgmt.id
+  }
+
+  threat_intel_mode = "Alert"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (FirewallResource) multiplePublicIps(data acceptance.TestData) string {

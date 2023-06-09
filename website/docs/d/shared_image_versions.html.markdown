@@ -49,6 +49,10 @@ A `images` block exports the following:
 
 * `managed_image_id` - The ID of the Managed Image which was the source of this Shared Image Version.
 
+* `name` - The name of the Image Version.
+
+* `id` - The ID of this Shared Image Version.
+
 * `target_region` - One or more `target_region` blocks as documented below.
 
 * `tags` - A mapping of tags assigned to the Shared Image.

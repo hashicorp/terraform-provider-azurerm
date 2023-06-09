@@ -42,6 +42,14 @@ resource "azurerm_log_analytics_solution" "example" {
   }
 }
 
+resource "azurerm_eventhub_namespace" "example" {
+  name                = "exeventns"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "Standard"
+  capacity            = 1
+}
+
 resource "azurerm_eventhub" "example" {
   name                = "exevent2"
   namespace_name      = azurerm_eventhub_namespace.example.name
@@ -83,33 +91,33 @@ resource "azurerm_monitor_data_collection_rule" "example" {
   destinations {
     log_analytics {
       workspace_resource_id = azurerm_log_analytics_workspace.example.id
-      name                  = "test-destination-log"
+      name                  = "example-destination-log"
     }
 
     event_hub {
       event_hub_id = azurerm_eventhub.example.id
-      name         = "test-destination-eventhub"
+      name         = "example-destination-eventhub"
     }
 
     storage_blob {
       storage_account_id = azurerm_storage_account.example.id
       container_name     = azurerm_storage_container.example.name
-      name               = "test-destination-storage"
+      name               = "example-destination-storage"
     }
 
     azure_monitor_metrics {
-      name = "test-destination-metrics"
+      name = "example-destination-metrics"
     }
   }
 
   data_flow {
     streams      = ["Microsoft-InsightsMetrics"]
-    destinations = ["test-destination-metrics"]
+    destinations = ["example-destination-metrics"]
   }
 
   data_flow {
     streams      = ["Microsoft-InsightsMetrics", "Microsoft-Syslog", "Microsoft-Perf"]
-    destinations = ["test-destination-log"]
+    destinations = ["example-destination-log"]
   }
 
   data_flow {
@@ -123,20 +131,20 @@ resource "azurerm_monitor_data_collection_rule" "example" {
     syslog {
       facility_names = ["*"]
       log_levels     = ["*"]
-      name           = "test-datasource-syslog"
+      name           = "example-datasource-syslog"
     }
 
     iis_log {
       streams         = ["Microsoft-W3CIISLog"]
-      name            = "test-datasource-iis"
-      log_directories = ["C:\\\\Logs\\\\W3SVC1"]
+      name            = "example-datasource-iis"
+      log_directories = ["C:\\Logs\\W3SVC1"]
     }
 
     log_file {
-      name          = "test-datasource-logfile"
+      name          = "example-datasource-logfile"
       format        = "text"
       streams       = ["Custom-MyTableRawData"]
-      file_patterns = ["C:\\\\JavaLogs\\\\*.log"]
+      file_patterns = ["C:\\JavaLogs\\*.log"]
       settings {
         text {
           record_start_timestamp_format = "ISO 8601"
@@ -148,27 +156,26 @@ resource "azurerm_monitor_data_collection_rule" "example" {
       streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
       sampling_frequency_in_seconds = 60
       counter_specifiers            = ["Processor(*)\\% Processor Time"]
-      name                          = "test-datasource-perfcounter"
+      name                          = "example-datasource-perfcounter"
     }
 
     windows_event_log {
       streams        = ["Microsoft-WindowsEvent"]
       x_path_queries = ["*![System/Level=1]"]
-      name           = "test-datasource-wineventlog"
+      name           = "example-datasource-wineventlog"
     }
 
     extension {
       streams            = ["Microsoft-WindowsEvent"]
-      input_data_sources = ["test-datasource-wineventlog"]
-      extension_name     = "test-extension-name"
+      input_data_sources = ["example-datasource-wineventlog"]
+      extension_name     = "example-extension-name"
       extension_json = jsonencode({
         a = 1
         b = "hello"
       })
-      name = "test-datasource-extension"
+      name = "example-datasource-extension"
     }
   }
-
 
   stream_declaration {
     stream_name = "Custom-MyTableRawData"
