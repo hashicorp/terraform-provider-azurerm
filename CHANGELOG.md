@@ -1,31 +1,31 @@
-## 3.60.0 (Unreleased)
+## 3.60.0 (June 08, 2023)
 
 NOTES:
 
-* `azurerm_security_center_subscription_pricing` - upon deletion the pricing tier will now reset to `Free` tier [GH-21437]
+* `azurerm_security_center_subscription_pricing` - upon deletion the pricing tier will now reset to `Free` tier ([#21437](https://github.com/hashicorp/terraform-provider-azurerm/issues/21437))
 
 ENHANCEMENTS:
 
-* dependencies: `batch`: updating to API Version `2022-10-01` [GH-21962]
-* dependencies: `loadtest`: updating to API Version `2022-12-01` [GH-22091]
-* provider: adding the `client_id_file_path` and `client_secret_file_path` provider properties [GH-21764]
+* dependencies: `batch`: updating to API Version `2022-10-01` ([#21962](https://github.com/hashicorp/terraform-provider-azurerm/issues/21962))
+* dependencies: `loadtest`: updating to API Version `2022-12-01` ([#22091](https://github.com/hashicorp/terraform-provider-azurerm/issues/22091))
+* provider: adding the `client_id_file_path` and `client_secret_file_path` provider properties ([#21764](https://github.com/hashicorp/terraform-provider-azurerm/issues/21764))
 * `data.azurerm_key_vault_encrypted_value` - now exports the `decoded_plain_text_value` [attribute GH-21682]
-* `azurerm_automanage_configuration` - support for the `backup` and `azure_security_baseline` blocks [GH-22081]
-* `azurerm_app_configuration` - support toggling of user permission error on soft deleted stores through `app_configuration.recover_soft_deleted` feature flag [GH-19661]
-* `azurerm_backup_policy_file_share` - support for day-based retention policies and hourly backups [GH-21529]
-* `azurerm_linux_function_app` - support for Python `3.11` for Linux function app [GH-21956]
-* `azurerm_linux_function_app_slot` - support for Python `3.11` for Linux function app [GH-21956]
-* `azurerm_monitor_autoscale_setting` - support for the `predictive` block [GH-22038]
-* `azurerm_machine_learning_compute_instance` - support for the `node_public_ip_enabled` property [GH-22063]
-* `azurerm_spring_cloud_service` - support for the `container_registry` block [GH-22017]
-* `azurerm_site_recovery_replication_recovery_plan` - the order of the `pre_action` and `post_action` properties is now respected [GH-22019]
+* `azurerm_automanage_configuration` - support for the `backup` and `azure_security_baseline` blocks ([#22081](https://github.com/hashicorp/terraform-provider-azurerm/issues/22081))
+* `azurerm_app_configuration` - support toggling of user permission error on soft deleted stores through `app_configuration.recover_soft_deleted` feature flag ([#19661](https://github.com/hashicorp/terraform-provider-azurerm/issues/19661))
+* `azurerm_backup_policy_file_share` - support for day-based retention policies and hourly backups ([#21529](https://github.com/hashicorp/terraform-provider-azurerm/issues/21529))
+* `azurerm_linux_function_app` - support for Python `3.11` for Linux function app ([#21956](https://github.com/hashicorp/terraform-provider-azurerm/issues/21956))
+* `azurerm_linux_function_app_slot` - support for Python `3.11` for Linux function app ([#21956](https://github.com/hashicorp/terraform-provider-azurerm/issues/21956))
+* `azurerm_monitor_autoscale_setting` - support for the `predictive` block ([#22038](https://github.com/hashicorp/terraform-provider-azurerm/issues/22038))
+* `azurerm_machine_learning_compute_instance` - support for the `node_public_ip_enabled` property ([#22063](https://github.com/hashicorp/terraform-provider-azurerm/issues/22063))
+* `azurerm_spring_cloud_service` - support for the `container_registry` block ([#22017](https://github.com/hashicorp/terraform-provider-azurerm/issues/22017))
+* `azurerm_site_recovery_replication_recovery_plan` - the order of the `pre_action` and `post_action` properties is now respected ([#22019](https://github.com/hashicorp/terraform-provider-azurerm/issues/22019))
 
 BUG FIXES:
 
-* `azurerm_hdinsight_interactive_query_cluster` - deprecating the `*_node.0.autoscale.0.capacity` property [GH-21981]
-* `azurerm_key_vault_key` - allow the `rotation_policy` property to be removed [GH-21935]
-* `azurerm_mssql_server` - fix issue where the `minimum_tls_version` property is being returned as `None` instead of `Disabled` [GH-22067]
-* `azurerm_sentinel_data_connector_microsoft_threat_intelligence` - the `bing_safety_phishing_url_lookback_date` property has been deprecated [GH-21954]
+* `azurerm_hdinsight_interactive_query_cluster` - deprecating the `*_node.0.autoscale.0.capacity` property ([#21981](https://github.com/hashicorp/terraform-provider-azurerm/issues/21981))
+* `azurerm_key_vault_key` - allow the `rotation_policy` property to be removed ([#21935](https://github.com/hashicorp/terraform-provider-azurerm/issues/21935))
+* `azurerm_mssql_server` - fix issue where the `minimum_tls_version` property is being returned as `None` instead of `Disabled` ([#22067](https://github.com/hashicorp/terraform-provider-azurerm/issues/22067))
+* `azurerm_sentinel_data_connector_microsoft_threat_intelligence` - the `bing_safety_phishing_url_lookback_date` property has been deprecated ([#21954](https://github.com/hashicorp/terraform-provider-azurerm/issues/21954))
 
 ## 3.59.0 (June 01, 2023)
 
