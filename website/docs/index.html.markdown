@@ -102,6 +102,8 @@ The following arguments are supported:
 
 * `client_id` - (Optional) The Client ID which should be used. This can also be sourced from the `ARM_CLIENT_ID` Environment Variable.
 
+* `client_id_file_path` (Optional) The path to a file containing the Client ID which should be used. This can also be sourced from the `ARM_CLIENT_ID_FILE_PATH` Environment Variable.
+
 * `environment` - (Optional) The Cloud Environment which should be used. Possible values are `public`, `usgovernment`, `german`, and `china`. Defaults to `public`. This can also be sourced from the `ARM_ENVIRONMENT` Environment Variable.
 
 * `subscription_id` - (Optional) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable.
@@ -127,6 +129,8 @@ More information on [how to configure a Service Principal using a Client Certifi
 When authenticating as a Service Principal using a Client Secret, the following fields can be set:
 
 * `client_secret` - (Optional) The Client Secret which should be used. This can also be sourced from the `ARM_CLIENT_SECRET` Environment Variable.
+
+* `client_secret_file_path` - (Optional) The path to a file containing the Client Secret which should be used. This can also be sourced from the `ARM_CLIENT_SECRET_FILE_PATH` Environment Variable.
 
 More information on [how to configure a Service Principal using a Client Secret can be found in this guide](guides/service_principal_client_secret.html).
 
