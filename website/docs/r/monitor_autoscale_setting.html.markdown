@@ -136,6 +136,11 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     }
   }
 
+  predictive {
+    scale_mode      = "Enabled"
+    look_ahead_time = "PT5M"
+  }
+
   notification {
     email {
       send_to_subscription_administrator    = true
@@ -438,6 +443,8 @@ The following arguments are supported:
 
 * `notification` - (Optional) Specifies a `notification` block as defined below.
 
+* `predictive` - (Optional) A `predictive` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -571,6 +578,14 @@ A `dimensions` block supports the following:
 * `operator` - (Required) The dimension operator. Possible values are `Equals` and `NotEquals`. `Equals` means being equal to any of the values. `NotEquals` means being not equal to any of the values.
 
 * `values` - (Required) A list of dimension values.
+
+---
+
+A `predictive` block supports the following:
+
+* `scale_mode` - (Required) Specifies the predictive scale mode. Possible values are `Enabled` or `ForecastOnly`.
+
+* `look_ahead_time` - (Optional) Specifies the amount of time by which instances are launched in advance. It must be between `PT1M` and `PT1H` in ISO 8601 format.
 
 ## Attributes Reference
 

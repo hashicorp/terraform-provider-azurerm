@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings"
@@ -70,6 +71,32 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"predictive": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				MinItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"scale_mode": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							// Disabled is not exposed, omission of this block to mean disabled
+							ValidateFunc: validation.StringInSlice([]string{
+								string(autoscalesettings.PredictiveAutoscalePolicyScaleModeEnabled),
+								string(autoscalesettings.PredictiveAutoscalePolicyScaleModeForecastOnly),
+							}, false),
+						},
+
+						"look_ahead_time": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.ISO8601DurationBetween("PT1M", "PT1H"),
+						},
+					},
+				},
 			},
 
 			"profile": {
@@ -444,10 +471,11 @@ func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta
 	parameters := autoscalesettings.AutoscaleSettingResource{
 		Location: location,
 		Properties: autoscalesettings.AutoscaleSetting{
-			Enabled:           &enabled,
-			Profiles:          profiles,
-			Notifications:     notifications,
-			TargetResourceUri: &targetResourceId,
+			Enabled:                   &enabled,
+			Profiles:                  profiles,
+			PredictiveAutoscalePolicy: expandAzureRmMonitorAutoScaleSettingPredictive(d.Get("predictive").([]interface{})),
+			Notifications:             notifications,
+			TargetResourceUri:         &targetResourceId,
 		},
 		Tags: utils.ExpandPtrMapStringString(t),
 	}
@@ -498,6 +526,10 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 		}
 		if err = d.Set("profile", profile); err != nil {
 			return fmt.Errorf("setting `profile` of %s: %+v", *id, err)
+		}
+
+		if err = d.Set("predictive", flattenAzureRmMonitorAutoScaleSettingPredictive(props.PredictiveAutoscalePolicy)); err != nil {
+			return fmt.Errorf("setting `predictive_scale_mode` of %s: %+v", *id, err)
 		}
 
 		notifications := flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)
@@ -576,6 +608,23 @@ func expandAzureRmMonitorAutoScaleSettingProfile(input []interface{}) ([]autosca
 	}
 
 	return results, nil
+}
+
+func expandAzureRmMonitorAutoScaleSettingPredictive(input []interface{}) *autoscalesettings.PredictiveAutoscalePolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	predictive := autoscalesettings.PredictiveAutoscalePolicy{
+		ScaleMode: autoscalesettings.PredictiveAutoscalePolicyScaleMode(raw["scale_mode"].(string)),
+	}
+
+	if lookAheadTime := raw["look_ahead_time"].(string); lookAheadTime != "" {
+		predictive.ScaleLookAheadTime = pointer.To(lookAheadTime)
+	}
+
+	return &predictive
 }
 
 func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) []autoscalesettings.ScaleRule {
@@ -804,6 +853,24 @@ func flattenAzureRmMonitorAutoScaleSettingProfile(profiles []autoscalesettings.A
 		results = append(results, result)
 	}
 	return results, nil
+}
+
+func flattenAzureRmMonitorAutoScaleSettingPredictive(input *autoscalesettings.PredictiveAutoscalePolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	// omit the block if disabled
+	if input.ScaleMode == autoscalesettings.PredictiveAutoscalePolicyScaleModeDisabled {
+		return []interface{}{}
+	}
+
+	result := map[string]interface{}{
+		"look_ahead_time": pointer.From(input.ScaleLookAheadTime),
+		"scale_mode":      string(input.ScaleMode),
+	}
+
+	return []interface{}{result}
 }
 
 func flattenAzureRmMonitorAutoScaleSettingCapacity(input autoscalesettings.ScaleCapacity) ([]interface{}, error) {
