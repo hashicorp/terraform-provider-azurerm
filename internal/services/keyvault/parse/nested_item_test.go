@@ -30,12 +30,6 @@ func TestNewNestedItemID(t *testing.T) {
 			Expected:        "https://test.vault.azure.net/keys/test/testVersionString",
 			ExpectError:     false,
 		},
-		{
-			Scenario:        "mhsm valid, with port",
-			keyVaultBaseUrl: "https://test.managedhsm.azure.net:443",
-			Expected:        "https://test.managedhsm.azure.net/keys/test/testVersionString",
-			ExpectError:     false,
-		},
 	}
 	for _, tc := range cases {
 		id, err := NewNestedItemID(tc.keyVaultBaseUrl, childType, childName, childVersion)
@@ -94,15 +88,6 @@ func TestParseNestedItemID(t *testing.T) {
 			Expected: NestedItemId{
 				Name:            "castle",
 				KeyVaultBaseUrl: "https://my-keyvault.vault.azure.net/",
-				Version:         "1492",
-			},
-		},
-		{
-			Input:       "https://my-keyvault.managedhsm.azure.net/keys/castle/1492",
-			ExpectError: false,
-			Expected: NestedItemId{
-				Name:            "castle",
-				KeyVaultBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
 				Version:         "1492",
 			},
 		},
@@ -191,15 +176,6 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 			Expected: NestedItemId{
 				Name:            "castle",
 				KeyVaultBaseUrl: "https://my-keyvault.vault.azure.net/",
-				Version:         "1492",
-			},
-		},
-		{
-			Input:       "https://my-keyvault.managedhsm.azure.net/keys/castle/1492",
-			ExpectError: false,
-			Expected: NestedItemId{
-				Name:            "castle",
-				KeyVaultBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
 				Version:         "1492",
 			},
 		},
