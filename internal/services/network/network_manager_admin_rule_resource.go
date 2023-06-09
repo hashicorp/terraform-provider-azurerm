@@ -5,32 +5,32 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/adminrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ManagerAdminRuleModel struct {
-	Name                    string                                     `tfschema:"name"`
-	NetworkRuleCollectionId string                                     `tfschema:"admin_rule_collection_id"`
-	Action                  network.SecurityConfigurationRuleAccess    `tfschema:"action"`
-	Description             string                                     `tfschema:"description"`
-	DestinationPortRanges   []string                                   `tfschema:"destination_port_ranges"`
-	Destinations            []AddressPrefixItemModel                   `tfschema:"destination"`
-	Direction               network.SecurityConfigurationRuleDirection `tfschema:"direction"`
-	Priority                int32                                      `tfschema:"priority"`
-	Protocol                network.SecurityConfigurationRuleProtocol  `tfschema:"protocol"`
-	SourcePortRanges        []string                                   `tfschema:"source_port_ranges"`
-	Sources                 []AddressPrefixItemModel                   `tfschema:"source"`
+	Name                    string                                        `tfschema:"name"`
+	NetworkRuleCollectionId string                                        `tfschema:"admin_rule_collection_id"`
+	Action                  adminrules.SecurityConfigurationRuleAccess    `tfschema:"action"`
+	Description             string                                        `tfschema:"description"`
+	DestinationPortRanges   []string                                      `tfschema:"destination_port_ranges"`
+	Destinations            []AddressPrefixItemModel                      `tfschema:"destination"`
+	Direction               adminrules.SecurityConfigurationRuleDirection `tfschema:"direction"`
+	Priority                int64                                         `tfschema:"priority"`
+	Protocol                adminrules.SecurityConfigurationRuleProtocol  `tfschema:"protocol"`
+	SourcePortRanges        []string                                      `tfschema:"source_port_ranges"`
+	Sources                 []AddressPrefixItemModel                      `tfschema:"source"`
 }
 
 type AddressPrefixItemModel struct {
-	AddressPrefix     string                    `tfschema:"address_prefix"`
-	AddressPrefixType network.AddressPrefixType `tfschema:"address_prefix_type"`
+	AddressPrefix     string                       `tfschema:"address_prefix"`
+	AddressPrefixType adminrules.AddressPrefixType `tfschema:"address_prefix_type"`
 }
 
 type ManagerAdminRuleResource struct{}
@@ -69,9 +69,9 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(network.SecurityConfigurationRuleAccessAllow),
-				string(network.SecurityConfigurationRuleAccessDeny),
-				string(network.SecurityConfigurationRuleAccessAlwaysAllow),
+				string(adminrules.SecurityConfigurationRuleAccessAllow),
+				string(adminrules.SecurityConfigurationRuleAccessDeny),
+				string(adminrules.SecurityConfigurationRuleAccessAlwaysAllow),
 			}, false),
 		},
 
@@ -79,8 +79,8 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(network.SecurityConfigurationRuleDirectionInbound),
-				string(network.SecurityConfigurationRuleDirectionOutbound),
+				string(adminrules.SecurityConfigurationRuleDirectionInbound),
+				string(adminrules.SecurityConfigurationRuleDirectionOutbound),
 			}, false),
 		},
 
@@ -94,12 +94,12 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(network.SecurityConfigurationRuleProtocolAh),
-				string(network.SecurityConfigurationRuleProtocolAny),
-				string(network.SecurityConfigurationRuleProtocolIcmp),
-				string(network.SecurityConfigurationRuleProtocolEsp),
-				string(network.SecurityConfigurationRuleProtocolTCP),
-				string(network.SecurityConfigurationRuleProtocolUDP),
+				string(adminrules.SecurityConfigurationRuleProtocolAh),
+				string(adminrules.SecurityConfigurationRuleProtocolAny),
+				string(adminrules.SecurityConfigurationRuleProtocolIcmp),
+				string(adminrules.SecurityConfigurationRuleProtocolEsp),
+				string(adminrules.SecurityConfigurationRuleProtocolTcp),
+				string(adminrules.SecurityConfigurationRuleProtocolUdp),
 			}, false),
 		},
 
@@ -133,8 +133,8 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(network.AddressPrefixTypeIPPrefix),
-							string(network.AddressPrefixTypeServiceTag),
+							string(adminrules.AddressPrefixTypeIPPrefix),
+							string(adminrules.AddressPrefixTypeServiceTag),
 						}, false),
 					},
 				},
@@ -165,8 +165,8 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(network.AddressPrefixTypeIPPrefix),
-							string(network.AddressPrefixTypeServiceTag),
+							string(adminrules.AddressPrefixTypeIPPrefix),
+							string(adminrules.AddressPrefixTypeServiceTag),
 						}, false),
 					},
 				},
@@ -188,30 +188,30 @@ func (r ManagerAdminRuleResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.ManagerAdminRulesClient
-			ruleCollectionId, err := parse.NetworkManagerAdminRuleCollectionID(model.NetworkRuleCollectionId)
+			client := metadata.Client.Network.V20220901Client.AdminRules
+			ruleCollectionId, err := adminrules.ParseRuleCollectionID(model.NetworkRuleCollectionId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewNetworkManagerAdminRuleID(ruleCollectionId.SubscriptionId, ruleCollectionId.ResourceGroup,
+			id := adminrules.NewRuleID(ruleCollectionId.SubscriptionId, ruleCollectionId.ResourceGroupName,
 				ruleCollectionId.NetworkManagerName, ruleCollectionId.SecurityAdminConfigurationName, ruleCollectionId.RuleCollectionName, model.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName, id.RuleName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			rule := &network.AdminRule{
-				AdminPropertiesFormat: &network.AdminPropertiesFormat{
+			rule := adminrules.AdminRule{
+				Properties: &adminrules.AdminPropertiesFormat{
 					Access:                model.Action,
 					Destinations:          expandAddressPrefixItemModel(model.Destinations),
 					DestinationPortRanges: &model.DestinationPortRanges,
 					Direction:             model.Direction,
-					Priority:              utils.Int32(model.Priority),
+					Priority:              model.Priority,
 					Protocol:              model.Protocol,
 					SourcePortRanges:      &model.SourcePortRanges,
 					Sources:               expandAddressPrefixItemModel(model.Sources),
@@ -219,10 +219,10 @@ func (r ManagerAdminRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Description != "" {
-				rule.AdminPropertiesFormat.Description = &model.Description
+				rule.Properties.Description = &model.Description
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *rule, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName, id.RuleName); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, rule); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -236,9 +236,9 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerAdminRulesClient
+			client := metadata.Client.Network.V20220901Client.AdminRules
 
-			id, err := parse.NetworkManagerAdminRuleID(metadata.ResourceData.Id())
+			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -248,20 +248,24 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName, id.RuleName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
 
-			var rule *network.AdminRule
-			if adminRule, ok := existing.Value.AsAdminRule(); ok {
+			var rule adminrules.AdminRule
+			if adminRule, ok := (*existing.Model).(adminrules.AdminRule); ok {
 				rule = adminRule
 			}
 
-			properties := rule.AdminPropertiesFormat
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			if rule.Properties == nil {
+				return fmt.Errorf("retrieving %s: property was nil", *id)
 			}
+
+			properties := rule.Properties
 
 			if metadata.ResourceData.HasChange("action") {
 				properties.Access = model.Action
@@ -288,7 +292,7 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("priority") {
-				properties.Priority = utils.Int32(model.Priority)
+				properties.Priority = model.Priority
 			}
 
 			if metadata.ResourceData.HasChange("protocol") {
@@ -303,7 +307,7 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 				properties.Sources = expandAddressPrefixItemModel(model.Sources)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, rule, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName, id.RuleName); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, rule); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -316,39 +320,44 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerAdminRulesClient
+			client := metadata.Client.Network.V20220901Client.AdminRules
 
-			id, err := parse.NetworkManagerAdminRuleID(metadata.ResourceData.Id())
+			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName, id.RuleName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
 
-			var rule *network.AdminRule
-			if adminRule, ok := existing.Value.AsAdminRule(); ok {
+			var rule adminrules.AdminRule
+			if adminRule, ok := (*existing.Model).(adminrules.AdminRule); ok {
 				rule = adminRule
 			}
 
-			properties := rule.AdminPropertiesFormat
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			if rule.Properties == nil {
+				return fmt.Errorf("retrieving %s: property was nil", *id)
 			}
+
+			properties := rule.Properties
 
 			state := ManagerAdminRuleModel{
 				Action: properties.Access,
 				Name:   id.RuleName,
-				NetworkRuleCollectionId: parse.NewNetworkManagerAdminRuleCollectionID(id.SubscriptionId, id.ResourceGroup,
+				NetworkRuleCollectionId: adminrules.NewRuleCollectionID(id.SubscriptionId, id.ResourceGroupName,
 					id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName).ID(),
 				Destinations: flattenAddressPrefixItemModel(properties.Destinations),
 				Direction:    properties.Direction,
+				Priority:     properties.Priority,
 				Protocol:     properties.Protocol,
 				Sources:      flattenAddressPrefixItemModel(properties.Sources),
 			}
@@ -359,11 +368,6 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 
 			if properties.DestinationPortRanges != nil {
 				state.DestinationPortRanges = *properties.DestinationPortRanges
-			}
-
-			state.Priority = 0
-			if properties.Priority != nil {
-				state.Priority = *properties.Priority
 			}
 
 			if properties.SourcePortRanges != nil {
@@ -379,20 +383,18 @@ func (r ManagerAdminRuleResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerAdminRulesClient
+			client := metadata.Client.Network.V20220901Client.AdminRules
 
-			id, err := parse.NetworkManagerAdminRuleID(metadata.ResourceData.Id())
+			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName, id.RuleName, utils.Bool(true))
+			err = client.DeleteThenPoll(ctx, *id, adminrules.DeleteOperationOptions{
+				Force: utils.Bool(true),
+			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 			}
 
 			return nil
@@ -400,12 +402,12 @@ func (r ManagerAdminRuleResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) *[]network.AddressPrefixItem {
-	var outputList []network.AddressPrefixItem
+func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) *[]adminrules.AddressPrefixItem {
+	var outputList []adminrules.AddressPrefixItem
 	for _, v := range inputList {
 		input := v
-		output := network.AddressPrefixItem{
-			AddressPrefixType: input.AddressPrefixType,
+		output := adminrules.AddressPrefixItem{
+			AddressPrefixType: &input.AddressPrefixType,
 		}
 
 		if input.AddressPrefix != "" {
@@ -418,15 +420,17 @@ func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) *[]network
 	return &outputList
 }
 
-func flattenAddressPrefixItemModel(inputList *[]network.AddressPrefixItem) []AddressPrefixItemModel {
+func flattenAddressPrefixItemModel(inputList *[]adminrules.AddressPrefixItem) []AddressPrefixItemModel {
 	var outputList []AddressPrefixItemModel
 	if inputList == nil {
 		return outputList
 	}
 
 	for _, input := range *inputList {
-		output := AddressPrefixItemModel{
-			AddressPrefixType: input.AddressPrefixType,
+		output := AddressPrefixItemModel{}
+
+		if input.AddressPrefixType != nil {
+			output.AddressPrefixType = *input.AddressPrefixType
 		}
 
 		if input.AddressPrefix != nil {

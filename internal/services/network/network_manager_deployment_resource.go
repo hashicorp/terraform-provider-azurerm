@@ -94,7 +94,7 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Network.ManagerDeploymentsClient
+			client := metadata.Client.Network.V20220901Client.NetworkManagers
 
 			networkManagerId, err := networkmanagers.ParseNetworkManagerID(state.NetworkManagerId)
 			if err != nil {
@@ -148,7 +148,7 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 func (r ManagerDeploymentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerDeploymentsClient
+			client := metadata.Client.Network.V20220901Client.NetworkManagers
 			id, err := parse.NetworkManagerDeploymentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -206,8 +206,7 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("updating %s..", *id)
-			client := metadata.Client.Network.ManagerDeploymentsClient
-			statusClient := metadata.Client.Network.ManagerDeploymentsClient
+			client := metadata.Client.Network.V20220901Client.NetworkManagers
 
 			listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
 				Regions:         &[]string{id.Location},
@@ -216,7 +215,7 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 
 			networkManagerId := networkmanagers.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName)
 
-			resp, err := statusClient.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
+			resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					metadata.Logger.Infof("%s was not found - removing from state!", *id)
@@ -262,7 +261,7 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			if err = resourceManagerDeploymentWaitForFinished(ctx, statusClient, id, metadata.ResourceData); err != nil {
+			if err = resourceManagerDeploymentWaitForFinished(ctx, client, id, metadata.ResourceData); err != nil {
 				return err
 			}
 
@@ -275,7 +274,7 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerDeploymentsClient
+			client := metadata.Client.Network.V20220901Client.NetworkManagers
 			id, err := parse.NetworkManagerDeploymentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -294,7 +293,7 @@ func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			statusClient := metadata.Client.Network.ManagerDeploymentsClient
+			statusClient := metadata.Client.Network.V20220901Client.NetworkManagers
 			if err = resourceManagerDeploymentWaitForDeleted(ctx, statusClient, id, metadata.ResourceData); err != nil {
 				return err
 			}

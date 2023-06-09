@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityadminconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ManagerSecurityAdminConfigurationModel struct {
@@ -60,9 +60,9 @@ func (r ManagerSecurityAdminConfigurationResource) Arguments() map[string]*plugi
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.IntentPolicyBasedServiceNone),
-					string(network.IntentPolicyBasedServiceAllowRulesOnly),
-					string(network.IntentPolicyBasedServiceAll),
+					string(securityadminconfigurations.NetworkIntentPolicyBasedServiceAll),
+					string(securityadminconfigurations.NetworkIntentPolicyBasedServiceAllowRulesOnly),
+					string(securityadminconfigurations.NetworkIntentPolicyBasedServiceNone),
 				}, false),
 			},
 		},
@@ -88,33 +88,33 @@ func (r ManagerSecurityAdminConfigurationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.ManagerSecurityAdminConfigurationsClient
-			networkManagerId, err := parse.NetworkManagerID(model.NetworkManagerId)
+			client := metadata.Client.Network.V20220901Client.SecurityAdminConfigurations
+			networkManagerId, err := securityadminconfigurations.ParseNetworkManagerID(model.NetworkManagerId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewNetworkManagerSecurityAdminConfigurationID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroup, networkManagerId.Name, model.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			id := securityadminconfigurations.NewSecurityAdminConfigurationID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, model.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			conf := &network.SecurityAdminConfiguration{
-				SecurityAdminConfigurationPropertiesFormat: &network.SecurityAdminConfigurationPropertiesFormat{
+			conf := securityadminconfigurations.SecurityAdminConfiguration{
+				Properties: &securityadminconfigurations.SecurityAdminConfigurationPropertiesFormat{
 					ApplyOnNetworkIntentPolicyBasedServices: expandNetworkIntentPolicyBasedServiceModel(model.ApplyOnNetworkIntentPolicyBasedServices),
 				},
 			}
 
 			if model.Description != "" {
-				conf.SecurityAdminConfigurationPropertiesFormat.Description = &model.Description
+				conf.Properties.Description = &model.Description
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *conf, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, conf); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -128,9 +128,9 @@ func (r ManagerSecurityAdminConfigurationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerSecurityAdminConfigurationsClient
+			client := metadata.Client.Network.V20220901Client.SecurityAdminConfigurations
 
-			id, err := parse.NetworkManagerSecurityAdminConfigurationID(metadata.ResourceData.Id())
+			id, err := securityadminconfigurations.ParseSecurityAdminConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -144,15 +144,19 @@ func (r ManagerSecurityAdminConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			properties := existing.SecurityAdminConfigurationPropertiesFormat
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
+			properties := existing.Model.Properties
 
 			if metadata.ResourceData.HasChange("apply_on_network_intent_policy_based_services") {
 				properties.ApplyOnNetworkIntentPolicyBasedServices = expandNetworkIntentPolicyBasedServiceModel(model.ApplyOnNetworkIntentPolicyBasedServices)
@@ -162,7 +166,7 @@ func (r ManagerSecurityAdminConfigurationResource) Update() sdk.ResourceFunc {
 				properties.Description = utils.String(model.Description)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, existing, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -175,30 +179,34 @@ func (r ManagerSecurityAdminConfigurationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerSecurityAdminConfigurationsClient
+			client := metadata.Client.Network.V20220901Client.SecurityAdminConfigurations
 
-			id, err := parse.NetworkManagerSecurityAdminConfigurationID(metadata.ResourceData.Id())
+			id, err := securityadminconfigurations.ParseSecurityAdminConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			properties := existing.SecurityAdminConfigurationPropertiesFormat
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
+			properties := existing.Model.Properties
 
 			state := ManagerSecurityAdminConfigurationModel{
 				Name:                                    id.SecurityAdminConfigurationName,
-				NetworkManagerId:                        parse.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName).ID(),
+				NetworkManagerId:                        securityadminconfigurations.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID(),
 				ApplyOnNetworkIntentPolicyBasedServices: flattenNetworkIntentPolicyBasedServiceModel(properties.ApplyOnNetworkIntentPolicyBasedServices),
 			}
 
@@ -215,20 +223,18 @@ func (r ManagerSecurityAdminConfigurationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerSecurityAdminConfigurationsClient
+			client := metadata.Client.Network.V20220901Client.SecurityAdminConfigurations
 
-			id, err := parse.NetworkManagerSecurityAdminConfigurationID(metadata.ResourceData.Id())
+			id, err := securityadminconfigurations.ParseSecurityAdminConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, utils.Bool(true))
+			err = client.DeleteThenPoll(ctx, *id, securityadminconfigurations.DeleteOperationOptions{
+				Force: utils.Bool(true),
+			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 			}
 
 			return nil
@@ -236,10 +242,10 @@ func (r ManagerSecurityAdminConfigurationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandNetworkIntentPolicyBasedServiceModel(inputList []string) *[]network.IntentPolicyBasedService {
-	var outputList []network.IntentPolicyBasedService
+func expandNetworkIntentPolicyBasedServiceModel(inputList []string) *[]securityadminconfigurations.NetworkIntentPolicyBasedService {
+	var outputList []securityadminconfigurations.NetworkIntentPolicyBasedService
 	for _, input := range inputList {
-		output := network.IntentPolicyBasedService(input)
+		output := securityadminconfigurations.NetworkIntentPolicyBasedService(input)
 
 		outputList = append(outputList, output)
 	}
@@ -247,7 +253,7 @@ func expandNetworkIntentPolicyBasedServiceModel(inputList []string) *[]network.I
 	return &outputList
 }
 
-func flattenNetworkIntentPolicyBasedServiceModel(inputList *[]network.IntentPolicyBasedService) []string {
+func flattenNetworkIntentPolicyBasedServiceModel(inputList *[]securityadminconfigurations.NetworkIntentPolicyBasedService) []string {
 	var outputList []string
 	if inputList == nil {
 		return outputList

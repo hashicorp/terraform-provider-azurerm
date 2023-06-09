@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -79,20 +80,20 @@ func testAccNetworkManagerNetworkGroup_update(t *testing.T) {
 }
 
 func (r ManagerNetworkGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NetworkManagerNetworkGroupID(state.ID)
+	id, err := networkgroups.ParseNetworkGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.Network.ManagerNetworkGroupsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.NetworkGroupName)
+	client := clients.Network.V20220901Client.NetworkGroups
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.GroupProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r ManagerNetworkGroupResource) template(data acceptance.TestData) string {

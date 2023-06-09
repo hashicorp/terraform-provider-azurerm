@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/scopeconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ManagerScopeConnectionModel struct {
@@ -94,39 +93,39 @@ func (r ManagerScopeConnectionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.ManagerScopeConnectionsClient
-			networkManagerId, err := parse.NetworkManagerID(model.NetworkManagerId)
+			client := metadata.Client.Network.V20220901Client.ScopeConnections
+			networkManagerId, err := scopeconnections.ParseNetworkManagerID(model.NetworkManagerId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewNetworkManagerScopeConnectionID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroup, networkManagerId.Name, model.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.ScopeConnectionName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			id := scopeconnections.NewScopeConnectionID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, model.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			scopeConnection := &network.ScopeConnection{
-				ScopeConnectionProperties: &network.ScopeConnectionProperties{},
+			scopeConnection := scopeconnections.ScopeConnection{
+				Properties: &scopeconnections.ScopeConnectionProperties{},
 			}
 
 			if model.Description != "" {
-				scopeConnection.ScopeConnectionProperties.Description = &model.Description
+				scopeConnection.Properties.Description = &model.Description
 			}
 
 			if model.ResourceId != "" {
-				scopeConnection.ScopeConnectionProperties.ResourceID = &model.ResourceId
+				scopeConnection.Properties.ResourceId = &model.ResourceId
 			}
 
 			if model.TenantId != "" {
-				scopeConnection.ScopeConnectionProperties.TenantID = &model.TenantId
+				scopeConnection.Properties.TenantId = &model.TenantId
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *scopeConnection, id.ResourceGroup, id.NetworkManagerName, id.ScopeConnectionName); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, scopeConnection); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -140,9 +139,9 @@ func (r ManagerScopeConnectionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerScopeConnectionsClient
+			client := metadata.Client.Network.V20220901Client.ScopeConnections
 
-			id, err := parse.NetworkManagerScopeConnectionID(metadata.ResourceData.Id())
+			id, err := scopeconnections.ParseScopeConnectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -152,15 +151,18 @@ func (r ManagerScopeConnectionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.ScopeConnectionName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-
-			properties := existing.ScopeConnectionProperties
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
+			properties := existing.Model.Properties
 
 			if metadata.ResourceData.HasChange("description") {
 				if model.Description != "" {
@@ -170,17 +172,17 @@ func (r ManagerScopeConnectionResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("target_scope_id") {
 				if model.ResourceId != "" {
-					properties.ResourceID = &model.ResourceId
+					properties.ResourceId = &model.ResourceId
 				}
 			}
 
 			if metadata.ResourceData.HasChange("tenant_id") {
 				if model.TenantId != "" {
-					properties.TenantID = &model.TenantId
+					properties.TenantId = &model.TenantId
 				}
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, existing, id.ResourceGroup, id.NetworkManagerName, id.ScopeConnectionName); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -193,44 +195,50 @@ func (r ManagerScopeConnectionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerScopeConnectionsClient
+			client := metadata.Client.Network.V20220901Client.ScopeConnections
 
-			id, err := parse.NetworkManagerScopeConnectionID(metadata.ResourceData.Id())
+			id, err := scopeconnections.ParseScopeConnectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.ScopeConnectionName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			properties := existing.ScopeConnectionProperties
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
+			properties := existing.Model.Properties
 
 			state := ManagerScopeConnectionModel{
 				Name:             id.ScopeConnectionName,
-				NetworkManagerId: parse.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName).ID(),
+				NetworkManagerId: scopeconnections.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID(),
 			}
 
-			state.ConnectionState = string(properties.ConnectionState)
+			if properties.ConnectionState != nil {
+				state.ConnectionState = string(*properties.ConnectionState)
+			}
 
 			if properties.Description != nil {
 				state.Description = *properties.Description
 			}
 
-			if properties.ResourceID != nil {
-				state.ResourceId = *properties.ResourceID
+			if properties.ResourceId != nil {
+				state.ResourceId = *properties.ResourceId
 			}
 
-			if properties.TenantID != nil {
-				state.TenantId = *properties.TenantID
+			if properties.TenantId != nil {
+				state.TenantId = *properties.TenantId
 			}
 
 			return metadata.Encode(&state)
@@ -242,14 +250,14 @@ func (r ManagerScopeConnectionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerScopeConnectionsClient
+			client := metadata.Client.Network.V20220901Client.ScopeConnections
 
-			id, err := parse.NetworkManagerScopeConnectionID(metadata.ResourceData.Id())
+			id, err := scopeconnections.ParseScopeConnectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.NetworkManagerName, id.ScopeConnectionName); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -264,9 +272,9 @@ func (r ManagerScopeConnectionResource) Delete() sdk.ResourceFunc {
 				Pending: []string{"Exists"},
 				Target:  []string{"NotFound"},
 				Refresh: func() (result interface{}, state string, err error) {
-					resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.ScopeConnectionName)
+					resp, err := client.Get(ctx, *id)
 					if err != nil {
-						if utils.ResponseWasNotFound(resp.Response) {
+						if response.WasNotFound(resp.HttpResponse) {
 							return "NotFound", "NotFound", nil
 						}
 						return "Error", "Error", err
