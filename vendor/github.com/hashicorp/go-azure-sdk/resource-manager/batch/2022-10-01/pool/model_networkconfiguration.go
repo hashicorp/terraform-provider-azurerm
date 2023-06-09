@@ -4,7 +4,7 @@ package pool
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type NetworkConfiguration struct {
-	DynamicVNetAssignmentScope   *DynamicVNetAssignmentScope   `json:"dynamicVNetAssignmentScope,omitempty"`
+	DynamicVnetAssignmentScope   *DynamicVNetAssignmentScope   `json:"dynamicVnetAssignmentScope,omitempty"`
 	EndpointConfiguration        *PoolEndpointConfiguration    `json:"endpointConfiguration,omitempty"`
 	PublicIPAddressConfiguration *PublicIPAddressConfiguration `json:"publicIPAddressConfiguration,omitempty"`
 	SubnetId                     *string                       `json:"subnetId,omitempty"`

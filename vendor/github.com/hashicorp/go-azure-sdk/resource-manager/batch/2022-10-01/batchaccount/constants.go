@@ -135,6 +135,85 @@ func parseAutoStorageAuthenticationMode(input string) (*AutoStorageAuthenticatio
 	return &out, nil
 }
 
+type EndpointAccessDefaultAction string
+
+const (
+	EndpointAccessDefaultActionAllow EndpointAccessDefaultAction = "Allow"
+	EndpointAccessDefaultActionDeny  EndpointAccessDefaultAction = "Deny"
+)
+
+func PossibleValuesForEndpointAccessDefaultAction() []string {
+	return []string{
+		string(EndpointAccessDefaultActionAllow),
+		string(EndpointAccessDefaultActionDeny),
+	}
+}
+
+func (s *EndpointAccessDefaultAction) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEndpointAccessDefaultAction(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseEndpointAccessDefaultAction(input string) (*EndpointAccessDefaultAction, error) {
+	vals := map[string]EndpointAccessDefaultAction{
+		"allow": EndpointAccessDefaultActionAllow,
+		"deny":  EndpointAccessDefaultActionDeny,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := EndpointAccessDefaultAction(input)
+	return &out, nil
+}
+
+type IPRuleAction string
+
+const (
+	IPRuleActionAllow IPRuleAction = "Allow"
+)
+
+func PossibleValuesForIPRuleAction() []string {
+	return []string{
+		string(IPRuleActionAllow),
+	}
+}
+
+func (s *IPRuleAction) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIPRuleAction(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseIPRuleAction(input string) (*IPRuleAction, error) {
+	vals := map[string]IPRuleAction{
+		"allow": IPRuleActionAllow,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := IPRuleAction(input)
+	return &out, nil
+}
+
 type KeySource string
 
 const (
@@ -220,6 +299,9 @@ func parsePoolAllocationMode(input string) (*PoolAllocationMode, error) {
 type PrivateEndpointConnectionProvisioningState string
 
 const (
+	PrivateEndpointConnectionProvisioningStateCancelled PrivateEndpointConnectionProvisioningState = "Cancelled"
+	PrivateEndpointConnectionProvisioningStateCreating  PrivateEndpointConnectionProvisioningState = "Creating"
+	PrivateEndpointConnectionProvisioningStateDeleting  PrivateEndpointConnectionProvisioningState = "Deleting"
 	PrivateEndpointConnectionProvisioningStateFailed    PrivateEndpointConnectionProvisioningState = "Failed"
 	PrivateEndpointConnectionProvisioningStateSucceeded PrivateEndpointConnectionProvisioningState = "Succeeded"
 	PrivateEndpointConnectionProvisioningStateUpdating  PrivateEndpointConnectionProvisioningState = "Updating"
@@ -227,6 +309,9 @@ const (
 
 func PossibleValuesForPrivateEndpointConnectionProvisioningState() []string {
 	return []string{
+		string(PrivateEndpointConnectionProvisioningStateCancelled),
+		string(PrivateEndpointConnectionProvisioningStateCreating),
+		string(PrivateEndpointConnectionProvisioningStateDeleting),
 		string(PrivateEndpointConnectionProvisioningStateFailed),
 		string(PrivateEndpointConnectionProvisioningStateSucceeded),
 		string(PrivateEndpointConnectionProvisioningStateUpdating),
@@ -248,6 +333,9 @@ func (s *PrivateEndpointConnectionProvisioningState) UnmarshalJSON(bytes []byte)
 
 func parsePrivateEndpointConnectionProvisioningState(input string) (*PrivateEndpointConnectionProvisioningState, error) {
 	vals := map[string]PrivateEndpointConnectionProvisioningState{
+		"cancelled": PrivateEndpointConnectionProvisioningStateCancelled,
+		"creating":  PrivateEndpointConnectionProvisioningStateCreating,
+		"deleting":  PrivateEndpointConnectionProvisioningStateDeleting,
 		"failed":    PrivateEndpointConnectionProvisioningStateFailed,
 		"succeeded": PrivateEndpointConnectionProvisioningStateSucceeded,
 		"updating":  PrivateEndpointConnectionProvisioningStateUpdating,

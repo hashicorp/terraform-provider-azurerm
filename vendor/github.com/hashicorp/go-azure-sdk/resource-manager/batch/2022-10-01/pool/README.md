@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/pool` Documentation
 
-The `pool` SDK allows for interaction with the Azure Resource Manager Service `batch` (API Version `2022-01-01`).
+The `pool` SDK allows for interaction with the Azure Resource Manager Service `batch` (API Version `2022-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/pool"
 ```
 
 
