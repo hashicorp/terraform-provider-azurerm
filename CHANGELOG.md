@@ -13,7 +13,6 @@ ENHANCEMENTS:
 * `azurerm_automanage_configuration` - support for the `backup` and `azure_security_baseline` blocks [GH-22081]
 * `azurerm_app_configuration` - support toggling of user permission error on soft deleted stores through `app_configuration.recover_soft_deleted` feature flag [GH-19661]
 * `azurerm_backup_policy_file_share` - support for day-based retention policies and hourly backups [GH-21529]
-* `azurerm_key_vault_managed_hardware_security_module` - support for `activate_config` [GH-20855]
 * `azurerm_linux_function_app` - support for Python `3.11` for Linux function app [GH-21956]
 * `azurerm_linux_function_app_slot` - support for Python `3.11` for Linux function app [GH-21956]
 * `azurerm_monitor_autoscale_setting` - support for the `predictive` block [GH-22038]
