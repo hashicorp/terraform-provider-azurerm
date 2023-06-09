@@ -45,7 +45,6 @@ func dataSourceCdnFrontDoorSecret() *pluginsdk.Resource {
 			"secret": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
-
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"customer_certificate": {
