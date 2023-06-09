@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230530.1150329` of `github.com/tombuildsstuff/kermit` [GH-21980]
+* Data Source `azurerm_site_recovery_replication_recovery_plan` - add support for `azure_to_azure_settings` block [GH-22098]
 * `compute`: updating to use API Version `2023-03-01` [GH-21980]
 * `managedidentity`: updating to use API Version `2023-01-31` [GH-22102]
 
