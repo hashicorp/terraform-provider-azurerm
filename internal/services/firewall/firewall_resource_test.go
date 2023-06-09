@@ -752,8 +752,8 @@ resource "azurerm_firewall" "test" {
   sku_tier            = "Standard"
 
   ip_configuration {
-    name                 = "configuration"
-    subnet_id            = azurerm_subnet.test.id
+    name      = "configuration"
+    subnet_id = azurerm_subnet.test.id
   }
 
   management_ip_configuration {
