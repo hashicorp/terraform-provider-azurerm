@@ -1,6 +1,7 @@
 package attestation
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -42,6 +44,22 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 			_, err := attestationproviders.ParseAttestationProvidersID(id)
 			return err
 		}),
+
+		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+			if o, n := diff.GetChange("open_enclave_policy_base64"); o.(string) != "" && n.(string) == "" {
+				return fmt.Errorf("`open_enclave_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
+			}
+
+			if o, n := diff.GetChange("sgx_enclave_policy_base64"); o.(string) != "" && n.(string) == "" {
+				return fmt.Errorf("`sgx_enclave_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
+			}
+
+			if o, n := diff.GetChange("tpm_policy_base64"); o.(string) != "" && n.(string) == "" {
+				return fmt.Errorf("`tpm_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
+			}
+
+			return nil
+		},
 
 		Schema: func() map[string]*pluginsdk.Schema {
 			s := map[string]*pluginsdk.Schema{
