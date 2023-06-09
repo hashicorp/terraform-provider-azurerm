@@ -81,9 +81,7 @@ func resourceTagsCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("creating %s: %+v", id.ParentResourceID(), err)
 	}
 
-	tagsId := fmt.Sprintf("%s/providers/Microsoft.Resources/tags/default", id.ParentResourceID())
-
-	d.SetId(tagsId)
+	d.SetId(id.ID())
 	return resourceTagsRead(d, meta)
 }
 

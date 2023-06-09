@@ -32,8 +32,8 @@ func (id ResourceTagsId) String() string {
 		fmt.Sprintf("Subscription ID %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Provider %q", id.Provider),
-		// fmt.Sprintf("Resource Namespace %q", id.Namespace),
-		// fmt.Sprintf("Resource Name %q", id.ResourceName),
+		fmt.Sprintf("Resource Namespace %q", id.Namespace),
+		fmt.Sprintf("Resource Name %q", id.ResourceName),
 	}
 	segmentsStr := strings.Join(segments, " / ")
 	return fmt.Sprintf("%s: (%s)", "Resource Tags", segmentsStr)
