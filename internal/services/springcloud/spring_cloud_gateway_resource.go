@@ -112,7 +112,7 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				},
 			},
 
-			"client_auth": {
+			"client_authorization": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -338,7 +338,7 @@ func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	gatewayResource := appplatform.GatewayResource{
 		Properties: &appplatform.GatewayProperties{
-			ClientAuth:            expandGatewayClientAuth(d.Get("client_auth").([]interface{})),
+			ClientAuth:            expandGatewayClientAuth(d.Get("client_authorization").([]interface{})),
 			APIMetadataProperties: expandGatewayGatewayAPIMetadataProperties(d.Get("api_metadata").([]interface{})),
 			ApmTypes:              expandGatewayGatewayApmTypes(d.Get("application_performance_monitoring_types").([]interface{})),
 			CorsProperties:        expandGatewayGatewayCorsProperties(d.Get("cors").([]interface{})),
@@ -399,8 +399,8 @@ func resourceSpringCloudGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		if err := d.Set("application_performance_monitoring_types", flattenGatewayGatewayApmTypess(props.ApmTypes)); err != nil {
 			return fmt.Errorf("setting `application_performance_monitoring_types`: %+v", err)
 		}
-		if err := d.Set("client_auth", flattenGatewayClientAuth(props.ClientAuth)); err != nil {
-			return fmt.Errorf("setting `client_auth`: %+v", err)
+		if err := d.Set("client_authorization", flattenGatewayClientAuth(props.ClientAuth)); err != nil {
+			return fmt.Errorf("setting `client_authorization`: %+v", err)
 		}
 		if err := d.Set("cors", flattenGatewayGatewayCorsProperties(props.CorsProperties)); err != nil {
 			return fmt.Errorf("setting `cors`: %+v", err)
