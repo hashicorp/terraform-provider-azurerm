@@ -411,8 +411,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-
 github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/maintenanceconfigurations
 github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations
-github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview/managedidentities
+github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31
+github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31/managedidentities
 github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/accounts

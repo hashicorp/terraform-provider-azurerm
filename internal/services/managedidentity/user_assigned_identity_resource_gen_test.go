@@ -97,7 +97,7 @@ func (r UserAssignedIdentityTestResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.ManagedIdentity.V20220131Preview.ManagedIdentities.UserAssignedIdentitiesGet(ctx, *id)
+	resp, err := clients.ManagedIdentity.V20230131.ManagedIdentities.UserAssignedIdentitiesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
