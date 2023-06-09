@@ -11,6 +11,7 @@ type Client struct {
 	ApplicationAcceleratorClient *appplatform.ApplicationAcceleratorsClient
 	ApplicationLiveViewsClient   *appplatform.ApplicationLiveViewsClient
 	AppsClient                   *appplatform.AppsClient
+	ApmClient                    *appplatform.ApmsClient
 	BindingsClient               *appplatform.BindingsClient
 	BuildPackBindingClient       *appplatform.BuildpackBindingClient
 	BuildServiceAgentPoolClient  *appplatform.BuildServiceAgentPoolClient
@@ -48,6 +49,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	appsClient := appplatform.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&appsClient.Client, o.ResourceManagerAuthorizer)
+
+	apmClient := appplatform.NewApmsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apmClient.Client, o.ResourceManagerAuthorizer)
 
 	bindingsClient := appplatform.NewBindingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&bindingsClient.Client, o.ResourceManagerAuthorizer)
@@ -115,6 +119,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ApplicationAcceleratorClient: &applicationAcceleratorClient,
 		ApplicationLiveViewsClient:   &applicationLiveViewsClient,
 		AppsClient:                   &appsClient,
+		ApmClient:                    &apmClient,
 		BindingsClient:               &bindingsClient,
 		BuildPackBindingClient:       &buildpackBindingClient,
 		BuildServiceAgentPoolClient:  &buildServiceAgentPoolClient,
