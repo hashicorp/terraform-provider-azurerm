@@ -6,7 +6,8 @@ NOTES:
 
 ENHANCEMENTS:
 
-* loadtest: updating to API Version `2022-12-01` [GH-22091]
+* dependencies: `batch`: updating to API Version `2022-10-01` [GH-21962]
+* dependencies: `loadtest`: updating to API Version `2022-12-01` [GH-22091]
 * provider: adding the `client_id_file_path` and `client_secret_file_path` provider properties [GH-21764]
 * `data.azurerm_key_vault_encrypted_value` - now exports the `decoded_plain_text_value` [attribute GH-21682]
 * `azurerm_automanage_configuration` - support for the `backup` and `azure_security_baseline` blocks [GH-22081]
