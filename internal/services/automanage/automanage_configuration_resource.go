@@ -3,7 +3,6 @@ package automanage
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"regexp"
 	"time"
 
@@ -53,7 +52,7 @@ type ConfigurationModel struct {
 	Antimalware               []AntimalwareConfiguration           `tfschema:"antimalware"`
 	AzureSecurityBaseline     []AzureSecurityBaselineConfiguration `tfschema:"azure_security_baseline"`
 	Backup                    []BackupConfiguration                `tfschema:"backup"`
-	LogAnalyticsConfiguration []LogAnalyticsConfiguration          `tfschema:"log_analytics"`
+	LogAnalyticsEnabled       bool                                 `tfschema:"log_analytics_enabled"`
 	AutomationAccountEnabled  bool                                 `tfschema:"automation_account_enabled"`
 	BootDiagnosticsEnabled    bool                                 `tfschema:"boot_diagnostics_enabled"`
 	DefenderForCloudEnabled   bool                                 `tfschema:"defender_for_cloud_enabled"`
@@ -62,11 +61,6 @@ type ConfigurationModel struct {
 
 	Location string            `tfschema:"location"`
 	Tags     map[string]string `tfschema:"tags"`
-}
-
-type LogAnalyticsConfiguration struct {
-	Reprovision bool   `tfschema:"reprovision"`
-	WorkspaceId string `tfschema:"workspace_id"`
 }
 
 type ScheduleConfiguration struct {
@@ -443,24 +437,10 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 		//"LogAnalytics/Enable": boolean,
 		//"LogAnalytics/Reprovision": boolean,
 		//"LogAnalytics/Workspace": resource ID (Log analytics workspace ID),
-		"log_analytics": {
-			Type:     pluginsdk.TypeList,
+		"log_analytics_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"reprovision": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-					"workspace_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-				},
-			},
+			Default:  false,
 		},
 
 		// "Alerts/AutomanageStatusChanges/Enable": boolean,
@@ -585,8 +565,6 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 
 				state.Backup = flattenBackupConfig(configMap)
 
-				state.LogAnalyticsConfiguration = flattenLogAnalyticsConfig(configMap)
-
 				if val, ok := configMap["AutomationAccount/Enable"]; ok {
 					state.AutomationAccountEnabled = val.(bool)
 				}
@@ -601,6 +579,10 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 
 				if val, ok := configMap["GuestConfiguration/Enable"]; ok {
 					state.GuestConfigurationEnabled = val.(bool)
+				}
+
+				if val, ok := configMap["LogAnalytics/Enable"]; ok {
+					state.LogAnalyticsEnabled = val.(bool)
 				}
 
 				if val, ok := configMap["Alerts/AutomanageStatusChanges/Enable"]; ok {
@@ -711,13 +693,6 @@ func expandAutomanageConfigurationProfile(model ConfigurationModel) *map[string]
 		}
 	}
 
-	if model.LogAnalyticsConfiguration != nil && len(model.LogAnalyticsConfiguration) > 0 {
-		logAnalyticsConfig := model.LogAnalyticsConfiguration[0]
-		jsonConfig["LogAnalytics/Enable"] = true
-		jsonConfig["LogAnalytics/Reprovision"] = logAnalyticsConfig.Reprovision
-		jsonConfig["LogAnalytics/Workspace"] = logAnalyticsConfig.WorkspaceId
-	}
-
 	if model.AutomationAccountEnabled {
 		jsonConfig["AutomationAccount/Enable"] = model.AutomationAccountEnabled
 	}
@@ -732,6 +707,10 @@ func expandAutomanageConfigurationProfile(model ConfigurationModel) *map[string]
 
 	if model.GuestConfigurationEnabled {
 		jsonConfig["GuestConfiguration/Enable"] = model.GuestConfigurationEnabled
+	}
+
+	if model.LogAnalyticsEnabled {
+		jsonConfig["LogAnalytics/Enable"] = model.LogAnalyticsEnabled
 	}
 
 	if model.StatusChangeAlertEnabled {
@@ -926,25 +905,6 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 	}
 
 	return backup
-}
-
-func flattenLogAnalyticsConfig(configMap map[string]interface{}) []LogAnalyticsConfiguration {
-	if val, ok := configMap["LogAnalytics/Enable"]; !ok || (val == nil) {
-		return nil
-	}
-
-	logAnalytics := make([]LogAnalyticsConfiguration, 1)
-	logAnalytics[0] = LogAnalyticsConfiguration{}
-
-	if val, ok := configMap["LogAnalytics/Reprovision"]; ok {
-		logAnalytics[0].Reprovision = val.(bool)
-	}
-
-	if val, ok := configMap["LogAnalytics/Workspace"]; ok {
-		logAnalytics[0].WorkspaceId = val.(string)
-	}
-
-	return logAnalytics
 }
 
 func flattenToListOfString(val interface{}) []string {

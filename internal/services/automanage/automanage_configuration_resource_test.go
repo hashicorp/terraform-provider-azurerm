@@ -184,19 +184,7 @@ func TestAccAutoManageConfigurationProfile_logAnalytics(t *testing.T) {
 			Config: r.logAnalytics(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("log_analytics.#").HasValue("1"),
-				check.That(data.ResourceName).Key("log_analytics.0.workspace_id").Exists(),
-				check.That(data.ResourceName).Key("log_analytics.0.reprovision").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.logAnalyticsUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("log_analytics.#").HasValue("1"),
-				check.That(data.ResourceName).Key("log_analytics.0.workspace_id").DoesNotExist(),
-				check.That(data.ResourceName).Key("log_analytics.0.reprovision").HasValue("false"),
+				check.That(data.ResourceName).Key("log_analytics_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -204,7 +192,7 @@ func TestAccAutoManageConfigurationProfile_logAnalytics(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("log_analytics.#").HasValue("0"),
+				check.That(data.ResourceName).Key("log_analytics_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -346,24 +334,7 @@ resource "azurerm_automanage_configuration" "test" {
 	  name                = "acctest-amcp-%d"
 	  resource_group_name = azurerm_resource_group.test.name
 	  location            = "%s"
-	  log_analytics {
-		reprovision = true
-}
-}
-`, template, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r AutoManageConfigurationProfileResource) logAnalyticsUpdate(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-				%s
-	
-resource "azurerm_automanage_configuration" "test" {
-	  name                = "acctest-amcp-%d"
-	  resource_group_name = azurerm_resource_group.test.name
-	  location            = "%s"
-	  log_analytics {
-  		reprovision = false	}
+	  log_analytics_enabled = true
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
