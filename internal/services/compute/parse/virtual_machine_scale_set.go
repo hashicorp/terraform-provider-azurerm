@@ -67,3 +67,42 @@ func VirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, error) {
 
 	return &resourceId, nil
 }
+
+func VirtualMachineScaleSetIDInsensitively(input string) (*VirtualMachineScaleSetId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q as an VirtualMachineScaleSet ID: %+v", input, err)
+	}
+
+	resourceId := VirtualMachineScaleSetId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'virtualMachineScaleSets' segment
+	virtualMachineScaleSetsKey := "virtualMachineScaleSets"
+	for key := range id.Path {
+		if strings.EqualFold(key, virtualMachineScaleSetsKey) {
+			virtualMachineScaleSetsKey = key
+			break
+		}
+	}
+
+	if resourceId.Name, err = id.PopSegment(virtualMachineScaleSetsKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
