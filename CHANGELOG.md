@@ -1,3 +1,11 @@
+## 3.61.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230530.1150329` of `github.com/tombuildsstuff/kermit` [GH-21980]
+* `compute`: updating to use API Version `2023-03-01` [GH-21980]
+
+
 ## 3.60.0 (June 08, 2023)
 
 NOTES:
