@@ -530,6 +530,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "Get",
     "Purge",
     "Update",
+    "GetRotationPolicy"
   ]
 
   secret_permissions = [
@@ -575,6 +576,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "Get",
     "WrapKey",
     "UnwrapKey",
+    "GetRotationPolicy"
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
@@ -788,6 +790,7 @@ resource "azurerm_key_vault_access_policy" "service-principal2" {
     "Get",
     "Purge",
     "Update",
+    "GetRotationPolicy"
   ]
 
   secret_permissions = [
@@ -833,6 +836,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption2" {
     "Get",
     "WrapKey",
     "UnwrapKey",
+    "GetRotationPolicy"
   ]
 
   tenant_id = azurerm_disk_encryption_set.test2.identity.0.tenant_id
@@ -1103,6 +1107,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "Delete",
     "Get",
     "Update",
+    "GetRotationPolicy"
   ]
 
   secret_permissions = [
