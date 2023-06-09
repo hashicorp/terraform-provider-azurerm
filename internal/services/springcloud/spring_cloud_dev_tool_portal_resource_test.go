@@ -153,6 +153,9 @@ func (r SpringCloudDevToolPortalResource) complete(data acceptance.TestData, cli
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
+
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_spring_cloud_dev_tool_portal" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
@@ -162,7 +165,7 @@ resource "azurerm_spring_cloud_dev_tool_portal" "test" {
   sso {
     client_id     = "%s"
     client_secret = "%s"
-    metadata_url  = "https://www.example.com/metadata"
+    metadata_url  = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0/.well-known/openid-configuration"
     scope         = ["openid", "profile", "email"]
   }
 
