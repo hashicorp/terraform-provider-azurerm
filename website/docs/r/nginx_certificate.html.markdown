@@ -127,11 +127,11 @@ The following arguments are supported:
 
 * `nginx_deployment_id` - (Required) The ID of the Nginx Deployment that this Certificate should be associated with. Changing this forces a new Nginx Certificate to be created.
 
-* `certificate_virtual_path` - (Required) Specify the path to the cert file of this certificate. Changing this forces a new Nginx Certificate to be created.
+* `certificate_virtual_path` - (Required) Specify the path to the cert file of this certificate.
 
-* `key_virtual_path` - (Required) Specify the path to the key file of this certificate. Changing this forces a new Nginx Certificate to be created.
+* `key_virtual_path` - (Required) Specify the path to the key file of this certificate.
 
-* `key_vault_secret_id` - (Required) Specify the ID of the Key Vault Secret for this certificate. Changing this forces a new Nginx Certificate to be created.
+* `key_vault_secret_id` - (Required) Specify the ID of the Key Vault Secret for this certificate.
 
 ## Attributes Reference
 
@@ -144,8 +144,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Nginx Certificate.
+* `update` - (Defaults to 30 minutes) Used when updating the Nginx Certificate.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Nginx Certificate.
-* `delete` - (Defaults to 10 minutes) Used when deleting the Nginx Certificate.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Nginx Certificate.
 
 ## Import
 
