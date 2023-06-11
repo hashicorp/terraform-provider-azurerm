@@ -201,7 +201,7 @@ func (m CertificateResource) Read() sdk.ResourceFunc {
 
 func (m CertificateResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
 			id, err := nginxcertificate.ParseCertificateID(meta.ResourceData.Id())
 			if err != nil {
