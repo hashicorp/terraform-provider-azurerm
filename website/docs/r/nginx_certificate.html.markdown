@@ -146,7 +146,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 30 minutes) Used when creating the Nginx Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the Nginx Certificate.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Nginx Certificate.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Nginx Certificate.
+* `delete` - (Defaults to 10 minutes) Used when deleting the Nginx Certificate.
 
 ## Import
 
