@@ -270,7 +270,7 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 			names = append(names, ds.ResourceType())
 		}
 
-		appendToSliceWithinMap(labelToNames, names, v.AssociatedGitHubLabel())
+		labelToNames = appendToSliceWithinMap(labelToNames, names, v.AssociatedGitHubLabel())
 
 	}
 	for _, service := range provider.SupportedUntypedServices() {
@@ -294,7 +294,7 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 			}
 		}
 
-		appendToSliceWithinMap(labelToNames, names, v.AssociatedGitHubLabel())
+		labelToNames = appendToSliceWithinMap(labelToNames, names, v.AssociatedGitHubLabel())
 
 	}
 
