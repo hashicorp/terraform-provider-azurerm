@@ -475,7 +475,7 @@ resource "azurerm_virtual_machine" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_M64s"
+  vm_size               = "Standard_M8ms"
 
   delete_os_disk_on_termination = true
 
