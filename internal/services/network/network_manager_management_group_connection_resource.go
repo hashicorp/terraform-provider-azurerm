@@ -7,10 +7,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagerconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	managementParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	managementValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -36,7 +36,7 @@ func (r ManagerManagementGroupConnectionResource) ModelObject() interface{} {
 }
 
 func (r ManagerManagementGroupConnectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NetworkManagerManagementGroupConnectionID
+	return networkmanagerconnections.ValidateProviders2NetworkManagerConnectionID
 }
 
 func (r ManagerManagementGroupConnectionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -59,7 +59,7 @@ func (r ManagerManagementGroupConnectionResource) Arguments() map[string]*plugin
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NetworkManagerID,
+			ValidateFunc: networkmanagers.ValidateNetworkManagerID,
 		},
 
 		"description": {

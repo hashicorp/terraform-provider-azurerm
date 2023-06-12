@@ -33,7 +33,7 @@ func (r ManagerStaticMemberResource) ModelObject() interface{} {
 }
 
 func (r ManagerStaticMemberResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NetworkManagerStaticMemberID
+	return staticmembers.ValidateStaticMemberID
 }
 
 func (r ManagerStaticMemberResource) Arguments() map[string]*pluginsdk.Schema {
@@ -49,7 +49,7 @@ func (r ManagerStaticMemberResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NetworkManagerNetworkGroupID,
+			ValidateFunc: staticmembers.ValidateNetworkGroupID,
 		},
 
 		"target_virtual_network_id": {

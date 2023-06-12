@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/adminrulecollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -34,7 +34,7 @@ func (r ManagerAdminRuleCollectionResource) ModelObject() interface{} {
 }
 
 func (r ManagerAdminRuleCollectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NetworkManagerAdminRuleCollectionID
+	return adminrulecollections.ValidateRuleCollectionID
 }
 
 func (r ManagerAdminRuleCollectionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -50,7 +50,7 @@ func (r ManagerAdminRuleCollectionResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NetworkManagerSecurityAdminConfigurationID,
+			ValidateFunc: adminrulecollections.ValidateSecurityAdminConfigurationID,
 		},
 
 		"network_group_ids": {
@@ -58,7 +58,7 @@ func (r ManagerAdminRuleCollectionResource) Arguments() map[string]*pluginsdk.Sc
 			Required: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.NetworkManagerNetworkGroupID,
+				ValidateFunc: networkgroups.ValidateNetworkGroupID,
 			},
 		},
 

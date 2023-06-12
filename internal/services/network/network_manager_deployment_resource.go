@@ -46,7 +46,7 @@ func (r ManagerDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NetworkManagerID,
+			ValidateFunc: networkmanagers.ValidateNetworkManagerID,
 		},
 
 		"location": commonschema.Location(),
@@ -187,7 +187,7 @@ func (r ManagerDeploymentResource) Read() sdk.ResourceFunc {
 
 			deployment := (*resp.Model.Value)[0]
 			return metadata.Encode(&ManagerDeploymentModel{
-				NetworkManagerId: parse.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName).ID(),
+				NetworkManagerId: networkmanagers.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName).ID(),
 				Location:         location.NormalizeNilable(deployment.Region),
 				ScopeAccess:      string(*deployment.DeploymentType),
 				ConfigurationIds: *deployment.ConfigurationIds,

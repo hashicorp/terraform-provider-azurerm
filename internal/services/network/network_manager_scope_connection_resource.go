@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/scopeconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -35,7 +34,7 @@ func (r ManagerScopeConnectionResource) ModelObject() interface{} {
 }
 
 func (r ManagerScopeConnectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NetworkManagerScopeConnectionID
+	return scopeconnections.ValidateScopeConnectionID
 }
 
 func (r ManagerScopeConnectionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -51,7 +50,7 @@ func (r ManagerScopeConnectionResource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NetworkManagerID,
+			ValidateFunc: scopeconnections.ValidateNetworkManagerID,
 		},
 
 		"target_scope_id": {

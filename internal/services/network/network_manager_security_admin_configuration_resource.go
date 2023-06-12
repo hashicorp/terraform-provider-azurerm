@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityadminconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -34,7 +33,7 @@ func (r ManagerSecurityAdminConfigurationResource) ModelObject() interface{} {
 }
 
 func (r ManagerSecurityAdminConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NetworkManagerSecurityAdminConfigurationID
+	return securityadminconfigurations.ValidateSecurityAdminConfigurationID
 }
 
 func (r ManagerSecurityAdminConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -50,7 +49,7 @@ func (r ManagerSecurityAdminConfigurationResource) Arguments() map[string]*plugi
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NetworkManagerID,
+			ValidateFunc: securityadminconfigurations.ValidateNetworkManagerID,
 		},
 
 		"apply_on_network_intent_policy_based_services": {

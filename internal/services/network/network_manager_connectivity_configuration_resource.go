@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectivityconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -51,7 +50,7 @@ func (r ManagerConnectivityConfigurationResource) ModelObject() interface{} {
 }
 
 func (r ManagerConnectivityConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NetworkManagerConnectivityConfigurationID
+	return connectivityconfigurations.ValidateConnectivityConfigurationID
 }
 
 func (r ManagerConnectivityConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -67,7 +66,7 @@ func (r ManagerConnectivityConfigurationResource) Arguments() map[string]*plugin
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NetworkManagerID,
+			ValidateFunc: connectivityconfigurations.ValidateNetworkManagerID,
 		},
 
 		"applies_to_group": {
@@ -297,7 +296,7 @@ func (r ManagerConnectivityConfigurationResource) Read() sdk.ResourceFunc {
 
 			state := ManagerConnectivityConfigurationModel{
 				Name:                         id.ConnectivityConfigurationName,
-				NetworkManagerId:             connectivityconfigurations.NewNetworkManagerID(id.SubscriptionId, id.NetworkManagerName, id.NetworkManagerName).ID(),
+				NetworkManagerId:             connectivityconfigurations.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID(),
 				AppliesToGroups:              flattenConnectivityGroupItemModel(properties.AppliesToGroups),
 				ConnectivityTopology:         properties.ConnectivityTopology,
 				DeleteExistingPeeringEnabled: flattenDeleteExistingPeering(properties.DeleteExistingPeering),

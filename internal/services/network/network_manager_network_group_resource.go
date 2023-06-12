@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -33,7 +32,7 @@ func (r ManagerNetworkGroupResource) ModelObject() interface{} {
 }
 
 func (r ManagerNetworkGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NetworkManagerNetworkGroupID
+	return networkgroups.ValidateNetworkGroupID
 }
 
 func (r ManagerNetworkGroupResource) Arguments() map[string]*pluginsdk.Schema {
@@ -49,7 +48,7 @@ func (r ManagerNetworkGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NetworkManagerID,
+			ValidateFunc: networkgroups.ValidateNetworkManagerID,
 		},
 
 		"description": {

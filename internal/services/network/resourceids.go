@@ -107,14 +107,3 @@ package network
 
 // Virtual Machine Scale Set
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualMachineScaleSetPublicIPAddress -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleSet1/virtualMachines/virtualMachine1/networkInterfaces/networkInterface1/ipConfigurations/ipConfiguration1/publicIPAddresses/publicIpAddress1
-
-// Network Manager
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManager -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerAdminRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/securityAdminConfigurations/conf1/ruleCollections/collection1/rules/rule1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerAdminRuleCollection -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/securityAdminConfigurations/conf1/ruleCollections/collection1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerConnectivityConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/connectivityConfigurations/conf1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerNetworkGroup -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/networkGroups/group1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerScopeConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/scopeConnections/connection1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerSecurityAdminConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/securityAdminConfigurations/conf1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerStaticMember -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkManagers/manager1/networkGroups/group1/staticMembers/member1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkManagerSubscriptionConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Network/networkManagerConnections/connection1

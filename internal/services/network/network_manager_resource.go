@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -49,7 +48,7 @@ func (r ManagerResource) ResourceType() string {
 }
 
 func (r ManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NetworkManagerID
+	return networkmanagers.ValidateNetworkManagerID
 }
 
 func (r ManagerResource) ModelObject() interface{} {
