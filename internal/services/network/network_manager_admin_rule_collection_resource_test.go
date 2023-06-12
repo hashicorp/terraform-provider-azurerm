@@ -85,7 +85,7 @@ func (r NetworkAdminRuleCollectionResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	client := clients.Network.V20220901Client.AdminRuleCollections
+	client := clients.Network.ManagerAdminRuleCollectionsClient
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

@@ -159,7 +159,7 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Network.V20220901Client.NetworkManagers
+			client := metadata.Client.Network.ManagersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := networkmanagers.NewNetworkManagerID(subscriptionId, state.ResourceGroupName, state.Name)
@@ -198,7 +198,7 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 func (r ManagerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.NetworkManagers
+			client := metadata.Client.Network.ManagersClient
 			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -253,7 +253,7 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("updating %s..", *id)
-			client := metadata.Client.Network.V20220901Client.NetworkManagers
+			client := metadata.Client.Network.ManagersClient
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -298,7 +298,7 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 func (r ManagerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.NetworkManagers
+			client := metadata.Client.Network.ManagersClient
 			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

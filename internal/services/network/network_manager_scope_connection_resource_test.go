@@ -85,7 +85,7 @@ func (r ManagerScopeConnectionResource) Exists(ctx context.Context, clients *cli
 		return nil, err
 	}
 
-	client := clients.Network.V20220901Client.ScopeConnections
+	client := clients.Network.ManagerScopeConnectionsClient
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

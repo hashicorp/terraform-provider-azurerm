@@ -187,7 +187,7 @@ func (r ManagerAdminRuleResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.V20220901Client.AdminRules
+			client := metadata.Client.Network.ManagerAdminRulesClient
 			ruleCollectionId, err := adminrules.ParseRuleCollectionID(model.NetworkRuleCollectionId)
 			if err != nil {
 				return err
@@ -235,7 +235,7 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.AdminRules
+			client := metadata.Client.Network.ManagerAdminRulesClient
 
 			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -319,7 +319,7 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.AdminRules
+			client := metadata.Client.Network.ManagerAdminRulesClient
 
 			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -382,7 +382,7 @@ func (r ManagerAdminRuleResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.AdminRules
+			client := metadata.Client.Network.ManagerAdminRulesClient
 
 			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
 			if err != nil {

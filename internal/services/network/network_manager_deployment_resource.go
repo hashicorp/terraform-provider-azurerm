@@ -94,7 +94,7 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Network.V20220901Client.NetworkManagers
+			client := metadata.Client.Network.ManagersClient
 
 			networkManagerId, err := networkmanagers.ParseNetworkManagerID(state.NetworkManagerId)
 			if err != nil {
@@ -148,7 +148,7 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 func (r ManagerDeploymentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.NetworkManagers
+			client := metadata.Client.Network.ManagersClient
 			id, err := parse.NetworkManagerDeploymentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -206,7 +206,7 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("updating %s..", *id)
-			client := metadata.Client.Network.V20220901Client.NetworkManagers
+			client := metadata.Client.Network.ManagersClient
 
 			listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
 				Regions:         &[]string{id.Location},
@@ -274,7 +274,7 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.NetworkManagers
+			client := metadata.Client.Network.ManagersClient
 			id, err := parse.NetworkManagerDeploymentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -293,7 +293,7 @@ func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			statusClient := metadata.Client.Network.V20220901Client.NetworkManagers
+			statusClient := metadata.Client.Network.ManagersClient
 			if err = resourceManagerDeploymentWaitForDeleted(ctx, statusClient, id, metadata.ResourceData); err != nil {
 				return err
 			}

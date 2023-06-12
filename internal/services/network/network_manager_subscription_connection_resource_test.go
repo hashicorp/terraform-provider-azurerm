@@ -85,7 +85,7 @@ func (r ManagerSubscriptionConnectionResource) Exists(ctx context.Context, clien
 		return nil, err
 	}
 
-	client := clients.Network.V20220901Client.NetworkManagerConnections
+	client := clients.Network.ManagerConnectionsClient
 	resp, err := client.SubscriptionNetworkManagerConnectionsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

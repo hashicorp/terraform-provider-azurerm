@@ -92,7 +92,7 @@ func (r ManagerAdminRuleResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	client := clients.Network.V20220901Client.AdminRules
+	client := clients.Network.ManagerAdminRulesClient
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

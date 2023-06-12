@@ -88,7 +88,7 @@ func (r ManagerManagementGroupConnectionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.V20220901Client.NetworkManagerConnections
+			client := metadata.Client.Network.ManagerConnectionsClient
 			managementGroupId, err := managementParse.ManagementGroupID(model.ManagementGroupId)
 			if err != nil {
 				return err
@@ -130,7 +130,7 @@ func (r ManagerManagementGroupConnectionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.NetworkManagerConnections
+			client := metadata.Client.Network.ManagerConnectionsClient
 
 			id, err := networkmanagerconnections.ParseProviders2NetworkManagerConnectionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -179,7 +179,7 @@ func (r ManagerManagementGroupConnectionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.NetworkManagerConnections
+			client := metadata.Client.Network.ManagerConnectionsClient
 
 			id, err := networkmanagerconnections.ParseProviders2NetworkManagerConnectionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -228,7 +228,7 @@ func (r ManagerManagementGroupConnectionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.NetworkManagerConnections
+			client := metadata.Client.Network.ManagerConnectionsClient
 
 			id, err := networkmanagerconnections.ParseProviders2NetworkManagerConnectionID(metadata.ResourceData.Id())
 			if err != nil {

@@ -92,7 +92,7 @@ func (r ManagerSecurityAdminConfigurationResource) Exists(ctx context.Context, c
 		return nil, err
 	}
 
-	client := clients.Network.V20220901Client.SecurityAdminConfigurations
+	client := clients.Network.ManagerSecurityAdminConfigurationsClient
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

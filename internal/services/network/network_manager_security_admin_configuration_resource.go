@@ -87,7 +87,7 @@ func (r ManagerSecurityAdminConfigurationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.V20220901Client.SecurityAdminConfigurations
+			client := metadata.Client.Network.ManagerSecurityAdminConfigurationsClient
 			networkManagerId, err := securityadminconfigurations.ParseNetworkManagerID(model.NetworkManagerId)
 			if err != nil {
 				return err
@@ -127,7 +127,7 @@ func (r ManagerSecurityAdminConfigurationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.SecurityAdminConfigurations
+			client := metadata.Client.Network.ManagerSecurityAdminConfigurationsClient
 
 			id, err := securityadminconfigurations.ParseSecurityAdminConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
@@ -178,7 +178,7 @@ func (r ManagerSecurityAdminConfigurationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.SecurityAdminConfigurations
+			client := metadata.Client.Network.ManagerSecurityAdminConfigurationsClient
 
 			id, err := securityadminconfigurations.ParseSecurityAdminConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
@@ -222,7 +222,7 @@ func (r ManagerSecurityAdminConfigurationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.V20220901Client.SecurityAdminConfigurations
+			client := metadata.Client.Network.ManagerSecurityAdminConfigurationsClient
 
 			id, err := securityadminconfigurations.ParseSecurityAdminConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
