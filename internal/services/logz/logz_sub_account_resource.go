@@ -187,9 +187,10 @@ func resourceLogzSubAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.MonitoringStatus != nil && *props.MonitoringStatus == subaccount.MonitoringStatusEnabled)
-			// Whilst `props.UserInfo` exists, at this point in time the API doesn't return these values
-			// Azure API issue: https://github.com/Azure/azure-rest-api-specs/issues/23461#issuecomment-1510728888
-			// so we'll skip setting it for now.
+
+			if err := d.Set("user", flattenSubAccountUserInfo(props.UserInfo)); err != nil {
+				return fmt.Errorf("setting `user_info`: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -296,6 +297,41 @@ func expandSubAccountUserInfo(input []interface{}) *subaccount.UserInfo {
 		LastName:     utils.String(v["last_name"].(string)),
 		EmailAddress: utils.String(v["email"].(string)),
 		PhoneNumber:  utils.String(v["phone_number"].(string)),
+	}
+}
+
+func flattenSubAccountUserInfo(input *subaccount.UserInfo) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	firstName := ""
+	if input.FirstName != nil {
+		firstName = *input.FirstName
+	}
+
+	lastName := ""
+	if input.LastName != nil {
+		lastName = *input.LastName
+	}
+
+	email := ""
+	if input.EmailAddress != nil {
+		email = *input.EmailAddress
+	}
+
+	phoneNumber := ""
+	if input.PhoneNumber != nil {
+		phoneNumber = *input.PhoneNumber
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"first_name":   firstName,
+			"last_name":    lastName,
+			"email":        email,
+			"phone_number": phoneNumber,
+		},
 	}
 }
 
