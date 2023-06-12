@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -695,91 +696,92 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("source_recovery_protection_container_name", id.ReplicationProtectionContainerName)
 
 	if prop := model.Properties; prop != nil {
-		if prop.RecoveryFabricId != nil {
-			fabricId, err := replicationfabrics.ParseReplicationFabricIDInsensitively(*prop.RecoveryFabricId)
+		if fabricId := pointer.From(prop.RecoveryFabricId); fabricId != "" {
+			parsedFabricId, err := replicationfabrics.ParseReplicationFabricIDInsensitively(fabricId)
 			if err != nil {
-				return fmt.Errorf("parsing recovery_fabric_id %s: %+v", *prop.RecoveryFabricId, err)
+				return fmt.Errorf("parsing recovery_fabric_id %s: %+v", fabricId, err)
 			}
-			d.Set("target_recovery_fabric_id", fabricId.ID())
+			d.Set("target_recovery_fabric_id", parsedFabricId.ID())
 		}
-		if prop.PolicyId != nil {
-			policyId, err := replicationpolicies.ParseReplicationPolicyIDInsensitively(*prop.PolicyId)
+
+		if policyId := pointer.From(prop.PolicyId); policyId != "" {
+			parsedPolicyId, err := replicationpolicies.ParseReplicationPolicyIDInsensitively(policyId)
 			if err != nil {
-				return fmt.Errorf("parsing recovery_replication_policy_id %s: %+v", *prop.PolicyId, err)
+				return fmt.Errorf("parsing recovery_replication_policy_id %s: %+v", policyId, err)
 			}
-			d.Set("recovery_replication_policy_id", policyId.ID())
+			d.Set("recovery_replication_policy_id", parsedPolicyId.ID())
 		}
-		if prop.RecoveryContainerId != nil {
-			containerId, err := replicationprotecteditems.ParseReplicationProtectionContainerIDInsensitively(*prop.RecoveryContainerId)
+		if containerId := pointer.From(prop.RecoveryContainerId); containerId != "" {
+			parsedContainerId, err := replicationprotecteditems.ParseReplicationProtectionContainerIDInsensitively(containerId)
 			if err != nil {
-				return fmt.Errorf("parsing recovery_protection_container_id %s: %+v", *prop.RecoveryContainerId, err)
+				return fmt.Errorf("parsing recovery_protection_container_id %s: %+v", containerId, err)
 			}
-			d.Set("target_recovery_protection_container_id", containerId.ID())
+			d.Set("target_recovery_protection_container_id", parsedContainerId.ID())
 		}
 
 		if a2aDetails, isA2a := prop.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
-			if a2aDetails.FabricObjectId != nil {
-				parsedVmID, err := virtualmachines.ParseVirtualMachineIDInsensitively(*a2aDetails.FabricObjectId)
+			if objId := pointer.From(a2aDetails.FabricObjectId); objId != "" {
+				parsedVmID, err := virtualmachines.ParseVirtualMachineIDInsensitively(objId)
 				if err != nil {
-					return fmt.Errorf("parsing source_vm_id %s: %+v", *a2aDetails.FabricObjectId, err)
+					return fmt.Errorf("parsing source_vm_id %s: %+v", objId, err)
 				}
 				d.Set("source_vm_id", parsedVmID.ID())
 			}
-			if a2aDetails.RecoveryAzureResourceGroupId != nil {
-				recoveryGroupId, err := resourceParse.ResourceGroupIDInsensitively(*a2aDetails.RecoveryAzureResourceGroupId)
+			if recoveryGroupId := pointer.From(a2aDetails.RecoveryAzureResourceGroupId); recoveryGroupId != "" {
+				recoveryGroupId, err := resourceParse.ResourceGroupIDInsensitively(recoveryGroupId)
 				if err != nil {
-					return fmt.Errorf("parsing target_resource_group_id %s: %+v", *a2aDetails.RecoveryAzureResourceGroupId, err)
+					return fmt.Errorf("parsing target_resource_group_id %s: %+v", recoveryGroupId, err)
 				}
 				d.Set("target_resource_group_id", recoveryGroupId.ID())
 			}
-			if a2aDetails.RecoveryAvailabilitySet != nil {
-				availabitySetId, err := availabilitysets.ParseAvailabilitySetIDInsensitively(*a2aDetails.RecoveryAvailabilitySet)
+			if availabilitySetId := pointer.From(a2aDetails.RecoveryAvailabilitySet); availabilitySetId != "" {
+				parsedAvailabilitySetId, err := availabilitysets.ParseAvailabilitySetIDInsensitively(availabilitySetId)
 				if err != nil {
-					return fmt.Errorf("parsing target_availability_set_id %s: %+v", *a2aDetails.RecoveryAvailabilitySet, err)
+					return fmt.Errorf("parsing target_availability_set_id %s: %+v", availabilitySetId, err)
 				}
-				d.Set("target_availability_set_id", availabitySetId.ID())
+				d.Set("target_availability_set_id", parsedAvailabilitySetId.ID())
 			}
-			if a2aDetails.SelectedRecoveryAzureNetworkId != nil {
-				targetNetworkId, err := networkParse.VirtualNetworkIDInsensitively(*a2aDetails.SelectedRecoveryAzureNetworkId)
+			if targetNetworkId := pointer.From(a2aDetails.SelectedRecoveryAzureNetworkId); targetNetworkId != "" {
+				parsedTargetNetworkId, err := networkParse.VirtualNetworkIDInsensitively(targetNetworkId)
 				if err != nil {
-					return fmt.Errorf("parsing target_network_id %s: %+v", *a2aDetails.SelectedRecoveryAzureNetworkId, err)
+					return fmt.Errorf("parsing target_network_id %s: %+v", targetNetworkId, err)
 				}
-				d.Set("target_network_id", targetNetworkId.ID())
+				d.Set("target_network_id", parsedTargetNetworkId.ID())
 			}
-			if a2aDetails.SelectedTfoAzureNetworkId != nil {
-				targetNetworkId, err := networkParse.VirtualNetworkIDInsensitively(*a2aDetails.SelectedTfoAzureNetworkId)
+			if tfoNetworkId := pointer.From(a2aDetails.SelectedTfoAzureNetworkId); tfoNetworkId != "" {
+				parsedTfoNetworkId, err := networkParse.VirtualNetworkIDInsensitively(tfoNetworkId)
 				if err != nil {
-					return fmt.Errorf("parsing test_network_id %s: %+v", *a2aDetails.SelectedTfoAzureNetworkId, err)
+					return fmt.Errorf("parsing test_network_id %s: %+v", tfoNetworkId, err)
 				}
-				d.Set("test_network_id", targetNetworkId.ID())
+				d.Set("test_network_id", parsedTfoNetworkId.ID())
 			}
-			if a2aDetails.RecoveryProximityPlacementGroupId != nil {
-				proximityPlacementGroupId, err := proximityplacementgroups.ParseProximityPlacementGroupIDInsensitively(*a2aDetails.RecoveryProximityPlacementGroupId)
+			if proximityPlacementGroupId := pointer.From(a2aDetails.RecoveryProximityPlacementGroupId); proximityPlacementGroupId != "" {
+				parsedProximityPlacementGroupId, err := proximityplacementgroups.ParseProximityPlacementGroupIDInsensitively(proximityPlacementGroupId)
 				if err != nil {
-					return fmt.Errorf("parsing target_proximity_placement_group_id %s: %+v", *a2aDetails.RecoveryProximityPlacementGroupId, err)
+					return fmt.Errorf("parsing target_proximity_placement_group_id %s: %+v", proximityPlacementGroupId, err)
 				}
-				d.Set("target_proximity_placement_group_id", proximityPlacementGroupId.ID())
+				d.Set("target_proximity_placement_group_id", parsedProximityPlacementGroupId.ID())
 			}
-			if a2aDetails.RecoveryBootDiagStorageAccountId != nil {
-				bootDiagStorageAccountId, err := storageaccounts.ParseStorageAccountIDInsensitively(*a2aDetails.RecoveryBootDiagStorageAccountId)
+			if recoveryBootDiagStorageAccount := pointer.From(a2aDetails.RecoveryBootDiagStorageAccountId); recoveryBootDiagStorageAccount != "" {
+				parsedRecoveryBootDiagStorageAccount, err := storageaccounts.ParseStorageAccountIDInsensitively(recoveryBootDiagStorageAccount)
 				if err != nil {
-					return fmt.Errorf("parsing target_boot_diagnostic_storage_account_id %s: %+v", *a2aDetails.RecoveryBootDiagStorageAccountId, err)
+					return fmt.Errorf("parsing target_boot_diagnostic_storage_account_id %s: %+v", recoveryBootDiagStorageAccount, err)
 				}
-				d.Set("target_boot_diagnostic_storage_account_id", bootDiagStorageAccountId.ID())
+				d.Set("target_boot_diagnostic_storage_account_id", parsedRecoveryBootDiagStorageAccount.ID())
 			}
-			if a2aDetails.RecoveryCapacityReservationGroupId != nil {
-				capacityReservationGroupId, err := capacityreservationgroups.ParseCapacityReservationGroupIDInsensitively(*a2aDetails.RecoveryCapacityReservationGroupId)
+			if capReservaGroupId := pointer.From(a2aDetails.RecoveryCapacityReservationGroupId); capReservaGroupId != "" {
+				parsedCapReservaGroupId, err := capacityreservationgroups.ParseCapacityReservationGroupIDInsensitively(capReservaGroupId)
 				if err != nil {
-					return fmt.Errorf("parsing target_capacity_reservation_group_id %s: %+v", *a2aDetails.RecoveryCapacityReservationGroupId, err)
+					return fmt.Errorf("parsing target_capacity_reservation_group_id %s: %+v", capReservaGroupId, err)
 				}
-				d.Set("target_capacity_reservation_group_id", capacityReservationGroupId.ID())
+				d.Set("target_capacity_reservation_group_id", parsedCapReservaGroupId.ID())
 			}
-			if a2aDetails.RecoveryVirtualMachineScaleSetId != nil {
-				recoveryVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(*a2aDetails.RecoveryVirtualMachineScaleSetId)
+			if vmssId := pointer.From(a2aDetails.RecoveryVirtualMachineScaleSetId); vmssId != "" {
+				parsedVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(vmssId)
 				if err != nil {
-					return fmt.Errorf("parsing target_virtual_machine_scale_set_id %s: %+v", *a2aDetails.RecoveryVirtualMachineScaleSetId, err)
+					return fmt.Errorf("parsing target_virtual_machine_scale_set_id %s: %+v", vmssId, err)
 				}
-				d.Set("target_virtual_machine_scale_set_id", recoveryVmssId.ID())
+				d.Set("target_virtual_machine_scale_set_id", parsedVmssId.ID())
 			}
 
 			d.Set("target_edge_zone", flattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
@@ -802,30 +804,30 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				for _, disk := range *a2aDetails.ProtectedManagedDisks {
 					diskOutput := make(map[string]interface{})
 					diskId := ""
-					if disk.DiskId != nil {
-						parsedDiskId, err := disks.ParseDiskIDInsensitively(*disk.DiskId)
+					if respDiskId := pointer.From(disk.DiskId); respDiskId != "" {
+						parsedDiskId, err := disks.ParseDiskIDInsensitively(respDiskId)
 						if err != nil {
-							return fmt.Errorf("parsing disk_id %s: %+v", *disk.DiskId, err)
+							return fmt.Errorf("parsing disk_id %s: %+v", respDiskId, err)
 						}
 						diskId = parsedDiskId.ID()
 					}
 					diskOutput["disk_id"] = diskId
 
 					primaryStagingAzureStorageAccountID := ""
-					if disk.PrimaryStagingAzureStorageAccountId != nil {
-						parsedStorageAccountId, err := storageaccounts.ParseStorageAccountIDInsensitively(*disk.PrimaryStagingAzureStorageAccountId)
+					if respStorageAccId := pointer.From(disk.PrimaryStagingAzureStorageAccountId); respStorageAccId != "" {
+						parsedStorageAccountId, err := storageaccounts.ParseStorageAccountIDInsensitively(respStorageAccId)
 						if err != nil {
-							return fmt.Errorf("parsing staging_storage_account_id %s: %+v", *disk.PrimaryStagingAzureStorageAccountId, err)
+							return fmt.Errorf("parsing staging_storage_account_id %s: %+v", respStorageAccId, err)
 						}
 						primaryStagingAzureStorageAccountID = parsedStorageAccountId.ID()
 					}
 					diskOutput["staging_storage_account_id"] = primaryStagingAzureStorageAccountID
 
 					recoveryResourceGroupID := ""
-					if disk.RecoveryResourceGroupId != nil {
-						parsedResourceGroupId, err := resourceParse.ResourceGroupIDInsensitively(*disk.RecoveryResourceGroupId)
+					if respRGId := pointer.From(disk.RecoveryResourceGroupId); respRGId != "" {
+						parsedResourceGroupId, err := resourceParse.ResourceGroupIDInsensitively(respRGId)
 						if err != nil {
-							return fmt.Errorf("parsing target_resource_group_id %s: %+v", *disk.RecoveryResourceGroupId, err)
+							return fmt.Errorf("parsing target_resource_group_id %s: %+v", respRGId, err)
 						}
 						recoveryResourceGroupID = parsedResourceGroupId.ID()
 					}
@@ -844,10 +846,10 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					diskOutput["target_disk_type"] = recoveryTargetDiskAccountType
 
 					recoveryEncryptionSetId := ""
-					if disk.RecoveryDiskEncryptionSetId != nil {
-						parsedEncryptionSetId, err := diskencryptionsets.ParseDiskEncryptionSetIDInsensitively(*disk.RecoveryDiskEncryptionSetId)
+					if respDESId := pointer.From(disk.RecoveryDiskEncryptionSetId); respDESId != "" {
+						parsedEncryptionSetId, err := diskencryptionsets.ParseDiskEncryptionSetIDInsensitively(respDESId)
 						if err != nil {
-							return fmt.Errorf("parsing target_disk_encryption_set_id %s: %+v", *disk.RecoveryDiskEncryptionSetId, err)
+							return fmt.Errorf("parsing target_disk_encryption_set_id %s: %+v", respDESId, err)
 						}
 						recoveryEncryptionSetId = parsedEncryptionSetId.ID()
 					}
