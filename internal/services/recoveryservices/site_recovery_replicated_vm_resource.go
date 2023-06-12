@@ -731,6 +731,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				}
 				d.Set("source_vm_id", parsedVmID.ID())
 			}
+
 			if recoveryGroupId := pointer.From(a2aDetails.RecoveryAzureResourceGroupId); recoveryGroupId != "" {
 				recoveryGroupId, err := resourceParse.ResourceGroupIDInsensitively(recoveryGroupId)
 				if err != nil {
@@ -738,6 +739,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				}
 				d.Set("target_resource_group_id", recoveryGroupId.ID())
 			}
+
 			if availabilitySetId := pointer.From(a2aDetails.RecoveryAvailabilitySet); availabilitySetId != "" {
 				parsedAvailabilitySetId, err := availabilitysets.ParseAvailabilitySetIDInsensitively(availabilitySetId)
 				if err != nil {
@@ -745,6 +747,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				}
 				d.Set("target_availability_set_id", parsedAvailabilitySetId.ID())
 			}
+
 			if targetNetworkId := pointer.From(a2aDetails.SelectedRecoveryAzureNetworkId); targetNetworkId != "" {
 				parsedTargetNetworkId, err := networkParse.VirtualNetworkIDInsensitively(targetNetworkId)
 				if err != nil {
@@ -752,6 +755,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				}
 				d.Set("target_network_id", parsedTargetNetworkId.ID())
 			}
+
 			if tfoNetworkId := pointer.From(a2aDetails.SelectedTfoAzureNetworkId); tfoNetworkId != "" {
 				parsedTfoNetworkId, err := networkParse.VirtualNetworkIDInsensitively(tfoNetworkId)
 				if err != nil {
@@ -759,6 +763,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				}
 				d.Set("test_network_id", parsedTfoNetworkId.ID())
 			}
+
 			if proximityPlacementGroupId := pointer.From(a2aDetails.RecoveryProximityPlacementGroupId); proximityPlacementGroupId != "" {
 				parsedProximityPlacementGroupId, err := proximityplacementgroups.ParseProximityPlacementGroupIDInsensitively(proximityPlacementGroupId)
 				if err != nil {
@@ -766,6 +771,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				}
 				d.Set("target_proximity_placement_group_id", parsedProximityPlacementGroupId.ID())
 			}
+
 			if recoveryBootDiagStorageAccount := pointer.From(a2aDetails.RecoveryBootDiagStorageAccountId); recoveryBootDiagStorageAccount != "" {
 				parsedRecoveryBootDiagStorageAccount, err := storageaccounts.ParseStorageAccountIDInsensitively(recoveryBootDiagStorageAccount)
 				if err != nil {
@@ -773,6 +779,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				}
 				d.Set("target_boot_diagnostic_storage_account_id", parsedRecoveryBootDiagStorageAccount.ID())
 			}
+
 			if capReservaGroupId := pointer.From(a2aDetails.RecoveryCapacityReservationGroupId); capReservaGroupId != "" {
 				parsedCapReservaGroupId, err := capacityreservationgroups.ParseCapacityReservationGroupIDInsensitively(capReservaGroupId)
 				if err != nil {
@@ -780,6 +787,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				}
 				d.Set("target_capacity_reservation_group_id", parsedCapReservaGroupId.ID())
 			}
+
 			if vmssId := pointer.From(a2aDetails.RecoveryVirtualMachineScaleSetId); vmssId != "" {
 				parsedVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(vmssId)
 				if err != nil {
@@ -788,6 +796,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("target_virtual_machine_scale_set_id", parsedVmssId.ID())
 			}
 
+			d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
 			d.Set("target_edge_zone", flattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
 			d.Set("multi_vm_group_name", a2aDetails.MultiVMGroupName)
 			d.Set("test_network_id", a2aDetails.SelectedTfoAzureNetworkId)
