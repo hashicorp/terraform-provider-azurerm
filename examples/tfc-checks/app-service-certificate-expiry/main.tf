@@ -100,7 +100,7 @@ data "azurerm_app_service_certificate" "example" {
 
 check "check_certificate_state" {
   assert {
-    condition = timecmp(timestamp(), timeadd(
+    condition = timecmp(plantimestamp(), timeadd(
         data.azurerm_app_service_certificate.example.expiration_date,
       "-${local.month_in_hour_duration}")) < 0
     error_message = format("App Service Certificate (%s) is valid for at least 30 days, but is due to expire on `%s`.",
