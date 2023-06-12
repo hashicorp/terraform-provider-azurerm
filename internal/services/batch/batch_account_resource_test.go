@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -256,7 +256,37 @@ func TestAccBatchAccount_autoStorageBatchAuthMode(t *testing.T) {
 	})
 }
 
-func TestAccBatchAccount_removeStorageAccount(t *testing.T) {
+func TestAccBatchAccount_publicNetworkAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithPublicNetWorkAccessDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBatchAccount_removeStorageAccountId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	r := BatchAccountResource{}
 
@@ -272,7 +302,7 @@ func TestAccBatchAccount_removeStorageAccount(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.removeStorageAccount(data),
+			Config: r.removeStorageAccountId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
@@ -775,7 +805,7 @@ resource "azurerm_key_vault_key" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
 }
 
-func (BatchAccountResource) removeStorageAccount(data acceptance.TestData) string {
+func (BatchAccountResource) removeStorageAccountId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -784,6 +814,14 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-batch-%d"
   location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "test" {
@@ -798,7 +836,7 @@ resource "azurerm_batch_account" "test" {
     env = "test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (BatchAccountResource) authenticationModes(data acceptance.TestData) string {
@@ -944,4 +982,26 @@ resource "azurerm_batch_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchAccountResource) basicWithPublicNetWorkAccessDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+
+  public_network_access_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

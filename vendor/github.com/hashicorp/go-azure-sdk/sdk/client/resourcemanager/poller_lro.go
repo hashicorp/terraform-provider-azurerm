@@ -4,6 +4,7 @@
 package resourcemanager
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -117,6 +118,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 		}
 		result.HttpResponse.Body.Close()
 
+		result.HttpResponse.Body = io.NopCloser(bytes.NewReader(respBody))
+
 		// update the poll interval if a Retry-After header is returned
 		if s, ok := result.HttpResponse.Header["Retry-After"]; ok {
 			if sleep, err := strconv.ParseInt(s[0], 10, 64); err == nil {
@@ -146,8 +149,6 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return nil, fmt.Errorf("expected either `provisioningState` or `status` to be returned from the LRO API but both were empty")
 		}
 
-		// TODO: raising an error if this is Cancelled or Failed
-
 		statuses := map[status]pollers.PollingStatus{
 			statusCanceled:   pollers.PollingStatusCancelled,
 			statusCancelled:  pollers.PollingStatusCancelled,
@@ -170,11 +171,35 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 		for k, v := range statuses {
 			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {
 				result.Status = v
-				return
+				break
 			}
 			if strings.EqualFold(string(op.Status), string(k)) {
 				result.Status = v
-				return
+				break
+			}
+		}
+
+		if result.Status == pollers.PollingStatusFailed {
+			lroError, parseError := parseErrorFromApiResponse(*result.HttpResponse.Response)
+			if parseError != nil {
+				return nil, parseError
+			}
+
+			err = pollers.PollingFailedError{
+				HttpResponse: result.HttpResponse,
+				Message:      lroError.Error(),
+			}
+		}
+
+		if result.Status == pollers.PollingStatusCancelled {
+			lroError, parseError := parseErrorFromApiResponse(*result.HttpResponse.Response)
+			if parseError != nil {
+				return nil, parseError
+			}
+
+			err = pollers.PollingCancelledError{
+				HttpResponse: result.HttpResponse,
+				Message:      lroError.Error(),
 			}
 		}
 

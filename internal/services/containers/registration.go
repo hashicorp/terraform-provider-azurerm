@@ -70,6 +70,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerRegistryTokenPasswordResource{},
 		ContainerConnectedRegistryResource{},
 		KubernetesClusterExtensionResource{},
+		KubernetesFluxConfigurationResource{},
 	}
 	resources = append(resources, r.autoRegistration.Resources()...)
 	return resources

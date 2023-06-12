@@ -61,7 +61,7 @@ func (m CertificateResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: keyvaultValidate.NestedItemId,
+			ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
 		},
 	}
 }

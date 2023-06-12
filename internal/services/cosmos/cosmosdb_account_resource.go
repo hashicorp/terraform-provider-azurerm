@@ -60,6 +60,8 @@ const (
 	databaseAccountCapabilitiesEnableMongoRetryableWrites        databaseAccountCapabilities = "EnableMongoRetryableWrites"
 	databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl databaseAccountCapabilities = "EnableMongoRoleBasedAccessControl"
 	databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs    databaseAccountCapabilities = "EnableUniqueCompoundNestedDocs"
+	databaseAccountCapabilitiesEnableTtlOnCustomPath             databaseAccountCapabilities = "EnableTtlOnCustomPath"
+	databaseAccountCapabilitiesEnablePartialUniqueIndex          databaseAccountCapabilities = "EnablePartialUniqueIndex"
 )
 
 /*
@@ -78,22 +80,26 @@ AllowSelfServeUpgradeToMongo36 : 	GlobalDocumentDB, MongoDB, Parse
 EnableMongoRetryableWrites :		MongoDB
 EnableMongoRoleBasedAccessControl : MongoDB
 EnableUniqueCompoundNestedDocs : 	MongoDB
+EnableTtlOnCustomPath:              MongoDB
+EnablePartialUniqueIndex:           MongoDB
 */
 var capabilitiesToKindMap = map[string]interface{}{
-	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo)):                    []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)):     []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)):     []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableCassandra)):                []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableGremlin)):                  []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableTable)):                    []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableServerless)):               []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableAggregationPipeline)):      []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesMongoDBv34)):                     []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesMongoEnableDocLevelTTL)):         []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)):   []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo)):                       []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport)):    []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)):        []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)):    []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableTtlOnCustomPath)):             []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnablePartialUniqueIndex)):          []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableCassandra)):                   []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableGremlin)):                     []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableTable)):                       []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableServerless)):                  []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableAggregationPipeline)):         []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesMongoDBv34)):                        []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesMongoEnableDocLevelTTL)):            []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)):      []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36)):    []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
 }
 
 // If the consistency policy of the Cosmos DB Database Account is not bounded staleness,
@@ -411,6 +417,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								string(databaseAccountCapabilitiesEnableMongoRetryableWrites),
 								string(databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl),
 								string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs),
+								string(databaseAccountCapabilitiesEnableTtlOnCustomPath),
+								string(databaseAccountCapabilitiesEnablePartialUniqueIndex),
 							}, false),
 						},
 					},
@@ -2097,6 +2105,8 @@ func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]documentdb.Ca
 		strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnableTtlOnCustomPath)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnablePartialUniqueIndex)),
 	}
 
 	// The feedback from service team: capabilities that can be removed from an existing account

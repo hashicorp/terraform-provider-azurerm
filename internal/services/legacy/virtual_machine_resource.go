@@ -28,7 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 	"golang.org/x/net/context"
 )

@@ -18,14 +18,13 @@ Manages a Kubernetes Fleet Manager
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_kubernetes_fleet_manager" "example" {
-
-  hub_profile {
-    dns_prefix = "example"
-  }
-
   location            = azurerm_resource_group.example.location
-  name                = "example"
+  name                = "examplekfm"
   resource_group_name = azurerm_resource_group.example.name
 }
 ```
@@ -56,17 +55,16 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ### `hub_profile` Block
 
+
 The `hub_profile` block supports the following arguments:
 
 * `dns_prefix` - (Required) 
 
-The `hub_profile` block exports the following arguments:
+
+In addition to the arguments defined above, the `hub_profile` block exports the following attributes:
 
 * `fqdn` - 
-
-* `kubernetes_version` - 
-
----
+* `kubernetes_version` -
 
 ## Timeouts
 
