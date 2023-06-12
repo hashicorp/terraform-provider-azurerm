@@ -1,4 +1,256 @@
+# NOTE: this file is generated via 'make generate'
 bug:
   - 'panic:'
 crash:
   - 'panic:'
+service/aadb2c:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_aadb2c_directory((.|\n)*)###'
+
+service/advisor:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_advisor_recommendations((.|\n)*)###'
+
+service/analysis:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_analysis_services_server((.|\n)*)###'
+
+service/api-management:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_api_management((.|\n)*)###'
+
+service/app-configuration:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_app_configuration((.|\n)*)###'
+
+service/application-insights:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_application_insights((.|\n)*)###'
+
+service/attestation:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_attestation_provider((.|\n)*)###'
+
+service/automanage:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automanage_configuration((.|\n)*)###'
+
+service/automation:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automation_((.|\n)*)###'
+
+service/azure-stack-hci:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stack_hci_cluster((.|\n)*)###'
+
+service/batch:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_batch_((.|\n)*)###'
+
+service/billing:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_billing_((.|\n)*)###'
+
+service/blueprints:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_blueprint_((.|\n)*)###'
+
+service/cdn:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cdn_((.|\n)*)###'
+
+service/cognitive-services:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cognitive_((.|\n)*)###'
+
+service/consumption:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_consumption_budget_((.|\n)*)###'
+
+service/cosmosdb:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cosmosdb_((.|\n)*)###'
+
+service/custom-resource-provider:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_custom_provider((.|\n)*)###'
+
+service/dashboard:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dashboard_grafana((.|\n)*)###'
+
+service/data-factory:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_data_factory((.|\n)*)###'
+
+service/data-protection:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_data_protection_((.|\n)*)###'
+
+service/data-share:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_data_share((.|\n)*)###'
+
+service/database-migration:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_database_migration_((.|\n)*)###'
+
+service/databox-edge:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_databox_edge_((.|\n)*)###'
+
+service/databricks:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_databricks_((.|\n)*)###'
+
+service/devtestlabs:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dev_test_((.|\n)*)###'
+
+service/digital-twins:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_digital_twins_((.|\n)*)###'
+
+service/disks:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_disk_pool((.|\n)*)###'
+
+service/domain-services:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_active_directory_domain_service((.|\n)*)###'
+
+service/elastic:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_elastic_cloud_elasticsearch((.|\n)*)###'
+
+service/event-grid:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_eventgrid_((.|\n)*)###'
+
+service/event-hubs:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_eventhub((.|\n)*)###'
+
+service/firewall:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_firewall((.|\n)*)###'
+
+service/frontdoor:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_frontdoor((.|\n)*)###'
+
+service/hdinsight:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_hdinsight_((.|\n)*)###'
+
+service/healthcare:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_healthcare_((.|\n)*)###'
+
+service/hpc-cache:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_hpc_cache((.|\n)*)###'
+
+service/hsm:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dedicated_hardware_security_module((.|\n)*)###'
+
+service/iot-central:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iotcentral_application((.|\n)*)###'
+
+service/iot-hub:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iothub((.|\n)*)###'
+
+service/iot-time-series:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iot_time_series_insights_((.|\n)*)###'
+
+service/key-vault:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_key_vault((.|\n)*)###'
+
+service/kusto:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_kusto_((.|\n)*)###'
+
+service/labservice:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_lab_service_((.|\n)*)###'
+
+service/lighthouse:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_lighthouse_((.|\n)*)###'
+
+service/load-balancers:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_lb((.|\n)*)###'
+
+service/load-test:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_load_test((.|\n)*)###'
+
+service/log-analytics:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_log_analytics_((.|\n)*)###'
+
+service/logz:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_logz_((.|\n)*)###'
+
+service/machine-learning:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_machine_learning_((.|\n)*)###'
+
+service/managed-apps:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_managed_application((.|\n)*)###'
+
+service/management-groups:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_management_group((.|\n)*)###'
+
+service/maps:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_maps_((.|\n)*)###'
+
+service/maria-db:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mariadb_((.|\n)*)###'
+
+service/media:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_media_((.|\n)*)###'
+
+service/mixed-reality:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_spatial_anchors_account((.|\n)*)###'
+
+service/mobile-network:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mobile_network((.|\n)*)###'
+
+service/monitor:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_monitor_((.|\n)*)###'
+
+service/mssql:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mssql_((.|\n)*)###'
+
+service/mssqlmanagedinstance:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mssql_managed_((.|\n)*)###'
+
+service/mysql:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mysql_((.|\n)*)###'
+
+service/netapp:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_netapp_((.|\n)*)###'
+
+service/nginx:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_nginx_((.|\n)*)###'
+
+service/notifications:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_notification_hub((.|\n)*)###'
+
+service/postgresql:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_postgresql_((.|\n)*)###'
+
+service/power-bi:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_powerbi_embedded((.|\n)*)###'
+
+service/private-dns-resolver:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_private_dns_resolver((.|\n)*)###'
+
+service/purview:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_purview_account((.|\n)*)###'
+
+service/redis:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_redis_((.|\n)*)###'
+
+service/relay:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_relay_((.|\n)*)###'
+
+service/search:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_search_s((.|\n)*)###'
+
+service/sentinel:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_sentinel_((.|\n)*)###'
+
+service/service-bus:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_servicebus_((.|\n)*)###'
+
+service/service-fabric:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_service_fabric_cluster((.|\n)*)###'
+
+service/service-fabric-managed-cluster:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_service_fabric_managed_cluster((.|\n)*)###'
+
+service/spring:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_spring_cloud_((.|\n)*)###'
+
+service/sql:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_sql_((.|\n)*)###'
+
+service/storage:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_storage_((.|\n)*)###'
+
+service/stream-analytics:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stream_analytics_((.|\n)*)###'
+
+service/synapse:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_synapse_((.|\n)*)###'
+
+service/traffic-manager:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_traffic_manager_((.|\n)*)###'
+
+service/video-analyzer:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_video_analyzer((.|\n)*)###'
+
+service/virtual-desktops:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_virtual_desktop_((.|\n)*)###'
+
+service/vmware:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_vmware_((.|\n)*)###'

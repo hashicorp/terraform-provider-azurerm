@@ -36,6 +36,7 @@ func main() {
 
 	generators := []generator{
 		githubLabelsGenerator{},
+		githubIssueLabelsGenerator{},
 		teamCityServicesListGenerator{},
 		websiteCategoriesGenerator{},
 	}
@@ -235,6 +236,95 @@ func (websiteCategoriesGenerator) run(outputFileName string, _ map[string]struct
 	return writeToFile(outputFileName, fileContents)
 }
 
+const githubIssueLabelsTemplate = `# NOTE: this file is generated via 'make generate'
+bug:
+  - 'panic:'
+crash:
+  - 'panic:'
+`
+
+type githubIssueLabelsGenerator struct{}
+
+func (g githubIssueLabelsGenerator) outputPath(rootDirectory string) string {
+	return fmt.Sprintf("%s/.github/labeler-issue-triage.yml", rootDirectory)
+}
+
+func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct{}) error {
+	labelToNames := make(map[string][]string)
+
+	for _, service := range provider.SupportedTypedServices() {
+
+		v, ok := service.(sdk.TypedServiceRegistrationWithAGitHubLabel)
+		if !ok {
+			// skipping since this doesn't implement the label interface
+			continue
+		}
+
+		var names []string
+		for _, resource := range service.Resources() {
+			names = append(names, resource.ResourceType())
+
+		}
+
+		for _, ds := range service.DataSources() {
+			names = append(names, ds.ResourceType())
+		}
+
+		appendToSliceWithinMap(labelToNames, names, v.AssociatedGitHubLabel())
+
+	}
+	for _, service := range provider.SupportedUntypedServices() {
+		v, ok := service.(sdk.UntypedServiceRegistrationWithAGitHubLabel)
+		service.SupportedResources()
+		if !ok {
+			// skipping since this doesn't implement the label interface
+			continue
+		}
+
+		var names []string
+		for resourceName, _ := range service.SupportedResources() {
+			if resourceName != "" {
+				names = append(names, resourceName)
+			}
+		}
+
+		for dsName, _ := range service.SupportedDataSources() {
+			if dsName != "" {
+				names = append(names, dsName)
+			}
+		}
+
+		appendToSliceWithinMap(labelToNames, names, v.AssociatedGitHubLabel())
+
+	}
+
+	sortedLabels := make([]string, 0)
+	for k := range labelToNames {
+		sortedLabels = append(sortedLabels, k)
+	}
+	sort.Strings(sortedLabels)
+
+	output := strings.TrimSpace(githubIssueLabelsTemplate)
+	for _, labelName := range sortedLabels {
+
+		prefix := longestCommonPrefix(labelToNames[labelName])
+		if prefix == "azurerm_" {
+			continue
+		}
+
+		out := []string{
+			fmt.Sprintf("%[1]s:", labelName),
+		}
+
+		out = append(out, fmt.Sprintf("  - '### (|New or )Affected Resource\\(s\\)\\/Data Source\\(s\\)((.|\\n)*)%s((.|\\n)*)###'", prefix))
+
+		out = append(out, "")
+		output += fmt.Sprintf("\n%s", strings.Join(out, "\n"))
+	}
+
+	return writeToFile(outputFileName, output)
+}
+
 func writeToFile(filePath string, contents string) error {
 	outputPath, err := filepath.Abs(filePath)
 	if err != nil {
@@ -268,4 +358,35 @@ func contains(input []string, value string) bool {
 	}
 
 	return false
+}
+
+func appendToSliceWithinMap(sliceMap map[string][]string, slice []string, key string) map[string][]string {
+	if _, ok := sliceMap[key]; ok {
+		sliceMap[key] = append(slice, sliceMap[key]...)
+	} else {
+		sliceMap[key] = slice
+	}
+	return sliceMap
+}
+
+func longestCommonPrefix(strings []string) string {
+	longestPrefix := ""
+	end := false
+
+	if len(strings) > 0 {
+
+		sort.Strings(strings)
+		first := strings[0]
+		last := strings[len(strings)-1]
+
+		for i := 0; i < len(first); i++ {
+			if !end && string(last[i]) == string(first[i]) {
+				longestPrefix += string(last[i])
+			} else {
+				end = true
+			}
+		}
+	}
+
+	return longestPrefix
 }
