@@ -547,7 +547,12 @@ func (r ArcKubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				properties.Properties.Bucket, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
 			} else if _, exists = metadata.ResourceData.GetOk("blob_storage"); exists {
 				properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeAzureBlob)
-				properties.Properties.AzureBlob = expandArcAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage)
+				if err != nil {
+					return err
+				}
+
+				properties.Properties.AzureBlob = azureBlob
 			}
 
 			if model.Namespace != "" {
@@ -596,7 +601,12 @@ func (r ArcKubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 
 			properties.Properties.ConfigurationProtectedSettings = nil
 			if metadata.ResourceData.HasChange("blob_storage") {
-				properties.Properties.AzureBlob = expandArcAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage)
+				if err != nil {
+					return err
+				}
+
+				properties.Properties.AzureBlob = azureBlob
 				if properties.Properties.AzureBlob != nil {
 					properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeAzureBlob)
 				}
@@ -673,7 +683,12 @@ func (r ArcKubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					state.BlobStorage = flattenArcAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage)
+					blobStorage, err := flattenArcAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage)
+					if err != nil {
+						return err
+					}
+
+					state.BlobStorage = blobStorage
 					state.Bucket = flattenBucketDefinitionModel(properties.Bucket, configModel.Bucket)
 					gitRepositoryValue, err := flattenGitRepositoryDefinitionModel(properties.GitRepository, configModel.GitRepository)
 					if err != nil {
@@ -713,9 +728,9 @@ func (r ArcKubernetesFluxConfigurationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) *fluxconfiguration.AzureBlobDefinition {
+func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) (*fluxconfiguration.AzureBlobDefinition, error) {
 	if len(inputList) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	input := &inputList[0]
@@ -729,7 +744,11 @@ func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) *fl
 	}
 
 	if input.ContainerID != "" {
-		id, _ := parse.StorageContainerDataPlaneID(input.ContainerID)
+		id, err := parse.StorageContainerDataPlaneID(input.ContainerID)
+		if err != nil {
+			return nil, err
+		}
+
 		output.ContainerName = &id.Name
 		output.Url = pointer.To(strings.TrimSuffix(input.ContainerID, "/"+id.Name))
 	}
@@ -742,7 +761,7 @@ func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) *fl
 		output.SasToken = &input.SasToken
 	}
 
-	return &output
+	return &output, nil
 }
 
 func expandKustomizationDefinitionModel(inputList []KustomizationDefinitionModel) *map[string]fluxconfiguration.KustomizationDefinition {
@@ -916,14 +935,19 @@ func expandRepositoryRefDefinitionModel(referenceType string, referenceValue str
 	return &output, nil
 }
 
-func flattenArcAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel) []AzureBlobDefinitionModel {
+func flattenArcAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel) ([]AzureBlobDefinitionModel, error) {
 	outputList := make([]AzureBlobDefinitionModel, 0)
 	if input == nil {
-		return outputList
+		return outputList, nil
+	}
+
+	id, err := parse.StorageContainerDataPlaneID(fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)))
+	if err != nil {
+		return nil, err
 	}
 
 	output := AzureBlobDefinitionModel{
-		ContainerID:           fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)),
+		ContainerID:           id.ID(),
 		LocalAuthRef:          pointer.From(input.LocalAuthRef),
 		SyncIntervalInSeconds: pointer.From(input.SyncIntervalInSeconds),
 		TimeoutInSeconds:      pointer.From(input.TimeoutInSeconds),
@@ -938,7 +962,7 @@ func flattenArcAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefini
 
 	output.ServicePrincipal = flattenServicePrincipalDefinitionModel(input.ServicePrincipal, servicePrincipal)
 
-	return append(outputList, output)
+	return append(outputList, output), nil
 }
 
 func flattenKustomizationDefinitionModel(inputList *map[string]fluxconfiguration.KustomizationDefinition) []KustomizationDefinitionModel {

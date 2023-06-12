@@ -568,7 +568,12 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				properties.Properties.Bucket, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
 			} else if _, exists = metadata.ResourceData.GetOk("blob_storage"); exists {
 				properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeAzureBlob)
-				properties.Properties.AzureBlob = expandAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage)
+				if err != nil {
+					return err
+				}
+
+				properties.Properties.AzureBlob = azureBlob
 			}
 
 			if model.Namespace != "" {
@@ -617,7 +622,12 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 
 			properties.Properties.ConfigurationProtectedSettings = nil
 			if metadata.ResourceData.HasChange("blob_storage") {
-				properties.Properties.AzureBlob = expandAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage)
+				if err != nil {
+					return err
+				}
+
+				properties.Properties.AzureBlob = azureBlob
 				if properties.Properties.AzureBlob != nil {
 					properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeAzureBlob)
 				}
@@ -694,7 +704,12 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					state.BlobStorage = flattenAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage)
+					blobStorage, err := flattenAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage)
+					if err != nil {
+						return err
+					}
+
+					state.BlobStorage = blobStorage
 					state.Bucket = flattenBucketDefinitionModel(properties.Bucket, configModel.Bucket)
 					gitRepositoryValue, err := flattenGitRepositoryDefinitionModel(properties.GitRepository, configModel.GitRepository)
 					if err != nil {
@@ -734,9 +749,9 @@ func (r KubernetesFluxConfigurationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) *fluxconfiguration.AzureBlobDefinition {
+func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) (*fluxconfiguration.AzureBlobDefinition, error) {
 	if len(inputList) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	input := &inputList[0]
@@ -751,7 +766,11 @@ func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) *fluxc
 	}
 
 	if input.ContainerID != "" {
-		id, _ := parse.StorageContainerDataPlaneID(input.ContainerID)
+		id, err := parse.StorageContainerDataPlaneID(input.ContainerID)
+		if err != nil {
+			return nil, err
+		}
+
 		output.ContainerName = &id.Name
 		output.Url = pointer.To(strings.TrimSuffix(input.ContainerID, "/"+id.Name))
 	}
@@ -764,7 +783,7 @@ func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) *fluxc
 		output.SasToken = &input.SasToken
 	}
 
-	return &output
+	return &output, nil
 }
 
 func expandManagedIdentityDefinitionModel(inputList []ManagedIdentityDefinitionModel) *fluxconfiguration.ManagedIdentityDefinition {
@@ -952,13 +971,19 @@ func expandRepositoryRefDefinitionModel(referenceType string, referenceValue str
 	return &output, nil
 }
 
-func flattenAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel) []AzureBlobDefinitionModel {
+func flattenAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel) ([]AzureBlobDefinitionModel, error) {
 	outputList := make([]AzureBlobDefinitionModel, 0)
 	if input == nil {
-		return outputList
+		return outputList, nil
 	}
+
+	id, err := parse.StorageContainerDataPlaneID(fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)))
+	if err != nil {
+		return nil, err
+	}
+
 	output := AzureBlobDefinitionModel{
-		ContainerID:           fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)),
+		ContainerID:           id.ID(),
 		LocalAuthRef:          pointer.From(input.LocalAuthRef),
 		ManagedIdentity:       flattenManagedIdentityDefinitionModel(input.ManagedIdentity),
 		SyncIntervalInSeconds: pointer.From(input.SyncIntervalInSeconds),
@@ -974,7 +999,7 @@ func flattenAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinitio
 
 	output.ServicePrincipal = flattenServicePrincipalDefinitionModel(input.ServicePrincipal, servicePrincipal)
 
-	return append(outputList, output)
+	return append(outputList, output), nil
 }
 
 func flattenManagedIdentityDefinitionModel(input *fluxconfiguration.ManagedIdentityDefinition) []ManagedIdentityDefinitionModel {
