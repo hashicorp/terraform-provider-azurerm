@@ -28,9 +28,7 @@ type FxStringPrefix string
 
 var urlSchemes = []string{
 	"https://",
-	"HTTPS://",
 	"http://",
-	"HTTP://",
 }
 
 func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
@@ -302,15 +300,10 @@ func EncodeDockerFxStringWindows(image string, registryUrl string) string {
 	template := "DOCKER|%s/%s"
 	dockerHubTemplate := "DOCKER|%s"
 
-	for _, prefix := range urlSchemes {
-		if strings.HasPrefix(registryUrl, prefix) {
-			registryUrl = strings.TrimPrefix(registryUrl, prefix)
-			continue
-		}
-	}
+	registryUrl = trimURLScheme(registryUrl)
 
 	// Windows App Services fail to auth if the index portion of the image ref is `index.docker.io` so it must not be included.
-	if registryUrl == "index.docker.io" {
+	if strings.EqualFold(registryUrl, "index.docker.io") {
 		return fmt.Sprintf(dockerHubTemplate, image)
 	}
 

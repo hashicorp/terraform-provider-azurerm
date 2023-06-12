@@ -5,14 +5,11 @@ import "strings"
 func trimURLScheme(input string) string {
 	schemes := []string{
 		"https://",
-		"HTTPS://",
 		"http://",
-		"HTTP://",
 	}
-
 	for _, v := range schemes {
-		if strings.HasPrefix(input, v) {
-			return strings.TrimPrefix(input, v)
+		if strings.HasPrefix(strings.ToLower(input), v) {
+			return input[len(v):]
 		}
 	}
 
