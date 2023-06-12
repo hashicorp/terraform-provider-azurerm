@@ -282,13 +282,13 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 		}
 
 		var names []string
-		for resourceName, _ := range service.SupportedResources() {
+		for resourceName := range service.SupportedResources() {
 			if resourceName != "" {
 				names = append(names, resourceName)
 			}
 		}
 
-		for dsName, _ := range service.SupportedDataSources() {
+		for dsName := range service.SupportedDataSources() {
 			if dsName != "" {
 				names = append(names, dsName)
 			}
