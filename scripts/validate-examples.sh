@@ -9,7 +9,7 @@ hasError=false
 # Setup a local Terraform config file for setting up the dev_overrides for this provider.
 terraformrc=$(mktemp)
 cat << EOF > $terraformrc
-provider_installation {t
+provider_installation {
   dev_overrides {
     "hashicorp/azurerm" = "$(go env GOPATH)/bin"
   }
