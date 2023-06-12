@@ -37,6 +37,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -89,6 +90,9 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
+				// user-specified segments are lower cased too.
+				// tracked on https://github.com/Azure/azure-rest-api-specs/issues/24393
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"target_recovery_fabric_id": {
