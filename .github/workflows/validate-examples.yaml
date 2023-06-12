@@ -11,6 +11,7 @@ on:
     paths:
       - '.github/workflows/validate-examples.yaml'
       - 'examples/**'
+      - '!examples/tfc-checks/**'
 
 concurrency:
   group: 'examples-${{ github.head_ref }}'
