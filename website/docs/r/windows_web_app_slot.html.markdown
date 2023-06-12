@@ -146,7 +146,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** Whilst this property is Optional omitting it can cause unexpected behaviour, in particular for display of settings in the Azure Portal.
 
-* `docker_image_name` - (Optional) The docker image, including tag, to be used
+* `docker_image_name` - (Optional) The docker image, including tag, to be used. e.g. `azure-app-service/windows/parkingpage:latest`.
 
 * `docker_registry_url` - (Optional) The URL of the container registry where the `docker_image_name` is located. e.g. `https://index.docker.io` or `https://mcr.microsoft.com`. This value is required with `docker_image_name`.
 
