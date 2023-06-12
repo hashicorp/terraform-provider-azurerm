@@ -92,9 +92,6 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 
 	case FxStringPrefixRuby:
 		result.RubyVersion = parts[1]
-
-	case "COMPOSE":
-		// TODO
 	}
 
 	return result
