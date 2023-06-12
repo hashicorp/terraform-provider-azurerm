@@ -10,7 +10,7 @@ Azure Resource Manager: Continuous Validation with Terraform Cloud
 
 The Continuous Validation feature in Terraform Cloud (TFC) allows users to make assertions about their infrastructure between applied runs. This helps users to identify issues at the time they first appear and avoid situations where a change is only identified during a future terraform plan/apply or once it causes a user-facing problem.
 
-Checks can be added to Terraform configuration in Terraform Cloud (TFC) using check blocks. Check blocks contain assertions that are defined with a custom condition expression and an error message. When the condition expression evaluates to true during the check passes, but when the expression evaluates to false Terraform will show a warning message that includes the user-defined error message.
+Checks can be added to Terraform configuration in Terraform Cloud (TFC) using check blocks. Check blocks contain assertions that are defined with a custom condition expression and an error message. When the condition expression evaluates to false, Terraform will show a warning message that includes the user-defined error message.
 
 Custom conditions can be created using data from Terraform providers’ resources and data sources. Data can also be combined from multiple sources; for example, you can use checks to monitor expirable resources by comparing a resource’s expiration date attribute to the current time returned by Terraform’s built-in time functions.
 
