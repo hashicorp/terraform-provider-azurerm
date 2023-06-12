@@ -549,7 +549,7 @@ func (r ArcKubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeAzureBlob)
 				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage)
 				if err != nil {
-					return err
+					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}
 
 				properties.Properties.AzureBlob = azureBlob
@@ -603,7 +603,7 @@ func (r ArcKubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("blob_storage") {
 				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage)
 				if err != nil {
-					return err
+					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}
 
 				properties.Properties.AzureBlob = azureBlob
@@ -685,7 +685,7 @@ func (r ArcKubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 				if properties := model.Properties; properties != nil {
 					blobStorage, err := flattenArcAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage)
 					if err != nil {
-						return err
+						return fmt.Errorf("flattening `blob_storage`: %+v", err)
 					}
 
 					state.BlobStorage = blobStorage
