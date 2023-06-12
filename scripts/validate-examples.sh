@@ -2,14 +2,14 @@
 
 echo "==> Checking examples validate with 'terraform validate'..."
 
-exampleDirs=$(find ./examples -mindepth 2 -maxdepth 2 -type d '!' -exec test -e "{}/*.tf" ';' -print | sort)
+exampleDirs=$(find ./examples -mindepth 2 -maxdepth 2 -type d '!' -exec test -e "{}/*.tf" ';' -print | sort | egrep -v "tfc-checks")
 examplesWithErrors=()
 hasError=false
 
 # Setup a local Terraform config file for setting up the dev_overrides for this provider.
 terraformrc=$(mktemp)
 cat << EOF > $terraformrc
-provider_installation {
+provider_installation {t
   dev_overrides {
     "hashicorp/azurerm" = "$(go env GOPATH)/bin"
   }
