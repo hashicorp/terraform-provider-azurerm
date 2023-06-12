@@ -79,6 +79,7 @@ resource "azurerm_automanage_configuration" "example" {
   boot_diagnostics_enabled    = true
   defender_for_cloud_enabled  = true
   guest_configuration_enabled = true
+  log_analytics_enabled       = true
   status_change_alert_enabled = true
 
   tags = {
@@ -110,6 +111,8 @@ The following arguments are supported:
 * `defender_for_cloud_enabled` - (Optional) Whether the defender for cloud is enabled. Defaults to `false`.
 
 * `guest_configuration_enabled` - (Optional) Whether the guest configuration is enabled. Defaults to `false`.
+
+* `log_analytics_enabled` - (Optional) Whether log analytics are enabled. Defaults to `false`.
 
 * `status_change_alert_enabled` - (Optional) Whether the status change alert is enabled. Defaults to `false`.
 

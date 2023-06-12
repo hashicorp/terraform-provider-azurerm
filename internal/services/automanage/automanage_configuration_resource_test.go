@@ -331,10 +331,10 @@ func (r AutoManageConfigurationProfileResource) logAnalytics(data acceptance.Tes
 				%s
 
 resource "azurerm_automanage_configuration" "test" {
-	  name                = "acctest-amcp-%d"
-	  resource_group_name = azurerm_resource_group.test.name
-	  location            = "%s"
-	  log_analytics_enabled = true
+  name                  = "acctest-amcp-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = "%s"
+  log_analytics_enabled = true
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
