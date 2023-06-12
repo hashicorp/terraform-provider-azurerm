@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters` Documentation
 
-The `managedclusters` SDK allows for interaction with the Azure Resource Manager Service `containerservice` (API Version `2023-02-02-preview`).
+The `managedclusters` SDK allows for interaction with the Azure Resource Manager Service `containerservice` (API Version `2023-04-02-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 ```
 
 
@@ -214,6 +214,22 @@ ctx := context.TODO()
 id := managedclusters.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
 
 read, err := client.ListClusterUserCredentials(ctx, id, managedclusters.DefaultListClusterUserCredentialsOperationOptions())
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ManagedClustersClient.ListKubernetesVersions`
+
+```go
+ctx := context.TODO()
+id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+
+read, err := client.ListKubernetesVersions(ctx, id)
 if err != nil {
 	// handle the error
 }

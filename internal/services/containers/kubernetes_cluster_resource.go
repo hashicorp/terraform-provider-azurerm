@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
@@ -836,7 +836,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.NetworkPluginModeOverlay),
+								// TODO 4.0: change it to managedclusters.NetworkPluginModeOverlay
+								"Overlay",
 							}, false),
 						},
 
@@ -2348,7 +2349,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `linux_profile`: %+v", err)
 			}
 
-			networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile)
+			networkProfileRaw := d.Get("network_profile").([]interface{})
+			networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile, networkProfileRaw)
 			if err := d.Set("network_profile", networkProfile); err != nil {
 				return fmt.Errorf("setting `network_profile`: %+v", err)
 			}
@@ -2902,11 +2904,6 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		networkProfile.PodCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
-	if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
-		dockerBridgeCidr := v.(string)
-		networkProfile.DockerBridgeCidr = utils.String(dockerBridgeCidr)
-	}
-
 	if v, ok := config["service_cidr"]; ok && v.(string) != "" {
 		serviceCidr := v.(string)
 		networkProfile.ServiceCidr = utils.String(serviceCidr)
@@ -3041,7 +3038,7 @@ func resourceReferencesToIds(refs *[]managedclusters.ResourceReference) []string
 	return nil
 }
 
-func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile) []interface{} {
+func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile, raw []interface{}) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -3052,8 +3049,11 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	}
 
 	dockerBridgeCidr := ""
-	if profile.DockerBridgeCidr != nil {
-		dockerBridgeCidr = *profile.DockerBridgeCidr
+	if len(raw) != 0 && raw[0] != nil {
+		config := raw[0].(map[string]interface{})
+		if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
+			dockerBridgeCidr = v.(string)
+		}
 	}
 
 	serviceCidr := ""

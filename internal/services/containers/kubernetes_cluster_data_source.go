@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -1332,10 +1332,6 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.C
 
 	if profile.DnsServiceIP != nil {
 		values["dns_service_ip"] = *profile.DnsServiceIP
-	}
-
-	if profile.DockerBridgeCidr != nil {
-		values["docker_bridge_cidr"] = *profile.DockerBridgeCidr
 	}
 
 	if profile.PodCidr != nil {

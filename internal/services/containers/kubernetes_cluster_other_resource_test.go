@@ -1674,11 +1674,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "azure"
-    network_policy     = "azure"
-    dns_service_ip     = "10.10.0.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidr       = "10.10.0.0/16"
+    network_plugin = "azure"
+    network_policy = "azure"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1727,11 +1726,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "azure"
-    network_policy     = "azure"
-    dns_service_ip     = "10.10.0.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidr       = "10.10.0.0/16"
+    network_plugin = "azure"
+    network_policy = "azure"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1852,11 +1850,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "azure"
-    network_policy     = "azure"
-    dns_service_ip     = "10.10.0.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidr       = "10.10.0.0/16"
+    network_plugin = "azure"
+    network_policy = "azure"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
   }
 
   depends_on = [

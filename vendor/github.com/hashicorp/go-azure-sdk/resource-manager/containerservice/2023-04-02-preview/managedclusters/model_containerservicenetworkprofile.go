@@ -5,7 +5,6 @@ package managedclusters
 
 type ContainerServiceNetworkProfile struct {
 	DnsServiceIP        *string                                        `json:"dnsServiceIP,omitempty"`
-	DockerBridgeCidr    *string                                        `json:"dockerBridgeCidr,omitempty"`
 	IPFamilies          *[]IPFamily                                    `json:"ipFamilies,omitempty"`
 	KubeProxyConfig     *ContainerServiceNetworkProfileKubeProxyConfig `json:"kubeProxyConfig,omitempty"`
 	LoadBalancerProfile *ManagedClusterLoadBalancerProfile             `json:"loadBalancerProfile,omitempty"`
