@@ -12,7 +12,8 @@ ENHANCEMENTS:
 * `compute`: updating to use API Version `2023-03-01` [GH-21980]
 * `containers`: updating to use API version `2023-04-02-preview` [22048]
 * `managedidentity`: updating to use API Version `2023-01-31` [GH-22102]
-* `azurerm_batch_account` - `public_network_access_enabled` is now updatable [GH-22095]
+* `azurerm_batch_account` - the `public_network_access_enabled` property can now be updated [GH-22095]
+* `azurerm_automanage_configuration` - support for the `log_analytics_enabled` property [GH-22121]
 
 ## 3.60.0 (June 08, 2023)
 
