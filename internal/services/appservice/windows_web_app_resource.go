@@ -591,7 +591,11 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				}
 
 				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-					state.HostingEnvId = pointer.From(hostingEnv.ID)
+					hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.ID)
+					if err != nil {
+						return err
+					}
+					state.HostingEnvId = hostingEnvId.ID()
 				}
 
 				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {

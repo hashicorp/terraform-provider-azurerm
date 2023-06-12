@@ -906,6 +906,7 @@ func (s *SiteConfigWindows) ParseNodeVersion(input map[string]string) map[string
 	if nodeVer, ok := input["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
 		if s.ApplicationStack == nil {
 			s.ApplicationStack = make([]ApplicationStackWindows, 0)
+			s.ApplicationStack[0] = ApplicationStackWindows{}
 		}
 		s.ApplicationStack[0].NodeVersion = nodeVer
 		delete(input, "WEBSITE_NODE_DEFAULT_VERSION")
