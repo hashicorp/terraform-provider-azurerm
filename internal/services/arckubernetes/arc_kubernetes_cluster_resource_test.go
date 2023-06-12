@@ -25,28 +25,19 @@ import (
 type ArcKubernetesClusterResource struct{}
 
 func TestAccArcKubernetesCluster_basic(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
 	r := ArcKubernetesClusterResource{}
-	privateKey, publicKey, err := r.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, privateKey, publicKey),
+			Config: r.basic(data, credential, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data, privateKey, publicKey),
+			Config: r.update(data, credential, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("distribution").HasValue("kind"),
@@ -58,55 +49,37 @@ func TestAccArcKubernetesCluster_basic(t *testing.T) {
 }
 
 func TestAccArcKubernetesCluster_requiresImport(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
 	r := ArcKubernetesClusterResource{}
-	privateKey, publicKey, err := r.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, privateKey, publicKey),
+			Config: r.basic(data, credential, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config:      r.requiresImport(data, privateKey, publicKey),
+			Config:      r.requiresImport(data, credential, privateKey, publicKey),
 			ExpectError: acceptance.RequiresImportError(data.ResourceType),
 		},
 	})
 }
 
 func TestAccArcKubernetesCluster_complete(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
 	r := ArcKubernetesClusterResource{}
-	privateKey, publicKey, err := r.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, privateKey, publicKey),
+			Config: r.complete(data, credential, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data, privateKey, publicKey),
+			Config: r.update(data, credential, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("distribution").HasValue("kind"),
@@ -279,8 +252,7 @@ provisioner "remote-exec" {
 `, credential, data.RandomInteger, "/home/adminuser", os.Getenv("ARM_SUBSCRIPTION_ID"), os.Getenv("ARM_TENANT_ID"), privateKey)
 }
 
-func (r ArcKubernetesClusterResource) basic(data acceptance.TestData, privateKey string, publicKey string) string {
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
+func (r ArcKubernetesClusterResource) basic(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
 	template := r.template(data, credential)
 	provisionTemplate := r.provisionTemplate(data, credential, privateKey)
 	return fmt.Sprintf(`
@@ -304,8 +276,8 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
 `, template, data.RandomInteger, provisionTemplate, publicKey)
 }
 
-func (r ArcKubernetesClusterResource) requiresImport(data acceptance.TestData, privateKey string, publicKey string) string {
-	config := r.basic(data, privateKey, publicKey)
+func (r ArcKubernetesClusterResource) requiresImport(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
+	config := r.basic(data, credential, privateKey, publicKey)
 	return fmt.Sprintf(`
 			%s
 
@@ -322,8 +294,7 @@ resource "azurerm_arc_kubernetes_cluster" "import" {
 `, config)
 }
 
-func (r ArcKubernetesClusterResource) complete(data acceptance.TestData, privateKey string, publicKey string) string {
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
+func (r ArcKubernetesClusterResource) complete(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
 	template := r.template(data, credential)
 	provisionTemplate := r.provisionTemplate(data, credential, privateKey)
 	return fmt.Sprintf(`
@@ -352,8 +323,7 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
 `, template, data.RandomInteger, provisionTemplate, publicKey)
 }
 
-func (r ArcKubernetesClusterResource) update(data acceptance.TestData, privateKey string, publicKey string) string {
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
+func (r ArcKubernetesClusterResource) update(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
 	template := r.template(data, credential)
 	provisionTemplate := r.provisionTemplate(data, credential, privateKey)
 	return fmt.Sprintf(`
@@ -400,4 +370,19 @@ func (r ArcKubernetesClusterResource) generateKey() (string, string, error) {
 	}
 
 	return string(privatePem), base64.StdEncoding.EncodeToString(x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)), nil
+}
+
+func (r ArcKubernetesClusterResource) getCredentials(t *testing.T) (credential, privateKey, publicKey string) {
+	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
+	}
+
+	credential = fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
+	privateKey, publicKey, err := r.generateKey()
+	if err != nil {
+		t.Fatalf("failed to generate key: %+v", err)
+	}
+
+	return
 }
