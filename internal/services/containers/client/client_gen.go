@@ -11,9 +11,11 @@ type AutoClient struct {
 }
 
 func NewClient(o *common.ClientOptions) (*AutoClient, error) {
+
 	v20220902PreviewClient := containerserviceV20220902Preview.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
 		c.Authorizer = o.ResourceManagerAuthorizer
 	})
+
 	return &AutoClient{
 		V20220902Preview: v20220902PreviewClient,
 	}, nil
