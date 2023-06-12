@@ -1,10 +1,16 @@
 ## 3.61.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_arc_kubernetes_flux_configuration` [GH-21579]
+* **New Resource:** `azurerm_kubernetes_flux_configuration` [GH-21579]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230530.1150329` of `github.com/tombuildsstuff/kermit` [GH-21980]
 * Data Source `azurerm_site_recovery_replication_recovery_plan` - add support for `azure_to_azure_settings` block [GH-22098]
 * `compute`: updating to use API Version `2023-03-01` [GH-21980]
+* `containers`: updating to use API version `2023-04-02-preview` [22048]
 * `managedidentity`: updating to use API Version `2023-01-31` [GH-22102]
 * `azurerm_batch_account` - `public_network_access_enabled` is now updatable [GH-22095]
 
