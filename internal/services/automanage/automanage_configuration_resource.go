@@ -434,9 +434,7 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 			Default:  false,
 		},
 
-		//"LogAnalytics/Enable": boolean,
-		//"LogAnalytics/Reprovision": boolean,
-		//"LogAnalytics/Workspace": resource ID (Log analytics workspace ID),
+		// "LogAnalytics/Enable": boolean,
 		"log_analytics_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
