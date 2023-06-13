@@ -241,11 +241,8 @@ func (r PacketCoreDataPlaneResource) Read() sdk.ResourceFunc {
 				props := resp.Model.Properties
 
 				state.UserPlaneAccessIPv4Address = pointer.From(props.UserPlaneAccessInterface.IPv4Address)
-
 				state.UserPlaneAccessIPv4Gateway = pointer.From(props.UserPlaneAccessInterface.IPv4Gateway)
-
 				state.UserPlaneAccessIPv4Subnet = pointer.From(props.UserPlaneAccessInterface.IPv4Subnet)
-
 				state.UserPlaneAccessName = pointer.From(props.UserPlaneAccessInterface.Name)
 
 				if resp.Model.Tags != nil {
