@@ -35,6 +35,9 @@ service/authorization:
   - internal/services/authorization/**/*
   - internal/services/managedidentity/**/*
 
+service/automanage:
+  - internal/services/automanage/**/*
+
 service/automation:
   - internal/services/automation/**/*
 
