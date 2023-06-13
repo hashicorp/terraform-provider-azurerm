@@ -187,7 +187,7 @@ func TestAccCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.indexing_policy_unindex_wilcard_path(data),
+			Config: r.indexing_policy_unindex_wildcard_path(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -556,7 +556,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, includedPath, excludedPath)
 }
 
-func (CosmosSqlContainerResource) indexing_policy_unindex_wilcard_path(data acceptance.TestData) string {
+func (CosmosSqlContainerResource) indexing_policy_unindex_wildcard_path(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -568,7 +568,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   partition_key_path  = "/definition/id"
 
   indexing_policy {
-    indexing_mode = "none"
+    indexing_mode = "consistent"
     excluded_path = {
       path = "/*"
     }
