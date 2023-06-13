@@ -59,7 +59,7 @@ func TestAccApplicationInsightsWorkbook_complete(t *testing.T) {
 	})
 }
 
-func TestAccApplicationInsightsWorkbook_updateDisplanName(t *testing.T) {
+func TestAccApplicationInsightsWorkbook_updateDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
 	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

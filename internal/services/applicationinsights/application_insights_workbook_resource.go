@@ -217,7 +217,9 @@ func (r ApplicationInsightsWorkbookResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("display_name") {
 				properties.Properties.DisplayName = model.DisplayName
-				delete(*properties.Tags, "hidden-title")
+				if properties.Tags != nil {
+					delete(*properties.Tags, "hidden-title")
+				}
 			}
 
 			if metadata.ResourceData.HasChange("data_json") {
