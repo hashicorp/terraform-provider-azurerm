@@ -396,7 +396,7 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 
 				parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
 				if err != nil {
-					return fmt.Errorf("parsing application insights id %s: %+v", appInsightsId, err)
+					return fmt.Errorf("parsing `application_insights_id`: %+v", err)
 				}
 
 				metadata.ResourceData.Set("application_insights_id", parsedAppInsightsId.ID())
