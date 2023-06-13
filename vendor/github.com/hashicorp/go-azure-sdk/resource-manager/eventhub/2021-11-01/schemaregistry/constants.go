@@ -58,6 +58,7 @@ type SchemaType string
 const (
 	SchemaTypeAvro    SchemaType = "Avro"
 	SchemaTypeUnknown SchemaType = "Unknown"
+	SchemaTypeJson    SchemaType = "JSON"
 )
 
 func PossibleValuesForSchemaType() []string {
