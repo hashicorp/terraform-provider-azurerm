@@ -251,11 +251,13 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ForceNew: true,
 				Computed: true, // defaults to Ubuntu if using Linux
 				ValidateFunc: validation.StringInSlice([]string{
+					// TODO 4.0: remove CLBMariner and Mariner
 					string(agentpools.OSSKUCBLMariner),
 					string(agentpools.OSSKUMariner),
 					string(agentpools.OSSKUUbuntu),
 					string(agentpools.OSSKUWindowsTwoZeroOneNine),
 					string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+					string(agentpools.OSSKUAzureLinux),
 				}, false),
 			},
 

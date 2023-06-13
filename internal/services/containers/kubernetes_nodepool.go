@@ -3,6 +3,7 @@ package containers
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"regexp"
 	"strconv"
 	"strings"
@@ -198,11 +199,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional: true,
 						Computed: true, // defaults to Ubuntu if using Linux
 						ValidateFunc: validation.StringInSlice([]string{
-							string(agentpools.OSSKUCBLMariner),
-							string(agentpools.OSSKUMariner),
 							string(agentpools.OSSKUUbuntu),
 							string(agentpools.OSSKUWindowsTwoZeroOneNine),
 							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+							string(agentpools.OSSKUAzureLinux),
 						}, false),
 					},
 
@@ -270,6 +270,17 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 				}
 
 				s["zones"] = commonschema.ZonesMultipleOptional()
+
+				if !features.FourPointOhBeta() {
+					s["os_sku"].ValidateFunc = validation.StringInSlice([]string{
+						string(agentpools.OSSKUCBLMariner),
+						string(agentpools.OSSKUMariner),
+						string(agentpools.OSSKUUbuntu),
+						string(agentpools.OSSKUWindowsTwoZeroOneNine),
+						string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+						string(agentpools.OSSKUAzureLinux),
+					}, false)
+				}
 
 				return s
 			}(),
