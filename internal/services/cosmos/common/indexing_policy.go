@@ -289,7 +289,6 @@ func ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPoli
 
 	if includedPathsDefined {
 		for _, includedPath := range *indexingPolicy.IncludedPaths {
-			// tflog.Debugln("include", *includedPath.Path)
 			if includedPathsContainRootPath {
 				break
 			}
