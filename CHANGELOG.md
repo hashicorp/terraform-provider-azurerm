@@ -2,8 +2,10 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_mobile_network_packet_core_data_plane` [GH-21053]
 * **New Resource:** `azurerm_arc_kubernetes_flux_configuration` [GH-21579]
 * **New Resource:** `azurerm_kubernetes_flux_configuration` [GH-21579]
+* **New Resource:** `azurerm_mobile_network_packet_core_data_plane` [GH-21053]
 
 ENHANCEMENTS:
 
