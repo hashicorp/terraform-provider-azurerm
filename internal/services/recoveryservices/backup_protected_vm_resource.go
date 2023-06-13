@@ -198,7 +198,7 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 		if properties := model.Properties; properties != nil {
 			if vm, ok := properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
 				d.Set("source_vm_id", vm.SourceResourceId)
-				d.Set("protection_state", vm.ProtectionState)
+				d.Set("protection_state", pointer.From(vm.ProtectionState))
 
 				backupPolicyId := ""
 				if policyId := pointer.From(vm.PolicyId); policyId != "" {
