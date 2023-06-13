@@ -17,6 +17,7 @@ type GetOperationResponse struct {
 }
 
 type GetOperationOptions struct {
+	Expand *GalleryExpandParams
 	Select *SelectPermissions
 }
 
@@ -32,6 +33,10 @@ func (o GetOperationOptions) toHeaders() map[string]interface{} {
 
 func (o GetOperationOptions) toQueryString() map[string]interface{} {
 	out := make(map[string]interface{})
+
+	if o.Expand != nil {
+		out["$expand"] = *o.Expand
+	}
 
 	if o.Select != nil {
 		out["$select"] = *o.Select

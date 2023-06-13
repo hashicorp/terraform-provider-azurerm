@@ -4,7 +4,8 @@ package galleryapplicationversions
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type GalleryApplicationVersionProperties struct {
-	ProvisioningState *ProvisioningState                         `json:"provisioningState,omitempty"`
+	ProvisioningState *GalleryProvisioningState                  `json:"provisioningState,omitempty"`
 	PublishingProfile GalleryApplicationVersionPublishingProfile `json:"publishingProfile"`
 	ReplicationStatus *ReplicationStatus                         `json:"replicationStatus,omitempty"`
+	SafetyProfile     *GalleryArtifactSafetyProfileBase          `json:"safetyProfile,omitempty"`
 }
