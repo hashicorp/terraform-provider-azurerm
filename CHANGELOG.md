@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230608.1112153` of `github.com/hashicorp/go-azure-sdk` [GH-22136]
+* dependencies: `compute/market_place_agreements` - swap to use `hashicorp/go-azure-sdk` [GH-21938]
 
 ## 3.61.0 (June 12, 2023)
 
