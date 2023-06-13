@@ -18,6 +18,10 @@ ENHANCEMENTS:
 * `azurerm_nginx_certificate` - the `key_virtual_path`, `certificate_virtual_path`, and `key_vault_secret_id` proeprties can now be updated [GH-22100]
 * `azurerm_spring_cloud_gateway` - support for the `client_authentication` property [GH-22016]
 
+BUG FIXES:
+
+* `azurerm_databricks_workspace_data_source` - correctly set the `managed_idnetity_id` attribute [GH-22021]
+
 ## 3.60.0 (June 08, 2023)
 
 NOTES:
