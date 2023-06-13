@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,6 +73,7 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 			return fmt.Errorf("`source_vm_id` must be specified when creating")
 		}
 	}
+
 	vmId := d.Get("source_vm_id").(string)
 	policyId := d.Get("backup_policy_id").(string)
 
@@ -115,30 +117,32 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, id, item)
-	if err != nil {
-		return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
-	}
 	protectionState, ok := d.GetOk("protection_state")
 	protectionStopped := strings.EqualFold(protectionState.(string), string(protecteditems.ProtectionStateProtectionStopped))
-	requireAdditionalUpdate := ok && protectionStopped
+	requireUpdateProtectionState := ok && protectionStopped
 	skipNormalUpdate := protectionStopped && !d.IsNewResource()
 
+	// stopped protected item has no `backup_policy_id`, though we can update it before stopping we can not read it.
 	if !skipNormalUpdate {
-		if _, err = client.CreateOrUpdate(ctx, id, item); err != nil {
+		resp, err := client.CreateOrUpdate(ctx, id, item)
+		if err != nil {
 			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 		}
 
-	operationId, err := parseBackupOperationId(resp.HttpResponse)
-	if err != nil {
-		return fmt.Errorf("issuing creating/updating request for %s: %+v", id, err)
+		operationId, err := parseBackupOperationId(resp.HttpResponse)
+		if err != nil {
+			return fmt.Errorf("issuing creating/updating request for %s: %+v", id, err)
+		}
+
+		if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, opClient, id, operationId); err != nil {
+			return err
+		}
+
+		d.SetId(id.ID())
 	}
 
-	if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, opClient, id, operationId); err != nil {
-		return err
-	}
-
-	if requireAdditionalUpdate {
+	// the protection state will be updated in the additional update.
+	if requireUpdateProtectionState {
 		p := protecteditems.ProtectionState(protectionState.(string))
 		updateInput := protecteditems.ProtectedItemResource{
 			Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
@@ -152,18 +156,15 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
 
-		// tracked on https://github.com/Azure/azure-rest-api-specs/issues/22758
-		locationURL, err := resp.HttpResponse.Location()
-		if err != nil || locationURL == nil {
-			return fmt.Errorf("creating/updating %s: Location header missing or empty", id)
+		operationId, err := parseBackupOperationId(resp.HttpResponse)
+		if err != nil {
+			return fmt.Errorf("issuing creating/updating request for %s: %+v", id, err)
 		}
 
-		parsedLocation, err := azure.ParseAzureResourceID(handleAzureSdkForGoBug2824(locationURL.Path))
-		if err != nil {
+		if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, opClient, id, operationId); err != nil {
 			return err
 		}
-
-	d.SetId(id.ID())
+	}
 
 	return resourceRecoveryServicesBackupProtectedVMRead(d, meta)
 }
@@ -199,9 +200,15 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 				d.Set("source_vm_id", vm.SourceResourceId)
 				d.Set("protection_state", vm.ProtectionState)
 
-				if v := vm.PolicyId; v != nil {
-					d.Set("backup_policy_id", strings.Replace(*v, "Subscriptions", "subscriptions", 1))
+				backupPolicyId := ""
+				if policyId := pointer.From(vm.PolicyId); policyId != "" {
+					parsedPolicyId, err := protectionpolicies.ParseBackupPolicyIDInsensitively(policyId)
+					if err != nil {
+						return fmt.Errorf("parsing policy ID %q: %+v", policyId, err)
+					}
+					backupPolicyId = parsedPolicyId.ID()
 				}
+				d.Set("backup_policy_id", backupPolicyId)
 
 				if v := vm.ExtendedProperties; v != nil && v.DiskExclusionProperties != nil {
 					if *v.DiskExclusionProperties.IsInclusionList {
@@ -433,8 +440,8 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 
 		"backup_policy_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			Optional:     true,
+			ValidateFunc: protectionpolicies.ValidateBackupPolicyID,
 		},
 
 		"exclude_disk_luns": {

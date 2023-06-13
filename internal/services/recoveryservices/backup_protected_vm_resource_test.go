@@ -215,7 +215,7 @@ func TestAccBackupProtectedVm_protectionStopped(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.protectionState(data, "ProtectionStopped"),
+			Config: r.protectionStopped(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -717,7 +717,7 @@ resource "azurerm_backup_protected_vm" "test" {
 `, r.additionalVault(data))
 }
 
-func (r BackupProtectedVmResource) protectionState(data acceptance.TestData, state string) string {
+func (r BackupProtectedVmResource) protectionStopped(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -727,7 +727,7 @@ resource "azurerm_backup_protected_vm" "test" {
   source_vm_id        = azurerm_virtual_machine.test.id
 
   include_disk_luns = [0]
-  protection_state  = "%s"
+  protection_state  = "ProtectionStopped"
 }
-`, r.base(data), state)
+`, r.base(data))
 }
