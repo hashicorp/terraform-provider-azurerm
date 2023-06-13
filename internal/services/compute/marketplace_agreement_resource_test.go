@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -130,6 +131,8 @@ func (r MarketplaceAgreementResource) cancelExistingAgreement(offer string) acce
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.Compute.MarketplaceAgreementsClient
 		subscriptionId := clients.Account.SubscriptionId
+		ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+		defer cancel()
 
 		idGet := agreements.NewOfferPlanID(subscriptionId, "barracudanetworks", offer, "hourly")
 		idCancel := agreements.NewPlanID(subscriptionId, "barracudanetworks", offer, "hourly")
