@@ -757,31 +757,31 @@ resource "azurerm_kubernetes_cluster" "test" {
 func (KubernetesClusterResource) defaultNodePoolOsSku(data acceptance.TestData, controlPlaneVersion string, osSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-aks-%d"
-location = "%s"
+  name     = "acctestRG-aks-%d"
+  location = "%s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-name                = "acctestaks%d"
-location            = azurerm_resource_group.test.location
-resource_group_name = azurerm_resource_group.test.name
-dns_prefix          = "acctestaks%d"
-kubernetes_version  = %q
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = %q
 
-default_node_pool {
-name       = "default"
-node_count = 1
-os_sku     = "%s"
-vm_size    = "Standard_DS2_v2"
-}
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    os_sku     = "%s"
+    vm_size    = "Standard_DS2_v2"
+  }
 
-identity {
-type = "SystemAssigned"
+  identity {
+    type = "SystemAssigned"
+  }
 }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, osSku)
+`  , data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, osSku)
 }
