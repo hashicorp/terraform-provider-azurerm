@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/clusters"
-	newCluster "github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-07-07/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -76,9 +75,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 						"name": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							// using API version later than 2022-07-07 to unblock user access to latest skus.
-							// next PR will to API version upgrade to version 2022-12-10 and align the api version in kusto.
-							ValidateFunc: validation.StringInSlice(newCluster.PossibleValuesForAzureSkuName(),
+							ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForAzureSkuName(),
 								false),
 						},
 
@@ -167,15 +164,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"language_extensions": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
-				},
-			},
-
 			"engine": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -250,8 +238,35 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 	if features.FourPointOhBeta() {
 		s.Schema["engine"].Default = string(clusters.EngineTypeVThree)
+		s.Schema["language_extensions"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			ConflictsWith: []string{"language_extensions"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
+					},
+					"image": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
+					},
+				},
+			},
+		}
 	} else {
 		s.Schema["engine"].Default = string(clusters.EngineTypeVTwo)
+		s.Schema["language_extensions"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{"R", "PYTHON", "PYTHON_3.10.8"}, false),
+			},
+		}
 	}
 
 	return s
@@ -352,6 +367,15 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 	clusterProperties.RestrictOutboundNetworkAccess = &restrictOutboundNetworkAccess
 
+	if features.FourPointOhBeta() {
+		if v, ok := d.GetOk("language_extensions"); ok {
+			extList := v.([]interface{})
+			clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(extList)
+		}
+	} else {
+		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensions(d)
+	}
+
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -376,45 +400,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(id.ID())
-
-	if v, ok := d.GetOk("language_extensions"); ok {
-		languageExtensions := expandKustoClusterLanguageExtensions(v.(*pluginsdk.Set).List())
-
-		currentLanguageExtensions, err := client.ListLanguageExtensions(ctx, id)
-		if err != nil {
-			return fmt.Errorf("retrieving the language extensions on %s: %+v", id, err)
-		}
-
-		languageExtensionsToAdd := diffLanguageExtensions(*languageExtensions.Value, *currentLanguageExtensions.Model.Value)
-		if len(languageExtensionsToAdd) > 0 {
-			languageExtensionsListToAdd := clusters.LanguageExtensionsList{
-				Value: &languageExtensionsToAdd,
-			}
-
-			resp, err := client.AddLanguageExtensions(ctx, id, languageExtensionsListToAdd)
-			if err != nil {
-				return fmt.Errorf("adding language extensions to %s: %+v", id, err)
-			}
-			if err = resp.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting for the addition of language extensions on %s: %+v", id, err)
-			}
-		}
-
-		languageExtensionsToRemove := diffLanguageExtensions(*currentLanguageExtensions.Model.Value, *languageExtensions.Value)
-		if len(languageExtensionsToRemove) > 0 {
-			languageExtensionsListToRemove := clusters.LanguageExtensionsList{
-				Value: &languageExtensionsToRemove,
-			}
-
-			removeLanguageExtensionsFuture, err := client.RemoveLanguageExtensions(ctx, id, languageExtensionsListToRemove)
-			if err != nil {
-				return fmt.Errorf("removing language extensions from %s: %+v", id, err)
-			}
-			if err = removeLanguageExtensionsFuture.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting for the removal of language extensions from %s: %+v", id, err)
-			}
-		}
-	}
 
 	return resourceKustoClusterRead(d, meta)
 }
@@ -478,11 +463,16 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("streaming_ingestion_enabled", props.EnableStreamingIngest)
 			d.Set("purge_enabled", props.EnablePurge)
 			d.Set("virtual_network_configuration", flattenKustoClusterVNET(props.VirtualNetworkConfiguration))
-			d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
 			d.Set("uri", props.Uri)
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
 			d.Set("engine", string(pointer.From(props.EngineType)))
 			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
+
+			if features.FourPointOhBeta() {
+				d.Set("language_extensions", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
+			} else {
+				d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
+			}
 
 		}
 
@@ -596,23 +586,62 @@ func expandKustoClusterVNET(input []interface{}) *clusters.VirtualNetworkConfigu
 	}
 }
 
-func expandKustoClusterLanguageExtensions(input []interface{}) *clusters.LanguageExtensionsList {
-	if len(input) == 0 {
-		return nil
-	}
-
-	extensions := make([]clusters.LanguageExtension, 0)
-	for _, language := range input {
-		name := clusters.LanguageExtensionName(language.(string))
-		v := clusters.LanguageExtension{
-			LanguageExtensionName: &name,
+func expandKustoClusterLanguageExtensions(d *pluginsdk.ResourceData) *clusters.LanguageExtensionsList {
+	if v, ok := d.GetOk("language_extensions"); ok {
+		extList := v.(*pluginsdk.Set).List()
+		if len(extList) > 0 {
+			extensions := make([]clusters.LanguageExtension, 0)
+			for _, language := range extList {
+				name := language.(string)
+				lanExt := clusters.LanguageExtension{}
+				switch name {
+				case "R":
+					n := clusters.LanguageExtensionNameR
+					lanExt.LanguageExtensionName = &n
+					imageName := clusters.LanguageExtensionImageNameR
+					lanExt.LanguageExtensionImageName = &imageName
+				case "PYTHON":
+					n := clusters.LanguageExtensionNamePYTHON
+					lanExt.LanguageExtensionName = &n
+					imageName := clusters.LanguageExtensionImageNamePythonThreeSixFive
+					lanExt.LanguageExtensionImageName = &imageName
+				case "PYTHON_3.10.8":
+					n := clusters.LanguageExtensionNamePYTHON
+					lanExt.LanguageExtensionName = &n
+					imageName := clusters.LanguageExtensionImageNamePythonThreeOneZeroEight
+					lanExt.LanguageExtensionImageName = &imageName
+				default:
+					continue
+				}
+				extensions = append(extensions, lanExt)
+			}
+			return &clusters.LanguageExtensionsList{
+				Value: &extensions,
+			}
 		}
-		extensions = append(extensions, v)
+	}
+	return nil
+}
+
+func expandKustoClusterLanguageExtensionList(input []interface{}) *clusters.LanguageExtensionsList {
+	if len(input) > 0 {
+		extensions := make([]clusters.LanguageExtension, 0)
+		for _, ext := range input {
+			extMap := ext.(map[string]interface{})
+			name := clusters.LanguageExtensionName(extMap["name"].(string))
+			image := clusters.LanguageExtensionImageName(extMap["image"].(string))
+			lanExt := clusters.LanguageExtension{
+				LanguageExtensionName:      &name,
+				LanguageExtensionImageName: &image,
+			}
+			extensions = append(extensions, lanExt)
+		}
+		return &clusters.LanguageExtensionsList{
+			Value: &extensions,
+		}
 	}
 
-	return &clusters.LanguageExtensionsList{
-		Value: &extensions,
-	}
+	return nil
 }
 
 func flattenKustoClusterSku(sku *clusters.AzureSku) []interface{} {
@@ -653,29 +682,39 @@ func flattenKustoClusterLanguageExtensions(extensions *clusters.LanguageExtensio
 	output := make([]interface{}, 0)
 	if extensions.Value != nil {
 		for _, v := range *extensions.Value {
-			output = append(output, v.LanguageExtensionName)
+			if v.LanguageExtensionImageName != nil {
+				switch *v.LanguageExtensionImageName {
+				case clusters.LanguageExtensionImageNameR:
+					output = append(output, "R")
+				case clusters.LanguageExtensionImageNamePythonThreeSixFive:
+					output = append(output, "PYTHON")
+				case clusters.LanguageExtensionImageNamePythonThreeOneZeroEight:
+					output = append(output, "PYTHON_3.10.8")
+				}
+			}
 		}
 	}
 
 	return output
 }
 
-func diffLanguageExtensions(a, b []clusters.LanguageExtension) []clusters.LanguageExtension {
-	target := make(map[string]bool)
-	for _, x := range b {
-		if x.LanguageExtensionName != nil {
-			target[string(*x.LanguageExtensionName)] = true
+func flattenKustoClusterLanguageExtensionList(extensions *clusters.LanguageExtensionsList) []interface{} {
+	if extensions == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+	if extensions.Value != nil {
+		for _, v := range *extensions.Value {
+			output = append(
+				output,
+				map[string]interface{}{
+					"name":  string(*v.LanguageExtensionName),
+					"image": string(*v.LanguageExtensionImageName),
+				},
+			)
 		}
 	}
 
-	diff := make([]clusters.LanguageExtension, 0)
-	for _, x := range a {
-		if x.LanguageExtensionName != nil {
-			if _, ok := target[string(*x.LanguageExtensionName)]; !ok {
-				diff = append(diff, x)
-			}
-		}
-	}
-
-	return diff
+	return output
 }

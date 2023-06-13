@@ -176,6 +176,29 @@ func TestAccAutoManageConfigurationProfile_backup(t *testing.T) {
 	})
 }
 
+func TestAccAutoManageConfigurationProfile_logAnalytics(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
+	r := AutoManageConfigurationProfileResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logAnalytics(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("log_analytics_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("log_analytics_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAutoManageConfigurationProfile_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
 	r := AutoManageConfigurationProfileResource{}
@@ -298,6 +321,20 @@ resource "azurerm_automanage_configuration" "test" {
     real_time_protection_enabled = true
   }
   automation_account_enabled = true
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r AutoManageConfigurationProfileResource) logAnalytics(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_automanage_configuration" "test" {
+  name                  = "acctest-amcp-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = "%s"
+  log_analytics_enabled = true
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }

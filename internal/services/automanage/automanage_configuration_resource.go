@@ -52,6 +52,7 @@ type ConfigurationModel struct {
 	Antimalware               []AntimalwareConfiguration           `tfschema:"antimalware"`
 	AzureSecurityBaseline     []AzureSecurityBaselineConfiguration `tfschema:"azure_security_baseline"`
 	Backup                    []BackupConfiguration                `tfschema:"backup"`
+	LogAnalyticsEnabled       bool                                 `tfschema:"log_analytics_enabled"`
 	AutomationAccountEnabled  bool                                 `tfschema:"automation_account_enabled"`
 	BootDiagnosticsEnabled    bool                                 `tfschema:"boot_diagnostics_enabled"`
 	DefenderForCloudEnabled   bool                                 `tfschema:"defender_for_cloud_enabled"`
@@ -433,6 +434,13 @@ func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schem
 			Default:  false,
 		},
 
+		// "LogAnalytics/Enable": boolean,
+		"log_analytics_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		// "Alerts/AutomanageStatusChanges/Enable": boolean,
 		"status_change_alert_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -571,6 +579,10 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 					state.GuestConfigurationEnabled = val.(bool)
 				}
 
+				if val, ok := configMap["LogAnalytics/Enable"]; ok {
+					state.LogAnalyticsEnabled = val.(bool)
+				}
+
 				if val, ok := configMap["Alerts/AutomanageStatusChanges/Enable"]; ok {
 					state.StatusChangeAlertEnabled = val.(bool)
 				}
@@ -693,6 +705,10 @@ func expandAutomanageConfigurationProfile(model ConfigurationModel) *map[string]
 
 	if model.GuestConfigurationEnabled {
 		jsonConfig["GuestConfiguration/Enable"] = model.GuestConfigurationEnabled
+	}
+
+	if model.LogAnalyticsEnabled {
+		jsonConfig["LogAnalytics/Enable"] = model.LogAnalyticsEnabled
 	}
 
 	if model.StatusChangeAlertEnabled {
