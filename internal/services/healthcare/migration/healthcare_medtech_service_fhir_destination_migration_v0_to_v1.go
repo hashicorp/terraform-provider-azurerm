@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -51,7 +51,7 @@ func (s HealthCareMedTechServiceFhirDestinationV0ToV1) Schema() map[string]*plug
 func (s HealthCareMedTechServiceFhirDestinationV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.MedTechServiceFhirDestinationIDInsensitively(oldId)
+		newId, err := iotconnectors.ParseFhirDestinationIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/contactprofile"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -101,7 +101,6 @@ resource "azurerm_orbital_contact_profile" "test" {
       center_frequency_mhz = 101
       end_point {
         end_point_name = "AQUA_command"
-        ip_address     = "10.0.1.0"
         port           = "49513"
         protocol       = "TCP"
       }

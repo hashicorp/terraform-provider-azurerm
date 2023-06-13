@@ -42,19 +42,19 @@ func ParseReferenceDataSetID(input string) (*ReferenceDataSetId, error) {
 	id := ReferenceDataSetId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'environmentName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "environmentName", *parsed)
 	}
 
 	if id.ReferenceDataSetName, ok = parsed.Parsed["referenceDataSetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'referenceDataSetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "referenceDataSetName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseReferenceDataSetIDInsensitively(input string) (*ReferenceDataSetId, er
 	id := ReferenceDataSetId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'environmentName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "environmentName", *parsed)
 	}
 
 	if id.ReferenceDataSetName, ok = parsed.Parsed["referenceDataSetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'referenceDataSetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "referenceDataSetName", *parsed)
 	}
 
 	return &id, nil

@@ -44,7 +44,7 @@ func (id StreamingJobScheduleId) ID() string {
 func StreamingJobScheduleID(input string) (*StreamingJobScheduleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an StreamingJobSchedule ID: %+v", input, err)
 	}
 
 	resourceId := StreamingJobScheduleId{

@@ -8,10 +8,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type AppConfigurationKeyResource struct{}
@@ -95,14 +95,14 @@ func TestAccAppConfigurationKey_KVToVault(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("type").HasValue(appconfiguration.KeyTypeKV),
+				check.That(data.ResourceName).Key("type").HasValue("kv"),
 			),
 		},
 		{
 			Config: r.vaultKeyBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("type").HasValue(appconfiguration.KeyTypeVault),
+				check.That(data.ResourceName).Key("type").HasValue("vault"),
 			),
 		},
 	})
@@ -168,7 +168,7 @@ func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	res, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []string{})
+	res, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
 	if err != nil {
 		return nil, fmt.Errorf("while checking for key's %q existence: %+v", nestedItemId.Key, err)
 	}

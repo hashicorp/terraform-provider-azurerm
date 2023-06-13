@@ -40,15 +40,15 @@ func ParseProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, e
 	id := ProximityPlacementGroupId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ProximityPlacementGroupName, ok = parsed.Parsed["proximityPlacementGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'proximityPlacementGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "proximityPlacementGroupName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseProximityPlacementGroupIDInsensitively(input string) (*ProximityPlacem
 	id := ProximityPlacementGroupId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ProximityPlacementGroupName, ok = parsed.Parsed["proximityPlacementGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'proximityPlacementGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "proximityPlacementGroupName", *parsed)
 	}
 
 	return &id, nil

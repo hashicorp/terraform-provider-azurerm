@@ -5,9 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor" // nolint: staticcheck
-	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2020-01-01/getrecommendations" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,11 +30,11 @@ func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(advisor.HighAvailability),
-						string(advisor.Security),
-						string(advisor.Performance),
-						string(advisor.Cost),
-						string(advisor.OperationalExcellence),
+						string(getrecommendations.CategoryHighAvailability),
+						string(getrecommendations.CategorySecurity),
+						string(getrecommendations.CategoryPerformance),
+						string(getrecommendations.CategoryCost),
+						string(getrecommendations.CategoryOperationalExcellence),
 					}, false),
 				},
 			},
@@ -104,6 +105,8 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	id := commonids.NewSubscriptionID(meta.(*clients.Client).Account.SubscriptionId)
+
 	filterList := make([]string, 0)
 	if categories := expandAzureRmAdvisorRecommendationsMapString("Category", d.Get("filter_by_category").(*pluginsdk.Set).List()); categories != "" {
 		filterList = append(filterList, categories)
@@ -112,20 +115,17 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 		filterList = append(filterList, resGroups)
 	}
 
-	var recommends []advisor.ResourceRecommendationBase
-	for recommendationIterator, err := client.ListComplete(ctx, strings.Join(filterList, " and "), nil, ""); recommendationIterator.NotDone(); err = recommendationIterator.NextWithContext(ctx) {
-		if err != nil {
-			return fmt.Errorf("loading Advisor Recommendation List: %+v", err)
-		}
-
-		if recommendationIterator.Value().Name == nil || *recommendationIterator.Value().Name == "" {
-			return fmt.Errorf("advisor Recommendation Name was nil or empty")
-		}
-
-		recommends = append(recommends, recommendationIterator.Value())
+	opts := getrecommendations.RecommendationsListOperationOptions{}
+	if len(filterList) > 0 {
+		opts.Filter = pointer.To(strings.Join(filterList, " and "))
 	}
 
-	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recommends)); err != nil {
+	recomendations, err := client.RecommendationsListComplete(ctx, id, opts)
+	if err != nil {
+		return fmt.Errorf("loading Advisor Recommendation for %q: %+v", id, err)
+	}
+
+	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recomendations.Items)); err != nil {
 		return fmt.Errorf("setting `recommendations`: %+v", err)
 	}
 
@@ -134,57 +134,37 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func flattenAzureRmAdvisorRecommendations(recommends []advisor.ResourceRecommendationBase) []interface{} {
+func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.ResourceRecommendationBase) []interface{} {
 	result := make([]interface{}, 0)
 
 	if len(recommends) == 0 {
 		return result
 	}
 
-	for _, v := range recommends {
-		var category, description, impact, recTypeId, resourceName, resourceType, updatedTime string
+	for _, r := range recommends {
+		var description string
 		var suppressionIds []interface{}
-		if v.Category != "" {
-			category = string(v.Category)
-		}
+
+		v := r.Properties
 
 		if v.ShortDescription != nil && v.ShortDescription.Problem != nil {
 			description = *v.ShortDescription.Problem
 		}
 
-		if v.Impact != "" {
-			impact = string(v.Impact)
-		}
-
-		if v.RecommendationTypeID != nil {
-			recTypeId = *v.RecommendationTypeID
-		}
-
-		if v.ImpactedValue != nil {
-			resourceName = *v.ImpactedValue
-		}
-
-		if v.ImpactedField != nil {
-			resourceType = *v.ImpactedField
-		}
-
 		if v.SuppressionIds != nil {
 			suppressionIds = flattenSuppressionSlice(v.SuppressionIds)
 		}
-		if v.LastUpdated != nil && !v.LastUpdated.IsZero() {
-			updatedTime = v.LastUpdated.Format(time.RFC3339)
-		}
 
 		result = append(result, map[string]interface{}{
-			"category":               category,
+			"category":               string(pointer.From(v.Category)),
 			"description":            description,
-			"impact":                 impact,
-			"recommendation_name":    *v.Name,
-			"recommendation_type_id": recTypeId,
-			"resource_name":          resourceName,
-			"resource_type":          resourceType,
+			"impact":                 string(pointer.From(v.Impact)),
+			"recommendation_name":    pointer.From(r.Name),
+			"recommendation_type_id": pointer.From(v.RecommendationTypeId),
+			"resource_name":          pointer.From(v.ImpactedValue),
+			"resource_type":          pointer.From(v.ImpactedField),
 			"suppression_names":      suppressionIds,
-			"updated_time":           updatedTime,
+			"updated_time":           pointer.From(v.LastUpdated),
 		})
 	}
 
@@ -202,11 +182,11 @@ func expandAzureRmAdvisorRecommendationsMapString(t string, input []interface{})
 	return "(" + strings.Join(result, " or ") + ")"
 }
 
-func flattenSuppressionSlice(input *[]uuid.UUID) []interface{} {
+func flattenSuppressionSlice(input *[]string) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
 		for _, item := range *input {
-			result = append(result, item.String())
+			result = append(result, item)
 		}
 	}
 	return result

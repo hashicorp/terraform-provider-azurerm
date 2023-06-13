@@ -11,6 +11,8 @@ description: |-
 
 Manages an Azure App Configuration Feature.
 
+-> **Note:** App Configuration Features are provisioned using a Data Plane API which requires the role `App Configuration Data Owner` on either the App Configuration or a parent scope (such as the Resource Group/Subscription). [More information can be found in the Azure Documentation for App Configuration](https://docs.microsoft.com/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration). This is similar to providing App Configuration Keys.
+
 ## Example Usage
 
 ```hcl
@@ -23,6 +25,14 @@ resource "azurerm_app_configuration" "appconf" {
   name                = "appConf1"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_role_assignment" "appconf_dataowner" {
+  scope                = azurerm_app_configuration.appconf.id
+  role_definition_name = "App Configuration Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 resource "azurerm_app_configuration_feature" "test" {

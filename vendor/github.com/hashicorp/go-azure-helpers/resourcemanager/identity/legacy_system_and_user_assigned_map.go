@@ -126,3 +126,60 @@ func FlattenLegacySystemAndUserAssignedMap(input *LegacySystemAndUserAssignedMap
 		},
 	}, nil
 }
+
+// ExpandLegacySystemAndUserAssignedMapFromModel expands the schema input into a LegacySystemAndUserAssignedMap struct
+func ExpandLegacySystemAndUserAssignedMapFromModel(input []ModelSystemAssignedUserAssigned) (*LegacySystemAndUserAssignedMap, error) {
+	if len(input) == 0 {
+		return &LegacySystemAndUserAssignedMap{
+			Type:        TypeNone,
+			IdentityIds: nil,
+		}, nil
+	}
+
+	identityType := input[0].Type
+	identityIds := make(map[string]UserAssignedIdentityDetails, 0)
+	for _, v := range input[0].IdentityIds {
+		identityIds[v] = UserAssignedIdentityDetails{
+			// intentionally empty since the expand shouldn't send these values
+		}
+	}
+
+	if len(identityIds) > 0 && (identityType != TypeSystemAssignedUserAssigned && identityType != TypeUserAssigned) {
+		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` is set to %q or %q", string(TypeSystemAssignedUserAssigned), string(TypeUserAssigned))
+	}
+
+	return &LegacySystemAndUserAssignedMap{
+		Type:        identityType,
+		IdentityIds: identityIds,
+	}, nil
+}
+
+// FlattenLegacySystemAndUserAssignedMapToModel turns a LegacySystemAndUserAssignedMap into a []interface{}
+func FlattenLegacySystemAndUserAssignedMapToModel(input *LegacySystemAndUserAssignedMap) ([]ModelSystemAssignedUserAssigned, error) {
+	if input == nil {
+		return []ModelSystemAssignedUserAssigned{}, nil
+	}
+
+	input.Type = normalizeType(input.Type)
+	if input.Type != TypeSystemAssigned && input.Type != TypeSystemAssignedUserAssigned && input.Type != TypeUserAssigned {
+		return []ModelSystemAssignedUserAssigned{}, nil
+	}
+
+	identityIds := make([]string, 0)
+	for raw, _ := range input.IdentityIds {
+		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
+		}
+		identityIds = append(identityIds, id.ID())
+	}
+
+	return []ModelSystemAssignedUserAssigned{
+		{
+			Type:        input.Type,
+			IdentityIds: identityIds,
+			PrincipalId: input.PrincipalId,
+			TenantId:    input.TenantId,
+		},
+	}, nil
+}

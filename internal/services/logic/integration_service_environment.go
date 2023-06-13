@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -229,7 +230,7 @@ func resourceIntegrationServiceEnvironmentRead(d *pluginsdk.ResourceData, meta i
 		if props := model.Properties; props != nil {
 			if netCfg := props.NetworkConfiguration; netCfg != nil {
 				if accessEndpoint := netCfg.AccessEndpoint; accessEndpoint != nil {
-					d.Set("access_endpoint_type", accessEndpoint.Type)
+					d.Set("access_endpoint_type", string(pointer.From(accessEndpoint.Type)))
 				}
 
 				d.Set("virtual_network_subnet_ids", flattenSubnetResourceID(netCfg.Subnets))

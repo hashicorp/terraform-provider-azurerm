@@ -544,7 +544,8 @@ resource "azurerm_key_vault" "test" {
       "Create",
       "Get",
       "Delete",
-      "Purge"
+      "Purge",
+      "GetRotationPolicy",
     ]
   }
 }

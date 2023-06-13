@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -229,7 +230,7 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			if res := props; res != nil {
 				d.Set("delegated_management_subnet_id", props.DelegatedManagementSubnetId)
-				d.Set("authentication_method", props.AuthenticationMethod)
+				d.Set("authentication_method", string(pointer.From(props.AuthenticationMethod)))
 				d.Set("repair_enabled", props.RepairEnabled)
 				d.Set("version", props.CassandraVersion)
 				d.Set("hours_between_backups", props.HoursBetweenBackups)

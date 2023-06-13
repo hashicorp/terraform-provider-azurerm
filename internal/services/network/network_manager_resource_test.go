@@ -80,6 +80,14 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManagerAdminRule_update,
 			"requiresImport": testAccNetworkManagerAdminRule_requiresImport,
 		},
+		"Deployment": {
+			"basic":          testAccNetworkManagerDeployment_basic,
+			"basicAdmin":     testAccNetworkManagerDeployment_basicAdmin,
+			"complete":       testAccNetworkManagerDeployment_complete,
+			"update":         testAccNetworkManagerDeployment_update,
+			"withTriggers":   testAccNetworkManagerDeployment_withTriggers,
+			"requiresImport": testAccNetworkManagerDeployment_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {

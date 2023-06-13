@@ -44,20 +44,20 @@ func ParseEndpointTypeID(input string) (*EndpointTypeId, error) {
 	id := EndpointTypeId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.TrafficManagerProfileName, ok = parsed.Parsed["trafficManagerProfileName"]; !ok {
-		return nil, fmt.Errorf("the segment 'trafficManagerProfileName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trafficManagerProfileName", *parsed)
 	}
 
 	if v, ok := parsed.Parsed["endpointType"]; true {
 		if !ok {
-			return nil, fmt.Errorf("the segment 'endpointType' was not found in the resource id %q", input)
+			return nil, resourceids.NewSegmentNotSpecifiedError(id, "endpointType", *parsed)
 		}
 
 		endpointType, err := parseEndpointType(v)
@@ -68,7 +68,7 @@ func ParseEndpointTypeID(input string) (*EndpointTypeId, error) {
 	}
 
 	if id.EndpointName, ok = parsed.Parsed["endpointName"]; !ok {
-		return nil, fmt.Errorf("the segment 'endpointName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "endpointName", *parsed)
 	}
 
 	return &id, nil
@@ -87,20 +87,20 @@ func ParseEndpointTypeIDInsensitively(input string) (*EndpointTypeId, error) {
 	id := EndpointTypeId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.TrafficManagerProfileName, ok = parsed.Parsed["trafficManagerProfileName"]; !ok {
-		return nil, fmt.Errorf("the segment 'trafficManagerProfileName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trafficManagerProfileName", *parsed)
 	}
 
 	if v, ok := parsed.Parsed["endpointType"]; true {
 		if !ok {
-			return nil, fmt.Errorf("the segment 'endpointType' was not found in the resource id %q", input)
+			return nil, resourceids.NewSegmentNotSpecifiedError(id, "endpointType", *parsed)
 		}
 
 		endpointType, err := parseEndpointType(v)
@@ -111,7 +111,7 @@ func ParseEndpointTypeIDInsensitively(input string) (*EndpointTypeId, error) {
 	}
 
 	if id.EndpointName, ok = parsed.Parsed["endpointName"]; !ok {
-		return nil, fmt.Errorf("the segment 'endpointName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "endpointName", *parsed)
 	}
 
 	return &id, nil

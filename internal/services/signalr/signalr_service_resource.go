@@ -1,6 +1,7 @@
 package signalr
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	signalrValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -62,6 +64,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	id := signalr.NewSignalRID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -323,6 +326,9 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	resourceType := signalr.SignalRResource{}
 
 	existing, err := client.Get(ctx, *id)
@@ -446,6 +452,28 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(signalr.ProvisioningStateUpdating),
+			string(signalr.ProvisioningStateCreating),
+			string(signalr.ProvisioningStateMoving),
+			string(signalr.ProvisioningStateRunning),
+		},
+		Target:                    []string{string(signalr.ProvisioningStateSucceeded)},
+		Refresh:                   signalrServiceProvisioningStateRefreshFunc(ctx, client, *id),
+		Timeout:                   time.Until(deadline),
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 20,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return err
+	}
+
 	return resourceArmSignalRServiceRead(d, meta)
 }
 
@@ -458,6 +486,9 @@ func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// @tombuildsstuff: we can't use DeleteThenPoll here since the API returns a 404 on the Future in time
 	future, err := client.Delete(ctx, *id)
@@ -500,12 +531,26 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 
 	for _, upstreamSetting := range input {
 		setting := upstreamSetting.(map[string]interface{})
-
+		authTypeNone := signalr.UpstreamAuthTypeNone
+		authTypeManagedIdentity := signalr.UpstreamAuthTypeManagedIdentity
+		auth := signalr.UpstreamAuthSettings{
+			Type: &authTypeNone,
+		}
 		upstreamTemplate := signalr.UpstreamTemplate{
 			HubPattern:      utils.String(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
 			EventPattern:    utils.String(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
 			CategoryPattern: utils.String(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
 			UrlTemplate:     setting["url_template"].(string),
+			Auth:            &auth,
+		}
+
+		if setting["user_assigned_identity_id"].(string) != "" {
+			upstreamTemplate.Auth = &signalr.UpstreamAuthSettings{
+				Type: &authTypeManagedIdentity,
+				ManagedIdentity: &signalr.ManagedIdentitySettings{
+					Resource: utils.String(setting["user_assigned_identity_id"].(string)),
+				},
+			}
 		}
 
 		upstreamTemplates = append(upstreamTemplates, upstreamTemplate)
@@ -541,11 +586,19 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 			hubPattern = utils.FlattenStringSlice(&hubPatterns)
 		}
 
+		var managedIdentityId string
+		if upstreamAuth := settings.Auth; upstreamAuth != nil && upstreamAuth.Type != nil && *upstreamAuth.Type != signalr.UpstreamAuthTypeNone {
+			if upstreamAuth.ManagedIdentity != nil && upstreamAuth.ManagedIdentity.Resource != nil {
+				managedIdentityId = *upstreamAuth.ManagedIdentity.Resource
+			}
+		}
+
 		result = append(result, map[string]interface{}{
-			"url_template":     settings.UrlTemplate,
-			"hub_pattern":      hubPattern,
-			"event_pattern":    eventPattern,
-			"category_pattern": categoryPattern,
+			"url_template":              settings.UrlTemplate,
+			"hub_pattern":               hubPattern,
+			"event_pattern":             eventPattern,
+			"category_pattern":          categoryPattern,
+			"user_assigned_identity_id": managedIdentityId,
 		})
 	}
 	return result
@@ -778,7 +831,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
+						ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100}),
 					},
 				},
 			},
@@ -920,6 +973,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: signalrValidate.UrlTemplate,
 					},
+
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsUUID,
+					},
 				},
 			},
 		},
@@ -988,5 +1047,22 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
+	}
+}
+
+func signalrServiceProvisioningStateRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.SignalRId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
+		}
+
+		if model := res.Model; model != nil {
+			if model.Properties != nil && model.Properties.ProvisioningState != nil {
+				return res, string(*model.Properties.ProvisioningState), nil
+			}
+		}
+
+		return nil, "", fmt.Errorf("unable to read provisioning state")
 	}
 }

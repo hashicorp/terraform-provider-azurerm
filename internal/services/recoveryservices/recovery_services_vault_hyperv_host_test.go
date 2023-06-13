@@ -6,10 +6,11 @@ import (
 	"math/rand"
 	"os"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryservicesproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -61,14 +62,14 @@ func (r HyperVHostTestResource) Exists(ctx context.Context, clients *clients.Cli
 }
 
 func (HyperVHostTestResource) virtualMachineExists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.VirtualMachineID(state.ID)
+	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Compute.VMClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Compute.VirtualMachinesClient.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", *id)
 		}
 
@@ -79,19 +80,14 @@ func (HyperVHostTestResource) virtualMachineExists(ctx context.Context, client *
 }
 
 func (HyperVHostTestResource) rebootVirtualMachine(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	client := clients.Compute.VMClient
-	id, err := parse.VirtualMachineID(state.ID)
+	client := clients.Compute.VirtualMachinesClient
+	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Restart(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("restart %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for restart of %s: %+v", id, err)
+	if err := client.RestartThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("restarting %s: %+v", id, err)
 	}
 
 	return nil

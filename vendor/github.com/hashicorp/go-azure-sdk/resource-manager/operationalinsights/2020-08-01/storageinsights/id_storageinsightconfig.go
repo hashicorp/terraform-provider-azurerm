@@ -42,19 +42,19 @@ func ParseStorageInsightConfigID(input string) (*StorageInsightConfigId, error) 
 	id := StorageInsightConfigId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
 	}
 
 	if id.StorageInsightConfigName, ok = parsed.Parsed["storageInsightConfigName"]; !ok {
-		return nil, fmt.Errorf("the segment 'storageInsightConfigName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageInsightConfigName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseStorageInsightConfigIDInsensitively(input string) (*StorageInsightConf
 	id := StorageInsightConfigId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'workspaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
 	}
 
 	if id.StorageInsightConfigName, ok = parsed.Parsed["storageInsightConfigName"]; !ok {
-		return nil, fmt.Errorf("the segment 'storageInsightConfigName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageInsightConfigName", *parsed)
 	}
 
 	return &id, nil

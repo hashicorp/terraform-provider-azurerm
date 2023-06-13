@@ -89,11 +89,25 @@ The following arguments are supported:
 
 The `backup` block supports:
 
-* `frequency` - (Required) Sets the backup frequency. Currently, only `Daily` is supported
+* `frequency` - (Required) Sets the backup frequency. Possible values are `Daily` and `Hourly`. 
 
 -> **NOTE:** This argument is made available for consistency with VM backup policies and to allow for potential future support of weekly backups
 
-* `time` - (Required) The time of day to perform the backup in 24-hour format. Times must be either on the hour or half hour (e.g. 12:00, 12:30, 13:00, etc.)
+* `time` - (Optional) The time of day to perform the backup in 24-hour format. Times must be either on the hour or half hour (e.g. 12:00, 12:30, 13:00, etc.)
+
+-> **NOTE:** `time` is required when `frequency` is set to `Daily`.
+
+* `hourly` - (Optional) A `hourly` block defined as below. This is required when `frequency` is set to `Hourly`.
+
+---
+
+The `hourly` block supports:
+
+* `interval` - (Optional) Specifies the interval at which backup needs to be triggered. Possible values are `4`, `6`, `8` and `12`
+
+* `start_time` - (Optional) Specifies the start time of the hourly backup. The time format should be in 24-hour format. Times must be either on the hour or half hour (e.g. 12:00, 12:30, 13:00, etc.)
+
+* `window_duration` - (Optional) Species the duration of the backup window in hours. Details could be found [here](https://learn.microsoft.com/en-us/azure/backup/backup-azure-files-faq#what-does-the-duration-attribute-in-azure-files-backup-policy-signify-)
 
 ---
 
@@ -115,9 +129,15 @@ The `retention_monthly` block supports:
 
 * `count` - (Required) The number of monthly backups to keep. Must be between `1` and `120`
 
-* `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+* `weekdays` - (Optional) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 
-* `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
+* `weeks` - (Optional) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
+
+* `days` - (Optional) The days of the month to retain backups of. Must be between `1` and `31`.
+
+* `include_last_days` - (Optional) Including the last day of the month, default to `false`.
+
+-> **NOTE:**: Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
 ---
 
@@ -125,11 +145,17 @@ The `retention_yearly` block supports:
 
 * `count` - (Required) The number of yearly backups to keep. Must be between `1` and `10`
 
-* `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
-
-* `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
-
 * `months` - (Required) The months of the year to retain backups of. Must be one of `January`, `February`, `March`, `April`, `May`, `June`, `July`, `Augest`, `September`, `October`, `November` and `December`.
+
+* `weeks` - (Optional) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
+
+* `weekdays` - (Optional) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+
+* `days` - (Optional) The days of the month to retain backups of. Must be between `1` and `31`.
+
+* `include_last_days` - (Optional) Including the last day of the month, default to `false`.
+
+-> **NOTE:**: Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
 ## Attributes Reference
 

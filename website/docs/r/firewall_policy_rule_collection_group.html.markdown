@@ -141,11 +141,11 @@ A `application_rule` (application rule) block supports the following:
 
 * `protocols` - (Optional) One or more `protocols` blocks as defined below. Not required when specifying `destination_fqdn_tags`, but required when specifying `destination_fqdns`.
 
-* `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR and `*`).
+* `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR, IP range and `*`).
 
 * `source_ip_groups` - (Optional) Specifies a list of source IP groups.
 
-* `destination_addresses` - (Optional) Specifies a list of destination IP addresses (including CIDR and `*`).
+* `destination_addresses` - (Optional) Specifies a list of destination IP addresses (including CIDR, IP range and `*`).
 
 * `destination_urls` - (Optional) Specifies a list of destination URLs for which policy should hold. Needs Premium SKU for Firewall Policy. Conflicts with `destination_fqdns`.
 
@@ -167,11 +167,11 @@ A `network_rule` (network rule) block supports the following:
 
 * `destination_ports` - (Required) Specifies a list of destination ports.
 
-* `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR and `*`).
+* `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR, IP range and `*`).
 
 * `source_ip_groups` - (Optional) Specifies a list of source IP groups.
 
-* `destination_addresses` - (Optional) Specifies a list of destination IP addresses (including CIDR and `*`) or Service Tags.
+* `destination_addresses` - (Optional) Specifies a list of destination IP addresses (including CIDR, IP range and `*`) or Service Tags.
 
 * `destination_ip_groups` - (Optional) Specifies a list of destination IP groups.
 
@@ -185,7 +185,7 @@ A `nat_rule` (NAT rule) block supports the following:
 
 * `protocols` - (Required) Specifies a list of network protocols this rule applies to. Possible values are `TCP`, `UDP`.
 
-* `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR and `*`).
+* `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR, IP range and `*`).
 
 * `source_ip_groups` - (Optional) Specifies a list of source IP groups.
 

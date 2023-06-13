@@ -5,17 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault" // nolint: staticcheck
-	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,7 +28,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 		Delete: resourceArmKeyVaultManagedHardwareSecurityModuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ManagedHSMID(id)
+			_, err := managedhsms.ParseManagedHSMID(id)
 			return err
 		}),
 
@@ -56,7 +55,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(keyvault.ManagedHsmSkuNameStandardB1),
+					string(managedhsms.ManagedHsmSkuNameStandardBOne),
 				}, false),
 			},
 
@@ -115,16 +114,16 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.NetworkRuleActionAllow),
-								string(keyvault.NetworkRuleActionDeny),
+								string(managedhsms.NetworkRuleActionAllow),
+								string(managedhsms.NetworkRuleActionDeny),
 							}, false),
 						},
 						"bypass": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.NetworkRuleBypassOptionsNone),
-								string(keyvault.NetworkRuleBypassOptionsAzureServices),
+								string(managedhsms.NetworkRuleBypassOptionsNone),
+								string(managedhsms.NetworkRuleBypassOptionsAzureServices),
 							}, false),
 						},
 					},
@@ -132,7 +131,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			},
 
 			// https://github.com/Azure/azure-rest-api-specs/issues/13365
-			"tags": tags.ForceNewSchema(),
+			"tags": commonschema.TagsForceNew(),
 		},
 	}
 }
@@ -143,51 +142,44 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Println("[INFO] Preparing arguments for Key Vault Managed Hardware Security Module")
-
-	id := parse.NewManagedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := managedhsms.NewManagedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_key_vault_managed_hardware_security_module", id.ID())
 	}
 
-	tenantId := uuid.FromStringOrNil(d.Get("tenant_id").(string))
-	hsm := keyvault.ManagedHsm{
+	publicNetworkAccessEnabled := managedhsms.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccessEnabled = managedhsms.PublicNetworkAccessDisabled
+	}
+	hsm := managedhsms.ManagedHsm{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Properties: &keyvault.ManagedHsmProperties{
-			TenantID:                  &tenantId,
+		Properties: &managedhsms.ManagedHsmProperties{
 			InitialAdminObjectIds:     utils.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
-			CreateMode:                keyvault.CreateModeDefault,
+			CreateMode:                pointer.To(managedhsms.CreateModeDefault),
 			EnableSoftDelete:          utils.Bool(true),
-			SoftDeleteRetentionInDays: utils.Int32(int32(d.Get("soft_delete_retention_days").(int))),
+			SoftDeleteRetentionInDays: utils.Int64(int64(d.Get("soft_delete_retention_days").(int))),
 			EnablePurgeProtection:     utils.Bool(d.Get("purge_protection_enabled").(bool)),
-			PublicNetworkAccess:       keyvault.PublicNetworkAccessEnabled, // default enabled
+			PublicNetworkAccess:       pointer.To(publicNetworkAccessEnabled),
 			NetworkAcls:               expandMHSMNetworkAcls(d.Get("network_acls").([]interface{})),
 		},
-		Sku: &keyvault.ManagedHsmSku{
-			Family: utils.String("B"),
-			Name:   keyvault.ManagedHsmSkuName(d.Get("sku_name").(string)),
+		Sku: &managedhsms.ManagedHsmSku{
+			Family: managedhsms.ManagedHsmSkuFamilyB,
+			Name:   managedhsms.ManagedHsmSkuName(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-
-	if !d.Get("public_network_access_enabled").(bool) {
-		hsm.Properties.PublicNetworkAccess = keyvault.PublicNetworkAccessDisabled
+	if tenantId := d.Get("tenant_id").(string); tenantId != "" {
+		hsm.Properties.TenantId = pointer.To(tenantId)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, hsm)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, hsm); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creation for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -199,15 +191,15 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedHSMID(d.Id())
+	id, err := managedhsms.ParseManagedHSMID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[ERROR] %s was not found - removing from state", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[ERROR] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
@@ -215,37 +207,46 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.ManagedHSMName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	skuName := ""
-	if sku := resp.Sku; sku != nil {
-		skuName = string(sku.Name)
-	}
-	d.Set("sku_name", skuName)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if props := resp.Properties; props != nil {
-		tenantId := ""
-		if tid := props.TenantID; tid != nil {
-			tenantId = tid.String()
+		if props := model.Properties; props != nil {
+			tenantId := ""
+			if props.TenantId != nil {
+				tenantId = *props.TenantId
+			}
+			d.Set("tenant_id", tenantId)
+			d.Set("admin_object_ids", utils.FlattenStringSlice(props.InitialAdminObjectIds))
+			d.Set("hsm_uri", props.HsmUri)
+			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
+			d.Set("purge_protection_enabled", props.EnablePurgeProtection)
+
+			publicAccessEnabled := true
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess != managedhsms.PublicNetworkAccessEnabled {
+				publicAccessEnabled = false
+			}
+			d.Set("public_network_access_enabled", publicAccessEnabled)
+
+			if err := d.Set("network_acls", flattenMHSMNetworkAcls(props.NetworkAcls)); err != nil {
+				return fmt.Errorf("setting `network_acls`: %+v", err)
+			}
 		}
-		d.Set("tenant_id", tenantId)
-		d.Set("admin_object_ids", utils.FlattenStringSlice(props.InitialAdminObjectIds))
-		d.Set("hsm_uri", props.HsmURI)
-		d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
-		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 
-		var publicAccess = true
-		if props.PublicNetworkAccess == keyvault.PublicNetworkAccessDisabled {
-			publicAccess = false
+		skuName := ""
+		if sku := model.Sku; sku != nil {
+			skuName = string(sku.Name)
 		}
-		d.Set("public_network_access_enabled", publicAccess)
+		d.Set("sku_name", skuName)
 
-		d.Set("network_acls", flattenMHSMNetworkAcls(props.NetworkAcls))
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -253,78 +254,75 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedHSMID(d.Id())
+	id, err := managedhsms.ParseManagedHSMID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// We need to grab the keyvault hsm to see if purge protection is enabled prior to deletion
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil || resp.Location == nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
-
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	// there is an API bug being tracked here: https://github.com/Azure/azure-rest-api-specs/issues/13365
-	// taking the statusCode404 as the expected resource deletion result, instead of the error code which triggers retry
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf(
-				"waiting for deletion of API Management Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	loc := ""
+	purgeProtectionEnabled := false
+	if model := resp.Model; model != nil {
+		loc = location.NormalizeNilable(model.Location)
+		if props := model.Properties; props != nil && props.EnablePurgeProtection != nil {
+			purgeProtectionEnabled = *props.EnablePurgeProtection
 		}
 	}
 
-	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedHSMsOnDestroy
-	if shouldPurge && resp.Properties != nil && utils.NormaliseNilableBool(resp.Properties.EnablePurgeProtection) {
-		log.Printf("[DEBUG] cannot purge %s because purge protection is enabled", id)
-		return nil
-	}
-
-	purgeFuture, err := client.PurgeDeleted(ctx, id.Name, *resp.Location)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if err = purgeFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf(
-				"waiting for purge of %s: %+v", id, err)
+	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedHSMsOnDestroy {
+		if purgeProtectionEnabled {
+			log.Printf("[DEBUG] cannot purge %s because purge protection is enabled", id)
+			return nil
 		}
+	}
+
+	purgedId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
+	if err := client.PurgeDeletedThenPoll(ctx, purgedId); err != nil {
+		return fmt.Errorf("purging %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandMHSMNetworkAcls(input []interface{}) *keyvault.MHSMNetworkRuleSet {
+func expandMHSMNetworkAcls(input []interface{}) *managedhsms.MHSMNetworkRuleSet {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	res := &keyvault.MHSMNetworkRuleSet{
-		Bypass:        keyvault.NetworkRuleBypassOptions(v["bypass"].(string)),
-		DefaultAction: keyvault.NetworkRuleAction(v["default_action"].(string)),
+	res := &managedhsms.MHSMNetworkRuleSet{
+		Bypass:        pointer.To(managedhsms.NetworkRuleBypassOptions(v["bypass"].(string))),
+		DefaultAction: pointer.To(managedhsms.NetworkRuleAction(v["default_action"].(string))),
 	}
 
 	return res
 }
 
-func flattenMHSMNetworkAcls(acl *keyvault.MHSMNetworkRuleSet) []interface{} {
-	res := map[string]interface{}{
-		"bypass":         string(keyvault.NetworkRuleBypassOptionsAzureServices),
-		"default_action": string(keyvault.NetworkRuleActionAllow),
-	}
+func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
+	bypass := string(managedhsms.NetworkRuleBypassOptionsAzureServices)
+	defaultAction := string(managedhsms.NetworkRuleActionAllow)
 
 	if acl != nil {
-		res["bypass"] = string(acl.Bypass)
-		res["default_action"] = string(acl.DefaultAction)
+		if acl.Bypass != nil {
+			bypass = string(*acl.Bypass)
+		}
+		if acl.DefaultAction != nil {
+			defaultAction = string(*acl.DefaultAction)
+		}
 	}
-	return []interface{}{res}
+
+	return []interface{}{
+		map[string]interface{}{
+			"bypass":         bypass,
+			"default_action": defaultAction,
+		},
+	}
 }

@@ -40,15 +40,15 @@ func ParseManagedClusterSnapshotID(input string) (*ManagedClusterSnapshotId, err
 	id := ManagedClusterSnapshotId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ManagedClusterSnapshotName, ok = parsed.Parsed["managedClusterSnapshotName"]; !ok {
-		return nil, fmt.Errorf("the segment 'managedClusterSnapshotName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterSnapshotName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseManagedClusterSnapshotIDInsensitively(input string) (*ManagedClusterSn
 	id := ManagedClusterSnapshotId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ManagedClusterSnapshotName, ok = parsed.Parsed["managedClusterSnapshotName"]; !ok {
-		return nil, fmt.Errorf("the segment 'managedClusterSnapshotName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterSnapshotName", *parsed)
 	}
 
 	return &id, nil

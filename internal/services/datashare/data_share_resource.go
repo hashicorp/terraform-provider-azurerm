@@ -202,7 +202,7 @@ func resourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("kind", props.ShareKind)
+			d.Set("kind", string(pointer.From(props.ShareKind)))
 			d.Set("description", props.Description)
 			d.Set("terms", props.Terms)
 		}

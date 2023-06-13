@@ -47,7 +47,7 @@ func (id StorageQueueResourceManagerId) ID() string {
 func StorageQueueResourceManagerID(input string) (*StorageQueueResourceManagerId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an StorageQueueResourceManager ID: %+v", input, err)
 	}
 
 	resourceId := StorageQueueResourceManagerId{

@@ -124,12 +124,28 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
+resource "azurerm_dns_zone" "test" {
+  name                = "wpstftestzone.com"
+  resource_group_name = azurerm_resource_group.test.name
+  depends_on = [
+    azurerm_web_pubsub.test
+  ]
+}
+
+resource "azurerm_dns_cname_record" "test" {
+  name                = "wps"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
+  ttl                 = 3600
+  record              = azurerm_web_pubsub.test.hostname
+}
+
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
   key_vault_id = azurerm_key_vault.test.id
 
   certificate {
-    contents = filebase64("testdata/certificate-to-import.pfx")
+    contents = filebase64("testdata/wpstftestzone.pfx")
     password = ""
   }
 }

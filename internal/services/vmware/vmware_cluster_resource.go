@@ -5,9 +5,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/privateclouds"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/validate"
@@ -113,8 +114,8 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Sku: clusters.Sku{
 			Name: d.Get("sku_name").(string),
 		},
-		Properties: clusters.ClusterProperties{
-			ClusterSize: int64(d.Get("cluster_node_count").(int)),
+		Properties: &clusters.CommonClusterProperties{
+			ClusterSize: pointer.To(int64(d.Get("cluster_node_count").(int))),
 		},
 	}
 

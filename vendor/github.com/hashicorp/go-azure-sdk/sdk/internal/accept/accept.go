@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp Inc. All rights reserved.
+// Licensed under the MPL-2.0 License. See NOTICE.txt in the project root for license information.
+
 package accept
 
 import (
@@ -6,9 +9,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-// Copyright (c) HashiCorp Inc. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 // Header represents an HTTP Accept header value
 // See https://httpwg.org/specs/rfc9110.html#field.accept

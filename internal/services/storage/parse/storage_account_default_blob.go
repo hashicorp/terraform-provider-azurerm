@@ -44,7 +44,7 @@ func (id StorageAccountDefaultBlobId) ID() string {
 func StorageAccountDefaultBlobID(input string) (*StorageAccountDefaultBlobId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an StorageAccountDefaultBlob ID: %+v", input, err)
 	}
 
 	resourceId := StorageAccountDefaultBlobId{

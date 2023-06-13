@@ -196,6 +196,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						// lintignore:S013
 						"member_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     features.FourPointOhBeta(),

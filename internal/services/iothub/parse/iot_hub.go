@@ -41,7 +41,7 @@ func (id IotHubId) ID() string {
 func IotHubID(input string) (*IotHubId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an IotHub ID: %+v", input, err)
 	}
 
 	resourceId := IotHubId{

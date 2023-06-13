@@ -223,8 +223,10 @@ resource "azurerm_mssql_server" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [transparent_data_encryption_key_vault_key_id]
+  }
 }
-
-
 `, data.RandomInteger, data.Locations.Primary)
 }

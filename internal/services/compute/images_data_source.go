@@ -1,19 +1,18 @@
 package compute
 
 import (
-	"context"
 	"fmt"
 	"sort"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func dataSourceImages() *pluginsdk.Resource {
@@ -27,7 +26,7 @@ func dataSourceImages() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"tags_filter": tags.Schema(),
+			"tags_filter": commonschema.Tags(),
 
 			"images": {
 				Type:     pluginsdk.TypeList,
@@ -108,7 +107,7 @@ func dataSourceImages() *pluginsdk.Resource {
 							},
 						},
 
-						"tags": tags.SchemaDataSource(),
+						"tags": commonschema.TagsDataSource(),
 					},
 				},
 			},
@@ -118,99 +117,113 @@ func dataSourceImages() *pluginsdk.Resource {
 
 func dataSourceImagesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
 	filterTags := tags.Expand(d.Get("tags_filter").(map[string]interface{}))
 
-	resp, err := client.ListByResourceGroupComplete(ctx, resourceGroup)
+	resourceGroupId := commonids.NewResourceGroupID(subscriptionId, d.Get("resource_group_name").(string))
+	resp, err := client.ListByResourceGroupComplete(ctx, resourceGroupId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response().Response) {
-			return fmt.Errorf("no images were found in Resource Group %q", resourceGroup)
-		}
-		return fmt.Errorf("retrieving Images (Resource Group %q): %+v", resourceGroup, err)
+		return fmt.Errorf("retrieving Images within %s: %+v", resourceGroupId, err)
 	}
 
-	images, err := flattenImagesResult(ctx, resp, filterTags)
-	if err != nil {
-		return fmt.Errorf("parsing Images (Resource Group %q): %+v", resourceGroup, err)
+	virtualMachineImages := resp.Items
+	if filterTags != nil && len(*filterTags) > 0 {
+		virtualMachineImages = filterToImagesMatchingTags(virtualMachineImages, *filterTags)
 	}
-	if len(images) == 0 {
+	if len(virtualMachineImages) == 0 {
 		return fmt.Errorf("no images were found that match the specified tags")
 	}
+	flattenedImages := flattenImages(virtualMachineImages)
+	if err := d.Set("images", flattenedImages); err != nil {
+		return fmt.Errorf("setting `images`: %+v", err)
+	}
 
+	resourceId := resourceIdForImagesDataSource(resourceGroupId, *filterTags)
+	d.SetId(resourceId)
+
+	d.Set("resource_group_name", resourceGroupId.ResourceGroupName)
+
+	return nil
+}
+
+func resourceIdForImagesDataSource(resourceGroupId commonids.ResourceGroupId, filterTags map[string]string) string {
 	tagsId := ""
-	tagKeys := make([]string, 0, len(filterTags))
+	tagKeys := make([]string, 0)
 	for key := range filterTags {
 		tagKeys = append(tagKeys, key)
 	}
 	sort.Strings(tagKeys)
 	for _, key := range tagKeys {
 		value := ""
-		if v, ok := filterTags[key]; ok && v != nil {
-			value = *v
+		if v, ok := filterTags[key]; ok {
+			value = v
 		}
 		tagsId += fmt.Sprintf("[%s:%s]", key, value)
 	}
 	if tagsId == "" {
 		tagsId = "[]"
 	}
-	d.SetId(fmt.Sprintf("resourceGroups/%s/tags/%s/images", resourceGroup, tagsId))
-
-	d.Set("resource_group_name", resourceGroup)
-
-	if err := d.Set("images", images); err != nil {
-		return fmt.Errorf("setting `images`: %+v", err)
-	}
-
-	return nil
+	return fmt.Sprintf("resourceGroups/%s/tags/%s/images", resourceGroupId.ResourceGroupName, tagsId)
 }
 
-func flattenImagesResult(ctx context.Context, iterator compute.ImageListResultIterator, filterTags map[string]*string) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenImages(input []images.Image) []interface{} {
+	output := make([]interface{}, 0)
+	for _, item := range input {
+		output = append(output, flattenImage(item))
+	}
+	return output
+}
 
-	for iterator.NotDone() {
-		image := iterator.Value()
-		found := true
-		// Loop through our filter tags and see if they match
-		for k, v := range filterTags {
-			if v != nil {
-				// If the tags do not match return false
-				if image.Tags[k] == nil || *v != *image.Tags[k] {
-					found = false
+func filterToImagesMatchingTags(input []images.Image, filterTags map[string]string) []images.Image {
+	output := make([]images.Image, 0)
+
+	for _, item := range input {
+		tagsMatch := false
+		if item.Tags != nil {
+			for tagKey, tagValue := range filterTags {
+				otherVal, exists := (*item.Tags)[tagKey]
+				if exists && tagValue == otherVal {
+					tagsMatch = true
+					break
 				}
 			}
 		}
 
-		if found {
-			results = append(results, flattenImage(image))
-		}
-		if err := iterator.NextWithContext(ctx); err != nil {
-			return nil, err
+		if tagsMatch {
+			output = append(output, item)
 		}
 	}
-
-	return results, nil
-}
-
-func flattenImage(input compute.Image) map[string]interface{} {
-	output := make(map[string]interface{})
-
-	output["name"] = input.Name
-	output["location"] = location.NormalizeNilable(input.Location)
-
-	if input.ImageProperties != nil {
-		if storageProfile := input.ImageProperties.StorageProfile; storageProfile != nil {
-			output["zone_resilient"] = storageProfile.ZoneResilient
-
-			output["os_disk"] = flattenAzureRmImageOSDisk(storageProfile.OsDisk)
-
-			output["data_disk"] = flattenAzureRmImageDataDisks(storageProfile.DataDisks)
-		}
-	}
-
-	output["tags"] = tags.Flatten(input.Tags)
 
 	return output
+}
+
+func flattenImage(input images.Image) map[string]interface{} {
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+	}
+
+	zoneResilient := false
+	osDisk := make([]interface{}, 0)
+	dataDisks := make([]interface{}, 0)
+	if props := input.Properties; props != nil {
+		osDisk = flattenImageOSDisk(props.StorageProfile)
+		dataDisks = flattenImageDataDisks(props.StorageProfile)
+
+		if props.StorageProfile != nil && props.StorageProfile.ZoneResilient != nil {
+			zoneResilient = *props.StorageProfile.ZoneResilient
+		}
+	}
+
+	return map[string]interface{}{
+		"location":       location.Normalize(input.Location),
+		"data_disk":      dataDisks,
+		"name":           name,
+		"os_disk":        osDisk,
+		"tags":           tags.Flatten(input.Tags),
+		"zone_resilient": zoneResilient,
+	}
 }

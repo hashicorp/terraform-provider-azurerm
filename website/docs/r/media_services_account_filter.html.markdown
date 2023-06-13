@@ -37,7 +37,7 @@ resource "azurerm_media_services_account" "example" {
   }
 }
 
-resource "azurerm_media_asset_filter" "example" {
+resource "azurerm_media_services_account_filter" "example" {
   name                        = "Filter1"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name

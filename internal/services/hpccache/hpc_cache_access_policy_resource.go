@@ -5,16 +5,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
@@ -48,7 +47,7 @@ func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CacheID,
+				ValidateFunc: caches.ValidateCacheID,
 			},
 
 			"access_rule": {
@@ -63,9 +62,9 @@ func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(storagecache.NfsAccessRuleScopeDefault),
-								string(storagecache.NfsAccessRuleScopeNetwork),
-								string(storagecache.NfsAccessRuleScopeHost),
+								string(caches.NfsAccessRuleScopeDefault),
+								string(caches.NfsAccessRuleScopeNetwork),
+								string(caches.NfsAccessRuleScopeHost),
 							}, false),
 						},
 
@@ -73,9 +72,9 @@ func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(storagecache.NfsAccessRuleAccessRw),
-								string(storagecache.NfsAccessRuleAccessRo),
-								string(storagecache.NfsAccessRuleAccessNo),
+								string(caches.NfsAccessRuleAccessRw),
+								string(caches.NfsAccessRuleAccessRo),
+								string(caches.NfsAccessRuleAccessNo),
 							}, false),
 						},
 
@@ -124,21 +123,26 @@ func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta in
 	defer cancel()
 
 	name := d.Get("name").(string)
-	cacheId, err := parse.CacheID(d.Get("hpc_cache_id").(string))
+	cacheId, err := caches.ParseCacheID(d.Get("hpc_cache_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewCacheAccessPolicyID(cacheId.SubscriptionId, cacheId.ResourceGroup, cacheId.Name, name)
+	id := parse.NewCacheAccessPolicyID(cacheId.SubscriptionId, cacheId.ResourceGroupName, cacheId.CacheName, name)
 
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	existCache, err := client.Get(ctx, id.ResourceGroup, id.CacheName)
+	existCache, err := client.Get(ctx, *cacheId)
 	if err != nil {
 		return fmt.Errorf("checking for containing HPC Cache %s: %+v", cacheId, err)
 	}
 
-	prop := existCache.CacheProperties
+	m := existCache.Model
+	if m == nil {
+		return fmt.Errorf("nil Model of HPC Cache %s", cacheId)
+	}
+
+	prop := m.Properties
 	if prop == nil {
 		return fmt.Errorf("nil CacheProperties of HPC Cache %s", cacheId)
 	}
@@ -160,8 +164,8 @@ func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	p := storagecache.NfsAccessPolicy{
-		Name:        &id.Name,
+	p := caches.NfsAccessPolicy{
+		Name:        id.Name,
 		AccessRules: expandStorageCacheNfsAccessRules(d.Get("access_rule").(*pluginsdk.Set).List()),
 	}
 
@@ -170,16 +174,11 @@ func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.CacheName, &existCache)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *cacheId, *existCache.Model); err != nil {
 		return fmt.Errorf("updating the HPC Cache for creating/updating Access Policy %q: %v", id, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for updating HPC Cache for creating/updating Access Policy %q: %v", id, err)
 	}
 
 	d.SetId(id.ID())
-
 	return resourceHPCCacheAccessPolicyRead(d, meta)
 }
 
@@ -192,25 +191,30 @@ func resourceHPCCacheAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{
 	if err != nil {
 		return err
 	}
-	cacheId := parse.NewCacheID(id.SubscriptionId, id.ResourceGroup, id.CacheName)
+	cacheId := caches.NewCacheID(id.SubscriptionId, id.ResourceGroup, id.CacheName)
 
 	clearId := func(msg string) error {
 		log.Printf("[DEBUG] %s - removing from state!", msg)
 		d.SetId("")
 		return nil
 	}
-	resp, err := client.Get(ctx, id.ResourceGroup, id.CacheName)
+	resp, err := client.Get(ctx, cacheId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return clearId(fmt.Sprintf("The containing HPC Cache %q was not found", cacheId))
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	prop := resp.CacheProperties
+	m := resp.Model
+	if m == nil {
+		return fmt.Errorf("nil Model of HPC Cache %s", cacheId)
+	}
+
+	prop := m.Properties
 	if prop == nil {
-		return clearId(fmt.Sprintf("The containing HPC Cache %q has nil CacheProperties", cacheId))
+		return fmt.Errorf("nil CacheProperties of HPC Cache %s", cacheId)
 	}
 
 	setting := prop.SecuritySettings
@@ -250,17 +254,22 @@ func resourceHPCCacheAccessPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	cacheId := parse.NewCacheID(id.SubscriptionId, id.ResourceGroup, id.CacheName)
+	cacheId := caches.NewCacheID(id.SubscriptionId, id.ResourceGroup, id.CacheName)
 
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	existCache, err := client.Get(ctx, id.ResourceGroup, id.CacheName)
+	existCache, err := client.Get(ctx, cacheId)
 	if err != nil {
 		return fmt.Errorf("checking for containing HPC Cache %s: %+v", cacheId, err)
 	}
 
-	prop := existCache.CacheProperties
+	m := existCache.Model
+	if m == nil {
+		return nil
+	}
+
+	prop := m.Properties
 	if prop == nil {
 		return nil
 	}
@@ -277,12 +286,8 @@ func resourceHPCCacheAccessPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 
 	*policies = CacheDeleteAccessPolicyByName(*policies, id.Name)
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.CacheName, &existCache)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, cacheId, *existCache.Model); err != nil {
 		return fmt.Errorf("updating the HPC Cache for deleting Access Policy %q: %v", id, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for updating HPC Cache for deleting Access Policy %q: %v", id, err)
 	}
 
 	return nil

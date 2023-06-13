@@ -25,7 +25,7 @@ resource "azurerm_virtual_network" "example" {
   address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_private_dns_resolver" "test" {
+resource "azurerm_private_dns_resolver" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -34,8 +34,8 @@ resource "azurerm_private_dns_resolver" "test" {
 
 resource "azurerm_subnet" "example" {
   name                 = "inbounddns"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.0.0/28"]
 
   delegation {

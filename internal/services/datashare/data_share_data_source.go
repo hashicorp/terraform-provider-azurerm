@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
@@ -106,7 +107,7 @@ func dataSourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("kind", props.ShareKind)
+			d.Set("kind", string(pointer.From(props.ShareKind)))
 			d.Set("description", props.Description)
 			d.Set("terms", props.Terms)
 		}

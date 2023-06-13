@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `traffic_routing_method` - (Required) Specifies the algorithm used to route traffic. Possible values are `Geographic`, `Weighted`, `Performance`, `Priority`, `Subnet` and `MultiValue`.
   * `Geographic` - Traffic is routed based on Geographic regions specified in the Endpoint.
-  * `MultiValue` - All healthy Endpoints are returned.  MultiValue routing method works only if all the endpoints of type ‘External’ and are specified as IPv4 or IPv6 addresses.
+  * `MultiValue` - All healthy Endpoints are returned.  MultiValue routing method works only if all the endpoints of type `External` and are specified as IPv4 or IPv6 addresses.
   * `Performance` - Traffic is routed via the User's closest Endpoint
   * `Priority` - Traffic is routed to the Endpoint with the lowest `priority` value.
   * `Subnet` - Traffic is routed based on a mapping of sets of end-user IP address ranges to a specific Endpoint within a Traffic Manager profile.

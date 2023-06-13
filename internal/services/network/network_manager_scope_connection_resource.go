@@ -255,7 +255,7 @@ func (r ManagerScopeConnectionResource) Delete() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("context had no deadline")
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 
 			// https://github.com/Azure/azure-rest-api-specs/issues/23188

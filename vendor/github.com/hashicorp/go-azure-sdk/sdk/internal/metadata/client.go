@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp Inc. All rights reserved.
+// Licensed under the MPL-2.0 License. See NOTICE.txt in the project root for license information.
+
 package metadata
 
 import (
@@ -9,9 +12,6 @@ import (
 	"log"
 	"net/http"
 )
-
-// Copyright (c) HashiCorp Inc. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 // NOTE: this Client cannot use the base client since it'd cause a circular reference
 

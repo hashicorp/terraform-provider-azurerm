@@ -51,7 +51,7 @@ resource "azurerm_key_vault_access_policy" "example" {
 }
 
 resource "azurerm_key_vault_certificate_contacts" "example" {
-  key_vault_id = azurerm_key_vault.test.id
+  key_vault_id = azurerm_key_vault.example.id
 
   contact {
     email = "example@example.com"

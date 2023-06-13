@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -93,18 +95,18 @@ func TestAccLogzSubAccountTagRule_update(t *testing.T) {
 }
 
 func (r LogzSubAccountTagRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogzSubAccountTagRuleID(state.ID)
+	id, err := tagrules.ParseAccountTagRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.Logz.SubAccountTagRuleClient.Get(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, id.TagRuleName)
+	resp, err := clients.Logz.TagRuleClient.SubAccountTagRulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r LogzSubAccountTagRuleResource) template(data acceptance.TestData, email string) string {

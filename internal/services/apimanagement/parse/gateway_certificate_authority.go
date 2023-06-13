@@ -47,7 +47,7 @@ func (id GatewayCertificateAuthorityId) ID() string {
 func GatewayCertificateAuthorityID(input string) (*GatewayCertificateAuthorityId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an GatewayCertificateAuthority ID: %+v", input, err)
 	}
 
 	resourceId := GatewayCertificateAuthorityId{

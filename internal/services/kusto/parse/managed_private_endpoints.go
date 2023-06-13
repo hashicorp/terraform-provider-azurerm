@@ -44,7 +44,7 @@ func (id ManagedPrivateEndpointsId) ID() string {
 func ManagedPrivateEndpointsID(input string) (*ManagedPrivateEndpointsId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an ManagedPrivateEndpoints ID: %+v", input, err)
 	}
 
 	resourceId := ManagedPrivateEndpointsId{

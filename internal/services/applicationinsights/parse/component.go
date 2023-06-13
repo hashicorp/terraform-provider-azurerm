@@ -41,7 +41,7 @@ func (id ComponentId) ID() string {
 func ComponentID(input string) (*ComponentId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an Component ID: %+v", input, err)
 	}
 
 	resourceId := ComponentId{

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -40,6 +41,7 @@ type WindowsWebAppDataSourceModel struct {
 	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString  `tfschema:"connection_string"`
 	CustomDomainVerificationId    string                      `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                  string                      `tfschema:"hosting_environment_id"`
 	DefaultHostname               string                      `tfschema:"default_hostname"`
 	Kind                          string                      `tfschema:"kind"`
 	OutboundIPAddresses           string                      `tfschema:"outbound_ip_addresses"`
@@ -126,6 +128,11 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -313,6 +320,9 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
 				if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
 					webApp.VirtualNetworkSubnetID = subnetId
+				}
+				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+					webApp.HostingEnvId = pointer.From(hostingEnv.ID)
 				}
 			}
 

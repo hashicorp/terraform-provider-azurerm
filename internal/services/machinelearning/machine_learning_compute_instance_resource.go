@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -147,6 +148,13 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ValidateFunc: networkValidate.SubnetID,
 			},
 
+			"node_public_ip_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
 			"tags": commonschema.TagsForceNew(),
 		},
 	}
@@ -185,12 +193,17 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
+	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" {
+		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
+	}
+
 	computeInstance := &machinelearningcomputes.ComputeInstance{
 		Properties: &machinelearningcomputes.ComputeInstanceProperties{
 			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
 			Subnet:                          subnet,
 			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
 			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
+			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
 		},
 		ComputeLocation:  utils.String(d.Get("location").(string)),
 		Description:      utils.String(d.Get("description").(string)),
@@ -269,9 +282,14 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if props.Properties.Subnet != nil {
 			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
 		}
-		d.Set("authorization_type", props.Properties.ComputeInstanceAuthorizationType)
+		d.Set("authorization_type", string(pointer.From(props.Properties.ComputeInstanceAuthorizationType)))
 		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
+		enableNodePublicIP := true
+		if props.Properties.ConnectivityEndpoints.PublicIPAddress == nil {
+			enableNodePublicIP = false
+		}
+		d.Set("node_public_ip_enabled", enableNodePublicIP)
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)

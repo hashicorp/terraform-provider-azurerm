@@ -134,9 +134,15 @@ The `retention_monthly` block supports:
 
 * `count` - (Required) The number of monthly backups to keep. Must be between `1` and `9999`
 
-* `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+* `weekdays` - (Optional) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 
-* `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
+* `weeks` - (Optional) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
+
+* `days` - (Optional) The days of the month to retain backups of. Must be between `1` and `31`.
+
+* `include_last_days` - (Optional) Including the last day of the month, default to `false`.
+
+-> **NOTE:**: Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
 ---
 
@@ -144,11 +150,17 @@ The `retention_yearly` block supports:
 
 * `count` - (Required) The number of yearly backups to keep. Must be between `1` and `9999`
 
-* `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
-
-* `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
-
 * `months` - (Required) The months of the year to retain backups of. Must be one of `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November` and `December`.
+
+* `weekdays` - (Optional) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+
+* `weeks` - (Optional) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
+
+* `days` - (Optional) The days of the month to retain backups of. Must be between `1` and `31`.
+
+* `include_last_days` - (Optional) Including the last day of the month, default to `false`.
+
+-> **NOTE:**: Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
 ---
 

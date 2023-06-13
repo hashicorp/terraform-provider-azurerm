@@ -188,37 +188,6 @@ func parseHighAvailabilityMode(input string) (*HighAvailabilityMode, error) {
 	return &out, nil
 }
 
-type IdentityType string
-
-const (
-	IdentityTypeNone           IdentityType = "None"
-	IdentityTypeSystemAssigned IdentityType = "SystemAssigned"
-	IdentityTypeUserAssigned   IdentityType = "UserAssigned"
-)
-
-func PossibleValuesForIdentityType() []string {
-	return []string{
-		string(IdentityTypeNone),
-		string(IdentityTypeSystemAssigned),
-		string(IdentityTypeUserAssigned),
-	}
-}
-
-func parseIdentityType(input string) (*IdentityType, error) {
-	vals := map[string]IdentityType{
-		"none":           IdentityTypeNone,
-		"systemassigned": IdentityTypeSystemAssigned,
-		"userassigned":   IdentityTypeUserAssigned,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := IdentityType(input)
-	return &out, nil
-}
-
 type PasswordAuthEnum string
 
 const (

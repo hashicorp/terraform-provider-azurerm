@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -94,18 +95,18 @@ func TestAccLogzTagRule_update(t *testing.T) {
 }
 
 func (r LogzTagRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogzTagRuleID(state.ID)
+	id, err := tagrules.ParseTagRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.Logz.TagRuleClient.Get(ctx, id.ResourceGroup, id.MonitorName, id.TagRuleName)
+	resp, err := clients.Logz.TagRuleClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r LogzTagRuleResource) template(data acceptance.TestData, email string) string {

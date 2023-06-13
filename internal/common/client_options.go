@@ -52,6 +52,7 @@ type ClientOptions struct {
 	ResourceManagerEndpoint string
 
 	// Legacy authorizers for go-autorest
+	AttestationAuthorizer     autorest.Authorizer
 	BatchManagementAuthorizer autorest.Authorizer
 	KeyVaultAuthorizer        autorest.Authorizer
 	ResourceManagerAuthorizer autorest.Authorizer

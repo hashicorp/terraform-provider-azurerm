@@ -42,19 +42,19 @@ func ParsePrincipalAssignmentID(input string) (*PrincipalAssignmentId, error) {
 	id := PrincipalAssignmentId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
 	}
 
 	if id.PrincipalAssignmentName, ok = parsed.Parsed["principalAssignmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'principalAssignmentName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "principalAssignmentName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParsePrincipalAssignmentIDInsensitively(input string) (*PrincipalAssignment
 	id := PrincipalAssignmentId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
 	}
 
 	if id.PrincipalAssignmentName, ok = parsed.Parsed["principalAssignmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'principalAssignmentName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "principalAssignmentName", *parsed)
 	}
 
 	return &id, nil

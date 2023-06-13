@@ -81,7 +81,7 @@ func TestAccSentinelAlertRuleTemplateDataSource_nrt(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.byDisplayName(data, "NRT Base64 encoded Windows process command-lines"),
+			Config: r.byDisplayName(data, "NRT Base64 Encoded Windows Process Command-lines"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("display_name").Exists(),

@@ -527,3 +527,93 @@ func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema) error {
 
 	return nil
 }
+
+func TestDataSourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
+	// This test validates that Data Sources do not contain a schema field called `local_authentication_disabled` since
+	// this should instead be called `local_authentication_enabled` for consistency across the provider.
+	//
+	// Unfortunately there's a number of cases in the provider where each exist - however we should be moving towards
+	// using `local_authentication_enabled` for consistency purposes.
+	provider := TestAzureProvider()
+
+	// intentionally sorting these so the output is consistent
+	dataSourceNames := make([]string, 0)
+	for dataSourceName := range provider.DataSourcesMap {
+		dataSourceNames = append(dataSourceNames, dataSourceName)
+	}
+	sort.Strings(dataSourceNames)
+
+	for _, dataSourceName := range dataSourceNames {
+		dataSource := provider.DataSourcesMap[dataSourceName]
+
+		if err := schemaContainsLocalAuthenticationDisabled(dataSource.Schema); err != nil {
+			t.Fatalf("the Data Source %q contains a field `local_authentication_disabled` - this should be `local_authentication_enabled` for consistency across the provider: %+v", dataSourceName, err)
+		}
+	}
+}
+
+func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
+	// This test validates that Resources do not contain a schema field called `local_authentication_disabled` since
+	// this should instead be called `local_authentication_enabled` for consistency across the provider.
+	//
+	// Unfortunately there's a number of cases in the provider where each exist - however we should be moving towards
+	// using `local_authentication_enabled` for consistency purposes.
+	provider := TestAzureProvider()
+
+	// intentionally sorting these so the output is consistent
+	resourceNames := make([]string, 0)
+	for resourceName := range provider.ResourcesMap {
+		resourceNames = append(resourceNames, resourceName)
+	}
+	sort.Strings(resourceNames)
+
+	// TODO: 4.0 - work through this list
+	resourcesWhichNeedToBeAddressed := map[string]struct{}{
+		"azurerm_application_insights":    {},
+		"azurerm_cosmosdb_account":        {},
+		"azurerm_log_analytics_workspace": {},
+		"azurerm_search_service":          {},
+	}
+	if features.FourPointOhBeta() {
+		resourcesWhichNeedToBeAddressed = map[string]struct{}{}
+	}
+
+	for _, resourceName := range resourceNames {
+		resource := provider.ResourcesMap[resourceName]
+
+		if err := schemaContainsLocalAuthenticationDisabled(resource.Schema); err != nil {
+			if _, ok := resourcesWhichNeedToBeAddressed[resourceName]; ok {
+				continue
+			}
+			t.Fatalf("the Resource %q contains a field `local_authentication_disabled` - this should be `local_authentication_enabled` for consistency across the provider: %+v", resourceName, err)
+		}
+	}
+}
+
+func schemaContainsLocalAuthenticationDisabled(input map[string]*schema.Schema) error {
+	// intentionally sorting these so the output is consistent
+	fieldNames := make([]string, 0)
+	for fieldName := range input {
+		fieldNames = append(fieldNames, fieldName)
+	}
+	sort.Strings(fieldNames)
+
+	for _, fieldName := range fieldNames {
+		key := strings.ToLower(fieldName)
+		field := input[fieldName]
+
+		if key == "local_authentication_disabled" {
+			return fmt.Errorf("a field named `local_authentication_disabled` exists - this should be `local_authentication_enabled`")
+		}
+
+		if field.Type == pluginsdk.TypeList && field.Elem != nil {
+			if val, ok := field.Elem.(*pluginsdk.Resource); ok && val.Schema != nil {
+				if err := schemaContainsLocalAuthenticationDisabled(val.Schema); err != nil {
+					return fmt.Errorf("field %q: %+v", fieldName, err)
+				}
+			}
+		}
+	}
+
+	return nil
+}

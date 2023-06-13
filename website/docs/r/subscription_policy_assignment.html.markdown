@@ -47,7 +47,7 @@ resource "azurerm_subscription_policy_assignment" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Policy Assignment. Changing this forces a new Policy Assignment to be created.
+* `name` - (Required) The name which should be used for this Policy Assignment. Changing this forces a new Policy Assignment to be created. Cannot exceed 64 characters in length.
 
 * `policy_definition_id` - (Required) The ID of the Policy Definition or Policy Definition Set. Changing this forces a new Policy Assignment to be created.
 

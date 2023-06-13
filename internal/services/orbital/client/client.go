@@ -1,10 +1,10 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/contact"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/contactprofile"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/groundstation"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/spacecraft"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contact"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/groundstation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/spacecraft"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

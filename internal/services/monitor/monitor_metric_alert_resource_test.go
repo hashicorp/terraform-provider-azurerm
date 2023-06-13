@@ -78,6 +78,21 @@ func TestAccMonitorMetricAlert_complete(t *testing.T) {
 	})
 }
 
+func TestAccMonitorMetricAlert_dynamicCriteria(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+	r := MonitorMetricAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dynamicCriteria(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
 	r := MonitorMetricAlertResource{}
@@ -225,6 +240,50 @@ resource "azurerm_monitor_metric_alert" "import" {
   window_size = "PT1H"
 }
 `, r.basic(data))
+}
+
+func (MonitorMetricAlertResource) dynamicCriteria(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa1%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_metric_alert" "test" {
+  name                = "acctestMetricAlert-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_storage_account.test.id]
+
+  dynamic_criteria {
+    metric_namespace  = "Microsoft.Storage/storageAccounts"
+    metric_name       = "Availability"
+    aggregation       = "Minimum"
+    operator          = "GreaterThan"
+    alert_sensitivity = "High"
+
+    dimension {
+      name     = "ApiName"
+      operator = "Include"
+      values   = ["*"]
+    }
+
+    evaluation_total_count   = 4
+    evaluation_failure_count = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (MonitorMetricAlertResource) multiCriteria(data acceptance.TestData) string {

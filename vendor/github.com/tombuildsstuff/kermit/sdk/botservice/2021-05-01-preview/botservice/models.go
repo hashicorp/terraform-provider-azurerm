@@ -335,8 +335,10 @@ type Bot struct {
 	Sku *Sku `json:"sku,omitempty"`
 	// Kind - Required. Gets or sets the Kind of the resource. Possible values include: 'KindSdk', 'KindDesigner', 'KindBot', 'KindFunction', 'KindAzurebot'
 	Kind Kind `json:"kind,omitempty"`
-	// Etag - Entity Tag
+	// Etag - Entity Tag.
 	Etag *string `json:"etag,omitempty"`
+	// Zones - READ-ONLY; Entity zones
+	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Bot.
@@ -382,8 +384,10 @@ type BotChannel struct {
 	Sku *Sku `json:"sku,omitempty"`
 	// Kind - Required. Gets or sets the Kind of the resource. Possible values include: 'KindSdk', 'KindDesigner', 'KindBot', 'KindFunction', 'KindAzurebot'
 	Kind Kind `json:"kind,omitempty"`
-	// Etag - Entity Tag
+	// Etag - Entity Tag.
 	Etag *string `json:"etag,omitempty"`
+	// Zones - READ-ONLY; Entity zones
+	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BotChannel.
@@ -496,6 +500,15 @@ func (bc *BotChannel) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				bc.Etag = &etag
+			}
+		case "zones":
+			if v != nil {
+				var zones []string
+				err = json.Unmarshal(*v, &zones)
+				if err != nil {
+					return err
+				}
+				bc.Zones = &zones
 			}
 		}
 	}
@@ -1342,8 +1355,10 @@ type ConnectionSetting struct {
 	Sku *Sku `json:"sku,omitempty"`
 	// Kind - Required. Gets or sets the Kind of the resource. Possible values include: 'KindSdk', 'KindDesigner', 'KindBot', 'KindFunction', 'KindAzurebot'
 	Kind Kind `json:"kind,omitempty"`
-	// Etag - Entity Tag
+	// Etag - Entity Tag.
 	Etag *string `json:"etag,omitempty"`
+	// Zones - READ-ONLY; Entity zones
+	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ConnectionSetting.
@@ -1381,6 +1396,10 @@ type ConnectionSettingParameter struct {
 
 // ConnectionSettingProperties properties for a Connection Setting Item
 type ConnectionSettingProperties struct {
+	// ID - Id of the Connection Setting.
+	ID *string `json:"id,omitempty"`
+	// Name - Name of the Connection Setting.
+	Name *string `json:"name,omitempty"`
 	// ClientID - Client Id associated with the Connection Setting.
 	ClientID *string `json:"clientId,omitempty"`
 	// SettingID - READ-ONLY; Setting Id set by the service for the Connection Setting.
@@ -1402,6 +1421,12 @@ type ConnectionSettingProperties struct {
 // MarshalJSON is the custom marshaler for ConnectionSettingProperties.
 func (csp ConnectionSettingProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if csp.ID != nil {
+		objectMap["id"] = csp.ID
+	}
+	if csp.Name != nil {
+		objectMap["name"] = csp.Name
+	}
 	if csp.ClientID != nil {
 		objectMap["clientId"] = csp.ClientID
 	}
@@ -2719,8 +2744,10 @@ type ListChannelWithKeysResponse struct {
 	Sku *Sku `json:"sku,omitempty"`
 	// Kind - Required. Gets or sets the Kind of the resource. Possible values include: 'KindSdk', 'KindDesigner', 'KindBot', 'KindFunction', 'KindAzurebot'
 	Kind Kind `json:"kind,omitempty"`
-	// Etag - Entity Tag
+	// Etag - Entity Tag.
 	Etag *string `json:"etag,omitempty"`
+	// Zones - READ-ONLY; Entity zones
+	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ListChannelWithKeysResponse.
@@ -2890,6 +2917,15 @@ func (lcwkr *ListChannelWithKeysResponse) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				lcwkr.Etag = &etag
+			}
+		case "zones":
+			if v != nil {
+				var zones []string
+				err = json.Unmarshal(*v, &zones)
+				if err != nil {
+					return err
+				}
+				lcwkr.Zones = &zones
 			}
 		}
 	}
@@ -3942,8 +3978,10 @@ type Resource struct {
 	Sku *Sku `json:"sku,omitempty"`
 	// Kind - Required. Gets or sets the Kind of the resource. Possible values include: 'KindSdk', 'KindDesigner', 'KindBot', 'KindFunction', 'KindAzurebot'
 	Kind Kind `json:"kind,omitempty"`
-	// Etag - Entity Tag
+	// Etag - Entity Tag.
 	Etag *string `json:"etag,omitempty"`
+	// Zones - READ-ONLY; Entity zones
+	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.

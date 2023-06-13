@@ -129,6 +129,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
 												validation.IsIPAddress,
+												validation.IsIPv4Range,
 												validation.IsCIDR,
 												validation.StringInSlice([]string{`*`}, false),
 											),
@@ -149,6 +150,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
 												validation.IsIPAddress,
+												validation.IsIPv4Range,
 												validation.IsCIDR,
 												validation.StringInSlice([]string{`*`}, false),
 											),
@@ -252,6 +254,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
 												validation.IsIPAddress,
+												validation.IsIPv4Range,
 												validation.IsCIDR,
 												validation.StringInSlice([]string{`*`}, false),
 											),
@@ -362,6 +365,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
 												validation.IsIPAddress,
+												validation.IsIPv4Range,
 												validation.IsCIDR,
 												validation.StringInSlice([]string{`*`}, false),
 											),

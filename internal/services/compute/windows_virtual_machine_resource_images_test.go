@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func TestAccWindowsVirtualMachine_imageFromImage(t *testing.T) {
@@ -369,7 +369,7 @@ provider "azurerm" {
 }
 
 func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.VirtualMachineID(state.ID)
+	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return err
 	}
@@ -379,32 +379,21 @@ func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Contex
 		"$args = \"/generalize /oobe /mode:vm /quit\"",
 		"Start-Process powershell -Argument \"$cmd $args\" -Wait",
 	}
-	runCommand := compute.RunCommandInput{
-		CommandID: utils.String("RunPowerShellScript"),
+	runCommand := virtualmachines.RunCommandInput{
+		CommandId: "RunPowerShellScript",
 		Script:    &command,
 	}
 
-	future, err := client.Compute.VMClient.RunCommand(ctx, id.ResourceGroup, id.Name, runCommand)
-	if err != nil {
-		return fmt.Errorf("Bad: Error in running sysprep: %+v", err)
+	if err := client.Compute.VirtualMachinesClient.RunCommandThenPoll(ctx, *id, runCommand); err != nil {
+		return fmt.Errorf("running sysprep for %s: %+v", *id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
-		return fmt.Errorf("Bad: Error waiting for Windows VM to sysprep: %+v", err)
+	if err := client.Compute.VirtualMachinesClient.DeallocateThenPoll(ctx, *id, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
+		return fmt.Errorf("deallocating %s: %+v", *id, err)
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
-	daFuture, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
-	if err != nil {
-		return fmt.Errorf("Bad: Deallocation error: %+v", err)
-	}
-
-	if err := daFuture.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
-		return fmt.Errorf("Bad: Deallocation error: %+v", err)
-	}
-
-	if _, err = client.Compute.VMClient.Generalize(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("Bad: Generalizing error: %+v", err)
+	if _, err = client.Compute.VirtualMachinesClient.Generalize(ctx, *id); err != nil {
+		return fmt.Errorf("generalizing %s: %+v", *id, err)
 	}
 
 	return nil

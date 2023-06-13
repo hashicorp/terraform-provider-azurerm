@@ -1,14 +1,19 @@
 package client
 
 import (
-	"github.com/Azure/go-autorest/autorest"
+	"fmt"
+
 	redis_2022_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-func NewClient(o *common.ClientOptions) *redis_2022_06_01.Client {
-	client := redis_2022_06_01.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
-		c.Authorizer = o.ResourceManagerAuthorizer
+func NewClient(o *common.ClientOptions) (*redis_2022_06_01.Client, error) {
+	client, err := redis_2022_06_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		c.Authorizer = o.Authorizers.ResourceManager
 	})
-	return &client
+	if err != nil {
+		return nil, fmt.Errorf("building clients for Redis: %+v", err)
+	}
+	return client, nil
 }

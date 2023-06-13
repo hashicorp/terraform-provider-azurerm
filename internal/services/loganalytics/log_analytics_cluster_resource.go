@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -84,6 +85,9 @@ func resourceLogAnalyticsClusterCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := clusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -113,18 +117,6 @@ func resourceLogAnalyticsClusterCreate(d *pluginsdk.ResourceData, meta interface
 	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if _, err = client.Get(ctx, id); err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	createWait, err := logAnalyticsClusterWaitForState(ctx, client, id)
-	if err != nil {
-		return err
-	}
-	if _, err := createWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.ClusterName, id.ResourceGroupName, err)
 	}
 
 	d.SetId(id.ID())
@@ -187,34 +179,37 @@ func resourceLogAnalyticsClusterUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	parameters := clusters.ClusterPatch{}
-	capacityReservation := clusters.ClusterSkuNameEnumCapacityReservation
-	if d.HasChange("size_gb") {
-		parameters.Sku = &clusters.ClusterSku{
-			Capacity: utils.Int64(int64(d.Get("size_gb").(int))),
-			Name:     &capacityReservation,
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", *id)
 		}
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("`azurerm_log_analytics_cluster` %s: `model` is nil", *id)
+	}
+
+	if props := model.Properties; props == nil {
+		return fmt.Errorf("`azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
+	}
+
+	if d.HasChange("size_gb") && model.Sku != nil && model.Sku.Capacity != nil {
+		model.Sku.Capacity = utils.Int64(int64(d.Get("size_gb").(int)))
 	}
 
 	if d.HasChange("tags") {
-		parameters.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+		model.Tags = expandTags(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, *id, parameters); err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	// Need to wait for the cluster to actually finish updating the resource before continuing
-	// since the service returns a 200 instantly while it's still updating in the background
-	log.Printf("[INFO] Checking for Log Analytics Cluster provisioning state")
-
-	updateWait, err := logAnalyticsClusterWaitForState(ctx, client, *id)
-	if err != nil {
-		return err
-	}
-
-	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.ClusterName, id.ResourceGroupName, err)
 	}
 
 	return resourceLogAnalyticsClusterRead(d, meta)
@@ -229,6 +224,9 @@ func resourceLogAnalyticsClusterDelete(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {

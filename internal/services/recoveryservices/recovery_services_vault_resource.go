@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -14,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2021-12-01/backupresourcestorageconfigsnoncrr"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2021-12-01/backupresourcevaultconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupresourcestorageconfigsnoncrr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupresourcevaultconfigs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationvaultsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -142,6 +143,27 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"monitoring": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"alerts_for_all_job_failures_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"alerts_for_critical_operation_failures_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+					},
+				},
+			},
+
 			"classic_vmware_replication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -216,6 +238,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		},
 		Properties: &vaults.VaultProperties{
 			PublicNetworkAccess: expandRecoveryServicesVaultPublicNetworkAccess(d.Get("public_network_access_enabled").(bool)),
+			MonitoringSettings:  expandRecoveryServicesVaultMonitorSettings(d.Get("monitoring").([]interface{})),
 		},
 	}
 
@@ -483,6 +506,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 			},
 			Properties: &vaults.VaultProperties{
 				PublicNetworkAccess: expandRecoveryServicesVaultPublicNetworkAccess(d.Get("public_network_access_enabled").(bool)), // It's required to call CreateOrUpdate.
+				MonitoringSettings:  expandRecoveryServicesVaultMonitorSettings(d.Get("monitoring").([]interface{})),
 			},
 		}
 
@@ -502,6 +526,10 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if d.HasChange("public_network_access_enabled") {
 		vault.Properties.PublicNetworkAccess = expandRecoveryServicesVaultPublicNetworkAccess(d.Get("public_network_access_enabled").(bool))
+	}
+
+	if d.HasChanges("monitoring") {
+		vault.Properties.MonitoringSettings = expandRecoveryServicesVaultMonitorSettings(d.Get("monitoring").([]interface{}))
 	}
 
 	if d.HasChange("identity") {
@@ -614,11 +642,15 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if model.Properties != nil && model.Properties.SecuritySettings != nil && model.Properties.SecuritySettings.ImmutabilitySettings != nil {
-		d.Set("immutability", *model.Properties.SecuritySettings.ImmutabilitySettings.State)
+		d.Set("immutability", string(pointer.From(model.Properties.SecuritySettings.ImmutabilitySettings.State)))
 	}
 
 	if model.Properties != nil && model.Properties.PublicNetworkAccess != nil {
 		d.Set("public_network_access_enabled", flattenRecoveryServicesVaultPublicNetworkAccess(model.Properties.PublicNetworkAccess))
+	}
+
+	if model.Properties != nil && model.Properties.MonitoringSettings != nil {
+		d.Set("monitoring", flattenRecoveryServicesVaultMonitorSettings(*model.Properties.MonitoringSettings))
 	}
 
 	cfg, err := cfgsClient.Get(ctx, cfgId)
@@ -637,7 +669,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 
 	if storageCfg.Model != nil && storageCfg.Model.Properties != nil {
 		props := storageCfg.Model.Properties
-		d.Set("storage_mode_type", props.StorageModelType)
+		d.Set("storage_mode_type", string(pointer.From(props.StorageModelType)))
 		d.Set("cross_region_restore_enabled", props.CrossRegionRestoreFlag)
 	}
 
@@ -802,6 +834,52 @@ func flattenRecoveryServicesVaultPublicNetworkAccess(input *vaults.PublicNetwork
 		return false
 	}
 	return *input == vaults.PublicNetworkAccessEnabled
+}
+
+func expandRecoveryServicesVaultMonitorSettings(input []interface{}) *vaults.MonitoringSettings {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	allJobAlert := vaults.AlertsStateDisabled
+	if v["alerts_for_all_job_failures_enabled"].(bool) {
+		allJobAlert = vaults.AlertsStateEnabled
+	}
+
+	criticalOperation := vaults.AlertsStateDisabled
+	if v["alerts_for_critical_operation_failures_enabled"].(bool) {
+		criticalOperation = vaults.AlertsStateEnabled
+	}
+
+	return pointer.To(vaults.MonitoringSettings{
+		AzureMonitorAlertSettings: pointer.To(vaults.AzureMonitorAlertSettings{
+			AlertsForAllJobFailures: pointer.To(allJobAlert),
+		}),
+		ClassicAlertSettings: pointer.To(vaults.ClassicAlertSettings{
+			AlertsForCriticalOperations: pointer.To(criticalOperation),
+		}),
+	})
+}
+
+func flattenRecoveryServicesVaultMonitorSettings(input vaults.MonitoringSettings) []interface{} {
+	allJobAlert := false
+	if input.AzureMonitorAlertSettings != nil && input.AzureMonitorAlertSettings.AlertsForAllJobFailures != nil {
+		allJobAlert = *input.AzureMonitorAlertSettings.AlertsForAllJobFailures == vaults.AlertsStateEnabled
+	}
+
+	criticalAlert := false
+	if input.ClassicAlertSettings != nil && input.ClassicAlertSettings.AlertsForCriticalOperations != nil {
+		criticalAlert = *input.ClassicAlertSettings.AlertsForCriticalOperations == vaults.AlertsStateEnabled
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"alerts_for_all_job_failures_enabled":            allJobAlert,
+			"alerts_for_critical_operation_failures_enabled": criticalAlert,
+		},
+	}
 }
 
 func resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx context.Context, cfgsClient *backupresourcevaultconfigs.BackupResourceVaultConfigsClient, id backupresourcevaultconfigs.VaultId) pluginsdk.StateRefreshFunc {

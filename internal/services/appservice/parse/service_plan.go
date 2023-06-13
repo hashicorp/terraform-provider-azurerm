@@ -41,7 +41,7 @@ func (id ServicePlanId) ID() string {
 func ServicePlanID(input string) (*ServicePlanId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an ServicePlan ID: %+v", input, err)
 	}
 
 	resourceId := ServicePlanId{

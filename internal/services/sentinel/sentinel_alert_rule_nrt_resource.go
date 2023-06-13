@@ -77,6 +77,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// lintignore:S013
 			"event_grouping": {
 				Type:     pluginsdk.TypeList,
 				Required: features.FourPointOhBeta(),

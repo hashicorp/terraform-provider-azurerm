@@ -42,19 +42,19 @@ func ParseNotificationHubID(input string) (*NotificationHubId, error) {
 	id := NotificationHubId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
 	}
 
 	if id.NotificationHubName, ok = parsed.Parsed["notificationHubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'notificationHubName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "notificationHubName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseNotificationHubIDInsensitively(input string) (*NotificationHubId, erro
 	id := NotificationHubId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
 	}
 
 	if id.NotificationHubName, ok = parsed.Parsed["notificationHubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'notificationHubName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "notificationHubName", *parsed)
 	}
 
 	return &id, nil

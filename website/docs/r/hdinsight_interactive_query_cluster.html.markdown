@@ -363,19 +363,7 @@ A `extension` block supports the following:
 
 An `autoscale` block supports the following:
 
-* `capacity` - (Optional) A `capacity` block as defined below.
-
 * `recurrence` - (Optional) A `recurrence` block as defined below.
-
--> **NOTE:** Either a `capacity` or `recurrence` block must be specified - but not both.
-
----
-
-A `capacity` block supports the following:
-
-* `max_instance_count` - (Required) The maximum number of worker nodes to autoscale to based on the cluster's activity.
-
-* `min_instance_count` - (Required) The minimum number of worker nodes to autoscale to based on the cluster's activity.
 
 ---
 

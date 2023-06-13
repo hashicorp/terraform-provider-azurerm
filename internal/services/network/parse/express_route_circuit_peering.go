@@ -44,7 +44,7 @@ func (id ExpressRouteCircuitPeeringId) ID() string {
 func ExpressRouteCircuitPeeringID(input string) (*ExpressRouteCircuitPeeringId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an ExpressRouteCircuitPeering ID: %+v", input, err)
 	}
 
 	resourceId := ExpressRouteCircuitPeeringId{

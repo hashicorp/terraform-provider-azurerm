@@ -44,23 +44,23 @@ func ParseSynchronizationSettingID(input string) (*SynchronizationSettingId, err
 	id := SynchronizationSettingId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accountName", *parsed)
 	}
 
 	if id.ShareName, ok = parsed.Parsed["shareName"]; !ok {
-		return nil, fmt.Errorf("the segment 'shareName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "shareName", *parsed)
 	}
 
 	if id.SynchronizationSettingName, ok = parsed.Parsed["synchronizationSettingName"]; !ok {
-		return nil, fmt.Errorf("the segment 'synchronizationSettingName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "synchronizationSettingName", *parsed)
 	}
 
 	return &id, nil
@@ -79,23 +79,23 @@ func ParseSynchronizationSettingIDInsensitively(input string) (*SynchronizationS
 	id := SynchronizationSettingId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.AccountName, ok = parsed.Parsed["accountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'accountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accountName", *parsed)
 	}
 
 	if id.ShareName, ok = parsed.Parsed["shareName"]; !ok {
-		return nil, fmt.Errorf("the segment 'shareName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "shareName", *parsed)
 	}
 
 	if id.SynchronizationSettingName, ok = parsed.Parsed["synchronizationSettingName"]; !ok {
-		return nil, fmt.Errorf("the segment 'synchronizationSettingName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "synchronizationSettingName", *parsed)
 	}
 
 	return &id, nil

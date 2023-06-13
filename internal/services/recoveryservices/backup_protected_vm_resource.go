@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -12,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2021-12-01/protecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -38,9 +39,9 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(80 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(120 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(80 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(120 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(80 * time.Minute),
 		},
 
@@ -56,6 +57,7 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 
 func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
+	opClient := meta.(*clients.Client).RecoveryServices.ProtectedItemOperationResultsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -113,11 +115,12 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id, item); err != nil {
+	resp, err := client.CreateOrUpdate(ctx, id, item)
+	if err != nil {
 		return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 	protectionState, ok := d.GetOk("protection_state")
-	protectionStopped := strings.EqualFold(protectionState.(string), string(backup.ProtectionStateProtectionStopped))
+	protectionStopped := strings.EqualFold(protectionState.(string), string(protecteditems.ProtectionStateProtectionStopped))
 	requireAdditionalUpdate := ok && protectionStopped
 	skipNormalUpdate := protectionStopped && !d.IsNewResource()
 
@@ -126,9 +129,13 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 			return fmt.Errorf("creating/updating Azure Backup Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 		}
 
-		if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, client, id, d); err != nil {
-			return err
-		}
+	operationId, err := parseBackupOperationId(resp.HttpResponse)
+	if err != nil {
+		return fmt.Errorf("issuing creating/updating request for %s: %+v", id, err)
+	}
+
+	if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, opClient, id, operationId); err != nil {
+		return err
 	}
 
 	if requireAdditionalUpdate {
@@ -156,32 +163,7 @@ func resourceRecoveryServicesBackupProtectedVMCreateUpdate(d *pluginsdk.Resource
 			return err
 		}
 
-		deadline, ok := ctx.Deadline()
-		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
-		}
-
-		opResultClient := meta.(*clients.Client).RecoveryServices.BackupOperationResultsClient
-		operationId := parsedLocation.Path["operationResults"]
-		opState := &pluginsdk.StateChangeConf{
-			MinTimeout: 30 * time.Second,
-			Delay:      10 * time.Second,
-			Pending:    []string{"202"},
-			Target:     []string{"200", "204"},
-			Refresh: func() (interface{}, string, error) {
-				resp, err := opResultClient.Get(ctx, id.VaultName, id.ResourceGroupName, operationId)
-				if err != nil {
-					return nil, "Error", fmt.Errorf("making Read request on Recovery Service Protected Item operation %q for %s: %+v", operationId, id, err)
-				}
-				return resp, strconv.Itoa(resp.StatusCode), err
-			},
-			Timeout: time.Until(deadline),
-		}
-
-		if _, err := opState.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("creating/updating %s: %+v", id, err)
-		}
-	}
+	d.SetId(id.ID())
 
 	return resourceRecoveryServicesBackupProtectedVMRead(d, meta)
 }
@@ -259,36 +241,37 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	locationURL, err := resp.HttpResponse.Location()
-	if err != nil || locationURL == nil {
-		return fmt.Errorf("deleting %s: Location header missing or empty", id)
-	}
-
-	parsedLocation, err := azure.ParseAzureResourceID(handleAzureSdkForGoBug2824(locationURL.Path))
+	operationId, err := parseBackupOperationId(resp.HttpResponse)
 	if err != nil {
-		return err
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if err = resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, opResultClient, *id, parsedLocation.Path["backupOperationResults"], d); err != nil {
+	if err = resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, opResultClient, *id, operationId); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx context.Context, client *protecteditems.ProtectedItemsClient, id protecteditems.ProtectedItemId, d *pluginsdk.ResourceData) error {
+func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx context.Context, opClient *backup.ProtectedItemOperationResultsClient, id protecteditems.ProtectedItemId, operationId string) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context was missing a deadline")
+	}
+
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
-		Pending:    []string{"NotFound"},
-		Target:     []string{"Found"},
-		Refresh:    resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx, client, id),
-	}
-
-	if d.IsNewResource() {
-		state.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+		Pending:    []string{"202"},
+		Target:     []string{"200", "204"},
+		Timeout:    time.Until(deadline),
+		Refresh: func() (interface{}, string, error) {
+			resp, err := opClient.Get(ctx, id.VaultName, id.ResourceGroupName, id.BackupFabricName, id.ProtectionContainerName, id.ProtectedItemName, operationId)
+			if err != nil {
+				return nil, "Error", fmt.Errorf("making Read request on Recovery Service Protected Item operation %q for %s: %+v", operationId, id, err)
+			}
+			return resp, strconv.Itoa(resp.StatusCode), err
+		},
 	}
 
 	_, err := state.WaitForStateContext(ctx)
@@ -299,7 +282,12 @@ func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx conte
 	return nil
 }
 
-func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Context, client *protecteditems.ProtectedItemsClient, opResultClient *backup.OperationResultsClient, id protecteditems.ProtectedItemId, operationId string, d *pluginsdk.ResourceData) error {
+func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Context, client *protecteditems.ProtectedItemsClient, opResultClient *backup.OperationResultsClient, id protecteditems.ProtectedItemId, operationId string) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context was missing a deadline")
+	}
+
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -327,7 +315,7 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 			return resp, "Pending", nil
 		},
 
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout: time.Until(deadline),
 	}
 
 	_, err := state.WaitForStateContext(ctx)
@@ -349,7 +337,7 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 			return resp, strconv.Itoa(resp.StatusCode), err
 		},
 
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout: time.Until(deadline),
 	}
 
 	_, err = opState.WaitForStateContext(ctx)
@@ -360,18 +348,30 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 	return nil
 }
 
-func resourceRecoveryServicesBackupProtectedVMRefreshFunc(ctx context.Context, client *protecteditems.ProtectedItemsClient, id protecteditems.ProtectedItemId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id, protecteditems.GetOperationOptions{})
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "NotFound", nil
-			}
-
-			return resp, "Error", fmt.Errorf("making Read request on %s: %+v", id, err)
-		}
-		return resp, "Found", nil
+func parseBackupOperationId(resp *http.Response) (operationId string, err error) {
+	if resp == nil {
+		return "", fmt.Errorf("Response is nil")
 	}
+
+	locationURL, err := resp.Location()
+	if err != nil || locationURL == nil {
+		return "", fmt.Errorf("Location header missing or empty")
+	}
+
+	parsedLocation, err := azure.ParseAzureResourceID(handleAzureSdkForGoBug2824(locationURL.Path))
+	if err != nil {
+		return "", err
+	}
+
+	if l, ok := parsedLocation.Path["backupOperationResults"]; ok {
+		return l, nil
+	}
+
+	if l, ok := parsedLocation.Path["operationResults"]; ok {
+		return l, nil
+	}
+
+	return "", fmt.Errorf("Location header missing backupOperationResults")
 }
 
 func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProperties {
@@ -433,8 +433,8 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 
 		"backup_policy_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validate.BackupPolicyID,
+			Required:     true,
+			ValidateFunc: azure.ValidateResourceID,
 		},
 
 		"exclude_disk_luns": {
