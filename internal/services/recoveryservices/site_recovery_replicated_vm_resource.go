@@ -700,101 +700,126 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("source_recovery_protection_container_name", id.ReplicationProtectionContainerName)
 
 	if prop := model.Properties; prop != nil {
+		recoveryFabricId := ""
 		if fabricId := pointer.From(prop.RecoveryFabricId); fabricId != "" {
 			parsedFabricId, err := replicationfabrics.ParseReplicationFabricIDInsensitively(fabricId)
 			if err != nil {
 				return fmt.Errorf("parsing recovery_fabric_id %s: %+v", fabricId, err)
 			}
-			d.Set("target_recovery_fabric_id", parsedFabricId.ID())
+			recoveryFabricId = parsedFabricId.ID()
 		}
+		d.Set("target_recovery_fabric_id", recoveryFabricId)
 
+		recoveryPolicyId := ""
 		if policyId := pointer.From(prop.PolicyId); policyId != "" {
 			parsedPolicyId, err := replicationpolicies.ParseReplicationPolicyIDInsensitively(policyId)
 			if err != nil {
 				return fmt.Errorf("parsing recovery_replication_policy_id %s: %+v", policyId, err)
 			}
-			d.Set("recovery_replication_policy_id", parsedPolicyId.ID())
+			recoveryPolicyId = parsedPolicyId.ID()
 		}
+		d.Set("recovery_replication_policy_id", recoveryPolicyId)
+
+		recoveryContainerId := ""
 		if containerId := pointer.From(prop.RecoveryContainerId); containerId != "" {
 			parsedContainerId, err := replicationprotecteditems.ParseReplicationProtectionContainerIDInsensitively(containerId)
 			if err != nil {
 				return fmt.Errorf("parsing recovery_protection_container_id %s: %+v", containerId, err)
 			}
-			d.Set("target_recovery_protection_container_id", parsedContainerId.ID())
+			recoveryContainerId = parsedContainerId.ID()
 		}
+		d.Set("target_recovery_protection_container_id", recoveryContainerId)
 
 		if a2aDetails, isA2a := prop.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
+			sourceVmId := ""
 			if objId := pointer.From(a2aDetails.FabricObjectId); objId != "" {
 				parsedVmID, err := virtualmachines.ParseVirtualMachineIDInsensitively(objId)
 				if err != nil {
 					return fmt.Errorf("parsing source_vm_id %s: %+v", objId, err)
 				}
-				d.Set("source_vm_id", parsedVmID.ID())
+				sourceVmId = parsedVmID.ID()
 			}
+			d.Set("source_vm_id", sourceVmId)
 
-			if recoveryGroupId := pointer.From(a2aDetails.RecoveryAzureResourceGroupId); recoveryGroupId != "" {
-				recoveryGroupId, err := resourceParse.ResourceGroupIDInsensitively(recoveryGroupId)
+			recoveryGroupId := ""
+			if groupId := pointer.From(a2aDetails.RecoveryAzureResourceGroupId); groupId != "" {
+				parsedGroupId, err := resourceParse.ResourceGroupIDInsensitively(groupId)
 				if err != nil {
-					return fmt.Errorf("parsing target_resource_group_id %s: %+v", recoveryGroupId, err)
+					return fmt.Errorf("parsing target_resource_group_id %s: %+v", parsedGroupId, err)
 				}
-				d.Set("target_resource_group_id", recoveryGroupId.ID())
+				recoveryGroupId = parsedGroupId.ID()
 			}
+			d.Set("target_resource_group_id", recoveryGroupId)
 
-			if availabilitySetId := pointer.From(a2aDetails.RecoveryAvailabilitySet); availabilitySetId != "" {
+			availabilitySetId := ""
+			if id := pointer.From(a2aDetails.RecoveryAvailabilitySet); id != "" {
 				parsedAvailabilitySetId, err := availabilitysets.ParseAvailabilitySetIDInsensitively(availabilitySetId)
 				if err != nil {
 					return fmt.Errorf("parsing target_availability_set_id %s: %+v", availabilitySetId, err)
 				}
-				d.Set("target_availability_set_id", parsedAvailabilitySetId.ID())
+				availabilitySetId = parsedAvailabilitySetId.ID()
 			}
+			d.Set("target_availability_set_id", availabilitySetId)
 
+			targetNetworkId := ""
 			if targetNetworkId := pointer.From(a2aDetails.SelectedRecoveryAzureNetworkId); targetNetworkId != "" {
 				parsedTargetNetworkId, err := networkParse.VirtualNetworkIDInsensitively(targetNetworkId)
 				if err != nil {
 					return fmt.Errorf("parsing target_network_id %s: %+v", targetNetworkId, err)
 				}
-				d.Set("target_network_id", parsedTargetNetworkId.ID())
+				targetNetworkId = parsedTargetNetworkId.ID()
 			}
+			d.Set("target_network_id", targetNetworkId)
 
+			testNetworkId := ""
 			if tfoNetworkId := pointer.From(a2aDetails.SelectedTfoAzureNetworkId); tfoNetworkId != "" {
 				parsedTfoNetworkId, err := networkParse.VirtualNetworkIDInsensitively(tfoNetworkId)
 				if err != nil {
 					return fmt.Errorf("parsing test_network_id %s: %+v", tfoNetworkId, err)
 				}
-				d.Set("test_network_id", parsedTfoNetworkId.ID())
+				testNetworkId = parsedTfoNetworkId.ID()
 			}
+			d.Set("test_network_id", testNetworkId)
 
-			if proximityPlacementGroupId := pointer.From(a2aDetails.RecoveryProximityPlacementGroupId); proximityPlacementGroupId != "" {
-				parsedProximityPlacementGroupId, err := proximityplacementgroups.ParseProximityPlacementGroupIDInsensitively(proximityPlacementGroupId)
+			proximityPlacementGroupId := ""
+			if id := pointer.From(a2aDetails.RecoveryProximityPlacementGroupId); id != "" {
+				parsedProximityPlacementGroupId, err := proximityplacementgroups.ParseProximityPlacementGroupIDInsensitively(id)
 				if err != nil {
-					return fmt.Errorf("parsing target_proximity_placement_group_id %s: %+v", proximityPlacementGroupId, err)
+					return fmt.Errorf("parsing target_proximity_placement_group_id %s: %+v", id, err)
 				}
-				d.Set("target_proximity_placement_group_id", parsedProximityPlacementGroupId.ID())
+				proximityPlacementGroupId = parsedProximityPlacementGroupId.ID()
 			}
+			d.Set("target_proximity_placement_group_id", proximityPlacementGroupId)
 
-			if recoveryBootDiagStorageAccount := pointer.From(a2aDetails.RecoveryBootDiagStorageAccountId); recoveryBootDiagStorageAccount != "" {
-				parsedRecoveryBootDiagStorageAccount, err := storageaccounts.ParseStorageAccountIDInsensitively(recoveryBootDiagStorageAccount)
+			recoveryBootDiagStorageAccount := ""
+			if id := pointer.From(a2aDetails.RecoveryBootDiagStorageAccountId); id != "" {
+				parsedRecoveryBootDiagStorageAccount, err := storageaccounts.ParseStorageAccountIDInsensitively(id)
 				if err != nil {
-					return fmt.Errorf("parsing target_boot_diagnostic_storage_account_id %s: %+v", recoveryBootDiagStorageAccount, err)
+					return fmt.Errorf("parsing target_boot_diagnostic_storage_account_id %s: %+v", id, err)
 				}
-				d.Set("target_boot_diagnostic_storage_account_id", parsedRecoveryBootDiagStorageAccount.ID())
+				recoveryBootDiagStorageAccount = parsedRecoveryBootDiagStorageAccount.ID()
 			}
+			d.Set("target_boot_diagnostic_storage_account_id", recoveryBootDiagStorageAccount)
 
-			if capReservaGroupId := pointer.From(a2aDetails.RecoveryCapacityReservationGroupId); capReservaGroupId != "" {
-				parsedCapReservaGroupId, err := capacityreservationgroups.ParseCapacityReservationGroupIDInsensitively(capReservaGroupId)
+			capReservationGroupId := ""
+			if id := pointer.From(a2aDetails.RecoveryCapacityReservationGroupId); id != "" {
+				parsedCapReservaGroupId, err := capacityreservationgroups.ParseCapacityReservationGroupIDInsensitively(id)
 				if err != nil {
-					return fmt.Errorf("parsing target_capacity_reservation_group_id %s: %+v", capReservaGroupId, err)
+					return fmt.Errorf("parsing target_capacity_reservation_group_id %s: %+v", id, err)
 				}
-				d.Set("target_capacity_reservation_group_id", parsedCapReservaGroupId.ID())
+				capReservationGroupId = parsedCapReservaGroupId.ID()
 			}
+			d.Set("target_capacity_reservation_group_id", capReservationGroupId)
 
-			if vmssId := pointer.From(a2aDetails.RecoveryVirtualMachineScaleSetId); vmssId != "" {
-				parsedVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(vmssId)
+			vmssId := ""
+			if id := pointer.From(a2aDetails.RecoveryVirtualMachineScaleSetId); id != "" {
+				parsedVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(id)
 				if err != nil {
-					return fmt.Errorf("parsing target_virtual_machine_scale_set_id %s: %+v", vmssId, err)
+					return fmt.Errorf("parsing target_virtual_machine_scale_set_id %s: %+v", id, err)
 				}
-				d.Set("target_virtual_machine_scale_set_id", parsedVmssId.ID())
+				vmssId = parsedVmssId.ID()
 			}
+			d.Set("target_virtual_machine_scale_set_id", vmssId)
 
 			d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
 			d.Set("target_edge_zone", flattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
