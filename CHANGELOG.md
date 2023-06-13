@@ -8,11 +8,20 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230530.1150329` of `github.com/tombuildsstuff/kermit` [GH-21980]
+* dependencies: `compute/gallery`: updating to API Version `2022-03-03` [GH-21999]
 * Data Source `azurerm_site_recovery_replication_recovery_plan` - add support for `azure_to_azure_settings` block [GH-22098]
 * `compute`: updating to use API Version `2023-03-01` [GH-21980]
 * `containers`: updating to use API version `2023-04-02-preview` [22048]
 * `managedidentity`: updating to use API Version `2023-01-31` [GH-22102]
-* `azurerm_batch_account` - `public_network_access_enabled` is now updatable [GH-22095]
+* `azurerm_batch_account` - the `public_network_access_enabled` property can now be updated [GH-22095]
+* `azurerm_batch_pool` - support for the `target_node_communication_mode` property [GH-22094]
+* `azurerm_automanage_configuration` - support for the `log_analytics_enabled` property [GH-22121]
+* `azurerm_nginx_certificate` - the `key_virtual_path`, `certificate_virtual_path`, and `key_vault_secret_id` proeprties can now be updated [GH-22100]
+* `azurerm_spring_cloud_gateway` - support for the `client_authentication` property [GH-22016]
+
+BUG FIXES:
+
+* `azurerm_databricks_workspace_data_source` - correctly set the `managed_idnetity_id` attribute [GH-22021]
 
 ## 3.60.0 (June 08, 2023)
 
