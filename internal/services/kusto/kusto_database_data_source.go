@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	kustoValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
