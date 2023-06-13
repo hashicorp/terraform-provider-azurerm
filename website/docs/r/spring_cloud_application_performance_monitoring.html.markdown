@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `spring_cloud_service_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new resource to be created.
 
-* `type` - (Required) The type of the Spring Cloud Application Performance Monitoring. 
+* `type` - (Required) The type of the Spring Cloud Application Performance Monitoring. The allowed values are `AppDynamic`, `ApplicationInsights`, `Dynatrace`, `ElasticAPM` and `NewRelic`. 
 
 ---
 

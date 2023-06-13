@@ -58,9 +58,15 @@ func (s SpringCloudApplicationPerformanceMonitoringResource) Arguments() map[str
 		},
 
 		"type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"AppDynamics",
+				"ApplicationInsights",
+				"Dynatrace",
+				"ElasticAPM",
+				"NewRelic",
+			}, false),
 		},
 
 		"globally_enabled": {
