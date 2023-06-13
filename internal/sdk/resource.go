@@ -48,6 +48,19 @@ type DataSource interface {
 	Read() ResourceFunc
 }
 
+// DataSourceWithDeprecationReplacedBy is an optional interface
+//
+// DataSource implementing this interface will be marked as Deprecated
+// and output the DeprecationMessage during Terraform operations.
+type DataSourceWithDeprecationReplacedBy interface {
+	DataSource
+
+	// nolint gocritic
+	// DeprecatedInFavourOfDataSource returns the name of the resource that this has been deprecated in favour of
+	// NOTE: this must return a non-empty string
+	DeprecatedInFavourOfDataSource() string
+}
+
 // A Resource is an object which can be provisioned and managed by Terraform
 // that is, Created, Retrieved, Deleted, Imported (and optionally, Updated, by implementing
 // the 'ResourceWithUpdate' interface)

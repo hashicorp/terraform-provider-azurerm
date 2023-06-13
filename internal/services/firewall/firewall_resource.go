@@ -105,7 +105,7 @@ func resourceFirewall() *pluginsdk.Resource {
 						},
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 						"private_ip_address": {
@@ -552,11 +552,13 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]network.AzureFire
 
 		ipConfig := network.AzureFirewallIPConfiguration{
 			Name: utils.String(name),
-			AzureFirewallIPConfigurationPropertiesFormat: &network.AzureFirewallIPConfigurationPropertiesFormat{
-				PublicIPAddress: &network.SubResource{
-					ID: utils.String(pubID),
-				},
-			},
+			AzureFirewallIPConfigurationPropertiesFormat: &network.AzureFirewallIPConfigurationPropertiesFormat{},
+		}
+
+		if pubID != "" {
+			ipConfig.AzureFirewallIPConfigurationPropertiesFormat.PublicIPAddress = &network.SubResource{
+				ID: utils.String(pubID),
+			}
 		}
 
 		if subnetId != "" {

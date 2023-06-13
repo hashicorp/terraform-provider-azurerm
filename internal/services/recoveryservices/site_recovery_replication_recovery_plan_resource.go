@@ -124,12 +124,12 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 						},
 					},
 					"pre_action": {
-						Type:     pluginsdk.TypeSet,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem:     replicationRecoveryPlanActionSchema(),
 					},
 					"post_action": {
-						Type:     pluginsdk.TypeSet,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem:     replicationRecoveryPlanActionSchema(),
 					},

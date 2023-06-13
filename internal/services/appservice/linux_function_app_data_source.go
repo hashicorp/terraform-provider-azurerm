@@ -36,6 +36,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	AppSettings               map[string]string                    `tfschema:"app_settings"`
 	AuthSettings              []helpers.AuthSettings               `tfschema:"auth_settings"`
 	AuthV2Settings            []helpers.AuthV2Settings             `tfschema:"auth_settings_v2"`
+	Availability              string                               `tfschema:"availability"`
 	Backup                    []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging            bool                                 `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled         bool                                 `tfschema:"client_certificate_enabled"`
@@ -60,6 +61,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
 	PossibleOutboundIPAddresses   string   `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
+	Usage                         string   `tfschema:"usage"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
@@ -125,6 +127,11 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+
+		"availability": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
@@ -234,6 +241,11 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"usage": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
@@ -325,6 +337,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			state := LinuxFunctionAppDataSourceModel{
 				Name:                       id.SiteName,
 				ResourceGroup:              id.ResourceGroup,
+				Availability:               string(props.AvailabilityState),
 				ServicePlanId:              utils.NormalizeNilableString(props.ServerFarmID),
 				Location:                   location.NormalizeNilable(functionApp.Location),
 				Enabled:                    utils.NormaliseNilableBool(functionApp.Enabled),
@@ -336,6 +349,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				Kind:                       utils.NormalizeNilableString(functionApp.Kind),
 				CustomDomainVerificationId: utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:            utils.NormalizeNilableString(functionApp.DefaultHostName),
+				Usage:                      string(props.UsageState),
 			}
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {

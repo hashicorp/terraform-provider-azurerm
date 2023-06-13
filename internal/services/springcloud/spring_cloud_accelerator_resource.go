@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-03-01-preview/appplatform"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 type SpringCloudAcceleratorModel struct {

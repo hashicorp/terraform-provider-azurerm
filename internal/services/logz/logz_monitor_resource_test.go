@@ -29,7 +29,7 @@ func TestAccLogzMonitor_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user"),
+		data.ImportStep(),
 	})
 }
 
@@ -64,7 +64,7 @@ func TestAccLogzMonitor_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user"),
+		data.ImportStep(),
 	})
 }
 
@@ -80,21 +80,21 @@ func TestAccLogzMonitor_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user"),
+		data.ImportStep(),
 		{
 			Config: r.update(data, effectiveDate, email),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user"),
+		data.ImportStep(),
 		{
 			Config: r.basic(data, effectiveDate, email),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user"),
+		data.ImportStep(),
 	})
 }
 

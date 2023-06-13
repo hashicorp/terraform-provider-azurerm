@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
@@ -84,6 +84,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return true
 			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if d.HasChange("oidc_issuer_enabled") {
+					d.SetNewComputed("oidc_issuer_url")
+				}
+				return nil
+			},
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -830,7 +836,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.NetworkPluginModeOverlay),
+								// TODO 4.0: change it to managedclusters.NetworkPluginModeOverlay
+								"Overlay",
 							}, false),
 						},
 
@@ -1342,9 +1349,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	// supplied by the user which will result in a diff in some cases, so if versions have been supplied check that they
 	// are identical
 	agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
-	if nodePoolVersion := agentProfile.Properties.CurrentOrchestratorVersion; nodePoolVersion != nil {
-		if kubernetesVersion != "" && kubernetesVersion != *nodePoolVersion {
-			return fmt.Errorf("version mismatch between the control plane running %s and default node pool running %s, they must use the same kubernetes versions", kubernetesVersion, *nodePoolVersion)
+	if prop := agentProfile.Properties; prop != nil {
+		if nodePoolVersion := prop.CurrentOrchestratorVersion; nodePoolVersion != nil {
+			if kubernetesVersion != "" && kubernetesVersion != *nodePoolVersion {
+				return fmt.Errorf("version mismatch between the control plane running %s and default node pool running %s, they must use the same kubernetes versions", kubernetesVersion, *nodePoolVersion)
+			}
 		}
 	}
 
@@ -1736,6 +1745,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("network_profile") {
 		updateCluster = true
 
+		if existing.Model.Properties.NetworkProfile == nil {
+			return fmt.Errorf("updating %s: `network_profile` was nil", *id)
+		}
+
 		networkProfile := *existing.Model.Properties.NetworkProfile
 
 		if networkProfile.LoadBalancerProfile == nil && networkProfile.NatGatewayProfile == nil {
@@ -1929,6 +1942,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		updateCluster = true
 		azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
 		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
@@ -1936,6 +1952,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
 		microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
 		existing.Model.Properties.SecurityProfile.Defender = microsoftDefender
 	}
 
@@ -2061,15 +2080,34 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		// if the default node pool name has changed it means the initial attempt at resizing failed
-		if d.HasChange("default_node_pool.0.vm_size") || d.HasChange("default_node_pool.0.name") {
+		cycleNodePoolProperties := []string{
+			"default_node_pool.0.name",
+			"default_node_pool.0.enable_host_encryption",
+			"default_node_pool.0.enable_node_public_ip",
+			"default_node_pool.0.kubelet_config",
+			"default_node_pool.0.linux_os_config",
+			"default_node_pool.0.max_pods",
+			"default_node_pool.0.node_taints",
+			"default_node_pool.0.only_critical_addons_enabled",
+			"default_node_pool.0.os_disk_size_gb",
+			"default_node_pool.0.os_disk_type",
+			"default_node_pool.0.os_sku",
+			"default_node_pool.0.pod_subnet_id",
+			"default_node_pool.0.ultra_ssd_enabled",
+			"default_node_pool.0.vnet_subnet_id",
+			"default_node_pool.0.vm_size",
+			"default_node_pool.0.zones",
+		}
+
+		// if the default node pool name has changed, it means the initial attempt at resizing failed
+		if d.HasChanges(cycleNodePoolProperties...) {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
 			// to provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
 			// bringing up the new one.
 
 			if v := d.Get("default_node_pool.0.temporary_name_for_rotation").(string); v == "" {
-				return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating `vm_size`")
+				return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating any of the following properties %q", cycleNodePoolProperties)
 			}
 
 			temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name_for_rotation").(string)
@@ -2311,7 +2349,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `linux_profile`: %+v", err)
 			}
 
-			networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile)
+			networkProfileRaw := d.Get("network_profile").([]interface{})
+			networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile, networkProfileRaw)
 			if err := d.Set("network_profile", networkProfile); err != nil {
 				return fmt.Errorf("setting `network_profile`: %+v", err)
 			}
@@ -2865,11 +2904,6 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		networkProfile.PodCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
-	if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
-		dockerBridgeCidr := v.(string)
-		networkProfile.DockerBridgeCidr = utils.String(dockerBridgeCidr)
-	}
-
 	if v, ok := config["service_cidr"]; ok && v.(string) != "" {
 		serviceCidr := v.(string)
 		networkProfile.ServiceCidr = utils.String(serviceCidr)
@@ -3004,7 +3038,7 @@ func resourceReferencesToIds(refs *[]managedclusters.ResourceReference) []string
 	return nil
 }
 
-func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile) []interface{} {
+func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile, raw []interface{}) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -3015,8 +3049,11 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	}
 
 	dockerBridgeCidr := ""
-	if profile.DockerBridgeCidr != nil {
-		dockerBridgeCidr = *profile.DockerBridgeCidr
+	if len(raw) != 0 && raw[0] != nil {
+		config := raw[0].(map[string]interface{})
+		if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
+			dockerBridgeCidr = v.(string)
+		}
 	}
 
 	serviceCidr := ""

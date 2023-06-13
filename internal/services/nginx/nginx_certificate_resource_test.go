@@ -42,6 +42,27 @@ func TestAccCertificate_basic(t *testing.T) {
 	})
 }
 
+func TestAccCertificate_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx.CertificateResource{}.ResourceType(), "test")
+	r := CertificateResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.CertificateResource{}.ResourceType(), "test")
 	r := CertificateResource{}
@@ -59,7 +80,6 @@ func TestAccCertificate_requiresImport(t *testing.T) {
 func (a CertificateResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
-
 %s
 
 resource "azurerm_nginx_certificate" "test" {
@@ -70,6 +90,67 @@ resource "azurerm_nginx_certificate" "test" {
   key_vault_secret_id      = azurerm_key_vault_certificate.test.secret_id
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (a CertificateResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%s
+
+resource "azurerm_key_vault_certificate" "test2" {
+  name         = "acctestcert2%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pem-file"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyEncipherment",
+        "keyCertSign",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+
+resource "azurerm_nginx_certificate" "test" {
+  name                     = "acctest%[2]d"
+  nginx_deployment_id      = azurerm_nginx_deployment.test.id
+  key_virtual_path         = "/src/cert/soservermekey2.key"
+  certificate_virtual_path = "/src/cert/server2.cert"
+  key_vault_secret_id      = azurerm_key_vault_certificate.test2.secret_id
+}
+`, a.template(data), data.RandomInteger)
 }
 
 func (a CertificateResource) requiresImport(data acceptance.TestData) string {
