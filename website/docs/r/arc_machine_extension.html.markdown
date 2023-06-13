@@ -48,7 +48,7 @@ The following arguments are supported:
 
 ---
 
-* `automatic_upgrade_enabled` - (Optional) Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available. Supported values are `true` and `false`.
+* `automatic_upgrades_enabled` - (Optional) Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available. Supported values are `true` and `false`.
 
 **NOTE:** When `automatic_upgrade_enabled` can only be set during creation. Any later change will be ignored.
 
