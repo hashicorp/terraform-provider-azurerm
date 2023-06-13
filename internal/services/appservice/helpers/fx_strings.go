@@ -286,12 +286,7 @@ func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion st
 func EncodeDockerFxString(image string, registryUrl string) string {
 	template := "DOCKER|%s/%s"
 
-	for _, prefix := range urlSchemes {
-		if strings.HasPrefix(registryUrl, prefix) {
-			registryUrl = strings.TrimPrefix(registryUrl, prefix)
-			continue
-		}
-	}
+	registryUrl = trimURLScheme(registryUrl)
 
 	return fmt.Sprintf(template, registryUrl, image)
 }
