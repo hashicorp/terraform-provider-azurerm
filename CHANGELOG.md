@@ -1,32 +1,32 @@
-## 3.61.0 (Unreleased)
+## 3.61.0 (June 12, 2023)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_mobile_network_packet_core_data_plane` [GH-21053]
-* **New Resource:** `azurerm_arc_machine_extension` [GH-22051]
-* **New Resource:** `azurerm_arc_kubernetes_flux_configuration` [GH-21579]
-* **New Resource:** `azurerm_kubernetes_flux_configuration` [GH-21579]
-* **New Resource:** `azurerm_mobile_network_packet_core_data_plane` [GH-21053]
+* **New Data Source:** `azurerm_mobile_network_packet_core_data_plane` ([#21053](https://github.com/hashicorp/terraform-provider-azurerm/issues/21053))
+* **New Resource:** `azurerm_arc_machine_extension` ([#22051](https://github.com/hashicorp/terraform-provider-azurerm/issues/22051))
+* **New Resource:** `azurerm_arc_kubernetes_flux_configuration` ([#21579](https://github.com/hashicorp/terraform-provider-azurerm/issues/21579))
+* **New Resource:** `azurerm_kubernetes_flux_configuration` ([#21579](https://github.com/hashicorp/terraform-provider-azurerm/issues/21579))
+* **New Resource:** `azurerm_mobile_network_packet_core_data_plane` ([#21053](https://github.com/hashicorp/terraform-provider-azurerm/issues/21053))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230530.1150329` of `github.com/tombuildsstuff/kermit` [GH-21980]
-* dependencies: `compute/gallery`: updating to API Version `2022-03-03` [GH-21999]
-* dependencies: `kusto`: updating to API Version `2022-12-29` [GH-21961]
-* Data Source `azurerm_site_recovery_replication_recovery_plan` - add support for `azure_to_azure_settings` block [GH-22098]
-* `compute`: updating to use API Version `2023-03-01` [GH-21980]
+* dependencies: updating to `v0.20230530.1150329` of `github.com/tombuildsstuff/kermit` ([#21980](https://github.com/hashicorp/terraform-provider-azurerm/issues/21980))
+* dependencies: `compute/gallery`: updating to API Version `2022-03-03` ([#21999](https://github.com/hashicorp/terraform-provider-azurerm/issues/21999))
+* dependencies: `kusto`: updating to API Version `2022-12-29` ([#21961](https://github.com/hashicorp/terraform-provider-azurerm/issues/21961))
+* Data Source `azurerm_site_recovery_replication_recovery_plan` - add support for `azure_to_azure_settings` block ([#22098](https://github.com/hashicorp/terraform-provider-azurerm/issues/22098))
+* `compute`: updating to use API Version `2023-03-01` ([#21980](https://github.com/hashicorp/terraform-provider-azurerm/issues/21980))
 * `containers`: updating to use API version `2023-04-02-preview` [22048]
-* `managedidentity`: updating to use API Version `2023-01-31` [GH-22102]
-* `azurerm_backup_protected_vm` - support for the `protection_state` property [GH-20608]
-* `azurerm_batch_account` - the `public_network_access_enabled` property can now be updated [GH-22095]
-* `azurerm_batch_pool` - support for the `target_node_communication_mode` property [GH-22094]
-* `azurerm_automanage_configuration` - support for the `log_analytics_enabled` property [GH-22121]
-* `azurerm_nginx_certificate` - the `key_virtual_path`, `certificate_virtual_path`, and `key_vault_secret_id` proeprties can now be updated [GH-22100]
-* `azurerm_spring_cloud_gateway` - support for the `client_authentication` property [GH-22016]
+* `managedidentity`: updating to use API Version `2023-01-31` ([#22102](https://github.com/hashicorp/terraform-provider-azurerm/issues/22102))
+* `azurerm_backup_protected_vm` - support for the `protection_state` property ([#20608](https://github.com/hashicorp/terraform-provider-azurerm/issues/20608))
+* `azurerm_batch_account` - the `public_network_access_enabled` property can now be updated ([#22095](https://github.com/hashicorp/terraform-provider-azurerm/issues/22095))
+* `azurerm_batch_pool` - support for the `target_node_communication_mode` property ([#22094](https://github.com/hashicorp/terraform-provider-azurerm/issues/22094))
+* `azurerm_automanage_configuration` - support for the `log_analytics_enabled` property ([#22121](https://github.com/hashicorp/terraform-provider-azurerm/issues/22121))
+* `azurerm_nginx_certificate` - the `key_virtual_path`, `certificate_virtual_path`, and `key_vault_secret_id` proeprties can now be updated ([#22100](https://github.com/hashicorp/terraform-provider-azurerm/issues/22100))
+* `azurerm_spring_cloud_gateway` - support for the `client_authentication` property ([#22016](https://github.com/hashicorp/terraform-provider-azurerm/issues/22016))
 
 BUG FIXES:
 
-* `azurerm_databricks_workspace_data_source` - correctly set the `managed_idnetity_id` attribute [GH-22021]
+* `azurerm_databricks_workspace_data_source` - correctly set the `managed_idnetity_id` attribute ([#22021](https://github.com/hashicorp/terraform-provider-azurerm/issues/22021))
 
 ## 3.60.0 (June 08, 2023)
 
