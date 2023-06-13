@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `containers`: updating to use API version `2023-04-02-preview` [22048]
 * `managedidentity`: updating to use API Version `2023-01-31` [GH-22102]
 * `azurerm_batch_account` - the `public_network_access_enabled` property can now be updated [GH-22095]
+* `azurerm_batch_pool` - support for the `target_node_communication_mode` property [GH-22094]
 * `azurerm_automanage_configuration` - support for the `log_analytics_enabled` property [GH-22121]
 * `azurerm_nginx_certificate` - the `key_virtual_path`, `certificate_virtual_path`, and `key_vault_secret_id` proeprties can now be updated [GH-22100]
 * `azurerm_spring_cloud_gateway` - support for the `client_authentication` property [GH-22016]
