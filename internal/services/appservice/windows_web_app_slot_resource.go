@@ -559,8 +559,13 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				}
 
 				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-					state.HostingEnvId = pointer.From(hostingEnv.ID)
+					hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.ID)
+					if err != nil {
+						return err
+					}
+					state.HostingEnvId = hostingEnvId.ID()
 				}
+
 				parentAppFarmId, err := parse.ServicePlanIDInsensitively(*webApp.SiteProperties.ServerFarmID)
 				if err != nil {
 					return err
