@@ -204,7 +204,7 @@ func (r ManagerManagementGroupConnectionResource) Read() sdk.ResourceFunc {
 			properties := existing.Model.Properties
 			state := ManagerManagementGroupConnectionModel{
 				Name:              id.NetworkManagerConnectionName,
-				ManagementGroupId: id.ManagementGroupId,
+				ManagementGroupId: managementParse.NewManagementGroupId(id.ManagementGroupId).ID(),
 			}
 
 			if properties.ConnectionState != nil {
