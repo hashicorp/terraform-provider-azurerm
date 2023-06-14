@@ -705,7 +705,7 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   log {
     category = "SignInLogs"
-	enabled = false
+    enabled  = false
     retention_policy {
       enabled = true
       days    = 1
