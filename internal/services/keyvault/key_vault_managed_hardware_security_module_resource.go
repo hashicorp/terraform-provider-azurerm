@@ -163,7 +163,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(2, 10),
 			},
 
-			"security_domain_enc_data": {
+			"security_domain_encrypted_data": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -235,7 +235,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 		}
-		d.Set("security_domain_enc_data", encData)
+		d.Set("security_domain_encrypted_data", encData)
 	}
 
 	return resourceArmKeyVaultManagedHardwareSecurityModuleRead(d, meta)
@@ -269,7 +269,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 		}
-		d.Set("security_domain_enc_data", encData)
+		d.Set("security_domain_encrypted_data", encData)
 	}
 
 	return nil

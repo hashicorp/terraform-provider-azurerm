@@ -3,10 +3,10 @@ package custompollers
 import (
 	"context"
 	"fmt"
-	kv74 "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	kv74 "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 var _ pollers.PollerType = &hsmDownloadPoller{}

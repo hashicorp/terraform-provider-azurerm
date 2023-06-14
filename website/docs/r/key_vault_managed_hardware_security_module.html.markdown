@@ -84,8 +84,6 @@ A `network_acls` block supports the following:
 
 * `default_action` - (Required) The Default Action to use. Possible values are `Allow` and `Deny`.
 
----
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -94,7 +92,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `hsm_uri` - The URI of the Key Vault Managed Hardware Security Module, used for performing operations on keys.
 
-* `security_domain_enc_data` - The sensitive data will be used for disaster recovery or for creating another Managed HSM that shares same security domain so the two can share keys.
+* `security_domain_encrypted_data` - This attribute can be used for disaster recovery or when creating another Managed HSM that shares the same security domain.
 
 ## Timeouts
 

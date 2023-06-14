@@ -99,12 +99,7 @@ func TestParseNestedItemID(t *testing.T) {
 		},
 		{
 			Input:       "https://my-keyvault.managedhsm.azure.net/keys/castle/1492",
-			ExpectError: false,
-			Expected: NestedItemId{
-				Name:            "castle",
-				KeyVaultBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
-				Version:         "1492",
-			},
+			ExpectError: true,
 		},
 		{
 			Input:       "https://my-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217/XXX",
@@ -196,12 +191,7 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 		},
 		{
 			Input:       "https://my-keyvault.managedhsm.azure.net/keys/castle/1492",
-			ExpectError: false,
-			Expected: NestedItemId{
-				Name:            "castle",
-				KeyVaultBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
-				Version:         "1492",
-			},
+			ExpectError: true,
 		},
 		{
 			Input:       "https://my-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217/XXX",
