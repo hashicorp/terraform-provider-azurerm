@@ -85,10 +85,9 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 			},
 
 			"enabled_log": {
-				Type:         pluginsdk.TypeSet,
-				Optional:     true,
-				Computed:     !features.FourPointOhBeta(),
-				ExactlyOneOf: []string{"enabled_log", "log"},
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Computed: !features.FourPointOhBeta(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
@@ -124,6 +123,7 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource.Schema["enabled_log"].ExactlyOneOf = []string{"enabled_log", "log"}
 		resource.Schema["log"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,

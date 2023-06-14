@@ -3,6 +3,7 @@ package monitor_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -28,6 +29,8 @@ func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
 			"requiresImport":        testAccMonitorAADDiagnosticSetting_requiresImport,
 			"logAnalyticsWorkspace": testAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace,
 			"storageAccount":        testAccMonitorAADDiagnosticSetting_storageAccount,
+			"storageAccountUpdate":  testAccMonitorAADDiagnosticSetting_storageAccountUpdate,
+			"updateToDisabled":      testAccMonitorAADDiagnosticSetting_updateToDisabled,
 		},
 	}
 
@@ -117,6 +120,50 @@ func testAccMonitorAADDiagnosticSetting_storageAccount(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func testAccMonitorAADDiagnosticSetting_storageAccountUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
+	r := MonitorAADDiagnosticSettingResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.storageAccountUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccMonitorAADDiagnosticSetting_updateToDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
+	r := MonitorAADDiagnosticSettingResource{}
+
+	if features.FourPointOhBeta() {
+		t.Skip("remove this test in 4.0 version")
+	}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.disabled(data),
+			ExpectError: regexp.MustCompile("at least one of the `log`"),
+		},
 	})
 }
 
@@ -597,4 +644,74 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
+}
+
+func (MonitorAADDiagnosticSettingResource) storageAccountUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_kind             = "StorageV2"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_aad_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
+  enabled_log {
+    category = "SignInLogs"
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
+}
+
+func (MonitorAADDiagnosticSettingResource) disabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_kind             = "StorageV2"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_aad_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
+  log {
+    category = "SignInLogs"
+	enabled = false
+    retention_policy {
+      enabled = true
+      days    = 1
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
+
 }
