@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/attacheddatanetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/datanetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcorecontrolplane"
@@ -23,6 +24,7 @@ type Client struct {
 	SIMPolicyClient              *simpolicy.SIMPolicyClient
 	PacketCoreControlPlaneClient *packetcorecontrolplane.PacketCoreControlPlaneClient
 	PacketCoreDataPlaneClient    *packetcoredataplane.PacketCoreDataPlaneClient
+	AttachedDataNetworkClient    *attacheddatanetwork.AttachedDataNetworkClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -53,6 +55,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	packetCoreDataPlaneClient := packetcoredataplane.NewPacketCoreDataPlaneClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&packetCoreDataPlaneClient.Client, o.ResourceManagerAuthorizer)
 
+	attachedDataNetworkClient := attacheddatanetwork.NewAttachedDataNetworkClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&attachedDataNetworkClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		MobileNetworkClient:          &mobileNetworkClient,
 		DataNetworkClient:            &dataNetworkClient,
@@ -63,5 +68,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		SIMPolicyClient:              &simPolicyClient,
 		PacketCoreControlPlaneClient: &packetCoreControlPlaneClient,
 		PacketCoreDataPlaneClient:    &packetCoreDataPlaneClient,
+		AttachedDataNetworkClient:    &attachedDataNetworkClient,
 	}
 }
