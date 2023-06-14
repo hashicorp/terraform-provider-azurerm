@@ -4,6 +4,12 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230608.1112153` of `github.com/hashicorp/go-azure-sdk` [GH-22136]
 * dependencies: `compute/market_place_agreements` - swap to use `hashicorp/go-azure-sdk` [GH-21938]
+* `azurerm_kubernetes_cluster` - add support for the `AzureLinux` value for `default_node_pool.os_sku` [GH-22139]
+* `azurerm_kubernetes_cluster_node_pool` - add support for the `AzureLinux` value for `os_sku` [GH-22139]
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - fix validation preventing cluster's with `network_plugin_mode` set to `Overlay` due to a case change in the upstream API [GH-22153]
 
 ## 3.61.0 (June 12, 2023)
 
