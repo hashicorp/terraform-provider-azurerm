@@ -27,6 +27,10 @@ func NewNestedItemID(keyVaultBaseUrl, nestedItemType, name, version string) (*Ne
 		keyVaultUrl.Host = hostParts[0]
 	}
 
+	if strings.Contains(strings.ToLower(keyVaultBaseUrl), ".managedhsm.") {
+		return nil, fmt.Errorf("internal-error: Managed HSM IDs are not supported as Key Vault Nested Items")
+	}
+
 	return &NestedItemId{
 		KeyVaultBaseUrl: keyVaultUrl.String(),
 		NestedItemType:  nestedItemType,

@@ -2,7 +2,6 @@ package keyvault
 
 import (
 	"context"
-	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -17,11 +16,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2021-10-01/managedhsms"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -49,6 +49,8 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(keyVaultHSMCustomizeDiff),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -142,30 +144,23 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				},
 			},
 
-			"activate_config": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*schema.Schema{
-						"security_domain_certificate": {
-							Type:     pluginsdk.TypeSet,
-							MinItems: 3,
-							MaxItems: 10,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.NestedItemId,
-							},
-						},
-
-						"security_domain_quorum": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(2, 10),
-						},
-					},
+			"security_domain_key_vault_certificate_ids": {
+				Type:         pluginsdk.TypeList,
+				MinItems:     3,
+				MaxItems:     10,
+				Optional:     true,
+				RequiredWith: []string{"security_domain_quorum"},
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.NestedItemId,
 				},
+			},
+
+			"security_domain_quorum": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"security_domain_key_vault_certificate_ids"},
+				ValidateFunc: validation.IntBetween(2, 10),
 			},
 
 			"security_domain_enc_data": {
@@ -227,27 +222,22 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// security domain download to activate this module
-	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && (certs)[0] != nil {
+	if ok := d.HasChange("security_domain_key_vault_certificate_ids"); ok {
 		// get hsm uri
 		resp, err := hsmClient.Get(ctx, id)
 		if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
-			return fmt.Errorf("get nil HSMUri for %s: %+v", id, err)
-		} else {
-			encData, err := securityDomainDownload(ctx,
-				kvClient,
-				*resp.Model.Properties.HsmUri,
-				certs[0].(map[string]interface{}),
-			)
-			if err == nil {
-				d.Set("security_domain_enc_data", encData)
-			} else {
-				log.Printf("security domain download: %v", err)
-			}
+			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
 		}
+		encData, err := securityDomainDownload(ctx, kvClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
+		if err != nil {
+			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
+		}
+		d.Set("security_domain_enc_data", encData)
 	}
 
-	d.SetId(id.ID())
 	return resourceArmKeyVaultManagedHardwareSecurityModuleRead(d, meta)
 }
 
@@ -268,19 +258,20 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	// if it has activate_config but with no enc data in stat, try to activate it
-	if certs := d.Get("activate_config").([]interface{}); len(certs) > 0 && certs[0] != nil && d.Get("security_domain_enc_data").(string) == "" {
+	// security domain download to activate this module
+	if ok := d.HasChange("security_domain_key_vault_certificate_ids"); ok {
 		// get hsm uri
-		encData, err := securityDomainDownload(ctx,
-			kvClient,
-			*resp.Model.Properties.HsmUri,
-			certs[0].(map[string]interface{}),
-		)
+		resp, err := hsmClient.Get(ctx, *id)
+		if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
+			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
+		}
+		encData, err := securityDomainDownload(ctx, kvClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
 		if err != nil {
-			return fmt.Errorf("security domain download: %v", err)
+			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 		}
 		d.Set("security_domain_enc_data", encData)
 	}
+
 	return nil
 }
 
@@ -425,17 +416,15 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 	}
 }
 
-func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseURL string, config map[string]interface{}) (encDataStr string, err error) {
+func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {
 	sdClient := cli.MHSMSDClient
 	keyClient := cli.ManagementClient
 
 	var param kv74.CertificateInfoObject
-	var qourum = config["security_domain_quorum"].(int)
-	certIDs := config["security_domain_certificate"].(*pluginsdk.Set).List()
 
-	param.Required = utils.Int32(int32(qourum))
+	param.Required = utils.Int32(int32(quorum))
 	var certs []kv74.SecurityDomainJSONWebKey
-	for _, certID := range certIDs {
+	for _, certID := range certIds {
 		certIDStr, ok := certID.(string)
 		if !ok {
 			continue
@@ -462,11 +451,6 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 		}
 		cert.X5c = &[]string{x5c}
 
-		sum1 := sha1.Sum([]byte(x5c))
-		x5tDst := make([]byte, base64.StdEncoding.EncodedLen(len(sum1)))
-		base64.URLEncoding.Encode(x5tDst, sum1[:])
-		cert.X5t = pointer.FromString(string(x5tDst))
-
 		sum256 := sha256.Sum256([]byte(x5c))
 		s256Dst := make([]byte, base64.StdEncoding.EncodedLen(len(sum256)))
 		base64.URLEncoding.Encode(s256Dst, sum256[:])
@@ -475,9 +459,9 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 	}
 	param.Certificates = &certs
 
-	future, err := sdClient.Download(ctx, vaultBaseURL, param)
+	future, err := sdClient.Download(ctx, vaultBaseUrl, param)
 	if err != nil {
-		return "", fmt.Errorf("downloading for %s: %v", vaultBaseURL, err)
+		return "", fmt.Errorf("downloading for %s: %v", vaultBaseUrl, err)
 	}
 
 	originResponse := future.Response()
@@ -494,36 +478,27 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUR
 		return "", fmt.Errorf("unmarshal EncData: %v", err)
 	}
 
-	err = waitHSMPendingStatus(ctx, vaultBaseURL, sdClient, false)
+	pollerType := custompollers.NewHSMDownloadPoller(sdClient, vaultBaseUrl)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return "", fmt.Errorf("waiting for security domain to download: %+v", err)
+	}
+
 	return encData.Value, err
 }
 
-// if isUpload is false, then check the download pending
-// the generated SDK of `future.WaitForCompletionRef` not work, see:
-// https://github.com/Azure/azure-rest-api-specs/issues/23035
-func waitHSMPendingStatus(ctx context.Context, baseURL string, client *kv74.HSMSecurityDomainClient, isUpload bool) (err error) {
-	maxRetry := 30
-	var maxAttempt = client.RetryAttempts
-
-	var res kv74.SecurityDomainOperationStatus
-	for try := 0; try < maxRetry; try++ {
-		if isUpload {
-			res, err = client.UploadPending(ctx, baseURL)
-		} else {
-			res, err = client.DownloadPending(ctx, baseURL)
+func keyVaultHSMCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	if oldVal, newVal := d.GetChange("security_domain_key_vault_certificate_ids"); len(oldVal.([]interface{})) != 0 && len(newVal.([]interface{})) == 0 {
+		if err := d.ForceNew("security_domain_key_vault_certificate_ids"); err != nil {
+			return err
 		}
-
-		if err != nil {
-			maxAttempt--
-			if maxAttempt <= 0 {
-				return err
-			}
-		}
-
-		if res.Status == kv74.OperationStatusSuccess {
-			return nil
-		}
-		time.Sleep(client.PollingDuration)
 	}
-	return fmt.Errorf("time out for polling operation status")
+
+	if oldVal, newVal := d.GetChange("security_domain_quorum"); oldVal.(int) != 0 && newVal.(int) == 0 {
+		if err := d.ForceNew("security_domain_quorum"); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

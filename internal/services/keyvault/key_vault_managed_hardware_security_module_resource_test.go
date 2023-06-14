@@ -57,12 +57,26 @@ func testAccKeyVaultManagedHardwareSecurityModule_download(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.download(data),
+			Config: r.download(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("activate_config", "security_domain_enc_data"),
+		data.ImportStep("security_domain_quorum", "security_domain_key_vault_certificate_ids"),
+		{
+			Config: r.download(data, 4),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("security_domain_quorum", "security_domain_key_vault_certificate_ids"),
+		{
+			Config: r.download(data, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("security_domain_quorum", "security_domain_key_vault_certificate_ids"),
 	})
 }
 
@@ -147,15 +161,21 @@ resource "azurerm_key_vault_managed_hardware_security_module" "import" {
 `, template)
 }
 
-func (r KeyVaultManagedHardwareSecurityModuleResource) download(data acceptance.TestData) string {
+func (r KeyVaultManagedHardwareSecurityModuleResource) download(data acceptance.TestData, certCount int) string {
 	template := r.template(data)
+	activateConfig := ""
+	if certCount > 0 {
+		activateConfig = `
+  security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
+  security_domain_quorum 				    = 2
+`
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
-
-%s
-
+%[1]s
 resource "azurerm_key_vault" "test" {
   name                       = "acc%[2]d"
   location                   = azurerm_resource_group.test.location
@@ -163,11 +183,9 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
-
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
-
     key_permissions = [
       "Create",
       "Delete",
@@ -177,13 +195,11 @@ resource "azurerm_key_vault" "test" {
       "Update",
       "GetRotationPolicy",
     ]
-
     secret_permissions = [
       "Delete",
       "Get",
       "Set",
     ]
-
     certificate_permissions = [
       "Create",
       "Delete",
@@ -193,46 +209,37 @@ resource "azurerm_key_vault" "test" {
       "Update"
     ]
   }
-
   tags = {
     environment = "Production"
   }
 }
-
 resource "azurerm_key_vault_certificate" "cert" {
-  count        = 3
+  count        = %[3]d
   name         = "acchsmcert${count.index}"
   key_vault_id = azurerm_key_vault.test.id
-
   certificate_policy {
     issuer_parameters {
       name = "Self"
     }
-
     key_properties {
       exportable = true
       key_size   = 2048
       key_type   = "RSA"
       reuse_key  = true
     }
-
     lifetime_action {
       action {
         action_type = "AutoRenew"
       }
-
       trigger {
         days_before_expiry = 30
       }
     }
-
     secret_properties {
       content_type = "application/x-pkcs12"
     }
-
     x509_certificate_properties {
       extended_key_usage = []
-
       key_usage = [
         "cRLSign",
         "dataEncipherment",
@@ -241,13 +248,11 @@ resource "azurerm_key_vault_certificate" "cert" {
         "keyCertSign",
         "keyEncipherment",
       ]
-
       subject            = "CN=hello-world"
       validity_in_months = 12
     }
   }
 }
-
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   name                     = "kvHsm%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -256,19 +261,10 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   tenant_id                = data.azurerm_client_config.current.tenant_id
   admin_object_ids         = [data.azurerm_client_config.current.object_id]
   purge_protection_enabled = false
-
-  activate_config {
-    security_domain_certificate = [
-      azurerm_key_vault_certificate.cert[0].id,
-      azurerm_key_vault_certificate.cert[1].id,
-      azurerm_key_vault_certificate.cert[2].id,
-    ]
-    security_domain_quorum = 2
-  }
+  %[4]s
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, certCount, activateConfig)
 }
-
 func (r KeyVaultManagedHardwareSecurityModuleResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`

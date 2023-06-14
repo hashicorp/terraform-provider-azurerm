@@ -34,7 +34,7 @@ func TestNewNestedItemID(t *testing.T) {
 			Scenario:        "mhsm valid, with port",
 			keyVaultBaseUrl: "https://test.managedhsm.azure.net:443",
 			Expected:        "https://test.managedhsm.azure.net/keys/test/testVersionString",
-			ExpectError:     false,
+			ExpectError:     true,
 		},
 	}
 	for _, tc := range cases {
