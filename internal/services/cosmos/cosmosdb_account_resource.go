@@ -50,6 +50,7 @@ const (
 	databaseAccountCapabilitiesEnableGremlin                     databaseAccountCapabilities = "EnableGremlin"
 	databaseAccountCapabilitiesEnableTable                       databaseAccountCapabilities = "EnableTable"
 	databaseAccountCapabilitiesEnableServerless                  databaseAccountCapabilities = "EnableServerless"
+	databaseAccountCapabilitiesEnableStorageAnalytics            databaseAccountCapabilities = "EnableStorageAnalytics"
 	databaseAccountCapabilitiesEnableMongo                       databaseAccountCapabilities = "EnableMongo"
 	databaseAccountCapabilitiesEnableMongo16MBDocumentSupport    databaseAccountCapabilities = "EnableMongo16MBDocumentSupport"
 	databaseAccountCapabilitiesMongoDBv34                        databaseAccountCapabilities = "MongoDBv3.4"
@@ -399,6 +400,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								string(databaseAccountCapabilitiesEnableGremlin),
 								string(databaseAccountCapabilitiesEnableTable),
 								string(databaseAccountCapabilitiesEnableServerless),
+								string(databaseAccountCapabilitiesEnableStorageAnalytics),
 								string(databaseAccountCapabilitiesEnableMongo),
 								string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport),
 								string(databaseAccountCapabilitiesMongoDBv34),
