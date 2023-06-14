@@ -25,8 +25,8 @@ type hsmDownloadPoller struct {
 
 func (p *hsmDownloadPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	res, err := p.client.DownloadPending(ctx, p.baseUrl)
-	if res.Status == kv74.OperationStatusFailed && err == nil {
-		err = fmt.Errorf("waiting download Security Domain failed within %s", p.baseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("waiting for Security Domain to download failed within %s: %+v", p.baseUrl, err)
 	}
 
 	if res.Status == kv74.OperationStatusSuccess {
