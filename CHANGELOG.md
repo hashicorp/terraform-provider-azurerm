@@ -11,6 +11,7 @@ BUG FIXES:
 
 * `azurerm_kubernetes_cluster` - fix validation preventing cluster's with `network_plugin_mode` set to `Overlay` due to a case change in the upstream API [GH-22153]
 * `azurerm_bastion_host` - fix validation to set ForceNew when the `sku` is downgraded [GH-22147]
+* `azurerm_application_insights_workbook` - `display_name` can now be correctly updated [GH-22148]
 
 ## 3.61.0 (June 12, 2023)
 
