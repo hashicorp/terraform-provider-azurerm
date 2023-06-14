@@ -1302,6 +1302,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Optional: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
+				string(managedclusters.NetworkPluginModeOverlay),
 				"Overlay",
 			}, false),
 		}
@@ -3172,9 +3173,6 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21810
 		if strings.EqualFold(string(*profile.NetworkPluginMode), string(managedclusters.NetworkPluginModeOverlay)) {
 			networkPluginMode = string(managedclusters.NetworkPluginModeOverlay)
-			if !features.FourPointOhBeta() {
-				networkPluginMode = "Overlay"
-			}
 		}
 	}
 	ebpfDataPlane := ""

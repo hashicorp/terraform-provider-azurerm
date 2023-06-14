@@ -33,7 +33,7 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 
 				// Azure network plugin is not compatible with pod_cidr
 				if podCidr != "" && strings.EqualFold(networkPlugin, "azure") && !strings.EqualFold(networkPluginMode, string(managedclusters.NetworkPluginModeOverlay)) {
-					return fmt.Errorf("`pod_cidr` and `azure` cannot be set together unless specifying `network_plugin_mode` to `Overlay`")
+					return fmt.Errorf("`pod_cidr` and `azure` cannot be set together unless specifying `network_plugin_mode` to `overlay`")
 				}
 
 				// if not All empty values or All set values.
