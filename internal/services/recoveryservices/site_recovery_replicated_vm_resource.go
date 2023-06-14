@@ -762,10 +762,10 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_availability_set_id", availabilitySetId)
 
 			targetNetworkId := ""
-			if targetNetworkId := pointer.From(a2aDetails.SelectedRecoveryAzureNetworkId); targetNetworkId != "" {
-				parsedTargetNetworkId, err := networkParse.VirtualNetworkIDInsensitively(targetNetworkId)
+			if id := pointer.From(a2aDetails.SelectedRecoveryAzureNetworkId); id != "" {
+				parsedTargetNetworkId, err := networkParse.VirtualNetworkIDInsensitively(id)
 				if err != nil {
-					return fmt.Errorf("parsing target_network_id %s: %+v", targetNetworkId, err)
+					return fmt.Errorf("parsing target_network_id %s: %+v", id, err)
 				}
 				targetNetworkId = parsedTargetNetworkId.ID()
 			}
