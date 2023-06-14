@@ -49,8 +49,6 @@ The following attributes are exported:
 
 * `virtual_router_ips` - The IP addresses of the Virtual Hub BGP router.
 
-* `virtual_router_auto_scale_min_capacity` - Minimum instance capacity for the scaling configuration of the Virtual Hub Router.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
