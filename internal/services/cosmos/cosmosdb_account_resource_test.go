@@ -1181,6 +1181,21 @@ func TestAccCosmosDBAccount_ipRangeFilters(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_enableStorageAnalytics(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enableStorageAnalytics(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosDBAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseAccountID(state.ID)
 	if err != nil {
@@ -3432,4 +3447,43 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, r.vNetFiltersPreReqs(data), data.RandomInteger)
+}
+
+func (CosmosDBAccountResource) enableStorageAnalytics(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                       = "acctest-ca-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  offer_type                 = "Standard"
+  kind                       = "GlobalDocumentDB"
+  analytical_storage_enabled = true
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  capabilities {
+    name = "EnableGremlin"
+  }
+
+  capabilities {
+    name = "EnableStorageAnalytics"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

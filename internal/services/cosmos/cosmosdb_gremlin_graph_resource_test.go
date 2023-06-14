@@ -490,49 +490,22 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
 func (CosmosGremlinGraphResource) analyticalStorageTtl(data acceptance.TestData, analyticalStorageTtl int64) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%[1]s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cosmos-%d"
-  location = "%s"
-}
-
-resource "azurerm_cosmosdb_account" "test" {
-  name                       = "acctest-ca-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  offer_type                 = "Standard"
-  kind                       = "GlobalDocumentDB"
-  analytical_storage_enabled = true
-
-  consistency_policy {
-    consistency_level = "Strong"
-  }
-
-  capabilities {
-    name = "EnableGremlin"
-  }
-
-  capabilities {
-    name = "EnableStorageAnalytics"
-  }
-
-  geo_location {
-    location          = azurerm_resource_group.test.location
-    failover_priority = 0
-  }
+resource "azurerm_cosmosdb_gremlin_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
 }
 
 resource "azurerm_cosmosdb_gremlin_graph" "test" {
-  name                = "acctest-CGRPC-%d"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_gremlin_database.test.name
-  partition_key_path  = "/test"
-  throughput          = 400
-  analytical_storage_ttl = %d
+  name                   = "acctest-CGRPC-%[2]d"
+  resource_group_name    = azurerm_cosmosdb_account.test.resource_group_name
+  account_name           = azurerm_cosmosdb_account.test.name
+  database_name          = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path     = "/test"
+  throughput             = 400
+  analytical_storage_ttl = %[3]d
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, analyticalStorageTtl)
+`, CosmosDBAccountResource{}.enableStorageAnalytics(data), data.RandomInteger, analyticalStorageTtl)
 }
