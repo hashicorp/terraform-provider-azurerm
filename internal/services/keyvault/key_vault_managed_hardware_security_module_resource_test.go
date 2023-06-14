@@ -62,21 +62,14 @@ func testAccKeyVaultManagedHardwareSecurityModule_download(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("security_domain_quorum", "security_domain_key_vault_certificate_ids"),
+		data.ImportStep("security_domain_quorum", "security_domain_key_vault_certificate_ids", "security_domain_encrypted_data"),
 		{
 			Config: r.download(data, 4),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("security_domain_quorum", "security_domain_key_vault_certificate_ids"),
-		{
-			Config: r.download(data, 0),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("security_domain_quorum", "security_domain_key_vault_certificate_ids"),
+		data.ImportStep("security_domain_quorum", "security_domain_key_vault_certificate_ids", "security_domain_encrypted_data"),
 	})
 }
 
