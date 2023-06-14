@@ -135,7 +135,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := disasterrecoveryconfigs.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "authorizationRuleValue")
+id := disasterrecoveryconfigs.NewDisasterRecoveryConfigAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "disasterRecoveryConfigValue", "authorizationRuleValue")
 
 read, err := client.GetAuthorizationRule(ctx, id)
 if err != nil {
@@ -185,7 +185,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := disasterrecoveryconfigs.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "authorizationRuleValue")
+id := disasterrecoveryconfigs.NewDisasterRecoveryConfigAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "disasterRecoveryConfigValue", "authorizationRuleValue")
 
 read, err := client.ListKeys(ctx, id)
 if err != nil {

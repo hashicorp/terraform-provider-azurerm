@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"

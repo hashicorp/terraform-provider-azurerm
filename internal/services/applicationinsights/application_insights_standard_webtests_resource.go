@@ -394,7 +394,12 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				metadata.ResourceData.Set("application_insights_id", appInsightsId)
+				parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
+				if err != nil {
+					return fmt.Errorf("parsing `application_insights_id`: %+v", err)
+				}
+
+				metadata.ResourceData.Set("application_insights_id", parsedAppInsightsId.ID())
 				metadata.ResourceData.Set("name", id.WebTestName)
 				metadata.ResourceData.Set("resource_group_name", id.ResourceGroupName)
 				metadata.ResourceData.Set("location", location.NormalizeNilable(&model.Location))

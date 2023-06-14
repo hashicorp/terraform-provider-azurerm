@@ -53,6 +53,12 @@ jobs:
       - name: Set OIDC Token File Path
         run: echo "${ARM_OIDC_TOKEN}" >"${RUNNER_TEMP}/oidc-token.jwt" && echo "ARM_OIDC_TOKEN_FILE_PATH=${RUNNER_TEMP}/oidc-token.jwt" >>${GITHUB_ENV}
 
+      - name: Set Client ID Path
+        run: echo "${{ secrets.ARM_CLIENT_ID }}" >"${RUNNER_TEMP}/client-id" && echo "ARM_CLIENT_ID_PATH=${RUNNER_TEMP}/client-id" >>${GITHUB_ENV}
+
+      - name: Set Client Secret Path
+        run: echo "${{ secrets.ARM_CLIENT_SECRET }}" >"${RUNNER_TEMP}/client-secret" && echo "ARM_CLIENT_SECRET_PATH=${RUNNER_TEMP}/client-secret" >>${GITHUB_ENV}
+
       - name: Run provider tests
         run: make testacc TEST=./internal/provider TESTARGS="-run '^TestAcc'"
         env:
@@ -65,6 +71,14 @@ jobs:
 
       - name: Clean Up OIDC Token File Path
         run: rm -f "${RUNNER_TEMP}/oidc-token.jwt"
+        if: always()
+
+      - name: Clean Up Client ID Path
+        run: rm -f "${RUNNER_TEMP}/client-id"
+        if: always()
+
+      - name: Clean Up Client Secret Path
+        run: rm -f "${RUNNER_TEMP}/client-secret"
         if: always()
 
       - name: Add waiting-response on fail

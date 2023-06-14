@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -133,9 +133,9 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"kubelet_config": schemaNodePoolKubeletConfig(),
+			"kubelet_config": schemaNodePoolKubeletConfigForceNew(),
 
-			"linux_os_config": schemaNodePoolLinuxOSConfig(),
+			"linux_os_config": schemaNodePoolLinuxOSConfigForceNew(),
 
 			"fips_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -251,6 +251,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ForceNew: true,
 				Computed: true, // defaults to Ubuntu if using Linux
 				ValidateFunc: validation.StringInSlice([]string{
+					string(agentpools.OSSKUAzureLinux),
 					string(agentpools.OSSKUCBLMariner),
 					string(agentpools.OSSKUMariner),
 					string(agentpools.OSSKUUbuntu),
@@ -694,7 +695,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		if err != nil {
 			return fmt.Errorf("retrieving Node Pool %s: %+v", *id, err)
 		}
-		if existingNodePool := existingNodePoolResp.Model; existingNodePool != nil {
+		if existingNodePool := existingNodePoolResp.Model; existingNodePool != nil && existingNodePool.Properties != nil {
 			orchestratorVersion := d.Get("orchestrator_version").(string)
 			currentOrchestratorVersion := ""
 			if v := existingNodePool.Properties.CurrentOrchestratorVersion; v != nil {

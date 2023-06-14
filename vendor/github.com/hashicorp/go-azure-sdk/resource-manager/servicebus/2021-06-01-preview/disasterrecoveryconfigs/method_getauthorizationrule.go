@@ -18,7 +18,7 @@ type GetAuthorizationRuleOperationResponse struct {
 }
 
 // GetAuthorizationRule ...
-func (c DisasterRecoveryConfigsClient) GetAuthorizationRule(ctx context.Context, id AuthorizationRuleId) (result GetAuthorizationRuleOperationResponse, err error) {
+func (c DisasterRecoveryConfigsClient) GetAuthorizationRule(ctx context.Context, id DisasterRecoveryConfigAuthorizationRuleId) (result GetAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

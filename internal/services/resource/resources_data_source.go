@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -52,6 +53,10 @@ func dataSourceResources() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"resource_group_name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -164,6 +169,14 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 				resID = *res.ID
 			}
 
+			resResourceGroupName := ""
+			if res.ID != nil {
+				resourceObj, err := resourceids.ParseAzureResourceID(*res.ID)
+				if err == nil {
+					resResourceGroupName = resourceObj.ResourceGroup
+				}
+			}
+
 			resType := ""
 			if res.Type != nil {
 				resType = *res.Type
@@ -185,11 +198,12 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 			}
 
 			result = append(result, map[string]interface{}{
-				"name":     resName,
-				"id":       resID,
-				"type":     resType,
-				"location": resLocation,
-				"tags":     resTags,
+				"name":                resName,
+				"id":                  resID,
+				"resource_group_name": resResourceGroupName,
+				"type":                resType,
+				"location":            resLocation,
+				"tags":                resTags,
 			})
 		} else {
 			log.Printf("[DEBUG] azurerm_resources - resources %q (id: %q) skipped as a required tag is not set or has the wrong value.", *res.Name, *res.ID)

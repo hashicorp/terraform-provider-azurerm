@@ -100,7 +100,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
 		namespaceId, err := disasterrecoveryconfigs.ParseNamespaceID(v)
 		if err != nil {
-			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
+			return fmt.Errorf("parsing namespace ID %q: %+v", v, err)
 		}
 		resourceGroup = namespaceId.ResourceGroupName
 		namespaceName = namespaceId.NamespaceName
@@ -131,9 +131,9 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	d.SetId(id.ID())
 
 	// the auth rule cannot be retrieved by dr config name, the shared access policy should either be specified by user or using the default one which is `RootManageSharedAccessKey`
-	authRuleId := disasterrecoveryconfigs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, serviceBusNamespaceDefaultAuthorizationRule)
+	authRuleId := disasterrecoveryconfigs.NewDisasterRecoveryConfigAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.DisasterRecoveryConfigName, serviceBusNamespaceDefaultAuthorizationRule)
 	if input := d.Get("alias_authorization_rule_id").(string); input != "" {
-		ruleId, err := disasterrecoveryconfigs.ParseAuthorizationRuleID(input)
+		ruleId, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigAuthorizationRuleID(input)
 		if err != nil {
 			return fmt.Errorf("parsing primary namespace auth rule id error: %+v", err)
 		}

@@ -381,6 +381,36 @@ func TestAccHPCCache_customerManagedKeyUpdateAutoKeyRotation(t *testing.T) {
 	})
 }
 
+func TestAccHPCCache_systemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccHPCCache_systemAssignedAndUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedAndUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (HPCCacheResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := caches.ParseCacheID(state.ID)
 	if err != nil {
@@ -1013,6 +1043,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "Get",
     "Purge",
     "Update",
+    "GetRotationPolicy",
   ]
 }
 
@@ -1067,6 +1098,7 @@ resource "azurerm_key_vault_access_policy" "service-principal2" {
     "Get",
     "UnwrapKey",
     "WrapKey",
+    "GetRotationPolicy",
   ]
 }
 
@@ -1084,6 +1116,50 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
+}
+
+func (r HPCCacheResource) systemAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) systemAssignedAndUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  key_vault_key_id = azurerm_key_vault_key.test.id
+}
+`, r.customerManagedKeyTemplate(data), data.RandomInteger)
 }
 
 func (HPCCacheResource) template(data acceptance.TestData) string {

@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMarketplaceAgreement() *pluginsdk.Resource {
@@ -59,13 +59,13 @@ func dataSourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
+	id := agreements.NewOfferPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
 
 	log.Printf("[DEBUG] retrieving %s", id)
 
-	term, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)
+	term, err := client.MarketplaceAgreementsGet(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(term.Response) {
+		if !response.WasNotFound(term.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -73,11 +73,11 @@ func dataSourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
-
-	if props := term.AgreementProperties; props != nil {
-		d.Set("license_text_link", props.LicenseTextLink)
-		d.Set("privacy_policy_link", props.PrivacyPolicyLink)
+	if model := term.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("license_text_link", props.LicenseTextLink)
+			d.Set("privacy_policy_link", props.PrivacyPolicyLink)
+		}
 	}
-
 	return nil
 }

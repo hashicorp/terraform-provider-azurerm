@@ -315,6 +315,35 @@ func TestAccKeyVaultKey_RotationPolicyWithOnlyAutoRotation(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultKey_RemoveRotationPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicEC(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+		{
+			Config: r.rotationPolicyWithOnlyAutoRotation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+		{
+			Config: r.basicEC(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+	})
+}
+
 func TestAccKeyVaultKey_RotationPolicyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
