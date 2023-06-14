@@ -9,8 +9,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"                              // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -405,7 +407,6 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 
 func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
-	ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -424,13 +425,22 @@ func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("issuing AzureRM delete request for Application Insights %q: %+v", id.Name, err)
 	}
 
-	// if disable_generated_rule=true, the generated rule is not automatically deleted.
+	// if disable_generated_rule=true, the generated rule and action group is not automatically deleted.
 	if meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
+		ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 		ruleName := fmt.Sprintf("Failure Anomalies - %s", id.Name)
 		ruleId := monitorParse.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroup, ruleName)
 		deleteResp, deleteErr := ruleClient.Delete(ctx, ruleId.ResourceGroup, ruleId.Name)
-		if deleteErr != nil && deleteResp.StatusCode != http.StatusNotFound {
+		if deleteErr != nil && utils.ResponseWasNotFound(deleteResp) {
 			return fmt.Errorf("deleting %s: %+v", ruleId, deleteErr)
+		}
+
+		actionGroupsClient := meta.(*clients.Client).Monitor.ActionGroupsClient
+		actionGroupName := "Application Insights Smart Detection"
+		actionGroupId := actiongroupsapis.NewActionGroupID(id.SubscriptionId, id.ResourceGroup, actionGroupName)
+		deleteActionGroupResp, deleteErr := actionGroupsClient.ActionGroupsDelete(ctx, actionGroupId)
+		if deleteErr != nil && response.WasNotFound(deleteActionGroupResp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", actionGroupId, deleteErr)
 		}
 	}
 
