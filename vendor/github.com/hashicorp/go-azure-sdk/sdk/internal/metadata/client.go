@@ -6,11 +6,15 @@ package metadata
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
+	"runtime"
+	"time"
 )
 
 // NOTE: this Client cannot use the base client since it'd cause a circular reference
@@ -75,8 +79,24 @@ func (c *Client) GetMetaData(ctx context.Context, name string) (*MetaData, error
 }
 
 func (c *Client) getMetaDataFrom2022API(ctx context.Context, name string) (*metaDataResponse, error) {
+	tlsConfig := tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 	client := &http.Client{
-		Transport: http.DefaultTransport,
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				d := &net.Dialer{Resolver: &net.Resolver{}}
+				return d.DialContext(ctx, network, addr)
+			},
+			TLSClientConfig:       &tlsConfig,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
+		},
 	}
 	uri := fmt.Sprintf("%s/metadata/endpoints?api-version=2022-09-01", c.endpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
@@ -112,8 +132,24 @@ func (c *Client) getMetaDataFrom2022API(ctx context.Context, name string) (*meta
 }
 
 func (c *Client) getMetaDataFrom2019API(ctx context.Context, name string) (*metaDataResponse, error) {
+	tlsConfig := tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 	client := &http.Client{
-		Transport: http.DefaultTransport,
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				d := &net.Dialer{Resolver: &net.Resolver{}}
+				return d.DialContext(ctx, network, addr)
+			},
+			TLSClientConfig:       &tlsConfig,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
+		},
 	}
 	uri := fmt.Sprintf("%s/metadata/endpoints?api-version=2019-05-01", c.endpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
