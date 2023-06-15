@@ -54,6 +54,8 @@ func TestAccKustoCosmosDBDataConnection_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("table_name").Exists(),
 				check.That(data.ResourceName).Key("managed_identity_id").Exists(),
 				check.That(data.ResourceName).Key("table_name").HasValue("TestTable"),
+				check.That(data.ResourceName).Key("mapping_rule_name").DoesNotExist(),
+				check.That(data.ResourceName).Key("retrieval_start_date").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -175,6 +177,11 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 }
 
 resource "azurerm_cosmosdb_sql_database" "test" {
@@ -202,7 +209,7 @@ data "azurerm_cosmosdb_sql_role_definition" "test" {
 resource "azurerm_cosmosdb_sql_role_assignment" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
-  role_definition_id  = azurerm_cosmosdb_sql_role_definition.test.id
+  role_definition_id  = data.azurerm_cosmosdb_sql_role_definition.test.id
   principal_id        = azurerm_user_assigned_identity.test.principal_id
   scope               = azurerm_cosmosdb_account.test.id
 }
