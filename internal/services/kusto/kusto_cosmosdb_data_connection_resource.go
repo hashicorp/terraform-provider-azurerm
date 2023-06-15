@@ -73,7 +73,12 @@ func (r CosmosDBDataConnectionResource) Arguments() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.DatabaseName,
 		},
-		"managed_identity_id": commonschema.SystemAssignedUserAssignedIdentityRequiredForceNew(),
+		"managed_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateResourceID,
+		},
 		"table_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
