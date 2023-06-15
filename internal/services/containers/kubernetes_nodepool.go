@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -198,6 +198,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional: true,
 						Computed: true, // defaults to Ubuntu if using Linux
 						ValidateFunc: validation.StringInSlice([]string{
+							string(agentpools.OSSKUAzureLinux),
 							string(agentpools.OSSKUCBLMariner),
 							string(agentpools.OSSKUMariner),
 							string(agentpools.OSSKUUbuntu),

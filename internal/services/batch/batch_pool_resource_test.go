@@ -622,6 +622,28 @@ func TestAccBatchPool_mountConfigurationNFS(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_targetNodeCommunicationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.targetNodeCommunicationMode(data, "Default"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+		{
+			Config: r.targetNodeCommunicationMode(data, "Simplified"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+}
+
 func TestAccBatchPool_diskSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -2225,6 +2247,46 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) targetNodeCommunicationMode(data acceptance.TestData, targetNodeCommunicationMode string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+
+  target_node_communication_mode = "%s"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, targetNodeCommunicationMode)
 }
 
 func (BatchPoolResource) extensions(data acceptance.TestData) string {

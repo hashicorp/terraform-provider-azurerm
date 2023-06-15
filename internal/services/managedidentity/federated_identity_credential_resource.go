@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview/managedidentities"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31/managedidentities"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -80,7 +80,7 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentityManual.ManagedIdentityClient
+			client := metadata.Client.ManagedIdentity.V20230131.ManagedIdentities
 
 			var config FederatedIdentityCredentialResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -124,7 +124,7 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentityManual.ManagedIdentityClient
+			client := metadata.Client.ManagedIdentity.V20230131.ManagedIdentities
 			schema := FederatedIdentityCredentialResourceSchema{}
 
 			id, err := managedidentities.ParseFederatedIdentityCredentialID(metadata.ResourceData.Id())
@@ -156,7 +156,7 @@ func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentityManual.ManagedIdentityClient
+			client := metadata.Client.ManagedIdentity.V20230131.ManagedIdentities
 
 			var config FederatedIdentityCredentialResourceSchema
 			if err := metadata.Decode(&config); err != nil {

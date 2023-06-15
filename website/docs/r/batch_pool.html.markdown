@@ -165,6 +165,8 @@ The following arguments are supported:
 
 * `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>. The only possible value is `CacheDisk`.
 
+* `target_node_communication_mode` - (Optional) The desired node communication mode for the pool.
+
 * `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool. If not specified, the default is spread as defined below.
 
 * `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool as defined below.
