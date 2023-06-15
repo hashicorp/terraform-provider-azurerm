@@ -68,10 +68,16 @@ func VirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, error) {
 	return &resourceId, nil
 }
 
+// VirtualMachineScaleSetIDInsensitively parses an VirtualMachineScaleSet ID into an VirtualMachineScaleSetId struct, insensitively
+// This should only be used to parse an ID for rewriting, the VirtualMachineScaleSetID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
 func VirtualMachineScaleSetIDInsensitively(input string) (*VirtualMachineScaleSetId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as an VirtualMachineScaleSet ID: %+v", input, err)
+		return nil, err
 	}
 
 	resourceId := VirtualMachineScaleSetId{
@@ -95,7 +101,6 @@ func VirtualMachineScaleSetIDInsensitively(input string) (*VirtualMachineScaleSe
 			break
 		}
 	}
-
 	if resourceId.Name, err = id.PopSegment(virtualMachineScaleSetsKey); err != nil {
 		return nil, err
 	}
