@@ -1,6 +1,7 @@
 package cosmos
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -181,6 +182,13 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// `analytical_storage_ttl` can't be disabled once it's enabled
+			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ interface{}) bool {
+				return (old.(int) == -1 || (old.(int) >= 1 && old.(int) <= 2147483647)) && new.(int) == 0
+			}),
+		),
 	}
 }
 
