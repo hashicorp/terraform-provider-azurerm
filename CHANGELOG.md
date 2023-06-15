@@ -2,10 +2,10 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230608.1112153` of `github.com/hashicorp/go-azure-sdk` [GH-22136]
-* dependencies: `compute/market_place_agreements` - swap to use `hashicorp/go-azure-sdk` [GH-21938]
-* `azurerm_kubernetes_cluster` - add support for the `AzureLinux` value for `default_node_pool.os_sku` [GH-22139]
-* `azurerm_kubernetes_cluster_node_pool` - add support for the `AzureLinux` value for `os_sku` [GH-22139]
+* dependencies: updating to `v0.20230614.1151152` of `github.com/hashicorp/go-azure-sdk` [GH-22176]
+* dependencies: `compute/marketplace_agreement` - swap to use `hashicorp/go-azure-sdk` [GH-21938]
+* `azurerm_kubernetes_cluster` - add support for the value `AzureLinux` for the field `os_sku` within the `default_node_pool` block [GH-22139]
+* `azurerm_kubernetes_cluster_node_pool` - add support for the value `AzureLinux` for the field `os_sku` [GH-22139]
 
 BUG FIXES:
 
