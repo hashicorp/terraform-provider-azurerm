@@ -1519,17 +1519,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Tags: tags.Expand(t),
 	}
-
-	if v := d.Get("automatic_channel_upgrade").(string); v != "" {
-		parameters.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{
-			UpgradeChannel: utils.ToPtr(managedclusters.UpgradeChannel(v)),
-		}
-	} else {
-		parameters.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{
-			UpgradeChannel: utils.ToPtr(managedclusters.UpgradeChannelNone),
-		}
-	}
-
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	kubernetesClusterIdentityRaw := d.Get("kubelet_identity").([]interface{})
 	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
