@@ -74,7 +74,7 @@ EnableGremlin :                  	GlobalDocumentDB, Parse
 EnableTable :                    	GlobalDocumentDB, Parse
 EnableAggregationPipeline :      	GlobalDocumentDB, MongoDB, Parse
 EnableServerless :               	GlobalDocumentDB, MongoDB, Parse
-EnableStorageAnalytics:             GlobalDocumentDB, MongoDB, Parse
+EnableStorageAnalytics :            GlobalDocumentDB, MongoDB, Parse
 MongoDBv3.4 :                    	GlobalDocumentDB, MongoDB, Parse
 mongoEnableDocLevelTTL :         	GlobalDocumentDB, MongoDB, Parse
 DisableRateLimitingResponses :   	GlobalDocumentDB, MongoDB, Parse
