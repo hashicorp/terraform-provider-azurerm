@@ -633,7 +633,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
 
     windows_firewall_log {
-      streams = ["Microsoft-Event"]
+      streams = ["Microsoft-ASimNetworkSessionLogs-WindowsFirewall"]
       name    = "test-datasource-windowsfirewall"
     }
 
