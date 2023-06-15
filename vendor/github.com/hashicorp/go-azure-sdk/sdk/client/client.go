@@ -6,6 +6,7 @@ package client
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -541,6 +542,9 @@ func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retrya
 	r.ErrorHandler = RetryableErrorHandler
 	r.Logger = log.Default()
 
+	tlsConfig := tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 	r.HTTPClient = &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
@@ -548,6 +552,7 @@ func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retrya
 				d := &net.Dialer{Resolver: &net.Resolver{}}
 				return d.DialContext(ctx, network, addr)
 			},
+			TLSClientConfig:       &tlsConfig,
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
