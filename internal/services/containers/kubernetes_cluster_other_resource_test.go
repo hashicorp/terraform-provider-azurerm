@@ -792,6 +792,46 @@ func TestAccKubernetesCluster_azureMonitorKubernetesMetrics(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_nodeOsUpgradeChannel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeOsUpgradeChannel(data, "Unmanaged"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("Unmanaged"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeOsUpgradeChannel(data, "SecurityPatch"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("SecurityPatch"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeOsUpgradeChannel(data, "NodeImage"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("NodeImage"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeOsUpgradeChannel(data, "None"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("None"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KubernetesClusterResource) basicAvailabilitySetConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2535,4 +2575,31 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) nodeOsUpgradeChannel(data acceptance.TestData, nodeOsUpgradeChannel string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                    = "acctestaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%d"
+  node_os_channel_upgrade = %s
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, nodeOsUpgradeChannel)
 }
