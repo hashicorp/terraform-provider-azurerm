@@ -74,6 +74,7 @@ EnableGremlin :                  	GlobalDocumentDB, Parse
 EnableTable :                    	GlobalDocumentDB, Parse
 EnableAggregationPipeline :      	GlobalDocumentDB, MongoDB, Parse
 EnableServerless :               	GlobalDocumentDB, MongoDB, Parse
+EnableStorageAnalytics:             GlobalDocumentDB, MongoDB, Parse
 MongoDBv3.4 :                    	GlobalDocumentDB, MongoDB, Parse
 mongoEnableDocLevelTTL :         	GlobalDocumentDB, MongoDB, Parse
 DisableRateLimitingResponses :   	GlobalDocumentDB, MongoDB, Parse
@@ -96,6 +97,7 @@ var capabilitiesToKindMap = map[string]interface{}{
 	strings.ToLower(string(databaseAccountCapabilitiesEnableGremlin)):                     []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableTable)):                       []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableServerless)):                  []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableStorageAnalytics)):            []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesEnableAggregationPipeline)):         []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesMongoDBv34)):                        []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesMongoEnableDocLevelTTL)):            []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
@@ -2109,6 +2111,7 @@ func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]documentdb.Ca
 		strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnableTtlOnCustomPath)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnablePartialUniqueIndex)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnableStorageAnalytics)),
 	}
 
 	// The feedback from service team: capabilities that can be removed from an existing account
