@@ -212,7 +212,7 @@ A `capabilities` block Configures the capabilities to be enabled for this Cosmos
 
 ~> **NOTE:** Setting `MongoDBv3.4` also requires setting `EnableMongo`. 
 
-~> **NOTE:** Only `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableUniqueCompoundNestedDocs`, `EnableMongo16MBDocumentSupport`, `mongoEnableDocLevelTTL`, `EnableTtlOnCustomPath` and `EnablePartialUniqueIndex` can be added to an existing Cosmos DB account.
+~> **NOTE:** Only `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableUniqueCompoundNestedDocs`, `EnableMongo16MBDocumentSupport`, `mongoEnableDocLevelTTL`, `EnableTtlOnCustomPath`, `EnablePartialUniqueIndex` and `EnableStorageAnalytics` can be added to an existing Cosmos DB account.
 
 ~> **NOTE:** Only `DisableRateLimitingResponses` and `EnableMongoRetryableWrites` can be removed from an existing Cosmos DB account.
 
