@@ -31,6 +31,29 @@ func TestAccAutomationSchedule_oneTime_basic(t *testing.T) {
 	})
 }
 
+// test for: https://github.com/hashicorp/terraform-provider-azurerm/issues/21854
+func TestAccAutomationSchedule_expiryTimeOfEuropeTimeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	r := AutomationScheduleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.expiryTimeOfEuropeTimeZone(data, "foo"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.expiryTimeOfEuropeTimeZone(data, "bar"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAutomationSchedule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
@@ -243,6 +266,24 @@ resource "azurerm_automation_schedule" "test" {
   frequency               = "OneTime"
 }
 `, AutomationScheduleResource{}.template(data), data.RandomInteger)
+}
+
+func (a AutomationScheduleResource) expiryTimeOfEuropeTimeZone(data acceptance.TestData, desc string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_schedule" "test" {
+  name                    = "acctestAS-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  frequency               = "Week"
+  interval                = 1
+  timezone                = "Europe/Amsterdam"
+  start_time              = "2026-04-15T18:01:15+02:00"
+  description             = "%s"
+  week_days               = ["Monday"]
+}
+`, a.template(data), data.RandomInteger, desc)
 }
 
 func (AutomationScheduleResource) requiresImport(data acceptance.TestData) string {

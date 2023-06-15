@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 	"time"
-
 	// import time/tzdata to embed timezone information in the program
 	// add this to resolve https://github.com/hashicorp/terraform-provider-azurerm/issues/20690
 	_ "time/tzdata"
@@ -262,12 +261,7 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("expiry_time"); ok {
-		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
-		// fixes: https://github.com/hashicorp/terraform-provider-azurerm/issues/21854. that year 9999 may return by API
-		if t.In(loc).Year() <= 9999 {
-			t = t.In(loc)
-		}
-		parameters.Properties.SetExpiryTimeAsTime(t)
+		parameters.Properties.ExpiryTime = pointer.To(v.(string))
 	}
 
 	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
@@ -328,12 +322,7 @@ func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{})
 				return err
 			}
 			d.Set("start_time", startTime.Format(time.RFC3339))
-
-			expiryTime, err := props.GetExpiryTimeAsTime()
-			if err != nil {
-				return err
-			}
-			d.Set("expiry_time", expiryTime.Format(time.RFC3339))
+			d.Set("expiry_time", pointer.From(props.ExpiryTime))
 
 			if v := props.Interval; v != nil {
 				d.Set("interval", v)
