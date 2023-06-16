@@ -490,16 +490,45 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
 func (CosmosGremlinGraphResource) analyticalStorageTtl(data acceptance.TestData, analyticalStorageTtl int64) string {
 	return fmt.Sprintf(`
-%[1]s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                       = "acctest-ca-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  offer_type                 = "Standard"
+  kind                       = "GlobalDocumentDB"
+  analytical_storage_enabled = true
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  capabilities {
+    name = "EnableGremlin"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
 
 resource "azurerm_cosmosdb_gremlin_database" "test" {
-  name                = "acctest-%[2]d"
+  name                = "acctest-db-%[1]d"
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
 
 resource "azurerm_cosmosdb_gremlin_graph" "test" {
-  name                   = "acctest-CGRPC-%[2]d"
+  name                   = "acctest-CGRPC-%[1]d"
   resource_group_name    = azurerm_cosmosdb_account.test.resource_group_name
   account_name           = azurerm_cosmosdb_account.test.name
   database_name          = azurerm_cosmosdb_gremlin_database.test.name
@@ -507,5 +536,5 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   throughput             = 400
   analytical_storage_ttl = %[3]d
 }
-`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", "Strong", true), data.RandomInteger, analyticalStorageTtl)
+`, data.RandomInteger, data.Locations.Primary, analyticalStorageTtl)
 }
