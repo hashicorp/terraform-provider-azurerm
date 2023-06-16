@@ -15,6 +15,7 @@ BUG FIXES:
 * `azurerm_bastion_host` - fix validation to set ForceNew when the `sku` is downgraded [GH-22147]
 * `azurerm_kubernetes_cluster` - fix validation preventing cluster's with `network_plugin_mode` set to `Overlay` due to a case change in the upstream API [GH-22153]
 * `azurerm_resource_deployment_script_*` - fix issue where `identity` wasn't specified but was being sent as `TypeNone` to the api [GH-22165]
+* `azurerm_bastion_host` - `ip_configuration` is Required [GH-22154]
 
 ## 3.61.0 (June 12, 2023)
 
