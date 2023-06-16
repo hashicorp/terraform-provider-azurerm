@@ -216,7 +216,7 @@ resource "azurerm_monitor_workspace" "test" {
   name                = "acctest-mamw-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  
+
   public_network_access_enabled = false
 }
 `, template, data.RandomInteger, data.Locations.Primary)
