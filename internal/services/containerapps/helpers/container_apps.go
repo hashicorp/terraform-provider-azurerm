@@ -665,34 +665,6 @@ func ContainerAppEnvironmentDaprMetadataSchema() *pluginsdk.Schema {
 	}
 }
 
-func ContainerAppEnvironmentDaprMetadataDataSourceSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The name of the Metadata configuration item.",
-				},
-
-				"value": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The value for this metadata configuration item.",
-				},
-
-				"secret_name": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The name of a secret specified in the `secrets` block that contains the value for this metadata configuration item.",
-				},
-			},
-		},
-	}
-}
-
 type ContainerTemplate struct {
 	Containers  []Container       `tfschema:"container"`
 	Suffix      string            `tfschema:"revision_suffix"`
@@ -1082,10 +1054,9 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Default:  "EmptyDir",
-					ValidateFunc: validation.StringInSlice([]string{
-						"EmptyDir",
-						"AzureFile",
-					}, false),
+					ValidateFunc: validation.StringInSlice(
+						containerapps.PossibleValuesForStorageType(),
+						false),
 					Description: "The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.",
 				},
 
