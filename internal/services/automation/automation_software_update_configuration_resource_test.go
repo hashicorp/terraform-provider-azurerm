@@ -24,9 +24,10 @@ func newSoftwareUpdateConfigurationResource() SoftwareUpdateConfigurationResourc
 	// The start time of the schedule must be at least 5 minutes after the time you create the schedule,
 	// so we cannot hardcode the time string.
 	// we use timezone as UTC so the time string should be in UTC format
+	ref := time.Now().Round(time.Minute)
 	ins := SoftwareUpdateConfigurationResource{
-		startTime:  time.Now().Add(time.Hour * 10).In(time.UTC).Format(time.RFC3339),
-		expireTime: time.Now().Add(time.Hour * 50).In(time.UTC).Format(time.RFC3339),
+		startTime:  ref.Add(time.Hour * 1).In(time.UTC).Format(time.RFC3339),
+		expireTime: ref.Add(time.Hour * 2).In(time.UTC).Format(time.RFC3339),
 	}
 	return ins
 }
@@ -43,12 +44,58 @@ func (a SoftwareUpdateConfigurationResource) Exists(ctx context.Context, client 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func TestAccSoftwareUpdateConfiguration_basic(t *testing.T) {
+func TestAccSoftwareUpdateConfiguration_linuxBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.linuxBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+	})
+}
+
+func TestAccSoftwareUpdateConfiguration_linuxComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
+	r := newSoftwareUpdateConfigurationResource()
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+	})
+}
+
+func TestAccSoftwareUpdateConfiguration_linuxUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
+	r := newSoftwareUpdateConfigurationResource()
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+		{
+			Config: r.linuxComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+		{
+			Config: r.linuxBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -63,7 +110,7 @@ func TestAccSoftwareUpdateConfiguration_CompleteUpdate(t *testing.T) {
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.linuxBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -79,7 +126,7 @@ func TestAccSoftwareUpdateConfiguration_CompleteUpdate(t *testing.T) {
 		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
 		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
 		{
-			Config: r.basic(data),
+			Config: r.linuxBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -117,7 +164,7 @@ func TestAccSoftwareUpdateConfiguration_defaultTimeZone(t *testing.T) {
 		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
 		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
 		{
-			Config: r.basic(data),
+			Config: r.linuxBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -132,7 +179,7 @@ func TestAccSoftwareUpdateConfiguration_update(t *testing.T) {
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.linuxBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -150,12 +197,58 @@ func TestAccSoftwareUpdateConfiguration_update(t *testing.T) {
 	})
 }
 
-func TestAccSoftwareUpdateConfiguration_windows(t *testing.T) {
+func TestAccSoftwareUpdateConfiguration_windowsBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.windows(data),
+			Config: r.windowsBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+	})
+}
+
+func TestAccSoftwareUpdateConfiguration_windowsComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
+	r := newSoftwareUpdateConfigurationResource()
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+	})
+}
+
+func TestAccSoftwareUpdateConfiguration_windowsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
+	r := newSoftwareUpdateConfigurationResource()
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+		{
+			Config: r.windowsComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+		{
+			Config: r.windowsBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -216,7 +309,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
-func (a SoftwareUpdateConfigurationResource) basic(data acceptance.TestData) string {
+func (a SoftwareUpdateConfigurationResource) linuxBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
@@ -226,10 +319,39 @@ resource "azurerm_automation_software_update_configuration" "test" {
   name                  = "acctest-suc-%[2]d"
 
   linux {
-    classification_included = "Security"
+    classifications_included = ["Security"]
+  }
+
+  target {
+    azure_query {
+      scope     = [azurerm_resource_group.test.id]
+      locations = [azurerm_resource_group.test.location]
+    }
+  }
+
+  schedule {
+    frequency = "OneTime"
+  }
+
+  depends_on = [azurerm_log_analytics_linked_service.test]
+}
+`, a.template(data), data.RandomInteger)
+}
+
+func (a SoftwareUpdateConfigurationResource) linuxComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%s
+
+resource "azurerm_automation_software_update_configuration" "test" {
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-suc-%[2]d"
+
+  linux {
+    classifications_included = ["Critical", "Security"]
     excluded_packages       = ["apt"]
     included_packages       = ["vim"]
-    reboot                  = "IfRequired"
+    reboot                  = "RebootOnly"
   }
 
   duration            = "PT1H1M1S"
@@ -250,6 +372,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
   schedule {
     description         = "foo-schedule"
     start_time          = "%[3]s"
+    expiry_time         = "%[4]s"
     is_enabled          = true
     interval            = 1
     frequency           = "Hour"
@@ -407,7 +530,37 @@ resource "azurerm_automation_software_update_configuration" "test" {
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
-func (a SoftwareUpdateConfigurationResource) windows(data acceptance.TestData) string {
+func (a SoftwareUpdateConfigurationResource) windowsBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_automation_software_update_configuration" "test" {
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-suc-%[2]d"
+
+  windows {
+    classifications_included = ["Security"]
+  }
+
+  target {
+    azure_query {
+      scope     = [azurerm_resource_group.test.id]
+      locations = [azurerm_resource_group.test.location]
+    }
+  }
+
+  schedule {
+    frequency           = "OneTime"
+  }
+
+  depends_on = [azurerm_log_analytics_linked_service.test]
+}
+`, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
+}
+
+func (a SoftwareUpdateConfigurationResource) windowsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -419,7 +572,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
 
   windows {
     classifications_included = ["Critical", "Security"]
-    reboot                   = "IfRequired"
+    reboot                   = "RebootOnly"
   }
 
   duration            = "PT1H1M1S"
@@ -475,7 +628,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-auto-%[1]d"
-  location = "West US"
+  location = "%[2]s"
 }
 
 resource "azurerm_automation_account" "test" {
@@ -498,5 +651,5 @@ resource "azurerm_log_analytics_linked_service" "test" {
   workspace_id        = azurerm_log_analytics_workspace.test.id
   read_access_id      = azurerm_automation_account.test.id
 }
-`, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

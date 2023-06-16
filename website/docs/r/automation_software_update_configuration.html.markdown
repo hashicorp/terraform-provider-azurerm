@@ -80,15 +80,15 @@ The following arguments are supported:
 
 * `automation_account_id` - (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
 
-* `operating_system` - (Required) The Operating system of target machines. Possible values are `Windows` and `Linux`.
-
 ---
 
 * `duration` - (Optional) Maximum time allowed for the software update configuration run. using format `PT[n]H[n]M[n]S` as per ISO8601.
 
-* `linux` - (Optional) One or more `linux` blocks as defined below.
+* `linux` - (Optional) A `linux` blocks as defined below.
 
-* `windows` - (Optional) One or more `windows` blocks as defined below.
+* `windows` - (Optional) A `windows` blocks as defined below.
+
+~> **NOTE:** One of `linux` or `Windows` must be specified.
 
 * `virtual_machine_ids` - (Optional) Specifies a list of azure resource Ids of azure virtual machines.
 
@@ -96,11 +96,11 @@ The following arguments are supported:
 
 * `target` - (Optional) One or more `target` blocks as defined below.
 
-* `post_task` - (Optional) One or more `post_task` blocks as defined below.
+* `post_task` - (Optional) A `post_task` blocks as defined below.
 
-* `pre_task` - (Optional) One or more `pre_task` blocks as defined below.
+* `pre_task` - (Optional) A `pre_task` blocks as defined below.
 
-* `schedule` - (Optional) One or more `schedule` blocks as defined below.
+* `schedule` - (Optional) A `schedule` blocks as defined below.
 
 ---
 
@@ -112,7 +112,7 @@ A `linux` block supports the following:
 
 * `included_packages` - (Optional) Specifies a list of packages to included from the Software Update Configuration.
 
-* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never` and `Always`
+* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never`, `RebootOnly` and `Always`
 
 ---
 
@@ -126,7 +126,7 @@ A `windows` block supports the following:
 
 * `included_knowledge_base_numbers` - (Optional) Specifies a list of knowledge base numbers included.
 
-* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never` and `Always`
+* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never`, `RebootOnly` and `Always`.
 
 ---
 
@@ -184,9 +184,9 @@ A `post_task` block supports the following:
 
 A `schedule` block supports the following:
 
-* `is_enabled` - (Optional) Whether the schedule is enabled.
+* `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
 
-* `frequency` - (Optional) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
+* `is_enabled` - (Optional) Whether the schedule is enabled.
 
 * `description` - (Optional) A description for this Schedule.
 
