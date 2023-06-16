@@ -584,21 +584,21 @@ func TestAccKubernetesCluster_ultraSSD(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("temporary_name_for_rotation"),
 		{
 			Config: r.ultraSSD(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("temporary_name_for_rotation"),
 		{
 			Config: r.ultraSSD(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("temporary_name_for_rotation"),
 	})
 }
 
@@ -1814,6 +1814,7 @@ resource "azurerm_key_vault_access_policy" "acctest" {
     "Create",
     "Delete",
     "Purge",
+    "GetRotationPolicy",
   ]
 }
 
@@ -1930,6 +1931,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix                = "acctestaks%d"
   kubernetes_version        = %q
   automatic_channel_upgrade = %s
+  node_os_channel_upgrade   = "NodeImage"
 
   default_node_pool {
     name       = "default"
@@ -2068,11 +2070,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   maintenance_window {
     not_allowed {
-      end   = "2021-11-30T12:00:00Z"
+      end   = "2021-11-29T12:00:00Z"
       start = "2021-11-26T03:00:00Z"
     }
     not_allowed {
-      end   = "2021-12-30T12:00:00Z"
+      end   = "2021-12-29T12:00:00Z"
       start = "2021-12-26T03:00:00Z"
     }
     allowed {
@@ -2104,11 +2106,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name              = "default"
-    node_count        = 1
-    vm_size           = "Standard_D2s_v3"
-    ultra_ssd_enabled = %t
-    zones             = ["1", "2", "3"]
+    name                        = "default"
+    temporary_name_for_rotation = "temp"
+    node_count                  = 1
+    vm_size                     = "Standard_D2s_v3"
+    ultra_ssd_enabled           = %t
+    zones                       = ["1", "2", "3"]
   }
 
   identity {
@@ -2591,7 +2594,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   dns_prefix              = "acctestaks%d"
-  node_os_channel_upgrade = %s
+  node_os_channel_upgrade = "%s"
   default_node_pool {
     name       = "default"
     vm_size    = "Standard_DS2_v2"
