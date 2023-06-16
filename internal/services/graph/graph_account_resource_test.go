@@ -1,0 +1,161 @@
+package graph_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13/graphservicesprods"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+type AccountTestResource struct{}
+
+func TestAccGraphAccount_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	r := AccountTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccGraphAccount_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	r := AccountTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccGraphAccount_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	r := AccountTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccGraphAccount_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	r := AccountTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+func (r AccountTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := graphservicesprods.ParseAccountID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Graph.V20230413.Graphservicesprods.AccountsGet(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+	}
+
+	return utils.Bool(resp.Model != nil), nil
+}
+func (r AccountTestResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_graph_account" "test" {
+  name                = "acctesta-%[2]d"
+  app_id              = azuread_application.test.application_id
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r AccountTestResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_graph_account" "import" {
+  app_id              = azurerm_graph_account.test.app_id
+  name                = azurerm_graph_account.test.name
+  resource_group_name = azurerm_graph_account.test.resource_group_name
+}
+`, r.basic(data))
+}
+
+func (r AccountTestResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_graph_account" "test" {
+  name                = "acctesta-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  app_id              = azuread_application.test.application_id
+  tags = {
+    environment = "terraform-acctests"
+    some_key    = "some-value"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r AccountTestResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azuread" {}
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-graph-%d"
+  location = %q
+}
+
+resource "azuread_application" "test" {
+  display_name = "acctestspa%[1]d"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}

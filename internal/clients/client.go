@@ -68,6 +68,7 @@ import (
 	firewall "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/client"
 	fluidrelay "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
 	frontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/client"
+	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graph/client"
 	hdinsight "github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	hpccache "github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/client"
@@ -196,6 +197,7 @@ type Client struct {
 	Firewall              *firewall.Client
 	FluidRelay            *fluidrelay_2022_05_26.Client
 	Frontdoor             *frontdoor.Client
+	Graph                 *graph.Client
 	HPCCache              *hpccache.Client
 	HSM                   *hsm.Client
 	HDInsight             *hdinsight.Client
@@ -378,6 +380,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Firewall = firewall.NewClient(o)
 	client.FluidRelay = fluidrelay.NewClient(o)
 	client.Frontdoor = frontdoor.NewClient(o)
+	if client.Graph, err = graph.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Graph: %+v", err)
+	}
 	client.HPCCache = hpccache.NewClient(o)
 	client.HSM = hsm.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
