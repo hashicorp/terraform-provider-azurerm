@@ -72,7 +72,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				ForceNew: true,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
