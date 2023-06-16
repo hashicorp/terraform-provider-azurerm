@@ -836,8 +836,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								// TODO 4.0: change it to managedclusters.NetworkPluginModeOverlay
-								"Overlay",
+								string(managedclusters.NetworkPluginModeOverlay),
 							}, false),
 						},
 
@@ -1297,6 +1296,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			ForceNew:     true,
 			Deprecated:   "`docker_bridge_cidr` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.",
 			ValidateFunc: validate.CIDR,
+		}
+		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["network_plugin_mode"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedclusters.NetworkPluginModeOverlay),
+				"Overlay",
+			}, false),
 		}
 	}
 

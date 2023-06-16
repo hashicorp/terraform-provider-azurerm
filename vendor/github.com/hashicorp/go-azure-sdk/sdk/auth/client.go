@@ -5,6 +5,7 @@ package auth
 
 import (
 	"context"
+	"crypto/tls"
 	"log"
 	"math"
 	"net"
@@ -101,6 +102,9 @@ func httpClient(params httpClientParams) *http.Client {
 	r.RetryWaitMin = params.retryWaitMin
 	r.RetryWaitMax = params.retryWaitMax
 
+	tlsConfig := tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 	r.HTTPClient = &http.Client{
 		Transport: &http.Transport{
 			Proxy: proxyFunc,
@@ -110,6 +114,7 @@ func httpClient(params httpClientParams) *http.Client {
 			},
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
+			TLSClientConfig:       &tlsConfig,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 			ForceAttemptHTTP2:     true,

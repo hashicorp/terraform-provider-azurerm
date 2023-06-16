@@ -2,7 +2,19 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230608.1112153` of `github.com/hashicorp/go-azure-sdk` [GH-22136]
+* dependencies: updating to `v0.20230614.1151152` of `github.com/hashicorp/go-azure-sdk` [GH-22176]
+* dependencies: `compute/marketplace_agreement` - swap to use `hashicorp/go-azure-sdk` [GH-21938]
+* dependencies: `network/manager` - swap to use `hashicorp/go-azure-sdk` [GH-22119]
+* `azurerm_cosmosdb_gremlin_graph` - support for the `analytical_storage_ttl` property [GH-22179]
+* `azurerm_kubernetes_cluster` - add support for the value `AzureLinux` for the field `os_sku` within the `default_node_pool` block [GH-22139]
+* `azurerm_kubernetes_cluster_node_pool` - add support for the value `AzureLinux` for the field `os_sku` [GH-22139]
+
+BUG FIXES:
+
+* `azurerm_application_insights_workbook` - `display_name` can now be correctly updated [GH-22148]
+* `azurerm_bastion_host` - fix validation to set ForceNew when the `sku` is downgraded [GH-22147]
+* `azurerm_kubernetes_cluster` - fix validation preventing cluster's with `network_plugin_mode` set to `Overlay` due to a case change in the upstream API [GH-22153]
+* `azurerm_resource_deployment_script_*` - fix issue where `identity` wasn't specified but was being sent as `TypeNone` to the api [GH-22165]
 
 ## 3.61.0 (June 12, 2023)
 
