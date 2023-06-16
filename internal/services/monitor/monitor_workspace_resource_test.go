@@ -79,6 +79,34 @@ func TestMonitorWorkspace_update(t *testing.T) {
 	})
 }
 
+func TestMonitorWorkspace_publicNetworkAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
+	r := WorkspaceTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccessDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r WorkspaceTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azuremonitorworkspaces.ParseAccountID(state.ID)
 	if err != nil {
@@ -171,6 +199,25 @@ resource "azurerm_monitor_workspace" "test" {
   tags = {
     key2 = "value2"
   }
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r WorkspaceTestResource) publicNetworkAccessDisabled(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_monitor_workspace" "test" {
+  name                = "acctest-mamw-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+  
+  public_network_access_enabled = false
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
