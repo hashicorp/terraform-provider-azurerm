@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -369,8 +369,8 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *pool.MountCo
 		cifsMountConfigList := make([]interface{}, 0)
 		cifsMountConfig := make(map[string]interface{})
 
-		cifsMountConfig["user_name"] = config.CifsMountConfiguration.Username
-		cifsMountConfig["password"] = findSensitiveInfoForMountConfig("password", "user_name", config.CifsMountConfiguration.Username, "cifs_mount", d)
+		cifsMountConfig["user_name"] = config.CifsMountConfiguration.UserName
+		cifsMountConfig["password"] = findSensitiveInfoForMountConfig("password", "user_name", config.CifsMountConfiguration.UserName, "cifs_mount", d)
 		cifsMountConfig["source"] = config.CifsMountConfiguration.Source
 		cifsMountConfig["relative_mount_path"] = config.CifsMountConfiguration.RelativeMountPath
 
@@ -1055,7 +1055,7 @@ func expandBatchPoolCIFSMountConfiguration(list []interface{}) (*pool.CIFSMountC
 
 	configMap := list[0].(map[string]interface{})
 	result := pool.CIFSMountConfiguration{
-		Username:          configMap["user_name"].(string),
+		UserName:          configMap["user_name"].(string),
 		Source:            configMap["source"].(string),
 		Password:          configMap["password"].(string),
 		RelativeMountPath: configMap["relative_mount_path"].(string),
@@ -1104,7 +1104,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 	networkConfiguration := &pool.NetworkConfiguration{}
 
 	if v, ok := networkConfigValue["dynamic_vnet_assignment_scope"]; ok {
-		networkConfiguration.DynamicVNetAssignmentScope = pointer.To(pool.DynamicVNetAssignmentScope(v.(string)))
+		networkConfiguration.DynamicVnetAssignmentScope = pointer.To(pool.DynamicVNetAssignmentScope(v.(string)))
 	}
 
 	if v, ok := networkConfigValue["subnet_id"]; ok {
@@ -1297,8 +1297,8 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 	}
 
 	dynamicVNetAssignmentScope := ""
-	if input.DynamicVNetAssignmentScope != nil {
-		dynamicVNetAssignmentScope = string(*input.DynamicVNetAssignmentScope)
+	if input.DynamicVnetAssignmentScope != nil {
+		dynamicVNetAssignmentScope = string(*input.DynamicVnetAssignmentScope)
 	}
 
 	return []interface{}{

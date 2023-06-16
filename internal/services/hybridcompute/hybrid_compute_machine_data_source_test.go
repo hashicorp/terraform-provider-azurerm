@@ -2,7 +2,6 @@ package hybridcompute_test
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"testing"
 
@@ -12,26 +11,6 @@ import (
 )
 
 type HybridComputeMachineDataSource struct{}
-
-const LetterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const NumberBytes = "1234567890"
-const SpecialBytes = "!@#$%^()"
-
-func generateRandomPassword(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		r := rand.Int()
-		switch r % 3 {
-		case 0:
-			b[i] = LetterBytes[rand.Intn(len(LetterBytes))]
-		case 1:
-			b[i] = SpecialBytes[rand.Intn(len(SpecialBytes))]
-		case 2:
-			b[i] = NumberBytes[rand.Intn(len(NumberBytes))]
-		}
-	}
-	return string(b)
-}
 
 func TestAccHybridComputeMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hybrid_compute_machine", "test")

@@ -999,7 +999,7 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
-		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
 
 		"key_vault_key_id": {
 			Type:         pluginsdk.TypeString,

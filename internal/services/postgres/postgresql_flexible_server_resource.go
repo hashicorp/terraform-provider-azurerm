@@ -125,10 +125,12 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForServerVersion(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				// TODO: Remove "15" after this issue has been resolved:
+				// https://github.com/Azure/azure-rest-api-specs/issues/24186
+				ValidateFunc: validation.StringInSlice(append(servers.PossibleValuesForServerVersion(), "15"), false),
 			},
 
 			"zone": commonschema.ZoneSingleOptional(),
@@ -258,7 +260,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+			"identity": commonschema.UserAssignedIdentityOptional(),
 
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
@@ -708,7 +710,16 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("storage_mb") {
-		parameters.Properties.Storage = expandArmServerStorage(d)
+		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
+		storageUpdateParameters := servers.ServerForUpdate{
+			Properties: &servers.ServerPropertiesForUpdate{
+				Storage: expandArmServerStorage(d),
+			},
+		}
+
+		if err := client.UpdateThenPoll(ctx, *id, storageUpdateParameters); err != nil {
+			return fmt.Errorf("updating `storage_mb` for %s: %+v", *id, err)
+		}
 	}
 
 	if d.HasChange("backup_retention_days") {

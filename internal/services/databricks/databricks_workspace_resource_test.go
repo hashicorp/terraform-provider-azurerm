@@ -780,7 +780,11 @@ resource "azurerm_databricks_workspace" "test" {
 func (DatabricksWorkspaceResource) machineLearning(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -1330,6 +1334,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -1349,6 +1354,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]
@@ -1433,6 +1439,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -1452,6 +1459,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]
@@ -1466,6 +1474,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]
@@ -1543,6 +1552,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -1562,6 +1572,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "List",
     "Encrypt",
     "Decrypt",
@@ -1579,6 +1590,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]
@@ -1749,6 +1761,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -1768,6 +1781,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]
@@ -1782,6 +1796,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
   ]

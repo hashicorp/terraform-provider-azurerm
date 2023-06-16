@@ -116,7 +116,7 @@ func TestAccKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("network_profile.0.docker_bridge_cidr"),
 	})
 }
 
@@ -164,7 +164,7 @@ func TestAccKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("network_profile.0.docker_bridge_cidr"),
 	})
 }
 
@@ -1136,10 +1136,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "kubenet"
-    dns_service_ip     = "10.10.0.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidr       = "10.10.0.0/16"
+    network_plugin = "kubenet"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
   }
 
   service_mesh_profile {
@@ -1200,10 +1199,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "kubenet"
-    dns_service_ip     = "10.10.0.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidr       = "10.10.0.0/16"
+    network_plugin = "kubenet"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1266,11 +1264,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "kubenet"
-    dns_service_ip     = "10.10.0.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidr       = "10.10.0.0/16"
-    ip_versions        = [%[3]s]
+    network_plugin = "kubenet"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
+    ip_versions    = [%[3]s]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, ipv)
@@ -1470,11 +1467,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "%s"
-    network_policy     = "%s"
-    dns_service_ip     = "10.10.0.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidr       = "10.10.0.0/16"
+    network_plugin = "%s"
+    network_policy = "%s"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin, networkPolicy)
@@ -1550,12 +1546,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_mode       = "%s"
-    network_plugin     = "%s"
-    network_policy     = "%s"
-    dns_service_ip     = "10.10.0.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidr       = "10.10.0.0/16"
+    network_mode   = "%s"
+    network_plugin = "%s"
+    network_policy = "%s"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkMode, networkPlugin, networkPolicy)
@@ -1714,13 +1709,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "kubenet"
-    load_balancer_sku  = "standard"
-    pod_cidr           = "10.244.0.0/16"
-    service_cidr       = "10.0.0.0/16"
-    dns_service_ip     = "10.0.0.10"
-    docker_bridge_cidr = "172.17.0.1/16"
-    outbound_type      = "managedNATGateway"
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+    pod_cidr          = "10.244.0.0/16"
+    service_cidr      = "10.0.0.0/16"
+    dns_service_ip    = "10.0.0.10"
+    outbound_type     = "managedNATGateway"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -1755,13 +1749,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "kubenet"
-    load_balancer_sku  = "standard"
-    pod_cidr           = "10.244.0.0/16"
-    service_cidr       = "10.0.0.0/16"
-    dns_service_ip     = "10.0.0.10"
-    docker_bridge_cidr = "172.17.0.1/16"
-    outbound_type      = "managedNATGateway"
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+    pod_cidr          = "10.244.0.0/16"
+    service_cidr      = "10.0.0.0/16"
+    dns_service_ip    = "10.0.0.10"
+    outbound_type     = "managedNATGateway"
     nat_gateway_profile {
       managed_outbound_ip_count = %d
       idle_timeout_in_minutes   = %d
@@ -1840,13 +1833,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "kubenet"
-    load_balancer_sku  = "standard"
-    pod_cidr           = "10.244.0.0/16"
-    service_cidr       = "10.0.0.0/16"
-    dns_service_ip     = "10.0.0.10"
-    docker_bridge_cidr = "172.17.0.1/16"
-    outbound_type      = "userAssignedNATGateway"
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+    pod_cidr          = "10.244.0.0/16"
+    service_cidr      = "10.0.0.0/16"
+    dns_service_ip    = "10.0.0.10"
+    outbound_type     = "userAssignedNATGateway"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1881,13 +1873,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "kubenet"
-    load_balancer_sku  = "basic"
-    pod_cidr           = "10.244.0.0/16"
-    service_cidr       = "10.0.0.0/16"
-    dns_service_ip     = "10.0.0.10"
-    docker_bridge_cidr = "172.17.0.1/16"
-    outbound_type      = "loadBalancer"
+    network_plugin    = "kubenet"
+    load_balancer_sku = "basic"
+    pod_cidr          = "10.244.0.0/16"
+    service_cidr      = "10.0.0.0/16"
+    dns_service_ip    = "10.0.0.10"
+    outbound_type     = "loadBalancer"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -2249,10 +2240,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "kubenet"
-    dns_service_ip     = "10.1.1.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidrs      = ["10.1.1.0/24"]
+    network_plugin = "kubenet"
+    dns_service_ip = "10.1.1.10"
+    service_cidrs  = ["10.1.1.0/24"]
   }
 
   identity {
@@ -2282,11 +2272,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "kubenet"
-    dns_service_ip     = "10.1.1.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidrs      = ["10.1.1.0/24", "2002::1234:abcd:ffff:c0a8:101/120"]
-    ip_versions        = ["IPv4", "IPv6"]
+    network_plugin = "kubenet"
+    dns_service_ip = "10.1.1.10"
+    service_cidrs  = ["10.1.1.0/24", "2002::1234:abcd:ffff:c0a8:101/120"]
+    ip_versions    = ["IPv4", "IPv6"]
   }
 
   identity {
@@ -2424,11 +2413,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "azure"
-    dns_service_ip     = "10.10.0.10"
-    docker_bridge_cidr = "172.18.0.1/16"
-    service_cidr       = "10.10.0.0/16"
-    load_balancer_sku  = "standard"
+    network_plugin    = "azure"
+    dns_service_ip    = "10.10.0.10"
+    service_cidr      = "10.10.0.0/16"
+    load_balancer_sku = "standard"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

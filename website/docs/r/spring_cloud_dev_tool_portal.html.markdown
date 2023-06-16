@@ -19,6 +19,8 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "example" {
   name     = "example"
   location = "West Europe"
@@ -39,7 +41,7 @@ resource "azurerm_spring_cloud_dev_tool_portal" "example" {
   sso {
     client_id     = "example id"
     client_secret = "example secret"
-    metadata_url  = "https://www.example.com/metadata"
+    metadata_url  = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0/.well-known/openid-configuration"
     scope         = ["openid", "profile", "email"]
   }
 

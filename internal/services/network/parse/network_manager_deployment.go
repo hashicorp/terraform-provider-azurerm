@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
@@ -32,7 +33,7 @@ func NetworkManagerDeploymentID(networkManagerDeploymentId string) (*ManagerDepl
 	}
 
 	networkManagerId := strings.TrimSuffix(v[0], "/commit")
-	managerId, err := NetworkManagerID(networkManagerId)
+	managerId, err := networkmanagers.ParseNetworkManagerID(networkManagerId)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +47,7 @@ func NetworkManagerDeploymentID(networkManagerDeploymentId string) (*ManagerDepl
 		return nil, fmt.Errorf("expected scopeAccess in network manager deployment ID with format `{networkManagerId}/commit|{location}|{scopeAccess} to be one of the [Connectivity, SecurityAdmin]`, but got %s in %s", v[2], networkManagerDeploymentId)
 	}
 	scopeAccess := v[2]
-	networkManagerDeployment := NewNetworkManagerDeploymentID(managerId.SubscriptionId, managerId.ResourceGroup, managerId.Name, normalizedLocation, scopeAccess)
+	networkManagerDeployment := NewNetworkManagerDeploymentID(managerId.SubscriptionId, managerId.ResourceGroupName, managerId.NetworkManagerName, normalizedLocation, scopeAccess)
 	return networkManagerDeployment, nil
 }
 

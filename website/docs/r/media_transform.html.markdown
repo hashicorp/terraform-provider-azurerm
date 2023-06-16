@@ -477,6 +477,8 @@ A `custom_preset` block supports the following:
 
 * `format` - (Required) One or more `format` blocks as defined below.
 
+* `experimental_options` - (Optional) Dictionary containing key value pairs for parameters not exposed in the preset itself.
+
 * `filter` - (Optional) A `filter` block as defined below.
  
 ---

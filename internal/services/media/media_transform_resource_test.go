@@ -495,6 +495,10 @@ resource "azurerm_media_transform" "test" {
         }
       }
 
+      experimental_options = {
+        env = "prod"
+      }
+
       filter {
         crop_rectangle {
           height = "240"
