@@ -133,6 +133,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Network Function is only available in certain locations
         "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),
 
+        // Network Regional Tire Public IP is only available in
+        "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
+
         "policy" to testConfiguration(useAltSubscription = true),
 
         // Private DNS Resolver is only available in certain locations
