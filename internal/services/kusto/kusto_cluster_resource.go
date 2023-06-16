@@ -167,7 +167,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"engine": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
 			},
 
