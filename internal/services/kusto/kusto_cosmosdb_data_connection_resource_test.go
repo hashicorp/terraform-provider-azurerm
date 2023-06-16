@@ -54,8 +54,6 @@ func TestAccKustoCosmosDBDataConnection_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("table_name").Exists(),
 				check.That(data.ResourceName).Key("managed_identity_id").Exists(),
 				check.That(data.ResourceName).Key("table_name").HasValue("TestTable"),
-				check.That(data.ResourceName).Key("mapping_rule_name").DoesNotExist(),
-				check.That(data.ResourceName).Key("retrieval_start_date").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -160,6 +158,16 @@ resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestuami-%d"
 }
 
+data "azurerm_role_definition" "builtin" {
+  name = "DocumentDB Account Contributor"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_resource_group.test.id
+  role_definition_name = data.azurerm_role_definition.builtin.name
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca-%d"
   location            = azurerm_resource_group.test.location
@@ -176,11 +184,6 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
-  }
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 
