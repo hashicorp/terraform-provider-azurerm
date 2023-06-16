@@ -3,7 +3,6 @@ package cosmos_test
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
@@ -508,5 +507,5 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   throughput             = 400
   analytical_storage_ttl = %[3]d
 }
-`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelStrong, true), data.RandomInteger, analyticalStorageTtl)
+`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", "Strong", true), data.RandomInteger, analyticalStorageTtl)
 }
