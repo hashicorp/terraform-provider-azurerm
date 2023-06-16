@@ -1109,8 +1109,10 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 
 	for _, v := range input {
 		volume := containerapps.Volume{
-			Name:        pointer.To(v.Name),
-			StorageName: pointer.To(v.StorageName),
+			Name: pointer.To(v.Name),
+		}
+		if v.StorageName != "" {
+			volume.StorageName = pointer.To(v.StorageName)
 		}
 		if v.StorageType != "" {
 			storageType := containerapps.StorageType(v.StorageType)
