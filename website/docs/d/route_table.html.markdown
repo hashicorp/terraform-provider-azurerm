@@ -32,6 +32,8 @@ The following arguments are supported:
 
 The following attributes are exported:
 
+* `disable_bgp_route_propagation` - Boolean flag which controls propagation of routes learned by BGP on that route table.
+
 * `id` - The Route Table ID.
 
 * `location` - The Azure Region in which the Route Table exists.
@@ -43,8 +45,6 @@ The following attributes are exported:
 * `tags` - A mapping of tags assigned to the Route Table.
 
 The `route` block exports the following:
-
-* `disable_bgp_route_propagation` - Boolean flag which controls propagation of routes learned by BGP on that route table.
 
 * `name` - The name of the Route.
 
