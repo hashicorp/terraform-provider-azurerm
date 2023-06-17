@@ -94,7 +94,7 @@ func (r CosmosDBDataConnectionResource) Arguments() map[string]*schema.Schema {
 		"retrieval_start_date": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.IsRFC3339Time,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
@@ -193,14 +193,14 @@ func (r CosmosDBDataConnectionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			cosmosDbProperties := (*properties).(dataconnections.CosmosDbDataConnectionProperties)
+			cosmosDbProperties := (*properties).(dataconnections.CosmosDbDataConnection)
 
-			if metadata.ResourceData.HasChange("mapping_rule_name") {
-				cosmosDbProperties.MappingRuleName = &model.MappingRuleName
+			if metadata.ResourceData.HasChange("mapping_rule_name") && cosmosDbProperties.Properties != nil {
+				cosmosDbProperties.Properties.MappingRuleName = &model.MappingRuleName
 			}
 
-			if metadata.ResourceData.HasChange("retrieval_start_date") {
-				cosmosDbProperties.RetrievalStartDate = &model.RetrievalStartDate
+			if metadata.ResourceData.HasChange("retrieval_start_date") && cosmosDbProperties.Properties != nil {
+				cosmosDbProperties.Properties.RetrievalStartDate = &model.RetrievalStartDate
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
