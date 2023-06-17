@@ -27,11 +27,6 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"disable_bgp_route_propagation": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -39,6 +34,11 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"bgp_route_propagation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
 			"location": commonschema.LocationComputed(),
 

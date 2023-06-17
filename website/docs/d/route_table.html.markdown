@@ -32,7 +32,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `disable_bgp_route_propagation` - Boolean flag which controls propagation of routes learned by BGP on that route table.
+* `bgp_route_propagation_enabled` - Boolean flag which controls propagation of routes learned by BGP on that route table.
 
 * `id` - The Route Table ID.
 

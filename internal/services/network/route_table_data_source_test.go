@@ -21,9 +21,9 @@ func TestAccDataSourceRouteTable_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("bgp_route_propagation_enabled").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("route.#").Exists(),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
