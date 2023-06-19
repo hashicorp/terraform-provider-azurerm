@@ -128,6 +128,11 @@ fun ParametrizedWithType.hiddenPasswordVariable(name: String, value: String, des
 }
 
 fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek: String, daysOfMonth: String) {
+    // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
+    if (!enableTestTriggersGlobally) {
+        return
+    }
+
     schedule{
         enabled = nightlyTestsEnabled
         branchFilter = "+:refs/heads/main"
