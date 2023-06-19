@@ -62,8 +62,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `network_address_port_translation_configuration` block supports the following:
 
-* `enabled` - Whether NAPT is enabled for connections to this attached data network.
-
 * `pinhole_limits` - Maximum number of UDP and TCP pinholes that can be open simultaneously on the core interface. For 5G networks, this is the N6 interface. For 4G networks, this is the SGi interface.
 
 * `pinhole_timeouts_in_seconds` - A `pinhole_timeouts_in_seconds` block as defined below.

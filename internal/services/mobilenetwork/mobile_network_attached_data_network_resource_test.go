@@ -90,6 +90,13 @@ func TestAccMobileNetworkAttachedDataNetwork_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -128,15 +135,13 @@ func (r MobileNetworkAttachedDataNetworkResource) basic(data acceptance.TestData
 				%s
 
 resource "azurerm_mobile_network_attached_data_network" "test" {
-  name                                     = "acctest-mnadn-%d"
+  mobile_network_data_network_name         = azurerm_mobile_network_data_network.test.name
   mobile_network_packet_core_data_plane_id = azurerm_mobile_network_packet_core_data_plane.test.id
   location                                 = "%s"
   dns_addresses                            = ["1.1.1.1"]
   user_equipment_address_pool_prefixes     = ["2.4.0.0/16"]
-
-  depends_on = [azurerm_mobile_network_data_network.test]
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.Locations.Primary)
 }
 
 func (r MobileNetworkAttachedDataNetworkResource) withDataAccess(data acceptance.TestData) string {
@@ -144,7 +149,7 @@ func (r MobileNetworkAttachedDataNetworkResource) withDataAccess(data acceptance
 				%s
 
 resource "azurerm_mobile_network_attached_data_network" "test" {
-  name                                     = "acctest-mnadn-%d"
+  mobile_network_data_network_name         = azurerm_mobile_network_data_network.test.name
   mobile_network_packet_core_data_plane_id = azurerm_mobile_network_packet_core_data_plane.test.id
   location                                 = "%s"
   dns_addresses                            = ["1.1.1.1"]
@@ -153,10 +158,8 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   user_plane_access_ipv4_address           = "10.204.141.4"
   user_plane_access_ipv4_gateway           = "10.204.141.1"
   user_plane_access_ipv4_subnet            = "10.204.141.0/24"
-
-  depends_on = [azurerm_mobile_network_data_network.test]
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.Locations.Primary)
 }
 
 func (r MobileNetworkAttachedDataNetworkResource) requiresImport(data acceptance.TestData) string {
@@ -165,7 +168,7 @@ func (r MobileNetworkAttachedDataNetworkResource) requiresImport(data acceptance
 			%s
 
 resource "azurerm_mobile_network_attached_data_network" "import" {
-  name                                     = azurerm_mobile_network_attached_data_network.test.name
+  mobile_network_data_network_name         = azurerm_mobile_network_data_network.test.name
   mobile_network_packet_core_data_plane_id = azurerm_mobile_network_packet_core_data_plane.test.id
   location                                 = "%s"
   dns_addresses                            = azurerm_mobile_network_attached_data_network.test.dns_addresses
@@ -185,7 +188,7 @@ func (r MobileNetworkAttachedDataNetworkResource) complete(data acceptance.TestD
 			%s
 
 resource "azurerm_mobile_network_attached_data_network" "test" {
-  name                                        = "acctest-mnadn-%d"
+  mobile_network_data_network_name            = azurerm_mobile_network_data_network.test.name
   mobile_network_packet_core_data_plane_id    = azurerm_mobile_network_packet_core_data_plane.test.id
   location                                    = "%s"
   dns_addresses                               = ["1.1.1.1"]
@@ -197,7 +200,6 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   user_plane_access_ipv4_subnet               = "10.204.141.0/24"
 
   network_address_port_translation_configuration {
-    enabled                = true
     pinhole_maximum_number = 65536
 
     pinhole_timeouts_in_seconds {
@@ -223,7 +225,7 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   depends_on = [azurerm_mobile_network_data_network.test]
 
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.Locations.Primary)
 }
 
 func (r MobileNetworkAttachedDataNetworkResource) update(data acceptance.TestData) string {
@@ -231,7 +233,7 @@ func (r MobileNetworkAttachedDataNetworkResource) update(data acceptance.TestDat
 			%s
 
 resource "azurerm_mobile_network_attached_data_network" "test" {
-  name                                        = "acctest-mnadn-%d"
+  mobile_network_data_network_name            = azurerm_mobile_network_data_network.test.name
   mobile_network_packet_core_data_plane_id    = azurerm_mobile_network_packet_core_data_plane.test.id
   location                                    = "%s"
   dns_addresses                               = ["1.1.1.1"]
@@ -243,7 +245,6 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   user_plane_access_ipv4_subnet               = "10.204.141.0/24"
 
   network_address_port_translation_configuration {
-    enabled                = true
     pinhole_maximum_number = 65536
     pinhole_timeouts_in_seconds {
       icmp = 30
@@ -267,5 +268,5 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   depends_on = [azurerm_mobile_network_data_network.test]
 
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.Locations.Primary)
 }

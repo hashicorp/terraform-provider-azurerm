@@ -34,7 +34,7 @@ func (r AttachedDataNetworkDataSource) IDValidationFunc() pluginsdk.SchemaValida
 
 func (r AttachedDataNetworkDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": {
+		"mobile_network_data_network_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -68,11 +68,6 @@ func (r AttachedDataNetworkDataSource) Attributes() map[string]*pluginsdk.Schema
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
 					"pinhole_maximum_number": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,

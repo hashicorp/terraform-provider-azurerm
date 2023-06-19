@@ -21,7 +21,6 @@ func TestAccMobileNetworkAttachedDataNetworkDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key(`dns_addresses.0`).HasValue("1.1.1.1"),
 				check.That(data.ResourceName).Key(`user_equipment_address_pool_prefixes.0`).HasValue("2.4.1.0/24"),
 				check.That(data.ResourceName).Key(`user_equipment_static_address_pool_prefixes.0`).HasValue("2.4.2.0/24"),
-				check.That(data.ResourceName).Key(`network_address_port_translation_configuration.0.enabled`).HasValue("true"),
 				check.That(data.ResourceName).Key(`network_address_port_translation_configuration.0.pinhole_maximum_number`).HasValue("65536"),
 				check.That(data.ResourceName).Key(`network_address_port_translation_configuration.0.pinhole_timeouts_in_seconds.0.icmp`).HasValue("30"),
 				check.That(data.ResourceName).Key(`network_address_port_translation_configuration.0.pinhole_timeouts_in_seconds.0.tcp`).HasValue("100"),
@@ -45,7 +44,7 @@ func (r MobileNetworkAttachedDataNetworkDataSource) basic(data acceptance.TestDa
 	%s
 
 data "azurerm_mobile_network_attached_data_network" "test" {
-  name                                     = azurerm_mobile_network_attached_data_network.test.name
+  mobile_network_data_network_name         = azurerm_mobile_network_attached_data_network.test.mobile_network_data_network_name
   mobile_network_packet_core_data_plane_id = azurerm_mobile_network_attached_data_network.test.mobile_network_packet_core_data_plane_id
 }
 `, MobileNetworkAttachedDataNetworkResource{}.complete(data))

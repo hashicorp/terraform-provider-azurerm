@@ -19,7 +19,7 @@ import (
 )
 
 type AttachedDataNetworkModel struct {
-	Name                                 string                   `tfschema:"name"`
+	Name                                 string                   `tfschema:"mobile_network_data_network_name"`
 	MobileNetworkPacketCoreDataPlaneId   string                   `tfschema:"mobile_network_packet_core_data_plane_id"`
 	DnsAddresses                         []string                 `tfschema:"dns_addresses"`
 	Location                             string                   `tfschema:"location"`
@@ -34,7 +34,6 @@ type AttachedDataNetworkModel struct {
 }
 
 type NaptConfigurationModel struct {
-	Enabled           bool                      `tfschema:"enabled"`
 	PinholeLimits     int64                     `tfschema:"pinhole_maximum_number"`
 	PinholeTimeouts   []PinholeTimeoutsModel    `tfschema:"pinhole_timeouts_in_seconds"`
 	PortRange         []PortRangeModel          `tfschema:"port_range"`
@@ -75,7 +74,7 @@ func (r AttachedDataNetworkResource) IDValidationFunc() pluginsdk.SchemaValidate
 
 func (r AttachedDataNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": {
+		"mobile_network_data_network_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -106,11 +105,6 @@ func (r AttachedDataNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
-
 					"pinhole_maximum_number": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
@@ -283,15 +277,22 @@ func (r AttachedDataNetworkResource) Create() sdk.ResourceFunc {
 			attachedDataNetwork := &attacheddatanetwork.AttachedDataNetwork{
 				Location: location.Normalize(model.Location),
 				Properties: attacheddatanetwork.AttachedDataNetworkPropertiesFormat{
-					DnsAddresses:                         model.DnsAddresses,
-					UserEquipmentAddressPoolPrefix:       &model.UserEquipmentAddressPoolPrefix,
-					UserEquipmentStaticAddressPoolPrefix: &model.UserEquipmentStaticAddressPoolPrefix,
-					UserPlaneDataInterface:               attacheddatanetwork.InterfaceProperties{},
+					DnsAddresses:           model.DnsAddresses,
+					UserPlaneDataInterface: attacheddatanetwork.InterfaceProperties{},
+					NaptConfiguration:      expandNaptConfigurationModel(model.NaptConfiguration),
 				},
 				Tags: &model.Tags,
 			}
 
-			attachedDataNetwork.Properties.NaptConfiguration = expandNaptConfigurationModel(model.NaptConfiguration)
+			// if we pass an empty array the service will return an error
+			// Array is too short (0), minimum 1.
+			if len(model.UserEquipmentStaticAddressPoolPrefix) > 0 {
+				attachedDataNetwork.Properties.UserEquipmentStaticAddressPoolPrefix = &model.UserEquipmentStaticAddressPoolPrefix
+			}
+
+			if len(model.UserEquipmentAddressPoolPrefix) > 0 {
+				attachedDataNetwork.Properties.UserEquipmentAddressPoolPrefix = &model.UserEquipmentAddressPoolPrefix
+			}
 
 			if model.UserPlaneAccessName != "" {
 				attachedDataNetwork.Properties.UserPlaneDataInterface.Name = &model.UserPlaneAccessName
@@ -335,53 +336,48 @@ func (r AttachedDataNetworkResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, *id)
+			_, err = client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			addtachedDataNetwork := resp.Model
-			if addtachedDataNetwork == nil {
-				return fmt.Errorf("retrieving %s: addtachedDataNetwork was nil", id)
+			attachedDataNetwork := &attacheddatanetwork.AttachedDataNetwork{
+				Location: location.Normalize(plan.Location),
+				Properties: attacheddatanetwork.AttachedDataNetworkPropertiesFormat{
+					DnsAddresses:           plan.DnsAddresses,
+					UserPlaneDataInterface: attacheddatanetwork.InterfaceProperties{},
+					NaptConfiguration:      expandNaptConfigurationModel(plan.NaptConfiguration),
+				},
+				Tags: &plan.Tags,
 			}
 
-			if metadata.ResourceData.HasChange("dns_addresses") {
-				addtachedDataNetwork.Properties.DnsAddresses = plan.DnsAddresses
+			// if we pass an empty array the service will return an error
+			// Array is too short (0), minimum 1.
+			if len(plan.UserEquipmentStaticAddressPoolPrefix) > 0 {
+				attachedDataNetwork.Properties.UserEquipmentStaticAddressPoolPrefix = &plan.UserEquipmentStaticAddressPoolPrefix
 			}
 
-			if metadata.ResourceData.HasChange("network_address_port_translation_configuration") {
-				addtachedDataNetwork.Properties.NaptConfiguration = expandNaptConfigurationModel(plan.NaptConfiguration)
+			if len(plan.UserEquipmentAddressPoolPrefix) > 0 {
+				attachedDataNetwork.Properties.UserEquipmentAddressPoolPrefix = &plan.UserEquipmentAddressPoolPrefix
 			}
 
-			if metadata.ResourceData.HasChange("user_equipment_address_pool_prefixes") {
-				addtachedDataNetwork.Properties.UserEquipmentAddressPoolPrefix = &plan.UserEquipmentAddressPoolPrefix
+			if plan.UserPlaneAccessName != "" {
+				attachedDataNetwork.Properties.UserPlaneDataInterface.Name = &plan.UserPlaneAccessName
 			}
 
-			if metadata.ResourceData.HasChange("user_equipment_static_address_pool_prefixes") {
-				addtachedDataNetwork.Properties.UserEquipmentStaticAddressPoolPrefix = &plan.UserEquipmentStaticAddressPoolPrefix
+			if plan.UserPlaneAccessIPv4Address != "" {
+				attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Address = &plan.UserPlaneAccessIPv4Address
 			}
 
-			if metadata.ResourceData.HasChange("user_plane_access_name") {
-				addtachedDataNetwork.Properties.UserPlaneDataInterface.Name = &plan.UserPlaneAccessName
+			if plan.UserPlaneAccessIPv4Subnet != "" {
+				attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Subnet = &plan.UserPlaneAccessIPv4Subnet
 			}
 
-			if metadata.ResourceData.HasChange("user_plane_access_ipv4_address") {
-				addtachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Address = &plan.UserPlaneAccessIPv4Address
+			if plan.UserPlaneAccessIPv4Gateway != "" {
+				attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Gateway = &plan.UserPlaneAccessIPv4Gateway
 			}
 
-			if metadata.ResourceData.HasChange("user_plane_access_ipv4_subnet") {
-				addtachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Subnet = &plan.UserPlaneAccessIPv4Subnet
-			}
-
-			if metadata.ResourceData.HasChange("user_plane_access_ipv4_gateway") {
-				addtachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Gateway = &plan.UserPlaneAccessIPv4Gateway
-			}
-
-			if metadata.ResourceData.HasChange("tags") {
-				addtachedDataNetwork.Tags = &plan.Tags
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *addtachedDataNetwork); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *attachedDataNetwork); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -472,11 +468,7 @@ func expandNaptConfigurationModel(inputList []NaptConfigurationModel) *attachedd
 		PinholeLimits: &input.PinholeLimits,
 	}
 
-	naptEnabled := attacheddatanetwork.NaptEnabledDisabled
-	if input.Enabled {
-		naptEnabled = attacheddatanetwork.NaptEnabledEnabled
-	}
-	output.Enabled = &naptEnabled
+	output.Enabled = pointer.To(attacheddatanetwork.NaptEnabledEnabled)
 
 	output.PinholeTimeouts = expandPinholeTimeoutsModel(input.PinholeTimeouts)
 
@@ -531,18 +523,12 @@ func expandPortReuseHoldTimesModel(inputList []PortReuseHoldTimesModel) *attache
 }
 
 func flattenNaptConfigurationModel(input *attacheddatanetwork.NaptConfiguration) []NaptConfigurationModel {
-	var outputList []NaptConfigurationModel
 	if input == nil {
-		return outputList
+		return []NaptConfigurationModel{}
 	}
+	output := NaptConfigurationModel{}
 
-	output := NaptConfigurationModel{
-		Enabled: input.Enabled != nil && *input.Enabled == attacheddatanetwork.NaptEnabledEnabled,
-	}
-
-	if input.PinholeLimits != nil {
-		output.PinholeLimits = *input.PinholeLimits
-	}
+	output.PinholeLimits = pointer.From(input.PinholeLimits)
 
 	output.PinholeTimeouts = flattenPinholeTimeoutsModel(input.PinholeTimeouts)
 
@@ -550,68 +536,48 @@ func flattenNaptConfigurationModel(input *attacheddatanetwork.NaptConfiguration)
 
 	output.PortReuseHoldTime = flattenPortReuseHoldTimesModel(input.PortReuseHoldTime)
 
-	return append(outputList, output)
+	return []NaptConfigurationModel{output}
 }
 
 func flattenPinholeTimeoutsModel(input *attacheddatanetwork.PinholeTimeouts) []PinholeTimeoutsModel {
-	var outputList []PinholeTimeoutsModel
 	if input == nil {
-		return outputList
+		return []PinholeTimeoutsModel{}
 	}
-
 	output := PinholeTimeoutsModel{}
 
-	if input.Icmp != nil {
-		output.Icmp = *input.Icmp
-	}
+	output.Icmp = pointer.From(input.Icmp)
 
-	if input.Tcp != nil {
-		output.Tcp = *input.Tcp
-	}
+	output.Tcp = pointer.From(input.Tcp)
 
-	if input.Udp != nil {
-		output.Udp = *input.Udp
-	}
+	output.Udp = pointer.From(input.Udp)
 
-	outputList = append(outputList, output)
-
-	return outputList
+	return []PinholeTimeoutsModel{output}
 }
 
 func flattenPortRangeModel(input *attacheddatanetwork.PortRange) []PortRangeModel {
-	var outputList []PortRangeModel
 	if input == nil {
-		return outputList
+		return []PortRangeModel{}
 	}
 
 	output := PortRangeModel{}
 
-	if input.MaxPort != nil {
-		output.MaxPort = *input.MaxPort
-	}
+	output.MaxPort = pointer.From(input.MaxPort)
 
-	if input.MinPort != nil {
-		output.MinPort = *input.MinPort
-	}
+	output.MinPort = pointer.From(input.MinPort)
 
-	return append(outputList, output)
+	return []PortRangeModel{output}
 }
 
 func flattenPortReuseHoldTimesModel(input *attacheddatanetwork.PortReuseHoldTimes) []PortReuseHoldTimesModel {
-	var outputList []PortReuseHoldTimesModel
 	if input == nil {
-		return outputList
+		return []PortReuseHoldTimesModel{}
 	}
 
 	output := PortReuseHoldTimesModel{}
 
-	if input.Tcp != nil {
-		output.Tcp = *input.Tcp
-	}
+	output.Tcp = pointer.From(input.Tcp)
 
-	if input.Udp != nil {
-		output.Udp = *input.Udp
-	}
+	output.Udp = pointer.From(input.Udp)
 
-	return append(outputList, output)
+	return []PortReuseHoldTimesModel{output}
 }

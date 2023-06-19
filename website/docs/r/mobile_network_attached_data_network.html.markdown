@@ -80,7 +80,6 @@ resource "azurerm_mobile_network_attached_data_network" "example" {
   user_plane_access_ipv4_subnet               = "10.204.141.0/24"
 
   network_address_port_translation_configuration {
-    enabled                = true
     pinhole_maximum_number = 65536
     pinhole_timeouts_in_seconds {
       icmp = 30
@@ -110,7 +109,7 @@ resource "azurerm_mobile_network_attached_data_network" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Mobile Network Attached Data Network. Must be as same as `azurerm_mobile_network_data_network`, Changing this forces a new Mobile Network Attached Data Network to be created.
+* `mobile_network_data_network_name` - (Required) Specifies the `name` of `azurerm_mobile_network_data_network`, Changing this forces a new Mobile Network Attached Data Network to be created.
 
 * `mobile_network_packet_core_data_plane_id` - (Required) Specifies the ID of the Mobile Network Attached Data Network. Changing this forces a new Mobile Network Attached Data Network to be created.
 
@@ -139,8 +138,6 @@ The following arguments are supported:
 ---
 
 A `network_address_port_translation_configuration` block supports the following:
-
-* `enabled` - (Required) Whether NAPT is enabled for connections to this attached data network.
 
 * `pinhole_limits` - (Optional) Maximum number of UDP and TCP pinholes that can be open simultaneously on the core interface. For 5G networks, this is the N6 interface. For 4G networks, this is the SGi interface. Must be between 1 and 65536.
 
