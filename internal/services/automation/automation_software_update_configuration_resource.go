@@ -937,7 +937,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 					}}
 				}
 				if post := tasks.PostTask; post != nil {
-					state.PreTask = []UpdateTask{{
+					state.PostTask = []UpdateTask{{
 						Source:     pointer.From(post.Source),
 						Parameters: pointer.From(post.Parameters),
 					}}
