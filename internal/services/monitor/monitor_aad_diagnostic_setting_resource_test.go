@@ -737,6 +737,7 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   }
   enabled_log {
     category = "SignInLogs"
+    retention_policy {}
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
