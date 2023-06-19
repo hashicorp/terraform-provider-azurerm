@@ -341,6 +341,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
 func (a SoftwareUpdateConfigurationResource) linuxComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_automation_software_update_configuration" "test" {
@@ -349,9 +350,9 @@ resource "azurerm_automation_software_update_configuration" "test" {
 
   linux {
     classifications_included = ["Critical", "Security"]
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "RebootOnly"
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "RebootOnly"
   }
 
   duration            = "PT1H1M1S"
@@ -534,6 +535,8 @@ func (a SoftwareUpdateConfigurationResource) windowsBasic(data acceptance.TestDa
 	return fmt.Sprintf(`
 
 
+
+
 %s
 
 resource "azurerm_automation_software_update_configuration" "test" {
@@ -552,7 +555,7 @@ resource "azurerm_automation_software_update_configuration" "test" {
   }
 
   schedule {
-    frequency           = "OneTime"
+    frequency = "OneTime"
   }
 
   depends_on = [azurerm_log_analytics_linked_service.test]
