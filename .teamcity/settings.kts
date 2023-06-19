@@ -13,7 +13,7 @@ var tenantId = DslContext.getParameter("tenantId", "")
 var environment = DslContext.getParameter("environment", "public")
 var clientIdAlt = DslContext.getParameter("clientIdAlt", "")
 var clientSecretAlt = DslContext.getParameter("clientSecretAlt", "")
-var enableTestTriggersGlobally = DslContext.getParameter("enableTestTriggersGlobally", true)
+var enableTestTriggersGlobally = DslContext.getParameter("enableTestTriggersGlobally", "true").equals("true", ignoreCase = true)
 
 var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest, enableTestTriggersGlobally)
 
