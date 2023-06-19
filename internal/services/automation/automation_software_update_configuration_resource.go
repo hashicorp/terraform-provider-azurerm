@@ -136,10 +136,10 @@ type SoftwareUpdateConfigurationResource struct{}
 var _ sdk.ResourceWithUpdate = SoftwareUpdateConfigurationResource{}
 
 func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
-	linux := &pluginsdk.Resource{}
-	windows := &pluginsdk.Resource{}
+	linux := pluginsdk.Resource{}
+	windows := pluginsdk.Resource{}
 	if !features.FourPointOhBeta() {
-		linux = &pluginsdk.Resource{
+		linux = pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"reboot": {
 					Type:     pluginsdk.TypeString,
@@ -196,7 +196,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 				},
 			},
 		}
-		windows = &pluginsdk.Resource{
+		windows = pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"classification_included": {
 					Type:          pluginsdk.TypeString,
@@ -256,7 +256,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 			},
 		}
 	} else {
-		linux = &pluginsdk.Resource{
+		linux = pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"reboot": {
 					Type:     pluginsdk.TypeString,
@@ -299,7 +299,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 				},
 			},
 		}
-		windows = &pluginsdk.Resource{
+		windows = pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"classifications_included": {
 					Type:     pluginsdk.TypeList,
@@ -363,7 +363,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem:     linux,
+			Elem:     &linux,
 			ExactlyOneOf: []string{
 				"windows",
 				"linux",
@@ -374,7 +374,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem:     windows,
+			Elem:     &windows,
 			ExactlyOneOf: []string{
 				"windows",
 				"linux",
@@ -767,8 +767,7 @@ func (m SoftwareUpdateConfigurationResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			updateConfig, err := expandUpdateConfig(model)
-
+			updateConfig := expandUpdateConfig(model)
 			if _, err = client.SoftwareUpdateConfigurationsCreate(ctx, id, *updateConfig, softwareupdateconfiguration.SoftwareUpdateConfigurationsCreateOperationOptions{}); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
@@ -1200,7 +1199,7 @@ func (m SoftwareUpdateConfigurationResource) IDValidationFunc() pluginsdk.Schema
 	return softwareupdateconfiguration.ValidateSoftwareUpdateConfigurationID
 }
 
-func expandUpdateConfig(input SoftwareUpdateConfigurationModel) (*softwareupdateconfiguration.SoftwareUpdateConfiguration, error) {
+func expandUpdateConfig(input SoftwareUpdateConfigurationModel) *softwareupdateconfiguration.SoftwareUpdateConfiguration {
 	result := &softwareupdateconfiguration.SoftwareUpdateConfiguration{
 		Properties: softwareupdateconfiguration.SoftwareUpdateConfigurationProperties{
 			ScheduleInfo: softwareupdateconfiguration.SUCScheduleProperties{},
@@ -1390,5 +1389,5 @@ func expandUpdateConfig(input SoftwareUpdateConfigurationModel) (*softwareupdate
 
 	result.Properties.UpdateConfiguration = updateConfig
 
-	return result, nil
+	return result
 }
