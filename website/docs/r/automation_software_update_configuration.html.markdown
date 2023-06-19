@@ -82,19 +82,19 @@ The following arguments are supported:
 
 ---
 
-* `duration` - (Optional) Maximum time allowed for the software update configuration run. using format `PT[n]H[n]M[n]S` as per ISO8601.
+* `duration` - (Optional) Maximum time allowed for the software update configuration run. using format `PT[n]H[n]M[n]S` as per ISO8601. Defaults to `PT2H`.
 
-* `linux` - (Optional) A `linux` blocks as defined below.
+* `linux` - (Optional) A `linux` block as defined below.
 
-* `windows` - (Optional) A `windows` blocks as defined below.
+* `windows` - (Optional) A `windows` block as defined below.
 
-~> **NOTE:** One of `linux` or `Windows` must be specified.
+~> **NOTE:** One of `linux` or `windows` must be specified.
 
-* `virtual_machine_ids` - (Optional) Specifies a list of azure resource Ids of azure virtual machines.
+* `virtual_machine_ids` - (Optional) Specifies a list of Azure Resource IDs of azure virtual machines.
 
-* `non_azure_computer_names` - (Optional) Specifies a list of names of non-azure machines for the software update configuration.
+* `non_azure_computer_names` - (Optional) Specifies a list of names of non-Azure machines for the software update configuration.
 
-* `target` - (Optional) One or more `target` blocks as defined below.
+* `target` - (Optional) A `target` blocks as defined below.
 
 * `post_task` - (Optional) A `post_task` blocks as defined below.
 
@@ -106,19 +106,17 @@ The following arguments are supported:
 
 A `linux` block supports the following:
 
-* `classification_included` - (Optional) Specifies the update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
+* `classifications_included` - (Optional) Specifies the list of update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
 
 * `excluded_packages` - (Optional) Specifies a list of packages to excluded from the Software Update Configuration.
 
 * `included_packages` - (Optional) Specifies a list of packages to included from the Software Update Configuration.
 
-* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never`, `RebootOnly` and `Always`
+* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never`, `RebootOnly` and `Always`. Defaults to `IfRequired`.
 
 ---
 
 A `windows` block supports the following:
-
-* `classification_included` - (Optional) (Deprecated) Specifies the update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
 * `classifications_included` - (Optional) Specifies the list of update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
 
@@ -126,7 +124,7 @@ A `windows` block supports the following:
 
 * `included_knowledge_base_numbers` - (Optional) Specifies a list of knowledge base numbers included.
 
-* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never`, `RebootOnly` and `Always`.
+* `reboot` - (Optional) Specifies the reboot settings after software update, possible values are `IfRequired`, `Never`, `RebootOnly` and `Always`. Defaults to `IfRequired`.
 
 ---
 
@@ -198,7 +196,7 @@ A `schedule` block supports the following:
 
 * `time_zone` - (Optional) The timezone of the start time. Defaults to `Etc/UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
 
-* `advanced_week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`.
+* `advanced_week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`. Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`.
 
 * `advanced_month_days` - (Optional) List of days of the month that the job should execute on. Must be between `1` and `31`. `-1` for last day of the month. Only valid when frequency is `Month`.
 

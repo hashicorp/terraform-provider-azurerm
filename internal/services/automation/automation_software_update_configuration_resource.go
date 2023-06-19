@@ -33,6 +33,14 @@ const (
 	FrequencyHour    = "Hour"
 	FrequencyWeek    = "Week"
 	FrequencyMonth   = "Month"
+
+	DaysOfWeekMonday    = "Monday"
+	DaysOfWeekTuesday   = "Tuesday"
+	DaysOfWeekWednesday = "Wednesday"
+	DaysOfWeekThursday  = "Thursday"
+	DaysOfWeekFriday    = "Friday"
+	DaysOfWeekSaturday  = "Saturday"
+	DaysOfWeekSunday    = "Sunday"
 )
 
 type Tag struct {
@@ -264,7 +272,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 
 				"classifications_included": {
 					Type:     pluginsdk.TypeList,
-					Required: true,
+					Required: true, // TODO 4.0 - Update docs to reflect this breaking change.
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(),
@@ -295,7 +303,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 			Schema: map[string]*pluginsdk.Schema{
 				"classifications_included": {
 					Type:     pluginsdk.TypeList,
-					Required: true,
+					Required: true, // TODO 4.0 - Update docs to reflect this breaking change.
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 						ValidateFunc: validation.StringInSlice(
@@ -588,8 +596,16 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: nil,
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								DaysOfWeekMonday,
+								DaysOfWeekTuesday,
+								DaysOfWeekWednesday,
+								DaysOfWeekThursday,
+								DaysOfWeekFriday,
+								DaysOfWeekSaturday,
+								DaysOfWeekSunday,
+							}, false),
 						},
 					},
 
