@@ -1243,7 +1243,7 @@ type ScaleRuleAuth struct {
 func ScaleRuleAuthSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1354,10 +1354,6 @@ func flattenContainerAppScaleRules(input *[]containerapps.ScaleRule) []Container
 }
 
 func expandContainerAppScaleRuleAuth(input []ScaleRuleAuth) *[]containerapps.ScaleRuleAuth {
-	if input == nil || len(input) == 0 {
-		return nil
-	}
-
 	auths := make([]containerapps.ScaleRuleAuth, 0)
 
 	for _, v := range input {
