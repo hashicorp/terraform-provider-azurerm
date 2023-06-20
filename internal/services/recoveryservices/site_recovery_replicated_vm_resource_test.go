@@ -445,7 +445,7 @@ func (r SiteRecoveryReplicatedVmResource) withTFOSettings(data acceptance.TestDa
 %s
 
 resource "azurerm_virtual_network" "tfo" {
-  name                = "net3-%[1]d"
+  name                = "net3-%[2]d"
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
@@ -456,6 +456,14 @@ resource "azurerm_subnet" "tfo" {
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.tfo.name
   address_prefixes     = ["192.168.2.0/24"]
+}
+
+resource "azurerm_public_ip" "tfo" {
+  name                = "pubip%[2]d-tfo"
+  allocation_method   = "Static"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+  sku                 = "Basic"
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
@@ -470,7 +478,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_resource_group_id                = azurerm_resource_group.test2.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-  test_network_id                         = azurerm_virtual_network.test2.id
+  test_network_id                         = azurerm_virtual_network.tfo.id
 
   managed_disk {
     disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
@@ -484,8 +492,8 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     source_network_interface_id        = azurerm_network_interface.test.id
     target_subnet_name                 = azurerm_subnet.test2.name
     recovery_public_ip_address_id      = azurerm_public_ip.test-recovery.id
-    failover_test_subnet_name          = azurerm_subnet.test2.name
-    failover_test_public_ip_address_id = azurerm_public_ip.test-recovery.id
+    failover_test_subnet_name          = azurerm_subnet.tfo.name
+    failover_test_public_ip_address_id = azurerm_public_ip.tfo.id
   }
 
   depends_on = [
@@ -545,6 +553,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "Get",
     "Purge",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -590,6 +599,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "Get",
     "WrapKey",
     "UnwrapKey",
+    "GetRotationPolicy",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
@@ -803,6 +813,7 @@ resource "azurerm_key_vault_access_policy" "service-principal2" {
     "Get",
     "Purge",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -848,6 +859,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption2" {
     "Get",
     "WrapKey",
     "UnwrapKey",
+    "GetRotationPolicy",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test2.identity.0.tenant_id
@@ -1118,6 +1130,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "Delete",
     "Get",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
