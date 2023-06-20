@@ -336,45 +336,80 @@ func (r AttachedDataNetworkResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			_, err = client.Get(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			attachedDataNetwork := &attacheddatanetwork.AttachedDataNetwork{
-				Location: location.Normalize(plan.Location),
-				Properties: attacheddatanetwork.AttachedDataNetworkPropertiesFormat{
-					DnsAddresses:           plan.DnsAddresses,
-					UserPlaneDataInterface: attacheddatanetwork.InterfaceProperties{},
-					NaptConfiguration:      expandNaptConfigurationModel(plan.NaptConfiguration),
-				},
-				Tags: &plan.Tags,
+			attachedDataNetwork := resp.Model
+			if attachedDataNetwork == nil {
+				return fmt.Errorf("retrieving %s: addtachedDataNetwork was nil", id)
 			}
 
-			// if we pass an empty array the service will return an error
-			// Array is too short (0), minimum 1.
-			if len(plan.UserEquipmentStaticAddressPoolPrefix) > 0 {
-				attachedDataNetwork.Properties.UserEquipmentStaticAddressPoolPrefix = &plan.UserEquipmentStaticAddressPoolPrefix
+			if metadata.ResourceData.HasChange("dns_addresses") {
+				attachedDataNetwork.Properties.DnsAddresses = plan.DnsAddresses
 			}
 
-			if len(plan.UserEquipmentAddressPoolPrefix) > 0 {
-				attachedDataNetwork.Properties.UserEquipmentAddressPoolPrefix = &plan.UserEquipmentAddressPoolPrefix
+			if metadata.ResourceData.HasChange("network_address_port_translation_configuration") {
+				attachedDataNetwork.Properties.NaptConfiguration = expandNaptConfigurationModel(plan.NaptConfiguration)
 			}
 
-			if plan.UserPlaneAccessName != "" {
-				attachedDataNetwork.Properties.UserPlaneDataInterface.Name = &plan.UserPlaneAccessName
+			if metadata.ResourceData.HasChange("user_equipment_address_pool_prefixes") {
+				// if we pass an empty array the service will return an error
+				// Array is too short (0), minimum 1.
+				if len(plan.UserEquipmentAddressPoolPrefix) > 0 {
+					attachedDataNetwork.Properties.UserEquipmentAddressPoolPrefix = &plan.UserEquipmentAddressPoolPrefix
+				} else {
+					attachedDataNetwork.Properties.UserEquipmentAddressPoolPrefix = nil
+				}
 			}
 
-			if plan.UserPlaneAccessIPv4Address != "" {
-				attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Address = &plan.UserPlaneAccessIPv4Address
+			if metadata.ResourceData.HasChange("user_equipment_static_address_pool_prefixes") {
+				if len(plan.UserEquipmentStaticAddressPoolPrefix) > 0 {
+					attachedDataNetwork.Properties.UserEquipmentStaticAddressPoolPrefix = &plan.UserEquipmentStaticAddressPoolPrefix
+				} else {
+					attachedDataNetwork.Properties.UserEquipmentStaticAddressPoolPrefix = nil
+				}
 			}
 
-			if plan.UserPlaneAccessIPv4Subnet != "" {
-				attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Subnet = &plan.UserPlaneAccessIPv4Subnet
+			if metadata.ResourceData.HasChange("user_plane_access_name") {
+				if plan.UserPlaneAccessName != "" {
+					attachedDataNetwork.Properties.UserPlaneDataInterface.Name = &plan.UserPlaneAccessName
+				} else {
+					attachedDataNetwork.Properties.UserPlaneDataInterface.Name = nil
+				}
 			}
 
-			if plan.UserPlaneAccessIPv4Gateway != "" {
-				attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Gateway = &plan.UserPlaneAccessIPv4Gateway
+			if metadata.ResourceData.HasChange("user_plane_access_ipv4_address") {
+				if plan.UserPlaneAccessIPv4Address != "" {
+					attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Address = &plan.UserPlaneAccessIPv4Address
+				} else {
+					attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Address = nil
+				}
+			}
+
+			if metadata.ResourceData.HasChange("user_plane_access_ipv4_subnet") {
+				if plan.UserPlaneAccessIPv4Subnet != "" {
+					attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Subnet = &plan.UserPlaneAccessIPv4Subnet
+				} else {
+					attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Subnet = nil
+				}
+			}
+
+			if metadata.ResourceData.HasChange("user_plane_access_ipv4_gateway") {
+				if plan.UserPlaneAccessIPv4Gateway != "" {
+					attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Gateway = &plan.UserPlaneAccessIPv4Gateway
+				} else {
+					attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Gateway = nil
+				}
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				if len(plan.Tags) > 0 {
+					attachedDataNetwork.Tags = &plan.Tags
+				} else {
+					attachedDataNetwork = nil
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *attachedDataNetwork); err != nil {
