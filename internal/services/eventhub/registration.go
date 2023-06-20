@@ -34,6 +34,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_eventhub_consumer_group":               EventHubConsumerGroupDataSource(),
 		"azurerm_eventhub_namespace":                    EventHubNamespaceDataSource(),
 		"azurerm_eventhub_namespace_authorization_rule": EventHubNamespaceDataSourceAuthorizationRule(),
+		"azurerm_eventhub_sas":                          dataSourceEventHubSharedAccessSignature(),
 	}
 }
 

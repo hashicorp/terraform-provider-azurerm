@@ -119,6 +119,7 @@ github.com/hashicorp/errwrap
 # github.com/hashicorp/go-azure-helpers v0.56.0
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-helpers/authentication
+github.com/hashicorp/go-azure-helpers/eventhub
 github.com/hashicorp/go-azure-helpers/lang/dates
 github.com/hashicorp/go-azure-helpers/lang/pointer
 github.com/hashicorp/go-azure-helpers/lang/response
