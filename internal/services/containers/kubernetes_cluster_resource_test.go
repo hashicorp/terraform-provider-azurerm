@@ -320,7 +320,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctest-DH-%[1]d"
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
-  sku_name                = "DSv3-Type2"
+  sku_name                = "FSv2-Type2"
   platform_fault_domain   = 0
 }
 

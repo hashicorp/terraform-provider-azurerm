@@ -584,21 +584,21 @@ func TestAccKubernetesCluster_ultraSSD(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("temporary_name_for_rotation"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
 			Config: r.ultraSSD(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("temporary_name_for_rotation"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
 			Config: r.ultraSSD(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("temporary_name_for_rotation"),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 }
 
