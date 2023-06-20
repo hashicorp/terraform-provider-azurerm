@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * dependencies: `network/manager` - swap to use `hashicorp/go-azure-sdk` [GH-22119]
 * `azurerm_cosmosdb_gremlin_graph` - support for the `analytical_storage_ttl` property [GH-22179]
 * `azurerm_kubernetes_cluster` - add support for the value `AzureLinux` for the field `os_sku` within the `default_node_pool` block [GH-22139]
+* `azurerm_kubernetes_cluster` - add support for the property `node_os_channel_upgrade` [GH-22187]
 * `azurerm_kubernetes_cluster_node_pool` - add support for the value `AzureLinux` for the field `os_sku` [GH-22139]
 * `azurerm_virtual_hub` - add support for `virtual_router_auto_scale_min_capacity` [GH-21614]
 
