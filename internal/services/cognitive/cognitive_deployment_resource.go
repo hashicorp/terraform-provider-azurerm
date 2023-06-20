@@ -6,19 +6,20 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/cognitiveservicesaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type cognitiveDeploymentModel struct {
-	Name               string                         `tfschema:"name"`
-	CognitiveAccountId string                         `tfschema:"cognitive_account_id"`
-	Model              []DeploymentModelModel         `tfschema:"model"`
-	RaiPolicyName      string                         `tfschema:"rai_policy_name"`
-	ScaleSettings      []DeploymentScaleSettingsModel `tfschema:"scale"`
+	Name               string                 `tfschema:"name"`
+	CognitiveAccountId string                 `tfschema:"cognitive_account_id"`
+	Model              []DeploymentModelModel `tfschema:"model"`
+	RaiPolicyName      string                 `tfschema:"rai_policy_name"`
+	Sku                []DeploymentSkuModel   `tfschema:"sku"`
 }
 
 type DeploymentModelModel struct {
@@ -27,8 +28,12 @@ type DeploymentModelModel struct {
 	Version string `tfschema:"version"`
 }
 
-type DeploymentScaleSettingsModel struct {
-	ScaleType deployments.DeploymentScaleType `tfschema:"type"`
+type DeploymentSkuModel struct {
+	Name     string `tfschema:"name"`
+	Tier     string `tfschema:"tier"`
+	Size     string `tfschema:"size"`
+	Family   string `tfschema:"family"`
+	Capacity int64  `tfschema:"capacity"`
 }
 
 type CognitiveDeploymentResource struct{}
@@ -94,20 +99,45 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"scale": {
+		"sku": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"type": {
+					"name": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ForceNew: true,
+					},
+					"tier": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(deployments.DeploymentScaleTypeStandard),
+							string(deployments.SkuTierFree),
+							string(deployments.SkuTierBasic),
+							string(deployments.SkuTierStandard),
+							string(deployments.SkuTierPremium),
+							string(deployments.SkuTierEnterprise),
 						}, false),
+					},
+					"size": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+					},
+					"family": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+					},
+					"capacity": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						ForceNew: true,
+						Default:  1,
 					},
 				},
 			},
@@ -161,7 +191,7 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 				properties.Properties.RaiPolicyName = &model.RaiPolicyName
 			}
 
-			properties.Properties.ScaleSettings = expandDeploymentScaleSettingsModel(model.ScaleSettings)
+			properties.Sku = expandDeploymentSkuModel(model.Sku)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -207,13 +237,14 @@ func (r CognitiveDeploymentResource) Read() sdk.ResourceFunc {
 
 				state.Model = flattenDeploymentModelModel(properties.Model)
 
-				state.ScaleSettings = flattenDeploymentScaleSettingsModel(properties.ScaleSettings)
-
 				if v := properties.RaiPolicyName; v != nil {
 					state.RaiPolicyName = *v
 				}
 			}
 
+			if model.Sku != nil {
+				state.Sku = flattenDeploymentSkuModel(*model.Sku)
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -262,17 +293,29 @@ func expandDeploymentModelModel(inputList []DeploymentModelModel) *deployments.D
 	return &output
 }
 
-func expandDeploymentScaleSettingsModel(inputList []DeploymentScaleSettingsModel) *deployments.DeploymentScaleSettings {
+func expandDeploymentSkuModel(inputList []DeploymentSkuModel) *deployments.Sku {
 	if len(inputList) == 0 {
 		return nil
 	}
 
 	input := &inputList[0]
-	output := deployments.DeploymentScaleSettings{
-		ScaleType: &input.ScaleType,
+	s := &deployments.Sku{
+		Name: input.Name,
 	}
-
-	return &output
+	if input.Capacity != 0 {
+		s.Capacity = utils.Int64(input.Capacity)
+	}
+	if input.Family != "" {
+		s.Family = utils.String(input.Family)
+	}
+	if input.Size != "" {
+		s.Size = utils.String(input.Size)
+	}
+	if input.Tier != "" {
+		tier := deployments.SkuTier(input.Tier)
+		s.Tier = &tier
+	}
+	return s
 }
 
 func flattenDeploymentModelModel(input *deployments.DeploymentModel) []DeploymentModelModel {
@@ -303,17 +346,23 @@ func flattenDeploymentModelModel(input *deployments.DeploymentModel) []Deploymen
 	return append(outputList, output)
 }
 
-func flattenDeploymentScaleSettingsModel(input *deployments.DeploymentScaleSettings) []DeploymentScaleSettingsModel {
-	var outputList []DeploymentScaleSettingsModel
-	if input == nil {
-		return outputList
+func flattenDeploymentSkuModel(input deployments.Sku) []DeploymentSkuModel {
+	output := DeploymentSkuModel{
+		Name: input.Name,
 	}
 
-	output := DeploymentScaleSettingsModel{}
-
-	if input.ScaleType != nil {
-		output.ScaleType = *input.ScaleType
+	if input.Capacity != nil {
+		output.Capacity = *input.Capacity
+	}
+	if input.Tier != nil {
+		output.Tier = string(*input.Tier)
+	}
+	if input.Size != nil {
+		output.Size = *input.Size
+	}
+	if input.Family != nil {
+		output.Family = *input.Family
 	}
 
-	return append(outputList, output)
+	return []DeploymentSkuModel{output}
 }

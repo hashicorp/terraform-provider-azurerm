@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -124,9 +124,8 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-curie-001"
     version = "1"
   }
-
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
 }
 `, template, data.RandomInteger)
@@ -145,8 +144,8 @@ resource "azurerm_cognitive_deployment" "import" {
     name    = "text-curie-001"
     version = "1"
   }
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
 }
 `, config)
@@ -166,11 +165,9 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-davinci-002"
     version = "1"
   }
-
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
-
   rai_policy_name = "RAI policy"
 }
 `, template, data.RandomInteger)
