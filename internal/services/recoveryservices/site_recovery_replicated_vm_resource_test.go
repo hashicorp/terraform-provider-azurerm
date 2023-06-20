@@ -40,6 +40,7 @@ func TestAccSiteRecoveryReplicatedVm_withTFOSettings(t *testing.T) {
 			Config: r.withTFOSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.failover_test_subnet_name").HasValue("snet3"),
 			),
 		},
 		data.ImportStep(),
@@ -442,6 +443,20 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 func (r SiteRecoveryReplicatedVmResource) withTFOSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_virtual_network" "tfo" {
+  name                = "net3-%[1]d"
+  resource_group_name = azurerm_resource_group.test2.name
+  address_space       = ["192.168.2.0/24"]
+  location            = azurerm_site_recovery_fabric.test2.location
+}
+
+resource "azurerm_subnet" "tfo" {
+  name                 = "snet3"
+  resource_group_name  = azurerm_resource_group.test2.name
+  virtual_network_name = azurerm_virtual_network.tfo.name
+  address_prefixes     = ["192.168.2.0/24"]
+}
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
   name                                      = "repl-%[2]d"
