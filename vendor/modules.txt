@@ -472,6 +472,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectivi
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagerconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routes
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/scopeconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityadminconfigurations
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/staticmembers

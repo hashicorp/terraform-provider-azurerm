@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagerconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/scopeconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityadminconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/staticmembers"
@@ -54,7 +55,7 @@ type Client struct {
 	PublicIPsClient                          *network.PublicIPAddressesClient
 	PublicIPPrefixesClient                   *network.PublicIPPrefixesClient
 	RouteMapsClient                          *network.RouteMapsClient
-	RoutesClient                             *network.RoutesClient
+	RoutesClient                             *routes.RoutesClient
 	RouteFiltersClient                       *network.RouteFiltersClient
 	RouteTablesClient                        *network.RouteTablesClient
 	SecurityGroupClient                      *network.SecurityGroupsClient
@@ -240,8 +241,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	RouteMapsClient := network.NewRouteMapsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RouteMapsClient.Client, o.ResourceManagerAuthorizer)
 
-	RoutesClient := network.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&RoutesClient.Client, o.ResourceManagerAuthorizer)
+	RoutesClient, err := routes.NewRoutesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building network routes client: %+v", err)
+	}
+	o.Configure(RoutesClient.Client, o.Authorizers.ResourceManager)
 
 	RouteFiltersClient := network.NewRouteFiltersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RouteFiltersClient.Client, o.ResourceManagerAuthorizer)
@@ -353,7 +357,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		PublicIPsClient:                          &PublicIPsClient,
 		PublicIPPrefixesClient:                   &PublicIPPrefixesClient,
 		RouteMapsClient:                          &RouteMapsClient,
-		RoutesClient:                             &RoutesClient,
+		RoutesClient:                             RoutesClient,
 		RouteFiltersClient:                       &RouteFiltersClient,
 		RouteTablesClient:                        &RouteTablesClient,
 		SecurityGroupClient:                      &SecurityGroupClient,
