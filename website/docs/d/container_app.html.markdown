@@ -73,6 +73,56 @@ A `template` block supports the following:
 
 * `volume` - A `volume` block as detailed below.
 
+* `scale_rule` - A `scale_rule` block as detailed below.
+
+---
+
+A `scale_rule` block supports the following:
+
+* `name` - The name of the scale rule.
+
+* `azure_queue` - A `azure_queue` block as detailed below.
+
+* `custom` - A `custom` block as detailed below.
+
+* `http` - A `http` block as detailed below.
+
+---
+
+A `azure_queue` block supports the following:
+
+* `queue_length` - The length of the queue.
+
+* `queue_name` - The name of the queue.
+
+* `auth` - A `auth` block as detailed below.
+
+---
+
+A `custom` block supports the following:
+
+* `type` - The type of custom scale rule.
+
+* `metadata` - Metadata properties to describe custom scale rule.
+
+* `auth` - A `auth` block as detailed below.
+
+---
+
+A `http` block supports the following:
+
+* `metadata` - Metadata properties to describe http scale rule.
+
+* `auth` - A `auth` block as detailed below.
+
+---
+
+A `auth` block supports the following:
+
+* `secret_ref` - Name of the container app secret from which to pull the authentication parameters.
+
+* `trigger_param` - Trigger parameter that uses the secret.
+
 ---
 
 A `volume` block supports the following:

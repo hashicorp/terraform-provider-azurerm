@@ -694,11 +694,12 @@ func ContainerAppEnvironmentDaprMetadataDataSourceSchema() *pluginsdk.Schema {
 }
 
 type ContainerTemplate struct {
-	Containers  []Container       `tfschema:"container"`
-	Suffix      string            `tfschema:"revision_suffix"`
-	MinReplicas int               `tfschema:"min_replicas"`
-	MaxReplicas int               `tfschema:"max_replicas"`
-	Volumes     []ContainerVolume `tfschema:"volume"`
+	Containers  []Container          `tfschema:"container"`
+	Suffix      string               `tfschema:"revision_suffix"`
+	MinReplicas int                  `tfschema:"min_replicas"`
+	MaxReplicas int                  `tfschema:"max_replicas"`
+	Volumes     []ContainerVolume    `tfschema:"volume"`
+	ScaleRule   []ContainerScaleRule `tfschema:"scale_rule"`
 }
 
 func ContainerTemplateSchema() *pluginsdk.Schema {
@@ -734,6 +735,8 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.",
 				},
+
+				"scale_rule": ContainerScaleRuleSchema(),
 			},
 		},
 	}
@@ -780,6 +783,9 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 	template := &containerapps.Template{
 		Containers: expandContainerAppContainers(config.Containers),
 		Volumes:    expandContainerAppVolumes(config.Volumes),
+		Scale: &containerapps.Scale{
+			Rules: expandContainerAppScaleRules(config.ScaleRule),
+		},
 	}
 
 	if config.MaxReplicas != 0 {
@@ -813,6 +819,7 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 		Containers: flattenContainerAppContainers(input.Containers),
 		Suffix:     pointer.From(input.RevisionSuffix),
 		Volumes:    flattenContainerAppVolumes(input.Volumes),
+		ScaleRule:  flattenContainerAppScaleRules(input.Scale.Rules),
 	}
 
 	if scale := input.Scale; scale != nil {
@@ -1098,6 +1105,287 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+type ContainerScaleRule struct {
+	Name       string            `tfschema:"name"`
+	AzureQueue []QueueScaleRule  `tfschema:"azure_queue"`
+	Custom     []CustomScaleRule `tfschema:"custom"`
+	Http       []HttpScaleRule   `tfschema:"http"`
+}
+
+func ContainerScaleRuleSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MinItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The name of the scale rule.",
+				},
+
+				"azure_queue": QueueScaleRuleSchema(),
+
+				"custom": CustomScaleRuleSchema(),
+
+				"http": HttpScaleRuleSchema(),
+			},
+		},
+	}
+}
+
+type HttpScaleRule struct {
+	Metadata map[string]string `tfschema:"metadata"`
+	Auth     []ScaleRuleAuth   `tfschema:"auth"`
+}
+
+func HttpScaleRuleSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MinItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"metadata": {
+					Type:     pluginsdk.TypeMap,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"auth": ScaleRuleAuthSchema(),
+			},
+		},
+	}
+}
+
+type QueueScaleRule struct {
+	QueueName   string          `tfschema:"queue_name"`
+	QueueLength int64           `tfschema:"queue_length"`
+	Auth        []ScaleRuleAuth `tfschema:"auth"`
+}
+
+func QueueScaleRuleSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MinItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"queue_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The name of the queue.",
+				},
+
+				"queue_length": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+					Description:  "The length of the queue.",
+				},
+
+				"auth": ScaleRuleAuthSchema(),
+			},
+		},
+	}
+}
+
+type CustomScaleRule struct {
+	Type     string            `tfschema:"type"`
+	Metadata map[string]string `tfschema:"metadata"`
+	Auth     []ScaleRuleAuth   `tfschema:"auth"`
+}
+
+func CustomScaleRuleSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MinItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"type": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The type of the custom scale rule.",
+				},
+
+				"metadata": {
+					Type:     pluginsdk.TypeMap,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"auth": ScaleRuleAuthSchema(),
+			},
+		},
+	}
+}
+
+type ScaleRuleMetadata struct {
+	AdditionalProperties string `tfschema:"additional_properties"`
+}
+
+type ScaleRuleAuth struct {
+	SecretRef    string `tfschema:"secret_ref"`
+	TriggerParam string `tfschema:"trigger_param"`
+}
+
+func ScaleRuleAuthSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"secret_ref": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "Name of the container app secret from which to pull the auth param",
+				},
+
+				"trigger_param": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "Trigger parameter that uses the secret",
+				},
+			},
+		},
+	}
+}
+
+func expandContainerAppScaleRules(input []ContainerScaleRule) *[]containerapps.ScaleRule {
+	if input == nil {
+		return nil
+	}
+
+	scaleRules := make([]containerapps.ScaleRule, 0)
+
+	for _, v := range input {
+		scaleRule := containerapps.ScaleRule{
+			Name: pointer.To(v.Name),
+		}
+
+		if v.AzureQueue != nil && len(v.AzureQueue) > 0 {
+			for _, queue := range v.AzureQueue {
+				scaleRule.AzureQueue = &containerapps.QueueScaleRule{
+					QueueName:   pointer.To(queue.QueueName),
+					QueueLength: pointer.To(queue.QueueLength),
+					Auth:        expandContainerAppScaleRuleAuth(queue.Auth),
+				}
+			}
+		}
+
+		if v.Custom != nil && len(v.Custom) > 0 {
+			for _, custom := range v.Custom {
+				scaleRule.Custom = &containerapps.CustomScaleRule{
+					Type:     pointer.To(custom.Type),
+					Metadata: &custom.Metadata,
+					Auth:     expandContainerAppScaleRuleAuth(custom.Auth),
+				}
+			}
+		}
+
+		if v.Http != nil && len(v.Http) > 0 {
+			for _, http := range v.Http {
+				scaleRule.HTTP = &containerapps.HTTPScaleRule{
+					Metadata: &http.Metadata,
+					Auth:     expandContainerAppScaleRuleAuth(http.Auth),
+				}
+			}
+		}
+		scaleRules = append(scaleRules, scaleRule)
+	}
+	return &scaleRules
+}
+
+func flattenContainerAppScaleRules(input *[]containerapps.ScaleRule) []ContainerScaleRule {
+	if input == nil || len(*input) == 0 {
+		return []ContainerScaleRule{}
+	}
+
+	rules := make([]ContainerScaleRule, 0)
+
+	for _, v := range *input {
+		rule := ContainerScaleRule{
+			Name: pointer.From(v.Name),
+		}
+
+		if v.AzureQueue != nil {
+			rule.AzureQueue = make([]QueueScaleRule, 0)
+			rule.AzureQueue = append(rule.AzureQueue, QueueScaleRule{
+				QueueName:   pointer.From(v.AzureQueue.QueueName),
+				QueueLength: pointer.From(v.AzureQueue.QueueLength),
+				Auth:        flattenContainerAppScaleRuleAuth(v.AzureQueue.Auth),
+			})
+		}
+
+		if v.Custom != nil {
+			rule.Custom = make([]CustomScaleRule, 0)
+			rule.Custom = append(rule.Custom, CustomScaleRule{
+				Type:     pointer.From(v.Custom.Type),
+				Metadata: pointer.From(v.Custom.Metadata),
+				Auth:     flattenContainerAppScaleRuleAuth(v.Custom.Auth),
+			})
+		}
+
+		if v.HTTP != nil {
+			rule.Http = make([]HttpScaleRule, 0)
+			rule.Http = append(rule.Http, HttpScaleRule{
+				Metadata: pointer.From(v.HTTP.Metadata),
+				Auth:     flattenContainerAppScaleRuleAuth(v.HTTP.Auth),
+			})
+		}
+		rules = append(rules, rule)
+	}
+
+	return rules
+}
+
+func expandContainerAppScaleRuleAuth(input []ScaleRuleAuth) *[]containerapps.ScaleRuleAuth {
+	if input == nil || len(input) == 0 {
+		return nil
+	}
+
+	auths := make([]containerapps.ScaleRuleAuth, 0)
+
+	for _, v := range input {
+		auth := containerapps.ScaleRuleAuth{
+			SecretRef:        pointer.To(v.SecretRef),
+			TriggerParameter: pointer.To(v.TriggerParam),
+		}
+		auths = append(auths, auth)
+	}
+
+	return &auths
+}
+
+func flattenContainerAppScaleRuleAuth(input *[]containerapps.ScaleRuleAuth) []ScaleRuleAuth {
+	if input == nil || len(*input) == 0 {
+		return []ScaleRuleAuth{}
+	}
+
+	result := make([]ScaleRuleAuth, 0)
+	for _, v := range *input {
+		auth := ScaleRuleAuth{
+			SecretRef:    pointer.From(v.SecretRef),
+			TriggerParam: pointer.From(v.TriggerParameter),
+		}
+		result = append(result, auth)
+	}
+
+	return result
 }
 
 func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume {

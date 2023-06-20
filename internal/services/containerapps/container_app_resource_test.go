@@ -62,6 +62,21 @@ func TestAccContainerAppResource_withUserAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_withScaleRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withScaleRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppResource_withIdentityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
@@ -362,6 +377,40 @@ resource "azurerm_container_app" "test" {
       image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       cpu    = 0.25
       memory = "0.5Gi"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) withScaleRule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+
+    scale_rule {
+      name = "scale-rule-1"
+      azure_queue {
+        queue_name   = "queue1"
+        queue_length = 10
+        auth {
+          secret_ref    = "secret1"
+          trigger_param = "trigger1"
+        }
+      }
     }
   }
 }
