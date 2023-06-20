@@ -18,8 +18,8 @@ data "azurerm_automation_variables" "example" {
   automation_account_name = "tfex-example-account"
 }
 
-output "variables" {
-  value = data.azurerm_automation_variable_string.example.variables
+output "string_vars" {
+  value = data.azurerm_automation_variable_string.example.string
 }
 ```
 
