@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -27,6 +28,7 @@ type LinuxWebAppDataSourceModel struct {
 	AppSettings                   map[string]string          `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings     `tfschema:"auth_settings"`
 	AuthV2Settings                []helpers.AuthV2Settings   `tfschema:"auth_settings_v2"`
+	Availability                  string                     `tfschema:"availability"`
 	Backup                        []helpers.Backup           `tfschema:"backup"`
 	ClientAffinityEnabled         bool                       `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                       `tfschema:"client_certificate_enabled"`
@@ -43,12 +45,14 @@ type LinuxWebAppDataSourceModel struct {
 	ConnectionStrings             []helpers.ConnectionString `tfschema:"connection_string"`
 	Tags                          map[string]string          `tfschema:"tags"`
 	CustomDomainVerificationId    string                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                  string                     `tfschema:"hosting_environment_id"`
 	DefaultHostname               string                     `tfschema:"default_hostname"`
 	Kind                          string                     `tfschema:"kind"`
 	OutboundIPAddresses           string                     `tfschema:"outbound_ip_addresses"`
 	OutboundIPAddressList         []string                   `tfschema:"outbound_ip_address_list"`
 	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
+	Usage                         string                     `tfschema:"usage"`
 	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
 	VirtualNetworkSubnetID        string                     `tfschema:"virtual_network_subnet_id"`
 }
@@ -95,6 +99,11 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"availability": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
 
 		"auth_settings_v2": helpers.AuthV2SettingsComputedSchema(),
@@ -131,6 +140,11 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -183,6 +197,11 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+
+		"usage": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"site_credential": helpers.SiteCredentialSchema(),
@@ -298,6 +317,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
 			if props := existing.SiteProperties; props != nil {
+				webApp.Availability = string(props.AvailabilityState)
 				if props.ClientAffinityEnabled != nil {
 					webApp.ClientAffinityEnabled = *props.ClientAffinityEnabled
 				}
@@ -319,6 +339,10 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
 				webApp.PossibleOutboundIPAddresses = utils.NormalizeNilableString(props.PossibleOutboundIPAddresses)
 				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
+				webApp.Usage = string(props.UsageState)
+				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+					webApp.HostingEnvId = pointer.From(hostingEnv.ID)
+				}
 				if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
 					webApp.VirtualNetworkSubnetID = subnetId
 				}

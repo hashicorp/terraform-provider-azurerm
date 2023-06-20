@@ -40,7 +40,6 @@ func TestAccDataSourceImage_localFilter(t *testing.T) {
 	r := ImageDataSource{}
 
 	descDataSourceName := "data.azurerm_image.test2"
-
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			// We have to create the images first explicitly, then retrieve the data source, because in this case we do not have explicit dependency on the image resources
@@ -51,10 +50,8 @@ func TestAccDataSourceImage_localFilter(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("def-acctest-%d", data.RandomInteger)),
-				acceptance.TestCheckResourceAttrSet(descDataSourceName, "name"),
-				acceptance.TestCheckResourceAttrSet(descDataSourceName, "resource_group_name"),
-				acceptance.TestCheckResourceAttr(descDataSourceName, "name", fmt.Sprintf("def-acctest-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("name").MatchesOtherKey(check.That(descDataSourceName).Key("name")),
+				check.That(data.ResourceName).Key("resource_group_name").MatchesOtherKey(check.That(descDataSourceName).Key("resource_group_name")),
 			),
 		},
 	})

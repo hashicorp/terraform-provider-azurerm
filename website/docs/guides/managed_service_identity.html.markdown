@@ -133,36 +133,6 @@ provider "azurerm" {
 }
 ```
 
-If you intend to configure a remote backend in the provider block, put `use_msi` outside of the backend block:
-
-```hcl
-# We strongly recommend using the required_providers block to set the
-# Azure Provider source and version being used
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "=3.0.0"
-    }
-  }
-}
-
-# Configure the Microsoft Azure Provider
-provider "azurerm" {
-  features {}
-
-  use_msi = true
-
-  backend "azurerm" {
-    storage_account_name = "abcd1234"
-    container_name       = "tfstate"
-    key                  = "prod.terraform.tfstate"
-    subscription_id      = "00000000-0000-0000-0000-000000000000"
-    tenant_id            = "00000000-0000-0000-0000-000000000000"
-  }
-}
-```
-
 More information on [the fields supported in the provider block can be found here](../index.html#argument-reference).
 
 <!-- it's not clear to me that we even need this info; it seems like this is the sort of thing you'd know about if you needed it.

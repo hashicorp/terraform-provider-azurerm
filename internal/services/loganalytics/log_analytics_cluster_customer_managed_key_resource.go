@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
@@ -67,6 +68,9 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -130,6 +134,9 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 		return err
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
@@ -161,14 +168,6 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
-	}
-
-	updateWait, err := logAnalyticsClusterWaitForState(ctx, client, *id)
-	if err != nil {
-		return err
-	}
-	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for update of Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	return resourceLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
@@ -242,6 +241,9 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 		return err
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -275,16 +277,8 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 		KeyVersion:  nil,
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
-	}
-
-	deleteWait, err := logAnalyticsClusterWaitForState(ctx, client, *id)
-	if err != nil {
-		return err
-	}
-	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for removal of Customer Managed Key from %s: %+v", *id, err)
 	}
 
 	return nil

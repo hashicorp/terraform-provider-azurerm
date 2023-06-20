@@ -44,23 +44,23 @@ func ParseUpdateRunID(input string) (*UpdateRunId, error) {
 	id := UpdateRunId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
 	}
 
 	if id.UpdateName, ok = parsed.Parsed["updateName"]; !ok {
-		return nil, fmt.Errorf("the segment 'updateName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "updateName", *parsed)
 	}
 
 	if id.UpdateRunName, ok = parsed.Parsed["updateRunName"]; !ok {
-		return nil, fmt.Errorf("the segment 'updateRunName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "updateRunName", *parsed)
 	}
 
 	return &id, nil
@@ -79,23 +79,23 @@ func ParseUpdateRunIDInsensitively(input string) (*UpdateRunId, error) {
 	id := UpdateRunId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, fmt.Errorf("the segment 'clusterName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
 	}
 
 	if id.UpdateName, ok = parsed.Parsed["updateName"]; !ok {
-		return nil, fmt.Errorf("the segment 'updateName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "updateName", *parsed)
 	}
 
 	if id.UpdateRunName, ok = parsed.Parsed["updateRunName"]; !ok {
-		return nil, fmt.Errorf("the segment 'updateRunName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "updateRunName", *parsed)
 	}
 
 	return &id, nil

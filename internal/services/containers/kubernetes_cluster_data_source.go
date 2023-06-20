@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -886,27 +886,27 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 
 	if input != nil {
 		blobEnabled := false
-		if input.BlobCSIDriver != nil {
+		if input.BlobCSIDriver != nil && input.BlobCSIDriver.Enabled != nil {
 			blobEnabled = *input.BlobCSIDriver.Enabled
 		}
 
 		diskEnabled := true
-		if input.DiskCSIDriver != nil {
+		if input.DiskCSIDriver != nil && input.DiskCSIDriver.Enabled != nil {
 			diskEnabled = *input.DiskCSIDriver.Enabled
 		}
 
 		diskVersion := ""
-		if input.FileCSIDriver != nil {
+		if input.DiskCSIDriver != nil && input.DiskCSIDriver.Version != nil {
 			diskVersion = *input.DiskCSIDriver.Version
 		}
 
 		fileEnabled := true
-		if input.DiskCSIDriver != nil {
+		if input.FileCSIDriver != nil && input.FileCSIDriver.Enabled != nil {
 			fileEnabled = *input.FileCSIDriver.Enabled
 		}
 
 		snapshotController := true
-		if input.SnapshotController != nil {
+		if input.SnapshotController != nil && input.SnapshotController.Enabled != nil {
 			snapshotController = *input.SnapshotController.Enabled
 		}
 
@@ -1332,10 +1332,6 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.C
 
 	if profile.DnsServiceIP != nil {
 		values["dns_service_ip"] = *profile.DnsServiceIP
-	}
-
-	if profile.DockerBridgeCidr != nil {
-		values["docker_bridge_cidr"] = *profile.DockerBridgeCidr
 	}
 
 	if profile.PodCidr != nil {

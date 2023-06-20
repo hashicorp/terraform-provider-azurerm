@@ -1,11 +1,11 @@
+// Copyright (c) HashiCorp Inc. All rights reserved.
+// Licensed under the MPL-2.0 License. See NOTICE.txt in the project root for license information.
+
 package auth
 
 import (
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
-
-// Copyright (c) HashiCorp Inc. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 // Credentials sets up NewAuthorizer to return an Authorizer based on the provided credentails.
 type Credentials struct {

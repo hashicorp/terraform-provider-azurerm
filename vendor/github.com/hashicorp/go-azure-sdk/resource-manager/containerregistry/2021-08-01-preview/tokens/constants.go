@@ -1,6 +1,10 @@
 package tokens
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -25,6 +29,19 @@ func PossibleValuesForProvisioningState() []string {
 		string(ProvisioningStateSucceeded),
 		string(ProvisioningStateUpdating),
 	}
+}
+
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
@@ -59,6 +76,19 @@ func PossibleValuesForTokenCertificateName() []string {
 	}
 }
 
+func (s *TokenCertificateName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTokenCertificateName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseTokenCertificateName(input string) (*TokenCertificateName, error) {
 	vals := map[string]TokenCertificateName{
 		"certificate1": TokenCertificateNameCertificateOne,
@@ -87,6 +117,19 @@ func PossibleValuesForTokenPasswordName() []string {
 	}
 }
 
+func (s *TokenPasswordName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTokenPasswordName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseTokenPasswordName(input string) (*TokenPasswordName, error) {
 	vals := map[string]TokenPasswordName{
 		"password1": TokenPasswordNamePasswordOne,
@@ -113,6 +156,19 @@ func PossibleValuesForTokenStatus() []string {
 		string(TokenStatusDisabled),
 		string(TokenStatusEnabled),
 	}
+}
+
+func (s *TokenStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTokenStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTokenStatus(input string) (*TokenStatus, error) {

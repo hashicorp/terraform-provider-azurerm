@@ -25,17 +25,14 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_security_insights_sentinel_onboarding" "example" {
-  resource_group_name          = azurerm_resource_group.example.name
-  workspace_name               = azurerm_log_analytics_workspace.example.name
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
+  workspace_id                 = azurerm_log_analytics_workspace.example.id
   customer_managed_key_enabled = false
 }
 
 data "azurerm_sentinel_alert_rule_anomaly" "example" {
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   display_name               = "Potential data staging"
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.example]
 }
 
 output "id" {

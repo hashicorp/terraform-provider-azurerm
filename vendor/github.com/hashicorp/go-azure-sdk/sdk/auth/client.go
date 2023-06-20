@@ -5,6 +5,7 @@ package auth
 
 import (
 	"context"
+	"crypto/tls"
 	"log"
 	"math"
 	"net"
@@ -16,6 +17,26 @@ import (
 
 	"github.com/hashicorp/go-retryablehttp"
 )
+
+var (
+	// Client is the HTTP client used for sending authentication requests and obtaining tokens
+	Client HTTPClient
+
+	// MetadataClient is the HTTP client used for obtaining tokens from the Instance Metadata Service
+	MetadataClient HTTPClient
+)
+
+func init() {
+	Client = httpClient(defaultHttpClientParams())
+	MetadataClient = httpClient(httpClientParams{
+		instanceMetadataService: true,
+
+		retryWaitMin:  2 * time.Second,
+		retryWaitMax:  60 * time.Second,
+		retryMaxCount: 5,
+		useProxy:      false,
+	})
+}
 
 type httpClientParams struct {
 	instanceMetadataService bool
@@ -81,6 +102,9 @@ func httpClient(params httpClientParams) *http.Client {
 	r.RetryWaitMin = params.retryWaitMin
 	r.RetryWaitMax = params.retryWaitMax
 
+	tlsConfig := tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 	r.HTTPClient = &http.Client{
 		Transport: &http.Transport{
 			Proxy: proxyFunc,
@@ -90,6 +114,7 @@ func httpClient(params httpClientParams) *http.Client {
 			},
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
+			TLSClientConfig:       &tlsConfig,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 			ForceAttemptHTTP2:     true,

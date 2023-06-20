@@ -1,19 +1,25 @@
 package appconfiguration
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/deletedconfigurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/deletedconfigurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/operations"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -89,6 +95,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// `sku` is not enum, https://github.com/Azure/azure-rest-api-specs/issues/23902
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -226,6 +233,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	deletedConfigurationStoresClient := meta.(*clients.Client).AppConfiguration.DeletedConfigurationStoresClient
+
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,20 +254,23 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	deletedConfigurationStoresId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, location, name)
-	deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
-	if err != nil {
-		if !response.WasNotFound(deleted.HttpResponse) {
-			return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
-		}
-	}
 
 	recoverSoftDeleted := false
-	if !response.WasNotFound(deleted.HttpResponse) && !response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
-		if !meta.(*clients.Client).Features.AppConfiguration.RecoverSoftDeleted {
-			return fmt.Errorf(optedOutOfRecoveringSoftDeletedAppConfigurationErrorFmt(name, location))
+	if meta.(*clients.Client).Features.AppConfiguration.RecoverSoftDeleted {
+		deletedConfigurationStoresId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, location, name)
+		deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
+		if err != nil {
+			if response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
+				return fmt.Errorf(userIsMissingNecessaryPermission(name, location))
+			}
+			if !response.WasNotFound(deleted.HttpResponse) {
+				return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
+			}
+			// if the soft deleted is not found, skip the recovering
+		} else {
+			log.Printf("[DEBUG] Soft Deleted App Configuration exists, marked for recover")
+			recoverSoftDeleted = true
 		}
-		recoverSoftDeleted = true
 	}
 
 	parameters := configurationstores.ConfigurationStore{
@@ -295,12 +306,22 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	parameters.Identity = identity
-	// TODO: retry checkNameAvailability before creation when SDK is ready, see https://github.com/Azure/AppConfiguration/issues/677
+
 	if err := client.CreateThenPoll(ctx, resourceId, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
 	d.SetId(resourceId.ID())
+
+	resp, err := client.Get(ctx, resourceId)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", resourceId, err)
+	}
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Endpoint == nil {
+		return fmt.Errorf("retrieving %s: `model.properties.Endpoint` was nil", resourceId)
+	}
+	meta.(*clients.Client).AppConfiguration.AddToCache(resourceId, *resp.Model.Properties.Endpoint)
+
 	return resourceAppConfigurationRead(d, meta)
 }
 
@@ -448,7 +469,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
 			d.Set("encryption", flattenAppConfigurationEncryption(props.Encryption))
-			d.Set("public_network_access", props.PublicNetworkAccess)
+			d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))
 
 			localAuthEnabled := true
 			if props.DisableLocalAuth != nil {
@@ -537,7 +558,7 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		if purgeProtectionEnabled {
 			deletedInfo, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedId)
 			if err != nil {
-				return fmt.Errorf("retrieving the Deletion Details for %s: %+v", *id, err)
+				return fmt.Errorf("while purging the soft-deleted, retrieving the Deletion Details for %s: %+v", *id, err)
 			}
 
 			if deletedInfo.Model != nil && deletedInfo.Model.Properties != nil && deletedInfo.Model.Properties.DeletionDate != nil && deletedInfo.Model.Properties.ScheduledPurgeDate != nil {
@@ -550,15 +571,69 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		log.Printf("[DEBUG]  %q marked for purge - executing purge", id.ConfigurationStoreName)
-		if err := deletedConfigurationStoresClient.ConfigurationStoresPurgeDeletedThenPoll(ctx, deletedId); err != nil {
+
+		if _, err := deletedConfigurationStoresClient.ConfigurationStoresPurgeDeleted(ctx, deletedId); err != nil {
 			return fmt.Errorf("purging %s: %+v", *id, err)
 		}
 
-		// TODO: retry checkNameAvailability after deletion when SDK is ready, see https://github.com/Azure/AppConfiguration/issues/677
+		// The PurgeDeleted API is a POST which returns a 200 with no body and nothing to poll on, so we'll need
+		// a custom poller to poll until the LRO returns a 404
+		pollerType := &purgeDeletedPoller{
+			client: deletedConfigurationStoresClient,
+			id:     deletedId,
+		}
+		poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("polling after purging for %s: %+v", *id, err)
+		}
+
+		// retry checkNameAvailability until the name is released by purged app configuration, see https://github.com/Azure/AppConfiguration/issues/677
+		operationsClient := meta.(*clients.Client).AppConfiguration.OperationsClient
+		if err = resourceConfigurationStoreWaitForNameAvailable(ctx, operationsClient, *id); err != nil {
+			return err
+		}
 		log.Printf("[DEBUG] Purged AppConfiguration %q.", id.ConfigurationStoreName)
 	}
 
+	meta.(*clients.Client).AppConfiguration.RemoveFromCache(*id)
+
 	return nil
+}
+
+var _ pollers.PollerType = &purgeDeletedPoller{}
+
+type purgeDeletedPoller struct {
+	client *deletedconfigurationstores.DeletedConfigurationStoresClient
+	id     deletedconfigurationstores.DeletedConfigurationStoreId
+}
+
+func (p *purgeDeletedPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	resp, err := p.client.ConfigurationStoresGetDeleted(ctx, p.id)
+
+	status := "dropped connection"
+	if resp.HttpResponse != nil {
+		status = fmt.Sprintf("%d", resp.HttpResponse.StatusCode)
+	}
+
+	if response.WasNotFound(resp.HttpResponse) {
+		return &pollers.PollResult{
+			HttpResponse: &client.Response{
+				Response: resp.HttpResponse,
+			},
+			Status: pollers.PollingStatusSucceeded,
+		}, nil
+	}
+
+	if response.WasStatusCode(resp.HttpResponse, http.StatusOK) {
+		return &pollers.PollResult{
+			HttpResponse: &client.Response{
+				Response: resp.HttpResponse,
+			},
+			Status: pollers.PollingStatusInProgress,
+		}, nil
+	}
+
+	return nil, fmt.Errorf("unexpected status %q: %+v", status, err)
 }
 
 type flattenedAccessKeys struct {
@@ -650,22 +725,6 @@ func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interf
 	}
 }
 
-func optedOutOfRecoveringSoftDeletedAppConfigurationErrorFmt(name, location string) string {
-	return fmt.Sprintf(`
-An existing soft-deleted App Configuration exists with the Name %q in the location %q, however
-automatically recovering this App Configuration has been disabled via the "features" block.
-
-Terraform can automatically recover the soft-deleted App Configuration when this behaviour is
-enabled within the "features" block (located within the "provider" block) - more information
-can be found here:
-
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
-
-Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
-this into Terraform via "terraform import", or pick a different name/location.
-`, name, location)
-}
-
 func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAccess {
 	vals := map[string]configurationstores.PublicNetworkAccess{
 		"disabled": configurationstores.PublicNetworkAccessDisabled,
@@ -678,4 +737,68 @@ func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAc
 	// otherwise presume it's an undefined value and best-effort it
 	out := configurationstores.PublicNetworkAccess(input)
 	return &out
+}
+
+func userIsMissingNecessaryPermission(name, location string) string {
+	return fmt.Sprintf(`
+An existing soft-deleted App Configuration exists with the Name %q in the location %q, however
+the credentials Terraform is using has insufficient permissions to check for an existing soft-deleted App Configuration.
+You can opt out of this behaviour by using the "features" block (located within the "provider" block) - more information
+can be found here:
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+`, name, location)
+}
+
+func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: context had no deadline")
+	}
+	state := &pluginsdk.StateChangeConf{
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 2,
+		Pending:                   []string{"Unavailable"},
+		Target:                    []string{"Available"},
+		Refresh:                   resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx, client, configurationStoreId),
+		Timeout:                   time.Until(deadline),
+	}
+
+	_, err := state.WaitForStateContext(ctx)
+	if err != nil {
+		return fmt.Errorf("waiting for the Name from %s to become available: %+v", configurationStoreId, err)
+	}
+
+	return nil
+
+}
+
+func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if the name for %s is available ..", configurationStoreId)
+
+		subscriptionId := commonids.NewSubscriptionID(configurationStoreId.SubscriptionId)
+
+		parameters := operations.CheckNameAvailabilityParameters{
+			Name: configurationStoreId.ConfigurationStoreName,
+			Type: operations.ConfigurationResourceTypeMicrosoftPointAppConfigurationConfigurationStores,
+		}
+
+		resp, err := client.CheckNameAvailability(ctx, subscriptionId, parameters)
+		if err != nil {
+			return resp, "Error", fmt.Errorf("retrieving Deployment: %+v", err)
+		}
+
+		if resp.Model == nil {
+			return resp, "Error", fmt.Errorf("unexpected null model of %s", configurationStoreId)
+		}
+
+		if resp.Model.NameAvailable == nil {
+			return resp, "Error", fmt.Errorf("unexpected null NameAvailable property of %s", configurationStoreId)
+		}
+
+		if !*resp.Model.NameAvailable {
+			return resp, "Unavailable", nil
+		}
+		return resp, "Available", nil
+	}
 }

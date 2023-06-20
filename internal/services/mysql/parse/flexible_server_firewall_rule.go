@@ -44,7 +44,7 @@ func (id FlexibleServerFirewallRuleId) ID() string {
 func FlexibleServerFirewallRuleID(input string) (*FlexibleServerFirewallRuleId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an FlexibleServerFirewallRule ID: %+v", input, err)
 	}
 
 	resourceId := FlexibleServerFirewallRuleId{

@@ -42,19 +42,19 @@ func ParseReplicationID(input string) (*ReplicationId, error) {
 	id := ReplicationId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'registryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
 	}
 
 	if id.ReplicationName, ok = parsed.Parsed["replicationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'replicationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseReplicationIDInsensitively(input string) (*ReplicationId, error) {
 	id := ReplicationId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, fmt.Errorf("the segment 'registryName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
 	}
 
 	if id.ReplicationName, ok = parsed.Parsed["replicationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'replicationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationName", *parsed)
 	}
 
 	return &id, nil

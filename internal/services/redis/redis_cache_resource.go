@@ -818,11 +818,15 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	}
 
 	// RDB Backup
-	if v := raw["rdb_backup_enabled"].(bool); v {
-		if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
-			return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
+	// nolint : staticcheck
+	v, valExists := d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
+	if valExists {
+		if v := raw["rdb_backup_enabled"].(bool); v {
+			if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
+				return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
+			}
 		}
-		output.RdbBackupEnabled = utils.String(strconv.FormatBool(v))
+		output.RdbBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
 	}
 
 	if v := raw["rdb_backup_frequency"].(int); v > 0 {
@@ -842,8 +846,10 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	}
 
 	// AOF Backup
-	if v := raw["aof_backup_enabled"].(bool); v {
-		output.AofBackupEnabled = utils.String(strconv.FormatBool(v))
+	// nolint : staticcheck
+	v, valExists = d.GetOkExists("redis_configuration.0.aof_backup_enabled")
+	if valExists {
+		output.AofBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
 	}
 
 	if v := raw["aof_storage_connection_string_0"].(string); v != "" {
@@ -853,7 +859,6 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	if v := raw["aof_storage_connection_string_1"].(string); v != "" {
 		output.AofStorageConnectionString1 = utils.String(v)
 	}
-
 	authEnabled := raw["enable_authentication"].(bool)
 	// Redis authentication can only be disabled if it is launched inside a VNET.
 	if _, isPrivate := d.GetOk("subnet_id"); !isPrivate {

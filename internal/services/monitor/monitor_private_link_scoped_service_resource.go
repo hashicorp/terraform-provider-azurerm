@@ -5,14 +5,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopedresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	applicationinsightsvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -35,7 +35,7 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.PrivateLinkScopedServiceID(id)
+			_, err := privatelinkscopedresources.ParseScopedResourceID(id)
 			return err
 		}),
 
@@ -77,33 +77,29 @@ func resourceMonitorPrivateLinkScopedServiceCreateUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPrivateLinkScopedServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("scope_name").(string), d.Get("name").(string))
+	id := privatelinkscopedresources.NewScopedResourceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("scope_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.PrivateLinkScopeName, id.ScopedResourceName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_monitor_private_link_scoped_service", id.ID())
 		}
 	}
 
-	parameters := insights.ScopedResource{
-		ScopedResourceProperties: &insights.ScopedResourceProperties{
-			LinkedResourceID: utils.String(d.Get("linked_resource_id").(string)),
+	parameters := privatelinkscopedresources.ScopedResource{
+		Properties: &privatelinkscopedresources.ScopedResourceProperties{
+			LinkedResourceId: utils.String(d.Get("linked_resource_id").(string)),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.PrivateLinkScopeName, id.ScopedResourceName, parameters)
+	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -115,14 +111,14 @@ func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PrivateLinkScopedServiceID(d.Id())
+	id, err := privatelinkscopedresources.ParseScopedResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.PrivateLinkScopeName, id.ScopedResourceName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -131,11 +127,13 @@ func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta
 	}
 
 	d.Set("name", id.ScopedResourceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("scope_name", id.PrivateLinkScopeName)
 
-	if props := resp.ScopedResourceProperties; props != nil {
-		d.Set("linked_resource_id", props.LinkedResourceID)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("linked_resource_id", props.LinkedResourceId)
+		}
 	}
 
 	return nil
@@ -146,18 +144,14 @@ func resourceMonitorPrivateLinkScopedServiceDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PrivateLinkScopedServiceID(d.Id())
+	id, err := privatelinkscopedresources.ParseScopedResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.PrivateLinkScopeName, id.ScopedResourceName)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

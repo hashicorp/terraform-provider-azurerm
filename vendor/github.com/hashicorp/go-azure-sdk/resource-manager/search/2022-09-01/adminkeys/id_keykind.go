@@ -42,20 +42,20 @@ func ParseKeyKindID(input string) (*KeyKindId, error) {
 	id := KeyKindId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.SearchServiceName, ok = parsed.Parsed["searchServiceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'searchServiceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", *parsed)
 	}
 
 	if v, ok := parsed.Parsed["keyKind"]; true {
 		if !ok {
-			return nil, fmt.Errorf("the segment 'keyKind' was not found in the resource id %q", input)
+			return nil, resourceids.NewSegmentNotSpecifiedError(id, "keyKind", *parsed)
 		}
 
 		keyKind, err := parseAdminKeyKind(v)
@@ -81,20 +81,20 @@ func ParseKeyKindIDInsensitively(input string) (*KeyKindId, error) {
 	id := KeyKindId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.SearchServiceName, ok = parsed.Parsed["searchServiceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'searchServiceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", *parsed)
 	}
 
 	if v, ok := parsed.Parsed["keyKind"]; true {
 		if !ok {
-			return nil, fmt.Errorf("the segment 'keyKind' was not found in the resource id %q", input)
+			return nil, resourceids.NewSegmentNotSpecifiedError(id, "keyKind", *parsed)
 		}
 
 		keyKind, err := parseAdminKeyKind(v)

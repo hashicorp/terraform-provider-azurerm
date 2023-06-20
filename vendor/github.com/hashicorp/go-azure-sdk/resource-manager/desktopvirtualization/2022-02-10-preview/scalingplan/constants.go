@@ -1,6 +1,10 @@
 package scalingplan
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -27,6 +31,19 @@ func PossibleValuesForDaysOfWeek() []string {
 		string(DaysOfWeekTuesday),
 		string(DaysOfWeekWednesday),
 	}
+}
+
+func (s *DaysOfWeek) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDaysOfWeek(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDaysOfWeek(input string) (*DaysOfWeek, error) {
@@ -60,6 +77,19 @@ func PossibleValuesForScalingHostPoolType() []string {
 	}
 }
 
+func (s *ScalingHostPoolType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScalingHostPoolType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseScalingHostPoolType(input string) (*ScalingHostPoolType, error) {
 	vals := map[string]ScalingHostPoolType{
 		"pooled": ScalingHostPoolTypePooled,
@@ -85,6 +115,19 @@ func PossibleValuesForSessionHostLoadBalancingAlgorithm() []string {
 		string(SessionHostLoadBalancingAlgorithmBreadthFirst),
 		string(SessionHostLoadBalancingAlgorithmDepthFirst),
 	}
+}
+
+func (s *SessionHostLoadBalancingAlgorithm) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSessionHostLoadBalancingAlgorithm(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSessionHostLoadBalancingAlgorithm(input string) (*SessionHostLoadBalancingAlgorithm, error) {
@@ -119,6 +162,19 @@ func PossibleValuesForSkuTier() []string {
 	}
 }
 
+func (s *SkuTier) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSkuTier(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSkuTier(input string) (*SkuTier, error) {
 	vals := map[string]SkuTier{
 		"basic":    SkuTierBasic,
@@ -147,6 +203,19 @@ func PossibleValuesForStopHostsWhen() []string {
 		string(StopHostsWhenZeroActiveSessions),
 		string(StopHostsWhenZeroSessions),
 	}
+}
+
+func (s *StopHostsWhen) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStopHostsWhen(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStopHostsWhen(input string) (*StopHostsWhen, error) {

@@ -35,6 +35,8 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Secret.
 
+* `version` - (Optional) Specifies the version of the Key Vault Secret. Defaults to the current version of the Key Vault Secret.
+
 **NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
 
 ## Attributes Reference
@@ -53,9 +55,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `value` - The value of the Key Vault Secret.
 
-* `version` - The current version of the Key Vault Secret.
-
 * `versionless_id` - The Versionless ID of the Key Vault Secret. This can be used to always get latest secret value, and enable fetching automatically rotating secrets.
+
+* `not_before_date` - The earliest date at which the Key Vault Secret can be used.
+
+* `expiration_date` - The date and time at which the Key Vault Secret expires and is no longer valid.
 
 ## Timeouts
 

@@ -1,6 +1,10 @@
 package sharedprivatelinkresources
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForSharedPrivateLinkResourceProvisioningState() []string {
 		string(SharedPrivateLinkResourceProvisioningStateSucceeded),
 		string(SharedPrivateLinkResourceProvisioningStateUpdating),
 	}
+}
+
+func (s *SharedPrivateLinkResourceProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSharedPrivateLinkResourceProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSharedPrivateLinkResourceProvisioningState(input string) (*SharedPrivateLinkResourceProvisioningState, error) {
@@ -58,6 +75,19 @@ func PossibleValuesForSharedPrivateLinkResourceStatus() []string {
 		string(SharedPrivateLinkResourceStatusPending),
 		string(SharedPrivateLinkResourceStatusRejected),
 	}
+}
+
+func (s *SharedPrivateLinkResourceStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSharedPrivateLinkResourceStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSharedPrivateLinkResourceStatus(input string) (*SharedPrivateLinkResourceStatus, error) {

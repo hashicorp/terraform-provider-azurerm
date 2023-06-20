@@ -1,6 +1,10 @@
 package tasks
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForArchitecture() []string {
 		string(ArchitectureThreeEightSix),
 		string(ArchitectureXEightSix),
 	}
+}
+
+func (s *Architecture) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseArchitecture(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseArchitecture(input string) (*Architecture, error) {
@@ -56,6 +73,19 @@ func PossibleValuesForBaseImageDependencyType() []string {
 	}
 }
 
+func (s *BaseImageDependencyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBaseImageDependencyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseBaseImageDependencyType(input string) (*BaseImageDependencyType, error) {
 	vals := map[string]BaseImageDependencyType{
 		"buildtime": BaseImageDependencyTypeBuildTime,
@@ -84,6 +114,19 @@ func PossibleValuesForBaseImageTriggerType() []string {
 	}
 }
 
+func (s *BaseImageTriggerType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBaseImageTriggerType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseBaseImageTriggerType(input string) (*BaseImageTriggerType, error) {
 	vals := map[string]BaseImageTriggerType{
 		"all":     BaseImageTriggerTypeAll,
@@ -110,6 +153,19 @@ func PossibleValuesForOS() []string {
 		string(OSLinux),
 		string(OSWindows),
 	}
+}
+
+func (s *OS) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOS(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOS(input string) (*OS, error) {
@@ -148,6 +204,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"canceled":  ProvisioningStateCanceled,
@@ -180,6 +249,19 @@ func PossibleValuesForSecretObjectType() []string {
 	}
 }
 
+func (s *SecretObjectType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSecretObjectType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSecretObjectType(input string) (*SecretObjectType, error) {
 	vals := map[string]SecretObjectType{
 		"opaque":      SecretObjectTypeOpaque,
@@ -206,6 +288,19 @@ func PossibleValuesForSourceControlType() []string {
 		string(SourceControlTypeGithub),
 		string(SourceControlTypeVisualStudioTeamService),
 	}
+}
+
+func (s *SourceControlType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSourceControlType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSourceControlType(input string) (*SourceControlType, error) {
@@ -236,6 +331,19 @@ func PossibleValuesForSourceRegistryLoginMode() []string {
 	}
 }
 
+func (s *SourceRegistryLoginMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSourceRegistryLoginMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSourceRegistryLoginMode(input string) (*SourceRegistryLoginMode, error) {
 	vals := map[string]SourceRegistryLoginMode{
 		"default": SourceRegistryLoginModeDefault,
@@ -262,6 +370,19 @@ func PossibleValuesForSourceTriggerEvent() []string {
 		string(SourceTriggerEventCommit),
 		string(SourceTriggerEventPullrequest),
 	}
+}
+
+func (s *SourceTriggerEvent) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSourceTriggerEvent(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSourceTriggerEvent(input string) (*SourceTriggerEvent, error) {
@@ -294,6 +415,19 @@ func PossibleValuesForStepType() []string {
 	}
 }
 
+func (s *StepType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStepType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseStepType(input string) (*StepType, error) {
 	vals := map[string]StepType{
 		"docker":      StepTypeDocker,
@@ -321,6 +455,19 @@ func PossibleValuesForTaskStatus() []string {
 		string(TaskStatusDisabled),
 		string(TaskStatusEnabled),
 	}
+}
+
+func (s *TaskStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTaskStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTaskStatus(input string) (*TaskStatus, error) {
@@ -351,6 +498,19 @@ func PossibleValuesForTokenType() []string {
 	}
 }
 
+func (s *TokenType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTokenType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseTokenType(input string) (*TokenType, error) {
 	vals := map[string]TokenType{
 		"oauth": TokenTypeOAuth,
@@ -377,6 +537,19 @@ func PossibleValuesForTriggerStatus() []string {
 		string(TriggerStatusDisabled),
 		string(TriggerStatusEnabled),
 	}
+}
+
+func (s *TriggerStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTriggerStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTriggerStatus(input string) (*TriggerStatus, error) {
@@ -407,6 +580,19 @@ func PossibleValuesForUpdateTriggerPayloadType() []string {
 	}
 }
 
+func (s *UpdateTriggerPayloadType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUpdateTriggerPayloadType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseUpdateTriggerPayloadType(input string) (*UpdateTriggerPayloadType, error) {
 	vals := map[string]UpdateTriggerPayloadType{
 		"default": UpdateTriggerPayloadTypeDefault,
@@ -435,6 +621,19 @@ func PossibleValuesForVariant() []string {
 		string(VariantVSeven),
 		string(VariantVSix),
 	}
+}
+
+func (s *Variant) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVariant(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseVariant(input string) (*Variant, error) {

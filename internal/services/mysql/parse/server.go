@@ -41,7 +41,7 @@ func (id ServerId) ID() string {
 func ServerID(input string) (*ServerId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an Server ID: %+v", input, err)
 	}
 
 	resourceId := ServerId{

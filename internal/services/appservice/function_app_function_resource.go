@@ -229,7 +229,7 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 			// Check and wait for the Function to have no in flight operations
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("context had no deadline")
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 
 			createWait := &pluginsdk.StateChangeConf{
@@ -352,7 +352,7 @@ func (r FunctionAppFunctionResource) Delete() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("context had no deadline")
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 
 			deleteWait := &pluginsdk.StateChangeConf{
@@ -430,7 +430,7 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("context had no deadline")
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 
 			updateWait := &pluginsdk.StateChangeConf{

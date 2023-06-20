@@ -7,7 +7,8 @@ class ClientConfiguration(var clientId: String,
                           val clientIdAlt: String,
                           val clientSecretAlt: String,
                           val subscriptionIdAlt : String,
-                          val subscriptionIdDevTest : String) {
+                          val subscriptionIdDevTest : String,
+                          val enableTestTriggersGlobally : Boolean) {
 }
 
 class LocationConfiguration(var primary : String, var secondary : String, var tertiary : String, var rotate : Boolean) {

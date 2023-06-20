@@ -42,19 +42,19 @@ func ParseSubnetID(input string) (*SubnetId, error) {
 	id := SubnetId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.VirtualNetworkName, ok = parsed.Parsed["virtualNetworkName"]; !ok {
-		return nil, fmt.Errorf("the segment 'virtualNetworkName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkName", *parsed)
 	}
 
 	if id.SubnetName, ok = parsed.Parsed["subnetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'subnetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subnetName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseSubnetIDInsensitively(input string) (*SubnetId, error) {
 	id := SubnetId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.VirtualNetworkName, ok = parsed.Parsed["virtualNetworkName"]; !ok {
-		return nil, fmt.Errorf("the segment 'virtualNetworkName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkName", *parsed)
 	}
 
 	if id.SubnetName, ok = parsed.Parsed["subnetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'subnetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subnetName", *parsed)
 	}
 
 	return &id, nil

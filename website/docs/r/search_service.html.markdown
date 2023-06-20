@@ -10,7 +10,7 @@ description: |-
 
 Manages a Search Service.
 
-## Example Usage
+## Example Usage (supporting API Keys)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -19,10 +19,47 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_search_service" "example" {
-  name                = "example-search-service"
+  name                = "example-resource"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku                 = "standard"
+}
+```
+
+## Example Usage (using both AzureAD and API Keys)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_search_service" "example" {
+  name                = "example-resource"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "standard"
+
+  local_authentication_enabled = true
+  authentication_failure_mode  = "http403"
+}
+```
+
+## Example Usage (supporting only AzureAD Authentication)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_search_service" "example" {
+  name                = "example-resource"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "standard"
+
+  local_authentication_enabled = false
 }
 ```
 
@@ -36,33 +73,50 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Search Service should exist. Changing this forces a new Search Service to be created.
 
-* `sku` - (Required) The SKU which should be used for this Search Service. Possible values are `basic`, `free`, `standard`, `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2`. Changing this forces a new Search Service to be created.
+* `sku` - (Required) The SKU which should be used for this Search Service. Possible values include `basic`, `free`, `standard`, `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2`. Changing this forces a new Search Service to be created.
 
 -> The `basic` and `free` SKUs provision the Search Service in a Shared Cluster - the `standard` SKUs use a Dedicated Cluster.
 
-~> **Note:** The SKUs `standard2` and `standard3` are only available when enabled on the backend by Microsoft.
+~> **NOTE:** The SKUs `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2` are only available by submitting a quota increase request to Microsoft. Please see the [product documentation](https://learn.microsoft.com/azure/azure-resource-manager/troubleshooting/error-resource-quota?tabs=azure-cli) on how to submit a quota increase request.
 
 ---
 
-* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this resource. Defaults to `true`.
+* `allowed_ips` - (Optional) Specifies a list of inbound IPv4 or CIDRs that are allowed to access the Search Service. If the incoming IP request is from an IP address which is not included in the `allowed_ips` it will be blocked by the Search Services firewall.
 
-* `partition_count` - (Optional) The number of partitions which should be created.
+-> **NOTE:** The `allowed_ips` are only applied if the `public_network_access_enabled` field has been set to `true`, else all traffic over the public interface will be rejected, even if the `allowed_ips` field has been defined. When the `public_network_access_enabled` field has been set to `false` the private endpoint connections are the only allowed access point to the Search Service.
 
-* `replica_count` - (Optional) The number of replica's which should be created.
+* `authentication_failure_mode` - (Optional) Specifies the response that the Search Service should return for requests that fail authentication. Possible values include `http401WithBearerChallenge` or `http403`.
 
--> **Note:** `partition_count` and `replica_count` can only be configured when using a `standard` sku.
+-> **NOTE:** `authentication_failure_mode` can only be configured when using `local_authentication_enabled` is set to `true` - which when set together specifies that both API Keys and AzureAD Authentication should be supported.
 
-* `allowed_ips` - (Optional) A list of IPv4 addresses or CIDRs that are allowed access to the search service endpoint.
+* `customer_managed_key_enforcement_enabled` - (Optional) Specifies whether the Search Service should enforce that non-customer resources are encrypted. Defaults to `false`.
+
+* `hosting_mode` - (Optional) Specifies the Hosting Mode, which allows for High Density partitions (that allow for up to 1000 indexes) should be supported. Possible values are `highDensity` or `default`. Defaults to `default`. Changing this forces a new Search Service to be created.
+
+-> **NOTE:** `hosting_mode` can only be configured when `sku` is set to `standard3`.
+
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Search Service.
+* `local_authentication_enabled` - (Optional) Specifies whether the Search Service allows authenticating using API Keys? Defaults to `false`.
+
+* `partition_count` - (Optional) Specifies the number of partitions which should be created. This field cannot be set when using a `free` or `basic` sku ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier)). Possible values include `1`, `2`, `3`, `4`, `6`, or `12`. Defaults to `1`.
+
+-> **NOTE:** when `hosting_mode` is set to `highDensity` the maximum number of partitions allowed is `3`.
+
+* `public_network_access_enabled` - (Optional) Specifies whether Public Network Access is allowed for this resource. Defaults to `true`.
+
+* `replica_count` - (Optional) Specifies the number of Replica's which should be created for this Search Service. This field cannot be set when using a `free` sku ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier)).
+
+* `tags` - (Optional) Specifies a mapping of tags which should be assigned to this Search Service.
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Search Service. The only possible value is `SystemAssigned`.
+
+---
 
 ## Attributes Reference
 
@@ -91,6 +145,8 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
 
 ## Timeouts
 

@@ -1,6 +1,7 @@
 package signalr
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	signalrValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -62,6 +64,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	id := signalr.NewSignalRID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -323,6 +326,9 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	resourceType := signalr.SignalRResource{}
 
 	existing, err := client.Get(ctx, *id)
@@ -341,7 +347,9 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		currentSku = resourceType.Sku.Name
 	}
 
-	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "service_mode", "live_trace_enabled", "live_trace") {
+	if d.HasChanges("cors", "upstream_endpoint", "serverless_connection_timeout_in_seconds", "identity",
+		"public_network_access_enabled", "local_auth_enabled", "aad_auth_enabled", "tls_client_cert_enabled",
+		"features", "connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "service_mode", "live_trace_enabled", "live_trace") {
 		resourceType.Properties = &signalr.SignalRProperties{}
 
 		if d.HasChange("cors") {
@@ -349,116 +357,121 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			resourceType.Properties.Cors = expandSignalRCors(corsRaw)
 		}
 
+		if d.HasChange("upstream_endpoint") {
+			featuresRaw := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
+			resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
+		}
+
+		if d.HasChange("serverless_connection_timeout_in_seconds") {
+			resourceType.Properties.Serverless = &signalr.ServerlessSettings{
+				ConnectionTimeoutInSeconds: utils.Int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int))),
+			}
+		}
+
+		if d.HasChange("identity") {
+			identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			resourceType.Identity = identity
+		}
+
+		if d.HasChange("public_network_access_enabled") {
+			publicNetworkAcc := "Enabled"
+			if !d.Get("public_network_access_enabled").(bool) {
+				publicNetworkAcc = "Disabled"
+			}
+			if currentSku == "Free_F1" && publicNetworkAcc == "Disabled" {
+				return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
+			}
+			resourceType.Properties.PublicNetworkAccess = utils.String(publicNetworkAcc)
+		}
+
+		if d.HasChange("local_auth_enabled") {
+			resourceType.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_auth_enabled").(bool))
+		}
+
+		if d.HasChange("aad_auth_enabled") {
+			resourceType.Properties.DisableAadAuth = utils.Bool(!d.Get("aad_auth_enabled").(bool))
+		}
+
+		if d.HasChange("tls_client_cert_enabled") {
+			tlsClientCertEnabled := d.Get("tls_client_cert_enabled").(bool)
+			resourceType.Properties.Tls = &signalr.SignalRTlsSettings{
+				ClientCertEnabled: utils.Bool(tlsClientCertEnabled),
+			}
+			if currentSku == "Free_F1" && tlsClientCertEnabled {
+				return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
+			}
+		}
+
+		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "live_trace_enabled", "service_mode") {
+			features := make([]signalr.SignalRFeature, 0)
+			if d.HasChange("connectivity_logs_enabled") || d.HasChange("messaging_logs_enabled") || d.HasChange("http_request_logs_enabled") {
+				connectivityLogsNew := d.Get("connectivity_logs_enabled")
+				features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsNew.(bool))))
+
+				messagingLogsNew := d.Get("messaging_logs_enabled")
+				features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsNew.(bool))))
+
+				httpLogsNew := d.Get("http_request_logs_enabled")
+
+				resourceType.Properties.ResourceLogConfiguration = expandSignalRResourceLogConfig(connectivityLogsNew.(bool), messagingLogsNew.(bool), httpLogsNew.(bool))
+			}
+
+			if d.HasChange("live_trace_enabled") {
+				liveTraceEnabled := false
+				if v, ok := d.GetOk("live_trace_enabled"); ok {
+					liveTraceEnabled = v.(bool)
+				}
+				features = append(features, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
+			}
+
+			if d.HasChange("service_mode") {
+				serviceMode := "Default"
+				if v, ok := d.GetOk("service_mode"); ok {
+					serviceMode = v.(string)
+				}
+				features = append(features, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
+			}
+
+			resourceType.Properties.Features = &features
+		}
+
 		if d.HasChange("live_trace") {
 			resourceType.Properties.LiveTraceConfiguration = expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{}))
 		}
-
-		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled", "http_request_logs_enabled") {
-			if d.HasChange("public_network_access_enabled") {
-				publicNetworkAcc := "Enabled"
-				if !d.Get("public_network_access_enabled").(bool) {
-					publicNetworkAcc = "Disabled"
-				}
-				if currentSku == "Free_F1" && publicNetworkAcc == "Disabled" {
-					return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
-				}
-				resourceType.Properties.PublicNetworkAccess = utils.String(publicNetworkAcc)
-			}
-
-			if d.HasChange("local_auth_enabled") {
-				resourceType.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_auth_enabled").(bool))
-			}
-
-			if d.HasChange("aad_auth_enabled") {
-				resourceType.Properties.DisableAadAuth = utils.Bool(!d.Get("aad_auth_enabled").(bool))
-			}
-
-			if d.HasChange("tls_client_cert_enabled") {
-				tlsClientCertEnabled := d.Get("tls_client_cert_enabled").(bool)
-				resourceType.Properties.Tls = &signalr.SignalRTlsSettings{
-					ClientCertEnabled: utils.Bool(tlsClientCertEnabled),
-				}
-				if currentSku == "Free_F1" && tlsClientCertEnabled {
-					return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
-				}
-			}
-
-			if d.HasChange("serverless_connection_timeout_in_seconds") {
-				resourceType.Properties.Serverless = &signalr.ServerlessSettings{
-					ConnectionTimeoutInSeconds: utils.Int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int))),
-				}
-			}
-
-			if d.HasChange("identity") {
-				identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
-				if err != nil {
-					return fmt.Errorf("expanding `identity`: %+v", err)
-				}
-				resourceType.Identity = identity
-			}
-
-			if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled", "http_request_logs_enabled") {
-				features := make([]signalr.SignalRFeature, 0)
-				logChanged := false
-				var connectivityLogsEnabled, messagingLogsEnabled, httpLogsEnabled bool
-				if d.HasChange("connectivity_logs_enabled") {
-					if v, ok := d.GetOk("connectivity_logs_enabled"); ok {
-						connectivityLogsEnabled = v.(bool)
-					}
-					features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
-					logChanged = true
-				}
-
-				if d.HasChange("messaging_logs_enabled") {
-					if v, ok := d.GetOk("messaging_logs_enabled"); ok {
-						messagingLogsEnabled = v.(bool)
-					}
-					features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
-					logChanged = true
-				}
-
-				if d.HasChange("http_request_logs_enabled") {
-					if v, ok := d.GetOk("http_request_logs_enabled"); ok {
-						httpLogsEnabled = v.(bool)
-					}
-					logChanged = true
-				}
-
-				if logChanged {
-					resourceType.Properties.ResourceLogConfiguration = expandSignalRResourceLogConfig(connectivityLogsEnabled, messagingLogsEnabled, httpLogsEnabled)
-				}
-
-				if d.HasChange("live_trace_enabled") {
-					liveTraceEnabled := false
-					if v, ok := d.GetOk("live_trace_enabled"); ok {
-						liveTraceEnabled = v.(bool)
-					}
-					features = append(features, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
-				}
-
-				if d.HasChange("service_mode") {
-					serviceMode := "Default"
-					if v, ok := d.GetOk("service_mode"); ok {
-						serviceMode = v.(string)
-					}
-					features = append(features, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
-				}
-				resourceType.Properties.Features = &features
-			}
-
-			if d.HasChange("upstream_endpoint") {
-				featuresRaw := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
-				resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
-			}
-		}
-
-		if d.HasChange("tags") {
-			tagsRaw := d.Get("tags").(map[string]interface{})
-			resourceType.Tags = tags.Expand(tagsRaw)
-		}
 	}
+
+	if d.HasChange("tags") {
+		tagsRaw := d.Get("tags").(map[string]interface{})
+		resourceType.Tags = tags.Expand(tagsRaw)
+	}
+
 	if err := client.UpdateThenPoll(ctx, *id, resourceType); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(signalr.ProvisioningStateUpdating),
+			string(signalr.ProvisioningStateCreating),
+			string(signalr.ProvisioningStateMoving),
+			string(signalr.ProvisioningStateRunning),
+		},
+		Target:                    []string{string(signalr.ProvisioningStateSucceeded)},
+		Refresh:                   signalrServiceProvisioningStateRefreshFunc(ctx, client, *id),
+		Timeout:                   time.Until(deadline),
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 20,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return err
 	}
 
 	return resourceArmSignalRServiceRead(d, meta)
@@ -473,6 +486,9 @@ func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// @tombuildsstuff: we can't use DeleteThenPoll here since the API returns a 404 on the Future in time
 	future, err := client.Delete(ctx, *id)
@@ -515,12 +531,26 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 
 	for _, upstreamSetting := range input {
 		setting := upstreamSetting.(map[string]interface{})
-
+		authTypeNone := signalr.UpstreamAuthTypeNone
+		authTypeManagedIdentity := signalr.UpstreamAuthTypeManagedIdentity
+		auth := signalr.UpstreamAuthSettings{
+			Type: &authTypeNone,
+		}
 		upstreamTemplate := signalr.UpstreamTemplate{
 			HubPattern:      utils.String(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
 			EventPattern:    utils.String(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
 			CategoryPattern: utils.String(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
 			UrlTemplate:     setting["url_template"].(string),
+			Auth:            &auth,
+		}
+
+		if setting["user_assigned_identity_id"].(string) != "" {
+			upstreamTemplate.Auth = &signalr.UpstreamAuthSettings{
+				Type: &authTypeManagedIdentity,
+				ManagedIdentity: &signalr.ManagedIdentitySettings{
+					Resource: utils.String(setting["user_assigned_identity_id"].(string)),
+				},
+			}
 		}
 
 		upstreamTemplates = append(upstreamTemplates, upstreamTemplate)
@@ -556,11 +586,19 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 			hubPattern = utils.FlattenStringSlice(&hubPatterns)
 		}
 
+		var managedIdentityId string
+		if upstreamAuth := settings.Auth; upstreamAuth != nil && upstreamAuth.Type != nil && *upstreamAuth.Type != signalr.UpstreamAuthTypeNone {
+			if upstreamAuth.ManagedIdentity != nil && upstreamAuth.ManagedIdentity.Resource != nil {
+				managedIdentityId = *upstreamAuth.ManagedIdentity.Resource
+			}
+		}
+
 		result = append(result, map[string]interface{}{
-			"url_template":     settings.UrlTemplate,
-			"hub_pattern":      hubPattern,
-			"event_pattern":    eventPattern,
-			"category_pattern": categoryPattern,
+			"url_template":              settings.UrlTemplate,
+			"hub_pattern":               hubPattern,
+			"event_pattern":             eventPattern,
+			"category_pattern":          categoryPattern,
+			"user_assigned_identity_id": managedIdentityId,
 		})
 	}
 	return result
@@ -793,7 +831,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
+						ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100}),
 					},
 				},
 			},
@@ -935,6 +973,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: signalrValidate.UrlTemplate,
 					},
+
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsUUID,
+					},
 				},
 			},
 		},
@@ -1003,5 +1047,22 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
+	}
+}
+
+func signalrServiceProvisioningStateRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.SignalRId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
+		}
+
+		if model := res.Model; model != nil {
+			if model.Properties != nil && model.Properties.ProvisioningState != nil {
+				return res, string(*model.Properties.ProvisioningState), nil
+			}
+		}
+
+		return nil, "", fmt.Errorf("unable to read provisioning state")
 	}
 }

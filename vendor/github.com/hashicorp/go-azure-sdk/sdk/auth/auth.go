@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp Inc. All rights reserved.
+// Licensed under the MPL-2.0 License. See NOTICE.txt in the project root for license information.
+
 package auth
 
 import (
@@ -7,9 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
-
-// Copyright (c) HashiCorp Inc. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 // NewAuthorizerFromCredentials returns a suitable Authorizer depending on what is defined in the Credentials
 // Authorizers are selected for authentication methods in the following preferential order:
@@ -126,8 +126,9 @@ func NewAuthorizerFromCredentials(ctx context.Context, c Credentials, api enviro
 
 	if c.EnableAuthenticatingUsingAzureCLI {
 		opts := AzureCliAuthorizerOptions{
-			Api:      api,
-			TenantId: c.TenantID,
+			Api:          api,
+			TenantId:     c.TenantID,
+			AuxTenantIds: c.AuxiliaryTenantIDs,
 		}
 		a, err := NewAzureCliAuthorizer(ctx, opts)
 		if err != nil {

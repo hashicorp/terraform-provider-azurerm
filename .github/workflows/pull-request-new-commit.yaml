@@ -9,10 +9,7 @@ on:
     types: [synchronize]
 
 jobs:
-  issue_comment_triage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          github_token: "${{ secrets.GITHUB_TOKEN }}"
-          labels: waiting-response
+  remove-waiting-response:
+    uses: ./.github/workflows/remove-issue-label.yml
+    with:
+      label-name: "waiting-response"

@@ -44,7 +44,7 @@ func (id RedirectConfigurationsId) ID() string {
 func RedirectConfigurationsID(input string) (*RedirectConfigurationsId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an RedirectConfigurations ID: %+v", input, err)
 	}
 
 	resourceId := RedirectConfigurationsId{

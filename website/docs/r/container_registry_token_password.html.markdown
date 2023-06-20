@@ -29,8 +29,8 @@ resource "azurerm_container_registry" "example" {
 
 resource "azurerm_container_registry_scope_map" "example" {
   name                    = "example-scope-map"
-  container_registry_name = azurerm_container_registry.acr.name
-  resource_group_name     = azurerm_resource_group.rg.name
+  container_registry_name = azurerm_container_registry.example.name
+  resource_group_name     = azurerm_resource_group.example.name
   actions = [
     "repositories/repo1/content/read",
     "repositories/repo1/content/write"
@@ -39,9 +39,9 @@ resource "azurerm_container_registry_scope_map" "example" {
 
 resource "azurerm_container_registry_token" "example" {
   name                    = "exampletoken"
-  container_registry_name = azurerm_container_registry.acr.name
-  resource_group_name     = azurerm_resource_group.rg.name
-  scope_map_id            = azurerm_container_registry_scope_map.map.id
+  container_registry_name = azurerm_container_registry.example.name
+  resource_group_name     = azurerm_resource_group.example.name
+  scope_map_id            = azurerm_container_registry_scope_map.example.id
 }
 
 resource "azurerm_container_registry_token_password" "example" {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/dicomservices"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -125,7 +125,7 @@ func (s HealthCareDicomServiceV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (s HealthCareDicomServiceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.DicomServiceIDInsensitively(oldId)
+		newId, err := dicomservices.ParseDicomServiceIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

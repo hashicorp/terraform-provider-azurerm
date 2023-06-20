@@ -42,19 +42,19 @@ func ParseDesktopID(input string) (*DesktopId, error) {
 	id := DesktopId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ApplicationGroupName, ok = parsed.Parsed["applicationGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'applicationGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationGroupName", *parsed)
 	}
 
 	if id.DesktopName, ok = parsed.Parsed["desktopName"]; !ok {
-		return nil, fmt.Errorf("the segment 'desktopName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "desktopName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseDesktopIDInsensitively(input string) (*DesktopId, error) {
 	id := DesktopId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ApplicationGroupName, ok = parsed.Parsed["applicationGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'applicationGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationGroupName", *parsed)
 	}
 
 	if id.DesktopName, ok = parsed.Parsed["desktopName"]; !ok {
-		return nil, fmt.Errorf("the segment 'desktopName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "desktopName", *parsed)
 	}
 
 	return &id, nil

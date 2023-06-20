@@ -1,6 +1,10 @@
 package pipelineruns
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -15,6 +19,19 @@ func PossibleValuesForPipelineRunSourceType() []string {
 	return []string{
 		string(PipelineRunSourceTypeAzureStorageBlob),
 	}
+}
+
+func (s *PipelineRunSourceType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePipelineRunSourceType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePipelineRunSourceType(input string) (*PipelineRunSourceType, error) {
@@ -42,6 +59,19 @@ func PossibleValuesForPipelineRunTargetType() []string {
 	}
 }
 
+func (s *PipelineRunTargetType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePipelineRunTargetType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parsePipelineRunTargetType(input string) (*PipelineRunTargetType, error) {
 	vals := map[string]PipelineRunTargetType{
 		"azurestorageblob": PipelineRunTargetTypeAzureStorageBlob,
@@ -65,6 +95,19 @@ func PossibleValuesForPipelineSourceType() []string {
 	return []string{
 		string(PipelineSourceTypeAzureStorageBlobContainer),
 	}
+}
+
+func (s *PipelineSourceType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePipelineSourceType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePipelineSourceType(input string) (*PipelineSourceType, error) {
@@ -100,6 +143,19 @@ func PossibleValuesForProvisioningState() []string {
 		string(ProvisioningStateSucceeded),
 		string(ProvisioningStateUpdating),
 	}
+}
+
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {

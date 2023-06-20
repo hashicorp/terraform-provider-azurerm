@@ -9,18 +9,18 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 const (
@@ -200,27 +200,33 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, rawKey)
 
-			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
-			// allow up to 15 min for role permission to be done propagated
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be done propagated", featureKey)
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:      []string{"Forbidden"},
-				Target:       []string{"Error", "Exists"},
-				Refresh:      appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
-				PollInterval: 20 * time.Second,
-				Timeout:      15 * time.Minute,
-			}
-
 			nestedItemId, err := parse.NewNestedItemID(client.Endpoint, featureKey, model.Label)
 			if err != nil {
 				return err
 			}
 
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", featureKey, err)
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 
-			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []string{})
+			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
+			// allow some time for role permission to be propagated
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q read permission to be propagated", featureKey)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Forbidden"},
+				Target:                    []string{"Error", "Exists", "NotFound"},
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Feature %q read permission to be propagated: %+v", featureKey, err)
+			}
+
+			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
@@ -236,6 +242,21 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			err = createOrUpdateFeature(ctx, client, model)
 			if err != nil {
 				return fmt.Errorf("while creating feature: %+v", err)
+			}
+
+			// https://github.com/Azure/AppConfiguration/issues/763
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q to be provisioned", model.Key)
+			stateConf = &pluginsdk.StateChangeConf{
+				Pending:                   []string{"NotFound", "Forbidden"},
+				Target:                    []string{"Exists"},
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Feature %q to be provisioned: %+v", featureKey, err)
 			}
 
 			metadata.SetID(nestedItemId)
@@ -283,14 +304,12 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			kv, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []string{})
+			kv, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
 						return metadata.MarkAsGone(nestedItemId)
 					}
-				} else {
-					return fmt.Errorf("while checking for key %q existence: %+v", *nestedItemId, err)
 				}
 				return fmt.Errorf("while checking for key %q existence: %+v", *nestedItemId, err)
 			}
@@ -393,7 +412,7 @@ func (k FeatureResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			kv, err := client.GetKeyValues(ctx, nestedItemId.Key, nestedItemId.Label, "", "", []string{})
+			kv, err := client.GetKeyValues(ctx, nestedItemId.Key, nestedItemId.Label, "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				return fmt.Errorf("while checking for feature's %q existence: %+v", nestedItemId.Key, err)
 			}

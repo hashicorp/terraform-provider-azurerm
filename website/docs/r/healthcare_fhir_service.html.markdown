@@ -94,7 +94,9 @@ The following arguments are supported:
 ---
 An `identity` block supports the following:
 
-* `type` - (Required) The type of identity used for the Healthcare FHIR service. Possible values are `SystemAssigned`.
+* `type` - The type of managed identity to assign. Possible values are `UserAssigned` and `SystemAssigned`
+
+* `identity_ids` - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned`.
 
 ---
 A `cors` block supports the following:

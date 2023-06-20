@@ -38,11 +38,11 @@ func ParseScopedRegistrationDefinitionID(input string) (*ScopedRegistrationDefin
 	id := ScopedRegistrationDefinitionId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.RegistrationDefinitionId, ok = parsed.Parsed["registrationDefinitionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'registrationDefinitionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registrationDefinitionId", *parsed)
 	}
 
 	return &id, nil
@@ -61,11 +61,11 @@ func ParseScopedRegistrationDefinitionIDInsensitively(input string) (*ScopedRegi
 	id := ScopedRegistrationDefinitionId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.RegistrationDefinitionId, ok = parsed.Parsed["registrationDefinitionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'registrationDefinitionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registrationDefinitionId", *parsed)
 	}
 
 	return &id, nil

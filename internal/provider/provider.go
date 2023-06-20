@@ -7,7 +7,9 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -176,6 +178,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "The Client ID which should be used.",
 			},
 
+			"client_id_file_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID_FILE_PATH", ""),
+				Description: "The path to a file containing the Client ID which should be used.",
+			},
+
 			"tenant_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -234,6 +243,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
 				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
+			},
+
+			"client_secret_file_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET_FILE_PATH", ""),
+				Description: "The path to a file containing the Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
 			// OIDC specifc fields
@@ -371,6 +387,16 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			return nil, diag.FromErr(err)
 		}
 
+		clientSecret, err := getClientSecret(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		clientId, err := getClientId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		var (
 			env *environments.Environment
 
@@ -394,14 +420,14 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 		authConfig := &auth.Credentials{
 			Environment:        *env,
-			ClientID:           d.Get("client_id").(string),
+			ClientID:           *clientId,
 			TenantID:           d.Get("tenant_id").(string),
 			AuxiliaryTenantIDs: auxTenants,
 
 			ClientCertificateData:     clientCertificateData,
 			ClientCertificatePath:     d.Get("client_certificate_path").(string),
 			ClientCertificatePassword: d.Get("client_certificate_password").(string),
-			ClientSecret:              d.Get("client_secret").(string),
+			ClientSecret:              *clientSecret,
 
 			OIDCAssertionToken:          *oidcToken,
 			GitHubOIDCTokenRequestURL:   d.Get("oidc_request_url").(string),
@@ -455,19 +481,12 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	client.StopContext = stopCtx
 
 	if !skipProviderRegistration {
-		// List all the available providers and their registration state to avoid unnecessary
-		// requests. This also lets us check if the provider credentials are correct.
-		providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
-		if err != nil {
-			return nil, diag.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
-				"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-				"error: %s", err)
-		}
-
-		availableResourceProviders := providerList.Values()
+		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 		requiredResourceProviders := resourceproviders.Required()
+		ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+		defer cancel()
 
-		if err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders); err != nil {
+		if err := resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
 			return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
 		}
 	}
@@ -508,6 +527,50 @@ func getOidcToken(d *schema.ResourceData) (*string, error) {
 	}
 
 	return &idToken, nil
+}
+
+func getClientId(d *schema.ResourceData) (*string, error) {
+	clientId := strings.TrimSpace(d.Get("client_id").(string))
+
+	if path := d.Get("client_id_file_path").(string); path != "" {
+		fileClientIdRaw, err := os.ReadFile(path)
+
+		if err != nil {
+			return nil, fmt.Errorf("reading Client ID from file %q: %v", path, err)
+		}
+
+		fileClientId := strings.TrimSpace(string(fileClientIdRaw))
+
+		if clientId != "" && clientId != fileClientId {
+			return nil, fmt.Errorf("mismatch between supplied Client ID and supplied Client ID file contents - please either remove one or ensure they match")
+		}
+
+		clientId = fileClientId
+	}
+
+	return &clientId, nil
+}
+
+func getClientSecret(d *schema.ResourceData) (*string, error) {
+	clientSecret := strings.TrimSpace(d.Get("client_secret").(string))
+
+	if path := d.Get("client_secret_file_path").(string); path != "" {
+		fileSecretRaw, err := os.ReadFile(path)
+
+		if err != nil {
+			return nil, fmt.Errorf("reading Client Secret from file %q: %v", path, err)
+		}
+
+		fileSecret := strings.TrimSpace(string(fileSecretRaw))
+
+		if clientSecret != "" && clientSecret != fileSecret {
+			return nil, fmt.Errorf("mismatch between supplied Client Secret and supplied Client Secret file contents - please either remove one or ensure they match")
+		}
+
+		clientSecret = fileSecret
+	}
+
+	return &clientSecret, nil
 }
 
 const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.

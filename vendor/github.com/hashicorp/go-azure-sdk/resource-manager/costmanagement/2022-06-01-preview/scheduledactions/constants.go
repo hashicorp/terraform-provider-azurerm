@@ -1,6 +1,10 @@
 package scheduledactions
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForCheckNameAvailabilityReason() []string {
 		string(CheckNameAvailabilityReasonAlreadyExists),
 		string(CheckNameAvailabilityReasonInvalid),
 	}
+}
+
+func (s *CheckNameAvailabilityReason) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCheckNameAvailabilityReason(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCheckNameAvailabilityReason(input string) (*CheckNameAvailabilityReason, error) {
@@ -57,6 +74,19 @@ func PossibleValuesForDaysOfWeek() []string {
 	}
 }
 
+func (s *DaysOfWeek) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDaysOfWeek(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDaysOfWeek(input string) (*DaysOfWeek, error) {
 	vals := map[string]DaysOfWeek{
 		"friday":    DaysOfWeekFriday,
@@ -88,6 +118,19 @@ func PossibleValuesForFileFormat() []string {
 	}
 }
 
+func (s *FileFormat) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFileFormat(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseFileFormat(input string) (*FileFormat, error) {
 	vals := map[string]FileFormat{
 		"csv": FileFormatCsv,
@@ -115,6 +158,19 @@ func PossibleValuesForScheduleFrequency() []string {
 		string(ScheduleFrequencyMonthly),
 		string(ScheduleFrequencyWeekly),
 	}
+}
+
+func (s *ScheduleFrequency) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScheduleFrequency(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseScheduleFrequency(input string) (*ScheduleFrequency, error) {
@@ -146,6 +202,19 @@ func PossibleValuesForScheduledActionKind() []string {
 	}
 }
 
+func (s *ScheduledActionKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScheduledActionKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseScheduledActionKind(input string) (*ScheduledActionKind, error) {
 	vals := map[string]ScheduledActionKind{
 		"email":        ScheduledActionKindEmail,
@@ -172,6 +241,19 @@ func PossibleValuesForScheduledActionStatus() []string {
 		string(ScheduledActionStatusDisabled),
 		string(ScheduledActionStatusEnabled),
 	}
+}
+
+func (s *ScheduledActionStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScheduledActionStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseScheduledActionStatus(input string) (*ScheduledActionStatus, error) {
@@ -206,6 +288,19 @@ func PossibleValuesForWeeksOfMonth() []string {
 		string(WeeksOfMonthSecond),
 		string(WeeksOfMonthThird),
 	}
+}
+
+func (s *WeeksOfMonth) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWeeksOfMonth(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWeeksOfMonth(input string) (*WeeksOfMonth, error) {

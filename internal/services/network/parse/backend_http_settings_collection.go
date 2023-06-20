@@ -44,7 +44,7 @@ func (id BackendHttpSettingsCollectionId) ID() string {
 func BackendHttpSettingsCollectionID(input string) (*BackendHttpSettingsCollectionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an BackendHttpSettingsCollection ID: %+v", input, err)
 	}
 
 	resourceId := BackendHttpSettingsCollectionId{

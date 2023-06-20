@@ -57,13 +57,13 @@ func NewClientSecretAuthorizer(ctx context.Context, options ClientSecretAuthoriz
 	return conf.TokenSource(ctx, clientCredentialsSecretType)
 }
 
-var _ Authorizer = &clientSecretAuthorizer{}
+var _ Authorizer = &ClientSecretAuthorizer{}
 
-type clientSecretAuthorizer struct {
+type ClientSecretAuthorizer struct {
 	conf *clientCredentialsConfig
 }
 
-func (a *clientSecretAuthorizer) Token(ctx context.Context, _ *http.Request) (*oauth2.Token, error) {
+func (a *ClientSecretAuthorizer) Token(ctx context.Context, _ *http.Request) (*oauth2.Token, error) {
 	if a.conf == nil {
 		return nil, fmt.Errorf("could not request token: conf is nil")
 	}
@@ -90,7 +90,7 @@ func (a *clientSecretAuthorizer) Token(ctx context.Context, _ *http.Request) (*o
 }
 
 // AuxiliaryTokens returns additional tokens for auxiliary tenant IDs, for use in multi-tenant scenarios
-func (a *clientSecretAuthorizer) AuxiliaryTokens(ctx context.Context, _ *http.Request) ([]*oauth2.Token, error) {
+func (a *ClientSecretAuthorizer) AuxiliaryTokens(ctx context.Context, _ *http.Request) ([]*oauth2.Token, error) {
 	if a.conf == nil {
 		return nil, fmt.Errorf("could not request token: conf is nil")
 	}

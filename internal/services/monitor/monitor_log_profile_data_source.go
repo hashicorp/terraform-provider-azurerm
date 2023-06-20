@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMonitorLogProfile() *pluginsdk.Resource {
@@ -72,11 +72,11 @@ func dataSourceLogProfileRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewLogProfileID(subscriptionId, d.Get("name").(string))
+	id := logprofiles.NewLogProfileID(subscriptionId, d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("reading Log Profile: %+v", err)
@@ -84,9 +84,11 @@ func dataSourceLogProfileRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.SetId(id.ID())
 
-	if props := resp.LogProfileProperties; props != nil {
-		d.Set("storage_account_id", props.StorageAccountID)
-		d.Set("servicebus_rule_id", props.ServiceBusRuleID)
+	if model := resp.Model; model != nil {
+		props := model.Properties
+
+		d.Set("storage_account_id", props.StorageAccountId)
+		d.Set("servicebus_rule_id", props.ServiceBusRuleId)
 		d.Set("categories", props.Categories)
 
 		if err := d.Set("locations", flattenAzureRmLogProfileLocations(props.Locations)); err != nil {

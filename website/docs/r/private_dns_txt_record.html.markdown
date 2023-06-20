@@ -6,7 +6,7 @@ description: |-
   Manages a Private DNS TXT Record.
 ---
 
-# azurerm_private_dns_txtrecord
+# azurerm_private_dns_txt_record
 
 Enables you to manage DNS TXT Records within Azure Private DNS.
 

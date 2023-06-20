@@ -208,7 +208,7 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("enabled", props.IsEnabled)
 
 			if props.Runbook != nil && props.Runbook.Name != nil {
-				d.Set("runbook_name", *props.Runbook.Name)
+				d.Set("runbook_name", props.Runbook.Name)
 			}
 			d.Set("run_on_worker_group", props.RunOn)
 

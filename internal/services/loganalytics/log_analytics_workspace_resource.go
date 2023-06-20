@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -388,7 +389,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 					}
 				}
 				if capacityReservationLevel := sku.CapacityReservationLevel; capacityReservationLevel != nil {
-					d.Set("reservation_capacity_in_gb_per_day", capacityReservationLevel)
+					d.Set("reservation_capacity_in_gb_per_day", int64(pointer.From(capacityReservationLevel)))
 				}
 			}
 			d.Set("sku", skuName)
@@ -410,7 +411,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 				// Special case for "Free" tier
 				d.Set("daily_quota_gb", utils.Float(0.5))
 			case props.WorkspaceCapping != nil && props.WorkspaceCapping.DailyQuotaGb != nil:
-				d.Set("daily_quota_gb", *props.WorkspaceCapping.DailyQuotaGb)
+				d.Set("daily_quota_gb", props.WorkspaceCapping.DailyQuotaGb)
 			default:
 				d.Set("daily_quota_gb", utils.Float(-1))
 			}

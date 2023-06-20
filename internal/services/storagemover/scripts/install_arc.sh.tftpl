@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Disable the Azure VM Guest Agent.
+current_hostname=$(hostname)
+sudo service walinuxagent stop
+sudo waagent -deprovision -force
+sudo rm -rf /var/lib/waagent
+sudo hostnamectl set-hostname $current_hostname
+
+# Block access to the Azure IMDS endpoint.
+sudo ufw --force enable
+sudo ufw deny out from any to 169.254.169.254
+sudo ufw default allow incoming
+
+# Add the service principal application ID and secret here
+servicePrincipalClientId="${client_id}"
+servicePrincipalSecret="${client_secret}"
+cloud="AzureCloud"
+tenantId="${tenant_id}"
+subscriptionId="${subscription_id}"
+resourceGroup="${resource_group_name}"
+location="${location}"
+authType="principal"
+correlationId="${uuid}"
+output="$(wget https://aka.ms/azcmagent -O ~/install_linux_azcmagent.sh 2>&1)"
+if [ $? != 0 ]; then
+  read -d '' bodyData <<EOF
+  {
+    "operation": "onboarding",
+    "messageType": "DownloadScriptFailed",
+    "tenantId": "$tenantId",
+    "subscriptionId": "$subscriptionId",
+    "resourceGroup": "$resourceGroup",
+    "location": "$location",
+    "correlationId": "$correlationId",
+    "authType": "$authType",
+    "message": "$output"
+  }
+EOF
+  wget -qO- --method=PUT --body-data="$bodyData" "https://gbl.his.arc.azure.com/log" &> /dev/null || true
+fi
+echo "$output"
+sudo chmod +x ~/install_linux_azcmagent.sh
+cd ~
+./install_linux_azcmagent.sh
+sudo azcmagent connect \
+  --service-principal-id "$servicePrincipalClientId" \
+  --service-principal-secret "$servicePrincipalSecret" \
+  --cloud "$cloud" \
+  --tenant-id "$tenantId" \
+  --subscription-id "$subscriptionId" \
+  --resource-group "$resourceGroup" \
+  --location "$location" \
+  --correlation-id "$correlationId"

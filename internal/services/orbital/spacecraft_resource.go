@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/spacecraft"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/spacecraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -111,18 +111,18 @@ func (r SpacecraftResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `links`: %+v", err)
 			}
 			spacecraftProperties := spacecraft.SpacecraftsProperties{
-				Links:     &links,
-				NoradId:   model.NoradId,
-				TleLine1:  &model.TwoLineElements[0],
-				TleLine2:  &model.TwoLineElements[1],
-				TitleLine: &model.TitleLine,
+				Links:     links,
+				NoradId:   utils.String(model.NoradId),
+				TleLine1:  model.TwoLineElements[0],
+				TleLine2:  model.TwoLineElements[1],
+				TitleLine: model.TitleLine,
 			}
 
 			spacecraft := spacecraft.Spacecraft{
 				Id:         utils.String(id.ID()),
 				Location:   model.Location,
 				Name:       utils.String(model.Name),
-				Properties: &spacecraftProperties,
+				Properties: spacecraftProperties,
 				Tags:       &model.Tags,
 			}
 			if err = client.CreateOrUpdateThenPoll(ctx, id, spacecraft); err != nil {
@@ -154,19 +154,19 @@ func (r SpacecraftResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				props := model.Properties
-				twoLineElements := []string{*props.TleLine1, *props.TleLine2}
+				twoLineElements := []string{props.TleLine1, props.TleLine2}
 				state := SpacecraftResourceModel{
 					Name:            id.SpacecraftName,
 					ResourceGroup:   id.ResourceGroupName,
 					Location:        model.Location,
-					NoradId:         props.NoradId,
+					NoradId:         *props.NoradId,
 					TwoLineElements: twoLineElements,
-					TitleLine:       *props.TitleLine,
+					TitleLine:       props.TitleLine,
 				}
 				if model.Tags != nil {
 					state.Tags = *model.Tags
 				}
-				spacecraftLinks, err := flattenSpacecraftLinks(*props.Links)
+				spacecraftLinks, err := flattenSpacecraftLinks(props.Links)
 				if err != nil {
 					return err
 				}
@@ -227,12 +227,12 @@ func (r SpacecraftResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChangesExcept("name", "resource_group_name") {
 				spacecraft := spacecraft.Spacecraft{
 					Location: state.Location,
-					Properties: &spacecraft.SpacecraftsProperties{
-						Links:     &spacecraftLinks,
-						NoradId:   state.NoradId,
-						TitleLine: &state.TitleLine,
-						TleLine1:  &state.TwoLineElements[0],
-						TleLine2:  &state.TwoLineElements[1],
+					Properties: spacecraft.SpacecraftsProperties{
+						Links:     spacecraftLinks,
+						NoradId:   utils.String(state.NoradId),
+						TitleLine: state.TitleLine,
+						TleLine1:  state.TwoLineElements[0],
+						TleLine2:  state.TwoLineElements[1],
 					},
 					Tags: &state.Tags,
 				}

@@ -22,7 +22,7 @@ func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicCfg(data, scope),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -39,7 +39,7 @@ func testAccSecurityCenterWorkspace_update(t *testing.T) {
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicCfg(data, scope),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,7 +63,7 @@ func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	r := SecurityCenterWorkspaceResource{}
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicCfg(data, scope),
 			Check: acceptance.ComposeTestCheckFunc(

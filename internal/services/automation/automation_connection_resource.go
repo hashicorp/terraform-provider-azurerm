@@ -174,7 +174,7 @@ func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta interface{
 			}
 
 			if props.FieldDefinitionValues != nil {
-				if err := d.Set("values", *props.FieldDefinitionValues); err != nil {
+				if err := d.Set("values", props.FieldDefinitionValues); err != nil {
 					return fmt.Errorf("setting `values`: %+v", err)
 				}
 			}

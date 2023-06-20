@@ -44,7 +44,7 @@ func (id PropertyId) ID() string {
 func PropertyID(input string) (*PropertyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an Property ID: %+v", input, err)
 	}
 
 	resourceId := PropertyId{

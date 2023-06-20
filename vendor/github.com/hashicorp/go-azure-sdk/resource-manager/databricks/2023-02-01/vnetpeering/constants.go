@@ -1,6 +1,10 @@
 package vnetpeering
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -21,6 +25,19 @@ func PossibleValuesForPeeringProvisioningState() []string {
 		string(PeeringProvisioningStateSucceeded),
 		string(PeeringProvisioningStateUpdating),
 	}
+}
+
+func (s *PeeringProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePeeringProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePeeringProvisioningState(input string) (*PeeringProvisioningState, error) {
@@ -53,6 +70,19 @@ func PossibleValuesForPeeringState() []string {
 		string(PeeringStateDisconnected),
 		string(PeeringStateInitiated),
 	}
+}
+
+func (s *PeeringState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePeeringState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePeeringState(input string) (*PeeringState, error) {
