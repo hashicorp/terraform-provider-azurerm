@@ -55,6 +55,11 @@ data "azurerm_eventhub_sas" "example" {
   connection_string = data.azurerm_eventhub_authorization_rule.example.primary_connection_string
   expiry            = "2023-06-23T00:00:00Z"
 }
+
+output "sas_token" {
+  value     = replace(data.azurerm_eventhub_sas.test.sas, "\u0026", "&")
+  sensitive = true
+}
 ```
 
 ## Argument Reference
