@@ -2,12 +2,12 @@ package network
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -178,7 +178,7 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(pointer.To(model.Location)))
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("disable_bgp_route_propagation", props.DisableBgpRoutePropagation)

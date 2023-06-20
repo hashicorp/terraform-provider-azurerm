@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -162,7 +163,7 @@ func resourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("rule", flattenRouteFilterRules(props.Rules)); err != nil {
