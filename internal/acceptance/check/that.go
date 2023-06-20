@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
@@ -118,9 +118,26 @@ func (t thatWithKeyType) IsEmpty() pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttr(t.resourceName, t.key, "")
 }
 
+// IsNotEmpty returns a TestCheckFunc which validates that the specific key is not empty on the resource
+func (t thatWithKeyType) IsNotEmpty() pluginsdk.TestCheckFunc {
+	return resource.TestCheckResourceAttrWith(t.resourceName, t.key, func(value string) error {
+		if value == "" {
+			return fmt.Errorf("value is empty")
+		}
+		return nil
+	})
+}
+
 // IsSet returns a TestCheckFunc which validates that the specific key is set on the resource
 func (t thatWithKeyType) IsSet() pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(t.resourceName, t.key)
+}
+
+// IsUUID returns a TestCheckFunc which validates that the value for the specified key
+// is a UUID.
+func (t thatWithKeyType) IsUUID() pluginsdk.TestCheckFunc {
+	var uuidRegex = regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
+	return resource.TestMatchResourceAttr(t.resourceName, t.key, uuidRegex)
 }
 
 // HasValue returns a TestCheckFunc which validates that the specific key has the

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -152,17 +154,33 @@ func TestAccStreamAnalyticsOutputEventHub_requiresImport(t *testing.T) {
 	})
 }
 
-func (r StreamAnalyticsOutputEventhubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	jobName := state.Attributes["stream_analytics_job_name"]
-	resourceGroup := state.Attributes["resource_group_name"]
+func TestAccStreamAnalyticsOutputEventHub_authenticationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
+	r := StreamAnalyticsOutputEventhubResource{}
 
-	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, resourceGroup, jobName, name)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r StreamAnalyticsOutputEventhubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := outputs.ParseOutputID(state.ID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		return nil, err
+	}
+
+	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Stream Output %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -363,6 +381,28 @@ resource "azurerm_stream_analytics_output_eventhub" "import" {
   }
 }
 `, template)
+}
+
+func (r StreamAnalyticsOutputEventhubResource) authenticationMode(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_eventhub" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  eventhub_name             = azurerm_eventhub.test.name
+  servicebus_namespace      = azurerm_eventhub_namespace.test.name
+  authentication_mode       = "Msi"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+    format   = "Array"
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputEventhubResource) template(data acceptance.TestData) string {

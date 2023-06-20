@@ -1,10 +1,17 @@
 package maintenance
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/maintenance"
+}
 
 func (r Registration) Name() string {
 	return "Maintenance"
@@ -18,7 +25,8 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_maintenance_configuration": dataSourceMaintenanceConfiguration(),
+		"azurerm_maintenance_configuration":         dataSourceMaintenanceConfiguration(),
+		"azurerm_public_maintenance_configurations": dataSourcePublicMaintenanceConfigurations(),
 	}
 }
 

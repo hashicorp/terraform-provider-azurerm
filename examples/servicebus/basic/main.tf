@@ -15,32 +15,27 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "example" {
-  name                = "${var.prefix}-sbnauth"
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  send                = true
-  listen              = true
-  manage              = true
+  name         = "${var.prefix}-sbnauth"
+  namespace_id = azurerm_servicebus_namespace.example.id
+  send         = true
+  listen       = true
+  manage       = true
 }
 
 resource "azurerm_servicebus_topic" "example" {
   name                = "${var.prefix}-sbtopic"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_subscription" "example" {
-  name                = "${var.prefix}-sbsubscription"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  topic_name          = azurerm_servicebus_topic.example.name
-  max_delivery_count  = 1
+  name               = "${var.prefix}-sbsubscription"
+  topic_id           = azurerm_servicebus_topic.example.id
+  max_delivery_count = 1
 }
 
 resource "azurerm_servicebus_queue" "example" {
   name                = "${var.prefix}-sbqueue"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }

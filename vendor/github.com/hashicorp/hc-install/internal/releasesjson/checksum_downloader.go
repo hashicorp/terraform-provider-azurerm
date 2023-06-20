@@ -2,11 +2,13 @@ package releasesjson
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -42,7 +44,7 @@ func HashSumFromHexDigest(hexDigest string) (HashSum, error) {
 	return HashSum(sumBytes), nil
 }
 
-func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, error) {
+func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (ChecksumFileMap, error) {
 	sigFilename, err := cd.findSigFilename(cd.ProductVersion)
 	if err != nil {
 		return nil, err
@@ -54,7 +56,12 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, err
 		url.PathEscape(cd.ProductVersion.RawVersion),
 		url.PathEscape(sigFilename))
 	cd.Logger.Printf("downloading signature from %s", sigURL)
-	sigResp, err := client.Get(sigURL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, sigURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request for %q: %w", sigURL, err)
+	}
+	sigResp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +77,12 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums() (ChecksumFileMap, err
 		url.PathEscape(cd.ProductVersion.RawVersion),
 		url.PathEscape(cd.ProductVersion.SHASUMS))
 	cd.Logger.Printf("downloading checksums from %s", shasumsURL)
-	sumsResp, err := client.Get(shasumsURL)
+
+	req, err = http.NewRequestWithContext(ctx, http.MethodGet, shasumsURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request for %q: %w", shasumsURL, err)
+	}
+	sumsResp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -121,11 +133,22 @@ func fileMapFromChecksums(checksums strings.Builder) (ChecksumFileMap, error) {
 	return csMap, nil
 }
 
-func compareChecksum(logger *log.Logger, r io.Reader, verifiedHashSum HashSum) error {
+func compareChecksum(logger *log.Logger, r io.Reader, verifiedHashSum HashSum, filename string, expectedSize int64) error {
 	h := sha256.New()
-	_, err := io.Copy(h, r)
+
+	// This may take a while depending on network connection as the io.Reader
+	// is expected to be http.Response.Body which streams the bytes
+	// on demand over the network.
+	logger.Printf("copying %q (%d bytes) to calculate checksum", filename, expectedSize)
+	bytesCopied, err := io.Copy(h, r)
 	if err != nil {
 		return err
+	}
+	logger.Printf("copied %d bytes of %q", bytesCopied, filename)
+
+	if expectedSize != 0 && bytesCopied != int64(expectedSize) {
+		return fmt.Errorf("unexpected size (downloaded: %d, expected: %d)",
+			bytesCopied, expectedSize)
 	}
 
 	calculatedSum := h.Sum(nil)

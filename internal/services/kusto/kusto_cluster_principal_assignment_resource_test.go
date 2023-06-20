@@ -5,16 +5,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/clusterprincipalassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KustoClusterPrincipalAssignmentResource struct {
-}
+type KustoClusterPrincipalAssignmentResource struct{}
 
 func TestAccKustoClusterPrincipalAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_principal_assignment", "test")
@@ -32,17 +30,22 @@ func TestAccKustoClusterPrincipalAssignment_basic(t *testing.T) {
 }
 
 func (KustoClusterPrincipalAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ClusterPrincipalAssignmentID(state.ID)
+	id, err := clusterprincipalassignments.ParsePrincipalAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Kusto.ClusterPrincipalAssignmentsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
+	resp, err := clients.Kusto.ClusterPrincipalAssignmentsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ClusterPrincipalProperties != nil), nil
+	if resp.Model == nil {
+		return nil, fmt.Errorf("response model is empty")
+	}
+
+	exists := resp.Model.Properties != nil
+	return &exists, nil
 }
 
 func (KustoClusterPrincipalAssignmentResource) basic(data acceptance.TestData) string {

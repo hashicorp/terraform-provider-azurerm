@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SecurityCenterAutomationResource struct {
-}
+type SecurityCenterAutomationResource struct{}
 
 func TestAccSecurityCenterAutomation_logicApp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
@@ -194,12 +193,16 @@ func TestAccSecurityCenterAutomation_sourceMulti(t *testing.T) {
 		{
 			Config: r.sourceMulti(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("source.#").HasValue("5"),
+				check.That(data.ResourceName).Key("source.#").HasValue("9"),
 				check.That(data.ResourceName).Key("source.0.rule_set.#").HasValue("1"),
 				check.That(data.ResourceName).Key("source.1.rule_set.#").HasValue("1"),
 				check.That(data.ResourceName).Key("source.2.rule_set.#").HasValue("1"),
 				check.That(data.ResourceName).Key("source.3.rule_set.#").HasValue("0"),
 				check.That(data.ResourceName).Key("source.4.rule_set.#").HasValue("0"),
+				check.That(data.ResourceName).Key("source.5.rule_set.#").HasValue("0"),
+				check.That(data.ResourceName).Key("source.6.rule_set.#").HasValue("0"),
+				check.That(data.ResourceName).Key("source.7.rule_set.#").HasValue("0"),
+				check.That(data.ResourceName).Key("source.8.rule_set.#").HasValue("0"),
 			),
 		},
 		data.ImportStep("action.0.trigger_url", "action.1.trigger_url"), // trigger_url needs to be ignored
@@ -250,7 +253,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -293,7 +296,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogAnalytics"
+    type        = "loganalytics"
     resource_id = azurerm_log_analytics_workspace.test.id
   }
 
@@ -356,7 +359,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type              = "EventHub"
+    type              = "eventhub"
     resource_id       = azurerm_eventhub.test.id
     connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
   }
@@ -382,7 +385,7 @@ resource "azurerm_security_center_automation" "import" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -424,7 +427,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -481,7 +484,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -531,7 +534,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -593,7 +596,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -669,13 +672,13 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test2.id
     trigger_url = "https://example.net/this_is_also_never_validated_by_azure"
   }
@@ -717,7 +720,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogicApp"
+    type        = "logicapp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -765,6 +768,23 @@ resource "azurerm_security_center_automation" "test" {
   source {
     event_source = "SecureScoreControls"
   }
+
+  source {
+    event_source = "RegulatoryComplianceAssessment"
+  }
+
+  source {
+    event_source = "RegulatoryComplianceAssessmentSnapshot"
+  }
+
+  source {
+    event_source = "SecureScoreControlsSnapshot"
+  }
+
+  source {
+    event_source = "SecureScoresSnapshot"
+  }
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }

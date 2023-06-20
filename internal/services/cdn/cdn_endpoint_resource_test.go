@@ -169,7 +169,7 @@ func TestAccCdnEndpoint_fullFields(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
 			),
 		},
-		// TODO -- add import step. Import step now gives us an error complaining that `is_compression_enabled` is not imported
+		data.ImportStep(),
 	})
 }
 
@@ -297,6 +297,22 @@ func TestAccCdnEndpoint_deliveryRuleOptionalMatchValue(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.deliveryRuleOptionalMatchValue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// Covers https://github.com/hashicorp/terraform-provider-azurerm/issue/21450
+func TestAccCdnEndpoint_longQueryString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	r := CdnEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.longQueryString(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -730,19 +746,19 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-%[1]d"
   location = "%s"
 }
 
 resource "azurerm_cdn_profile" "test" {
-  name                = "acctestcdnprof%d"
+  name                = "acctestcdnprof%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
-  name                = "acctestcdnend%d"
+  name                = "acctestcdnend%[1]d"
   profile_name        = azurerm_cdn_profile.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -761,9 +777,26 @@ resource "azurerm_cdn_endpoint" "test" {
       behavior = "Override"
       duration = "5.04:44:23"
     }
+    cache_key_query_string_action {
+      behavior   = "IncludeAll"
+      parameters = "test"
+    }
+    modify_request_header_action {
+      action = "Append"
+      name   = "www.contoso1.com"
+      value  = "test value"
+    }
+    url_redirect_action {
+      redirect_type = "Found"
+      protocol      = "Https"
+      hostname      = "www.contoso.com"
+      fragment      = "5fgdfg"
+      path          = "/article.aspx"
+      query_string  = "id={var_uri_path_1}&title={var_uri_path_2}"
+    }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r CdnEndpointResource) globalDeliveryRuleUpdate(data acceptance.TestData) string {
@@ -809,6 +842,11 @@ resource "azurerm_cdn_endpoint" "test" {
       action = "Overwrite"
       name   = "Content-Type"
       value  = "application/json"
+    }
+    url_rewrite_action {
+      source_pattern          = "/test_source_pattern"
+      destination             = "/test_destination"
+      preserve_unmatched_path = false
     }
   }
 }
@@ -895,6 +933,22 @@ resource "azurerm_cdn_endpoint" "test" {
     url_redirect_action {
       redirect_type = "Found"
       protocol      = "Https"
+    }
+    cache_expiration_action {
+      behavior = "Override"
+      duration = "5.04:44:23"
+    }
+    cache_key_query_string_action {
+      behavior   = "IncludeAll"
+      parameters = "test"
+    }
+    cookies_condition {
+      operator         = "Contains"
+      selector         = "abc"
+      negate_condition = false
+      match_values     = ["windows"]
+      transforms       = ["Lowercase"]
+
     }
   }
 }
@@ -1314,4 +1368,92 @@ resource "azurerm_cdn_endpoint" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r CdnEndpointResource) longQueryString(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctesa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  start  = "2023-04-01T00:00:00Z"
+  expiry = "2123-04-01T00:00:00Z"
+
+  permissions {
+    read    = true
+    write   = false
+    delete  = false
+    list    = false
+    add     = false
+    create  = false
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Microsoft"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnend%[1]d"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  origin {
+    name      = "acceptanceTestCdnOrigin1"
+    host_name = "www.contoso.com"
+  }
+
+  delivery_rule {
+    name  = "TokenSAS"
+    order = 1
+    query_string_condition {
+      operator         = "Contains"
+      negate_condition = true
+      match_values     = ["sig"]
+    }
+    url_redirect_action {
+      redirect_type = "PermanentRedirect"
+      query_string  = trimprefix(data.azurerm_storage_account_sas.test.sas, "?")
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(8))
 }

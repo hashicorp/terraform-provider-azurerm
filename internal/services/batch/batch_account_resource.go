@@ -3,25 +3,27 @@ package batch
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-type batchAccountIdentity = identity.SystemAssignedUserAssigned
 
 func resourceBatchAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -38,7 +40,7 @@ func resourceBatchAccount() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AccountID(id)
+			_, err := batchaccount.ParseBatchAccountID(id)
 			return err
 		}),
 
@@ -50,26 +52,55 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				ValidateFunc: validate.AccountName,
 			},
 
-			// TODO: make this case sensitive once this API bug has been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/5574
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				ValidateFunc: storageValidate.StorageAccountID,
+				RequiredWith: []string{"storage_account_authentication_mode"},
+			},
+
+			"storage_account_authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(batchaccount.AutoStorageAuthenticationModeStorageKeys),
+					string(batchaccount.AutoStorageAuthenticationModeBatchAccountManagedIdentity),
+				}, false),
+				RequiredWith: []string{"storage_account_id"},
+			},
+
+			"storage_account_node_identity": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+				RequiredWith: []string{"storage_account_id"},
+			},
+
+			"allowed_authentication_modes": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(batchaccount.AuthenticationModeSharedKey),
+						string(batchaccount.AuthenticationModeAAD),
+						string(batchaccount.AuthenticationModeTaskAuthenticationToken),
+					}, false),
+				},
 			},
 
 			"pool_allocation_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(batch.PoolAllocationModeBatchService),
+				Default:  string(batchaccount.PoolAllocationModeBatchService),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(batch.PoolAllocationModeBatchService),
-					string(batch.PoolAllocationModeUserSubscription),
+					string(batchaccount.PoolAllocationModeBatchService),
+					string(batchaccount.PoolAllocationModeUserSubscription),
 				}, false),
 			},
 
@@ -77,7 +108,6 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-				ForceNew: true,
 			},
 
 			"key_vault_reference": {
@@ -100,7 +130,7 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": batchAccountIdentity{}.Schema(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"primary_access_key": {
 				Type:      pluginsdk.TypeString,
@@ -118,97 +148,128 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
-			"tags": tags.Schema(),
+			"encryption": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				MaxItems:   1,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						},
+					},
+				},
+			},
+
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.AccountClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account creation.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := batchaccount.NewBatchAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	storageAccountId := d.Get("storage_account_id").(string)
-	poolAllocationMode := d.Get("pool_allocation_mode").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Batch Account %q (Resource Group %q): %s", name, resourceGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_batch_account", *existing.ID)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_batch_account", id.ID())
 		}
 	}
 
-	identity, err := expandBatchAccountIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
 
-	parameters := batch.AccountCreateParameters{
-		Location: &location,
-		AccountCreateProperties: &batch.AccountCreateProperties{
-			PoolAllocationMode:  batch.PoolAllocationMode(poolAllocationMode),
-			PublicNetworkAccess: batch.PublicNetworkAccessTypeEnabled,
+	encryptionRaw := d.Get("encryption").([]interface{})
+	encryption := expandEncryption(encryptionRaw)
+
+	poolAllocationMode := batchaccount.PoolAllocationMode(d.Get("pool_allocation_mode").(string))
+	parameters := batchaccount.BatchAccountCreateParameters{
+		Location: location,
+		Properties: &batchaccount.BatchAccountCreateProperties{
+			PoolAllocationMode:         &poolAllocationMode,
+			PublicNetworkAccess:        utils.ToPtr(batchaccount.PublicNetworkAccessTypeEnabled),
+			Encryption:                 encryption,
+			AllowedAuthenticationModes: expandAllowedAuthenticationModes(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()),
 		},
 		Identity: identity,
-		Tags:     tags.Expand(t),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-		parameters.AccountCreateProperties.PublicNetworkAccess = batch.PublicNetworkAccessTypeDisabled
+		parameters.Properties.PublicNetworkAccess = utils.ToPtr(batchaccount.PublicNetworkAccessTypeDisabled)
 	}
 
 	// if pool allocation mode is UserSubscription, a key vault reference needs to be set
-	if poolAllocationMode == string(batch.PoolAllocationModeUserSubscription) {
+	if poolAllocationMode == batchaccount.PoolAllocationModeUserSubscription {
 		keyVaultReferenceSet := d.Get("key_vault_reference").([]interface{})
 		keyVaultReference, err := expandBatchAccountKeyVaultReference(keyVaultReferenceSet)
 		if err != nil {
-			return fmt.Errorf("creating Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
 		if keyVaultReference == nil {
-			return fmt.Errorf("creating Batch account %q (Resource Group %q): When setting pool allocation mode to UserSubscription, a Key Vault reference needs to be set", name, resourceGroup)
+			return fmt.Errorf("creating %s: When setting pool allocation mode to UserSubscription, a Key Vault reference needs to be set", id)
 		}
 
-		parameters.KeyVaultReference = keyVaultReference
+		parameters.Properties.KeyVaultReference = keyVaultReference
+
+		if v, ok := d.GetOk("allowed_authentication_modes"); ok {
+			authModes := v.(*pluginsdk.Set).List()
+			for _, mode := range authModes {
+				if batchaccount.AuthenticationMode(mode.(string)) == batchaccount.AuthenticationModeSharedKey {
+					return fmt.Errorf("creating %s: When setting pool allocation mode to UserSubscription, `allowed_authentication_modes=[StorageKeys]` is not allowed. ", id)
+				}
+			}
+		}
+	}
+
+	authMode := d.Get("storage_account_authentication_mode").(string)
+	if batchaccount.AutoStorageAuthenticationMode(authMode) == batchaccount.AutoStorageAuthenticationModeBatchAccountManagedIdentity && identity.Type == "None" {
+		return fmt.Errorf(" storage_account_authentication_mode=`BatchAccountManagedIdentity` can only be set when identity.type is `SystemAssigned` or `UserAssigned`")
 	}
 
 	if storageAccountId != "" {
-		parameters.AccountCreateProperties.AutoStorage = &batch.AutoStorageBaseProperties{
-			StorageAccountID: &storageAccountId,
+		if authMode == "" {
+			return fmt.Errorf("`storage_account_authentication_mode` is required when `storage_account_id` ")
+		}
+		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
+			StorageAccountId:   &storageAccountId,
+			AuthenticationMode: utils.ToPtr(batchaccount.AutoStorageAuthenticationMode(authMode)),
 		}
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, parameters)
-	if err != nil {
-		return fmt.Errorf("creating Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	nodeIdentity := d.Get("storage_account_node_identity").(string)
+	if nodeIdentity != "" {
+		parameters.Properties.AutoStorage.NodeIdentityReference = &batchaccount.ComputeNodeIdentityReference{
+			ResourceId: utils.String(nodeIdentity),
+		}
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Batch account %q (resource group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceBatchAccountRead(d, meta)
 }
@@ -218,60 +279,83 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := batchaccount.ParseBatchAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
-			log.Printf("[DEBUG] Batch Account %q was not found in Resource Group %q - removing from state!", id.BatchAccountName, id.ResourceGroup)
+			log.Printf("[DEBUG] Batch Account %s - removing from state!", *id)
 			return nil
 		}
-		return fmt.Errorf("reading the state of Batch account %q: %+v", id.BatchAccountName, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.BatchAccountName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_endpoint", resp.AccountEndpoint)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
-	if props := resp.AccountProperties; props != nil {
-		if autoStorage := props.AutoStorage; autoStorage != nil {
-			d.Set("storage_account_id", autoStorage.StorageAccountID)
+	if model := resp.Model; model != nil {
+		if location := model.Location; location != nil {
+			d.Set("location", azure.NormalizeLocation(*location))
 		}
 
-		if props.PublicNetworkAccess != "" {
-			d.Set("public_network_access_enabled", props.PublicNetworkAccess == batch.PublicNetworkAccessTypeEnabled)
-		}
-
-		d.Set("pool_allocation_mode", props.PoolAllocationMode)
-
-		identity, err := flattenBatchAccountIdentity(resp.Identity)
+		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
 		if err != nil {
-			return err
+			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
+
 		if err := d.Set("identity", identity); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
-	}
 
-	if d.Get("pool_allocation_mode").(string) == string(batch.PoolAllocationModeBatchService) {
-		keys, err := client.GetKeys(ctx, id.ResourceGroup, id.BatchAccountName)
-		if err != nil {
-			return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", id.BatchAccountName, id.ResourceGroup, err)
+		if props := model.Properties; props != nil {
+
+			d.Set("account_endpoint", props.AccountEndpoint)
+			if autoStorage := props.AutoStorage; autoStorage != nil {
+				d.Set("storage_account_id", autoStorage.StorageAccountId)
+				d.Set("storage_account_authentication_mode", string(pointer.From(autoStorage.AuthenticationMode)))
+
+				if autoStorage.NodeIdentityReference != nil {
+					d.Set("storage_account_node_identity", autoStorage.NodeIdentityReference.ResourceId)
+				}
+			} else {
+				d.Set("storage_account_authentication_mode", "")
+				d.Set("storage_account_id", "")
+			}
+
+			if v := props.PublicNetworkAccess; v != nil {
+				d.Set("public_network_access_enabled", *v == batchaccount.PublicNetworkAccessTypeEnabled)
+			}
+
+			d.Set("pool_allocation_mode", string(pointer.From(props.PoolAllocationMode)))
+
+			if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
+				return fmt.Errorf("setting `encryption`: %+v", err)
+			}
+
+			if err := d.Set("allowed_authentication_modes", flattenAllowedAuthenticationModes(props.AllowedAuthenticationModes)); err != nil {
+				return fmt.Errorf("setting `allowed_authentication_modes`: %+v", err)
+			}
+
+			if d.Get("pool_allocation_mode").(string) == string(batchaccount.PoolAllocationModeBatchService) &&
+				isShardKeyAllowed(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()) {
+				keys, err := client.GetKeys(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("cannot read keys for Batch account %s: %v", *id, err)
+				}
+
+				if keysModel := keys.Model; keysModel != nil {
+					d.Set("primary_access_key", keysModel.Primary)
+					d.Set("secondary_access_key", keysModel.Secondary)
+				}
+			}
+			return tags.FlattenAndSet(d, model.Tags)
 		}
-
-		d.Set("primary_access_key", keys.Primary)
-		d.Set("secondary_access_key", keys.Secondary)
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -281,43 +365,83 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account update.")
 
-	id, err := parse.AccountID(d.Id())
+	id, err := batchaccount.ParseBatchAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	storageAccountId := d.Get("storage_account_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	identity, err := expandBatchAccountIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
 
-	parameters := batch.AccountUpdateParameters{
-		AccountUpdateProperties: &batch.AccountUpdateProperties{
-			AutoStorage: &batch.AutoStorageBaseProperties{
-				StorageAccountID: &storageAccountId,
-			},
+	encryptionRaw := d.Get("encryption").([]interface{})
+	encryption := expandEncryption(encryptionRaw)
+
+	parameters := batchaccount.BatchAccountUpdateParameters{
+		Properties: &batchaccount.BatchAccountUpdateProperties{
+			Encryption: encryption,
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
 	}
 
-	if _, err = client.Update(ctx, id.ResourceGroup, id.BatchAccountName, parameters); err != nil {
-		return fmt.Errorf("updating Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
+	if d.HasChange("allowed_authentication_modes") {
+		allowedAuthModes := d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()
+		if len(allowedAuthModes) == 0 {
+			parameters.Properties.AllowedAuthenticationModes = &[]batchaccount.AuthenticationMode{} // remove all modes need explicit set it to empty array not nil
+		} else {
+			parameters.Properties.AllowedAuthenticationModes = expandAllowedAuthenticationModes(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List())
+		}
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName)
-	if err != nil {
-		return fmt.Errorf("retrieving Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
+	if d.HasChange("public_network_access_enabled") {
+		if d.Get("public_network_access_enabled").(bool) {
+			parameters.Properties.PublicNetworkAccess = utils.ToPtr(batchaccount.PublicNetworkAccessTypeEnabled)
+		} else {
+			parameters.Properties.PublicNetworkAccess = utils.ToPtr(batchaccount.PublicNetworkAccessTypeDisabled)
+		}
 	}
 
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Batch account %q (resource group %q) ID", id.BatchAccountName, id.ResourceGroup)
+	if d.HasChange("storage_account_id") {
+		if v, ok := d.GetOk("storage_account_id"); ok {
+			parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
+				StorageAccountId: utils.String(v.(string)),
+			}
+		} else {
+			parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
+				StorageAccountId: nil,
+			}
+		}
 	}
 
-	d.SetId(*read.ID)
+	authMode := d.Get("storage_account_authentication_mode").(string)
+	if batchaccount.AutoStorageAuthenticationMode(authMode) == batchaccount.AutoStorageAuthenticationModeBatchAccountManagedIdentity && identity.Type == "None" {
+		return fmt.Errorf(" storage_account_authentication_mode=`BatchAccountManagedIdentity` can only be set when identity.type is `SystemAssigned` or `UserAssigned`")
+	}
+
+	storageAccountId := d.Get("storage_account_id").(string)
+	if storageAccountId != "" {
+		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
+			StorageAccountId:   &storageAccountId,
+			AuthenticationMode: utils.ToPtr(batchaccount.AutoStorageAuthenticationMode(authMode)),
+		}
+	}
+
+	nodeIdentity := d.Get("storage_account_node_identity").(string)
+	if nodeIdentity != "" {
+		parameters.Properties.AutoStorage.NodeIdentityReference = &batchaccount.ComputeNodeIdentityReference{
+			ResourceId: utils.String(nodeIdentity),
+		}
+	}
+
+	if _, err = client.Update(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	d.SetId(id.ID())
 
 	return resourceBatchAccountRead(d, meta)
 }
@@ -327,78 +451,83 @@ func resourceBatchAccountDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := batchaccount.ParseBatchAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.BatchAccountName)
-	if err != nil {
-		return fmt.Errorf("deleting Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
-		}
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandBatchAccountIdentity(input []interface{}) (*batch.AccountIdentity, error) {
-	config, err := batchAccountIdentity{}.Expand(input)
-	if err != nil {
-		return nil, err
+func expandEncryption(e []interface{}) *batchaccount.EncryptionProperties {
+	defaultEnc := batchaccount.EncryptionProperties{
+		KeySource: utils.ToPtr(batchaccount.KeySourceMicrosoftPointBatch),
 	}
 
-	var identityMaps map[string]*batch.UserAssignedIdentities
-	if len(config.UserAssignedIdentityIds) != 0 {
-		identityMaps = make(map[string]*batch.UserAssignedIdentities, len(config.UserAssignedIdentityIds))
-		for _, id := range config.UserAssignedIdentityIds {
-			identityMaps[id] = &batch.UserAssignedIdentities{}
-		}
+	if len(e) == 0 || e[0] == nil {
+		return &defaultEnc
 	}
 
-	return &batch.AccountIdentity{
-		Type:                   batch.ResourceIdentityType(config.Type),
-		TenantID:               &config.TenantId,
-		PrincipalID:            &config.PrincipalId,
-		UserAssignedIdentities: identityMaps,
-	}, nil
+	v := e[0].(map[string]interface{})
+	keyId := v["key_vault_key_id"].(string)
+	encryptionProperty := batchaccount.EncryptionProperties{
+		KeySource: utils.ToPtr(batchaccount.KeySourceMicrosoftPointKeyVault),
+		KeyVaultProperties: &batchaccount.KeyVaultProperties{
+			KeyIdentifier: &keyId,
+		},
+	}
+
+	return &encryptionProperty
 }
 
-func flattenBatchAccountIdentity(input *batch.AccountIdentity) ([]interface{}, error) {
-	var config *identity.ExpandedConfig
-
-	if input == nil {
-		return []interface{}{}, nil
+func expandAllowedAuthenticationModes(input []interface{}) *[]batchaccount.AuthenticationMode {
+	if len(input) == 0 {
+		return nil
 	}
 
-	var identityIds []string
-	for id := range input.UserAssignedIdentities {
-		parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(id)
-		if err != nil {
-			return nil, err
+	allowedAuthModes := make([]batchaccount.AuthenticationMode, 0)
+	for _, mode := range input {
+		allowedAuthModes = append(allowedAuthModes, batchaccount.AuthenticationMode(mode.(string)))
+	}
+	return &allowedAuthModes
+}
+
+func flattenAllowedAuthenticationModes(input *[]batchaccount.AuthenticationMode) []string {
+	if input == nil || len(*input) == 0 {
+		return []string{}
+	}
+
+	allowedAuthModes := make([]string, 0)
+	for _, mode := range *input {
+		allowedAuthModes = append(allowedAuthModes, string(mode))
+	}
+	return allowedAuthModes
+}
+
+func flattenEncryption(encryptionProperties *batchaccount.EncryptionProperties) []interface{} {
+	if encryptionProperties == nil || *encryptionProperties.KeySource == batchaccount.KeySourceMicrosoftPointBatch {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_key_id": *encryptionProperties.KeyVaultProperties.KeyIdentifier,
+		},
+	}
+}
+
+func isShardKeyAllowed(input []interface{}) bool {
+	if len(input) == 0 {
+		return false
+	}
+	for _, authMod := range input {
+		if strings.EqualFold(authMod.(string), string(batchaccount.AuthenticationModeSharedKey)) {
+			return true
 		}
-		identityIds = append(identityIds, parsedId.ID())
 	}
-
-	principalId := ""
-	if input.PrincipalID != nil {
-		principalId = *input.PrincipalID
-	}
-
-	tenantId := ""
-	if input.TenantID != nil {
-		tenantId = *input.TenantID
-	}
-
-	config = &identity.ExpandedConfig{
-		Type:                    identity.Type(string(input.Type)),
-		PrincipalId:             principalId,
-		TenantId:                tenantId,
-		UserAssignedIdentityIds: identityIds,
-	}
-	return batchAccountIdentity{}.Flatten(config), nil
+	return false
 }

@@ -35,7 +35,7 @@ func TestAccDataSourceMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("server_id").Exists(),
 				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
-				check.That(data.ResourceName).Key("max_size_gb").HasValue("1"),
+				check.That(data.ResourceName).Key("max_size_gb").HasValue("10"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
@@ -50,7 +50,7 @@ func (MsSqlDatabaseDataSource) basic(data acceptance.TestData) string {
 
 data "azurerm_mssql_database" "test" {
   name      = azurerm_mssql_database.test.name
-  server_id = azurerm_sql_server.test.id
+  server_id = azurerm_mssql_server.test.id
 }
 `, MsSqlDatabaseResource{}.basic(data))
 }
@@ -61,7 +61,7 @@ func (MsSqlDatabaseDataSource) complete(data acceptance.TestData) string {
 
 data "azurerm_mssql_database" "test" {
   name      = azurerm_mssql_database.test.name
-  server_id = azurerm_sql_server.test.id
+  server_id = azurerm_mssql_server.test.id
 }
 `, MsSqlDatabaseResource{}.complete(data))
 }

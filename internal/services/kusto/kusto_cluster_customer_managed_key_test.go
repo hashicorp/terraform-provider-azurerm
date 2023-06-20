@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KustoClusterCustomerManagedKeyResource struct {
-}
+type KustoClusterCustomerManagedKeyResource struct{}
 
 func TestAccKustoClusterCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
@@ -23,6 +22,32 @@ func TestAccKustoClusterCustomerManagedKey_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_id").Exists(),
+				check.That(data.ResourceName).Key("key_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Delete the encryption settings resource and verify it is gone
+			Config: r.template(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				// Then ensure the encryption settings on the Kusto cluster
+				// have been reverted to their default state
+				check.That("azurerm_kusto_cluster.test").DoesNotExistInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccKustoClusterCustomerManagedKey_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
+	r := KustoClusterCustomerManagedKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
@@ -49,7 +74,7 @@ func TestAccKustoClusterCustomerManagedKey_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
@@ -67,7 +92,7 @@ func TestAccKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_id").Exists(),
@@ -102,17 +127,21 @@ func TestAccKustoClusterCustomerManagedKey_userIdentity(t *testing.T) {
 }
 
 func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ClusterID(state.ID)
+	id, err := clusters.ParseClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Kusto.ClustersClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Kusto.ClustersClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	if resp.ClusterProperties == nil || resp.ClusterProperties.KeyVaultProperties == nil {
+	if resp.Model == nil {
+		return nil, fmt.Errorf("response model is empty")
+	}
+
+	if resp.Model.Properties == nil || resp.Model.Properties.KeyVaultProperties == nil {
 		return utils.Bool(false), nil
 	}
 
@@ -120,6 +149,19 @@ func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, client
 }
 
 func (KustoClusterCustomerManagedKeyResource) basic(data acceptance.TestData) string {
+	template := KustoClusterCustomerManagedKeyResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kusto_cluster_customer_managed_key" "test" {
+  cluster_id   = azurerm_kusto_cluster.test.id
+  key_vault_id = azurerm_key_vault.test.id
+  key_name     = azurerm_key_vault_key.first.name
+}
+`, template)
+}
+
+func (KustoClusterCustomerManagedKeyResource) complete(data acceptance.TestData) string {
 	template := KustoClusterCustomerManagedKeyResource{}.template(data)
 	return fmt.Sprintf(`
 %s
@@ -142,7 +184,6 @@ resource "azurerm_kusto_cluster_customer_managed_key" "import" {
   cluster_id   = azurerm_kusto_cluster_customer_managed_key.test.cluster_id
   key_vault_id = azurerm_kusto_cluster_customer_managed_key.test.key_vault_id
   key_name     = azurerm_kusto_cluster_customer_managed_key.test.key_name
-  key_version  = azurerm_kusto_cluster_customer_managed_key.test.key_version
 }
 `, template)
 }
@@ -179,7 +220,8 @@ func (KustoClusterCustomerManagedKeyResource) userIdentity(data acceptance.TestD
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -219,7 +261,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -228,7 +269,7 @@ resource "azurerm_key_vault_access_policy" "cluster" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
-  key_permissions = ["get", "unwrapkey", "wrapkey"]
+  key_permissions = ["Get", "UnwrapKey", "WrapKey"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -237,12 +278,12 @@ resource "azurerm_key_vault_access_policy" "client" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "list",
-    "purge",
-    "recover",
+    "Create",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Recover",
   ]
 }
 
@@ -274,7 +315,8 @@ func (KustoClusterCustomerManagedKeyResource) template(data acceptance.TestData)
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -292,7 +334,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
@@ -301,7 +342,7 @@ resource "azurerm_key_vault_access_policy" "cluster" {
   tenant_id    = azurerm_kusto_cluster.test.identity.0.tenant_id
   object_id    = azurerm_kusto_cluster.test.identity.0.principal_id
 
-  key_permissions = ["get", "unwrapkey", "wrapkey"]
+  key_permissions = ["Get", "UnwrapKey", "WrapKey"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -310,12 +351,14 @@ resource "azurerm_key_vault_access_policy" "client" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "list",
-    "purge",
-    "recover",
+    "Create",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Recover",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
   ]
 }
 

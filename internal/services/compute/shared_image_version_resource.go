@@ -6,18 +6,23 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func resourceSharedImageVersion() *pluginsdk.Resource {
@@ -61,12 +66,14 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				ValidateFunc: validate.SharedImageName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"target_region": {
-				Type:     pluginsdk.TypeSet,
+				// This needs to be a `TypeList` due to the `StateFunc` on the nested property `name`
+				// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -82,6 +89,13 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 							Required: true,
 						},
 
+						"disk_encryption_set_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.DiskEncryptionSetID,
+						},
+
 						// The Service API doesn't support to update `storage_account_type`. So it has to recreate the resource for updating `storage_account_type`.
 						// However, `ForceNew` cannot be used since resource would be recreated while adding or removing `target_region`.
 						// And `CustomizeDiff` also cannot be used since it doesn't support in a `Set`.
@@ -90,6 +104,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(compute.StorageAccountTypePremiumLRS),
 								string(compute.StorageAccountTypeStandardLRS),
 								string(compute.StorageAccountTypeStandardZRS),
 							}, false),
@@ -99,11 +114,35 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				},
 			},
 
+			"blob_uri": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
+				RequiredWith: []string{"storage_account_id"},
+				ExactlyOneOf: []string{"blob_uri", "os_disk_snapshot_id", "managed_image_id"},
+			},
+
+			"storage_account_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"blob_uri"},
+				ValidateFunc: storageValidate.StorageAccountID,
+			},
+
+			"end_of_life_date": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: suppress.RFC3339Time,
+				ValidateFunc:     validation.IsRFC3339Time,
+			},
+
 			"os_disk_snapshot_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ExactlyOneOf: []string{"os_disk_snapshot_id", "managed_image_id"},
+				ExactlyOneOf: []string{"blob_uri", "os_disk_snapshot_id", "managed_image_id"},
 				// TODO -- add a validation function when snapshot has its own validation function
 			},
 
@@ -112,10 +151,21 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
-					validate.ImageID,
+					images.ValidateImageID,
 					validate.VirtualMachineID,
 				),
-				ExactlyOneOf: []string{"os_disk_snapshot_id", "managed_image_id"},
+				ExactlyOneOf: []string{"blob_uri", "os_disk_snapshot_id", "managed_image_id"},
+			},
+
+			"replication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.ReplicationModeFull),
+					string(compute.ReplicationModeShallow),
+				}, false),
+				Default: compute.ReplicationModeFull,
 			},
 
 			"exclude_from_latest": {
@@ -126,30 +176,39 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("end_of_life_date", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) != "" && new.(string) == ""
+			}),
+		),
 	}
 }
 
 func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	imageVersion := d.Get("name").(string)
-	imageName := d.Get("image_name").(string)
-	galleryName := d.Get("gallery_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewSharedImageVersionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("image_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, galleryName, imageName, imageVersion, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_shared_image_version", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_shared_image_version", id.ID())
 		}
+	}
+
+	targetRegions, err := expandSharedImageVersionTargetRegions(d)
+	if err != nil {
+		return err
 	}
 
 	version := compute.GalleryImageVersion{
@@ -157,42 +216,54 @@ func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		GalleryImageVersionProperties: &compute.GalleryImageVersionProperties{
 			PublishingProfile: &compute.GalleryImageVersionPublishingProfile{
 				ExcludeFromLatest: utils.Bool(d.Get("exclude_from_latest").(bool)),
-				TargetRegions:     expandSharedImageVersionTargetRegions(d),
+				ReplicationMode:   compute.ReplicationMode(d.Get("replication_mode").(string)),
+				TargetRegions:     targetRegions,
 			},
 			StorageProfile: &compute.GalleryImageVersionStorageProfile{},
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if v, ok := d.GetOk("end_of_life_date"); ok {
+		endOfLifeDate, _ := time.Parse(time.RFC3339, v.(string))
+		version.GalleryImageVersionProperties.PublishingProfile.EndOfLifeDate = &date.Time{
+			Time: endOfLifeDate,
+		}
+	}
+
 	if v, ok := d.GetOk("managed_image_id"); ok {
-		version.GalleryImageVersionProperties.StorageProfile.Source = &compute.GalleryArtifactVersionSource{
+		version.GalleryImageVersionProperties.StorageProfile.Source = &compute.GalleryArtifactVersionFullSource{
 			ID: utils.String(v.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("os_disk_snapshot_id"); ok {
 		version.GalleryImageVersionProperties.StorageProfile.OsDiskImage = &compute.GalleryOSDiskImage{
-			Source: &compute.GalleryArtifactVersionSource{
+			Source: &compute.GalleryDiskImageSource{
 				ID: utils.String(v.(string)),
 			},
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, imageName, imageVersion, version)
+	if v, ok := d.GetOk("blob_uri"); ok {
+		version.GalleryImageVersionProperties.StorageProfile.OsDiskImage = &compute.GalleryOSDiskImage{
+			Source: &compute.GalleryDiskImageSource{
+				ID:  utils.String(d.Get("storage_account_id").(string)),
+				URI: utils.String(v.(string)),
+			},
+		}
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, version)
 	if err != nil {
-		return fmt.Errorf("creating Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, galleryName, imageName, imageVersion, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceSharedImageVersionRead(d, meta)
 }
@@ -228,7 +299,17 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if props := resp.GalleryImageVersionProperties; props != nil {
 		if profile := props.PublishingProfile; profile != nil {
+			if v := profile.EndOfLifeDate; v != nil {
+				d.Set("end_of_life_date", profile.EndOfLifeDate.Format(time.RFC3339))
+			}
+
 			d.Set("exclude_from_latest", profile.ExcludeFromLatest)
+
+			replicationMode := string(compute.ReplicationModeFull)
+			if profile.ReplicationMode != "" {
+				replicationMode = string(profile.ReplicationMode)
+			}
+			d.Set("replication_mode", replicationMode)
 
 			if err := d.Set("target_region", flattenSharedImageVersionTargetRegions(profile.TargetRegions)); err != nil {
 				return fmt.Errorf("setting `target_region`: %+v", err)
@@ -240,11 +321,24 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 				d.Set("managed_image_id", source.ID)
 			}
 
+			blobURI := ""
+			if profile.OsDiskImage != nil && profile.OsDiskImage.Source != nil && profile.OsDiskImage.Source.URI != nil {
+				blobURI = *profile.OsDiskImage.Source.URI
+			}
+			d.Set("blob_uri", blobURI)
+
 			osDiskSnapShotID := ""
+			storageAccountID := ""
 			if profile.OsDiskImage != nil && profile.OsDiskImage.Source != nil && profile.OsDiskImage.Source.ID != nil {
-				osDiskSnapShotID = *profile.OsDiskImage.Source.ID
+				sourceID := *profile.OsDiskImage.Source.ID
+				if blobURI == "" {
+					osDiskSnapShotID = sourceID
+				} else {
+					storageAccountID = sourceID
+				}
 			}
 			d.Set("os_disk_snapshot_id", osDiskSnapShotID)
+			d.Set("storage_account_id", storageAccountID)
 		}
 	}
 
@@ -307,26 +401,40 @@ func sharedImageVersionDeleteStateRefreshFunc(ctx context.Context, client *compu
 	}
 }
 
-func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) *[]compute.TargetRegion {
-	vs := d.Get("target_region").(*pluginsdk.Set)
+func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]compute.TargetRegion, error) {
+	vs := d.Get("target_region").([]interface{})
 	results := make([]compute.TargetRegion, 0)
 
-	for _, v := range vs.List() {
+	for _, v := range vs {
 		input := v.(map[string]interface{})
 
 		name := input["name"].(string)
 		regionalReplicaCount := input["regional_replica_count"].(int)
 		storageAccountType := input["storage_account_type"].(string)
+		diskEncryptionSetId := input["disk_encryption_set_id"].(string)
 
 		output := compute.TargetRegion{
 			Name:                 utils.String(name),
 			RegionalReplicaCount: utils.Int32(int32(regionalReplicaCount)),
 			StorageAccountType:   compute.StorageAccountType(storageAccountType),
 		}
+
+		if diskEncryptionSetId != "" {
+			if d.Get("replication_mode").(string) == string(compute.ReplicationModeShallow) {
+				return nil, fmt.Errorf("`disk_encryption_set_id` cannot be used when `replication_mode` is `Shallow`")
+			}
+
+			output.Encryption = &compute.EncryptionImages{
+				OsDiskImage: &compute.OSDiskImageEncryption{
+					DiskEncryptionSetID: utils.String(diskEncryptionSetId),
+				},
+			}
+		}
+
 		results = append(results, output)
 	}
 
-	return &results
+	return &results, nil
 }
 
 func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []interface{} {
@@ -345,6 +453,12 @@ func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []int
 			}
 
 			output["storage_account_type"] = string(v.StorageAccountType)
+
+			diskEncryptionSetId := ""
+			if v.Encryption != nil && v.Encryption.OsDiskImage != nil && v.Encryption.OsDiskImage.DiskEncryptionSetID != nil {
+				diskEncryptionSetId = *v.Encryption.OsDiskImage.DiskEncryptionSetID
+			}
+			output["disk_encryption_set_id"] = diskEncryptionSetId
 
 			results = append(results, output)
 		}

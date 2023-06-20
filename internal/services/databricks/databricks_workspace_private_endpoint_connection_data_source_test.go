@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DatabricksWorkspacePrivateEndpointConnectionDataSource struct {
-}
+type DatabricksWorkspacePrivateEndpointConnectionDataSource struct{}
 
 func TestAccDatabricksWorkspacePrivateEndpointConnectionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace_private_endpoint_connection", "test")
@@ -17,7 +16,6 @@ func TestAccDatabricksWorkspacePrivateEndpointConnectionDataSource_basic(t *test
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("workspace_id").Exists(),
@@ -26,7 +24,7 @@ func TestAccDatabricksWorkspacePrivateEndpointConnectionDataSource_basic(t *test
 				check.That(data.ResourceName).Key("connections.0.workspace_private_endpoint_id").Exists(),
 				check.That(data.ResourceName).Key("connections.0.status").Exists(),
 				check.That(data.ResourceName).Key("connections.0.description").Exists(),
-				check.That(data.ResourceName).Key("connections.0.action_required").IsEmpty(),
+				check.That(data.ResourceName).Key("connections.0.action_required").HasValue("None"),
 			),
 		},
 	})

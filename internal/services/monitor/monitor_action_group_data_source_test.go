@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MonitorActionGroupDataSource struct {
-}
+type MonitorActionGroupDataSource struct{}
 
 func TestAccDataSourceMonitorActionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_action_group", "test")
@@ -33,6 +32,7 @@ func TestAccDataSourceMonitorActionGroup_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("logic_app_receiver.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_function_receiver.#").HasValue("0"),
 				check.That(data.ResourceName).Key("arm_role_receiver.#").HasValue("0"),
+				check.That(data.ResourceName).Key("event_hub_receiver.#").HasValue("0"),
 			),
 		},
 	})
@@ -59,6 +59,7 @@ func TestAccDataSourceMonitorActionGroup_disabledBasic(t *testing.T) {
 				check.That(data.ResourceName).Key("logic_app_receiver.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_function_receiver.#").HasValue("0"),
 				check.That(data.ResourceName).Key("arm_role_receiver.#").HasValue("0"),
+				check.That(data.ResourceName).Key("event_hub_receiver.#").HasValue("0"),
 			),
 		},
 	})
@@ -89,17 +90,17 @@ func TestAccDataSourceMonitorActionGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("email_receiver.1.email_address").HasValue("devops@contoso.com"),
 				check.That(data.ResourceName).Key("email_receiver.1.use_common_alert_schema").HasValue("false"),
 				check.That(data.ResourceName).Key("itsm_receiver.#").HasValue("1"),
-				check.That(data.ResourceName).Key("itsm_receiver.0.workspace_id").HasValue("6eee3a18-aac3-40e4-b98e-1f309f329816"),
+				check.That(data.ResourceName).Key("itsm_receiver.0.workspace_id").HasValue("5def922a-3ed4-49c1-b9fd-05ec533819a3|55dfd1f8-7e59-4f89-bf56-4c82f5ace23c"),
 				check.That(data.ResourceName).Key("itsm_receiver.0.connection_id").HasValue("53de6956-42b4-41ba-be3c-b154cdf17b13"),
-				check.That(data.ResourceName).Key("itsm_receiver.0.ticket_configuration").HasValue("{}"),
+				check.That(data.ResourceName).Key("itsm_receiver.0.ticket_configuration").HasValue("{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\",\"UseTemplate\":false,\"WorkItemData\":\"{}\",\"CreateOneWIPerCI\":false}"),
 				check.That(data.ResourceName).Key("itsm_receiver.0.region").HasValue("southcentralus"),
 				check.That(data.ResourceName).Key("azure_app_push_receiver.#").HasValue("1"),
 				check.That(data.ResourceName).Key("azure_app_push_receiver.0.email_address").HasValue("admin@contoso.com"),
 				check.That(data.ResourceName).Key("sms_receiver.#").HasValue("2"),
 				check.That(data.ResourceName).Key("sms_receiver.0.country_code").HasValue("1"),
-				check.That(data.ResourceName).Key("sms_receiver.0.phone_number").HasValue("1231231234"),
+				check.That(data.ResourceName).Key("sms_receiver.0.phone_number").HasValue("2123456789"),
 				check.That(data.ResourceName).Key("sms_receiver.1.country_code").HasValue("1"),
-				check.That(data.ResourceName).Key("sms_receiver.1.phone_number").HasValue("5551238888"),
+				check.That(data.ResourceName).Key("sms_receiver.1.phone_number").HasValue("3123456789"),
 				check.That(data.ResourceName).Key("webhook_receiver.#").HasValue("2"),
 				check.That(data.ResourceName).Key("webhook_receiver.0.service_uri").HasValue("http://example.com/alert"),
 				check.That(data.ResourceName).Key("webhook_receiver.1.service_uri").HasValue("https://backup.example.com/warning"),
@@ -113,9 +114,9 @@ func TestAccDataSourceMonitorActionGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("automation_runbook_receiver.0.use_common_alert_schema").HasValue("false"),
 				check.That(data.ResourceName).Key("voice_receiver.#").HasValue("2"),
 				check.That(data.ResourceName).Key("voice_receiver.0.country_code").HasValue("1"),
-				check.That(data.ResourceName).Key("voice_receiver.0.phone_number").HasValue("1231231234"),
+				check.That(data.ResourceName).Key("voice_receiver.0.phone_number").HasValue("2123456789"),
 				check.That(data.ResourceName).Key("voice_receiver.1.country_code").HasValue("1"),
-				check.That(data.ResourceName).Key("voice_receiver.1.phone_number").HasValue("5551238888"),
+				check.That(data.ResourceName).Key("voice_receiver.1.phone_number").HasValue("3123456789"),
 				check.That(data.ResourceName).Key("logic_app_receiver.#").HasValue("1"),
 				check.That(data.ResourceName).Key("logic_app_receiver.0.resource_id").HasValue(laResourceID),
 				check.That(data.ResourceName).Key("logic_app_receiver.0.callback_url").HasValue("http://test-host:100/workflows/fb9c8d79b15f41ce9b12861862f43546/versions/08587100027316071865/triggers/manualTrigger/paths/invoke?api-version=2015-08-01-preview&sp=%2Fversions%2F08587100027316071865%2Ftriggers%2FmanualTrigger%2Frun&sv=1.0&sig=IxEQ_ygZf6WNEQCbjV0Vs6p6Y4DyNEJVAa86U5B4xhk"),
@@ -128,6 +129,7 @@ func TestAccDataSourceMonitorActionGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("arm_role_receiver.#").HasValue("1"),
 				check.That(data.ResourceName).Key("arm_role_receiver.0.role_id").HasValue("43d0d8ad-25c7-4714-9337-8ba259a9fe05"),
 				check.That(data.ResourceName).Key("arm_role_receiver.0.use_common_alert_schema").HasValue("false"),
+				check.That(data.ResourceName).Key("event_hub_receiver.0.name").HasValue("eventhub-test-action"),
 			),
 		},
 	})
@@ -215,9 +217,9 @@ resource "azurerm_monitor_action_group" "test" {
 
   itsm_receiver {
     name                 = "createorupdateticket"
-    workspace_id         = "6eee3a18-aac3-40e4-b98e-1f309f329816"
+    workspace_id         = "5def922a-3ed4-49c1-b9fd-05ec533819a3|55dfd1f8-7e59-4f89-bf56-4c82f5ace23c"
     connection_id        = "53de6956-42b4-41ba-be3c-b154cdf17b13"
-    ticket_configuration = "{}"
+    ticket_configuration = "{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\",\"UseTemplate\":false,\"WorkItemData\":\"{}\",\"CreateOneWIPerCI\":false}"
     region               = "southcentralus"
   }
 
@@ -229,13 +231,13 @@ resource "azurerm_monitor_action_group" "test" {
   sms_receiver {
     name         = "oncallmsg"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 
   sms_receiver {
     name         = "remotesupportmsg"
     country_code = "1"
-    phone_number = "5551238888"
+    phone_number = "3123456789"
   }
 
   webhook_receiver {
@@ -261,13 +263,13 @@ resource "azurerm_monitor_action_group" "test" {
   voice_receiver {
     name         = "oncall"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 
   voice_receiver {
     name         = "remotesupport"
     country_code = "1"
-    phone_number = "5551238888"
+    phone_number = "3123456789"
   }
 
   logic_app_receiver {
@@ -289,6 +291,13 @@ resource "azurerm_monitor_action_group" "test" {
     name                    = "Monitoring Reader"
     role_id                 = "43d0d8ad-25c7-4714-9337-8ba259a9fe05"
     use_common_alert_schema = false
+  }
+
+  event_hub_receiver {
+    name                = "eventhub-test-action"
+    event_hub_name      = azurerm_eventhub.test.name
+    event_hub_namespace = azurerm_eventhub.test.namespace_name
+
   }
 }
 
@@ -367,9 +376,25 @@ resource "azurerm_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acceptanceTestEventHubNamespace-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  capacity            = 1
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acceptanceTestEventHub"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 1
+  message_retention   = 1
+}
+
 data "azurerm_monitor_action_group" "test" {
   name                = azurerm_monitor_action_group.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, aaWebhookResourceID, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, aaWebhookResourceID, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }

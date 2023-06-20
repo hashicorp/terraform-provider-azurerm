@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/storagetargets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HPCCacheNFSTargetResource struct {
-}
+type HPCCacheNFSTargetResource struct{}
 
 func TestAccHPCCacheNFSTarget_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
@@ -141,17 +140,17 @@ func TestAccHPCCacheNFSTarget_accessPolicy(t *testing.T) {
 }
 
 func (HPCCacheNFSTargetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageTargetID(state.ID)
+	id, err := storagetargets.ParseStorageTargetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.HPCCache.StorageTargetsClient.Get(ctx, id.ResourceGroup, id.CacheName, id.Name)
+	resp, err := clients.HPCCache.StorageTargetsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HPC Cache NFS Target (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r HPCCacheNFSTargetResource) basic(data acceptance.TestData) string {
@@ -349,14 +348,14 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_subnet" "testvm" {
   name                 = "acctest-sub-vm-%[2]s"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.3.0/24"
+  address_prefixes     = ["10.0.3.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -13,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultCertificateResource struct {
-}
+type KeyVaultCertificateResource struct{}
 
 func TestAccKeyVaultCertificate_basicImportPFX(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
@@ -26,6 +26,8 @@ func TestAccKeyVaultCertificate_basicImportPFX(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("resource_manager_id").Exists(),
+				check.That(data.ResourceName).Key("resource_manager_versionless_id").Exists(),
 				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.secret_properties.0.content_type").HasValue("application/x-pkcs12"),
 				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkeyvault%s.vault.azure.net/certificates/acctestcert%s", data.RandomString, data.RandomString)),
@@ -332,6 +334,52 @@ func TestAccKeyVaultCertificate_purge(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultCertificate_unorderedKeyUsage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	r := KeyVaultCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.unorderedKeyUsage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("secret_id").Exists(),
+				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+				check.That(data.ResourceName).Key("thumbprint").Exists(),
+				check.That(data.ResourceName).Key("certificate_attribute.0.created").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKeyVaultCertificate_updatedImportedCertificate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	r := KeyVaultCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicImportPFX(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+			),
+		},
+		data.ImportStep("certificate"),
+		{
+			Config: r.basicImportPFX_ECDSA(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificate_data").Exists(),
+				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+			),
+		},
+		data.ImportStep("certificate"),
+	})
+}
+
 func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	keyVaultsClient := clients.KeyVault
 	client := clients.KeyVault.ManagementClient
@@ -345,7 +393,7 @@ func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *client
 	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -377,7 +425,7 @@ func (KeyVaultCertificateResource) destroyParentKeyVault(ctx context.Context, cl
 
 func (KeyVaultCertificateResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	name := state.Attributes["name"]
-	keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
+	keyVaultId, err := commonids.ParseKeyVaultID(state.Attributes["key_vault_id"])
 	if err != nil {
 		return nil, err
 	}
@@ -574,8 +622,8 @@ resource "azurerm_key_vault_certificate" "test" {
         "dataEncipherment",
         "digitalSignature",
         "keyAgreement",
-        "keyCertSign",
         "keyEncipherment",
+        "keyCertSign",
       ]
 
       subject            = "CN=hello-world"
@@ -672,7 +720,7 @@ resource "azurerm_key_vault_certificate" "test" {
       }
 
       trigger {
-        days_before_expiry = 30
+        lifetime_percentage = 30
       }
     }
 
@@ -1275,6 +1323,7 @@ resource "azurerm_key_vault" "test" {
       "Purge",
       "Recover",
       "Update",
+      "List",
     ]
 
     key_permissions = [
@@ -1349,6 +1398,62 @@ resource "azurerm_key_vault_certificate" "test" {
 
   tags = {
     ENV = "Test"
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultCertificateResource) unorderedKeyUsage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "digitalSignature",
+        "cRLSign",
+        "dataEncipherment",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
   }
 }
 `, r.template(data), data.RandomString)

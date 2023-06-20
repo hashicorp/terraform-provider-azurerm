@@ -3,22 +3,22 @@ package network
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var expressRoutePortSchema = &pluginsdk.Schema{
@@ -119,9 +119,9 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 				ValidateFunc: validate.ExpressRoutePortName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": location.Schema(),
+			"location": commonschema.Location(),
 
 			"peering_location": {
 				Type:         pluginsdk.TypeString,
@@ -147,36 +147,16 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:             pluginsdk.TypeString,
-								ValidateFunc:     validation.NoZeroValues,
-								DiffSuppressFunc: suppress.CaseDifference,
-							},
-						},
+			"identity": commonschema.UserAssignedIdentityOptional(),
 
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							// TODO: The "ignoreCase" and diff suppression function can be removed once
-							// following issue get resolved:
-							// https://github.com/Azure/azure-rest-api-specs/issues/12330
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ResourceIdentityTypeUserAssigned),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-					},
-				},
+			"billing_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.ExpressRoutePortsBillingTypeMeteredData),
+					string(network.ExpressRoutePortsBillingTypeUnlimitedData),
+				}, false),
 			},
 
 			"link1": expressRoutePortSchema,
@@ -228,6 +208,10 @@ func resourceArmExpressRoutePortCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
+	expandedIdentity, err := expandExpressRoutePortIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 	param := network.ExpressRoutePort{
 		Name:     &name,
 		Location: &location,
@@ -236,9 +220,17 @@ func resourceArmExpressRoutePortCreateUpdate(d *pluginsdk.ResourceData, meta int
 			BandwidthInGbps: utils.Int32(int32(d.Get("bandwidth_in_gbps").(int))),
 			Encapsulation:   network.ExpressRoutePortsEncapsulation(d.Get("encapsulation").(string)),
 		},
-		Identity: expandExpressRoutePortIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	if v, ok := d.GetOk("billing_type"); ok {
+		param.ExpressRoutePortPropertiesFormat.BillingType = network.ExpressRoutePortsBillingType(v.(string))
+	}
+
+	// a lock is needed here for subresource express_route_port_authorization needs a lock.
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// The link properties can't be specified in first creation. It will result into either error (e.g. setting `adminState`) or being ignored (e.g. setting MACSec)
 	// Hence, if this is a new creation we will do a create-then-update here.
@@ -293,13 +285,18 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if err := d.Set("identity", flattenExpressRoutePortIdentity(resp.Identity)); err != nil {
+	flattenedIdentity, err := flattenExpressRoutePortIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("setting `identity`: %v", err)
 	}
 	if prop := resp.ExpressRoutePortPropertiesFormat; prop != nil {
 		d.Set("peering_location", prop.PeeringLocation)
 		d.Set("bandwidth_in_gbps", prop.BandwidthInGbps)
 		d.Set("encapsulation", prop.Encapsulation)
+		d.Set("billing_type", prop.BillingType)
 		link1, link2, err := flattenExpressRoutePortLinks(resp.Links)
 		if err != nil {
 			return fmt.Errorf("flattening links: %v", err)
@@ -328,6 +325,10 @@ func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	// a lock is needed here for subresource express_route_port_authorization needs a lock.
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting Express Route Port %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -341,50 +342,46 @@ func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandExpressRoutePortIdentity(input []interface{}) *network.ManagedServiceIdentity {
-	if len(input) == 0 {
-		return nil
-	}
-	identity := input[0].(map[string]interface{})
-	identityType := network.ResourceIdentityType(identity["type"].(string))
-
-	managedServiceIdentity := network.ManagedServiceIdentity{
-		Type: identityType,
+func expandExpressRoutePortIdentity(input []interface{}) (*network.ManagedServiceIdentity, error) {
+	expanded, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	identityIds := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
-	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+	out := network.ManagedServiceIdentity{
+		Type: network.ResourceIdentityType(string(expanded.Type)),
 	}
-
-	// TODO: once following issue get resolved, can directly equal test:
-	// https://github.com/Azure/azure-rest-api-specs/issues/12330
-	if strings.EqualFold(string(managedServiceIdentity.Type), string(network.ResourceIdentityTypeUserAssigned)) ||
-		strings.EqualFold(string(managedServiceIdentity.Type), string(network.ResourceIdentityTypeSystemAssignedUserAssigned)) {
-		managedServiceIdentity.UserAssignedIdentities = identityIds
+	if expanded.Type == identity.TypeUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{
+				// intentionally empty
+			}
+		}
 	}
-
-	return &managedServiceIdentity
+	return &out, nil
 }
 
-func flattenExpressRoutePortIdentity(identity *network.ManagedServiceIdentity) []interface{} {
-	if identity == nil {
-		return make([]interface{}, 0)
-	}
+func flattenExpressRoutePortIdentity(input *network.ManagedServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.UserAssignedMap
 
-	identityIds := make([]string, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			identityIds = append(identityIds, key)
+	if input != nil {
+		transform = &identity.UserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+
+		if input.UserAssignedIdentities != nil {
+			for key, value := range input.UserAssignedIdentities {
+				transform.IdentityIds[key] = identity.UserAssignedIdentityDetails{
+					ClientId:    value.ClientID,
+					PrincipalId: value.PrincipalID,
+				}
+			}
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"identity_ids": identityIds,
-			"type":         string(identity.Type),
-		},
-	}
+	return identity.FlattenUserAssignedMap(transform)
 }
 
 func expandExpressRoutePortLinks(link1, link2 []interface{}) *[]network.ExpressRouteLink {

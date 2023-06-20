@@ -1,0 +1,1473 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: 3.0 Upgrade Guide"
+description: |-
+Azure Resource Manager: 3.0 Upgrade Guide
+
+---
+
+# AzureRM Provider
+
+## AzureRM Provider Version v3.0
+
+The last major release for the AzureRM provider was in February 2020. Since then we've added support for nearly 400 Resources and 100 Data Sources, bringing the total supported features to 761 Resources and 238 Data Sources at the time of writing this guide.
+
+### Considerations
+
+Version 3.0 of the AzureRM Provider is a major release and as such includes some larger-scale changes which are outlined in this document.
+
+When upgrading to v3.0 of the AzureRM Provider, we recommend upgrading to the latest version of Terraform Core ([which can be found here](https://www.terraform.io/downloads)) - the next major release of the AzureRM Provider (v4.0) will require Terraform 1.0 or later.
+
+If you're using [the AzureRM Backend](https://www.terraform.io/language/settings/backends/azurerm) you should also be aware that:
+
+* Version 1.1 of Terraform Core introduces support for Microsoft Graph (MSAL) authentication - although this is disabled by default and needs to be enabled using a feature flag (`use_microsoft_graph = true`), otherwise Azure Active Directory (ADAL) authentication is used.
+* In the future version 1.2 of Terraform Core will switch to using Microsoft Graph (MSAL) authentication by default (changing the default value of the feature flag `use_microsoft_graph` from `false` to `true`) - however note that this feature-flag will be removed in a future release of Terraform Core.
+
+### Pinning your Provider Version
+
+We recommend pinning the version of each Provider you use in Terraform - you can do this using the `version` attribute within the `required_providers` block, either to a specific version of the AzureRM Provider, like so:
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.99.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+.. or to any 2.x release:
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 2.x"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+More information on [how to pin the version of a Terraform Provider being used can be found on the Terraform Website](https://www.terraform.io/language/providers/requirements#requiring-providers).
+
+---
+
+## What's available in Version 3.0 of the AzureRM Provider?
+
+-> **Note:** Version `2.97.0`-`2.99.0` of the Azure Provider allow you to opt-into the Beta of these features - [see the Beta guide for more information](https://registry.terraform.io/providers/hashicorp/azurerm/2.97.0/docs/guides/3.0-beta)
+
+At a high level, version 3.0 includes the following changes:
+
+* [New Data Sources and Resources for App Service and Function Apps](#new-resources-and-data-sources-for-app-service)
+* [Soft Delete Recovery/Purging for Certificates, Keys, and Secrets](#soft-delete-for-key-vault)
+* [Switching to Microsoft Authentication Library (MSAL)](#switching-to-msal)
+* [Updates to existing behaviors for Application Gateway, API Management, Resource Groups, Storage, among others](#behavioural-updates)
+* [Removal of Deprecated Fields, Data Sources, and Resources](#removal-of-deprecated-fields-data-sources-and-resources)
+
+Each of these topics is covered in more detail below.
+
+## New Resources and Data Sources for App Service
+
+While it’s possible to provision App Services and Function Apps in Terraform today, the design and behaviour of the App Service platform has evolved over the years. These resources require some refinement.
+
+Similar to the changes for Virtual Machines in v2.0 of the Azure Provider, we've introduced more granular resources for App Service to better represent the functionality available in Azure.  This is most noticeable in the separation of some resources into Linux and Windows variants. This separation is intended to facilitate improved validation and more intuitive configuration for their differing requirements and capabilities, which could previously be unclear or confusing in the respective singular resources.
+
+The following new **Data Sources** will be available:
+
+* [azurerm_linux_function_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/linux_function_app)
+* [azurerm_linux_web_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/linux_web_app)
+* [azurerm_service_plan](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/service_plan)
+* [azurerm_source_control_token](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/source_control_token)
+* [azurerm_windows_function_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/windows_function_app)
+* [azurerm_windows_web_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/windows_web_app)
+
+The following new **Resources** will be available:
+
+* [azurerm_app_service_source_control](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/app_service_source_control)
+  * New Resource to apply Source Control configuration to Web and Function Apps (for use with Linux and Windows based versions)
+* [azurerm_app_service_source_control_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/app_service_source_control_slot)
+  * New Resource to apply Source Control configuration to Web and Function App Slots (for use with Linux and Windows based versions)
+* [azurerm_function_app_active_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app_active_slot)
+  * Supersedes `azurerm_app_service_active_slot` for both Linux and Windows based Function Apps.
+* [azurerm_function_app_hybrid_connection](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app_hybrid_connection)
+  * Supersedes `azurerm_app_service_hybrid_connection` for Hybrid Connections on Linux and Windows based Web Apps
+* [azurerm_linux_function_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app)
+  * Supersedes `azurerm_function_app` for Linux based Function Apps
+* [azurerm_linux_function_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app_slot)
+  * Supersedes `azurerm_function_app_slot` for Deployment Slots on Linux based Function Apps
+* [azurerm_linux_web_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_web_app)
+  * Supersedes `azurerm_app_service` for Linux based Web Apps
+* [azurerm_linux_web_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_web_app_slot)
+  * Supersedes `azurerm_app_service_slot` for Deployment Slots on Linux based Web Apps
+* [azurerm_service_plan](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan)
+  * Supersedes `azurerm_app_service_plan`
+* [azurerm_source_control_token](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/source_control_token)
+  * Supersedes `azurerm_app_service_source_control_token`
+* [azurerm_web_app_active_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_active_slot)
+  * Supersedes `azurerm_app_service_active_slot` for both Linux and Windows based Web Apps.
+* [azurerm_web_app_hybrid_connection](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_hybrid_connection)
+  * Supersedes `azurerm_app_service_hybrid_connection` for Hybrid Connections on Linux and Windows based Web Apps
+* [azurerm_windows_function_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app)
+  * Supersedes `azurerm_function_app` for Windows based Function Apps.
+* [azurerm_windows_function_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app_slot)
+  * Supersedes `azurerm_function_app_slot` for Deployment Slots on Windows based Function Apps
+* [azurerm_windows_web_app](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_web_app)
+  * Supersedes `azurerm_app_service` for Windows based Web Apps.
+* [azurerm_windows_web_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_web_app_slot)
+  * Supersedes `azurerm_app_service_slot` for Deployment Slots on Windows based Web Apps
+
+## Migrating to New & Renamed Resources
+
+When migrating to the new version of deprecated resources the schema may be different than what currently exists in state. Therefore, it is recommended to first update your terraform configuration with the new resource, use `terraform state rm`, and then `terraform import`.
+
+A guide on how to do this can be found in the [Migrating from Deprecated Resources Guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/migrating-from-deprecated-resources) and a tutorial for `terraform import` can be found [here](https://learn.hashicorp.com/tutorials/terraform/state-import)
+
+## Soft Delete for Key Vault
+
+Previously, soft delete has only been available for a Key Vault resource as a whole. Now, you’ll be able to soft delete the nested items within a Key Vault: certificates, keys, and secrets.
+
+This can be configured in the `features` block like so:
+
+```hcl
+provider "azurerm" {
+  features {
+    key_vault {
+      # available in 2.x
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+
+      # available when opted into the 3.0 Beta
+      purge_soft_deleted_certificates_on_destroy = true
+      purge_soft_deleted_keys_on_destroy         = true
+      purge_soft_deleted_secrets_on_destroy      = true
+      recover_soft_deleted_certificates          = true
+      recover_soft_deleted_secrets               = true
+      recover_soft_deleted_keys                  = true
+    }
+  }
+}
+```
+
+The default value is `true` for each of the above feature flags, and they can be toggled off by explicitly setting them to `false`. For more information, please refer to the [Features Block](https://registry.terraform.io/providers/hashicorp/Azurerm/latest/docs/guides/features-block) documentation.
+
+## Switching to MSAL
+
+Authentication to APIs such as Resource Manager was previously performed using the ADAL library which yielded legacy v1 authentication tokens. In version 3.0 of the provider we've moved to use [v2 tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#v10-and-v20). In practice this change will not yield any noticeable behavioral differences.
+
+## Behavioural updates
+
+**All Resources:** The Resource ID will now be validated at import time to ensure the correct resource is being imported, and return the expected format upon a mismatch. This ensures that, for example, a Virtual Machine ID is specified rather than the VM Extension ID (which is nested under a Virtual Machine ID).
+
+**Resources with a `min_tls_version` field:** The default minimum TLS version will be `1.2`.
+
+**Resources supporting Availability Zones (containing a `zones` field):**
+
+Zones will be made behaviourally consistent across the Provider, that means:
+
+* Where a resource has to be provisioned within a single Zone, the field will be renamed `zone` (to indicate that only a single Zone can be specified).
+* Where a resource can be provisioned across multiple Zones, the field will be named `zones`.
+* Zones are no longer Computed - this means that if you wish Azure to assign an Availability Zone for this resource automatically, you must use `ignore_changes` on the `zone`/`zones` field.
+
+When the resource can be provisioned across multiple Zones, the following behaviours apply:
+
+* To provision the resource without any Zones (zoneless) - omit the `zones` field.
+* To provision the resource in a single Zone, specify one zone for the `zones` field (e.g. `zones = ["1"]`)
+* To provision the resource across multiple Zones (Zone Redundant), specify all of Availability Zones for the `zones` field (e.g. `zones = ["1", "2", "3"]`)
+
+**Resources with a (Managed) `identity` block:** The presence of an `identity` block means a Managed Identity should be assigned to this Resource - and the omission of an `identity` block (or a null value) means that no Managed Identity should be assigned to this Resource.
+
+**Application Gateway:** The behavior of the nested items will be changed to Sets instead of Lists where required, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+
+**API Management:** Terraform will now remove the Default API and Products for API Management when creating a new API Management instance, which is consistent with the behavior for other Terraform Providers.
+
+**Firewall:** The behavior of the nested items will be changed to List instead of Sets where required, meaning that the order of these items now matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+
+**Log Analytics:** The `tags` field has been removed from various resources.
+
+**Resource Groups:** Terraform will now check for Resources nested within a Resource Group prior to deletion of the resource group. If any items are found, an error will be raised. This behavior is configurable in the `features` block, but was previously disabled by default. In 3.0, this behavior will be enabled by default.
+
+**Recovery Services:** The `tags` field has been removed from various resources.
+
+**Storage:** The field `allow_blob_public_access` will be renamed to `allow_nested_items_to_be_public` to resolve confusion about what this field does. This field specifies whether items within the Storage Account (such as Containers and Blobs) can opt-in to being made public (for example at the Container or Blob level) - and not that all resources within this Storage Account are public by default.
+
+**Other Individual Resources:**
+
+* `azurerm_database_migration_service` - The provider will now delete this resource even if it still contains running tasks.
+* `azurerm_iothub` - When creating a new `azurerm_iothub` resource, a Fallback Route will be enabled by default.
+* `azurerm_mssql_database` - The new field `transparent_data_encryption_enabled` will be set to `true` and can not be disabled on servers with SKUs other than ones starting with `DW`.
+* `azurerm_storage_share` - The `quota` property is now required instead of defaulting to `5120` GB.
+
+## Removal of Deprecated Fields, Data Sources and Resources
+
+Since version 3.0 is a major version - we intend to take this opportunity to remove deprecated Fields, Resources, and Data Sources.
+
+Below we'll cover each of the Data Sources and Resources which will be affected by the 3.0 upgrade.
+
+### Data Source: `azurerm_app_service`
+
+The `azurerm_app_service` data source has been superseded by the `azurerm_linux_web_app` and `azurerm_windows_web_app` data sources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+### Data Source: `azurerm_app_service_plan`
+
+The `azurerm_app_service_plan` data source has been superseded by the `azurerm_service_plan` data source. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+### Data Source: `azurerm_backup_policy_file_share`
+
+The field `tags` will be removed since the API no longer supports these on this resource.
+
+### Data Source: `azurerm_backup_policy_vm`
+
+The field `tags` will be removed since the API no longer supports these on this resource.
+
+### Data Source: `azurerm_batch_pool`
+
+The deprecated field `start_task.environment` will be removed in favour of the `start_task.common_environment_properties` properties.
+
+The deprecated field `start_task.max_task_retry_count` will be removed in favour of the `start_task.task_retry_maximum` property.
+
+### Data Source: `azurerm_container_registry`
+
+The deprecated field `storage_account_id` has been removed as it is no longer recognized by the API nor functional.
+
+### Data Source: `azurerm_cosmosdb_account`
+
+The field `capabilities` will no longer accept the value `EnableAnalyticalStorage`.
+
+The deprecated field `primary_master_key` will be removed in favour of the `primary_key` property.
+
+The deprecated field `secondary_master_key` will be removed in favour of the `secondary_key` property.
+
+The deprecated field `primary_readonly_master_key` will be removed in favour of the `primary_readonly_key` property.
+
+The deprecated field `secondary_readonly_master_key` will be removed in favour of the `secondary_readonly_key` property.
+
+## Data Source: `azurerm_data_lake_store`
+
+Data Lake Gen1 is deprecated and new accounts can no longer be provisioned - as such this deprecated Data Source has been removed from the Azure Provider.
+
+## Data Source: `azurerm_data_share_dataset_data_lake_gen1`
+
+Data Lake Gen1 is deprecated and new accounts can no longer be provisioned - as such this deprecated Data Source has been removed from the Azure Provider.
+
+### Data Source: `azurerm_function_app`
+
+The `azurerm_function_app` data source has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_function_app` data sources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+### Data Source: `azurerm_function_app_host_keys`
+
+The deprecated field `master_key` will be removed in favour of the `primary_key` property.
+
+### Data Source: `azurerm_key_vault`
+
+The deprecated field `soft_delete_enabled` will be removed since the Azure API always returns `true`.
+
+### Data Source: `azurerm_kubernetes_cluster`
+
+The deprecated block `addon_profile` will be removed in favour of the `azure_policy_enabled`, `http_application_routing_enabled` and `open_service_mesh_enabled` properties and the `ingress_application_gateway`, `key_vault_secrets_provider` and `oms_agent` blocks.
+
+The field `availability_zones` will be removed in favour of `zones` to be consistent across the Provider.
+
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The deprecated block `role_based_access_control` will be removed in favour of the `role_based_access_control_enabled` property and the `azure_active_directory_role_based_access_control` block.
+
+### Data Source: `azurerm_kubernetes_cluster_node_pool`
+
+The field `availability_zones` will be removed in favour of `zones` to be consistent across the Provider.
+
+### Data Source: `azurerm_lb_rule`
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `loadbalancer_id`.
+
+### Data Source: `azurerm_log_analytics_workspace`
+
+The deprecated field `portal_url` will be removed since it no longer exists in the Azure API.
+
+### Data Source: `azurerm_management_group`
+
+The deprecated field `group_id` will be removed in favour of the `name` property.
+
+### Data Source: `azurerm_mssql_server`
+
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Data Source: `azurerm_netapp_volume`
+
+The deprecated field `data_protection_replication.replication_schedule` will be removed as it no longer exists in the Azure API. The property `data_protection_replication.replication_frequency` can be used instead.
+
+### Data Source: `azurerm_public_ips`
+
+The deprecated field `attached` will be removed in favour of the `attachment_status` property.
+
+### Data Source: `azurerm_policy_definition`
+
+The deprecated field `management_group_id` will be removed in favour of the `management_group_name` property.
+
+### Data Source: `azurerm_postgresql_flexible_server`
+
+The deprecated field `cmk_enabled` will be removed since it no longer exists in the Azure API.
+
+---
+
+-> **NOTE:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 3.0 of the AzureRM Provider is released.
+
+### Resource: `azurerm_api_management_custom_domain`
+
+The deprecated `proxy` block will be removed in favour of the `gateway` block.
+
+### Resource: `azurerm_api_management_diagnostic`
+
+The deprecated field `enabled` will be removed since it no longer exists in the Azure API.
+
+### Resource: `azurerm_api_management_api_operation`
+
+The deprecated field `response.representation.sample` will be removed in favour of the property `response.representation.example`.
+
+The deprecated field `request.representation.sample` will be removed in favour of the property `request.representation.example`.
+
+### Resource: `azurerm_api_management_property`
+
+The `azurerm_api_management_property` resource will be removed in favour of the `azurerm_api_management_named_value` resource.
+
+### Resource: `azurerm_api_management`
+
+The deprecated field `security.enabled_triple_des_ciphers` will be removed in favour of the `security.triple_des_ciphers_enabled` property.
+
+### Resource: `azurerm_application_gateway`
+
+The field `probe.match.status_code` will become Required.
+
+### Resource: `azurerm_app_service`
+
+The `azurerm_app_service` resource has been superseded by the `azurerm_linux_web_app` and `azurerm_windows_web_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The field `site_config.remote_debugging_version` will no longer accept the values `VS2012`, `VS2013` and `VS2015`.
+
+### Resource: `azurerm_app_service_active_slot`
+
+The `azurerm_app_service_active_slot` resource has been superseded by the `azurerm_web_app_active_slot` and `azurerm_function_app_active_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."
+
+### Resource: `azurerm_app_service_certificate`
+
+The deprecated field `hosting_environment_profile_id` will be removed in favour of the `app_service_plan_id` property.
+
+### Resource: `azurerm_app_service_environment`
+
+The deprecated field `user_whitelisted_ip_ranges` will be removed in favour of the `allowed_user_ip_cidrs` property.
+
+### Resource: `azurerm_app_service_plan`
+
+The `azurerm_app_service_plan` resource has been superseded by the `azurerm_service_plan` resource. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+### Resource: `azurerm_app_service_hybrid_connection`
+
+The `azurerm_app_service_hybrid_connection` resource has been superseded by the `azurerm_function_app_hybrid_connection` and `azurerm_web_app_hybrid_connection` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+### Resource: `azurerm_app_service_slot`
+
+The `azurerm_app_service_slot` resource has been superseded by the `azurerm_linux_web_app_slot` and `azurerm_windows_web_app_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The field `site_config.remote_debugging_version` will no longer accept the values `VS2012`, `VS2013` and `VS2015`.
+
+### Resource: `azurerm_app_service_source_control_token`
+
+The `azurerm_app_service_source_control_token` resource has been superseded by the `azurerm_source_control_token` resource. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+### Resource: `azurerm_automation_schedule`
+
+The default value for the field `timezone` will be changed from `UTC` to `Etc/UTC`.
+
+### Resource: `azurerm_backup_policy_file_share`
+
+The deprecated field `tags` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_backup_policy_vm`
+
+The deprecated field `tags` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_backup_protected_vm`
+
+The deprecated field `tags` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_batch_pool`
+
+The deprecated field `environment` will be removed in favour of the `common_environment_properties` properties.
+
+The deprecated field `max_task_retry_count` will be removed in favour of the `task_retry_maximum` property.
+
+### Resource: `azurerm_cdn_endpoint`
+
+The `host_name` field is being renamed to `fqdn` to better reflect the information held in that field.
+
+### Resource: `azurerm_cognitive_account`
+
+The deprecated field `network_acls.virtual_network_subnet_ids` will be removed in favour of the `network_acls.virtual_network_rules` property.
+
+The deprecated field `outbound_network_access_restrited` will be removed in favour of the `outbound_network_access_restricted` property.
+
+### Resource: `azurerm_container_registry`
+
+The field `sku` is now Required and no longer defaults to `Classic`.
+
+The field `sku` can no longer be set to `Classic` as Classic Container Registries are no longer supported by Azure.
+
+The deprecated field `georeplication_locations` will be removed in favour of the `georeplications` property.
+
+The deprecated field `storage_account_id` will be removed since it is no longer recognized by the Azure API.
+
+### Resource: `azurerm_consumption_budget_subscription`
+
+The field `subscription_id` will only accept subscription resource IDs instead of subscription IDs.
+
+### Resource: `azurerm_cost_management_export_resource_group`
+
+The `azurerm_cost_management_export_resource_group` resource will be removed in favour of the `azurerm_resource_group_cost_management_export` resource.
+
+### Resource: `azurerm_cosmosdb_account`
+
+The field `capabilities` will no longer accept the value `EnableAnalyticalStorage`.
+
+The deprecated field `geolocation.prefix` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `primary_master_key` will be removed in favour of the `primary_key` property.
+
+The deprecated field `secondary_master_key` will be removed in favour of the `secondary_key` property.
+
+The deprecated field `primary_readonly_master_key` will be removed in favour of the `primary_readonly_key` property.
+
+The deprecated field `secondary_readonly_master_key` will be removed in favour of the `secondary_readonly_key` property.
+
+### Resource: `azurerm_data_factory_dataset_azure_blob`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_dashboard`
+
+This resource is now deprecated and has been replaced by the `azurerm_portal_dashboard` resource - the `azurerm_dashboard` resource will be removed in v4.0 of the AzureRM Provider.
+
+### Resource: `azurerm_data_factory_dataset_binary`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_dataset_cosmosdp_sqlapi`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_dataset_delimited_text`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_dataset_http`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_dataset_json`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_dataset_mysql`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_dataset_parquet`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_dataset_postgresql`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_dataset_snowflake`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+The block `structure_column` has been deprecated in favour of the `schema_column` property.
+
+### Resource: `azurerm_data_factory_dataset_sql_server_table`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_integration_runtime_azure`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_integration_runtime_azure_ssis`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_integration_runtime_self_hosted`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+The field `auth_key_1` will be removed in favour of the `primary_authorization_key` property
+
+The field `auth_key_2` will be removed in favour of the `secondary_authorization_key` property
+
+### Resource: `azurerm_data_factory_linked_service_azure_blob_storage`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_azure_databricks`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_file_storage`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_azure_function`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_azure_sql_database`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_azure_table_storage`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_cosmosdb_mongoapi`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_cosmosdb`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_data_lake_storage_gen2`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_key_vault`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_mysql`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_odata`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_postgresql`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_sftp`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_snowflake`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_sql_server`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_synapse`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_linked_service_web`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_pipeline`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory_trigger_schedule`
+
+The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource: `azurerm_data_factory`
+
+The field `customer_managed_key_identity_id` must be supplied if `customer_managed_key_id` is set.
+
+## Resource: `azurerm_data_lake_analytics_account`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
+
+## Resource: `azurerm_data_lake_analytics_firewall_rule`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
+
+### Resource `azurerm_data_lake_store_file`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
+
+### Resource `azurerm_data_lake_store_firewall_rule`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
+
+### Resource `azurerm_data_lake_store`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
+
+### Resource `azurerm_data_lake_store_virtual_network_rule`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
+
+## Resource: `azurerm_data_share_dataset_data_lake_gen1`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: <https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2>.
+
+### Resource: `azurerm_devspace_controller`
+
+The `azurerm_devspace_controller` resource will be removed since DevSpace Controllers are deprecated and new Controllers cannot be provisioned.
+
+### Resource: `azurerm_eventgrid_event_subscription`
+
+The deprecated field `topic_name` will be removed since it is a read-only field in the Azure API.
+
+The deprecated block `eventhub_endpoint` will be removed in favour of the `eventhub_endpoint_id` property.
+
+The deprecated block `hybrid_connection_endpoint` will be removed in favour of the `hybrid_connection_endpoint_id` property.
+
+### Resource: `azurerm_eventhub_namespace`
+
+The behavior of `network_rulesets.x.virtual_network_rule` will be changed to Sets instead of Lists where required, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+
+### Resource: `azurerm_eventhub_namespace_customer_managed_key`
+
+Destroying this resource will become a noop (non-operation) rather than deleting and recreating the parent EventHub Namespace - instead to remove the Customer Managed Key the parent EventHub Namespace must be tainted and recreated.
+
+This is intentional to highlight that the EventHub Namespace - including all of it's sub-resources and any data stored within them - will need to be destroyed and recreated to remove the Customer Managed Key, due to the design of the Service.
+
+### Resource: `azurerm_eventhub_namespace_disaster_recovery_config`
+
+The deprecated field `alternate_name` will be removed since any DRC created with an alternate cannot be deleted.
+
+### Resource: `azurerm_firewall`
+
+The field `sku_name` will become Required.
+
+The field `sku_tier` will become Required.
+
+The default value for the field `threat_intel_mode` will change from "Alert" to null and will not accept `""` as a valid value.
+
+### Resource: `azurerm_firewall_policy`
+
+The deprecated field `dns.network_rule_fqdn_enabled` will be removed since it is no longer supported by the Azure API.
+
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The computed field `principal_id` within the `identity` block will be removed as this isn't applicable for this resource.
+
+The computed field `tenant_id` within the `identity` block will be removed as this isn't applicable for this resource.
+
+### Resource: `azurerm_frontdoor`
+
+The deprecated field `backend_pools_send_receive_timeout_seconds` will be removed in favour of the `backend_pool_settings.backend_pools_send_receive_timeout_seconds` property.
+
+The deprecated field `enforce_backend_pools_certificate_name_check` will be removed in favour of the `backend_pool_settings.enforce_backend_pools_certificate_name_check` property.
+
+The deprecated field `location` will be removed since it must always be set to `Global` for new resources.
+
+### Resource: `azurerm_frontdoor_rules_engine`
+
+The default value for the field `negate_condition` will change from `true` to `false`.
+
+### Resource: `azurerm_function_app`
+
+The `azurerm_function_app` resource has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_function_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The deprecated field `client_affinity_enabled` will be removed since it is no longer configurable.
+
+The deprecated field `storage_connection_string` will be removed in favour of the `storage_account_name` and `storage_account_access_key` properties.
+
+The field `storage_account_name` will become required.
+
+The field `storage_account_access_key` will become required.
+
+### Resource: `azurerm_function_app_host_keys`
+
+The deprecated field `master_key` will be removed in favour of the `primary_key` property.
+
+### Resource: `azurerm_function_app_slot`
+
+The `azurerm_function_app_slot` resource has been superseded by the `azurerm_linux_function_app_slot` and `azurerm_windows_function_app_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The deprecated field `client_affinity_enabled` will be removed since it is no longer configurable.
+
+### Resource: `azurerm_hdinsight_hadoop_cluster`
+
+The deprecated field `gateway.enabled` will be removed since HDInsight does not support disabling gateways.
+
+The deprecated field `head_node.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `worker_node.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `zookeeper_worker.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_hdinsight_hbase_cluster`
+
+The deprecated field `gateway.enabled` will be removed since HDInsight does not support disabling gateways.
+
+The deprecated field `head_node.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `worker_node.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `zookeeper_worker.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_hdinsight_interactive_query_cluster`
+
+The deprecated field `gateway.enabled` will be removed since HDInsight does not support disabling gateways.
+
+The deprecated field `head_node.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `worker_node.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `zookeeper_worker.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_hdinsight_kafka_cluster`
+
+The deprecated field `gateway.enabled` will be removed since HDInsight does not support disabling gateways.
+
+The deprecated field `head_node.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `worker_node.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `zookeeper_worker.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `kafka_management_worker.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The field `security_group_name` will become Required.
+
+### Resource: `azurerm_hdinsight_ml_services_cluster`
+
+The `azurerm_hdinsight_ml_services_cluster` resource will be removed since MLServices will not be supported in HDInsight 4.0 ([more information can be found here](https://docs.microsoft.com/azure/hdinsight/hdinsight-component-versioning#available-versions)).
+
+### Resource: `azurerm_hdinsight_rserver_cluster`
+
+The `azurerm_hdinsight_rserver_cluster` resource will be removed since R Server will not be supported in HDInsight 4.0 ([more information can be found here](https://docs.microsoft.com/azure/hdinsight/hdinsight-component-versioning#available-versions)).
+
+### Resource: `azurerm_hdinsight_spark_cluster`
+
+The deprecated field `gateway.enabled` will be removed since HDInsight does not support disabling gateways.
+
+The deprecated field `head_node.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `worker_node.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `zookeeper_worker.min_instance_count` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_hdinsight_storm_cluster`
+
+The `azurerm_hdinsight_storm_cluster` resource will be removed since Apache Storm will not be supported in HDInsight 4.0 ([more information can be found here](https://docs.microsoft.com/azure/hdinsight/hdinsight-component-versioning#available-versions)).
+
+### Resource: `azurerm_hpc_cache`
+
+The deprecated field `access_rule.root_squash_enabled` will be removed in favour of `default_access_policy.access_rule.root_squash_enabled`.
+
+### Resource: `azurerm_iothub`
+
+The deprecated `ip_filter_rule` block will be removed in favour of the `network_rule_set` block.
+
+### Resource: `azurerm_iothub_dps`
+
+The default value for the field `allocation_weight` within the `linked_hub` block will change from `0` to `1`.
+
+### Resource: `azurerm_iothub_endpoint_eventhub`
+
+The deprecated field `iothub_name` will be removed in favour of `iothub_id`.
+
+### Resource: `azurerm_iothub_endpoint_servicebus_queue`
+
+The deprecated field `iothub_name` will be removed in favour of `iothub_id`.
+
+### Resource: `azurerm_iothub_endpoint_servicebus_topic`
+
+The deprecated field `iothub_name` will be removed in favour of `iothub_id`.
+
+### Resource: `azurerm_iothub_endpoint_storage_container`
+
+The deprecated field `iothub_name` will be removed in favour of `iothub_id`.
+
+### Resource: `azurerm_iot_security_device_group`
+
+The deprecated field `connection_to_ip_not_allowed` will be removed in favour of the `connection_to_ips_not_allowed` property.
+
+The deprecated field `local_user_not_allowed` will be removed in favour of the `local_users_not_allowed` property.
+
+The deprecated field `process_not_allowed` will be removed in favour of the `processes_not_allowed` property.
+
+### Resource: `azurerm_key_vault`
+
+The deprecated field `soft_delete_enabled` will be removed since it is no longer possible to disable this.
+
+The casing on the values for the `certificate_permissions` field have been updated to use TitleCase (e.g. `setissuers` -> `SetIssuers`).
+
+The casing on the values for the `key_permissions` field have been updated to use TitleCase (e.g. `unwrapKey` -> `UnwrapKey`).
+
+The casing on the values for the `secret_permissions` field have been updated to use TitleCase (e.g. `purge` -> `Purge`).
+
+The casing on the values for the `storage_permissions` field have been updated to use TitleCase (e.g. `regenerateKey` -> `RegenerateKey`).
+
+### Resource: `azurerm_key_vault_access_policy`
+
+The casing on the values for the `certificate_permissions` field have been updated to use TitleCase (e.g. `setissuers` -> `SetIssuers`).
+
+The casing on the values for the `key_permissions` field have been updated to use TitleCase (e.g. `unwrapKey` -> `UnwrapKey`).
+
+The casing on the values for the `secret_permissions` field have been updated to use TitleCase (e.g. `purge` -> `Purge`).
+
+The casing on the values for the `storage_permissions` field have been updated to use TitleCase (e.g. `regenerateKey` -> `RegenerateKey`).
+
+### Resource: `azurerm_key_vault_certificate`
+
+The field `x509_certificate_properties.0.key_usage`  will be moved from a List to a Set, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+
+### Resource: `azurerm_key_vault_key`
+
+The field `curve` will no longer accept the value `SECP256K1` since it was renamed to `P-256K`.
+
+### Resource: `azurerm_kubernetes_cluster`
+
+The deprecated field `private_link_enabled` will be removed in favour of the `private_cluster_enabled` property.
+
+The deprecated block `addon_profile` will be removed and all properties within the block will be moved or replaced at the top level, exact details on this change are outlined below.
+
+The deprecated block `addon_profile.azure_policy` will be removed in favour of the `azure_policy_enabled` boolean property.
+
+The deprecated block `addon_profile.http_application_routing` will be removed in favour of the `http_application_routing_enabled` boolean property.
+
+The deprecated field `addon_profile.http_application_routing_zone_name` will be removed in favour of the `http_application_routing_zone_name` property.
+
+The deprecated block `addon_profile.open_service_mesh` will be removed in favour of the `open_service_mesh_enabled` boolean property.
+
+The deprecated block `addon_profile.kube_dashboard` will be removed since Kube Dashboard is not supported for Kubernetes versions above 1.19.
+
+The deprecated block `addon_profile.aci_connector_linux` will be removed in favour of the `aci_connector_linux` block.
+
+The deprecated field `addon_profile.aci_connector_linux.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `aci_connector_linux` block.
+
+The deprecated field `addon_profile.aci_connector_linux.subnet_name` will be removed in favour of the `aci_connector_linux.subnet_name` property and will become Required.
+
+The deprecated block `addon_profile.oms_agent` will be removed in favour of the `oms_agent` block.
+
+The deprecated field `addon_profile.oms_agent.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `oms_agent` block.
+
+The deprecated field `addon_profile.oms_agent.log_analytics_workspace_id` will be removed in favour of the `oms_agent.log_analytics_workspace_id` property and will become Required.
+
+The deprecated block `addon_profile.ingress_application_gateway` will be removed in favour of the `ingress_application_gateway` block.
+
+The deprecated field `addon_profile.ingress_application_gateway.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `ingress_application_gateway` block.
+
+The deprecated block `addon_profile.azure_keyvault_secrets_provider` will be removed in favour of the `key_vault_secrets_provider` block.
+
+The deprecated field `addon_profile.azure_keyvault_secrets_provider.enabled` will be removed and the enablement/disablement of the addon will be determined by the presence or absence of the `key_vault_secrets_provider` block.
+
+The field `default_node_pool.availability_zones` will be removed in favour of `default_node_pool.zones` to be consistent across the Provider.
+
+The deprecated field `private_link_enabled` will be removed in favour of the `private_cluster_enabled` property.
+
+The deprecated block `role_based_access_control` will be removed in favour of the property `role_based_access_control_enabled` and the block `azure_active_directory_role_based_access_control`.
+
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource: `azurerm_kubernetes_cluster_node_pool`
+
+The field `availability_zones` will be removed in favour of `zones` to be consistent across the Provider.
+
+### Resource: `azurerm_kusto_cluster`
+
+The deprecated field `enable_auto_stop` will be removed in favour of the `auto_stop_enabled` property.
+
+The deprecated field `enable_disk_encryption` will be removed in favour of the `disk_encryption_enabled` property.
+
+The deprecated field `enable_streaming_ingest` will be removed in favour of the `streaming_ingestion_enabled` property.
+
+The field `trusted_external_tenants` will no longer accept `MyTenantOnly` as a valid value.
+
+### Resource: `azurerm_kusto_database_principal`
+
+The `azurerm_kusto_database_principal` resource will be removed in favour of the `azurerm_kusto_database_principal_assignment` resource.
+
+### Resource: `azurerm_lb_backend_address_pool`
+
+The deprecated field `resource_group_name` will be removed since it will be inferred from the `loadbalancer_id`.
+
+The deprecated field `backend_address` will be removed since it is no longer functional, the `azurerm_lb_backend_address_pool_address` resource can be used instead.
+
+### Resource: `azurerm_lb`
+
+The fields `availability_zone` and `zones` will be consolidated into `zones`.
+
+### Resource: `azurerm_lb_outbound_rule`
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `loadbalancer_id`.
+
+### Resource: `azurerm_lb_probe`
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `loadbalancer_id`.
+
+### Resource: `azurerm_lb_rule`
+
+The deprecated field `backend_address_pool_id` will be removed in favour of `backend_address_pool_ids`.
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `loadbalancer_id`.
+
+### Resource: `azurerm_linux_virtual_machine_scale_set`
+
+The deprecated field `data_disk.disk_iops_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_iops_read_write` property.
+
+The deprecated field `data_disk.disk_mbps_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_mbps_read_write` property.
+
+### Resource: `azurerm_log_analytics_linked_service`
+
+The deprecated field `workspace_name` will be removed in favour of `workspace_id`.
+
+The deprecated field `linked_service_name` will be removed.
+
+The deprecated field `resource_id` will be removed in favour of `read_access_id`.
+
+The deprecated field `tags` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_log_analytics_storage_insights`
+
+The deprecated field `tags` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_log_analytics_workspace`
+
+The deprecated field `reservation_capcity_in_gb_per_day` will be removed in favour of `reservation_capacity_in_gb_per_day`.
+
+The deprecated field `portal_url` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_managed_disk`
+
+The field `zones` has been renamed `zone` (as this only accepts a single value) to be consistent across the Provider.
+
+### Resource: `azurerm_machine_learning`
+
+The field `sku_name` no longer accepts the value `Enterprise` ([more information on this here](https://docs.microsoft.com/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition)).
+
+### Resource `azurerm_machine_learning_compute_cluster`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
+
+### Resource `azurerm_machine_learning_compute_instance`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
+
+### Resource `azurerm_machine_learning_inference_cluster`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
+
+### Resource `azurerm_machine_learning_synapse_spark`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
+
+### Resource `azurerm_machine_learning_workspace`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource: `azurerm_management_group`
+
+The deprecated field `group_id` will be removed in favour of `name`.
+
+### Resource: `azurerm_mariadb`
+
+The field `auto_grow_enabled` will default to `true`.
+
+The deprecated field `ssl_enforcement` will be removed in favour of the `ssl_enforcement_enabled` boolean property.
+
+The block `storage_profile` will be removed and all properties within the block will be moved to the top level.
+
+The deprecated field `storage_profile.auto_grow` will be removed in favour of the `auto_grow_enabled` property.
+
+The deprecated field `storage_profile.geo_redundant_backup` will be removed in favour of the `geo_redundant_backup_enabled` property.
+
+### Resource: `azurerm_monitor_scheduled_query_rules_alert`
+
+The field `custom_webhook_payload` will not longer be computed and populated with the default value `"{}"`.
+
+### Resource: `azurerm_mssql_database`
+
+The deprecated block `extended_auditing_policy` will be removed and replaced by the `azurerm_mssql_database_extended_auditing_policy` resource.
+
+The deprecated field `use_server_default` within the `threat_detection_policy` block will be removed since it is now non-functional.
+
+### Resource: `azurerm_mssql_server`
+
+The deprecated block `extended_auditing_policy` will be removed and replaced by the `azurerm_mssql_server_extended_auditing_policy` resource.
+
+The default value of the field `minimum_tls_version` will be set to `1.2`.
+
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource: `azurerm_mysql_server`
+
+The field `auto_grow_enabled` will default to `true`.
+
+The deprecated field `ssl_enforcement` will be removed in favour of the `ssl_enforcement_enabled` boolean property.
+
+The default value of the field `ssl_minimal_tls_version_enforced` will change from `TLSEnforcementDisabled` to `TLS1_2`.
+
+The block `storage_profile` will be removed and all properties within the block will be moved to the top level.
+
+The deprecated field `storage_profile.auto_grow` will be removed in favour of the `auto_grow_enabled` property.
+
+The deprecated field `storage_profile.geo_redundant_backup` will be removed in favour of the `geo_redundant_backup_enabled` property.
+
+### Resource: `azurerm_netapp_snapshot`
+
+The deprecated field `tags` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_netapp_volume`
+
+The deprecated fields `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled` will be removed in favour of the `protocols_enabled` property.
+
+### Resource: `azurerm_nat_gateway`
+
+The deprecated field `public_ip_address_ids` will be removed in favour of the `azurerm_nat_gateway_public_ip_association` resource.
+
+The deprecated field `public_ip_prefix_ids` will be removed in favour of the `azurerm_nat_gateway_public_ip_prefix_association` resource.
+
+### Resource: `azurerm_network_connection_monitor`
+
+The deprecated blocks `destination` and `source` will be removed since they belong to the v1 network connection monitor API which is now deprecated and replaced by v2.
+
+The deprecated fields `auto_start`, `interval_in_seconds` will be removed since they belong to the v1 network connection monitor API which is now deprecated and replaced by v2.
+
+The deprecated field `virtual_machine_id` within the `endpoint` block will be removed in favour of the `target_resource_id` property (also within the `endpoint` block).
+
+### Resource: `azurerm_network_watcher_flow_log`
+
+The field `name` will become Required.
+
+### Resource: `azurerm_orchestrated_virtual_machine_scale_set`
+
+The deprecated field `data_disk.disk_iops_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_iops_read_write` property.
+
+The deprecated field `data_disk.disk_mbps_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_mbps_read_write` property.
+
+### Resource: `azurerm_packet_capture`
+
+The `azurerm_packet_capture` resource will be removed in favour of the renamed `azurerm_network_packet_capture` resource.
+
+### Resource: `azurerm_policy_assignment`
+
+The `azurerm_policy_assignment` resource will be removed in favour of the `azurerm_management_group_policy_assignment`, `azurerm_resource_policy_assignment`, `azurerm_resource_group_policy_assignment` and `azurerm_subscription_policy_assignment` resources.
+
+### Resource: `azurerm_policy_definition`
+
+The deprecated field `management_group_name` will be removed in favour of the `management_group_id` property.
+
+### Resource: `azurerm_policy_remediation`
+
+The `azurerm_policy_remediation` resource will be removed in favour of the `azurerm_management_group_policy_remediation`, `azurerm_resource_policy_remediation`, `azurerm_resource_group_policy_remediation` and `azurerm_subscription_policy_remediation` resources.
+
+### Resource: `azurerm_policy_set_definition`
+
+The deprecated field `management_group_name` will be removed in favour of the `management_group_id` property.
+
+The deprecated field `policy_definition_reference.parameters` will be removed in favour of the `policy_definition_reference.parameter_values` property.
+
+The deprecated field `policy_definitions` will be removed in favour of the `policy_definition_reference` block.
+
+### Resource: `azurerm_policy_virtual_machine_configuration_assignment`
+
+The deprecated field `name` within the `configuration` block will be removed since it is no longer used.
+
+### Resource: `azurerm_postgresql_flexible_server`
+
+The deprecated field `cmk_enabled` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_postgresql_server`
+
+The field `auto_grow_enabled` will default to `true`.
+
+The default value of the field `ssl_minimal_tls_version_enforced` will change from `TLSEnforcementDisabled` to `TLS1_2`.
+
+The block `storage_profile` will be removed and all properties within the block will be moved to the top level.
+
+The deprecated field `storage_profile.storage_mb` has been moved to the top level.
+
+The deprecated field `storage_profile.backup_retention_days` has been moved to the top level.
+
+The deprecated field `storage_profile.auto_grow` has been moved to the top level.
+
+The deprecated field `storage_profile.geo_redundant_backup` has been moved to the top level.
+
+The deprecated field `ssl_enforcement` will be removed in favour of the `ssl_enforcement_enabled` boolean property.
+
+The field `version` will become case-sensitive.
+
+### Resource: `azurerm_public_ip_prefix`
+
+The fields `availability_zone` and `zones` will be consolidated into `zones`.
+
+### Resource: `azurerm_public_ip`
+
+The fields `availability_zone` and `zones` will be consolidated into `zones`.
+
+### Resource: `azurerm_purview_account`
+
+The deprecated field `sku_name` will be removed since this property can no longer be specified on create/update.
+
+The `identity` block is now required to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187). You will need to add:
+
+```hcl
+resource "azurerm_purview_account" "example" {
+  # ...
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+```
+
+### Resource: `azurerm_redis_cache`
+
+The default value for the field `minimum_tls_version` will change from `1.0` to `1.2`.
+
+### Resource: `azurerm_redis_enterprise_cluster`
+
+The deprecated field `version` will be removed since it is not returned by the Azure API.
+
+### Resource: `azurerm_redis_linked_server`
+
+The field `server_role` will become case-sensitive.
+
+### Resource: `azurerm_route_table`
+
+The field `route` will be moved from a List to a Set, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+
+### Resource: `azurerm_template_deployment`
+
+The resource `azurerm_template_deployment` will be deprecated in favour of the `azurerm_tenant_template_deployment`, `azurerm_subscription_template_deployment`, `azurerm_management_group_template_deployment` and `azurerm_resource_group_template_deployment` resources.
+
+### Resource: `azurerm_security_center_assessment_metadata`
+
+The `azurerm_security_center_assessment_metadata` resource will be removed in favour of the renamed `azurerm_security_center_assessment_policy` resource.
+
+### Resource: `azurerm_security_center_server_vulnerability_assessment`
+
+This resource is now deprecated and will be removed in v4.0 of the AzureRM Provider - use the `azurerm_security_center_server_vulnerability_assessment_virtual_machine` resource instead.
+
+### Resource: `azurerm_sentinel_alert_rule_ms_security_incident`
+
+The deprecated field `text_whitelist` will be removed in favour of the `display_name_filter` property.
+
+### Resource: `azurerm_sentinel_alert_rule_scheduled`
+
+The field `entity_matching_method` can no longer be set to the legacy values `All`, `Custom` or `None` - use `AnyAlert`, `Selected` and `AllEntities` instead.
+
+The field `group_by` will be renamed to `group_by_entities`.
+
+### Resource: `azurerm_servicebus_queue`
+
+The deprecated field `namespace_name` will be removed in favour of the `namespace_id`.
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `namespace_id`.
+
+### Resource: `azurerm_servicebus_queue_authorization_rule`
+
+The deprecated field `queue_name` will be removed in favour of the `queue_id`.
+
+The deprecated field `namespace_name` will be removed since it can be inferred from the `queue_id`.
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `queue_id`.
+
+### Resource: `azurerm_servicebus_namespace_authorization_rule`
+
+The deprecated field `namespace_name` will be removed in favour of the `namespace_id`.
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `namespace_id`.
+
+### Resource: `azurerm_servicebus_namespace_network_rule_set`
+
+The deprecated field `namespace_name` will be removed in favour of the `namespace_id`.
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `namespace_id`.
+
+### Resource: `azurerm_servicebus_subscription`
+
+The deprecated field `topic_name` will be removed in favour of the `topic_id`.
+
+The deprecated field `namespace_name` will be removed since it can be inferred from the `topic_id`.
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `topic_id`.
+
+### Resource: `azurerm_servicebus_subscription_rule`
+
+The deprecated field `subscription_name` will be removed in favour of the `subscription_id`.
+
+The deprecated field `topic_name` will be removed since it can be inferred from the `subscription_id`.
+
+The deprecated field `namespace_name` will be removed since it can be inferred from the `subscription_id`.
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `subscription_id`.
+
+### Resource: `azurerm_servicebus_topic`
+
+The deprecated field `namespace_name` will be removed in favour of the `namespace_id`.
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `subscription_id`.
+
+### Resource: `azurerm_servicebus_topic_authorization_rule`
+
+The deprecated field `topic_name` will be removed in favour of the `topic_id`.
+
+The deprecated field `namespace_name` will be removed since it can be inferred from the `topic_id`.
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `topic_id`.
+
+### Resource: `azurerm_service_fabric_mesh_application`
+
+The resource `azurerm_service_fabric_mesh_application` will be removed since Service Fabric Mesh will be retired ([more information can be found here](https://azure.microsoft.com/en-us/updates/azure-service-fabric-mesh-preview-retirement/))
+
+### Resource: `azurerm_service_fabric_mesh_local_network`
+
+The resource `azurerm_service_fabric_mesh_local_network` will be removed since Service Fabric Mesh will be retired ([more information can be found here](https://azure.microsoft.com/en-us/updates/azure-service-fabric-mesh-preview-retirement/))
+
+### Resource: `azurerm_service_fabric_mesh_secret`
+
+The resource `azurerm_service_fabric_mesh_local_network` will be removed since Service Fabric Mesh will be retired ([more information can be found here](https://azure.microsoft.com/en-us/updates/azure-service-fabric-mesh-preview-retirement/))
+
+### Resource: `azurerm_service_fabric_mesh_secret_value`
+
+The resource `azurerm_service_fabric_mesh_secret_value` will be removed since Service Fabric Mesh will be retired ([more information can be found here](https://azure.microsoft.com/en-us/updates/azure-service-fabric-mesh-preview-retirement/))
+
+### Resource: `azurerm_signalr_service`
+
+The block `features` will be removed in favour of the `connectivity_logs_enabled`, `messaging_logs_enabled`, `live_trace_enabled` and `service_mode` properties.
+
+### Resource: `azurerm_sql_database`
+
+The deprecated field `use_server_default` within the `threat_detection_policy` block will be removed since it is no longer used.
+
+The deprecated block `extended_auditing_policy` will be removed and replace by the `azurerm_mssql_database_extended_auditing_policy` resource.
+
+### Resource: `azurerm_sql_server`
+
+The deprecated block `extended_auditing_policy` will be removed and replace by the `azurerm_mssql_server_extended_auditing_policy` resource.
+
+### Resource: `azurerm_spring_cloud_java_deployment`
+
+The deprecated field `cpu` will be removed in favour of the `quota.cpu` property.
+
+The deprecated field `memory_in_gb` will be removed in favour of the `quota.memory` property.
+
+### Resource: `azurerm_spring_cloud_service`
+
+The deprecated field `instrumentation_key` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_storage_account`
+
+The default value for the field `min_tls_version` will change from `TLS1_0` to `TLS1_2`.
+
+The field `allow_blob_public_access` will be removed in favour of the `allow_nested_items_to_be_public` property.
+
+The field `customer_managed_key` is no longer Computed - this means that if you wish to manage CMK via the `azurerm_storage_account_customer_managed_key` resource, you must use `ignore_changes` on the `customer_managed_key` field.
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The `type` field within the `identity` block now requires that the value `SystemAssigned,UserAssigned` is `SystemAssigned, UserAssigned` to be consistent with other identity blocks.
+
+### Resource: `azurerm_storage_account_network_rules`
+
+The deprecated field `storage_account_name` will be removed in favour of the `storage_account_id` property.
+
+The deprecated field `resource_group_name` will be removed since it can be inferred from the `storage_account_id` property.
+
+### Resource: `azurerm_storage_blob_inventory_policy`
+
+The deprecated field `storage_container_name` will be removed as it is no longer functional.
+
+### Resource: `azurerm_storage_management_policy`
+
+The default value for the field `actions.base_blob.tier_to_cool_after_days_since_modification_greater_than` will change from null to `-1`.
+
+The default value for the field `actions.base_blob.tier_to_archive_after_days_since_modification_greater_than` will change from null to `-1`.
+
+The default value for the field `actions.base_blob.delete_after_days_since_modification_greater_than` will change from null to `-1`.
+
+The default value for the field `actions.snapshot.delete_after_days_since_creation_greater_than` will change from null to `-1`.
+
+### Resource: `azurerm_storage_disks_pool`
+
+This resource will be removed in favour of the `azurerm_disk_pool` resource.
+
+### Resource: `azurerm_subnet`
+
+The deprecated field `address_prefix` will be removed in favour of the `address_prefixes` property.
+
+The field `service_endpoints` will be moved from a List to a Set, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+
+### Resource: `azurerm_synapse_role_assignment`
+
+The field `role_name` will no longer accept the values `Workspace Admin`, `Apache Spark Admin` and `Sql Admin`.
+
+### Resource: `azurerm_synapse_spark_pool`
+
+The field `spark_version` will no longer accept the value `3.0`.
+
+### Resource: `azurerm_synapse_workspace`
+
+The `identity` block is now required to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187). You will need to add:
+
+```hcl
+resource "azurerm_synapse_workspace" "example" {
+  # ...
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+```
+
+### Resource: `azurerm_synapse_workspace_key`
+
+The deprecated field `cusomter_managed_key_name` will be removed in favour of the `customer_managed_key_name` property.
+
+### Resource: `azurerm_traffic_manager_endpoint`
+
+The resource `azurerm_traffic_manager_endpoint` will be removed in favour of the `azurerm_traffic_manager_azure_endpoint`, `azurerm_traffic_manager_external_endpoint` and `azurerm_traffic_manager_nested_endpoint` resources.
+
+### Resource: `azurerm_virtual_desktop_host_pool`
+
+The deprecated `registration_info` block will be removed - use the `azurerm_virtual_desktop_host_pool_registration_info` block instead.
+
+### Resource: `azurerm_virtual_hub_connection`
+
+The deprecated field `hub_to_vitual_network_traffic_allowed` will be removed since it is no longer supported by the Azure API.
+
+The deprecated field `vitual_network_to_hub_gateways_traffic_allowed` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_virtual_hub_ip`
+
+The field `public_ip_address_id` will become Required.
+
+### Resource: `azurerm_virtual_machine_configuration_policy_assignment`
+
+The `azurerm_virtual_machine_configuration_policy_assignment` resource will be removed in favour of the `azurerm_policy_virtual_machine_configuration_assignment` resource.
+
+### Resource: `azurerm_virtual_machine_scale_set`
+
+The `azurerm_virtual_machine_scale_set` resource has been superseded by the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.
+
+### Resource: `azurerm_virtual_network`
+
+The deprecated field `vm_protection_enabled` will be removed in favour of the `ddos_protection_plan` property.
+
+### Resource: `azurerm_virtual_network_gateway`
+
+The deprecated field `peering_address` within the `bgp_settings` block will be removed in favour of the `default_addresses` property (also within the `bgp_settings` block).
+
+### Resource: `azurerm_virtual_wan`
+
+The deprecated field `allow_vnet_to_vnet_traffic` will be removed since it is no longer supported by the Azure API.
+
+### Resource: `azurerm_vpn_gateway_connection`
+
+The deprecated field `propagated_route_tables` will be removed in favour of the `propagated_route_table` property.
+
+### Resource: `azurerm_vpn_server_configuration`
+
+The deprecated field `radius_server` will be removed in favour of the `radius` property.
+
+### Resource: `azurerm_windows_virtual_machine_scale_set`
+
+The deprecated field `data_disk.disk_iops_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_iops_read_write` property.
+
+The deprecated field `data_disk.disk_mbps_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_mbps_read_write` property.

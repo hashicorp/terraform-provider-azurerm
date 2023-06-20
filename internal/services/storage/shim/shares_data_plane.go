@@ -43,9 +43,8 @@ func (w DataPlaneStorageShareWrapper) Create(ctx context.Context, _, accountName
 			Timeout:        time.Until(timeout),
 		}
 
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return err
-		}
+		_, err := stateConf.WaitForStateContext(ctx)
+		return err
 	}
 
 	// otherwise it's a legit error, so raise it
@@ -88,9 +87,10 @@ func (w DataPlaneStorageShareWrapper) Get(ctx context.Context, _, accountName, s
 
 	return &StorageShareProperties{
 		MetaData:        props.MetaData,
-		QuotaGB:         props.ShareQuota,
+		QuotaGB:         props.QuotaInGB,
 		ACLs:            acls.SignedIdentifiers,
 		EnabledProtocol: props.EnabledProtocol,
+		AccessTier:      props.AccessTier,
 	}, nil
 }
 
@@ -105,7 +105,17 @@ func (w DataPlaneStorageShareWrapper) UpdateMetaData(ctx context.Context, _, acc
 }
 
 func (w DataPlaneStorageShareWrapper) UpdateQuota(ctx context.Context, _, accountName, shareName string, quotaGB int) error {
-	_, err := w.client.SetProperties(ctx, accountName, shareName, quotaGB)
+	_, err := w.client.SetProperties(ctx, accountName, shareName, shares.ShareProperties{
+		QuotaInGb: &quotaGB,
+	})
+	return err
+}
+
+func (w DataPlaneStorageShareWrapper) UpdateTier(ctx context.Context, _, accountname, shareName string, tier shares.AccessTier) error {
+	props := shares.ShareProperties{
+		AccessTier: &tier,
+	}
+	_, err := w.client.SetProperties(ctx, accountname, shareName, props)
 	return err
 }
 

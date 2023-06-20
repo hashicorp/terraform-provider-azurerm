@@ -17,13 +17,13 @@ func FlexibleServerAdministratorLogin(i interface{}, k string) (warnings []strin
 		return
 	}
 
-	if len(v) > 63 {
-		errors = append(errors, fmt.Errorf("length should be equal to or less than %d, got %q", 63, v))
+	if len(v) > 32 {
+		errors = append(errors, fmt.Errorf("length should be equal to or less than %d, got %q", 32, v))
 		return
 	}
 
-	if !regexp.MustCompile(`^[a-zA-Z0-9]*$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q must only contains characters and numbers, got %v", k, v))
+	if !regexp.MustCompile(`^[a-zA-Z0-9_]*$`).MatchString(v) {
+		errors = append(errors, fmt.Errorf("%q must only contains characters, numbers or '_', got %v", k, v))
 		return
 	}
 

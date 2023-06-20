@@ -35,13 +35,13 @@ The following arguments are supported:
 
 ---
 
-* `data_location` - (Optional) The location where the Communication service stores its data at rest. Possible values are `Asia Pacific`, `Australia`, `Europe`, `UK` and `United States`. Defaults to `United States`.
+* `data_location` - (Optional) The location where the Communication service stores its data at rest. Possible values are `Africa`, `Asia Pacific`, `Australia`, `Brazil`, `Canada`, `Europe`, `France`, `Germany`, `India`, `Japan`, `Korea`, `Norway`, `Switzerland`, `UAE`, `UK` and `United States`. Defaults to `United States`. Changing this forces a new Communication Service to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Communication Service.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Communication Service.
 * `primary_connection_string` - The primary connection string of the Communication Service.
@@ -51,7 +51,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Communication Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Communication Service.
@@ -63,5 +63,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Communication Services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_communication_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Communication/CommunicationServices/communicationService1
+terraform import azurerm_communication_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Communication/communicationServices/communicationService1
 ```

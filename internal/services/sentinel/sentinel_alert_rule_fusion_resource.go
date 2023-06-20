@@ -5,16 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	loganalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
@@ -25,9 +22,9 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 		Delete: resourceSentinelAlertRuleFusionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.AlertRuleID(id)
+			_, err := alertrules.ParseAlertRuleID(id)
 			return err
-		}, importSentinelAlertRule(securityinsight.AlertRuleKindFusion)),
+		}, importSentinelAlertRule(alertrules.AlertRuleKindFusion)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -48,7 +45,7 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
+				ValidateFunc: alertrules.ValidateWorkspaceID,
 			},
 
 			"alert_rule_template_guid": {
@@ -63,6 +60,62 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
+			"source": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				// Service will auto-fill this if not given in request, based on the "alert_rule_template_guid".
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"sub_type": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+									"severities_allowed": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(
+												[]string{
+													string(alertrules.AlertSeverityHigh),
+													string(alertrules.AlertSeverityMedium),
+													string(alertrules.AlertSeverityLow),
+													string(alertrules.AlertSeverityInformational),
+												},
+												false,
+											),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -74,48 +127,48 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	name := d.Get("name").(string)
 
-	workspaceID, err := loganalyticsParse.LogAnalyticsWorkspaceID(d.Get("log_analytics_workspace_id").(string))
+	workspaceID, err := alertrules.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
+	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
+		resp, err := client.AlertRulesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Sentinel Alert Rule Fusion %q: %+v", id, err)
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %q: %+v", id, err)
 			}
 		}
 
-		id := alertRuleID(resp.Value)
-		if id != nil && *id != "" {
-			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_fusion", *id)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_fusion", id.ID())
 		}
 	}
 
-	params := securityinsight.FusionAlertRule{
-		Kind: securityinsight.KindBasicAlertRuleKindFusion,
-		FusionAlertRuleProperties: &securityinsight.FusionAlertRuleProperties{
-			AlertRuleTemplateName: utils.String(d.Get("alert_rule_template_guid").(string)),
-			Enabled:               utils.Bool(d.Get("enabled").(bool)),
+	params := alertrules.FusionAlertRule{
+		Properties: &alertrules.FusionAlertRuleProperties{
+			AlertRuleTemplateName: d.Get("alert_rule_template_guid").(string),
+			Enabled:               d.Get("enabled").(bool),
+			SourceSettings:        expandFusionSourceSettings(d.Get("source").([]interface{})),
 		},
 	}
 
-	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
+		resp, err := client.AlertRulesGet(ctx, id)
 		if err != nil {
-			return fmt.Errorf("retrieving Sentinel Alert Rule Fusion %q: %+v", id, err)
+			return fmt.Errorf("retrieving %q: %+v", id, err)
 		}
 
-		if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindFusion); err != nil {
+		if resp.Model == nil {
+			return fmt.Errorf("retrieving %q: model was nil", id)
+		}
+		if err = assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
 			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
-		params.Etag = resp.Value.(securityinsight.FusionAlertRule).Etag
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name, params); err != nil {
+	if _, err := client.AlertRulesCreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule Fusion %q: %+v", id, err)
 	}
 
@@ -129,15 +182,15 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AlertRuleID(d.Id())
+	id, err := alertrules.ParseAlertRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+	resp, err := client.AlertRulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Sentinel Alert Rule Fusion %q was not found - removing from state!", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %q was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
@@ -145,19 +198,25 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving Sentinel Alert Rule Fusion %q: %+v", id, err)
 	}
 
-	if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindFusion); err != nil {
-		return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
-	}
-	rule := resp.Value.(securityinsight.FusionAlertRule)
+	if model := resp.Model; model != nil {
+		if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
+			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
+		}
+		modelPtr := *model
+		rule := modelPtr.(alertrules.FusionAlertRule)
 
-	d.Set("name", id.Name)
+		d.Set("name", id.RuleId)
 
-	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
-	d.Set("log_analytics_workspace_id", workspaceId.ID())
+		workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+		d.Set("log_analytics_workspace_id", workspaceId.ID())
 
-	if prop := rule.FusionAlertRuleProperties; prop != nil {
-		d.Set("enabled", prop.Enabled)
-		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+		if prop := rule.Properties; prop != nil {
+			d.Set("enabled", prop.Enabled)
+			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+			if err := d.Set("source", flattenFusionSourceSettings(prop.SourceSettings)); err != nil {
+				return fmt.Errorf("setting `source`: %v", err)
+			}
+		}
 	}
 
 	return nil
@@ -168,14 +227,137 @@ func resourceSentinelAlertRuleFusionDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AlertRuleID(d.Id())
+	id, err := alertrules.ParseAlertRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+	if _, err := client.AlertRulesDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Sentinel Alert Rule Fusion %q: %+v", id, err)
 	}
 
 	return nil
+}
+
+func expandFusionSourceSettings(input []interface{}) *[]alertrules.FusionSourceSettings {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]alertrules.FusionSourceSettings, 0)
+
+	for _, e := range input {
+		e := e.(map[string]interface{})
+		setting := alertrules.FusionSourceSettings{
+			Enabled:        e["enabled"].(bool),
+			SourceName:     e["name"].(string),
+			SourceSubTypes: expandFusionSourceSubTypes(e["sub_type"].([]interface{})),
+		}
+		result = append(result, setting)
+	}
+
+	return &result
+}
+
+func expandFusionSourceSubTypes(input []interface{}) *[]alertrules.FusionSourceSubTypeSetting {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]alertrules.FusionSourceSubTypeSetting, 0)
+
+	for _, e := range input {
+		e := e.(map[string]interface{})
+		setting := alertrules.FusionSourceSubTypeSetting{
+			Enabled:           e["enabled"].(bool),
+			SourceSubTypeName: e["name"].(string),
+			SeverityFilters: alertrules.FusionSubTypeSeverityFilter{
+				Filters: expandFusionSubTypeSeverityFiltersItems(e["severities_allowed"].(*pluginsdk.Set).List()),
+			},
+		}
+		result = append(result, setting)
+	}
+
+	return &result
+}
+
+func expandFusionSubTypeSeverityFiltersItems(input []interface{}) *[]alertrules.FusionSubTypeSeverityFiltersItem {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]alertrules.FusionSubTypeSeverityFiltersItem, 0)
+
+	// We can't simply remove the disabled properties in the request, as that will be reflected to the backend model (i.e. those unspecified severity will be absent also).
+	// As any absent severity then will not be shown in the Portal when users try to edit the alert rule. The drop down menu won't show these absent severities...
+	filters := map[string]bool{}
+	for _, e := range alertrules.PossibleValuesForAlertSeverity() {
+		filters[e] = false
+	}
+
+	for _, e := range input {
+		filters[e.(string)] = true
+	}
+
+	for severity, enabled := range filters {
+		item := alertrules.FusionSubTypeSeverityFiltersItem{
+			Enabled:  enabled,
+			Severity: alertrules.AlertSeverity(severity),
+		}
+		result = append(result, item)
+	}
+
+	return &result
+}
+
+func flattenFusionSourceSettings(input *[]alertrules.FusionSourceSettings) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		output = append(output, map[string]interface{}{
+			"name":     e.SourceName,
+			"enabled":  e.Enabled,
+			"sub_type": flattenFusionSourceSubTypes(e.SourceSubTypes),
+		})
+	}
+
+	return output
+}
+
+func flattenFusionSourceSubTypes(input *[]alertrules.FusionSourceSubTypeSetting) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		output = append(output, map[string]interface{}{
+			"name":               e.SourceSubTypeName,
+			"enabled":            e.Enabled,
+			"severities_allowed": flattenFusionSubTypeSeverityFiltersItems(e.SeverityFilters.Filters),
+		})
+	}
+
+	return output
+}
+
+func flattenFusionSubTypeSeverityFiltersItems(input *[]alertrules.FusionSubTypeSeverityFiltersItem) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, e := range *input {
+		if e.Enabled {
+			output = append(output, string(e.Severity))
+		}
+	}
+
+	return output
 }

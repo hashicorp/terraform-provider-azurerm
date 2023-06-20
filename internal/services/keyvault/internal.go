@@ -18,7 +18,6 @@ import (
 type deleteAndPurgeNestedItem interface {
 	DeleteNestedItem(ctx context.Context) (autorest.Response, error)
 	NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error)
-
 	PurgeNestedItem(ctx context.Context) (autorest.Response, error)
 	NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error)
 }

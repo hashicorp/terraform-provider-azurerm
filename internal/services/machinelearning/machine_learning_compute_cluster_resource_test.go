@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -62,6 +62,28 @@ func TestAccComputeCluster_complete(t *testing.T) {
 	})
 }
 
+func TestAccComputeCluster_recreateVmSize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
+	r := ComputeClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.recreateVmSize(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccComputeCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
 	r := ComputeClusterResource{}
@@ -101,7 +123,7 @@ func TestAccComputeCluster_identity(t *testing.T) {
 			Config: r.identitySystemAssignedUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -117,7 +139,7 @@ func TestAccComputeCluster_identity(t *testing.T) {
 			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -126,21 +148,20 @@ func TestAccComputeCluster_identity(t *testing.T) {
 }
 
 func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	computeClusterClient := client.MachineLearning.MachineLearningComputeClient
-	id, err := parse.ComputeClusterID(state.ID)
-
+	computeClusterClient := client.MachineLearning.ComputeClient
+	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	computeResource, err := computeClusterClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
+	computeResource, err := computeClusterClient.ComputeGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(computeResource.Response) {
+		if response.WasNotFound(computeResource.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Compute Cluster %q: %+v", state.ID, err)
 	}
-	return utils.Bool(computeResource.Properties != nil), nil
+	return utils.Bool(computeResource.Model.Properties != nil), nil
 }
 
 func (r ComputeClusterResource) basic(data acceptance.TestData) string {
@@ -184,6 +205,11 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   vm_size                       = "STANDARD_DS2_V2"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   subnet_resource_id            = azurerm_subnet.test.id
+  node_public_ip_enabled        = false
+  description                   = "Machine Learning"
+  tags = {
+    environment = "test"
+  }
   scale_settings {
     min_node_count                       = 0
     max_node_count                       = 1
@@ -200,8 +226,35 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
     key_value      = var.ssh_key
   }
   depends_on = [
-    azurerm_subnet_network_security_group_association.test
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_private_endpoint.test,
   ]
+}
+`, template, data.RandomIntOfLength(8))
+}
+
+func (r ComputeClusterResource) recreateVmSize(data acceptance.TestData) string {
+	template := r.template_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_compute_cluster" "test" {
+  name                          = "CC-%d"
+  location                      = azurerm_resource_group.test.location
+  vm_priority                   = "LowPriority"
+  vm_size                       = "STANDARD_D1_V2"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  local_auth_enabled            = false
+
+  scale_settings {
+    min_node_count                       = 0
+    max_node_count                       = 1
+    scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template, data.RandomIntOfLength(8))
 }
@@ -304,7 +357,7 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
     scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
   }
   identity {
-    type = "SystemAssigned,UserAssigned"
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
@@ -316,7 +369,11 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 func (r ComputeClusterResource) template_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -375,7 +432,11 @@ resource "azurerm_machine_learning_workspace" "test" {
 func (r ComputeClusterResource) template_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -427,6 +488,37 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 }
 
+resource "azurerm_private_dns_zone" "test" {
+  name                = "privatelink.api.azureml.ms"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                  = "test-vlink"
+  resource_group_name   = azurerm_resource_group.test.name
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "test-pe-%[6]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+
+  private_service_connection {
+    name                           = "test-mlworkspace-%[7]d"
+    private_connection_resource_id = azurerm_machine_learning_workspace.test.id
+    subresource_names              = ["amlworkspace"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "test"
+    private_dns_zone_ids = [azurerm_private_dns_zone.test.id]
+  }
+}
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%[6]d"
   address_space       = ["10.1.0.0/16"]
@@ -438,7 +530,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[7]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -464,5 +556,6 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary,
 		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
-		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

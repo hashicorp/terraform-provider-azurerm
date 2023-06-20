@@ -7,7 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -49,9 +50,9 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateMsSqlElasticPoolName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"server_name": {
 				Type:         pluginsdk.TypeString,
@@ -80,8 +81,8 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"BC_Gen4",
 								"BC_Gen5",
 								"BC_DC",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+								"HS_Gen5",
+							}, false),
 						},
 
 						"capacity": {
@@ -99,8 +100,8 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"Premium",
 								"GeneralPurpose",
 								"BusinessCritical",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+								"Hyperscale",
+							}, false),
 						},
 
 						"family": {
@@ -111,11 +112,17 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"Gen5",
 								"Fsv2",
 								"DC",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 					},
 				},
+			},
+
+			"maintenance_configuration_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "SQL_Default",
+				ValidateFunc: validation.StringInSlice(resourceMsSqlDatabaseMaintenanceNames(), false),
 			},
 
 			"per_database_settings": {
@@ -185,25 +192,24 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 
 func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ElasticPoolsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for MSSQL ElasticPool creation.")
 
-	elasticPoolName := d.Get("name").(string)
-	serverName := d.Get("server_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewElasticPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, serverName, elasticPoolName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Elastic Pool %q (MSSQL Server %q / Resource Group %q): %s", elasticPoolName, serverName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_elasticpool", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_mssql_elasticpool", id.ID())
 		}
 	}
 
@@ -211,16 +217,26 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	sku := expandMsSqlElasticPoolSku(d)
 	t := d.Get("tags").(map[string]interface{})
 
+	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, d.Get("maintenance_configuration_name").(string))
 	elasticPool := sql.ElasticPool{
-		Name:     &elasticPoolName,
+		Name:     &id.Name,
 		Location: &location,
 		Sku:      sku,
 		Tags:     tags.Expand(t),
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
-			LicenseType:         sql.ElasticPoolLicenseType(d.Get("license_type").(string)),
-			PerDatabaseSettings: expandMsSqlElasticPoolPerDatabaseSettings(d),
-			ZoneRedundant:       utils.Bool(d.Get("zone_redundant").(bool)),
+			LicenseType:                sql.ElasticPoolLicenseType(d.Get("license_type").(string)),
+			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
+			ZoneRedundant:              utils.Bool(d.Get("zone_redundant").(bool)),
+			MaintenanceConfigurationID: utils.String(maintenanceConfigId.ID()),
 		},
+	}
+
+	if _, ok := d.GetOk("license_type"); ok {
+		if sku.Tier != nil && (*sku.Tier == "GeneralPurpose" || *sku.Tier == "BusinessCritical") {
+			elasticPool.ElasticPoolProperties.LicenseType = sql.ElasticPoolLicenseType(d.Get("license_type").(string))
+		} else {
+			return fmt.Errorf("`license_type` can only be configured when `sku.0.tier` is set to `GeneralPurpose` or `BusinessCritical`")
+		}
 	}
 
 	if d.HasChange("max_size_gb") {
@@ -232,7 +248,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		elasticPool.MaxSizeBytes = utils.Int64(int64(v.(int)))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, elasticPoolName, elasticPool)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, elasticPool)
 	if err != nil {
 		return err
 	}
@@ -241,15 +257,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, serverName, elasticPoolName)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read MsSQL ElasticPool %q (resource group %q) ID", elasticPoolName, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceMsSqlElasticPoolRead(d, meta)
 }
@@ -301,6 +309,12 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
 			return fmt.Errorf("setting `per_database_settings`: %+v", err)
 		}
+
+		maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationIDInsensitively(*properties.MaintenanceConfigurationID)
+		if err != nil {
+			return err
+		}
+		d.Set("maintenance_configuration_name", maintenanceConfigId.PublicMaintenanceConfigurationName)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

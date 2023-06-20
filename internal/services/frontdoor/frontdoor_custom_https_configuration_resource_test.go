@@ -6,17 +6,16 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontDoorCustomHttpsConfigurationResource struct {
-}
+type FrontDoorCustomHttpsConfigurationResource struct{}
 
 func TestAccFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
@@ -262,9 +261,12 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctest-FD-%d"
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "acctest-FD-%d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
 
   routing_rule {
     name               = "routing-rule"

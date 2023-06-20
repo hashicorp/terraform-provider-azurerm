@@ -5,13 +5,14 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/objectreplicationpolicies"
 )
 
-var _ resourceid.Formatter = ObjectReplicationId{}
-
 func TestObjectReplicationIDFormatter(t *testing.T) {
-	actual := NewObjectReplicationID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "objectReplicationPolicy1", "12345678-1234-9876-4563-123456789012", "resGroup2", "storageAccount2", "objectReplicationPolicy2").ID()
+	actual := NewObjectReplicationID(
+		objectreplicationpolicies.NewObjectReplicationPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "objectReplicationPolicy1"),
+		objectreplicationpolicies.NewObjectReplicationPolicyID("12345678-1234-9876-4563-123456789012", "resGroup2", "storageAccount2", "objectReplicationPolicy2"),
+	).ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/objectReplicationPolicies/objectReplicationPolicy1;/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup2/providers/Microsoft.Storage/storageAccounts/storageAccount2/objectReplicationPolicies/objectReplicationPolicy2"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -24,7 +25,6 @@ func TestObjectReplicationID(t *testing.T) {
 		Error    bool
 		Expected *ObjectReplicationId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -131,14 +131,18 @@ func TestObjectReplicationID(t *testing.T) {
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/objectReplicationPolicies/objectReplicationPolicy1;/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup2/providers/Microsoft.Storage/storageAccounts/storageAccount2/objectReplicationPolicies/objectReplicationPolicy2",
 			Expected: &ObjectReplicationId{
-				SrcSubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				SrcResourceGroup:      "resGroup1",
-				SrcStorageAccountName: "storageAccount1",
-				SrcName:               "objectReplicationPolicy1",
-				DstSubscriptionId:     "12345678-1234-9876-4563-123456789012",
-				DstResourceGroup:      "resGroup2",
-				DstStorageAccountName: "storageAccount2",
-				DstName:               "objectReplicationPolicy2",
+				Src: objectreplicationpolicies.ObjectReplicationPolicyId{
+					SubscriptionId:            "12345678-1234-9876-4563-123456789012",
+					ResourceGroupName:         "resGroup1",
+					StorageAccountName:        "storageAccount1",
+					ObjectReplicationPolicyId: "objectReplicationPolicy1",
+				},
+				Dst: objectreplicationpolicies.ObjectReplicationPolicyId{
+					SubscriptionId:            "12345678-1234-9876-4563-123456789012",
+					ResourceGroupName:         "resGroup2",
+					StorageAccountName:        "storageAccount2",
+					ObjectReplicationPolicyId: "objectReplicationPolicy2",
+				},
 			},
 		},
 
@@ -164,29 +168,29 @@ func TestObjectReplicationID(t *testing.T) {
 			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.SrcSubscriptionId != v.Expected.SrcSubscriptionId {
-			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SrcSubscriptionId, actual.SrcSubscriptionId)
+		if actual.Src.SubscriptionId != v.Expected.Src.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.Src.SubscriptionId, actual.Src.SubscriptionId)
 		}
-		if actual.SrcResourceGroup != v.Expected.SrcResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.SrcResourceGroup, actual.SrcResourceGroup)
+		if actual.Src.ResourceGroupName != v.Expected.Src.ResourceGroupName {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.Src.ResourceGroupName, actual.Src.ResourceGroupName)
 		}
-		if actual.SrcStorageAccountName != v.Expected.SrcStorageAccountName {
-			t.Fatalf("Expected %q but got %q for StorageAccountName", v.Expected.SrcStorageAccountName, actual.SrcStorageAccountName)
+		if actual.Src.StorageAccountName != v.Expected.Src.StorageAccountName {
+			t.Fatalf("Expected %q but got %q for StorageAccountName", v.Expected.Src.StorageAccountName, actual.Src.StorageAccountName)
 		}
-		if actual.SrcName != v.Expected.SrcName {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.SrcName, actual.SrcName)
+		if actual.Src.ObjectReplicationPolicyId != v.Expected.Src.ObjectReplicationPolicyId {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Src.ObjectReplicationPolicyId, actual.Src.ObjectReplicationPolicyId)
 		}
-		if actual.DstSubscriptionId != v.Expected.DstSubscriptionId {
-			t.Fatalf("Expected %q but got %q for SubscriptionName", v.Expected.DstSubscriptionId, actual.DstSubscriptionId)
+		if actual.Dst.SubscriptionId != v.Expected.Dst.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.Dst.SubscriptionId, actual.Dst.SubscriptionId)
 		}
-		if actual.DstResourceGroup != v.Expected.DstResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.DstResourceGroup, actual.DstResourceGroup)
+		if actual.Dst.ResourceGroupName != v.Expected.Dst.ResourceGroupName {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.Dst.ResourceGroupName, actual.Dst.ResourceGroupName)
 		}
-		if actual.DstStorageAccountName != v.Expected.DstStorageAccountName {
-			t.Fatalf("Expected %q but got %q for StorageAccountName", v.Expected.DstStorageAccountName, actual.DstStorageAccountName)
+		if actual.Dst.StorageAccountName != v.Expected.Dst.StorageAccountName {
+			t.Fatalf("Expected %q but got %q for StorageAccountName", v.Expected.Dst.StorageAccountName, actual.Dst.StorageAccountName)
 		}
-		if actual.DstName != v.Expected.DstName {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.DstName, actual.DstName)
+		if actual.Dst.ObjectReplicationPolicyId != v.Expected.Dst.ObjectReplicationPolicyId {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Dst.ObjectReplicationPolicyId, actual.Dst.ObjectReplicationPolicyId)
 		}
 	}
 }

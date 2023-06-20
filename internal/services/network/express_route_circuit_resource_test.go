@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ExpressRouteCircuitResource struct {
-}
+type ExpressRouteCircuitResource struct{}
 
 func TestAccExpressRouteCircuit(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
@@ -34,6 +33,7 @@ func TestAccExpressRouteCircuit(t *testing.T) {
 			"bandwidthReduction":           testAccExpressRouteCircuit_bandwidthReduction,
 			"port":                         testAccExpressRouteCircuit_withExpressRoutePort,
 			"updatePort":                   testAccExpressRouteCircuit_updateExpressRoutePort,
+			"authorizationKey":             testAccExpressRouteCircuit_authorizationKey,
 		},
 		"PrivatePeering": {
 			"azurePrivatePeering":           testAccExpressRouteCircuitPeering_azurePrivatePeering,
@@ -66,6 +66,22 @@ func TestAccExpressRouteCircuit(t *testing.T) {
 			}
 		})
 	}
+}
+
+func testAccExpressRouteCircuit_authorizationKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authorizationKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("authorization_key").Exists(),
+			),
+		},
+		data.ImportStep("authorization_key"),
+	})
 }
 
 func testAccExpressRouteCircuit_basicMetered(t *testing.T) {
@@ -603,7 +619,7 @@ resource "azurerm_express_route_circuit" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.test.id
-  bandwidth_in_gbps     = 10
+  bandwidth_in_gbps     = 5
 
   sku {
     tier   = "Standard"
@@ -611,4 +627,39 @@ resource "azurerm_express_route_circuit" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (t ExpressRouteCircuitResource) authorizationKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+  authorization_key     = "b0be57f5-1fba-463b-adec-ffe767354cdd"
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+
+  allow_classic_operations = false
+
+  tags = {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

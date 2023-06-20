@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Specifies the description for the Security Center Automation.
 
-* `enabled` - (Optional) Boolean to enable or disable this Security Center Automation.
+* `enabled` - (Optional) Boolean to enable or disable this Security Center Automation. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
@@ -105,25 +105,25 @@ A `action` block defines where the data will be exported and sent to, it support
 
 * `resource_id` - (Required) The resource id of the target Logic App, Event Hub namespace or Log Analytics workspace.
 
-* `connection_string` - (Optional, but required when `type` is `EventHub`) A connection string to send data to the target Event Hub namespace, this should include a key with send permissions.
+* `connection_string` - (Optional) (Optional, but required when `type` is `EventHub`) A connection string to send data to the target Event Hub namespace, this should include a key with send permissions.
 
-* `trigger_url` - (Optional, but required when `type` is `LogicApp`) The callback URL to trigger the Logic App that will receive and process data sent by this automation. This can be found in the Azure Portal under "See trigger history"
+* `trigger_url` - (Optional) (Optional, but required when `type` is `LogicApp`) The callback URL to trigger the Logic App that will receive and process data sent by this automation. This can be found in the Azure Portal under "See trigger history"
 
 ---
 
 A `source` block defines the source data in Security Center to be exported, supports the following:
 
-* `event_source` - (Required) Type of data that will trigger this automation. Must be one of `Alerts`, `Assessments`, `SecureScoreControls`, `SecureScores` or `SubAssessments`. Note. assessments are also referred to as recommendations 
+* `event_source` - (Required) Type of data that will trigger this automation. Must be one of `Alerts`, `Assessments`, `AssessmentsSnapshot`, `RegulatoryComplianceAssessment`, `RegulatoryComplianceAssessmentSnapshot`, `SecureScoreControls`, `SecureScoreControlsSnapshot`, `SecureScores`, `SecureScoresSnapshot`, `SubAssessments` or `SubAssessmentsSnapshot`. Note. assessments are also referred to as recommendations
 
 * `rule_set` - (Optional) A set of rules which evaluate upon event and data interception. This is defined in one or more `rule_set` blocks as defined below.
-  
+
 ~> **NOTE:** When multiple `rule_set` block are provided, a logical 'OR' is applied to the evaluation of them.
 
 ---
 
 A `rule_set` block supports the following:
 
-* `rule` - (Required) One or more `rule` blocks as defined below. 
+* `rule` - (Required) One or more `rule` blocks as defined below.
 
 ~> **NOTE:** This automation will trigger when all of the `rule`s in this `rule_set` are evaluated as 'true'. This is equivalent to a logical 'AND'.
 
@@ -139,18 +139,17 @@ A `rule` block supports the following:
 
 * `property_type` - (Required) The data type of the compared operands, must be one of: `Integer`, `String`, `Boolean` or `Number`.
 
-~> **NOTE:** The schema for Security Center alerts (when `event_source` is "Alerts") [can be found here](https://docs.microsoft.com/en-us/azure/security-center/alerts-schemas?tabs=schema-continuousexport)
-
+~> **NOTE:** The schema for Security Center alerts (when `event_source` is "Alerts") [can be found here](https://docs.microsoft.com/azure/security-center/alerts-schemas?tabs=schema-continuousexport)
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Security Center Automation.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Security Center Automation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Automation.

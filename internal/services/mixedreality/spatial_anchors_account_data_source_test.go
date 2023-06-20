@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SpatialAnchorsAccountDataSource struct {
-}
+type SpatialAnchorsAccountDataSource struct{}
 
 func TestAccSpatialAnchorsAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_spatial_anchors_account", "test")

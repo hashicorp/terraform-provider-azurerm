@@ -26,25 +26,16 @@ resource "azurerm_log_analytics_workspace" "example" {
   name                = "example-workspace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "pergb2018"
+  sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "sentinel" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  workspace_resource_id = azurerm_log_analytics_workspace.example.id
-  workspace_name        = azurerm_log_analytics_workspace.example.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_automation_rule" "example" {
   name                       = "56094f72-ac3f-40e7-a0c0-47bd95f70336"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   display_name               = "automation_rule1"
   order                      = 1
   action_incident {
@@ -74,11 +65,20 @@ The following arguments are supported:
 
 ~> **Note:** Either one `action_incident` block or `action_playbook` block has to be specified.
 
-* `condition` - (Optional) One or more `condition` blocks as defined below.
+* `condition` - (Optional / **Deprecated** ) One or more `condition` blocks as defined below.
+
+~> **Note:** `condition` only supports the [`Property` condition type](https://learn.microsoft.com/en-us/rest/api/securityinsights/preview/automation-rules/create-or-update?tabs=HTTP#propertyconditionproperties). Please use `condition_json` if you want other condition types.
+
+* `condition_json` - (Optional) A JSON array of one or more condition JSON objects as is defined [here](https://learn.microsoft.com/en-us/rest/api/securityinsights/preview/automation-rules/create-or-update?tabs=HTTP#automationruletriggeringlogic).
+
 
 * `enabled` - (Optional) Whether this Sentinel Automation Rule is enabled? Defaults to `true`.
 
 * `expiration` - (Optional) The time in RFC3339 format of kind `UTC` that determines when this Automation Rule should expire and be disabled.
+
+* `triggers_on` - (Optional) Specifies what triggers this automation rule. Possible values are `Alerts` and `Incidents`. Defaults to `Incidents`.
+
+* `triggers_when` - (Optional) Specifies when will this automation rule be triggered. Possible values are `Created` and `Updated`. Defaults to `Created`.
 
 ---
 
@@ -100,7 +100,7 @@ A `action_incident` block supports the following:
 
 * `owner_id` - (Optional) The object ID of the entity this incident is assigned to.
 
-* `severity` - (Optional) The severity to add to the incident.
+* `severity` - (Optional) The severity to add to the incident. Possible values are `High`, `Informational`, `Low` and `Medium`.
 
 ~> **Note:**: At least one of `status`, `labels`, `owner_id` and `severity` has to be set.
 
@@ -126,13 +126,13 @@ A `condition` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Sentinel Automation Rule.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 minutes) Used when creating the Sentinel Automation Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Sentinel Automation Rule.
@@ -144,5 +144,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Sentinel Automation Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sentinel_automation_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/AutomationRules/rule1
+terraform import azurerm_sentinel_automation_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/automationRules/rule1
 ```

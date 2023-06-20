@@ -105,6 +105,7 @@ resource "azurerm_application_gateway" "network" {
   request_routing_rule {
     name                       = local.request_routing_rule_name
     rule_type                  = "Basic"
+    priority                   = 25
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
@@ -126,7 +127,7 @@ resource "azurerm_network_interface" "example" {
 resource "azurerm_network_interface_application_gateway_backend_address_pool_association" "example" {
   network_interface_id    = azurerm_network_interface.example.id
   ip_configuration_name   = "testconfiguration1"
-  backend_address_pool_id = azurerm_application_gateway.network.backend_address_pool[0].id
+  backend_address_pool_id = tolist(azurerm_application_gateway.network.backend_address_pool).0.id
 }
 ```
 
@@ -142,13 +143,13 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The (Terraform specific) ID of the Association between the Network Interface and the Application Gateway Backend Address Pool.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the association between the Network Interface and the Application Gateway Backend Address Pool.
 * `update` - (Defaults to 30 minutes) Used when updating the association between the Network Interface and the Application Gateway Backend Address Pool.
@@ -160,7 +161,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Associations between Network Interfaces and Application Gateway Backend Address Pools can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_interface_application_gateway_backend_address_pool_association.association1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1/ipConfigurations/example|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/gateway1/backendAddressPools/pool1
+terraform import azurerm_network_interface_application_gateway_backend_address_pool_association.association1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkInterfaces/nic1/ipConfigurations/example|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/gateway1/backendAddressPools/pool1
 ```
 
 -> **NOTE:** This ID is specific to Terraform - and is of the format `{networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId}`.

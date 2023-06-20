@@ -10,15 +10,16 @@ description: |-
 
 Manages an Authorization Server within an API Management Service.
 
-
 ## Example Usage
 
 ```hcl
-data "azurerm_api_management_api" "example" {
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_api_management" "example" {
   name                = "search-api"
-  api_management_name = "search-api-management"
   resource_group_name = "search-service"
-  revision            = "2"
 }
 
 resource "azurerm_api_management_authorization_server" "example" {
@@ -32,6 +33,9 @@ resource "azurerm_api_management_authorization_server" "example" {
 
   grant_types = [
     "authorizationCode",
+  ]
+  authorization_methods = [
+    "GET",
   ]
 }
 ```
@@ -96,13 +100,13 @@ A `token_body_parameter` block supports the following:
 
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the API Management Authorization Server.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Authorization Server.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management Authorization Server.
@@ -116,12 +120,3 @@ API Management Authorization Servers can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_api_management_authorization_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1/authorizationServers/server1
 ```
-
-## Timeouts
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
-
-* `create` - (Defaults to 30 minutes) Used when creating the API Management Authorization Server.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Authorization Server.
-* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Authorization Server.
-* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Authorization Server.

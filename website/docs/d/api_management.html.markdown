@@ -37,6 +37,8 @@ output "api_management_id" {
 
 * `location` - The Azure location where the API Management Service exists.
 
+* `zones` - A list of Availability Zones in which this API Management Service is located.
+
 * `gateway_url` - The URL for the API Management Service's Gateway.
 
 * `gateway_regional_url` - The URL for the Gateway in the Default Region.
@@ -55,6 +57,8 @@ output "api_management_id" {
 
 * `public_ip_addresses` - The Public IP addresses of the API Management Service.
 
+* `public_ip_address_id` - ID of the standard SKU IPv4 Public IP. Available only for Premium and Developer SKU deployed in a virtual network.
+
 * `private_ip_addresses` - The Private IP addresses of the API Management Service.
 
 * `publisher_name` - The name of the Publisher/Company of the API Management Service.
@@ -65,6 +69,8 @@ output "api_management_id" {
 
 * `sku` - A `sku` block as documented below.
 
+* `tenant_access` - A `tenant_access` block as defined below.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ---
@@ -73,25 +79,29 @@ A `additional_location` block exports the following:
 
 * `location` - The location name of the additional region among Azure Data center regions.
 
+* `capacity` - The number of compute units in this region.
+
+* `zones` - List of the availability zones where API Management is deployed in the additional region exists.
+
 * `gateway_regional_url` - Gateway URL of the API Management service in the Region.
 
 * `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
+
+* `public_ip_address_id` - ID of the standard SKU IPv4 Public IP. Available only for Premium SKU deployed in a virtual network.
 
 * `private_ip_addresses` - Private IP addresses of the API Management service in the additional location, for instances using virtual network mode.
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-~> **Note:** User Assigned Managed Identities are in Preview
+* `type` - The type of Managed Service Identity that is configured on this API Management Service.
 
-* `type` - Specifies the type of Managed Service Identity that is configured on this API Management Service.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
 
-* `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
 
-* `tenant_id` - Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
-
-* `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this API Management Service.
 
 ---
 
@@ -159,7 +169,6 @@ A `scm` block exports the following:
 
 * `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
 
-
 ---
 
 A `sku` block exports the following:
@@ -170,9 +179,20 @@ A `sku` block exports the following:
 
 ---
 
+A `tenant_access` block exports the following:
+
+* `enabled` - Is access to the Management API enabled (presumably "for this Tenant")?
+
+* `tenant_id` - The ID of the Tenant which has access to this API Management instance.
+
+* `primary_key` - Primary access key for the tenant access information contract.
+
+* `secondary_key` - Secondary access key for the tenant access information contract.
+
+---
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.

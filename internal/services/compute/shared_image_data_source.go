@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func dataSourceSharedImage() *pluginsdk.Resource {
@@ -35,9 +37,14 @@ func dataSourceSharedImage() *pluginsdk.Resource {
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"architecture": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
 			"os_type": {
 				Type:     pluginsdk.TypeString,
@@ -90,6 +97,27 @@ func dataSourceSharedImage() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"purchase_plan": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"publisher": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"product": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"release_note_uri": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -102,35 +130,34 @@ func dataSourceSharedImage() *pluginsdk.Resource {
 
 func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	galleryName := d.Get("gallery_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewSharedImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, galleryName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Shared Image %q was not found in Gallery %q / Resource Group %q", name, galleryName, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("gallery_name", galleryName)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.ImageName)
+	d.Set("gallery_name", id.GalleryName)
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.GalleryImageProperties; props != nil {
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
+		d.Set("architecture", string(props.Architecture))
 		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
@@ -138,6 +165,10 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		if err := d.Set("identifier", flattenGalleryImageDataSourceIdentifier(props.Identifier)); err != nil {
 			return fmt.Errorf("setting `identifier`: %+v", err)
+		}
+
+		if err := d.Set("purchase_plan", flattenGalleryImageDataSourcePurchasePlan(props.PurchasePlan)); err != nil {
+			return fmt.Errorf("setting `purchase_plan`: %+v", err)
 		}
 	}
 
@@ -164,4 +195,33 @@ func flattenGalleryImageDataSourceIdentifier(input *compute.GalleryImageIdentifi
 	}
 
 	return []interface{}{result}
+}
+
+func flattenGalleryImageDataSourcePurchasePlan(input *compute.ImagePurchasePlan) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+	}
+
+	publisher := ""
+	if input.Publisher != nil {
+		publisher = *input.Publisher
+	}
+
+	product := ""
+	if input.Product != nil {
+		product = *input.Product
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"name":      name,
+			"publisher": publisher,
+			"product":   product,
+		},
+	}
 }

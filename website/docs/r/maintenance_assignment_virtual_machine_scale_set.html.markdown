@@ -50,30 +50,26 @@ resource "azurerm_lb" "example" {
 
   frontend_ip_configuration {
     name                 = "internal"
-    public_ip_address_id = azurerm_public_ip.test.id
+    public_ip_address_id = azurerm_public_ip.example.id
   }
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "example"
+  loadbalancer_id = azurerm_lb.example.id
 }
 
 resource "azurerm_lb_probe" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "example"
-  port                = 22
-  protocol            = "Tcp"
+  name            = "example"
+  loadbalancer_id = azurerm_lb.example.id
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "example" {
   name                           = "example"
-  resource_group_name            = azurerm_resource_group.example.name
-  loadbalancer_id                = azurerm_lb.test.id
-  probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  loadbalancer_id                = azurerm_lb.example.id
+  probe_id                       = azurerm_lb_probe.example.id
   frontend_ip_configuration_name = "internal"
   protocol                       = "Tcp"
   frontend_port                  = 22
@@ -96,6 +92,34 @@ resource "azurerm_maintenance_configuration" "example" {
   }
 }
 
+resource "azurerm_network_interface" "example" {
+  name                = "sample-nic"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "example" {
+  name                = "example-machine"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+
+  network_interface_ids = [
+    azurerm_network_interface.example.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+}
+
 resource "azurerm_linux_virtual_machine_scale_set" "example" {
   name                            = "example"
   resource_group_name             = azurerm_resource_group.example.name
@@ -110,8 +134,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -166,13 +190,13 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Maintenance Assignment.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Maintenance Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Maintenance Assignment.
@@ -183,5 +207,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Maintenance Assignment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_maintenance_assignment_virtual_machine_scale_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachineScaleSets/vmss1/providers/Microsoft.Maintenance/configurationAssignments/assign1
+terraform import azurerm_maintenance_assignment_virtual_machine_scale_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/vmss1/providers/Microsoft.Maintenance/configurationAssignments/assign1
 ```

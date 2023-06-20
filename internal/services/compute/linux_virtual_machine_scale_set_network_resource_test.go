@@ -187,7 +187,7 @@ func TestAccLinuxVirtualMachineScaleSet_networkIPv6(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectError: regexp.MustCompile("Error: expanding `network_interface`: An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary"),
+			ExpectError: regexp.MustCompile("instead add a IPv4 IP Configuration as the Primary"),
 		},
 	})
 }
@@ -382,6 +382,23 @@ func TestAccLinuxVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_networkPublicIPVersion(t *testing.T) {
+	t.Skip("Skipping test until api version is upgraded to 2022-03-01 with `network_interface.ip_configuration.public_ip_address.sku_name` added")
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkPublicIPVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.public_ip_address.0.version").HasValue("IPv4"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_networkPublicIPDomainNameLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -427,21 +444,6 @@ func TestAccLinuxVirtualMachineScaleSet_networkPublicIPTags(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_RoutingPreferenceIPTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.ilpip(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func (r LinuxVirtualMachineScaleSetResource) networkAcceleratedNetworking(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -450,7 +452,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F4"
+  sku                 = "Standard_D2s_v3" # intentional for accelerated networking
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -506,7 +508,7 @@ resource "azurerm_subnet" "test" {
   name                 = "subnet-%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.0.0/24"
+  address_prefixes     = ["10.0.0.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -584,7 +586,7 @@ resource "azurerm_subnet" "other" {
   name                 = "other"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -618,7 +620,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       name                                         = "internal"
       primary                                      = true
       subnet_id                                    = azurerm_subnet.other.id
-      application_gateway_backend_address_pool_ids = [azurerm_application_gateway.test.backend_address_pool.0.id]
+      application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.test.backend_address_pool)[0].id]
     }
   }
 }
@@ -920,9 +922,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_nat_pool" "test" {
@@ -1584,7 +1585,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) networkPublicIPTags(data acceptance.TestData) string {
+// skipped
+// nolint:unused
+func (r LinuxVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1621,12 +1624,19 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
 
       public_ip_address {
-        name = "first"
+        name                    = "first"
+        idle_timeout_in_minutes = 4
+      }
+    }
 
-        ip_tag {
-          tag  = "/Sql"
-          type = "FirstPartyUsage"
-        }
+    ip_configuration {
+      name    = "second"
+      version = "IPv6"
+
+      public_ip_address {
+        name                    = "second"
+        idle_timeout_in_minutes = 4
+        version                 = "IPv6"
       }
     }
   }
@@ -1634,9 +1644,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) ilpip(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) networkPublicIPTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_public_ip" "test" {
   name                = "test-ip-%[2]d"

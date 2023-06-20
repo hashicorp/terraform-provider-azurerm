@@ -15,43 +15,36 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "example" {
-  name                = "${var.prefix}-sbnauth"
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  send                = true
-  listen              = true
-  manage              = true
+  name         = "${var.prefix}-sbnauth"
+  namespace_id = azurerm_servicebus_namespace.example.id
+  send         = true
+  listen       = true
+  manage       = true
 }
 
 resource "azurerm_servicebus_topic" "source" {
   name                = "${var.prefix}-sbt-source"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "example" {
-  name                = "${var.prefix}-sbtauth-source"
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  topic_name          = azurerm_servicebus_topic.source.name
-  resource_group_name = azurerm_resource_group.example.name
-  send                = true
-  listen              = true
-  manage              = true
+  name     = "${var.prefix}-sbtauth-source"
+  topic_id = azurerm_servicebus_topic.source.id
+  send     = true
+  listen   = true
+  manage   = true
 }
 
 resource "azurerm_servicebus_topic" "destination" {
   name                = "${var.prefix}-sbt-destination"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  namespace_id        = azurerm_servicebus_namespace.example.id
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_subscription" "example" {
-  name                = "${var.prefix}-sbsubscription"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  topic_name          = azurerm_servicebus_topic.source.name
-  forward_to          = azurerm_servicebus_topic.destination.name
-  max_delivery_count  = 1
+  name               = "${var.prefix}-sbsubscription"
+  topic_id           = azurerm_servicebus_topic.source.id
+  forward_to         = azurerm_servicebus_topic.destination.name
+  max_delivery_count = 1
 }

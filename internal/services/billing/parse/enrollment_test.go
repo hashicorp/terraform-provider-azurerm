@@ -1,12 +1,6 @@
 package parse
 
-import (
-	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
-)
-
-var _ resourceid.Formatter = EnrollmentId{}
+import "testing"
 
 func TestEnrollmentIDFormatter(t *testing.T) {
 	actual := NewEnrollmentID("12345678-1234-9876-4563-123456789012").ID()
@@ -22,7 +16,6 @@ func TestEnrollmentID(t *testing.T) {
 		Error    bool
 		Expected *EnrollmentId
 	}{
-
 		{
 			// empty
 			Input: "",

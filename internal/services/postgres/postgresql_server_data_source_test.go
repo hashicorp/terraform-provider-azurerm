@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type PostgreSQLServerDataSource struct {
-}
+type PostgreSQLServerDataSource struct{}
 
 func TestAccDataSourcePostgreSqlServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_postgresql_server", "test")

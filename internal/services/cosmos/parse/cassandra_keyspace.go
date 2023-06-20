@@ -44,7 +44,7 @@ func (id CassandraKeyspaceId) ID() string {
 func CassandraKeyspaceID(input string) (*CassandraKeyspaceId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an CassandraKeyspace ID: %+v", input, err)
 	}
 
 	resourceId := CassandraKeyspaceId{

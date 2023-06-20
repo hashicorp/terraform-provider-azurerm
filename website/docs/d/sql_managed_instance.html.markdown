@@ -10,6 +10,8 @@ description: |-
 
 Use this data source to access information about an existing SQL Managed Instance.
 
+-> **Note:** The `azurerm_sql_managed_instance` data source is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_managed_instance`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/mssql_managed_instance) data source instead.
+
 ## Example Usage
 
 ```hcl
@@ -31,16 +33,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the SQL Managed Instance exists.
 
-
-## Attribues Reference
+## Attributes Reference
 
 * `id` - The SQL Managed Instance ID.
 
 * `fqdn` - The fully qualified domain name of the Azure Managed SQL Instance.
 
-* `location` - Location where the resource exists. 
+* `location` - Location where the resource exists.
 
-* `sku_name` - SKU Name for the SQL Managed Instance. 
+* `sku_name` - SKU Name for the SQL Managed Instance.
 
 * `vcores` - Number of cores assigned to your instance.
 
@@ -58,11 +59,11 @@ The following arguments are supported:
 
 * `minimum_tls_version` - The Minimum TLS Version.
 
-* `proxy_override` - How the SQL Managed Instance is accessed. 
+* `proxy_override` - How the SQL Managed Instance is accessed.
 
 * `timezone_id` - The TimeZone ID that the SQL Managed Instance is operating in.
 
-* `dns_zone_partner_id` - The ID of the Managed Instance which is sharing the DNS zone. 
+* `dns_zone_partner_id` - The ID of the Managed Instance which is sharing the DNS zone.
 
 * `identity` - An `identity` block as defined below.
 
@@ -80,6 +81,6 @@ The `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL Azure Managed Instance.

@@ -5,11 +5,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	mgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
@@ -47,15 +47,15 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 				ValidateFunc: validate.SubnetServiceEndpointStoragePolicyName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": location.Schema(),
+			"location": commonschema.Location(),
 
 			"definition": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
-				MaxItems: 1,
+				MaxItems: 2,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -72,6 +72,14 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 								ValidateFunc: validation.Any(
 									azure.ValidateResourceID,
 									mgValidate.ManagementGroupID,
+									validation.StringInSlice([]string{
+										"/services/Azure",
+										"/services/Azure/Batch",
+										"/services/Azure/DataFactory",
+										"/services/Azure/MachineLearning",
+										"/services/Azure/ManagedInstance",
+										"/services/Azure/WebPI",
+									}, false),
 								),
 							},
 						},
@@ -80,6 +88,16 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringLenBetween(0, 140),
+						},
+
+						"service": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "Microsoft.Storage",
+							ValidateFunc: validation.StringInSlice([]string{
+								"Microsoft.Storage",
+								"Global",
+							}, false),
 						},
 					},
 				},
@@ -137,7 +155,6 @@ func resourceSubnetServiceEndpointStoragePolicyRead(d *pluginsdk.ResourceData, m
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
 	id, err := parse.SubnetServiceEndpointStoragePolicyID(d.Id())
 	if err != nil {
 		return err
@@ -178,8 +195,13 @@ func resourceSubnetServiceEndpointStoragePolicyDelete(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServiceEndpointPolicyName); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ServiceEndpointPolicyName)
+	if err != nil {
 		return fmt.Errorf("deleting Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", id.ServiceEndpointPolicyName, id.ResourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	return nil
@@ -197,7 +219,7 @@ func expandServiceEndpointPolicyDefinitions(input []interface{}) *[]network.Serv
 			Name: utils.String(e["name"].(string)),
 			ServiceEndpointPolicyDefinitionPropertiesFormat: &network.ServiceEndpointPolicyDefinitionPropertiesFormat{
 				Description:      utils.String(e["description"].(string)),
-				Service:          utils.String("Microsoft.Storage"),
+				Service:          utils.String(e["service"].(string)),
 				ServiceResources: utils.ExpandStringSlice(e["service_resources"].(*pluginsdk.Set).List()),
 			},
 		})
@@ -220,6 +242,7 @@ func flattenServiceEndpointPolicyDefinitions(input *[]network.ServiceEndpointPol
 
 		var (
 			description     = ""
+			service         = ""
 			serviceResource = []interface{}{}
 		)
 		if b := e.ServiceEndpointPolicyDefinitionPropertiesFormat; b != nil {
@@ -227,12 +250,16 @@ func flattenServiceEndpointPolicyDefinitions(input *[]network.ServiceEndpointPol
 				description = *b.Description
 			}
 			serviceResource = utils.FlattenStringSlice(b.ServiceResources)
+			if b.Service != nil {
+				service = *b.Service
+			}
 		}
 
 		output = append(output, map[string]interface{}{
 			"name":              name,
 			"description":       description,
 			"service_resources": serviceResource,
+			"service":           service,
 		})
 	}
 

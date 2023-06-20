@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -85,6 +85,7 @@ func TestAccConsumptionBudgetResourceGroup_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
 	r := ConsumptionBudgetResourceGroupResource{}
@@ -107,18 +108,30 @@ func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccConsumptionBudgetResourceGroup_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
+	r := ConsumptionBudgetResourceGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
+	})
+}
+
 func (ConsumptionBudgetResourceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConsumptionBudgetID(state.ID)
+	id, err := budgets.ParseScopedBudgetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Consumption.BudgetsClient.Get(ctx, id.Scope, id.Name)
+	resp, err := clients.Consumption.BudgetsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.BudgetProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ConsumptionBudgetResourceGroupResource) basic(data acceptance.TestData) string {
@@ -296,16 +309,6 @@ resource "azurerm_consumption_budget_resource_group" "test" {
         "baz",
       ]
     }
-
-    not {
-      tag {
-        name = "zip"
-        values = [
-          "zap",
-          "zop"
-        ]
-      }
-    }
   }
 
   notification {
@@ -442,4 +445,17 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
+}
+
+func (t ConsumptionBudgetResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := budgets.ParseScopedBudgetID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = client.Consumption.BudgetsClient.Delete(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return utils.Bool(true), nil
 }

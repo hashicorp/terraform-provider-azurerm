@@ -1,12 +1,13 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,7 +18,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
+
+var skuWeight = map[string]int8{
+	"Basic":    1,
+	"Standard": 2,
+}
 
 func resourceBastionHost() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -46,14 +53,26 @@ func resourceBastionHost() *pluginsdk.Resource {
 				ValidateFunc: validate.BastionHostName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"copy_paste_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"file_copy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				ForceNew: true,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -67,16 +86,35 @@ func resourceBastionHost() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validate.BastionSubnetName,
 						},
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validate.PublicIpAddressID,
 						},
 					},
 				},
+			},
+
+			"ip_connect_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"scale_units": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(2, 50),
+				Default:      2,
+			},
+
+			"shareable_link_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"sku": {
@@ -89,6 +127,12 @@ func resourceBastionHost() *pluginsdk.Resource {
 				Default: string(network.BastionHostSkuNameBasic),
 			},
 
+			"tunneling_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"dns_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -96,60 +140,97 @@ func resourceBastionHost() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta interface{}) bool {
+				// downgrade the SKU is not supported, recreate the resource
+				if old.(string) != "" && new.(string) != "" {
+					return skuWeight[old.(string)] > skuWeight[new.(string)]
+				}
+				return false
+			}),
+		),
 	}
 }
 
 func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Println("[INFO] preparing arguments for Azure Bastion Host creation.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewBastionHostID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
+	scaleUnits := d.Get("scale_units").(int)
+	sku := d.Get("sku").(string)
+	fileCopyEnabled := d.Get("file_copy_enabled").(bool)
+	ipConnectEnabled := d.Get("ip_connect_enabled").(bool)
+	shareableLinkEnabled := d.Get("shareable_link_enabled").(bool)
+	tunnelingEnabled := d.Get("tunneling_enabled").(bool)
+
+	if scaleUnits > 2 && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`")
+	}
+
+	if fileCopyEnabled && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`file_copy_enabled` is only supported when `sku` is `Standard`")
+	}
+
+	if ipConnectEnabled && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard`")
+	}
+
+	if shareableLinkEnabled && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard`")
+	}
+
+	if tunnelingEnabled && sku == string(network.BastionHostSkuNameBasic) {
+		return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard`")
+	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Bastion Host %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bastion_host", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_bastion_host", id.ID())
 		}
 	}
 
 	parameters := network.BastionHost{
 		Location: &location,
 		BastionHostPropertiesFormat: &network.BastionHostPropertiesFormat{
-			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+			DisableCopyPaste:    utils.Bool(!d.Get("copy_paste_enabled").(bool)),
+			EnableFileCopy:      utils.Bool(fileCopyEnabled),
+			EnableIPConnect:     utils.Bool(ipConnectEnabled),
+			EnableShareableLink: utils.Bool(shareableLinkEnabled),
+			EnableTunneling:     utils.Bool(tunnelingEnabled),
+			IPConfigurations:    expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+			ScaleUnits:          utils.Int32(int32(d.Get("scale_units").(int))),
 		},
 		Sku: &network.Sku{
-			Name: network.BastionHostSkuName(d.Get("sku").(string)),
+			Name: network.BastionHostSkuName(sku),
 		},
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceBastionHostRead(d, meta)
 }
@@ -187,6 +268,17 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if props := resp.BastionHostPropertiesFormat; props != nil {
 		d.Set("dns_name", props.DNSName)
+		d.Set("scale_units", props.ScaleUnits)
+		d.Set("file_copy_enabled", props.EnableFileCopy)
+		d.Set("ip_connect_enabled", props.EnableIPConnect)
+		d.Set("shareable_link_enabled", props.EnableShareableLink)
+		d.Set("tunneling_enabled", props.EnableTunneling)
+
+		copyPasteEnabled := true
+		if props.DisableCopyPaste != nil {
+			copyPasteEnabled = !*props.DisableCopyPaste
+		}
+		d.Set("copy_paste_enabled", copyPasteEnabled)
 
 		if ipConfigs := props.IPConfigurations; ipConfigs != nil {
 			if err := d.Set("ip_configuration", flattenBastionHostIPConfiguration(ipConfigs)); err != nil {

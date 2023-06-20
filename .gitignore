@@ -24,12 +24,16 @@ website/node_modules
 .idea
 *.iml
 *.test
+.python-version
 .terraform.tfstate.lock.info
 .terraform.lock.hcl
 
 website/vendor
 
 .vscode/
+
+# mkdocs output
+site/
 
 # Test exclusions
 !command/test-fixtures/**/*.tfstate

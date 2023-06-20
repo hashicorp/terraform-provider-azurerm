@@ -10,19 +10,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/sdk/2021-08-01/diskpools"
 	disksValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.ResourceWithUpdate = DiskPoolResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = DiskPoolResource{}
 
 type DiskPoolResource struct{}
+
+func (DiskPoolResource) DeprecationMessage() string {
+	return "The `azurerm_disk_pool` resource is deprecated and will be removed in v4.0 of the AzureRM Provider."
+}
 
 type DiskPoolResourceModel struct {
 	Name              string                 `tfschema:"name"`
@@ -31,7 +36,7 @@ type DiskPoolResourceModel struct {
 	Sku               string                 `tfschema:"sku_name"`
 	SubnetId          string                 `tfschema:"subnet_id"`
 	Tags              map[string]interface{} `tfschema:"tags"`
-	Zones             []string               `tfschema:"zones"`
+	Zones             zones.Schema           `tfschema:"zones"`
 }
 
 func (DiskPoolResource) Arguments() map[string]*schema.Schema {
@@ -63,16 +68,7 @@ func (DiskPoolResource) Arguments() map[string]*schema.Schema {
 
 		"tags": commonschema.Tags(),
 
-		"zones": { // TODO: create commonschema.ZonesForceNew
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MinItems: 1,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		},
+		"zones": commonschema.ZonesMultipleRequiredForceNew(),
 	}
 }
 
@@ -119,11 +115,23 @@ func (r DiskPoolResource) Create() sdk.ResourceFunc {
 				Sku:  expandDisksPoolSku(m.Sku),
 				Tags: tags.Expand(m.Tags),
 			}
-			if err := client.CreateOrUpdateThenPoll(ctx, id, createParameter); err != nil {
+			future, err := client.CreateOrUpdate(ctx, id, createParameter)
+			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-			metadata.SetID(id)
-			return nil
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
+
+			//lintignore:R006
+			return pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
+				if err := r.retryError("waiting for creation", id.ID(), future.Poller.PollUntilDone()); err != nil {
+					return err
+				}
+				metadata.SetID(id)
+				return nil
+			})
 		},
 	}
 }
@@ -153,7 +161,7 @@ func (DiskPoolResource) Read() sdk.ResourceFunc {
 				if model.Sku != nil {
 					m.Sku = model.Sku.Name
 				}
-				m.Tags = flattenTags(model.Tags)
+				m.Tags = tags.Flatten(model.Tags)
 
 				m.Location = location.Normalize(model.Location)
 				m.SubnetId = model.Properties.SubnetId
@@ -165,7 +173,7 @@ func (DiskPoolResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (DiskPoolResource) Delete() sdk.ResourceFunc {
+func (r DiskPoolResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -178,11 +186,20 @@ func (DiskPoolResource) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			future, err := client.Delete(ctx, *id)
+			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			return nil
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id)
+			}
+
+			//lintignore:R006
+			return pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
+				return r.retryError("waiting for deletion", id.ID(), future.Poller.PollUntilDone())
+			})
 		},
 	}
 }
@@ -191,7 +208,7 @@ func (DiskPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return diskpools.ValidateDiskPoolID
 }
 
-func (DiskPoolResource) Update() sdk.ResourceFunc {
+func (r DiskPoolResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -218,13 +235,40 @@ func (DiskPoolResource) Update() sdk.ResourceFunc {
 				patch.Tags = tags.Expand(m.Tags)
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, patch); err != nil {
+			future, err := client.Update(ctx, *id, patch)
+			if err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			return nil
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
+
+			//lintignore:R006
+			return pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
+				return r.retryError("waiting for update", id.ID(), future.Poller.PollUntilDone())
+			})
 		},
 	}
+}
+
+func (DiskPoolResource) retryError(action string, id string, err error) *pluginsdk.RetryError {
+	if err == nil {
+		return nil
+	}
+	// according to https://docs.microsoft.com/en-us/azure/virtual-machines/disks-pools-troubleshoot#common-failure-codes-when-deploying-a-disk-pool the errors below are retryable.
+	retryableErrors := []string{
+		"DeploymentTimeout",
+		"GoalStateApplicationTimeoutError",
+		"OngoingOperationInProgress",
+	}
+	for _, retryableError := range retryableErrors {
+		if strings.Contains(err.Error(), retryableError) {
+			return pluginsdk.RetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
+		}
+	}
+	return pluginsdk.NonRetryableError(fmt.Errorf("%s %s: %+v", action, id, err))
 }
 
 func expandDisksPoolSku(sku string) diskpools.Sku {

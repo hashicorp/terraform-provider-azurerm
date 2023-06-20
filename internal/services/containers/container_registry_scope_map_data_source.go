@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/scopemaps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,7 +32,7 @@ func dataSourceContainerRegistryScopeMap() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validate.ContainerRegistryName,
 			},
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 			"description": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -47,33 +49,36 @@ func dataSourceContainerRegistryScopeMap() *pluginsdk.Resource {
 }
 
 func dataSourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ScopeMapsClient
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.ScopeMaps
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	containerRegistryName := d.Get("container_registry_name").(string)
-	name := d.Get("name").(string)
+	id := scopemaps.NewScopeMapID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Container Registry Scope Map %q was not found in Resource Group %q", name, resourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on Scope Map %q (Azure Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving Container Registry Scope Map %q (Azure Container Registry %q, Resource Group %q): `id` was nil", name, containerRegistryName, resourceGroup)
+	d.SetId(id.ID())
+	d.Set("name", id.ScopeMapName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("container_registry_name", id.RegistryName)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			description := ""
+			if v := props.Description; v != nil {
+				description = *v
+			}
+			d.Set("description", description)
+			d.Set("actions", utils.FlattenStringSlice(&props.Actions))
+		}
 	}
-
-	d.SetId(*resp.ID)
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("container_registry_name", containerRegistryName)
-	d.Set("description", resp.Description)
-	d.Set("actions", utils.FlattenStringSlice(resp.Actions))
-
 	return nil
 }

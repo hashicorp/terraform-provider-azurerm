@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func resourceVirtualMachineExtension() *pluginsdk.Resource {
@@ -40,6 +40,10 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validation.StringDoesNotContainAny("/"),
+				),
 			},
 
 			"virtual_machine_id": {
@@ -75,6 +79,12 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"failure_suppression_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"settings": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -89,7 +99,10 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 				Sensitive:        true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+				ConflictsWith:    []string{"protected_settings_from_key_vault"},
 			},
+
+			"protected_settings_from_key_vault": protectedSettingsFromKeyVaultSchema(true),
 
 			"tags": tags.Schema(),
 		},
@@ -102,34 +115,32 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	virtualMachineId, err := parse.VirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
-	virtualMachineName := virtualMachineId.Name
-	resourceGroup := virtualMachineId.ResourceGroup
+	id := parse.NewVirtualMachineExtensionID(virtualMachineId.SubscriptionId, virtualMachineId.ResourceGroup, virtualMachineId.Name, d.Get("name").(string))
 
-	virtualMachine, err := vmClient.Get(ctx, resourceGroup, virtualMachineName, "")
+	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
 	if err != nil {
-		return fmt.Errorf("getting Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("getting %s: %+v", virtualMachineId, err)
 	}
 
 	location := *virtualMachine.Location
 	if location == "" {
-		return fmt.Errorf("reading location of Virtual Machine %q", virtualMachineName)
+		return fmt.Errorf("reading location of %s", virtualMachineId)
 	}
 
 	if d.IsNewResource() {
-		existing, err := vmExtensionClient.Get(ctx, resourceGroup, virtualMachineName, name, "")
+		existing, err := vmExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Extension %q (Virtual Machine %q / Resource Group %q): %s", name, virtualMachineName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_extension", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_virtual_machine_extension", id.ID())
 		}
 	}
 
@@ -138,16 +149,19 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	typeHandlerVersion := d.Get("type_handler_version").(string)
 	autoUpgradeMinor := d.Get("auto_upgrade_minor_version").(bool)
 	enableAutomaticUpgrade := d.Get("automatic_upgrade_enabled").(bool)
+	suppressFailure := d.Get("failure_suppression_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	extension := compute.VirtualMachineExtension{
 		Location: &location,
 		VirtualMachineExtensionProperties: &compute.VirtualMachineExtensionProperties{
-			Publisher:               &publisher,
-			Type:                    &extensionType,
-			TypeHandlerVersion:      &typeHandlerVersion,
-			AutoUpgradeMinorVersion: &autoUpgradeMinor,
-			EnableAutomaticUpgrade:  &enableAutomaticUpgrade,
+			Publisher:                     &publisher,
+			Type:                          &extensionType,
+			TypeHandlerVersion:            &typeHandlerVersion,
+			AutoUpgradeMinorVersion:       &autoUpgradeMinor,
+			EnableAutomaticUpgrade:        &enableAutomaticUpgrade,
+			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
+			SuppressFailures:              &suppressFailure,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -168,7 +182,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 		extension.VirtualMachineExtensionProperties.ProtectedSettings = &protectedSettings
 	}
 
-	future, err := vmExtensionClient.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, name, extension)
+	future, err := vmExtensionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, extension)
 	if err != nil {
 		return err
 	}
@@ -177,16 +191,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	read, err := vmExtensionClient.Get(ctx, resourceGroup, virtualMachineName, name, "")
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read  Virtual Machine Extension %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualMachineExtensionsRead(d, meta)
 }
@@ -230,6 +235,13 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("type_handler_version", props.TypeHandlerVersion)
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
 		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
+		d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
+
+		suppressFailure := false
+		if props.SuppressFailures != nil {
+			suppressFailure = *props.SuppressFailures
+		}
+		d.Set("failure_suppression_enabled", suppressFailure)
 
 		if settings := props.Settings; settings != nil {
 			settingsVal := settings.(map[string]interface{})

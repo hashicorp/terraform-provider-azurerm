@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type EventHubConsumerGroupDataSource struct {
-}
+type EventHubConsumerGroupDataSource struct{}
 
 func TestAccEventHubConsumerGroupDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_consumer_group", "test")

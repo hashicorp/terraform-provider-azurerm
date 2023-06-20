@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LogicAppActionHttpResource struct {
-}
+type LogicAppActionHttpResource struct{}
 
 func TestAccLogicAppActionHttp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
@@ -21,6 +20,21 @@ func TestAccLogicAppActionHttp_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppActionHttp_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+	r := LogicAppActionHttpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -54,6 +68,65 @@ func TestAccLogicAppActionHttp_headers(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.headers(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppActionHttp_queries(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+	r := LogicAppActionHttpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.queries(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppActionHttp_dynamicFunction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+	r := LogicAppActionHttpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withDynamicFunction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppActionHttp_bodyDiff(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+	r := LogicAppActionHttpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withDynamicFunction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -124,6 +197,33 @@ resource "azurerm_logic_app_action_http" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r LogicAppActionHttpResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_action_http" "test" {
+  name         = "action%d"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  method       = "GET"
+  uri          = "http://example.com/hello"
+  body         = <<BODY
+{
+    "description": "test description",
+    "inputs": {
+        "variables": [
+            {
+                "name": "test name",
+                "type": "Integer",
+                "value": 1
+            }
+        ]
+    }
+}
+BODY
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r LogicAppActionHttpResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -148,6 +248,24 @@ resource "azurerm_logic_app_action_http" "test" {
   uri          = "http://example.com/hello"
 
   headers = {
+    "Hello"     = "World"
+    "Something" = "New"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppActionHttpResource) queries(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_action_http" "test" {
+  name         = "action%d"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  method       = "GET"
+  uri          = "http://example.com/hello"
+
+  queries = {
     "Hello"     = "World"
     "Something" = "New"
   }
@@ -188,6 +306,22 @@ resource "azurerm_logic_app_action_http" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, condition, condition)
+}
+
+func (r LogicAppActionHttpResource) withDynamicFunction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_action_http" "test" {
+  name         = "action%d"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  method       = "POST"
+  uri          = "http://example.com/hello"
+  body         = <<BODY
+@concat('{\"summary\": \"Foo\", \"text\": \"',triggerBody()?['data']?['essentials']?['description'],'\"}')
+BODY
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (LogicAppActionHttpResource) template(data acceptance.TestData) string {

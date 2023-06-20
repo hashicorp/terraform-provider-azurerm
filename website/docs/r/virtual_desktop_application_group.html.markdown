@@ -6,7 +6,7 @@ description: |-
   Manages a Virtual Desktop Application Group.
 ---
 
-# virtual_desktop_application_group
+# azurerm_virtual_desktop_application_group
 
 Manages a Virtual Desktop Application Group.
 
@@ -38,6 +38,7 @@ resource "azurerm_virtual_desktop_host_pool" "personalautomatic" {
 
   type                             = "Personal"
   personal_desktop_assignment_type = "Automatic"
+  load_balancer_type               = "BreadthFirst"
 }
 
 resource "azurerm_virtual_desktop_application_group" "remoteapp" {
@@ -69,18 +70,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Virtual Desktop Application Group. Changing the name forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Virtual Desktop Application Group. Changing the resource group name forces
-    a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Virtual Desktop Application Group. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location/region where the Virtual Desktop Application Group is
-    located. Changing the location/region forces a new resource to be created.
+* `location` - (Required) The location/region where the Virtual Desktop Application Group is located. Changing this forces a new resource to be created.
 
-* `type` - (Required) Type of Virtual Desktop Application Group.
-    Valid options are `RemoteApp` or `Desktop` application groups.
+* `type` - (Required) Type of Virtual Desktop Application Group. Valid options are `RemoteApp` or `Desktop` application groups. Changing this forces a new resource to be created.
 
-* `host_pool_id` - (Required) Resource ID for a Virtual Desktop Host Pool to associate with the
-    Virtual Desktop Application Group.
+* `host_pool_id` - (Required) Resource ID for a Virtual Desktop Host Pool to associate with the Virtual Desktop Application Group. Changing the name forces a new resource to be created.
 
 * `friendly_name` - (Optional) Option to set a friendly name for the Virtual Desktop Application Group.
 
@@ -92,13 +88,13 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Desktop Application Group.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Virtual Desktop Application Group.
 * `update` - (Defaults to 60 minutes) Used when updating the Virtual Desktop Application Group.

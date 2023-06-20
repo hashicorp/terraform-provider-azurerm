@@ -44,7 +44,7 @@ func (id WorkspaceSecurityAlertPolicyId) ID() string {
 func WorkspaceSecurityAlertPolicyID(input string) (*WorkspaceSecurityAlertPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an WorkspaceSecurityAlertPolicy ID: %+v", input, err)
 	}
 
 	resourceId := WorkspaceSecurityAlertPolicyId{

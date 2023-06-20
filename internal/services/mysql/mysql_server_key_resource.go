@@ -6,7 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
+	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -66,11 +67,11 @@ func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, 
 	if err != nil {
 		return nil, err
 	}
-	keyVaultID, err := keyVaultParse.VaultID(*keyVaultIDRaw)
+	keyVaultID, err := commonids.ParseKeyVaultID(*keyVaultIDRaw)
 	if err != nil {
 		return nil, err
 	}
-	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.Name, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
+	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.VaultName, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
 }
 
 func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -101,11 +102,11 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			if len(keys) > 1 {
 				return fmt.Errorf("expecting at most one MySQL Server Key, but got %q", len(keys))
 			}
-			if keys[0].ID == nil || *keys[0].ID != "" {
+			if keys[0].ID == nil || *keys[0].ID == "" {
 				return fmt.Errorf("missing ID for existing MySQL Server Key")
 			}
 
-			id, err := parse.ServerID(*keys[0].ID)
+			id, err := parse.KeyID(*keys[0].ID)
 			if err != nil {
 				return err
 			}

@@ -41,6 +41,15 @@ func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return resp, nil
 }
 
+// NewTransport creates a wrapper around a *http.RoundTripper,
+// designed to be used for the `Transport` field of http.Client.
+//
+// This logs each pair of HTTP request/response that it handles.
+// The logging is done via Go standard library `log` package.
+//
+// Deprecated: This will log the content of every http request/response
+// at `[DEBUG]` level, without any filtering. Any sensitive information
+// will appear as-is in your logs. Please use NewSubsystemLoggingHTTPTransport instead.
 func NewTransport(name string, t http.RoundTripper) *transport {
 	return &transport{name, t}
 }
@@ -52,7 +61,7 @@ func prettyPrintJsonLines(b []byte) string {
 	for i, p := range parts {
 		if b := []byte(p); json.Valid(b) {
 			var out bytes.Buffer
-			json.Indent(&out, b, "", " ")
+			_ = json.Indent(&out, b, "", " ") // already checked for validity
 			parts[i] = out.String()
 		}
 	}

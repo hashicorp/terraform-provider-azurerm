@@ -32,7 +32,7 @@ The following arguments are supported:
 * `storage_account_name` - (Required) The name of the storage account.
 
 ## Attributes Reference
- 
+
 * `id` - The ID of the File Share.
 
 * `quota` - The quota of the File Share in GB.
@@ -61,6 +61,6 @@ A `access_policy` block has the following attributes:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage.

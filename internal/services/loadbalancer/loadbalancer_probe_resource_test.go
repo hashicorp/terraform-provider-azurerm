@@ -5,17 +5,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
-type LoadBalancerProbe struct {
-}
+type LoadBalancerProbe struct{}
 
 func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
@@ -24,6 +23,21 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMLoadBalancerProbe_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
+	r := LoadBalancerProbe{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -71,6 +85,7 @@ func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).Key("port").HasValue("80"),
+				check.That(data2.ResourceName).Key("probe_threshold").HasValue("3"),
 			),
 		},
 		data.ImportStep(),
@@ -208,12 +223,51 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  port                = 22
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  port            = 22
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r LoadBalancerProbe) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "test-ip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "arm-test-loadbalancer-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  frontend_ip_configuration {
+    name                 = "one-%[1]d"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_probe" "test" {
+  loadbalancer_id     = azurerm_lb.test.id
+  name                = "probe-%[1]d"
+  port                = 22
+  interval_in_seconds = 5
+  number_of_probes    = 2
+  probe_threshold     = 2
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LoadBalancerProbe) requiresImport(data acceptance.TestData) string {
@@ -222,10 +276,9 @@ func (r LoadBalancerProbe) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_lb_probe" "import" {
-  name                = azurerm_lb_probe.test.name
-  loadbalancer_id     = azurerm_lb_probe.test.loadbalancer_id
-  resource_group_name = azurerm_lb_probe.test.resource_group_name
-  port                = 22
+  name            = azurerm_lb_probe.test.name
+  loadbalancer_id = azurerm_lb_probe.test.loadbalancer_id
+  port            = 22
 }
 `, template)
 }
@@ -260,17 +313,17 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  port                = 22
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  port            = 22
+  probe_threshold = 2
 }
 
 resource "azurerm_lb_probe" "test2" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  port                = 80
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  port            = 80
+  probe_threshold = 3
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data2.RandomInteger)
 }
@@ -305,17 +358,15 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  port                = 22
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  port            = 22
 }
 
 resource "azurerm_lb_probe" "test2" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  port                = 8080
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  port            = 8080
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data2.RandomInteger)
 }
@@ -350,12 +401,11 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  protocol            = "Http"
-  request_path        = "/"
-  port                = 80
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  protocol        = "Http"
+  request_path    = "/"
+  port            = 80
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -390,11 +440,10 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%d"
-  protocol            = "Tcp"
-  port                = 80
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "probe-%d"
+  protocol        = "Tcp"
+  port            = 80
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

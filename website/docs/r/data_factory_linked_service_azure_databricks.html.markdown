@@ -37,11 +37,10 @@ resource "azurerm_databricks_workspace" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "msi_linked" {
-  name                = "ADBLinkedServiceViaMSI"
-  data_factory_id     = azurerm_data_factory.example.id
-  resource_group_name = azurerm_resource_group.example.name
-  description         = "ADB Linked Service via MSI"
-  adb_domain          = "https://${azurerm_databricks_workspace.example.workspace_url}"
+  name            = "ADBLinkedServiceViaMSI"
+  data_factory_id = azurerm_data_factory.example.id
+  description     = "ADB Linked Service via MSI"
+  adb_domain      = "https://${azurerm_databricks_workspace.example.workspace_url}"
 
   msi_work_space_resource_id = azurerm_databricks_workspace.example.id
 
@@ -101,7 +100,6 @@ resource "azurerm_databricks_workspace" "example" {
 resource "azurerm_data_factory_linked_service_azure_databricks" "at_linked" {
   name                = "ADBLinkedServiceViaAccessToken"
   data_factory_id     = azurerm_data_factory.example.id
-  resource_group_name = azurerm_resource_group.example.name
   description         = "ADB Linked Service via Access Token"
   existing_cluster_id = "0308-201146-sly615"
 
@@ -116,17 +114,9 @@ The following arguments are supported:
 
 * `adb_domain` - (Required) The domain URL of the databricks instance.
 
-* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
-* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
-
--> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
-
--> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
-
-* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
-
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service. Changing this forces a new resource.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
 ---
 
@@ -144,9 +134,9 @@ You must specify exactly one of the following modes for cluster integration:
 
 * `existing_cluster_id` - (Optional) The cluster_id of an existing cluster within the linked ADB instance.
 
-* `instance_pool` - (Optional) Leverages an instance pool within the linked ADB instance as defined by  `instance_pool` block below.
+* `instance_pool` - (Optional) Leverages an instance pool within the linked ADB instance as defined by `instance_pool` block below.
 
-* `new_cluster_config` - (Optional) Creates new clusters within the linked ADB instance as defined in the  `new_cluster_config` block below.
+* `new_cluster_config` - (Optional) Creates new clusters within the linked ADB instance as defined in the `new_cluster_config` block below.
 
 ---
 
@@ -184,6 +174,10 @@ A `new_cluster_config` block supports the following:
 
 * `log_destination` - (Optional) Location to deliver Spark driver, worker, and event logs.
 
+* `max_number_of_workers` - (Optional) Specifies the maximum number of worker nodes. It should be between 1 and 25000. 
+
+* `min_number_of_workers` - (Optional) Specifies the minimum number of worker nodes. It should be between 1 and 25000. It defaults to `1`.
+
 * `spark_config` - (Optional) User-specified Spark configuration variables key-value pairs.
 
 * `spark_environment_variables` - (Optional) User-specified Spark environment variables key-value pairs.
@@ -196,20 +190,21 @@ A `instance_pool` block supports the following:
 
 * `cluster_version` - (Required) Spark version of a the cluster.
 
-* `min_number_of_workers` - (Optional) The minimum number of worker nodes. Defaults to 1.
+* `min_number_of_workers` - (Optional) The minimum number of worker nodes. Defaults to `1`.
 
 * `max_number_of_workers` - (Optional) The max number of worker nodes. Set this value if you want to enable autoscaling between the `min_number_of_workers` and this value. Omit this value to use a fixed number of workers defined in the `min_number_of_workers` property.
 
 ---
+
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Linked Service.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Linked Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Linked Service.

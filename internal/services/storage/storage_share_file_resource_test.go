@@ -14,8 +14,7 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files"
 )
 
-type StorageShareFileResource struct {
-}
+type StorageShareFileResource struct{}
 
 func TestAccAzureRMStorageShareFile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
@@ -71,6 +70,7 @@ func TestAccAzureRMStorageShareFile_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("content_length").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -108,6 +108,7 @@ func TestAccAzureRMStorageShareFile_withFile(t *testing.T) {
 			Config: r.withFile(data, sourceBlob.Name()),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("content_length").Exists(),
 			),
 		},
 		data.ImportStep("source"),

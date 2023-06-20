@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorActionRuleSuppressionResource struct {
-}
+type MonitorActionRuleSuppressionResource struct{}
 
 func TestAccMonitorActionRuleSuppression_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_suppression", "test")

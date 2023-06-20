@@ -70,10 +70,9 @@ func accountSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 		},
 
 		"account_type": {
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This field has been split into `account_tier` and `account_replication_type`",
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
 		},
 
 		"account_tier": {

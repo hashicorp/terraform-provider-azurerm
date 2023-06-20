@@ -68,6 +68,7 @@ resource "azurerm_media_live_event" "example" {
     }
   }
 
+  stream_options          = ["LowLatency"]
   use_static_hostname     = true
   hostname_prefix         = "special-event"
   transcription_languages = ["en-US"]
@@ -82,7 +83,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Live Event should exist. Changing this forces a new Live Event to be created.
 
-* `media_services_account_name` - (Required)  The Media Services account name. Changing this forces a new Live Event to be created.
+* `media_services_account_name` - (Required) The Media Services account name. Changing this forces a new Live Event to be created.
 
 * `name` - (Required) The name which should be used for this Live Event. Changing this forces a new Live Event to be created.
 
@@ -90,7 +91,7 @@ The following arguments are supported:
 
 ---
 
-* `auto_start_enabled` - (Optional) The flag indicates if the resource should be automatically started on creation. Default is `false`.
+* `auto_start_enabled` - (Optional) The flag indicates if the resource should be automatically started on creation. Default is `false`. Changing this forces a new resource to be created.
 
 * `cross_site_access_policy` - (Optional) A `cross_site_access_policy` block as defined below.
 
@@ -102,11 +103,14 @@ The following arguments are supported:
 
 * `preview` - (Optional) A `preview` block as defined below.
 
+* `stream_options` - (Optional) A list of options to use for the LiveEvent. Possible values are `Default`, `LowLatency`, `LowLatencyV2`. Please see more at this [document](https://learn.microsoft.com/en-us/azure/media-services/latest/live-event-latency-reference#lowlatency-and-lowlatencyv2-options). Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Live Event.
 
 * `transcription_languages` - (Optional) Specifies a list of languages (locale) to be used for speech-to-text transcription – it should match the spoken language in the audio track. The value should be in `BCP-47` format (e.g: `en-US`). [See the Microsoft Documentation for more information about the live transcription feature and the list of supported languages](https://go.microsoft.com/fwlink/?linkid=2133742 ).
 
 * `use_static_hostname` - (Optional) Specifies whether a static hostname would be assigned to the live event preview and ingest endpoints. Changing this forces a new Live Event to be created.
+
 ---
 
 A `cross_site_access_policy` block supports the following:
@@ -155,23 +159,23 @@ A `ip_access_control_allow` block supports the following:
 
 A `preview` block supports the following:
 
-* `alternative_media_id` - (Optional) An alternative media identifier associated with the streaming locator created for the preview. The identifier can be used in the `CustomLicenseAcquisitionUrlTemplate` or the `CustomKeyAcquisitionUrlTemplate` of the Streaming Policy specified in the `streaming_policy_name` field. Changing this forces a new resource to be created.
+* `alternative_media_id` - (Optional) An alternative media identifier associated with the streaming locator created for the preview. The identifier can be used in the `CustomLicenseAcquisitionUrlTemplate` or the `CustomKeyAcquisitionUrlTemplate` of the Streaming Policy specified in the `streaming_policy_name` field. 
 
 * `ip_access_control_allow` - (Optional) One or more `ip_access_control_allow` blocks as defined above.
 
-* `preview_locator` - (Optional) The identifier of the preview locator in Guid format. Specifying this at creation time allows the caller to know the preview locator url before the event is created. If omitted, the service will generate a random identifier. Changing this forces a new resource to be created.
+* `preview_locator` - (Optional) The identifier of the preview locator in GUID format. Specifying this at creation time allows the caller to know the preview locator url before the event is created. If omitted, the service will generate a random identifier. Changing this forces a new resource to be created.
 
 * `streaming_policy_name` - (Optional) The name of streaming policy used for the live event preview. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Live Event.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Live Event.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Live Event.
@@ -183,5 +187,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Live Events can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_live_event.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaservices/account1/liveevents/event1
+terraform import azurerm_media_live_event.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaServices/account1/liveEvents/event1
 ```

@@ -10,13 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -67,7 +68,7 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 				ValidateFunc: validate.RedisEnterpriseClusterSkuName,
 			},
 
-			"zones": azure.SchemaMultipleZones(),
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
@@ -84,14 +85,6 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 			"hostname": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
-			},
-
-			// RP currently does not return this value, but will in the near future
-			// https://github.com/Azure/azure-sdk-for-go/issues/14420
-			"version": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "This field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information",
 			},
 
 			"tags": commonschema.Tags(),
@@ -131,7 +124,6 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 
 	tlsVersion := redisenterprise.TlsVersion(d.Get("minimum_tls_version").(string))
 	parameters := redisenterprise.Cluster{
-		Name:     utils.String(id.ClusterName),
 		Location: location,
 		Sku:      sku,
 		Properties: &redisenterprise.ClusterProperties{
@@ -145,7 +137,10 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 		if err := validate.RedisEnterpriseClusterLocationZoneSupport(location); err != nil {
 			return fmt.Errorf("%s: %s", id, err)
 		}
-		parameters.Zones = azure.ExpandZones(v.([]interface{}))
+		zones := zones.ExpandUntyped(v.(*pluginsdk.Set).List())
+		if len(zones) > 0 {
+			parameters.Zones = &zones
+		}
 	}
 
 	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
@@ -189,7 +184,7 @@ func resourceRedisEnterpriseClusterRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.ClusterName)
+	d.Set("name", id.RedisEnterpriseName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -202,10 +197,9 @@ func resourceRedisEnterpriseClusterRead(d *pluginsdk.ResourceData, meta interfac
 			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
 
-		d.Set("zones", model.Zones)
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 		if props := model.Properties; props != nil {
 			d.Set("hostname", props.HostName)
-			d.Set("version", props.RedisVersion)
 
 			tlsVersion := ""
 			if props.MinimumTlsVersion != nil {

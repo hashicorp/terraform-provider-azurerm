@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-09-01-preview/appplatform"
-	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudService() *pluginsdk.Resource {
@@ -30,6 +31,11 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 		Read:   resourceSpringCloudServiceRead,
 		Update: resourceSpringCloudServiceUpdate,
 		Delete: resourceSpringCloudServiceDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudV0ToV1{},
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -53,9 +59,9 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 
 			// Spring Cloud Service only supports following locations, we are still supporting more locations (Wednesday, November 20, 2019 4:20 PM):
 			// `East US`, `Southeast Asia`, `West Europe`, `West US 2`
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -65,7 +71,73 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"B0",
 					"S0",
+					"E0",
 				}, false),
+			},
+
+			"build_agent_pool_size": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"S1",
+					"S2",
+					"S3",
+					"S4",
+					"S5",
+				}, false),
+			},
+
+			"container_registry": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"server": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"username": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"default_build_service": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"container_registry_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"log_stream_public_endpoint_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"network": {
@@ -104,6 +176,12 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
+						},
+
+						"read_timeout_seconds": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"service_runtime_network_resource_group": {
@@ -202,18 +280,9 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"instrumentation_key": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Deprecated:   "This property is due to be removed from this service's API and thus has been deprecated and will be removed in v3.0 of the provider. Please switch to using the `connection_string` property with the connection string for the Application Insights instance to use.",
-							ExactlyOneOf: []string{"trace.0.instrumentation_key", "trace.0.connection_string"},
-							ValidateFunc: validation.IsUUID,
-						},
-
 						"connection_string": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ExactlyOneOf: []string{"trace.0.instrumentation_key", "trace.0.connection_string"},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -225,6 +294,11 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"service_registry_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"outbound_public_ip_addresses": {
@@ -274,7 +348,18 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				},
 			},
 
+			"zone_redundant": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": tags.Schema(),
+
+			"service_registry_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -283,6 +368,10 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
+	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
+	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
+	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
+	containerRegistryClient := meta.(*clients.Client).AppPlatform.ContainerRegistryClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -306,11 +395,18 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		Location: utils.String(location),
 		Properties: &appplatform.ClusterResourceProperties{
 			NetworkProfile: expandSpringCloudNetwork(d.Get("network").([]interface{})),
+			ZoneRedundant:  utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 		Sku: &appplatform.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if enabled := d.Get("log_stream_public_endpoint_enabled").(bool); enabled {
+		resource.Properties.VnetAddons = &appplatform.ServiceVNetAddons{
+			LogStreamPublicEndpoint: utils.Bool(enabled),
+		}
 	}
 
 	gitProperty, err := expandSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]interface{}))
@@ -329,11 +425,18 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	d.SetId(id.ID())
 
-	log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
-	if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
-		return err
+	skuName := d.Get("sku_name").(string)
+	if skuName == "E0" && gitProperty != nil {
+		return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
 	}
-	log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
+
+	if skuName != "E0" {
+		log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
+		if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
+			return err
+		}
+		log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
+	}
 
 	log.Printf("[DEBUG] Updating Monitor Settings for %s..", id)
 	monitorSettings := appplatform.MonitoringSettingResource{
@@ -348,6 +451,52 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 
+	if d.Get("service_registry_enabled").(bool) {
+		future, err := serviceRegistryClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default")
+		if err != nil {
+			return fmt.Errorf("creating service registry %s: %+v", id, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation service registry of %s: %+v", id, err)
+		}
+	}
+
+	if skuName == "E0" {
+		new := expandSpringCloudContainerRegistries(d.Get("container_registry").([]interface{}))
+		if err = applyContainerRegistries(ctx, containerRegistryClient, id, nil, new); err != nil {
+			return fmt.Errorf("applying container registries for %s: %+v", id, err)
+		}
+		buildResource := appplatform.BuildService{
+			Properties: utils.ToPtr(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), id)),
+		}
+		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
+		if err != nil {
+			return fmt.Errorf("creating build service %s: %+v", id, err)
+		}
+		if err := buildServiceCreateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation build service of %s: %+v", id, err)
+		}
+	}
+
+	if size := d.Get("build_agent_pool_size").(string); len(size) > 0 {
+		agentPoolResource := appplatform.BuildServiceAgentPoolResource{
+			Properties: &appplatform.BuildServiceAgentPoolProperties{
+				PoolSize: &appplatform.BuildServiceAgentPoolSizeProperties{
+					Name: utils.String(size),
+				},
+			},
+		}
+		future, err := agentPoolClient.UpdatePut(ctx, id.ResourceGroup, id.SpringName, "default", "default", agentPoolResource)
+		if err != nil {
+			return fmt.Errorf("creating default build agent of %s: %+v", id, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation default build agent of %s: %+v", id, err)
+		}
+	}
+
 	return resourceSpringCloudServiceRead(d, meta)
 }
 
@@ -355,6 +504,10 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
+	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
+	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
+	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
+	containerRegistryClient := meta.(*clients.Client).AppPlatform.ContainerRegistryClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -386,12 +539,17 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		if err != nil {
 			return err
 		}
-
-		log.Printf("[DEBUG] Updating Config Server Settings for %s..", *id)
-		if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
-			return err
+		skuName := d.Get("sku_name").(string)
+		if skuName == "E0" && gitProperty != nil {
+			return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
 		}
-		log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
+		if skuName != "E0" {
+			log.Printf("[DEBUG] Updating Config Server Settings for %s..", *id)
+			if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
+				return err
+			}
+			log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
+		}
 	}
 
 	if d.HasChange("trace") {
@@ -409,6 +567,64 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 	}
 
+	if d.HasChange("service_registry_enabled") {
+		if d.Get("service_registry_enabled").(bool) {
+			future, err := serviceRegistryClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default")
+			if err != nil {
+				return fmt.Errorf("creating service registry of %s: %+v", id, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for creation service registry of %s: %+v", id, err)
+			}
+		} else {
+			future, err := serviceRegistryClient.Delete(ctx, id.ResourceGroup, id.SpringName, "default")
+			if err != nil {
+				return fmt.Errorf("deleting service registry of %s: %+v", id, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for deletion service registry of %s: %+v", id, err)
+			}
+		}
+	}
+
+	skuName := d.Get("sku_name").(string)
+	if skuName == "E0" {
+		new := expandSpringCloudContainerRegistries(d.Get("container_registry").([]interface{}))
+		if err = applyContainerRegistries(ctx, containerRegistryClient, *id, nil, new); err != nil {
+			return fmt.Errorf("applying container registries for %s: %+v", id, err)
+		}
+		buildResource := appplatform.BuildService{
+			Properties: utils.ToPtr(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), *id)),
+		}
+		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
+		if err != nil {
+			return fmt.Errorf("creating build service %s: %+v", id, err)
+		}
+		if err := buildServiceCreateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation build service of %s: %+v", id, err)
+		}
+	}
+
+	if size := d.Get("build_agent_pool_size").(string); len(size) > 0 {
+		agentPoolResource := appplatform.BuildServiceAgentPoolResource{
+			Properties: &appplatform.BuildServiceAgentPoolProperties{
+				PoolSize: &appplatform.BuildServiceAgentPoolSizeProperties{
+					Name: utils.String(size),
+				},
+			},
+		}
+		future, err := agentPoolClient.UpdatePut(ctx, id.ResourceGroup, id.SpringName, "default", "default", agentPoolResource)
+		if err != nil {
+			return fmt.Errorf("creating default build agent of %s: %+v", id, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation default build agent of %s: %+v", id, err)
+		}
+	}
+
 	return resourceSpringCloudServiceRead(d, meta)
 }
 
@@ -416,6 +632,10 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
+	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
+	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
+	buildServiceClient := meta.(*clients.Client).AppPlatform.BuildServiceClient
+	containerRegistryClient := meta.(*clients.Client).AppPlatform.ContainerRegistryClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -434,14 +654,53 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("unable to read Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
 	}
 
-	configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
-	if err != nil {
-		return fmt.Errorf("retrieving config server settings for %s: %+v", id, err)
-	}
-
 	monitoringSettings, err := monitoringSettingsClient.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
 		return fmt.Errorf("retrieving monitoring settings for %s: %+v", id, err)
+	}
+
+	serviceRegistryEnabled := true
+	serviceRegistry, err := serviceRegistryClient.Get(ctx, id.ResourceGroup, id.SpringName, "default")
+	if err != nil {
+		if !utils.ResponseWasNotFound(serviceRegistry.Response) {
+			return fmt.Errorf("retrieving service registry of %s: %+v", id, err)
+		}
+		serviceRegistryEnabled = false
+	}
+	if utils.ResponseWasNotFound(serviceRegistry.Response) {
+		serviceRegistryEnabled = false
+	}
+
+	containerRegistryList, err := containerRegistryClient.ListComplete(ctx, id.ResourceGroup, id.SpringName)
+	if err == nil {
+		containerRegistries := make([]appplatform.ContainerRegistryResource, 0)
+		for containerRegistryList.NotDone() {
+			containerRegistries = append(containerRegistries, containerRegistryList.Value())
+			if err := containerRegistryList.NextWithContext(ctx); err != nil {
+				return fmt.Errorf("going to next container registry value of %s: %+v", id, err)
+			}
+		}
+		containerRegistriesState := expandSpringCloudContainerRegistries(d.Get("container_registry").([]interface{}))
+		d.Set("container_registry", flattenSpringCloudContainerRegistries(containerRegistriesState, containerRegistries))
+	} else {
+		log.Printf("[WARN] unable to list container registries for %s: %+v", id, err)
+	}
+
+	buildService, err := buildServiceClient.GetBuildService(ctx, id.ResourceGroup, id.SpringName, "default")
+	if err == nil {
+		d.Set("default_build_service", flattenSpringCloudBuildService(buildService.Properties))
+	} else {
+		log.Printf("[WARN] unable to get build service for %s: %+v", id, err)
+	}
+
+	agentPool, err := agentPoolClient.Get(ctx, id.ResourceGroup, id.SpringName, "default", "default")
+	if err == nil && agentPool.Properties != nil && agentPool.Properties.PoolSize != nil {
+		d.Set("build_agent_pool_size", agentPool.Properties.PoolSize.Name)
+	} else {
+		if err != nil {
+			log.Printf("[WARN] error retrieving build agent pool of %q: %+v", id, err)
+		}
+		d.Set("build_agent_pool_size", "")
 	}
 
 	d.Set("name", id.SpringName)
@@ -451,8 +710,21 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("sku_name", resp.Sku.Name)
 	}
 
-	if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
-		return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+	d.Set("service_registry_enabled", serviceRegistryEnabled)
+	if serviceRegistryEnabled {
+		d.Set("service_registry_id", parse.NewSpringCloudServiceRegistryID(id.SubscriptionId, id.ResourceGroup, id.SpringName, "default").ID())
+	} else {
+		d.Set("service_registry_id", "")
+	}
+
+	if resp.Sku != nil && resp.Sku.Name != nil && *resp.Sku.Name != "E0" {
+		configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
+		if err != nil {
+			return fmt.Errorf("retrieving config server configuration for %s: %+v", id, err)
+		}
+		if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
+			return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+		}
 	}
 
 	if err := d.Set("trace", flattenSpringCloudTrace(monitoringSettings.Properties)); err != nil {
@@ -472,6 +744,14 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		if err := d.Set("required_network_traffic_rules", flattenRequiredTraffic(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `required_network_traffic_rules`: %+v", err)
 		}
+
+		if vnetAddons := props.VnetAddons; vnetAddons != nil {
+			if err := d.Set("log_stream_public_endpoint_enabled", utils.Bool(*vnetAddons.LogStreamPublicEndpoint)); err != nil {
+				return fmt.Errorf("setting `log_stream_public_endpoint_enabled`: %+v", err)
+			}
+		}
+
+		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -532,6 +812,39 @@ func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigS
 	return nil
 }
 
+func applyContainerRegistries(ctx context.Context, client *appplatform.ContainerRegistriesClient, springId parse.SpringCloudServiceId, old []appplatform.ContainerRegistryResource, new []appplatform.ContainerRegistryResource) error {
+	containerRegistriesToRemove := make(map[string]bool)
+	for _, oldRegistry := range old {
+		containerRegistriesToRemove[*oldRegistry.Name] = true
+	}
+	for _, newRegistry := range new {
+		containerRegistriesToRemove[*newRegistry.Name] = false
+	}
+	for name := range containerRegistriesToRemove {
+		if containerRegistriesToRemove[name] {
+			id := parse.NewSpringCloudContainerRegistryID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, name)
+			future, err := client.Delete(ctx, springId.ResourceGroup, springId.SpringName, name)
+			if err != nil {
+				return fmt.Errorf("removing %s: %+v", id, err)
+			}
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for removal of %s: %+v", id, err)
+			}
+		}
+	}
+	for _, newRegistry := range new {
+		id := parse.NewSpringCloudContainerRegistryID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, *newRegistry.Name)
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, *newRegistry.Name, newRegistry)
+		if err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+		}
+	}
+	return nil
+}
+
 func expandSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -542,6 +855,11 @@ func expandSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
 		ServiceRuntimeSubnetID: utils.String(v["service_runtime_subnet_id"].(string)),
 		AppSubnetID:            utils.String(v["app_subnet_id"].(string)),
 		ServiceCidr:            utils.String(strings.Join(*cidrRanges, ",")),
+	}
+	if readTimeoutInSeconds := v["read_timeout_seconds"].(int); readTimeoutInSeconds != 0 {
+		network.IngressConfig = &appplatform.IngressConfig{
+			ReadTimeoutInSeconds: utils.Int32(int32(readTimeoutInSeconds)),
+		}
 	}
 	if serviceRuntimeNetworkResourceGroup := v["service_runtime_network_resource_group"].(string); serviceRuntimeNetworkResourceGroup != "" {
 		network.ServiceRuntimeNetworkResourceGroup = utils.String(serviceRuntimeNetworkResourceGroup)
@@ -661,19 +979,46 @@ func expandSpringCloudTrace(input []interface{}) *appplatform.MonitoringSettingP
 			TraceEnabled: utils.Bool(false),
 		}
 	}
+
 	v := input[0].(map[string]interface{})
-	instrumentationKey := ""
-	if value := v["instrumentation_key"]; len(value.(string)) > 0 {
-		instrumentationKey = value.(string)
-	}
-	if value := v["connection_string"]; len(value.(string)) > 0 {
-		instrumentationKey = value.(string)
-	}
 	return &appplatform.MonitoringSettingProperties{
 		TraceEnabled:                  utils.Bool(true),
-		AppInsightsInstrumentationKey: utils.String(instrumentationKey),
+		AppInsightsInstrumentationKey: utils.String(v["connection_string"].(string)),
 		AppInsightsSamplingRate:       utils.Float(v["sample_rate"].(float64)),
 	}
+}
+
+func expandSpringCloudContainerRegistries(input []interface{}) []appplatform.ContainerRegistryResource {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]appplatform.ContainerRegistryResource, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		out = append(out, appplatform.ContainerRegistryResource{
+			Name: utils.String(v["name"].(string)),
+			Properties: &appplatform.ContainerRegistryProperties{
+				Credentials: &appplatform.ContainerRegistryBasicCredentials{
+					Username: utils.String(v["username"].(string)),
+					Password: utils.String(v["password"].(string)),
+					Server:   utils.String(v["server"].(string)),
+				},
+			},
+		})
+	}
+	return out
+}
+
+func expandSpringCloudBuildService(input []interface{}, springId parse.SpringCloudServiceId) appplatform.BuildServiceProperties {
+	if len(input) == 0 || input[0] == nil {
+		return appplatform.BuildServiceProperties{}
+	}
+	v := input[0].(map[string]interface{})
+	out := appplatform.BuildServiceProperties{}
+	if value := v["container_registry_name"].(string); value != "" {
+		out.ContainerRegistry = utils.String(parse.NewSpringCloudContainerRegistryID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, value).ID())
+	}
+	return out
 }
 
 func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerProperties, d *pluginsdk.ResourceData) []interface{} {
@@ -775,19 +1120,18 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 	}
 
 	// prepare old state to find sensitive props not returned by API.
-	oldGitPatternRepositories := []interface{}{}
+	oldGitPatternRepositories := map[string]interface{}{}
 	if oldGitSettings := d.Get("config_server_git_setting").([]interface{}); len(oldGitSettings) > 0 {
 		oldGitSetting := oldGitSettings[0].(map[string]interface{})
-		oldGitPatternRepositories = oldGitSetting["repository"].([]interface{})
+		for _, r := range oldGitSetting["repository"].([]interface{}) {
+			repo := r.(map[string]interface{})
+			if name, ok := repo["name"]; ok {
+				oldGitPatternRepositories[name.(string)] = r
+			}
+		}
 	}
 
-	for i, item := range *input {
-		// prepare old state to find sensitive props not returned by API.
-		oldGitPatternRepository := make(map[string]interface{})
-		if len(oldGitPatternRepositories) > 0 {
-			oldGitPatternRepository = oldGitPatternRepositories[i].(map[string]interface{})
-		}
-
+	for _, item := range *input {
 		name := ""
 		if item.Name != nil {
 			name = *item.Name
@@ -801,6 +1145,12 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 		label := ""
 		if item.Label != nil {
 			label = *item.Label
+		}
+
+		// prepare old state to find sensitive props not returned by API.
+		oldGitPatternRepository := make(map[string]interface{})
+		if gpr, ok := oldGitPatternRepositories[name]; ok {
+			oldGitPatternRepository = gpr.(map[string]interface{})
 		}
 
 		pattern := utils.FlattenStringSlice(item.Pattern)
@@ -881,18 +1231,13 @@ func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []i
 	}
 
 	enabled := false
-	instrumentationKey := ""
 	connectionString := ""
 	samplingRate := 0.0
 	if input.TraceEnabled != nil {
 		enabled = *input.TraceEnabled
 	}
 	if input.AppInsightsInstrumentationKey != nil {
-		if _, err := uuid.FromString(*input.AppInsightsInstrumentationKey); err == nil {
-			instrumentationKey = *input.AppInsightsInstrumentationKey
-		} else {
-			connectionString = *input.AppInsightsInstrumentationKey
-		}
+		connectionString = *input.AppInsightsInstrumentationKey
 	}
 	if input.AppInsightsSamplingRate != nil {
 		samplingRate = *input.AppInsightsSamplingRate
@@ -904,9 +1249,8 @@ func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []i
 
 	return []interface{}{
 		map[string]interface{}{
-			"instrumentation_key": instrumentationKey,
-			"connection_string":   connectionString,
-			"sample_rate":         samplingRate,
+			"connection_string": connectionString,
+			"sample_rate":       samplingRate,
 		},
 	}
 }
@@ -917,6 +1261,7 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 	}
 
 	var serviceRuntimeSubnetID, appSubnetID, serviceRuntimeNetworkResourceGroup, appNetworkResourceGroup string
+	var readTimeoutInSeconds int32
 	var cidrRanges []interface{}
 	if input.ServiceRuntimeSubnetID != nil {
 		serviceRuntimeSubnetID = *input.ServiceRuntimeSubnetID
@@ -935,6 +1280,12 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 		appNetworkResourceGroup = *input.AppNetworkResourceGroup
 	}
 
+	if ingressConfig := input.IngressConfig; ingressConfig != nil {
+		if ingressConfig.ReadTimeoutInSeconds != nil {
+			readTimeoutInSeconds = *ingressConfig.ReadTimeoutInSeconds
+		}
+	}
+
 	if serviceRuntimeSubnetID == "" && appSubnetID == "" && serviceRuntimeNetworkResourceGroup == "" && appNetworkResourceGroup == "" && len(cidrRanges) == 0 {
 		return []interface{}{}
 	}
@@ -945,6 +1296,7 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 			"service_runtime_subnet_id":              serviceRuntimeSubnetID,
 			"cidr_ranges":                            cidrRanges,
 			"app_network_resource_group":             appNetworkResourceGroup,
+			"read_timeout_seconds":                   readTimeoutInSeconds,
 			"service_runtime_network_resource_group": serviceRuntimeNetworkResourceGroup,
 		},
 	}
@@ -984,4 +1336,64 @@ func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
 		})
 	}
 	return result
+}
+
+func flattenSpringCloudContainerRegistries(state []appplatform.ContainerRegistryResource, input []appplatform.ContainerRegistryResource) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	statePasswordMap := make(map[string]string)
+	for _, v := range state {
+		if v.Name == nil || v.Properties == nil || v.Properties.Credentials == nil {
+			continue
+		}
+		if basicCredential, ok := v.Properties.Credentials.AsContainerRegistryBasicCredentials(); ok && basicCredential.Password != nil {
+			statePasswordMap[*v.Name] = *basicCredential.Password
+		}
+	}
+	result := make([]interface{}, 0)
+	for _, v := range input {
+		name := ""
+		username := ""
+		password := ""
+		server := ""
+		if v.Name != nil {
+			name = *v.Name
+			password = statePasswordMap[name]
+		}
+		if v.Properties != nil && v.Properties.Credentials != nil {
+			if basicCredential, ok := v.Properties.Credentials.AsContainerRegistryBasicCredentials(); ok {
+				if basicCredential.Username != nil {
+					username = *basicCredential.Username
+				}
+				if basicCredential.Server != nil {
+					server = *basicCredential.Server
+				}
+			}
+		}
+
+		result = append(result, map[string]interface{}{
+			"name":     name,
+			"username": username,
+			"password": password,
+			"server":   server,
+		})
+	}
+	return result
+}
+
+func flattenSpringCloudBuildService(input *appplatform.BuildServiceProperties) []interface{} {
+	if input == nil || input.ContainerRegistry == nil {
+		return []interface{}{}
+	}
+	id, err := parse.SpringCloudContainerRegistryIDInsensitively(*input.ContainerRegistry)
+	if err == nil {
+		return []interface{}{
+			map[string]interface{}{
+				"container_registry_name": id.ContainerRegistryName,
+			},
+		}
+	}
+	return []interface{}{}
 }

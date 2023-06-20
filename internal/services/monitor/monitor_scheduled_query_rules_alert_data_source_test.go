@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MonitorScheduledQueryRulesDataSource struct {
-}
+type MonitorScheduledQueryRulesDataSource struct{}
 
 func TestAccDataSourceMonitorScheduledQueryRules_AlertingAction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_scheduled_query_rules_alert", "test")

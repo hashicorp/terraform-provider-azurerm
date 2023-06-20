@@ -1,14 +1,16 @@
 package eventhub
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,7 +32,31 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := namespaces.ParseNamespaceID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Eventhub.NamespacesClient
+
+			var cancel context.CancelFunc
+			ctx, cancel = timeouts.ForRead(ctx, d)
+			defer cancel()
+
+			id, err := namespaces.ParseNamespaceID(d.Id())
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Encryption == nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving %s: no customer managed key present", *id)
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"eventhub_namespace_id": {
@@ -142,48 +168,8 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 }
 
 func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Eventhub.NamespacesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := namespaces.ParseNamespaceID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(id.NamespaceName, "azurerm_eventhub_namespace")
-	defer locks.UnlockByName(id.NamespaceName, "azurerm_eventhub_namespace")
-
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return nil
-		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-
-	// Since this isn't a real object and it cannot be disabled once Customer Managed Key at rest has been enabled
-	// And it must keep at least one key once Customer Managed Key is enabled
-	// So for the delete operation, it has to recreate the EventHub Namespace with disabled Customer Managed Key
-	future, err := client.Delete(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(future.HttpResponse) {
-			return nil
-		}
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := waitForEventHubNamespaceToBeDeleted(ctx, client, *id); err != nil {
-		return err
-	}
-
-	namespace := resp.Model
-	namespace.Properties.Encryption = nil
-
-	if err = client.CreateOrUpdateThenPoll(ctx, *id, *namespace); err != nil {
-		return fmt.Errorf("removing %s: %+v", *id, err)
-	}
-
+	log.Printf(`[INFO] Customer Managed Keys cannot be removed from EventHub Namespaces once added. To remove the Customer Managed Key delete and recreate the parent EventHub Namespace")
+`)
 	return nil
 }
 

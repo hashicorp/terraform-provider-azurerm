@@ -5,17 +5,19 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
@@ -42,14 +44,14 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+				ValidateFunc:     disks.ValidateDiskID,
 			},
 
 			"virtual_machine_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.VirtualMachineID,
 			},
 
 			"lun": {
@@ -66,8 +68,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 					string(compute.CachingTypesNone),
 					string(compute.CachingTypesReadOnly),
 					string(compute.CachingTypesReadWrite),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, false),
 			},
 
 			"create_option": {
@@ -78,8 +79,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.DiskCreateOptionTypesAttach),
 					string(compute.DiskCreateOptionTypesEmpty),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, false),
 			},
 
 			"write_accelerator_enabled": {
@@ -101,8 +101,8 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", parsedVirtualMachineId.ID(), err)
 	}
 
-	locks.ByName(parsedVirtualMachineId.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(parsedVirtualMachineId.Name, virtualMachineResourceName)
+	locks.ByName(parsedVirtualMachineId.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(parsedVirtualMachineId.Name, VirtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, parsedVirtualMachineId.ResourceGroup, parsedVirtualMachineId.Name, "")
 	if err != nil {
@@ -137,7 +137,7 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 		Lun:          utils.Int32(lun),
 		ManagedDisk: &compute.ManagedDiskParameters{
 			ID:                 utils.String(managedDiskId),
-			StorageAccountType: compute.StorageAccountTypes(string(managedDisk.Sku.Name)),
+			StorageAccountType: compute.StorageAccountTypes(string(*managedDisk.Sku.Name)),
 		},
 		WriteAcceleratorEnabled: utils.Bool(writeAcceleratorEnabled),
 	}
@@ -255,8 +255,8 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	locks.ByName(id.VirtualMachineName, virtualMachineResourceName)
-	defer locks.UnlockByName(id.VirtualMachineName, virtualMachineResourceName)
+	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
 	if err != nil {
@@ -294,24 +294,24 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta interface{}, id string) (*compute.Disk, error) {
+func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta interface{}, id string) (*disks.Disk, error) {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedId, err := parse.ManagedDiskID(id)
+	parsedId, err := disks.ParseDiskID(id)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Managed Disk ID %q: %+v", parsedId.String(), err)
+		return nil, fmt.Errorf("parsing Managed Disk ID %q: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, parsedId.ResourceGroup, parsedId.DiskName)
+	resp, err := client.Get(ctx, *parsedId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("Managed Disk %q  was not found!", parsedId.String())
 		}
 
 		return nil, fmt.Errorf("making Read request on Azure Managed Disk %q : %+v", parsedId.String(), err)
 	}
 
-	return &resp, nil
+	return resp.Model, nil
 }

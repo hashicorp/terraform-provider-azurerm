@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -92,6 +92,7 @@ func TestAccConsumptionBudgetSubscription_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
 	r := ConsumptionBudgetSubscriptionResource{}
@@ -115,17 +116,17 @@ func TestAccConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
 }
 
 func (ConsumptionBudgetSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConsumptionBudgetID(state.ID)
+	id, err := budgets.ParseScopedBudgetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Consumption.BudgetsClient.Get(ctx, id.Scope, id.Name)
+	resp, err := clients.Consumption.BudgetsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.BudgetProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ConsumptionBudgetSubscriptionResource) basic(data acceptance.TestData) string {
@@ -180,7 +181,7 @@ data "azurerm_subscription" "current" {}
 
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.subscription_id
+  subscription_id = data.azurerm_subscription.current.id
 
   // Changed the amount from 1000 to 2000
   amount     = 3000
@@ -261,7 +262,7 @@ resource "azurerm_monitor_action_group" "test" {
 
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.subscription_id
+  subscription_id = data.azurerm_subscription.current.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -292,16 +293,6 @@ resource "azurerm_consumption_budget_subscription" "test" {
         "bar",
         "baz",
       ]
-    }
-
-    not {
-      tag {
-        name = "zip"
-        values = [
-          "zap",
-          "zop"
-        ]
-      }
     }
   }
 
@@ -360,7 +351,7 @@ resource "azurerm_monitor_action_group" "test" {
 
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.subscription_id
+  subscription_id = data.azurerm_subscription.current.id
 
   // Changed the amount from 1000 to 2000
   amount     = 2000

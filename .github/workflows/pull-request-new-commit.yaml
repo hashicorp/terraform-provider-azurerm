@@ -1,0 +1,15 @@
+---
+name: Pull Request New Commit
+
+permissions:
+  pull-requests: write
+
+on:
+  pull_request_target:
+    types: [synchronize]
+
+jobs:
+  remove-waiting-response:
+    uses: ./.github/workflows/remove-issue-label.yml
+    with:
+      label-name: "waiting-response"

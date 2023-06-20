@@ -1,19 +1,24 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	BudgetsClient *consumption.BudgetsClient
+	BudgetsClient *budgets.BudgetsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	budgetsClient := consumption.NewBudgetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&budgetsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	budgetsClient, err := budgets.NewBudgetsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Budgets client: %+v", err)
+	}
+	o.Configure(budgetsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		BudgetsClient: &budgetsClient,
-	}
+		BudgetsClient: budgetsClient,
+	}, nil
 }

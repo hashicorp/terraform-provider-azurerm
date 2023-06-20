@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,10 +14,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var routeTableResourceName = "azurerm_route_table"
@@ -49,12 +49,12 @@ func resourceRouteTable() *pluginsdk.Resource {
 				ValidateFunc: validate.RouteTableName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"route": {
-				Type:       pluginsdk.TypeList,
+				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
@@ -81,8 +81,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 								string(network.RouteNextHopTypeInternet),
 								string(network.RouteNextHopTypeVirtualAppliance),
 								string(network.RouteNextHopTypeNone),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 
 						"next_hop_in_ip_address": {
@@ -114,31 +113,31 @@ func resourceRouteTable() *pluginsdk.Resource {
 
 func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.RouteTablesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Route Table creation.")
 
-	name := d.Get("name").(string)
+	id := parse.NewRouteTableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_route_table", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_route_table", id.ID())
 		}
 	}
 
 	routeSet := network.RouteTable{
-		Name:     &name,
+		Name:     &id.Name,
 		Location: &location,
 		RouteTablePropertiesFormat: &network.RouteTablePropertiesFormat{
 			Routes:                     expandRouteTableRoutes(d),
@@ -147,25 +146,16 @@ func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, routeSet)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, routeSet)
 	if err != nil {
-		return fmt.Errorf("Creating/Updating Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("ID was nil for Route Table %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceRouteTableRead(d, meta)
 }
@@ -234,7 +224,7 @@ func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]network.Route {
-	configs := d.Get("route").([]interface{})
+	configs := d.Get("route").(*pluginsdk.Set).List()
 	routes := make([]network.Route, 0, len(configs))
 
 	for _, configRaw := range configs {
@@ -270,7 +260,7 @@ func flattenRouteTableRoutes(input *[]network.Route) []interface{} {
 			if props := route.RoutePropertiesFormat; props != nil {
 				r["address_prefix"] = *props.AddressPrefix
 				r["next_hop_type"] = string(props.NextHopType)
-				if ip := props.NextHopIPAddress; ip != nil {
+				if ip := props.NextHopIPAddress; ip != nil && *ip != "" {
 					r["next_hop_in_ip_address"] = *ip
 				}
 			}

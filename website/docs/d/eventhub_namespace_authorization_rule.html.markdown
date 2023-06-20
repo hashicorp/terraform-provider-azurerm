@@ -28,7 +28,7 @@ output "eventhub_authorization_rule_id" {
 
 The following arguments are supported:
 
-* `name` - The name of the EventHub Authorization Rule resource. 
+* `name` - The name of the EventHub Authorization Rule resource.
 
 * `resource_group_name` - The name of the resource group in which the EventHub Namespace exists.
 
@@ -60,6 +60,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Authorization Rule.

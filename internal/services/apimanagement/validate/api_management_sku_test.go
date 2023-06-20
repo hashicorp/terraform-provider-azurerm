@@ -39,9 +39,19 @@ func TestApimSkuName(t *testing.T) {
 			valid: false,
 		},
 		{
-			name:  "Premium_11",
-			input: "Premium_11",
+			name:  "Premium_101",
+			input: "Premium_101",
 			valid: false,
+		},
+		{
+			name:  "Premium_10",
+			input: "Premium_10",
+			valid: true,
+		},
+		{
+			name:  "Premium_12",
+			input: "Premium_12",
+			valid: true,
 		},
 		{
 			name:  "Premium_7",
@@ -64,7 +74,7 @@ func TestApimSkuName(t *testing.T) {
 			valid: false,
 		},
 	}
-	var validationFunction = ApimSkuName()
+	validationFunction := ApimSkuName()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := validationFunction(tt.input, "")

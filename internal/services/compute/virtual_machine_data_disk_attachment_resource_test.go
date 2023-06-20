@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualMachineDataDiskAttachmentResource struct {
-}
+type VirtualMachineDataDiskAttachmentResource struct{}
 
 func TestAccVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
@@ -195,20 +194,24 @@ func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, cl
 		return nil, err
 	}
 
-	resp, err := clients.Compute.VMClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
-
+	virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
+	resp, err := clients.Compute.VirtualMachinesClient.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Virtual Machine Data Disk Attachment %q", id)
+		return nil, fmt.Errorf("retrieving Data Disk Attachment %q for %s: %+v", *id, virtualMachineId, err)
 	}
 
-	var disk *compute.DataDisk
-	if profile := resp.StorageProfile; profile != nil {
-		if dataDisks := profile.DataDisks; dataDisks != nil {
-			for _, dataDisk := range *dataDisks {
-				// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.EqualFold`
-				if *dataDisk.Name == id.Name {
-					disk = &dataDisk
-					break
+	var disk *virtualmachines.DataDisk
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if profile := props.StorageProfile; profile != nil {
+				if dataDisks := profile.DataDisks; dataDisks != nil {
+					for _, dataDisk := range *dataDisks {
+						// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.EqualFold`
+						if *dataDisk.Name == id.Name {
+							disk = &dataDisk
+							break
+						}
+					}
 				}
 			}
 		}
@@ -223,34 +226,34 @@ func (VirtualMachineDataDiskAttachmentResource) Destroy(ctx context.Context, cli
 		return nil, err
 	}
 
-	resp, err := client.Compute.VMClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
+	virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
+	resp, err := client.Compute.VirtualMachinesClient.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Virtual Machine Data Disk Attachment %q", id)
+		return nil, fmt.Errorf("retrieving Data Disk Attachment %q for %s: %+v", *id, virtualMachineId, err)
 	}
 
-	outputDisks := make([]compute.DataDisk, 0)
-	for _, disk := range *resp.StorageProfile.DataDisks {
-		// deliberately not using strings.Equals as this is case sensitive
-		if *disk.Name == id.Name {
-			continue
+	outputDisks := make([]virtualmachines.DataDisk, 0)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil && props.StorageProfile != nil {
+			for _, disk := range *props.StorageProfile.DataDisks {
+				// deliberately not using strings.Equals as this is case sensitive
+				if *disk.Name == id.Name {
+					continue
+				}
+
+				outputDisks = append(outputDisks, disk)
+			}
+			model.Properties.StorageProfile.DataDisks = &outputDisks
+
+			// fixes #2485
+			model.Identity = nil
+			// fixes #1600
+			model.Resources = nil
+
+			if err := client.Compute.VirtualMachinesClient.CreateOrUpdateThenPoll(ctx, virtualMachineId, *model); err != nil {
+				return nil, fmt.Errorf("updating Virtual Machine %q: %+v", id, err)
+			}
 		}
-
-		outputDisks = append(outputDisks, disk)
-	}
-	resp.StorageProfile.DataDisks = &outputDisks
-
-	// fixes #2485
-	resp.Identity = nil
-	// fixes #1600
-	resp.Resources = nil
-
-	future, err := client.Compute.VMClient.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineName, resp)
-	if err != nil {
-		return nil, fmt.Errorf("updating Virtual Machine %q: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Virtual Machine %q: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -304,7 +307,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -325,6 +328,8 @@ resource "azurerm_virtual_machine" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_F2"
+
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -450,7 +455,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -470,7 +475,9 @@ resource "azurerm_virtual_machine" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_M64s"
+  vm_size               = "Standard_M8ms"
+
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -538,7 +545,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -559,6 +566,8 @@ resource "azurerm_virtual_machine" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_F2"
+
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -618,7 +627,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {

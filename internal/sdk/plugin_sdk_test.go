@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccPluginSDKAndDecoder(t *testing.T) {
@@ -150,7 +150,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error {
 								d.SetId("some-id")
 								d.Set("hello", "world")
 								d.Set("random_number", 42)
@@ -178,7 +178,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 								})
 								return nil
 							},
-							Read: func(d *schema.ResourceData, _ interface{}) error { //nolint:SA1019
+							Read: func(d *schema.ResourceData, _ interface{}) error { //nolint:staticcheck
 								wrapper := ResourceMetaData{
 									ResourceData:             d,
 									Logger:                   ConsoleLogger{},
@@ -196,7 +196,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 
 								return nil
 							},
-							Delete: func(_ *schema.ResourceData, _ interface{}) error { //nolint:SA1019
+							Delete: func(_ *schema.ResourceData, _ interface{}) error { //nolint:staticcheck
 								return nil
 							},
 						},
@@ -269,7 +269,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 					ResourcesMap: map[string]*schema.Resource{
 						"validator_decoder_specified": {
 							Schema: commonSchema,
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								return nil
 							},
@@ -285,7 +285,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 
 						"validator_decoder_unspecified": {
 							Schema: commonSchema,
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								d.Set("hello", "value-from-create")
 								d.Set("number", 42)
@@ -371,7 +371,7 @@ func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 									Computed: true,
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								d.Set("hello", "value-from-create")
 								d.Set("number", 42)
@@ -490,7 +490,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								d.Set("set_of_strings", []string{
 									"some",
@@ -763,7 +763,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:SA1019
+							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
 								wrapper := ResourceMetaData{
 									ResourceData:             d,
 									Logger:                   ConsoleLogger{},
@@ -980,7 +980,7 @@ func computedFieldsResource() *schema.Resource {
 				},
 			},
 		},
-		Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:SA1019
+		Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
 			d.SetId("does-not-matter")
 			return readFunc(d, meta)
 		},

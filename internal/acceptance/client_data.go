@@ -25,6 +25,9 @@ type ClientData struct {
 	// SubscriptionIDAlt is the UUID of the Alternate Azure Subscription where tests are being run
 	SubscriptionIDAlt string
 
+	// SubscriptionIDDevTest is the ID of the DevTest subscription
+	SubscriptionIDDevTest string
+
 	// TenantID is the UUID of the Azure Tenant where tests are being run
 	TenantID string
 
@@ -46,9 +49,10 @@ func (td TestData) Client() ClientData {
 			ClientID:     os.Getenv("ARM_CLIENT_ID_ALT"),
 			ClientSecret: os.Getenv("ARM_CLIENT_SECRET_ALT"),
 		},
-		IsServicePrincipal: true,
-		SubscriptionID:     os.Getenv("ARM_SUBSCRIPTION_ID"),
-		SubscriptionIDAlt:  os.Getenv("ARM_SUBSCRIPTION_ID_ALT"),
-		TenantID:           os.Getenv("ARM_TENANT_ID"),
+		IsServicePrincipal:    true,
+		SubscriptionID:        os.Getenv("ARM_SUBSCRIPTION_ID"),
+		SubscriptionIDAlt:     os.Getenv("ARM_SUBSCRIPTION_ID_ALT"),
+		SubscriptionIDDevTest: os.Getenv("ARM_SUBSCRIPTION_ID_DEVTEST"),
+		TenantID:              os.Getenv("ARM_TENANT_ID"),
 	}
 }

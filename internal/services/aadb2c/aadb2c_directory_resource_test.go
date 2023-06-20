@@ -3,14 +3,14 @@ package aadb2c_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/sdk/2021-04-01-preview/tenants"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -103,9 +103,9 @@ func (r AadB2cDirectoryResource) Exists(ctx context.Context, client *clients.Cli
 		return nil, err
 	}
 
-	resp, err := client.AadB2c.TenantsClient.Get(ctx, *id)
+	resp, err := client.AadB2c.Tenants.Get(ctx, *id)
 	if err != nil {
-		if resp.HttpResponse.StatusCode == http.StatusNotFound {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)

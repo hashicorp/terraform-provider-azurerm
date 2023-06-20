@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `labels` - (Optional) List of labels associated with this route table.
 
-* `route` - (Optional)  A `route` block as defined below.
+* `route` - (Optional) One or more `route` blocks as defined below.
 
 ---
 
@@ -108,13 +108,13 @@ An `route` block exports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Hub Route Table.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Hub Route Table.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub Route Table.

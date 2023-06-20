@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/sdk/2021-04-30/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CognitiveAccountCustomerManagedKeyResource struct {
-}
+type CognitiveAccountCustomerManagedKeyResource struct{}
 
 func TestAccCognitiveAccountCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_customer_managed_key", "test")
@@ -149,7 +148,8 @@ func (r CognitiveAccountCustomerManagedKeyResource) template(data acceptance.Tes
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -171,12 +171,16 @@ resource "azurerm_cognitive_account" "test" {
   name                  = "acctest-cogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "Face"
-  sku_name              = "E0"
+  kind                  = "SpeechServices"
+  sku_name              = "S0"
   custom_subdomain_name = "acctest-cogacc-%d"
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  lifecycle {
+    ignore_changes = ["customer_managed_key"]
   }
 }
 
@@ -186,7 +190,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
-  soft_delete_enabled      = true
   purge_protection_enabled = true
 
   access_policy {
@@ -204,7 +207,7 @@ resource "azurerm_key_vault" "test" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
     key_permissions = [
-      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
     ]
     secret_permissions = [
       "Get",
@@ -215,7 +218,7 @@ resource "azurerm_key_vault" "test" {
     tenant_id = azurerm_user_assigned_identity.test.tenant_id
     object_id = azurerm_user_assigned_identity.test.principal_id
     key_permissions = [
-      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
     ]
     secret_permissions = [
       "Get",

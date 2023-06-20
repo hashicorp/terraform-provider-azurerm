@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Resource Group. Changing this forces a new Resource Group to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Resource Group should exist.
+* `resource_group_name` - (Required) The name of the Resource Group where the Resource Group should exist. Changing this forces a new Resource Group to be created.
 
 ---
 
@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `password` - (Optional) Administrator password for the VMs that will be created as part of this cluster.
 
-* `sku` - (Optional) SKU for this cluster.  Changing this forces a new resource to be created. Default is `Basic`, allowed values are either `Basic` or `Standard`.
+* `sku` - (Optional) SKU for this cluster. Changing this forces a new resource to be created. Default is `Basic`, allowed values are either `Basic` or `Standard`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group.
 
@@ -141,7 +141,7 @@ A `lb_rule` block supports the following:
 
 * `probe_protocol` - (Required) Protocol for the probe. Can be one of `tcp`, `udp`, `http`, or `https`.
 
-* `probe_request_path` - (Required) Path for the probe to check, when probe protocol is set to `http`.
+* `probe_request_path` - (Optional) Path for the probe to check, when probe protocol is set to `http`.
 
 * `protocol` - (Required) The transport protocol used in this rule. Can be one of `tcp` or `udp`.
 
@@ -193,18 +193,18 @@ A `vm_secrets` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Resource Group.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour and 30 minutes) Used when creating the Resource Group.
+* `create` - (Defaults to 90 minutes) Used when creating the Resource Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
-* `update` - (Defaults to 1 hour and 30 minutes) Used when updating the Resource Group.
-* `delete` - (Defaults to 1 hour and 30 minutes) Used when deleting the Resource Group.
+* `update` - (Defaults to 90 minutes) Used when updating the Resource Group.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Resource Group.
 
 ## Import
 

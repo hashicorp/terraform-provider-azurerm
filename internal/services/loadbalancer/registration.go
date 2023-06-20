@@ -5,10 +5,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistration = Registration{}
+var (
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.UntypedServiceRegistration               = Registration{}
+)
 
 type Registration struct{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/load-balancers"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -33,6 +39,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_lb":                      dataSourceArmLoadBalancer(),
 		"azurerm_lb_backend_address_pool": dataSourceArmLoadBalancerBackendAddressPool(),
 		"azurerm_lb_rule":                 dataSourceArmLoadBalancerRule(),
+		"azurerm_lb_outbound_rule":        dataSourceArmLoadBalancerOutboundRule(),
 	}
 }
 

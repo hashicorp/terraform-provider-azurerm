@@ -31,7 +31,6 @@ The following arguments are supported:
 
 * `resource_group_name` - Specifies the name of the resource group the Dedicated Host Group is located in.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -44,12 +43,12 @@ The following attributes are exported:
 
 * `automatic_placement_enabled` - Whether virtual machines or virtual machine scale sets be placed automatically on this Dedicated Host Group.
 
-* `zones` - The Availability Zones in which this Dedicated Host Group is located.
+* `zones` - A list of Availability Zones in which this Dedicated Host Group is located.
 
 * `tags` - A mapping of tags assigned to the resource.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dedicated Host Group.

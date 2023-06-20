@@ -1,18 +1,40 @@
+---
 name: Issue Comment Created Triage
 
 on:
   issue_comment:
     types: [created]
 
+permissions:
+  pull-requests: write
+  issues: write
+
 jobs:
-  issue_comment_triage:
+  remove-stale:
+    uses: ./.github/workflows/remove-issue-label.yml
+    with:
+      label-name: "stale"
+  remove-waiting-response-from-issue:
+    uses: ./.github/workflows/remove-issue-label.yml
+    if: ${{ !github.event.issue.pull_request }}
+    with:
+      label-name: "waiting-response"
+  remove-waiting-response-from-pr:
+    uses: ./.github/workflows/remove-issue-label.yml
+    if: (github.event.issue.pull_request && github.actor == github.event.issue.user.login)
+    with:
+      label-name: "waiting-response"
+
+  pull_request_comment:
     runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && endsWith(github.event.comment.body, '/wr')
     steps:
-      - uses: actions-ecosystem/action-remove-labels@v1
+      - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
-          github_token: "${{ secrets.GITHUB_TOKEN }}"
-          labels: stale
-      - uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          github_token: "${{ secrets.GITHUB_TOKEN }}"
-          labels: waiting-response
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["waiting-response"]
+            })

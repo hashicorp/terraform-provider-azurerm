@@ -19,22 +19,14 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mariadb_server" "example" {
-  name                = "mariadb-server-1"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  sku_name = "B_Gen5_2"
-
-  storage_profile {
-    storage_mb            = 5120
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
-
+  name                         = "mariadb-server-1"
+  location                     = azurerm_resource_group.example.location
+  resource_group_name          = azurerm_resource_group.example.name
+  sku_name                     = "B_Gen5_2"
+  ssl_enforcement_enabled      = true
   administrator_login          = "mariadbadmin"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "10.2"
-  ssl_enforcement              = "Enabled"
 }
 
 resource "azurerm_mariadb_configuration" "example" {
@@ -55,17 +47,17 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the MariaDB Server exists. Changing this forces a new resource to be created.
 
-* `value` - (Required) Specifies the value of the MariaDB Configuration. See the MariaDB documentation for valid values.
+* `value` - (Required) Specifies the value of the MariaDB Configuration. See the MariaDB documentation for valid values. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MariaDB Configuration.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MariaDB Configuration.
 * `update` - (Defaults to 30 minutes) Used when updating the MariaDB Configuration.

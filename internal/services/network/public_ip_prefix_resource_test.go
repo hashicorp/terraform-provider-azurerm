@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PublicIPPrefixResource struct {
-}
+type PublicIPPrefixResource struct{}
 
 func (t PublicIPPrefixResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PublicIpPrefixID(state.ID)
@@ -117,6 +116,8 @@ func TestAccPublicIpPrefix_prefixLength31(t *testing.T) {
 func TestAccPublicIpPrefix_prefixLength24(t *testing.T) {
 	// NOTE: This test will fail unless the subscription is updated
 	//        to accept a minimum PrefixLength of 24
+	// more detail about [public ip limits](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/public-ip-addresses#limits)
+	// you can submit a support request to increase the limit in [Azure Portal](https://learn.microsoft.com/en-us/azure/networking/check-usage-against-limits#azure-portal)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIPPrefixResource{}
 
@@ -170,36 +171,33 @@ func TestAccPublicIpPrefix_disappears(t *testing.T) {
 	})
 }
 
-func TestAccPublicIpPrefix_availabilityZoneRedundant(t *testing.T) {
+func TestAccPublicIpPrefix_zonesSingle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIPPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withAvailabilityZone(data, "Zone-Redundant"),
+			Config: r.zonesSingle(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccPublicIpPrefix_availabilityZoneSingle(t *testing.T) {
+func TestAccPublicIpPrefix_zonesMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIPPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withAvailabilityZone(data, "1"),
+			Config: r.zonesMultiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
-	})
-}
-
-func TestAccPublicIpPrefix_availabilityZoneSNoZone(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withAvailabilityZone(data, "No-Zone"),
-		},
+		data.ImportStep(),
 	})
 }
 
@@ -345,22 +343,42 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPPrefixResource) withAvailabilityZone(data acceptance.TestData, availabilityZone string) string {
+func (PublicIPPrefixResource) zonesSingle(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_public_ip_prefix" "test" {
-  name                = "acctestpublicipprefix-%d"
+  name                = "acctestpublicipprefix-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  availability_zone   = "%s"
+  zones               = ["1"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, availabilityZone)
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (PublicIPPrefixResource) zonesMultiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  zones               = ["1", "2", "3"]
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

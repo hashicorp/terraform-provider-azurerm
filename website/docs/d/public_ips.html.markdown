@@ -15,14 +15,14 @@ Use this data source to access information about a set of existing Public IP Add
 ```hcl
 data "azurerm_public_ips" "example" {
   resource_group_name = "pip-test"
-  attached            = false
+  attachment_status   = "Attached"
 }
 ```
 
 ## Argument Reference
 
 * `resource_group_name` - Specifies the name of the resource group.
-* `attachment_status` - (Optional) Filter to include IP Addresses which are attached to a device, such as a VM/LB (`Attached`) or unattached (`Unattached`). To allow for both, use `All`.
+* `attachment_status` - (Optional) Filter to include IP Addresses which are attached to a device, such as a VM/LB (`Attached`) or unattached (`Unattached`).
 * `name_prefix` - (Optional) A prefix match used for the IP Addresses `name` field, case sensitive.
 * `allocation_type` - (Optional) The Allocation Type for the Public IP Address. Possible values include `Static` or `Dynamic`.
 
@@ -40,6 +40,6 @@ A `public_ips` block contains:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Public IP Addresses.

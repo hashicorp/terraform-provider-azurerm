@@ -1,0 +1,55 @@
+---
+name: "Pull Request Reviewed Workflow"
+
+on:
+  workflow_run:
+    workflows:
+      - "Pull Request Reviewed"
+    types:
+      - completed
+
+permissions:
+  pull-requests: write
+
+jobs:
+  add-or-remove-waiting-response:
+    runs-on: ubuntu-latest
+    outputs:
+      ghrepo: ${{ steps.env_vars.outputs.ghrepo }}
+      ghowner: ${{ steps.env_vars.outputs.ghowner }}
+      prnumber: ${{ steps.env_vars.outputs.prnumber }}
+      action: ${{ steps.env_vars.outputs.action }}
+      artifact_outcome: ${{ steps.env_vars.outputs.artifact_outcome }}
+    steps:
+      - name: Get Artifact
+        id: get_artifact
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@246dbf436b23d7c49e21a7ab8204ca9ecd1fe615 # v2.27.0
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflow: pull-request-reviewed.yaml
+
+      - name: env_vars
+        id: env_vars
+        if: steps.get_artifact.outcome == 'success'
+        run: |
+          echo "ghrepo=$(cat artifact/ghrepo.txt)" >>${GITHUB_OUTPUT}
+          echo "ghowner=$(cat artifact/ghowner.txt)" >>${GITHUB_OUTPUT}
+          echo "prnumber=$(cat artifact/prnumber.txt)" >>${GITHUB_OUTPUT}
+          echo "action=$(cat artifact/action.txt)" >>${GITHUB_OUTPUT}
+          echo "artifact_outcome=success" >>${GITHUB_OUTPUT}
+
+  add-waiting-reponse:
+    needs: add-or-remove-waiting-response
+    runs-on: ubuntu-latest
+    if: needs.add-or-remove-waiting-response.outputs.artifact_outcome == 'success' && needs.add-or-remove-waiting-response.outputs.action == 'add-waiting-response'
+    steps:
+      - run: |
+          curl -X POST -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos${{ needs.add-or-remove-waiting-response.outputs.ghowner }}/${{ needs.add-or-remove-waiting-response.outputs.ghrepo }}/issues/${{ needs.add-or-remove-waiting-response.outputs.prnumber }}/labels" -d '{"labels":["waiting-response"]}'
+
+  remove-waiting-reponse:
+    needs: add-or-remove-waiting-response
+    if: needs.add-or-remove-waiting-response.outputs.artifact_outcome == 'success' && needs.add-or-remove-waiting-response.outputs.action == 'remove-waiting-response'
+    uses: ./.github/workflows/remove-issue-label.yml
+    with:
+      label-name: "waiting-response"

@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type LogAnalyticsWorkspaceDataSource struct {
-}
+type LogAnalyticsWorkspaceDataSource struct{}
 
+// NOTE: The RP lowercases the sku return value which is why the tests fail
 func TestAccDataSourceLogAnalyticsWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceDataSource{}
@@ -19,7 +19,7 @@ func TestAccDataSourceLogAnalyticsWorkspace_basic(t *testing.T) {
 		{
 			Config: r.basicWithDataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku").HasValue("pergb2018"),
+				check.That(data.ResourceName).Key("sku").HasValue("PerGB2018"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("30"),
 				check.That(data.ResourceName).Key("daily_quota_gb").HasValue("-1"),
 			),
@@ -35,7 +35,7 @@ func TestAccDataSourceLogAnalyticsWorkspace_volumeCapWithDataSource(t *testing.T
 		{
 			Config: r.volumeCapWithDataSource(data, 4.5),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku").HasValue("pergb2018"),
+				check.That(data.ResourceName).Key("sku").HasValue("PerGB2018"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("30"),
 				check.That(data.ResourceName).Key("daily_quota_gb").HasValue("4.5"),
 			),

@@ -34,9 +34,8 @@ resource "azurerm_bot_channel_email" "example" {
   bot_name            = azurerm_bot_channels_registration.example.name
   location            = azurerm_bot_channels_registration.example.location
   resource_group_name = azurerm_resource_group.example.name
-  client_id           = "exampleId"
-  client_secret       = "exampleSecret"
-  verification_token  = "exampleVerificationToken"
+  email_address       = "example.com"
+  email_password      = "123456"
 }
 ```
 
@@ -54,16 +53,15 @@ The following arguments are supported:
 
 * `email_password` - (Required) The email password that the Bot will authenticate with.
 
-
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Email Integration for a Bot Channel.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Email Integration for a Bot Channel.
 * `update` - (Defaults to 30 minutes) Used when updating the Email Integration for a Bot Channel.

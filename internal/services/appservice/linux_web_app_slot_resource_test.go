@@ -60,6 +60,43 @@ func TestAccLinuxWebAppSlot_autoSwap(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_separateStandardPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.separatePlan(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_separateStandardPlanUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.separatePlan(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.separatePlanUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Complete
 
 func TestAccLinuxWebAppSlot_complete(t *testing.T) {
@@ -152,6 +189,36 @@ func TestAccLinuxWebAppSlot_backupUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_scmIpRestrictionSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scmIpRestrictionSubnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_scmIpRestrictionHeaders(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scmIpRestrictionHeaders(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebAppSlot_withConnectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
@@ -223,6 +290,21 @@ func TestAccLinuxWebAppSlot_withIPRestrictions(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withIPRestrictions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withIPRangeRestrictions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withIPRangeRestrictions(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -385,6 +467,57 @@ func TestAccLinuxWebAppSlot_appSettings(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identitySystemAssignedUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_identityKeyVaultIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUserAssignedKeyVaultIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Atrtibutes
 
 func TestAccLinuxWebAppSlot_loadBalancing(t *testing.T) {
@@ -470,21 +603,6 @@ func TestAccLinuxWebAppSlot_withLoggingUpdate(t *testing.T) {
 
 // App Stacks
 
-func TestAccLinuxWebAppSlot_withDotNet21(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.dotNet(data, "2.1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccLinuxWebAppSlot_withDotNet31(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
@@ -515,13 +633,13 @@ func TestAccLinuxWebAppSlot_withDotNet50(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withPhp56(t *testing.T) {
+func TestAccLinuxWebAppSlot_withDotNet60(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.php(data, "5.6"),
+			Config: r.dotNet(data, "6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -530,28 +648,13 @@ func TestAccLinuxWebAppSlot_withPhp56(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withPhp72(t *testing.T) {
+func TestAccLinuxWebAppSlot_withDotNet70(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.php(data, "7.2"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withPhp73(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.php(data, "7.3"),
+			Config: r.dotNet(data, "7.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -575,13 +678,13 @@ func TestAccLinuxWebAppSlot_withPhp74(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withPython27(t *testing.T) {
+func TestAccLinuxWebAppSlot_withPhp80(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.python(data, "2.7"),
+			Config: r.php(data, "8.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -590,13 +693,28 @@ func TestAccLinuxWebAppSlot_withPython27(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withPython36(t *testing.T) {
+func TestAccLinuxWebAppSlot_withPhp81(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.python(data, "3.6"),
+			Config: r.php(data, "8.1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withPhp82(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.php(data, "8.2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -635,13 +753,13 @@ func TestAccLinuxWebAppSlot_withPython38(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withNode101(t *testing.T) {
+func TestAccLinuxWebAppSlot_withPython39(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "10.1"),
+			Config: r.python(data, "3.9"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -650,13 +768,13 @@ func TestAccLinuxWebAppSlot_withNode101(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withNode106(t *testing.T) {
+func TestAccLinuxWebAppSlot_withPython310(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "10.6"),
+			Config: r.python(data, "3.10"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -665,13 +783,13 @@ func TestAccLinuxWebAppSlot_withNode106(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withNode1014(t *testing.T) {
+func TestAccLinuxWebAppSlot_withPython311(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "10.14"),
+			Config: r.python(data, "3.11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -680,13 +798,28 @@ func TestAccLinuxWebAppSlot_withNode1014(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_withNode10LTS(t *testing.T) {
+func TestAccLinuxWebAppSlot_withRuby26(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.node(data, "10-lts"),
+			Config: r.ruby(data, "2.6"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withRuby27(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ruby(data, "2.7"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -725,13 +858,28 @@ func TestAccLinuxWebAppSlot_withNode14LTS(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_withNode16LTS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.node(data, "18-lts"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebAppSlot_withJre8Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "jre8", "JAVA", "8"),
+			Config: r.java(data, "8", "JAVA", "8"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -746,7 +894,7 @@ func TestAccLinuxWebAppSlot_withJre11Java(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "java11", "JAVA", "11"),
+			Config: r.java(data, "11", "JAVA", "11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|11-java11"),
@@ -762,7 +910,7 @@ func TestAccLinuxWebAppSlot_withJava1109(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "11.0.9", "JAVA", ""),
+			Config: r.java(data, "11", "JAVA", "11.0.9"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|11.0.9"),
@@ -778,7 +926,7 @@ func TestAccLinuxWebAppSlot_withJava8u242(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "8u242", "JAVA", ""),
+			Config: r.java(data, "8", "JAVA", "8u242"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|8u242"),
@@ -794,7 +942,7 @@ func TestAccLinuxWebAppSlot_withJava11Tomcat9(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "java11", "TOMCAT", "9.0"),
+			Config: r.java(data, "11", "TOMCAT", "9.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("TOMCAT|9.0-java11"),
@@ -810,7 +958,7 @@ func TestAccLinuxWebAppSlot_withJava11Tomcat8561(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.java(data, "java11", "TOMCAT", "8.5.61"),
+			Config: r.java(data, "11", "TOMCAT", "8.5.61"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("TOMCAT|8.5.61-java11"),
@@ -826,7 +974,7 @@ func TestAccLinuxWebAppSlot_withJava8JBOSSEAP73(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.javaPremiumV3Plan(data, "java8", "JBOSSEAP", "7.3"),
+			Config: r.javaPremiumV3Plan(data, "8", "JBOSSEAP", "7.3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JBOSSEAP|7.3-java8"),
@@ -852,7 +1000,84 @@ func TestAccLinuxWebAppSlot_withDocker(t *testing.T) {
 	})
 }
 
-// Attributes
+// Deployments
+
+func TestAccLinuxWebAppSlot_zipDeploy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zipDeploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("zip_deploy_file"),
+	})
+}
+
+// Network tests
+
+func TestAccLinuxWebAppSlot_vNetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegrationWebApp_subnet1(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test1").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_vNetIntegrationUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegrationWebApp_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegrationWebApp_subnet1(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test1").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegrationWebApp_subnet2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test2").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegrationWebApp_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 // Exists
 
@@ -888,11 +1113,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 }
@@ -905,14 +1127,10 @@ func (r LinuxWebAppSlotResource) requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_linux_web_app_slot" "import" {
-  name                = azurerm_linux_web_app_slot.test.name
-  app_service_name    = azurerm_linux_web_app_slot.test.app_service_name
-  location            = azurerm_linux_web_app_slot.test.location
-  resource_group_name = azurerm_linux_web_app_slot.test.resource_group_name
-  service_plan_id     = azurerm_linux_web_app_slot.test.service_plan_id
+  name           = azurerm_linux_web_app_slot.test.name
+  app_service_id = azurerm_linux_web_app_slot.test.app_service_id
 
   site_config {}
-
 }
 `, r.basic(data))
 }
@@ -926,11 +1144,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -951,11 +1166,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     auto_heal_enabled = true
@@ -988,11 +1200,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     auto_heal_enabled = true
@@ -1030,11 +1239,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     auto_swap_slot_name = "production"
@@ -1052,11 +1258,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 }
@@ -1072,11 +1275,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   app_settings = {
     foo = "bar"
@@ -1136,9 +1336,10 @@ resource "azurerm_linux_web_app_slot" "test" {
     }
   }
 
-  client_affinity_enabled    = true
-  client_certificate_enabled = true
-  client_certificate_mode    = "Optional"
+  client_affinity_enabled            = true
+  client_certificate_enabled         = true
+  client_certificate_mode            = "Optional"
+  client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
 
   connection_string {
     name  = "First"
@@ -1192,7 +1393,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     }
 
     container_registry_use_managed_identity       = true
-    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.id
+    container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     auto_swap_slot_name = "Production"
     auto_heal_enabled   = true
@@ -1239,11 +1440,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1263,11 +1461,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     load_balancing_mode = "%s"
@@ -1285,11 +1480,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1325,11 +1517,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1402,11 +1591,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1431,11 +1617,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   connection_string {
     name  = "First"
@@ -1444,6 +1627,71 @@ resource "azurerm_linux_web_app_slot" "test" {
   }
 
   site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) scmIpRestrictionSubnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {
+    scm_ip_restriction {
+      virtual_network_subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) scmIpRestrictionHeaders(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {
+    scm_ip_restriction {
+      action     = "Allow"
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+  }
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
@@ -1457,11 +1705,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   connection_string {
     name  = "First"
@@ -1489,15 +1734,42 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     ip_restriction {
       ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) withIPRangeRestrictions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {
+    ip_restriction {
+      ip_address = "13.107.6.152/31,13.107.128.0/22"
       name       = "test-restriction"
       priority   = 123
       action     = "Allow"
@@ -1522,11 +1794,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     ip_restriction {
@@ -1555,11 +1824,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1594,11 +1860,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {}
 
@@ -1636,11 +1899,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1661,11 +1921,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1686,11 +1943,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1702,6 +1956,28 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, pythonVersion)
 }
 
+func (r LinuxWebAppSlotResource) ruby(data acceptance.TestData, rubyVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {
+    application_stack {
+      ruby_version = "%s"
+    }
+  }
+}
+
+`, r.baseTemplate(data), data.RandomInteger, rubyVersion)
+}
+
 func (r LinuxWebAppSlotResource) node(data acceptance.TestData, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1711,11 +1987,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1736,11 +2009,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1763,11 +2033,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
     application_stack {
@@ -1790,11 +2057,8 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                = "acctestWAS-%d"
-  app_service_name    = azurerm_linux_web_app.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
 
   app_settings = {
     "DOCKER_REGISTRY_SERVER_URL"          = "https://mcr.microsoft.com"
@@ -1813,6 +2077,211 @@ resource "azurerm_linux_web_app_slot" "test" {
 }
 
 `, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
+}
+
+func (r LinuxWebAppSlotResource) identitySystemAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {}
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {}
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) identityUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {}
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) identityUserAssignedKeyVaultIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_user_assigned_identity" "kv" {
+  name                = "acctestUAI-kv-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {}
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.kv.id]
+  }
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) zipDeploy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  app_settings = {
+    WEBSITE_RUN_FROM_PACKAGE       = "1"
+    SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
+  }
+
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
+
+  zip_deploy_file = "./testdata/msdocs-python-flask-webapp-quickstart-main.zip"
+}
+
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) separatePlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_service_plan" "test2" {
+  name                = "acctestASP2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "%[3]s"
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  service_plan_id = azurerm_service_plan.test2.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, SkuStandardPlan)
+}
+
+func (r LinuxWebAppSlotResource) separatePlanUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_service_plan" "test2" {
+  name                = "acctestASP2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "%[3]s"
+}
+
+resource "azurerm_service_plan" "test3" {
+  name                = "acctestASP3-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "%[4]s"
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  service_plan_id = azurerm_service_plan.test3.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, SkuStandardPlan, SkuPremiumPlan)
 }
 
 // Templates
@@ -1871,6 +2340,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_storage_share" "test" {
   name                 = "test"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 }
 
 data "azurerm_storage_account_sas" "test" {
@@ -1902,6 +2372,8 @@ data "azurerm_storage_account_sas" "test" {
     create  = false
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)
@@ -1932,4 +2404,174 @@ resource "azurerm_linux_web_app" "test" {
   site_config {}
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LinuxWebAppSlotResource) vNetIntegrationWebApp_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) vNetIntegrationWebApp_subnet1(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name                      = "acctestWAS-%[2]d"
+  app_service_id            = azurerm_linux_web_app.test.id
+  virtual_network_subnet_id = azurerm_subnet.test1.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) vNetIntegrationWebApp_subnet2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name                      = "acctestWAS-%[2]d"
+  app_service_id            = azurerm_linux_web_app.test.id
+  virtual_network_subnet_id = azurerm_subnet.test2.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
 }

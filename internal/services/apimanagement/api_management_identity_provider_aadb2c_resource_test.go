@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,8 +25,7 @@ Accordingly, these tests rely on additional environment variables to be set (and
 * ARM_TEST_B2C_CLIENT_SECRET  - client secret for that application
 */
 
-type ApiManagementIdentityProviderAADB2CResource struct {
-}
+type ApiManagementIdentityProviderAADB2CResource struct{}
 
 func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
@@ -82,7 +81,7 @@ func testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t *testing.T
 			v := fmt.Sprintf("ARM_TEST_B2C_%s", strings.ToUpper(k))
 			vars = append(vars, v)
 		}
-		t.Skip(fmt.Sprintf("Acceptance tests for resource `azurerm_api_management_identity_provider_aadb2c` skipped unless environment variables set: %s", strings.Join(vars, ", ")))
+		t.Skipf("Acceptance tests for resource `azurerm_api_management_identity_provider_aadb2c` skipped unless environment variables set: %s", strings.Join(vars, ", "))
 	}
 
 	return config

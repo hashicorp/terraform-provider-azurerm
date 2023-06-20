@@ -6,13 +6,14 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupvaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/legacysdk/dataprotection"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -35,7 +36,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BackupVaultID(id)
+			_, err := backupvaults.ParseBackupVaultIDInsensitively(id)
 			return err
 		}),
 
@@ -50,18 +51,18 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"datastore_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(dataprotection.StorageSettingStoreTypesArchiveStore),
-					string(dataprotection.StorageSettingStoreTypesSnapshotStore),
-					string(dataprotection.StorageSettingStoreTypesVaultStore),
+					string(backupvaults.StorageSettingStoreTypesArchiveStore),
+					string(backupvaults.StorageSettingStoreTypesSnapshotStore),
+					string(backupvaults.StorageSettingStoreTypesVaultStore),
 				}, false),
 			},
 
@@ -70,17 +71,18 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(dataprotection.StorageSettingTypesGeoRedundant),
-					string(dataprotection.StorageSettingTypesLocallyRedundant),
+					string(backupvaults.StorageSettingTypesGeoRedundant),
+					string(backupvaults.StorageSettingTypesLocallyRedundant),
 				}, false),
 			},
 
-			"identity": identity.SystemAssigned{}.Schema(),
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 		},
 	}
 }
+
 func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
@@ -90,39 +92,44 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewBackupVaultID(subscriptionId, resourceGroup, name)
+	id := backupvaults.NewBackupVaultID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.Name, id.ResourceGroup)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing DataProtection BackupVault (%q): %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_data_protection_backup_vault", id.ID())
 		}
 	}
 
-	parameters := dataprotection.BackupVaultResource{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Properties: &dataprotection.BackupVault{
-			StorageSettings: &[]dataprotection.StorageSetting{
-				{
-					DatastoreType: dataprotection.StorageSettingStoreTypes(d.Get("datastore_type").(string)),
-					Type:          dataprotection.StorageSettingTypes(d.Get("redundancy").(string)),
-				}},
-		},
-		Identity: expandBackupVaultDppIdentityDetails(d.Get("identity").([]interface{})),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-	future, err := client.CreateOrUpdate(ctx, id.Name, id.ResourceGroup, parameters)
+	expandedIdentity, err := expandBackupVaultDppIdentityDetails(d.Get("identity").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("creating DataProtection BackupVault (%q): %+v", id, err)
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of the DataProtection BackupVault (%q): %+v", id, err)
+	datastoreType := backupvaults.StorageSettingStoreTypes(d.Get("datastore_type").(string))
+	storageSettingType := backupvaults.StorageSettingTypes(d.Get("redundancy").(string))
+
+	parameters := backupvaults.BackupVaultResource{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: backupvaults.BackupVault{
+			StorageSettings: []backupvaults.StorageSetting{
+				{
+					DatastoreType: &datastoreType,
+					Type:          &storageSettingType,
+				},
+			},
+		},
+		Identity: expandedIdentity,
+		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+	}
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
+	if err != nil {
+		return fmt.Errorf("creating DataProtection BackupVault (%q): %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -134,33 +141,40 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BackupVaultID(d.Id())
+	id, err := backupvaults.ParseBackupVaultID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Name, id.ResourceGroup)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] DataProtection BackupVault %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving DataProtection BackupVault (%q): %+v", id, err)
 	}
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	if props := resp.Properties; props != nil {
-		if props.StorageSettings != nil && len(*props.StorageSettings) > 0 {
-			d.Set("datastore_type", (*props.StorageSettings)[0].DatastoreType)
-			d.Set("redundancy", (*props.StorageSettings)[0].Type)
+	d.Set("name", id.BackupVaultName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(&model.Location))
+		props := model.Properties
+		if props.StorageSettings != nil && len(props.StorageSettings) > 0 {
+			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
+			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
+		}
+
+		if err = d.Set("identity", flattenBackupVaultDppIdentityDetails(model.Identity)); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
 		}
 	}
-	if err := d.Set("identity", flattenBackupVaultDppIdentityDetails(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-	return tags.FlattenAndSet(d, resp.Tags)
+
+	return nil
 }
 
 func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -168,13 +182,13 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BackupVaultID(d.Id())
+	id, err := backupvaults.ParseBackupVaultID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, id.Name, id.ResourceGroup); err != nil {
-		if utils.ResponseWasNotFound(resp) {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 		return fmt.Errorf("deleting DataProtection BackupVault (%q): %+v", id, err)
@@ -182,30 +196,34 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandBackupVaultDppIdentityDetails(input []interface{}) *dataprotection.DppIdentityDetails {
-	config, _ := identity.SystemAssigned{}.Expand(input)
-	return &dataprotection.DppIdentityDetails{
-		Type: utils.String(string(config.Type)),
+func expandBackupVaultDppIdentityDetails(input []interface{}) (*backupvaults.DppIdentityDetails, error) {
+	config, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
+
+	return &backupvaults.DppIdentityDetails{
+		Type: utils.String(string(config.Type)),
+	}, nil
 }
 
-func flattenBackupVaultDppIdentityDetails(input *dataprotection.DppIdentityDetails) []interface{} {
-	var config *identity.ExpandedConfig
+func flattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails) []interface{} {
+	var config *identity.SystemAssigned
 	if input != nil {
 		principalId := ""
-		if input.PrincipalID != nil {
-			principalId = *input.PrincipalID
+		if input.PrincipalId != nil {
+			principalId = *input.PrincipalId
 		}
 
 		tenantId := ""
-		if input.TenantID != nil {
-			tenantId = *input.TenantID
+		if input.TenantId != nil {
+			tenantId = *input.TenantId
 		}
-		config = &identity.ExpandedConfig{
+		config = &identity.SystemAssigned{
 			Type:        identity.Type(*input.Type),
 			PrincipalId: principalId,
 			TenantId:    tenantId,
 		}
 	}
-	return identity.SystemAssigned{}.Flatten(config)
+	return identity.FlattenSystemAssigned(config)
 }

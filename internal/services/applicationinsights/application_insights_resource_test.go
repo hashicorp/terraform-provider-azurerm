@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppInsightsResource struct {
-}
+type AppInsightsResource struct{}
 
 func TestAccApplicationInsights_basicWeb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
@@ -153,10 +152,16 @@ func TestAccApplicationInsights_basicWorkspaceMode(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic_workspace_mode(data),
+			Config: r.basicWorkspaceMode(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("workspace_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWorkspaceModeUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -244,6 +249,22 @@ func TestAccApplicationInsights_withInternetIngestionEnabled(t *testing.T) {
 	})
 }
 
+func TestAccApplicationInsights_disableGeneratedRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
+	r := AppInsightsResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableGeneratedRule(data, "web"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("application_type").HasValue("web"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (AppInsightsResource) basic(data acceptance.TestData, applicationType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -264,7 +285,7 @@ resource "azurerm_application_insights" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
 }
 
-func (AppInsightsResource) basic_workspace_mode(data acceptance.TestData) string {
+func (AppInsightsResource) basicWorkspaceMode(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -291,6 +312,43 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (AppInsightsResource) basicWorkspaceModeUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appinsights-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_log_analytics_workspace" "test2" {
+  name                = "acctest2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test2.id
+  application_type    = "web"
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (AppInsightsResource) requiresImport(data acceptance.TestData, applicationType string) string {
@@ -328,6 +386,7 @@ resource "azurerm_application_insights" "test" {
   daily_data_cap_in_gb                  = 50
   daily_data_cap_notifications_disabled = true
   disable_ip_masking                    = true
+  force_customer_storage_for_profiler   = true
   local_authentication_disabled         = true
 
   tags = {
@@ -419,4 +478,28 @@ resource "azurerm_application_insights" "test" {
   internet_ingestion_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AppInsightsResource) disableGeneratedRule(data acceptance.TestData, applicationType string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    application_insights {
+      disable_generated_rule = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appinsights-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
 }

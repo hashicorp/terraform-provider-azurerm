@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MapsAccountDataSource struct {
-}
+type MapsAccountDataSource struct{}
 
 func TestAccMapsAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_maps_account", "test")

@@ -24,11 +24,6 @@ output "api_outputs" {
     }
 }
 
-output "group_id" {
-  description = "The ID of the API Management Group created"
-  value = azurerm_api_management_group.group.id
-}
-
 output "product_ids" {
   description = "The ID of the Product created"
   value = azurerm_api_management_product.product.id

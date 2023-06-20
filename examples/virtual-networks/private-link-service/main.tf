@@ -15,11 +15,12 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                                          = "acctestsnet"
-  resource_group_name                           = azurerm_resource_group.test.name
-  virtual_network_name                          = azurerm_virtual_network.test.name
-  address_prefixes                              = ["10.5.1.0/24"]
-  enforce_private_link_service_network_policies = true
+  name                 = "acctestsnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.1.0/24"]
+
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_public_ip" "test" {

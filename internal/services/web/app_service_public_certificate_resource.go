@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -19,9 +19,8 @@ import (
 
 func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAppServicePublicCertificateCreateUpdate,
+		Create: resourceAppServicePublicCertificateCreate,
 		Read:   resourceAppServicePublicCertificateRead,
-		Update: resourceAppServicePublicCertificateCreateUpdate,
 		Delete: resourceAppServicePublicCertificateDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PublicCertificateID(id)
@@ -35,8 +34,7 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 		Schema: map[string]*pluginsdk.Schema{
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"app_service_name": {
 				Type:     pluginsdk.TypeString,
@@ -54,6 +52,7 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 			"certificate_location": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(web.PublicCertificateLocationLocalMachineMy),
 					string(web.PublicCertificateLocationCurrentUserMy),
@@ -76,28 +75,25 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServicePublicCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppService.WebAppsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	appServiceName := d.Get("app_service_name").(string)
-	certificateName := d.Get("certificate_name").(string)
+	id := parse.NewPublicCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), d.Get("certificate_name").(string))
 	certificateLocation := d.Get("certificate_location").(string)
 	blob := d.Get("blob").(string)
 
-	if d.IsNewResource() {
-		existing, err := client.GetPublicCertificate(ctx, resourceGroup, appServiceName, certificateName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing App Service Public Certificate %q (Resource Group %q, App Service: %q): %s", certificateName, resourceGroup, appServiceName, err)
-			}
+	existing, err := client.GetPublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_public_certificate", *existing.ID)
-		}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_app_service_public_certificate", id.ID())
 	}
 
 	certificate := web.PublicCertificate{
@@ -114,19 +110,43 @@ func resourceAppServicePublicCertificateCreateUpdate(d *pluginsdk.ResourceData, 
 		certificate.PublicCertificateProperties.Blob = &decodedBlob
 	}
 
-	if _, err := client.CreateOrUpdatePublicCertificate(ctx, resourceGroup, appServiceName, certificateName, certificate); err != nil {
-		return fmt.Errorf("creating/updating App Service Public Certificate %q (Resource Group %q, App Service: %q): %s", certificateName, resourceGroup, appServiceName, err)
+	if _, err := client.CreateOrUpdatePublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name, certificate); err != nil {
+		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
-	read, err := client.GetPublicCertificate(ctx, resourceGroup, appServiceName, certificateName)
-	if err != nil {
-		return fmt.Errorf("retrieving App Service Public Certificate %q (Resource Group %q, App Service: %q): %s", certificateName, resourceGroup, appServiceName, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("cannot read App Service Public Certificate %q (Resource Group %q, App Service: %q) ID", certificateName, resourceGroup, appServiceName)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("could not determine context deadline for create for %s", id)
 	}
 
-	d.SetId(*read.ID)
+	// (@jackofallops) - The ok on the create call above can in some cases return before the resource is retrievable by
+	// the `GetPublicCertificate` call, so we'll check it is actually created before progressing to read to prevent
+	// false negative removal there.
+	createWait := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"notfound"},
+		Target:                    []string{"ok"},
+		MinTimeout:                10 * time.Second,
+		Timeout:                   time.Until(deadline),
+		NotFoundChecks:            10,
+		ContinuousTargetOccurence: 3,
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.GetPublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return nil, "notfound", nil
+				} else {
+					return nil, "error", err
+				}
+			}
+			return resp, "ok", nil
+		},
+	}
+
+	if _, err := createWait.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for creation of %s: %s", id, err)
+	}
+
+	d.SetId(id.ID())
 
 	return resourceAppServicePublicCertificateRead(d, meta)
 }

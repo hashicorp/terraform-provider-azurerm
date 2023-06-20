@@ -48,11 +48,9 @@ resource "azurerm_storage_table_entity" "example" {
 
 The following arguments are supported:
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the storage table entity.
- Changing this forces a new resource to be created.
+* `storage_account_name` - (Required) Specifies the storage account in which to create the storage table entity. Changing this forces a new resource to be created.
 
-* `table_name` - (Required) The name of the storage table in which to create the storage table entity.
-Changing this forces a new resource to be created.
+* `table_name` - (Required) The name of the storage table in which to create the storage table entity. Changing this forces a new resource to be created.
 
 * `partition_key` - (Required) The key for the partition where the entity will be inserted/merged. Changing this forces a new resource.
 
@@ -60,16 +58,15 @@ Changing this forces a new resource to be created.
 
 * `entity` - (Required) A map of key/value pairs that describe the entity to be inserted/merged in to the storage table.
 
-
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Entity within the Table in the Storage Account.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Table Entity.
 * `update` - (Defaults to 30 minutes) Used when updating the Storage Table Entity.

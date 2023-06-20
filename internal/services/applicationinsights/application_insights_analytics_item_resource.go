@@ -5,12 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -59,7 +59,7 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ComponentID,
 			},
 
 			"version": {
@@ -160,7 +160,8 @@ func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *pluginsdk.ResourceD
 		// We cannot get specific analytics items without their itemID which is why we need to list all the
 		// available items of a certain type and scope in order to check whether a resource already exists and needs
 		// to be imported first
-		existing, err := client.List(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, itemScopePath, itemScope, insights.ItemTypeParameter(typeName), &includeContent)
+		// https://github.com/Azure/azure-rest-api-specs/issues/20712 itemScopePath should be set to insights.ItemScopePathAnalyticsItems in List method
+		existing, err := client.List(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, insights.ItemScopePathAnalyticsItems, itemScope, insights.ItemTypeParameter(typeName), &includeContent)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Application Insights Analytics Items %+v", err)
@@ -215,6 +216,10 @@ func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, met
 
 	result, err := client.Get(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
+		if utils.ResponseWasNotFound(result.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("getting Application Insights Analytics Item %s: %+v", id, err)
 	}
 

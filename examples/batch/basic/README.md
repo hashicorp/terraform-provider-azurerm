@@ -49,10 +49,10 @@ resource "azurerm_key_vault" "example" {
     object_id = "${data.azuread_service_principal.batchsp.object_id}"
 
     secret_permissions = [
-      "get",
-      "list",
-      "set",
-      "delete"
+      "Get",
+      "List",
+      "Set",
+      "Delete"
     ]
 
   }

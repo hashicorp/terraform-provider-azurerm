@@ -6,14 +6,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,7 +30,7 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 		Delete: resourceDedicatedHostDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DedicatedHostID(id)
+			_, err := dedicatedhosts.ParseHostID(id)
 			return err
 		}),
 
@@ -47,46 +49,63 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 				ValidateFunc: validate.DedicatedHostName(),
 			},
 
-			"location": azure.SchemaLocation(),
-
 			"dedicated_host_group_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DedicatedHostGroupID,
+				ValidateFunc: dedicatedhostgroups.ValidateHostGroupID,
 			},
+
+			"location": commonschema.Location(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				ForceNew: true,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"DSv3-Type1",
-					"DSv3-Type2",
-					"DSv4-Type1",
-					"ESv3-Type1",
-					"ESv3-Type2",
-					"FSv2-Type2",
+					"DADSv5-Type1",
 					"DASv4-Type1",
+					"DASv4-Type2",
+					"DASv5-Type1",
 					"DCSv2-Type1",
 					"DDSv4-Type1",
+					"DDSv4-Type2",
+					"DDSv5-Type1",
 					"DSv3-Type1",
 					"DSv3-Type2",
 					"DSv3-Type3",
+					"DSv3-Type4",
 					"DSv4-Type1",
+					"DSv4-Type2",
+					"DSv5-Type1",
+					"EADSv5-Type1",
 					"EASv4-Type1",
+					"EASv4-Type2",
+					"EASv5-Type1",
 					"EDSv4-Type1",
+					"EDSv4-Type2",
+					"EDSv5-Type1",
 					"ESv3-Type1",
 					"ESv3-Type2",
 					"ESv3-Type3",
+					"ESv3-Type4",
 					"ESv4-Type1",
+					"ESv4-Type2",
+					"ESv5-Type1",
 					"FSv2-Type2",
 					"FSv2-Type3",
+					"FSv2-Type4",
+					"FXmds-Type1",
 					"LSv2-Type1",
+					"LSv3-Type1",
+					"MDMSv2MedMem-Type1",
+					"MDSv2MedMem-Type1",
+					"MMSv2MedMem-Type1",
 					"MS-Type1",
 					"MSm-Type1",
 					"MSmv2-Type1",
 					"MSv2-Type1",
+					"MSv2MedMem-Type1",
 					"NVASv4-Type1",
 					"NVSv3-Type1",
 				}, false),
@@ -108,14 +127,15 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DedicatedHostLicenseTypesNone),
-					string(compute.DedicatedHostLicenseTypesWindowsServerHybrid),
-					string(compute.DedicatedHostLicenseTypesWindowsServerPerpetual),
+					// TODO: remove `None` in 4.0 in favour of this field being set to an empty string (since it's optional)
+					string(dedicatedhosts.DedicatedHostLicenseTypesNone),
+					string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerHybrid),
+					string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerPerpetual),
 				}, false),
-				Default: string(compute.DedicatedHostLicenseTypesNone),
+				Default: string(dedicatedhosts.DedicatedHostLicenseTypesNone),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -125,112 +145,90 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	dedicatedHostGroupId, err := parse.DedicatedHostGroupID(d.Get("dedicated_host_group_id").(string))
+	hostGroupId, err := dedicatedhostgroups.ParseHostGroupID(d.Get("dedicated_host_group_id").(string))
 	if err != nil {
 		return err
 	}
 
-	resourceGroupName := dedicatedHostGroupId.ResourceGroup
-	hostGroupName := dedicatedHostGroupId.HostGroupName
-
+	id := dedicatedhosts.NewHostID(hostGroupId.SubscriptionId, hostGroupId.ResourceGroupName, hostGroupId.HostGroupName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
+		existing, err := client.Get(ctx, id, dedicatedhosts.DefaultGetOperationOptions())
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_dedicated_host", *existing.ID)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dedicated_host", id.ID())
 		}
 	}
 
-	parameters := compute.DedicatedHost{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		DedicatedHostProperties: &compute.DedicatedHostProperties{
+	licenseType := dedicatedhosts.DedicatedHostLicenseTypes(d.Get("license_type").(string))
+	payload := dedicatedhosts.DedicatedHost{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &dedicatedhosts.DedicatedHostProperties{
 			AutoReplaceOnFailure: utils.Bool(d.Get("auto_replace_on_failure").(bool)),
-			LicenseType:          compute.DedicatedHostLicenseTypes(d.Get("license_type").(string)),
-			PlatformFaultDomain:  utils.Int32(int32(d.Get("platform_fault_domain").(int))),
+			LicenseType:          &licenseType,
+			PlatformFaultDomain:  utils.Int64(int64(d.Get("platform_fault_domain").(int))),
 		},
-		Sku: &compute.Sku{
+		Sku: dedicatedhosts.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroupName, hostGroupName, name, parameters)
-	if err != nil {
-		return fmt.Errorf("creating Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Dedicated Host %q (Host Group Name %q / Resource Group %q)", name, hostGroupName, resourceGroupName)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceDedicatedHostRead(d, meta)
 }
 
 func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	groupsClient := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	hostsClient := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DedicatedHostID(d.Id())
+	id, err := dedicatedhosts.ParseHostID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	group, err := groupsClient.Get(ctx, id.ResourceGroup, id.HostGroupName, "")
+	resp, err := hostsClient.Get(ctx, *id, dedicatedhosts.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(group.Response) {
-			log.Printf("[INFO] Parent Dedicated Host Group %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Dedicated Host Group %q (Resource Group %q): %+v", id.HostGroupName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	resp, err := hostsClient.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Dedicated Host %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+	d.Set("name", id.HostName)
+	d.Set("dedicated_host_group_id", dedicatedhostgroups.NewHostGroupID(id.SubscriptionId, id.ResourceGroupName, id.HostGroupName).ID())
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("sku_name", model.Sku.Name)
+		if props := model.Properties; props != nil {
+			d.Set("auto_replace_on_failure", props.AutoReplaceOnFailure)
+			d.Set("license_type", string(pointer.From(props.LicenseType)))
+
+			platformFaultDomain := 0
+			if props.PlatformFaultDomain != nil {
+				platformFaultDomain = int(*props.PlatformFaultDomain)
+			}
+			d.Set("platform_fault_domain", platformFaultDomain)
 		}
 
-		return fmt.Errorf("retrieving Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
-	}
-
-	d.Set("name", resp.Name)
-	d.Set("dedicated_host_group_id", group.ID)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	d.Set("sku_name", resp.Sku.Name)
-	if props := resp.DedicatedHostProperties; props != nil {
-		d.Set("auto_replace_on_failure", props.AutoReplaceOnFailure)
-		d.Set("license_type", props.LicenseType)
-
-		platformFaultDomain := 0
-		if props.PlatformFaultDomain != nil {
-			platformFaultDomain = int(*props.PlatformFaultDomain)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
-		d.Set("platform_fault_domain", platformFaultDomain)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -238,25 +236,30 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DedicatedHostID(d.Id())
+	id, err := dedicatedhosts.ParseHostID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	parameters := compute.DedicatedHostUpdate{
-		DedicatedHostProperties: &compute.DedicatedHostProperties{
-			AutoReplaceOnFailure: utils.Bool(d.Get("auto_replace_on_failure").(bool)),
-			LicenseType:          compute.DedicatedHostLicenseTypes(d.Get("license_type").(string)),
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	payload := dedicatedhosts.DedicatedHostUpdate{}
+
+	if d.HasChanges("auto_replace_on_failure", "license_type") {
+		payload.Properties = &dedicatedhosts.DedicatedHostProperties{}
+		if d.HasChange("auto_replace_on_failure") {
+			payload.Properties.AutoReplaceOnFailure = utils.Bool(d.Get("auto_replace_on_failure").(bool))
+		}
+		if d.HasChange("license_type") {
+			licenseType := dedicatedhosts.DedicatedHostLicenseTypes(d.Get("license_type").(string))
+			payload.Properties.LicenseType = &licenseType
+		}
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, parameters)
-	if err != nil {
-		return fmt.Errorf("updating Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
+
+	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceDedicatedHostRead(d, meta)
@@ -267,49 +270,42 @@ func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DedicatedHostID(d.Id())
+	id, err := dedicatedhosts.ParseHostID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.HostGroupName, id.HostName)
-	if err != nil {
-		return fmt.Errorf("deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
-		}
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	// API has bug, which appears to be eventually consistent. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/8137
-	log.Printf("[DEBUG] Waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to disappear", id.HostName, id.HostGroupName, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to be fully deleted..", *id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
-		Refresh:                   dedicatedHostDeletedRefreshFunc(ctx, client, id),
+		Refresh:                   dedicatedHostDeletedRefreshFunc(ctx, client, *id),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 20,
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to become available: %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func dedicatedHostDeletedRefreshFunc(ctx context.Context, client *compute.DedicatedHostsClient, id *parse.DedicatedHostId) pluginsdk.StateRefreshFunc {
+func dedicatedHostDeletedRefreshFunc(ctx context.Context, client *dedicatedhosts.DedicatedHostsClient, id dedicatedhosts.HostId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, "")
+		res, err := client.Get(ctx, id, dedicatedhosts.DefaultGetOperationOptions())
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
+			if response.WasNotFound(res.HttpResponse) {
 				return "NotFound", "NotFound", nil
 			}
 
-			return nil, "", fmt.Errorf("polling to check if the Dedicated Host has been deleted: %+v", err)
+			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
 		}
 
 		return res, "Exists", nil

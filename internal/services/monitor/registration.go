@@ -1,10 +1,40 @@
 package monitor
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/monitor"
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		DataCollectionEndpointDataSource{},
+		DataCollectionRuleDataSource{},
+	}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		AlertProcessingRuleActionGroupResource{},
+		AlertProcessingRuleSuppressionResource{},
+		DataCollectionEndpointResource{},
+		DataCollectionRuleAssociationResource{},
+		DataCollectionRuleResource{},
+		ScheduledQueryRulesAlertV2Resource{},
+		AlertPrometheusRuleGroupResource{},
+		WorkspaceResource{},
+	}
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {

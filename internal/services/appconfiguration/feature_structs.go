@@ -111,6 +111,7 @@ type TargetingGroupParameter struct {
 type TargetingFilterParameters struct {
 	Audience TargetingFilterAudience `json:"Audience"`
 }
+
 type TargetingFilterAudience struct {
 	DefaultRolloutPercentage int                       `json:"DefaultRolloutPercentage" tfschema:"default_rollout_percentage"`
 	Users                    []string                  `json:"Users" tfschema:"users"`

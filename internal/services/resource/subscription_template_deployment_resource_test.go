@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SubscriptionTemplateDeploymentResource struct {
-}
+type SubscriptionTemplateDeploymentResource struct{}
 
 func TestAccSubscriptionTemplateDeployment_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")

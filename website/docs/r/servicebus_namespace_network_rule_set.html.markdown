@@ -3,12 +3,12 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace_network_rule_set"
 description: |-
-  Manages a ServiceBus Namespace Network Rule Set Set.
+  Manages a ServiceBus Namespace Network Rule Set.
 ---
 
 # azurerm_servicebus_namespace_network_rule_set
 
-Manages a ServiceBus Namespace Network Rule Set Set.
+Manages a ServiceBus Namespace Network Rule Set.
 
 ## Example Usage
 
@@ -51,7 +51,8 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_servicebus_namespace_network_rule_set" "example" {
   namespace_id = azurerm_servicebus_namespace.example.id
 
-  default_action = "Deny"
+  default_action                = "Deny"
+  public_network_access_enabled = true
 
   network_rules {
     subnet_id                            = azurerm_subnet.example.id
@@ -72,7 +73,9 @@ The following arguments are supported:
 
 * `default_action` - (Optional) Specifies the default action for the ServiceBus Namespace Network Rule Set. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
 
-* `trusted_services_allowed` - (Optional) If True, then Azure Services that are known and trusted for this resource type are allowed to bypass firewall configuration. See [Trusted Microsoft Services](https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/service-bus-messaging/includes/service-bus-trusted-services.md)  
+* `public_network_access_enabled` - (Optional) Whether to allow traffic over public network. Possible values are `true` and `false`. Defaults to `true`.
+
+* `trusted_services_allowed` - (Optional) If True, then Azure Services that are known and trusted for this resource type are allowed to bypass firewall configuration. See [Trusted Microsoft Services](https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/service-bus-messaging/includes/service-bus-trusted-services.md) 
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the ServiceBus Namespace.
 
@@ -88,13 +91,13 @@ A `network_rules` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the ServiceBus Namespace Network Rule Set.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Namespace Network Rule Set.
 * `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Namespace Network Rule Set.
@@ -106,5 +109,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Service Bus Namespace can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_servicebus_namespace_network_rule_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Servicebus/namespaces/sbns1/networkrulesets/default
+terraform import azurerm_servicebus_namespace_network_rule_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ServiceBus/namespaces/sbns1
 ```

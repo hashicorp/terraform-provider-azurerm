@@ -47,13 +47,13 @@ The following arguments are supported:
 
 * `storage_share_id` - (Required) The Storage Share ID in which this file will be placed into. Changing this forces a new resource to be created.
 
-* `path` - (Optional) The storage share directory that you would like the file placed into. Changing this forces a new resource to be created.
+* `path` - (Optional) The storage share directory that you would like the file placed into. Changing this forces a new resource to be created. Defaults to `""`.
 
-* `source` - (Optional) An absolute path to a file on the local system.
+* `source` - (Optional) An absolute path to a file on the local system. Changing this forces a new resource to be created.
 
 * `content_type` - (Optional) The content type of the share file. Defaults to `application/octet-stream`.
 
-* `content_md5` - (Optional) The MD5 sum of the file contents. Changing this forces a new resource to be created.   
+* `content_md5` - (Optional) The MD5 sum of the file contents. Changing this forces a new resource to be created.
 
 * `content_encoding` - (Optional) Specifies which content encodings have been applied to the file.
 
@@ -63,13 +63,14 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the file within the File Share.
+* `content_length` - The length in bytes of the file content
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Share File.
 * `update` - (Defaults to 30 minutes) Used when updating the Storage Share File.

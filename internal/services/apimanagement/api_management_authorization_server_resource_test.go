@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementAuthorizationServerResource struct {
-}
+type ApiManagementAuthorizationServerResource struct{}
 
 func TestAccApiManagementAuthorizationServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
@@ -132,6 +131,16 @@ resource "azurerm_api_management_authorization_server" "test" {
   authorization_endpoint       = "https://azacceptance.hashicorptest.com/client/authorize"
   client_id                    = "42424242-4242-4242-4242-424242424242"
   client_registration_endpoint = "https://azacceptance.hashicorptest.com/client/register"
+  description                  = "This is a test description"
+
+  token_body_parameter {
+    name  = "test"
+    value = "token-body-parameter"
+  }
+
+  client_authentication_method = [
+    "Basic",
+  ]
 
   grant_types = [
     "authorizationCode",

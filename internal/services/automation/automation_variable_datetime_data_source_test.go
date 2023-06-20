@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type AutomationVariableDateTimeDataSouce struct {
-}
+type AutomationVariableDateTimeDataSouce struct{}
 
 func TestAccDataSourceAzureRMAutomationVariableDateTime_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_variable_datetime", "test")

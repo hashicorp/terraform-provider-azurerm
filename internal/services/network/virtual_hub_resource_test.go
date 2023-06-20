@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualHubResource struct {
-}
+type VirtualHubResource struct{}
 
 func TestAccVirtualHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
@@ -25,6 +24,26 @@ func TestAccVirtualHub_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_router_asn").Exists(),
+				check.That(data.ResourceName).Key("virtual_router_ips.#").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualHub_hubRoutingPreference(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
+	r := VirtualHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hubRoutingPreference(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_router_asn").Exists(),
+				check.That(data.ResourceName).Key("virtual_router_ips.#").Exists(),
+				check.That(data.ResourceName).Key("hub_routing_preference").HasValue("ASPath"),
 			),
 		},
 		data.ImportStep(),
@@ -78,6 +97,21 @@ func TestAccVirtualHub_tags(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualHub_auto_scale_min_capacity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
+	r := VirtualHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoScaleSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -201,4 +235,36 @@ resource "azurerm_virtual_wan" "test" {
   location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r VirtualHubResource) hubRoutingPreference(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+
+  hub_routing_preference = "ASPath"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r VirtualHubResource) autoScaleSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+
+  virtual_router_auto_scale_min_capacity = 3
+}
+`, r.template(data), data.RandomInteger)
 }

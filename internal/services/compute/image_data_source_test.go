@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ImageDataSource struct {
-}
+type ImageDataSource struct{}
 
 func TestAccDataSourceImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_image", "test")
@@ -41,7 +40,6 @@ func TestAccDataSourceImage_localFilter(t *testing.T) {
 	r := ImageDataSource{}
 
 	descDataSourceName := "data.azurerm_image.test2"
-
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			// We have to create the images first explicitly, then retrieve the data source, because in this case we do not have explicit dependency on the image resources
@@ -52,10 +50,8 @@ func TestAccDataSourceImage_localFilter(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("def-acctest-%d", data.RandomInteger)),
-				acceptance.TestCheckResourceAttrSet(descDataSourceName, "name"),
-				acceptance.TestCheckResourceAttrSet(descDataSourceName, "resource_group_name"),
-				acceptance.TestCheckResourceAttr(descDataSourceName, "name", fmt.Sprintf("def-acctest-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("name").MatchesOtherKey(check.That(descDataSourceName).Key("name")),
+				check.That(data.ResourceName).Key("resource_group_name").MatchesOtherKey(check.That(descDataSourceName).Key("resource_group_name")),
 			),
 		},
 	})
@@ -83,7 +79,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -108,12 +104,12 @@ resource "azurerm_network_interface" "testsource" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  allow_blob_public_access = true
+  name                            = "acctestsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 
   tags = {
     environment = "Dev"
@@ -216,7 +212,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -241,12 +237,12 @@ resource "azurerm_network_interface" "testsource" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  allow_blob_public_access = true
+  name                            = "acctestsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 
   tags = {
     environment = "Dev"

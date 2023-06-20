@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/dataexport"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsDataExportRuleResource struct {
-}
+type LogAnalyticsDataExportRuleResource struct{}
 
 func TestAccLogAnalyticsDataExportRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
@@ -22,8 +21,7 @@ func TestAccLogAnalyticsDataExportRule_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:             r.basic(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -38,16 +36,14 @@ func TestAccLogAnalyticsDataExportRule_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:             r.basicLower(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config:             r.requiresImport(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
-			ExpectError:        acceptance.RequiresImportError("azurerm_log_analytics_data_export_rule"),
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_data_export_rule"),
 		},
 	})
 }
@@ -58,16 +54,14 @@ func TestAccLogAnalyticsDataExportRule_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:             r.basic(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config:             r.update(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -82,8 +76,37 @@ func TestAccLogAnalyticsDataExportRule_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:             r.complete(data),
-			ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsDataExportRule_toEventhubs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
+	r := LogAnalyticsDataExportRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.toEventHub(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsDataExportRule_toEventhubNamespace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
+	r := LogAnalyticsDataExportRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.toEventHubNamespace(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -93,17 +116,17 @@ func TestAccLogAnalyticsDataExportRule_complete(t *testing.T) {
 }
 
 func (t LogAnalyticsDataExportRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogAnalyticsDataExportID(state.ID)
+	id, err := dataexport.ParseDataExportID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.LogAnalytics.DataExportClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.DataexportName)
+	resp, err := clients.LogAnalytics.DataExportClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("readingLog Analytics Data Export (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LogAnalyticsDataExportRuleResource) template(data acceptance.TestData) string {
@@ -132,7 +155,22 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctest-EH-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 7
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LogAnalyticsDataExportRuleResource) basic(data acceptance.TestData) string {
@@ -141,21 +179,6 @@ func (r LogAnalyticsDataExportRuleResource) basic(data acceptance.TestData) stri
 
 resource "azurerm_log_analytics_data_export_rule" "test" {
   name                    = "acctest-DER-%d"
-  resource_group_name     = azurerm_resource_group.test.name
-  workspace_resource_id   = azurerm_log_analytics_workspace.test.id
-  destination_resource_id = azurerm_storage_account.test.id
-  table_names             = ["Heartbeat"]
-}
-`, r.template(data), data.RandomInteger)
-}
-
-// I have to make this a lower case to get the requiresImport test to pass since the RP lowercases everything when it sends the data back to you
-func (r LogAnalyticsDataExportRuleResource) basicLower(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_data_export_rule" "test" {
-  name                    = "acctest-der-%d"
   resource_group_name     = azurerm_resource_group.test.name
   workspace_resource_id   = azurerm_log_analytics_workspace.test.id
   destination_resource_id = azurerm_storage_account.test.id
@@ -175,7 +198,7 @@ resource "azurerm_log_analytics_data_export_rule" "import" {
   destination_resource_id = azurerm_storage_account.test.id
   table_names             = ["Heartbeat"]
 }
-`, r.basicLower(data))
+`, r.basic(data))
 }
 
 func (r LogAnalyticsDataExportRuleResource) update(data acceptance.TestData) string {
@@ -201,6 +224,36 @@ resource "azurerm_log_analytics_data_export_rule" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   workspace_resource_id   = azurerm_log_analytics_workspace.test.id
   destination_resource_id = azurerm_storage_account.test.id
+  table_names             = ["Heartbeat"]
+  enabled                 = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogAnalyticsDataExportRuleResource) toEventHub(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_data_export_rule" "test" {
+  name                    = "acctest-DER-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  workspace_resource_id   = azurerm_log_analytics_workspace.test.id
+  destination_resource_id = azurerm_eventhub.test.id
+  table_names             = ["Heartbeat"]
+  enabled                 = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogAnalyticsDataExportRuleResource) toEventHubNamespace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_data_export_rule" "test" {
+  name                    = "acctest-DER-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  workspace_resource_id   = azurerm_log_analytics_workspace.test.id
+  destination_resource_id = azurerm_eventhub_namespace.test.id
   table_names             = ["Heartbeat"]
   enabled                 = true
 }

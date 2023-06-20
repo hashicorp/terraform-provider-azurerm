@@ -3,7 +3,7 @@ package pluginsdk
 import (
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 // TODO: work through and switch these out for WaitForState funcs

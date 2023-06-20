@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,6 +24,8 @@ func resourceSqlInstanceFailoverGroup() *pluginsdk.Resource {
 		Read:   resourceSqlInstanceFailoverGroupRead,
 		Update: resourceSqlInstanceFailoverGroupCreateUpdate,
 		Delete: resourceSqlInstanceFailoverGroupDelete,
+
+		DeprecationMessage: "The `azurerm_sql_managed_instance_failover_group` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_managed_instance_failover_group` resource instead.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.InstanceFailoverGroupID(id)
@@ -43,9 +47,9 @@ func resourceSqlInstanceFailoverGroup() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateMsSqlFailoverGroupName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"managed_instance_name": {
 				Type:         pluginsdk.TypeString,
@@ -66,7 +70,7 @@ func resourceSqlInstanceFailoverGroup() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"location": azure.SchemaLocationForDataSource(),
+						"location": commonschema.LocationComputed(),
 
 						"role": {
 							Type:     pluginsdk.TypeString,
@@ -297,6 +301,7 @@ func expandSqlInstanceFailoverGroupReadOnlyPolicy(d *pluginsdk.ResourceData) *sq
 		FailoverPolicy: mode,
 	}
 }
+
 func expandSqlInstanceFailoverGroupManagedInstanceId(d *pluginsdk.ResourceData, primaryID parse.ManagedInstanceId) *[]sql.ManagedInstancePairInfo {
 	instanceId := d.Get("partner_managed_instance_id").(string)
 	partners := make([]sql.ManagedInstancePairInfo, 0)
@@ -320,7 +325,7 @@ func flattenSqlInstanceFailoverGroupPrimaryInstance(input *[]sql.ManagedInstance
 		}
 	}
 
-	managedInstanceId, err := parse.ManagedInstanceID(id)
+	managedInstanceId, err := parse.ManagedInstanceIDInsensitively(id)
 	if err != nil {
 		return "", err
 	}
@@ -341,14 +346,10 @@ func flattenSqlInstanceFailoverGroupPartnerRegions(input *[]sql.PartnerRegionInf
 
 	if input != nil {
 		for _, region := range *input {
-			info := make(map[string]interface{})
-
-			if v := region.Location; v != nil {
-				info["location"] = *v
-			}
-			info["role"] = string(region.ReplicationRole)
-
-			result = append(result, info)
+			result = append(result, map[string]interface{}{
+				"location": location.NormalizeNilable(region.Location),
+				"role":     string(region.ReplicationRole),
+			})
 		}
 	}
 	return result

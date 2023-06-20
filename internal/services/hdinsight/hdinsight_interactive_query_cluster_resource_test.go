@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HDInsightInteractiveQueryClusterResource struct {
-}
+type HDInsightInteractiveQueryClusterResource struct{}
 
 func TestAccHDInsightInteractiveQueryCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
@@ -30,6 +29,29 @@ func TestAccHDInsightInteractiveQueryCluster_basic(t *testing.T) {
 		},
 		data.ImportStep("roles.0.head_node.0.password",
 			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccHDInsightInteractiveQueryCluster_roleScriptActions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.roleScriptActions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.head_node.0.script_actions",
 			"roles.0.worker_node.0.password",
 			"roles.0.worker_node.0.vm_size",
 			"roles.0.zookeeper_node.0.password",
@@ -245,6 +267,46 @@ func TestAccHDInsightInteractiveQueryCluster_encryption_in_transit(t *testing.T)
 	})
 }
 
+func TestAccHDInsightInteractiveQueryCluster_diskEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskEncryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccHDInsightInteractiveQueryCluster_computeIsolation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.computeIsolation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
 func TestAccHDInsightInteractiveQueryCluster_allMetastores(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	r := HDInsightInteractiveQueryClusterResource{}
@@ -424,12 +486,12 @@ func TestAccHDInsightInteractiveQueryCluster_updateMonitor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightInteractiveQueryCluster_autoscale(t *testing.T) {
+func TestAccHDInsightInteractiveQueryCluster_azureMonitor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.autoscale_capacity(data),
+			Config: r.monitor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -443,6 +505,68 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_autoscale(t *testing.T) {
 			"roles.0.zookeeper_node.0.password",
 			"roles.0.zookeeper_node.0.vm_size",
 			"storage_account"),
+	})
+}
+
+func TestAccHDInsightInteractiveQueryCluster_updateAzureMonitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+		{
+			PreConfig: func() {
+				data.RandomString += "new"
+			},
+			Config: r.azureMonitor(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccAzureRMHDInsightInteractiveQueryCluster_autoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoscale_schedule(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -532,7 +656,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -548,6 +671,61 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
       vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D14_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HDInsightInteractiveQueryClusterResource) roleScriptActions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+
+  component_version {
+    interactive_hive = "3.1"
+  }
+
+  gateway {
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D13_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+      script_actions {
+        name       = "scriptactiontest"
+        uri        = "https://hdiconfigactions.blob.core.windows.net/linuxgiraphconfigactionv01/giraph-installer-v01.sh"
+        parameters = "headnode"
+      }
     }
 
     worker_node {
@@ -585,7 +763,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -758,7 +935,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
   dynamic "gateway" {
     for_each = azurerm_hdinsight_interactive_query_cluster.test.gateway
     content {
-      enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
     }
@@ -777,11 +953,9 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
       dynamic "head_node" {
         for_each = lookup(roles.value, "head_node", [])
         content {
-          password           = lookup(head_node.value, "password", null)
-          subnet_id          = lookup(head_node.value, "subnet_id", null)
-          username           = head_node.value.username
-          virtual_network_id = lookup(head_node.value, "virtual_network_id", null)
-          vm_size            = head_node.value.vm_size
+          password = lookup(head_node.value, "password", null)
+          username = head_node.value.username
+          vm_size  = head_node.value.vm_size
         }
       }
 
@@ -789,10 +963,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
         for_each = lookup(roles.value, "worker_node", [])
         content {
           password              = lookup(worker_node.value, "password", null)
-          subnet_id             = lookup(worker_node.value, "subnet_id", null)
           target_instance_count = worker_node.value.target_instance_count
           username              = worker_node.value.username
-          virtual_network_id    = lookup(worker_node.value, "virtual_network_id", null)
           vm_size               = worker_node.value.vm_size
         }
       }
@@ -800,11 +972,9 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
       dynamic "zookeeper_node" {
         for_each = lookup(roles.value, "zookeeper_node", [])
         content {
-          password           = lookup(zookeeper_node.value, "password", null)
-          subnet_id          = lookup(zookeeper_node.value, "subnet_id", null)
-          username           = zookeeper_node.value.username
-          virtual_network_id = lookup(zookeeper_node.value, "virtual_network_id", null)
-          vm_size            = zookeeper_node.value.vm_size
+          password = lookup(zookeeper_node.value, "password", null)
+          username = zookeeper_node.value.username
+          vm_size  = zookeeper_node.value.vm_size
         }
       }
     }
@@ -833,7 +1003,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -884,7 +1053,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -938,7 +1106,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
@@ -953,7 +1121,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1009,7 +1176,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
@@ -1024,15 +1191,19 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
 
   storage_account {
     storage_container_id = azurerm_storage_container.test.id
+    storage_resource_id  = azurerm_storage_account.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
+  }
+
+  network {
+    connection_direction = "Outbound"
   }
 
   roles {
@@ -1368,7 +1539,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1422,7 +1592,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1449,6 +1618,61 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
     zookeeper_node {
       vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HDInsightInteractiveQueryClusterResource) diskEncryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+  tls_min_version     = "1.2"
+
+  component_version {
+    interactive_hive = "3.1"
+  }
+
+  disk_encryption {
+    encryption_at_host_enabled = true
+  }
+
+  gateway {
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D8a_V4"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D16a_V4"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_DS2_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1512,7 +1736,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     interactive_hive = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1600,7 +1823,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     interactive_hive = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1662,7 +1884,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1702,54 +1923,66 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (r HDInsightInteractiveQueryClusterResource) autoscale_capacity(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) azureMonitor(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%s-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_version     = "4.0"
   tier                = "Standard"
+
   component_version {
     interactive_hive = "3.1"
   }
+
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
+
   storage_account {
     storage_container_id = azurerm_storage_container.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
+
   roles {
     head_node {
       vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
+
     worker_node {
       vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
-      autoscale {
-        capacity {
-          min_instance_count = 2
-          max_instance_count = 3
-        }
-      }
     }
+
     zookeeper_node {
       vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
   }
+
+  extension {
+    log_analytics_workspace_id = azurerm_log_analytics_workspace.test.workspace_id
+    primary_key                = azurerm_log_analytics_workspace.test.primary_shared_key
+  }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r HDInsightInteractiveQueryClusterResource) autoscale_schedule(data acceptance.TestData) string {
@@ -1765,7 +1998,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     interactive_hive = "3.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1827,7 +2059,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "sshuser"
     password = "TerrAform123!"
   }
@@ -1880,4 +2111,58 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   ]
 }
 `, hdInsightsecurityProfileCommonTemplate(data), data.RandomInteger)
+}
+
+func (r HDInsightInteractiveQueryClusterResource) computeIsolation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+
+  component_version {
+    interactive_hive = "3.1"
+  }
+
+  compute_isolation {
+    compute_isolation_enabled = true
+  }
+
+  gateway {
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_F72s_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_F72s_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_F72s_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

@@ -1,27 +1,34 @@
 package appconfiguration
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/deletedconfigurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/operations"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-type appConfigurationIdentityType = identity.SystemAssignedUserAssigned
 
 func resourceAppConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -50,14 +57,45 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validate.ConfigurationStoreName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"identity": appConfigurationIdentityType{}.Schema(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			// the API changed and now returns the rg in lowercase
-			// revert when https://github.com/Azure/azure-sdk-for-go/issues/6606 is fixed
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"encryption": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_identifier": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+						"identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
+			},
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"purge_protection_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			// `sku` is not enum, https://github.com/Azure/azure-rest-api-specs/issues/23902
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -68,9 +106,27 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"soft_delete_retention_days": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      7,
+				ForceNew:     true,
+				ValidateFunc: validation.IntBetween(1, 7),
+				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+					return old == "0"
+				},
+			},
+
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      nil,
+				ValidateFunc: validation.StringInSlice(configurationstores.PossibleValuesForPublicNetworkAccess(), true),
 			},
 
 			"primary_read_key": {
@@ -169,13 +225,15 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
+	deletedConfigurationStoresClient := meta.(*clients.Client).AppConfiguration.DeletedConfigurationStoresClient
+
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,15 +253,55 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
 	}
 
+	location := azure.NormalizeLocation(d.Get("location").(string))
+
+	recoverSoftDeleted := false
+	if meta.(*clients.Client).Features.AppConfiguration.RecoverSoftDeleted {
+		deletedConfigurationStoresId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, location, name)
+		deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
+		if err != nil {
+			if response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
+				return fmt.Errorf(userIsMissingNecessaryPermission(name, location))
+			}
+			if !response.WasNotFound(deleted.HttpResponse) {
+				return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
+			}
+			// if the soft deleted is not found, skip the recovering
+		} else {
+			log.Printf("[DEBUG] Soft Deleted App Configuration exists, marked for recover")
+			recoverSoftDeleted = true
+		}
+	}
+
 	parameters := configurationstores.ConfigurationStore{
-		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Location: location,
 		Sku: configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
-		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: &configurationstores.ConfigurationStoreProperties{
+			EnablePurgeProtection: utils.Bool(d.Get("purge_protection_enabled").(bool)),
+			DisableLocalAuth:      utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			Encryption:            expandAppConfigurationEncryption(d.Get("encryption").([]interface{})),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	identity, err := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+	if v, ok := d.Get("soft_delete_retention_days").(int); ok && v != 7 {
+		parameters.Properties.SoftDeleteRetentionInDays = utils.Int64(int64(v))
+	}
+
+	if recoverSoftDeleted {
+		t := configurationstores.CreateModeRecover
+		parameters.Properties.CreateMode = &t
+	}
+
+	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
+
+	if publicNetworkAccessNotEmpty {
+		parameters.Properties.PublicNetworkAccess = parsePublicNetworkAccess(publicNetworkAccessValue.(string))
+	}
+
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -214,6 +312,16 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(resourceId.ID())
+
+	resp, err := client.Get(ctx, resourceId)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", resourceId, err)
+	}
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Endpoint == nil {
+		return fmt.Errorf("retrieving %s: `model.properties.Endpoint` was nil", resourceId)
+	}
+	meta.(*clients.Client).AppConfiguration.AddToCache(resourceId, *resp.Model.Properties.Endpoint)
+
 	return resourceAppConfigurationRead(d, meta)
 }
 
@@ -228,22 +336,98 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	parameters := configurationstores.ConfigurationStoreUpdateParameters{
-		Sku: &configurationstores.Sku{
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	update := configurationstores.ConfigurationStoreUpdateParameters{}
+
+	if d.HasChange("sku") {
+		update.Sku = &configurationstores.Sku{
 			Name: d.Get("sku").(string),
-		},
-		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		}
+	}
+
+	if d.HasChange("tags") {
+		t := d.Get("tags").(map[string]interface{})
+		update.Tags = tags.Expand(t)
 	}
 
 	if d.HasChange("identity") {
-		identity, err := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		parameters.Identity = identity
+		update.Identity = identity
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+	if d.HasChange("encryption") {
+		if update.Properties == nil {
+			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
+		}
+		update.Properties.Encryption = expandAppConfigurationEncryption(d.Get("encryption").([]interface{}))
+	}
+
+	if d.HasChange("local_auth_enabled") {
+		if update.Properties == nil {
+			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
+		}
+		update.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_auth_enabled").(bool))
+	}
+
+	if d.HasChange("public_network_access") {
+		if update.Properties == nil {
+			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
+		}
+
+		publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
+		if publicNetworkAccessNotEmpty {
+			update.Properties.PublicNetworkAccess = parsePublicNetworkAccess(publicNetworkAccessValue.(string))
+		}
+	}
+
+	if d.HasChange("purge_protection_enabled") {
+		if update.Properties == nil {
+			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
+		}
+
+		newValue := d.Get("purge_protection_enabled").(bool)
+		oldValue := false
+		if existing.Model.Properties.EnablePurgeProtection != nil {
+			oldValue = *existing.Model.Properties.EnablePurgeProtection
+		}
+
+		if oldValue && !newValue {
+			return fmt.Errorf("updating %s: once Purge Protection has been Enabled it's not possible to disable it", *id)
+		}
+		update.Properties.EnablePurgeProtection = utils.Bool(d.Get("purge_protection_enabled").(bool))
+	}
+
+	if d.HasChange("public_network_enabled") {
+		v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]
+		if v.IsNull() && existing.Model.Properties.SoftDeleteRetentionInDays != nil {
+			return fmt.Errorf("updating %s: once Public Network Access has been explicitly Enabled or Disabled it's not possible to unset it to which means Automatic", *id)
+		}
+
+		if update.Properties == nil {
+			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
+		}
+
+		publicNetworkAccess := configurationstores.PublicNetworkAccessEnabled
+		if v.False() {
+			publicNetworkAccess = configurationstores.PublicNetworkAccessDisabled
+		}
+		update.Properties.PublicNetworkAccess = &publicNetworkAccess
+	}
+
+	if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -275,7 +459,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving access keys for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ConfigStoreName)
+	d.Set("name", id.ConfigurationStoreName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -284,6 +468,27 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
+			d.Set("encryption", flattenAppConfigurationEncryption(props.Encryption))
+			d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))
+
+			localAuthEnabled := true
+			if props.DisableLocalAuth != nil {
+				localAuthEnabled = !(*props.DisableLocalAuth)
+			}
+
+			d.Set("local_auth_enabled", localAuthEnabled)
+
+			purgeProtectionEnabled := false
+			if props.EnablePurgeProtection != nil {
+				purgeProtectionEnabled = *props.EnablePurgeProtection
+			}
+			d.Set("purge_protection_enabled", purgeProtectionEnabled)
+
+			softDeleteRetentionDays := 0
+			if props.SoftDeleteRetentionInDays != nil {
+				softDeleteRetentionDays = int(*props.SoftDeleteRetentionInDays)
+			}
+			d.Set("soft_delete_retention_days", softDeleteRetentionDays)
 		}
 
 		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)
@@ -292,11 +497,15 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("secondary_read_key", accessKeys.secondaryReadKey)
 		d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
 
-		if err := d.Set("identity", flattenAppConfigurationIdentity(model.Identity)); err != nil {
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
@@ -304,7 +513,9 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
+	deletedConfigurationStoresClient := meta.(*clients.Client).AppConfiguration.DeletedConfigurationStoresClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	id, err := configurationstores.ParseConfigurationStoreID(d.Id())
@@ -312,11 +523,117 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %q: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %q: `properties` was nil", *id)
+	}
+
+	purgeProtectionEnabled := false
+	if ppe := existing.Model.Properties.EnablePurgeProtection; ppe != nil {
+		purgeProtectionEnabled = *ppe
+	}
+	softDeleteEnabled := false
+	if sde := existing.Model.Properties.SoftDeleteRetentionInDays; sde != nil && *sde > 0 {
+		softDeleteEnabled = true
+	}
+
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
+	if meta.(*clients.Client).Features.AppConfiguration.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
+		deletedId := deletedconfigurationstores.NewDeletedConfigurationStoreID(subscriptionId, existing.Model.Location, id.ConfigurationStoreName)
+
+		// AppConfiguration with Purge Protection Enabled cannot be deleted unless done by Azure
+		if purgeProtectionEnabled {
+			deletedInfo, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedId)
+			if err != nil {
+				return fmt.Errorf("while purging the soft-deleted, retrieving the Deletion Details for %s: %+v", *id, err)
+			}
+
+			if deletedInfo.Model != nil && deletedInfo.Model.Properties != nil && deletedInfo.Model.Properties.DeletionDate != nil && deletedInfo.Model.Properties.ScheduledPurgeDate != nil {
+				log.Printf("[DEBUG] The App Configuration %q has Purge Protection Enabled and was deleted on %q. Azure will purge this on %q",
+					id.ConfigurationStoreName, *deletedInfo.Model.Properties.DeletionDate, *deletedInfo.Model.Properties.ScheduledPurgeDate)
+			} else {
+				log.Printf("[DEBUG] The App Configuration %q has Purge Protection Enabled and will be purged automatically by Azure", id.ConfigurationStoreName)
+			}
+			return nil
+		}
+
+		log.Printf("[DEBUG]  %q marked for purge - executing purge", id.ConfigurationStoreName)
+
+		if _, err := deletedConfigurationStoresClient.ConfigurationStoresPurgeDeleted(ctx, deletedId); err != nil {
+			return fmt.Errorf("purging %s: %+v", *id, err)
+		}
+
+		// The PurgeDeleted API is a POST which returns a 200 with no body and nothing to poll on, so we'll need
+		// a custom poller to poll until the LRO returns a 404
+		pollerType := &purgeDeletedPoller{
+			client: deletedConfigurationStoresClient,
+			id:     deletedId,
+		}
+		poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("polling after purging for %s: %+v", *id, err)
+		}
+
+		// retry checkNameAvailability until the name is released by purged app configuration, see https://github.com/Azure/AppConfiguration/issues/677
+		operationsClient := meta.(*clients.Client).AppConfiguration.OperationsClient
+		if err = resourceConfigurationStoreWaitForNameAvailable(ctx, operationsClient, *id); err != nil {
+			return err
+		}
+		log.Printf("[DEBUG] Purged AppConfiguration %q.", id.ConfigurationStoreName)
+	}
+
+	meta.(*clients.Client).AppConfiguration.RemoveFromCache(*id)
+
 	return nil
+}
+
+var _ pollers.PollerType = &purgeDeletedPoller{}
+
+type purgeDeletedPoller struct {
+	client *deletedconfigurationstores.DeletedConfigurationStoresClient
+	id     deletedconfigurationstores.DeletedConfigurationStoreId
+}
+
+func (p *purgeDeletedPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	resp, err := p.client.ConfigurationStoresGetDeleted(ctx, p.id)
+
+	status := "dropped connection"
+	if resp.HttpResponse != nil {
+		status = fmt.Sprintf("%d", resp.HttpResponse.StatusCode)
+	}
+
+	if response.WasNotFound(resp.HttpResponse) {
+		return &pollers.PollResult{
+			HttpResponse: &client.Response{
+				Response: resp.HttpResponse,
+			},
+			Status: pollers.PollingStatusSucceeded,
+		}, nil
+	}
+
+	if response.WasStatusCode(resp.HttpResponse, http.StatusOK) {
+		return &pollers.PollResult{
+			HttpResponse: &client.Response{
+				Response: resp.HttpResponse,
+			},
+			Status: pollers.PollingStatusInProgress,
+		}, nil
+	}
+
+	return nil, fmt.Errorf("unexpected status %q: %+v", status, err)
 }
 
 type flattenedAccessKeys struct {
@@ -324,6 +641,25 @@ type flattenedAccessKeys struct {
 	primaryWriteKey   []interface{}
 	secondaryReadKey  []interface{}
 	secondaryWriteKey []interface{}
+}
+
+func expandAppConfigurationEncryption(input []interface{}) *configurationstores.EncryptionProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	encryptionParam := input[0].(map[string]interface{})
+	result := &configurationstores.EncryptionProperties{
+		KeyVaultProperties: &configurationstores.KeyVaultProperties{},
+	}
+
+	if v, ok := encryptionParam["identity_client_id"].(string); ok && v != "" {
+		result.KeyVaultProperties.IdentityClientId = &v
+	}
+	if v, ok := encryptionParam["key_vault_key_identifier"].(string); ok && v != "" {
+		result.KeyVaultProperties.KeyIdentifier = &v
+	}
+	return result
 }
 
 func flattenAppConfigurationAccessKeys(values []configurationstores.ApiKey) flattenedAccessKeys {
@@ -389,22 +725,80 @@ func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interf
 	}
 }
 
-func expandAppConfigurationIdentity(input []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
-	expanded, err := appConfigurationIdentityType{}.Expand(input)
-	if err != nil {
-		return nil, err
+func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAccess {
+	vals := map[string]configurationstores.PublicNetworkAccess{
+		"disabled": configurationstores.PublicNetworkAccessDisabled,
+		"enabled":  configurationstores.PublicNetworkAccessEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v
 	}
 
-	result := identity.SystemUserAssignedIdentityMap{}
-	result.FromExpandedConfig(*expanded)
-	return &result, nil
+	// otherwise presume it's an undefined value and best-effort it
+	out := configurationstores.PublicNetworkAccess(input)
+	return &out
 }
 
-func flattenAppConfigurationIdentity(identity *identity.SystemUserAssignedIdentityMap) []interface{} {
-	if identity == nil {
-		return []interface{}{}
+func userIsMissingNecessaryPermission(name, location string) string {
+	return fmt.Sprintf(`
+An existing soft-deleted App Configuration exists with the Name %q in the location %q, however
+the credentials Terraform is using has insufficient permissions to check for an existing soft-deleted App Configuration.
+You can opt out of this behaviour by using the "features" block (located within the "provider" block) - more information
+can be found here:
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+`, name, location)
+}
+
+func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: context had no deadline")
+	}
+	state := &pluginsdk.StateChangeConf{
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 2,
+		Pending:                   []string{"Unavailable"},
+		Target:                    []string{"Available"},
+		Refresh:                   resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx, client, configurationStoreId),
+		Timeout:                   time.Until(deadline),
 	}
 
-	config := identity.ToExpandedConfig()
-	return appConfigurationIdentityType{}.Flatten(&config)
+	_, err := state.WaitForStateContext(ctx)
+	if err != nil {
+		return fmt.Errorf("waiting for the Name from %s to become available: %+v", configurationStoreId, err)
+	}
+
+	return nil
+
+}
+
+func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if the name for %s is available ..", configurationStoreId)
+
+		subscriptionId := commonids.NewSubscriptionID(configurationStoreId.SubscriptionId)
+
+		parameters := operations.CheckNameAvailabilityParameters{
+			Name: configurationStoreId.ConfigurationStoreName,
+			Type: operations.ConfigurationResourceTypeMicrosoftPointAppConfigurationConfigurationStores,
+		}
+
+		resp, err := client.CheckNameAvailability(ctx, subscriptionId, parameters)
+		if err != nil {
+			return resp, "Error", fmt.Errorf("retrieving Deployment: %+v", err)
+		}
+
+		if resp.Model == nil {
+			return resp, "Error", fmt.Errorf("unexpected null model of %s", configurationStoreId)
+		}
+
+		if resp.Model.NameAvailable == nil {
+			return resp, "Error", fmt.Errorf("unexpected null NameAvailable property of %s", configurationStoreId)
+		}
+
+		if !*resp.Model.NameAvailable {
+			return resp, "Unavailable", nil
+		}
+		return resp, "Available", nil
+	}
 }

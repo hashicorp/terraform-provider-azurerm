@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DiskAccessDataSource struct {
-}
+type DiskAccessDataSource struct{}
 
 func TestAccDataSourceDiskAccess_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_disk_access", "test")

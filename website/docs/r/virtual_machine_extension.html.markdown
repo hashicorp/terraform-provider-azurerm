@@ -50,71 +50,45 @@ resource "azurerm_network_interface" "example" {
   }
 }
 
-resource "azurerm_storage_account" "example" {
-  name                     = "accsa"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+resource "azurerm_linux_virtual_machine" "example" {
+  name                = "example-machine"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.example.id,
+  ]
 
-  tags = {
-    environment = "staging"
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = file("~/.ssh/id_rsa.pub")
   }
-}
 
-resource "azurerm_storage_container" "example" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.example.name
-  container_access_type = "private"
-}
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
 
-resource "azurerm_virtual_machine" "example" {
-  name                  = "acctvm"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  network_interface_ids = [azurerm_network_interface.example.id]
-  vm_size               = "Standard_F2"
-
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-  }
-
-  os_profile {
-    computer_name  = "hostname"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "staging"
   }
 }
 
 resource "azurerm_virtual_machine_extension" "example" {
   name                 = "hostname"
-  virtual_machine_id   = azurerm_virtual_machine.example.id
+  virtual_machine_id   = azurerm_linux_virtual_machine.example.id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
 
   settings = <<SETTINGS
-	{
-		"commandToExecute": "hostname && uptime"
-	}
+ {
+  "commandToExecute": "hostname && uptime"
+ }
 SETTINGS
 
 
@@ -128,49 +102,60 @@ SETTINGS
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the virtual machine extension peering. Changing
-    this forces a new resource to be created.
+* `name` - (Required) The name of the virtual machine extension peering. Changing this forces a new resource to be created.
 
 * `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created
 
 * `publisher` - (Required) The publisher of the extension, available publishers can be found by using the Azure CLI. Changing this forces a new resource to be created.
 
-* `type` - (Required) The type of extension, available types for a publisher can
-    be found using the Azure CLI.
+* `type` - (Required) The type of extension, available types for a publisher can be found using the Azure CLI.
 
 ~> **Note:** The `Publisher` and `Type` of Virtual Machine Extensions can be found using the Azure CLI, via:
+
 ```shell
-$ az vm extension image list --location westus -o table
+az vm extension image list --location westus -o table
 ```
 
-* `type_handler_version` - (Required) Specifies the version of the extension to
-    use, available versions can be found using the Azure CLI.
+* `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 
-* `auto_upgrade_minor_version` - (Optional) Specifies if the platform deploys
-    the latest minor version update to the `type_handler_version` specified.
+* `auto_upgrade_minor_version` - (Optional) Specifies if the platform deploys the latest minor version update to the `type_handler_version` specified.
 
-* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? Defaults to `false`.
-* `settings` - (Required) The settings passed to the extension, these are
-    specified as a JSON object in a string.
+* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? 
+* `settings` - (Optional) The settings passed to the extension, these are specified as a JSON object in a string.
 
 ~> **Please Note:** Certain VM Extensions require that the keys in the `settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
 
-* `protected_settings` - (Optional) The protected_settings passed to the
-    extension, like settings, these are specified as a JSON object in a string.
+* `failure_suppression_enabled` - (Optional) Should failures from the extension be suppressed? Possible values are `true` or `false`. Defaults to `false`.
+
+-> **NOTE:** Operational failures such as not connecting to the VM will not be suppressed regardless of the `failure_suppression_enabled` value.
+
+* `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
 
 ~> **Please Note:** Certain VM Extensions require that the keys in the `protected_settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
 
+* `protected_settings_from_key_vault` - (Optional) A `protected_settings_from_key_vault` block as defined below.
+
+~> **Note:** `protected_settings_from_key_vault` cannot be used with `protected_settings`
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `protected_settings_from_key_vault` block supports the following:
+
+* `secret_url` - (Required) The URL to the Key Vault Secret which stores the protected settings.
+
+* `source_vault_id` - (Required) The ID of the source Key Vault.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Machine Extension.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Extension.
 * `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Extension.

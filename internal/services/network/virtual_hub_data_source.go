@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -29,9 +30,9 @@ func dataSourceVirtualHub() *pluginsdk.Resource {
 				ValidateFunc: validate.VirtualHubName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"address_prefix": {
 				Type:     pluginsdk.TypeString,
@@ -41,6 +42,19 @@ func dataSourceVirtualHub() *pluginsdk.Resource {
 			"virtual_wan_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"virtual_router_asn": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"virtual_router_ips": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -55,27 +69,27 @@ func dataSourceVirtualHub() *pluginsdk.Resource {
 
 func dataSourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewVirtualHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Virtual Hub %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
+
 	if props := resp.VirtualHubProperties; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 
@@ -84,6 +98,18 @@ func dataSourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 			virtualWanId = props.VirtualWan.ID
 		}
 		d.Set("virtual_wan_id", virtualWanId)
+
+		var virtualRouterAsn *int64
+		if props.VirtualRouterAsn != nil {
+			virtualRouterAsn = props.VirtualRouterAsn
+		}
+		d.Set("virtual_router_asn", virtualRouterAsn)
+
+		var virtualRouterIps *[]string
+		if props.VirtualRouterIps != nil {
+			virtualRouterIps = props.VirtualRouterIps
+		}
+		d.Set("virtual_router_ips", virtualRouterIps)
 	}
 
 	virtualHub, err := parse.VirtualHubID(*resp.ID)

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type CognitiveAccountDataSource struct {
-}
+type CognitiveAccountDataSource struct{}
 
 func TestAccCognitiveAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cognitive_account", "test")

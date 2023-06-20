@@ -10,7 +10,7 @@ description: |-
 
 Manages the Pricing Tier for Azure Security Center in the current subscription.
 
-~> **NOTE:** Deletion of this resource does not change or reset the pricing tier to `Free`
+~> **NOTE:** Deletion of this resource will reset the pricing tier to `Free`
 
 ## Example Usage
 
@@ -26,19 +26,20 @@ resource "azurerm_security_center_subscription_pricing" "example" {
 The following arguments are supported:
 
 * `tier` - (Required) The pricing tier to use. Possible values are `Free` and `Standard`.
-* `resource_type` - (Optional) The resource type this setting affects. Possible values are `AppServices`, `ContainerRegistry`, `KeyVaults`, `KubernetesService`, `SqlServers`, `SqlServerVirtualMachines`, `StorageAccounts`, `VirtualMachines`, `Arm`, `OpenSourceRelationalDatabases`, `Containers` and `Dns`. Defaults to `VirtualMachines`.
+* `resource_type` - (Optional) The resource type this setting affects. Possible values are `AppServices`, `ContainerRegistry`, `KeyVaults`, `KubernetesService`, `SqlServers`, `SqlServerVirtualMachines`, `StorageAccounts`, `VirtualMachines`, `Arm`, `Dns`, `OpenSourceRelationalDatabases`, `Containers`, `CosmosDbs` and `CloudPosture`. Defaults to `VirtualMachines`
+* `subplan` - (Optional) Resource type pricing subplan. Contact your MSFT representative for possible values.
 
 ~> **NOTE:** Changing the pricing tier to `Standard` affects all resources of the given type in the subscription and could be quite costly.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The subscription pricing ID.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Security Center Subscription Pricing.
 * `update` - (Defaults to 60 minutes) Used when updating the Security Center Subscription Pricing.

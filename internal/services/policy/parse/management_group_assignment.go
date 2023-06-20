@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
+
+var _ resourceids.Id = ManagementGroupAssignmentId{}
 
 type ManagementGroupAssignmentId struct {
 	ManagementGroupName  string

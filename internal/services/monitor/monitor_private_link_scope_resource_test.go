@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopesapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -83,20 +84,20 @@ func TestAccMonitorPrivateLinkScope_update(t *testing.T) {
 }
 
 func (r MonitorPrivateLinkScopeResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PrivateLinkScopeID(state.ID)
+	id, err := privatelinkscopesapis.ParsePrivateLinkScopeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Monitor.PrivateLinkScopesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Monitor.PrivateLinkScopesClient.PrivateLinkScopesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q %+v", id, err)
 	}
 
-	return utils.Bool(resp.AzureMonitorPrivateLinkScopeProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MonitorPrivateLinkScopeResource) template(data acceptance.TestData) string {

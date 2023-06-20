@@ -1,20 +1,21 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	HubsClient       *notificationhubs.Client
-	NamespacesClient *notificationhubs.NamespacesClient
+	HubsClient       *notificationhubs.NotificationHubsClient
+	NamespacesClient *namespaces.NamespacesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	hubsClient := notificationhubs.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	hubsClient := notificationhubs.NewNotificationHubsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&hubsClient.Client, o.ResourceManagerAuthorizer)
 
-	namespacesClient := notificationhubs.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	namespacesClient := namespaces.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&namespacesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

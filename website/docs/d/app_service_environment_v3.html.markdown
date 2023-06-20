@@ -33,15 +33,15 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the v3 App Service Environment.
 
-* `allow_new_private_endpoint_connections` - Are new Private Endpoint Connections allowed. 
+* `allow_new_private_endpoint_connections` - Are new Private Endpoint Connections allowed.
 
 * `cluster_setting` - A `cluster_setting` block as defined below.
 
-* `dedicated_host_count` - The number of Dedicated Hosts used by this ASEv3. 
+* `dedicated_host_count` - The number of Dedicated Hosts used by this ASEv3.
 
 * `dns_suffix` - the DNS suffix for this App Service Environment V3.
 
@@ -75,7 +75,7 @@ A `cluster_setting` block exports the following:
 
 * `value` - The value for the Cluster Setting.
 
---- 
+---
 
 An `inbound_network_dependencies` block exports the following:
 
@@ -85,9 +85,8 @@ An `inbound_network_dependencies` block exports the following:
 
 * `ports` - The ports that network traffic will arrive to the App Service Environment V3 on.
 
-
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the 3rd Generation (v3) App Service Environment.

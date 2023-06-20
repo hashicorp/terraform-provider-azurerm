@@ -198,6 +198,21 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandar
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypeStandardSSDZRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountTypeWithRestrictedLocation(data, "StandardSSD_ZRS", "westeurope"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -205,6 +220,58 @@ func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremium
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksDataDiskStorageAccountType(data, "Premium_LRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumV2LRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountTypePremiumV2LRS(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPS(data, 3001, 126),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPS(data, 3002, 127),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountTypePremiumZRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disksDataDiskStorageAccountTypeWithRestrictedLocation(data, "Premium_ZRS", "westeurope"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -435,8 +502,9 @@ func (WindowsVirtualMachineScaleSetResource) disksDataDisk_diskEncryptionSetDepe
 provider "azurerm" {
   features {
     key_vault {
-      recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy    = false
+      recover_soft_deleted_key_vaults    = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -457,7 +525,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
-  soft_delete_enabled         = true
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
 }
@@ -468,17 +535,18 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Get",
+    "Delete",
+    "Set",
   ]
 }
 
@@ -511,7 +579,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -535,9 +603,10 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "get",
-    "wrapkey",
-    "unwrapkey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
+    "GetRotationPolicy",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
@@ -705,6 +774,113 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), storageAccountType)
 }
 
+func (r WindowsVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypeWithRestrictedLocation(data acceptance.TestData, storageAccountType string, location string) string {
+	// Limited regional availability for some storage account type
+	data.Locations.Primary = location
+	return r.disksDataDiskStorageAccountType(data, storageAccountType)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypePremiumV2LRS(data acceptance.TestData) string {
+	// Limited regional availability for `PremiumV2_LRS`
+	// `PremiumV2_LRS` disks can only be can only be attached to zonal VMs currently
+	data.Locations.Primary = "westeurope"
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2s_v2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  zones               = ["1"]
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  data_disk {
+    storage_account_type = "PremiumV2_LRS"
+    caching              = "None"
+    disk_size_gb         = 10
+    lun                  = 10
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypePremiumV2LRSWithIOPSAndMBPS(data acceptance.TestData, iops int, mbps int) string {
+	// Limited regional availability for `PremiumV2_LRS`
+	data.Locations.Primary = "westeurope"
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2s_v2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  zones               = ["1"]
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  data_disk {
+    storage_account_type           = "PremiumV2_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_iops_read_write = %d
+    ultra_ssd_disk_mbps_read_write = %d
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), iops, mbps)
+}
+
 func (r WindowsVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypeUltraSSDLRS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -783,11 +959,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_iops_read_write = 101
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_iops_read_write = 101
   }
 
   additional_capabilities {
@@ -835,11 +1011,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_mbps_read_write = 11
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_mbps_read_write = 11
   }
 
   additional_capabilities {
@@ -887,12 +1063,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "UltraSSD_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
-    disk_iops_read_write = 101
-    disk_mbps_read_write = 11
+    storage_account_type           = "UltraSSD_LRS"
+    caching                        = "None"
+    disk_size_gb                   = 10
+    lun                            = 10
+    ultra_ssd_disk_iops_read_write = 101
+    ultra_ssd_disk_mbps_read_write = 11
   }
 
   additional_capabilities {

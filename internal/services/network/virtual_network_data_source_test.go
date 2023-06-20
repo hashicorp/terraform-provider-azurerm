@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type VirtualNetworkDataSource struct {
-}
+type VirtualNetworkDataSource struct{}
 
 func TestAccDataSourceVirtualNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network", "test")
@@ -48,6 +47,7 @@ func TestAccDataSourceVirtualNetwork_peering(t *testing.T) {
 				check.That(data.ResourceName).Key("name").HasValue(virtualNetworkName),
 				check.That(data.ResourceName).Key("address_space.0").HasValue("10.0.1.0/24"),
 				check.That(data.ResourceName).Key("vnet_peerings.%").HasValue("1"),
+				check.That(data.ResourceName).Key("vnet_peerings_addresses.0").HasValue("10.0.2.0/24"),
 			),
 		},
 	})

@@ -39,6 +39,18 @@ func Schema() *pluginsdk.Schema {
 	}
 }
 
+// SchemaWithMax returns the Schema with the maximum used for Tags
+func SchemaWithMax(max int) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeMap,
+		Optional:     true,
+		ValidateFunc: ValidateWithMax(max),
+		Elem: &pluginsdk.Schema{
+			Type: pluginsdk.TypeString,
+		},
+	}
+}
+
 // Schema returns the Schema used for Tags
 func SchemaEnforceLowerCaseKeys() *pluginsdk.Schema {
 	return &pluginsdk.Schema{

@@ -37,24 +37,24 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Stream Analytics Cluster should exist. Changing this forces a new resource to be created.
 
-* `streaming_capacity` - (Required) The number of streaming units supported by the Cluster. Accepted values are multiples of `36` in the range of `36` to `216`. 
+* `streaming_capacity` - (Required) The number of streaming units supported by the Cluster. Accepted values are multiples of `36` in the range of `36` to `216`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Stream Analytics.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Stream Analytics.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour) Used when creating the Stream Analytics.
+* `create` - (Defaults to 90 minutes) Used when creating the Stream Analytics.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics.
-* `update` - (Defaults to 1 hour) Used when updating the Stream Analytics.
-* `delete` - (Defaults to 1 hour) Used when deleting the Stream Analytics.
+* `update` - (Defaults to 90 minutes) Used when updating the Stream Analytics.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Stream Analytics.
 
 ## Import
 

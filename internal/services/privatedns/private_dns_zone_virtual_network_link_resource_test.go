@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/virtualnetworklinks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PrivateDnsZoneVirtualNetworkLinkResource struct {
-}
+type PrivateDnsZoneVirtualNetworkLinkResource struct{}
 
 func TestAccPrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
@@ -22,6 +21,20 @@ func TestAccPrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateDnsZoneVirtualNetworkLink_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
+	r := PrivateDnsZoneVirtualNetworkLinkResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -67,17 +80,17 @@ func TestAccPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
 }
 
 func (t PrivateDnsZoneVirtualNetworkLinkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualNetworkLinkID(state.ID)
+	id, err := virtualnetworklinks.ParseVirtualNetworkLinkID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.PrivateDns.VirtualNetworkLinksClient.Get(ctx, id.ResourceGroup, id.PrivateDnsZoneName, id.Name)
+	resp, err := clients.PrivateDns.VirtualNetworkLinksClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Private DNS Zone Virtual Network Link (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (PrivateDnsZoneVirtualNetworkLinkResource) basic(data acceptance.TestData) string {
@@ -113,6 +126,44 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
   private_dns_zone_name = azurerm_private_dns_zone.test.name
   virtual_network_id    = azurerm_virtual_network.test.id
   resource_group_name   = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (PrivateDnsZoneVirtualNetworkLinkResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+
+  subnet {
+    name           = "subnet1"
+    address_prefix = "10.0.1.0/24"
+  }
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                  = "acctestVnetZone%d.com"
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+  resource_group_name   = azurerm_resource_group.test.name
+  registration_enabled  = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

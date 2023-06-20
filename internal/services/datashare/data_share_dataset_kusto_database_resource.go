@@ -5,16 +5,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/helper"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataShareDataSetKustoDatabase() *pluginsdk.Resource {
@@ -30,7 +29,7 @@ func resourceDataShareDataSetKustoDatabase() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DataSetID(id)
+			_, err := dataset.ParseDataSetID(id)
 			return err
 		}),
 
@@ -46,14 +45,14 @@ func resourceDataShareDataSetKustoDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ShareID,
+				ValidateFunc: share.ValidateShareID,
 			},
 
 			"kusto_database_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: databases.ValidateDatabaseID,
 			},
 
 			"display_name": {
@@ -74,89 +73,72 @@ func resourceDataShareDataSetKustoDatabaseCreate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	shareId, err := parse.ShareID(d.Get("share_id").(string))
+	shareId, err := share.ParseShareID(d.Get("share_id").(string))
 	if err != nil {
 		return err
 	}
+	id := dataset.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroupName, shareId.AccountName, shareId.ShareName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
-	existingId := helper.GetAzurermDataShareDataSetId(existing.Value)
-	if existingId != nil && *existingId != "" {
-		return tf.ImportAsExistsError("azurerm_data_share_dataset_kusto_database", *existingId)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_data_share_dataset_kusto_database", id.ID())
 	}
 
-	dataSet := datashare.KustoDatabaseDataSet{
-		Kind: datashare.KindKustoDatabase,
-		KustoDatabaseDataSetProperties: &datashare.KustoDatabaseDataSetProperties{
-			KustoDatabaseResourceID: utils.String(d.Get("kusto_database_id").(string)),
+	dataSet := dataset.KustoDatabaseDataSet{
+		Properties: dataset.KustoDatabaseDataSetProperties{
+			KustoDatabaseResourceId: d.Get("kusto_database_id").(string),
 		},
 	}
 
-	if _, err := client.Create(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name, dataSet); err != nil {
-		return fmt.Errorf("creating DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
+	if _, err := client.Create(ctx, id, dataSet); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
-	}
-
-	respId := helper.GetAzurermDataShareDataSetId(resp.Value)
-	if respId == nil || *respId == "" {
-		return fmt.Errorf("empty or nil ID returned for DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q)", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
-	}
-
-	d.SetId(*respId)
+	d.SetId(id.ID())
 
 	return resourceDataShareDataSetKustoDatabaseRead(d, meta)
 }
 
 func resourceDataShareDataSetKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
-	shareClient := meta.(*clients.Client).DataShare.SharesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataSetID(d.Id())
+	id, err := dataset.ParseDataSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	respModel, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(respModel.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] DataShare %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	shareResp, err := shareClient.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName)
-	if err != nil {
-		return fmt.Errorf("retrieving DataShare %q (Resource Group %q / accountName %q): %+v", id.ShareName, id.ResourceGroup, id.AccountName, err)
-	}
-	if shareResp.ID == nil || *shareResp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for DataShare %q (Resource Group %q / accountName %q)", id.ShareName, id.ResourceGroup, id.AccountName)
-	}
+	d.Set("name", id.DataSetName)
 
-	d.Set("share_id", shareResp.ID)
+	shareId := share.NewShareID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ShareName)
+	d.Set("share_id", shareId.ID())
 
-	resp, ok := respModel.Value.AsKustoDatabaseDataSet()
-	if !ok {
-		return fmt.Errorf("dataShare %q (Resource Group %q / accountName %q) is not Kusto Database DataSet", id.ShareName, id.ResourceGroup, id.AccountName)
-	}
-	if props := resp.KustoDatabaseDataSetProperties; props != nil {
-		d.Set("kusto_database_id", props.KustoDatabaseResourceID)
-		d.Set("display_name", props.DataSetID)
-		d.Set("kusto_cluster_location", props.Location)
+	if model := resp.Model; model != nil {
+		m := *model
+		if ds, ok := m.(dataset.KustoDatabaseDataSet); ok {
+			props := ds.Properties
+			d.Set("kusto_database_id", props.KustoDatabaseResourceId)
+			d.Set("display_name", props.DataSetId)
+			d.Set("kusto_cluster_location", props.Location)
+		} else {
+			return fmt.Errorf("%s is not kusto database dataset", *id)
+		}
 	}
 
 	return nil
@@ -167,18 +149,13 @@ func resourceDataShareDataSetKustoDatabaseDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataSetID(d.Id())
+	id, err := dataset.ParseDataSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -38,120 +38,86 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"storage_account_id": {
+		Schema: resourceStorageAccountNetworkRulesSchema(),
+	}
+}
+
+func resourceStorageAccountNetworkRulesSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		// lintignore: S013
+		"storage_account_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageAccountID,
+		},
+
+		"bypass": {
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
-				// TODO: Make required in 3.0
-				Optional: true,
-				// TODO: Remove in 3.0
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountID,
-				// TODO: Remove in 3.0
-				ConflictsWith: []string{
-					"resource_group_name",
-					"storage_account_name",
-				},
-			},
-
-			// TODO: remove in 3.0
-			"resource_group_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceGroupName,
-				Deprecated:   "Deprecated in favour of `storage_account_id`",
-				RequiredWith: []string{
-					"storage_account_name",
-				},
-				ConflictsWith: []string{
-					"storage_account_id",
-				},
-			},
-
-			// TODO: remove in 3.0
-			"storage_account_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountName,
-				Deprecated:   "Deprecated in favour of `storage_account_id`",
-				RequiredWith: []string{
-					"resource_group_name",
-				},
-				ConflictsWith: []string{
-					"storage_account_id",
-				},
-			},
-
-			"bypass": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(storage.BypassAzureServices),
-						string(storage.BypassLogging),
-						string(storage.BypassMetrics),
-						string(storage.BypassNone),
-					}, false),
-				},
-				Set: pluginsdk.HashString,
-			},
-
-			"ip_rules": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-				Set: pluginsdk.HashString,
-			},
-
-			"virtual_network_subnet_ids": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-				Set: pluginsdk.HashString,
-			},
-
-			"default_action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.DefaultActionAllow),
-					string(storage.DefaultActionDeny),
+					string(storage.BypassAzureServices),
+					string(storage.BypassLogging),
+					string(storage.BypassMetrics),
+					string(storage.BypassNone),
 				}, false),
 			},
+			Set: pluginsdk.HashString,
+		},
 
-			"private_link_access": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"endpoint_resource_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
+		"ip_rules": {
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validate.StorageAccountIpRule,
+			},
+			Set: pluginsdk.HashString,
+		},
 
-						"endpoint_tenant_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsUUID,
-						},
+		"virtual_network_subnet_ids": {
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+			Set: pluginsdk.HashString,
+		},
+
+		"default_action": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(storage.DefaultActionAllow),
+				string(storage.DefaultActionDeny),
+			}, false),
+		},
+
+		"private_link_access": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"endpoint_resource_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+
+					"endpoint_tenant_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IsUUID,
 					},
 				},
 			},
@@ -162,12 +128,12 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountName := d.Get("storage_account_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	var storageAccountName string
+	var resourceGroup string
 	raw, ok := d.GetOk("storage_account_id")
 	if ok {
 		parsedStorageAccountId, err := parse.StorageAccountID(raw.(string))
@@ -222,7 +188,8 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("updating Azure Storage Account Network Rules %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
-	d.SetId(*storageAccount.ID)
+	id := parse.NewStorageAccountID(subscriptionId, resourceGroup, storageAccountName)
+	d.SetId(id.ID())
 
 	return resourceStorageAccountNetworkRulesRead(d, meta)
 }
@@ -248,8 +215,6 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.Set("storage_account_id", d.Id())
-	d.Set("storage_account_name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 
 	if rules := storageAccount.NetworkRuleSet; rules != nil {
 		if err := d.Set("ip_rules", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountIPRules(rules.IPRules))); err != nil {
@@ -297,11 +262,15 @@ func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta in
 	}
 
 	// We can't delete a network rule set so we'll just update it back to the default instead
+	virtualNetworkRules := make([]storage.VirtualNetworkRule, 0)
+	ipRules := make([]storage.IPRule, 0)
 	opts := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			NetworkRuleSet: &storage.NetworkRuleSet{
-				Bypass:        storage.BypassAzureServices,
-				DefaultAction: storage.DefaultActionAllow,
+				Bypass:              storage.BypassAzureServices,
+				VirtualNetworkRules: &virtualNetworkRules,
+				IPRules:             &ipRules,
+				DefaultAction:       storage.DefaultActionAllow,
 			},
 		},
 	}
@@ -319,9 +288,10 @@ func checkForNonDefaultStorageAccountNetworkRule(rule *storage.NetworkRuleSet) b
 		return false
 	}
 
+	// THe default action "Allow" is set in the creation of the storage account resource as default value.
 	if (rule.IPRules != nil && len(*rule.IPRules) != 0) ||
 		(rule.VirtualNetworkRules != nil && len(*rule.VirtualNetworkRules) != 0) ||
-		rule.Bypass != "AzureServices" || rule.DefaultAction != "Allow" {
+		rule.DefaultAction != "Allow" {
 		return true
 	}
 

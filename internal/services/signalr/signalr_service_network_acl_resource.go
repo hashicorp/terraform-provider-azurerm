@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -35,7 +35,10 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 		}),
 		SchemaVersion: 1,
 
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := signalr.ParseSignalRID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"signalr_service_id": {
@@ -139,7 +142,7 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 }
 
 func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -148,8 +151,8 @@ func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	locks.ByName(id.ResourceName, "azurerm_signalr_service")
-	defer locks.UnlockByName(id.ResourceName, "azurerm_signalr_service")
+	locks.ByName(id.SignalRName, "azurerm_signalr_service")
+	defer locks.UnlockByName(id.SignalRName, "azurerm_signalr_service")
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -203,7 +206,7 @@ func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, met
 }
 
 func resourceSignalRServiceNetworkACLRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -245,7 +248,7 @@ func resourceSignalRServiceNetworkACLRead(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -254,8 +257,8 @@ func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	locks.ByName(id.ResourceName, "azurerm_signalr_service")
-	defer locks.UnlockByName(id.ResourceName, "azurerm_signalr_service")
+	locks.ByName(id.SignalRName, "azurerm_signalr_service")
+	defer locks.UnlockByName(id.SignalRName, "azurerm_signalr_service")
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {

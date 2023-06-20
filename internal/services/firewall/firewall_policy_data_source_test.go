@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
-type FirewallPolicyDataSource struct {
-}
+type FirewallPolicyDataSource struct{}
 
 func TestAccFirewallPolicyDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_firewall_policy", "test")

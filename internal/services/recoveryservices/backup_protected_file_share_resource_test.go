@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BackupProtectedFileShareResource struct {
-}
+type BackupProtectedFileShareResource struct{}
 
 // TODO: These tests fail because enabling backup on file shares with no content
 func TestAccBackupProtectedFileShare_basic(t *testing.T) {
@@ -108,17 +107,17 @@ func TestAccBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
 }
 
 func (t BackupProtectedFileShareResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ProtectedItemID(state.ID)
+	id, err := protecteditems.ParseProtectedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.RecoveryServices.ProtectedItemsClient.Get(ctx, id.VaultName, id.ResourceGroup, "Azure", id.ProtectionContainerName, id.Name, "")
+	resp, err := clients.RecoveryServices.ProtectedItemsClient.Get(ctx, *id, protecteditems.GetOperationOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("reading Recovery Service Protected File Share (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BackupProtectedFileShareResource) base(data acceptance.TestData) string {
@@ -143,6 +142,7 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_share" "test" {
   name                 = "acctest-ss-%[1]d"
   storage_account_name = "${azurerm_storage_account.test.name}"
+  quota                = 1
   metadata             = {}
 
   lifecycle {
@@ -275,6 +275,7 @@ resource "azurerm_storage_account" "test2" {
 resource "azurerm_storage_share" "testshare1" {
   name                 = "acctest-ss-%[1]d-1"
   storage_account_name = "${azurerm_storage_account.test1.name}"
+  quota                = 1
   metadata             = {}
 
   lifecycle {
@@ -285,6 +286,7 @@ resource "azurerm_storage_share" "testshare1" {
 resource "azurerm_storage_share" "testshare2" {
   name                 = "acctest-ss-%[1]d-2"
   storage_account_name = "${azurerm_storage_account.test1.name}"
+  quota                = 1
   metadata             = {}
 
   lifecycle {
@@ -295,6 +297,7 @@ resource "azurerm_storage_share" "testshare2" {
 resource "azurerm_storage_share" "testshare3" {
   name                 = "acctest-ss-%[1]d-1"
   storage_account_name = "${azurerm_storage_account.test2.name}"
+  quota                = 1
   metadata             = {}
 
   lifecycle {
@@ -305,6 +308,7 @@ resource "azurerm_storage_share" "testshare3" {
 resource "azurerm_storage_share" "testshare4" {
   name                 = "acctest-ss-%[1]d-2"
   storage_account_name = "${azurerm_storage_account.test2.name}"
+  quota                = 1
   metadata             = {}
 
   lifecycle {
@@ -365,6 +369,7 @@ resource "azurerm_backup_protected_file_share" "test" {
 resource "azurerm_storage_share" "testshare" {
   name                 = "acctest-ss-%[2]d"
   storage_account_name = "${azurerm_storage_account.test2.name}"
+  quota                = 1
   metadata             = {}
 
   lifecycle {

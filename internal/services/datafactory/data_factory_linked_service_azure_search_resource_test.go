@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceSearchResource struct {
-}
+type LinkedServiceSearchResource struct{}
 
 func TestAccDataFactoryLinkedServiceAzureSearch_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_search", "test")

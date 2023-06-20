@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
@@ -40,7 +40,7 @@ func resourceApiManagementProduct() *pluginsdk.Resource {
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"display_name": {
 				Type:         pluginsdk.TypeString,
@@ -50,7 +50,8 @@ func resourceApiManagementProduct() *pluginsdk.Resource {
 
 			"subscription_required": {
 				Type:     pluginsdk.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  true,
 			},
 
 			"published": {

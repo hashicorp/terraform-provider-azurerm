@@ -6,12 +6,12 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -53,7 +53,7 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ComponentID,
 			},
 
 			"read_permissions": {
@@ -102,6 +102,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	name := d.Get("name").(string)
 
 	var existingAPIKeyList insights.ApplicationInsightsComponentAPIKeyListResult
+	var existingAPIKeyId *parse.ApiKeyId
 	var keyId string
 	existingAPIKeyList, err = client.List(ctx, appInsightsId.ResourceGroup, appInsightsId.Name)
 	if err != nil {
@@ -111,7 +112,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	for _, existingAPIKey := range *existingAPIKeyList.Value {
-		existingAPIKeyId, err := parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
+		existingAPIKeyId, err = parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
 		if err != nil {
 			return err
 		}
@@ -131,14 +132,19 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_application_insights_api_key", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) && existingAPIKeyId != nil {
+		return tf.ImportAsExistsError("azurerm_application_insights_api_key", existingAPIKeyId.ID())
 	}
 
+	linkedReadProperties := expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*pluginsdk.Set), appInsightsId.ID())
+	linkedWriteProperties := expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*pluginsdk.Set), appInsightsId.ID())
+	if len(*linkedReadProperties) == 0 && len(*linkedWriteProperties) == 0 {
+		return fmt.Errorf("at least one read or write permission must be defined")
+	}
 	apiKeyProperties := insights.APIKeyRequest{
 		Name:                  &name,
-		LinkedReadProperties:  expandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*pluginsdk.Set), appInsightsId.ID()),
-		LinkedWriteProperties: expandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*pluginsdk.Set), appInsightsId.ID()),
+		LinkedReadProperties:  linkedReadProperties,
+		LinkedWriteProperties: linkedWriteProperties,
 	}
 
 	result, err := client.Create(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, apiKeyProperties)

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -22,8 +22,10 @@ type AppServiceSourceControlTokenModel struct {
 	Type        string `tfschema:"type"`
 }
 
-var _ sdk.ResourceWithUpdate = AppServiceSourceControlTokenResource{}
-var _ sdk.Resource = AppServiceSourceControlTokenResource{}
+var (
+	_ sdk.ResourceWithUpdate = AppServiceSourceControlTokenResource{}
+	_ sdk.Resource           = AppServiceSourceControlTokenResource{}
+)
 
 func (r AppServiceSourceControlTokenResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -59,7 +61,7 @@ func (r AppServiceSourceControlTokenResource) Attributes() map[string]*pluginsdk
 }
 
 func (r AppServiceSourceControlTokenResource) ModelObject() interface{} {
-	return &AppServiceSourceControlModel{}
+	return &AppServiceSourceControlTokenModel{}
 }
 
 func (r AppServiceSourceControlTokenResource) ResourceType() string {

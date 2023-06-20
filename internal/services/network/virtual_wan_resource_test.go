@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualWanResource struct {
-}
+type VirtualWanResource struct{}
 
 func TestAccAzureRMVirtualWan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_wan", "test")

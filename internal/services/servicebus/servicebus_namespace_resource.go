@@ -1,23 +1,30 @@
 package servicebus
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -38,7 +45,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 		Delete: resourceServiceBusNamespaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NamespaceID(id)
+			_, err := namespaces.ParseNamespaceID(id)
 			return err
 		}),
 
@@ -62,20 +69,20 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				ValidateFunc: validate.NamespaceName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.SkuNameBasic),
-					string(servicebus.SkuNameStandard),
-					string(servicebus.SkuNamePremium),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+					string(namespaces.SkuNameBasic),
+					string(namespaces.SkuNameStandard),
+					string(namespaces.SkuNamePremium),
+				}, false),
 			},
 
 			"capacity": {
@@ -83,6 +90,56 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Optional:     true,
 				Default:      0,
 				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4, 8, 16}),
+			},
+
+			"customer_managed_key": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						},
+
+						"identity_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+
+						"infrastructure_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+						},
+					},
+				},
+			},
+
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"minimum_tls_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(namespaces.TlsVersionOnePointZero),
+					string(namespaces.TlsVersionOnePointOne),
+					string(namespaces.TlsVersionOnePointTwo),
+				}, false),
 			},
 
 			"default_primary_connection_string": {
@@ -115,8 +172,32 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				oldCustomerManagedKey, newCustomerManagedKey := diff.GetChange("customer_managed_key")
+				if len(oldCustomerManagedKey.([]interface{})) != 0 && len(newCustomerManagedKey.([]interface{})) == 0 {
+					diff.ForceNew("customer_managed_key")
+				}
+
+				oldSku, newSku := diff.GetChange("sku")
+				if diff.HasChange("sku") {
+					if strings.EqualFold(newSku.(string), string(namespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces.SkuNamePremium)) {
+						log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
+						diff.ForceNew("sku")
+					}
+				}
+				return nil
+			}),
+			pluginsdk.CustomizeDiffShim(servicebusTLSVersionDiff),
+		),
 	}
 }
 
@@ -132,99 +213,157 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	sku := d.Get("sku").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	resourceId := parse.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_servicebus_namespace", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace", id.ID())
 		}
 	}
 
-	parameters := servicebus.SBNamespace{
-		Location: &location,
-		Sku: &servicebus.SBSku{
-			Name: servicebus.SkuName(sku),
-			Tier: servicebus.SkuTier(sku),
+	identity, err := expandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	publicNetworkEnabled := namespaces.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
+	}
+
+	s := namespaces.SkuTier(sku)
+	parameters := namespaces.SBNamespace{
+		Location: location,
+		Identity: identity,
+		Sku: &namespaces.SBSku{
+			Name: namespaces.SkuName(sku),
+			Tier: &s,
 		},
-		SBNamespaceProperties: &servicebus.SBNamespaceProperties{
-			ZoneRedundant: utils.Bool(d.Get("zone_redundant").(bool)),
+		Properties: &namespaces.SBNamespaceProperties{
+			ZoneRedundant:       utils.Bool(d.Get("zone_redundant").(bool)),
+			Encryption:          expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
+			DisableLocalAuth:    utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			PublicNetworkAccess: &publicNetworkEnabled,
 		},
-		Tags: tags.Expand(t),
+		Tags: expandTags(t),
+	}
+
+	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
+		minimumTls := namespaces.TlsVersion(tlsValue)
+		parameters.Properties.MinimumTlsVersion = &minimumTls
 	}
 
 	if capacity := d.Get("capacity"); capacity != nil {
-		if !strings.EqualFold(sku, string(servicebus.SkuNamePremium)) && capacity.(int) > 0 {
+		if !strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && capacity.(int) > 0 {
 			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 0", sku)
 		}
-		if strings.EqualFold(sku, string(servicebus.SkuNamePremium)) && capacity.(int) == 0 {
+		if strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && capacity.(int) == 0 {
 			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2, 4, 8 or 16", sku)
 		}
-		parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
+		parameters.Sku.Capacity = utils.Int64(int64(capacity.(int)))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", resourceId, err)
-	}
-
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceServiceBusNamespaceRead(d, meta)
 }
 
 func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
-	clientStable := meta.(*clients.Client).ServiceBus.NamespacesClient
+	namespaceAuthClient := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NamespaceID(d.Id())
+	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", strings.ToLower(string(sku.Name)))
-		d.Set("capacity", sku.Capacity)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		d.Set("tags", flattenTags(model.Tags))
+
+		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if sku := model.Sku; sku != nil {
+			skuName := ""
+			// the Azure API is inconsistent here, so rewrite this into the casing we expect
+			for _, v := range namespaces.PossibleValuesForSkuName() {
+				if strings.EqualFold(v, string(sku.Name)) {
+					skuName = v
+				}
+			}
+			d.Set("sku", skuName)
+			d.Set("capacity", sku.Capacity)
+
+			if props := model.Properties; props != nil {
+				d.Set("zone_redundant", props.ZoneRedundant)
+				if customerManagedKey, err := flattenServiceBusNamespaceEncryption(props.Encryption); err == nil {
+					d.Set("customer_managed_key", customerManagedKey)
+				}
+				localAuthEnabled := true
+				if props.DisableLocalAuth != nil {
+					localAuthEnabled = !*props.DisableLocalAuth
+				}
+				d.Set("local_auth_enabled", localAuthEnabled)
+
+				publicNetworkAccess := true
+				if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == namespaces.PublicNetworkAccessDisabled {
+					publicNetworkAccess = false
+				}
+				d.Set("public_network_access_enabled", publicNetworkAccess)
+
+				if props.MinimumTlsVersion != nil {
+					d.Set("minimum_tls_version", string(pointer.From(props.MinimumTlsVersion)))
+				}
+
+				d.Set("endpoint", props.ServiceBusEndpoint)
+			}
+		}
 	}
 
-	if properties := resp.SBNamespaceProperties; properties != nil {
-		d.Set("zone_redundant", properties.ZoneRedundant)
-	}
+	authRuleId := namespacesauthorizationrule.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, serviceBusNamespaceDefaultAuthorizationRule)
 
-	keys, err := clientStable.ListKeys(ctx, id.ResourceGroup, id.Name, serviceBusNamespaceDefaultAuthorizationRule)
+	keys, err := namespaceAuthClient.NamespacesListKeys(ctx, authRuleId)
 	if err != nil {
 		log.Printf("[WARN] listing default keys for %s: %+v", id, err)
 	} else {
-		d.Set("default_primary_connection_string", keys.PrimaryConnectionString)
-		d.Set("default_secondary_connection_string", keys.SecondaryConnectionString)
-		d.Set("default_primary_key", keys.PrimaryKey)
-		d.Set("default_secondary_key", keys.SecondaryKey)
+		if keysModel := keys.Model; keysModel != nil {
+			d.Set("default_primary_connection_string", keysModel.PrimaryConnectionString)
+			d.Set("default_secondary_connection_string", keysModel.SecondaryConnectionString)
+			d.Set("default_primary_key", keysModel.PrimaryKey)
+			d.Set("default_secondary_key", keysModel.SecondaryKey)
+		}
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -232,21 +371,119 @@ func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NamespaceID(d.Id())
+	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	// need to wait the status to be ready before performing the deleting.
+	if err := waitForNamespaceStatusToBeReady(ctx, meta, *id, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		return fmt.Errorf("waiting for serviceBus namespace %s state to be ready error: %+v", *id, err)
+	}
+
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+	return nil
+}
+
+func expandServiceBusNamespaceEncryption(input []interface{}) *namespaces.Encryption {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	keyId, _ := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	keySource := namespaces.KeySourceMicrosoftPointKeyVault
+	return &namespaces.Encryption{
+		KeyVaultProperties: &[]namespaces.KeyVaultProperties{
+			{
+				KeyName:     utils.String(keyId.Name),
+				KeyVersion:  utils.String(keyId.Version),
+				KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
+				Identity: &namespaces.UserAssignedIdentityProperties{
+					UserAssignedIdentity: utils.String(v["identity_id"].(string)),
+				},
+			},
+		},
+		KeySource:                       &keySource,
+		RequireInfrastructureEncryption: utils.Bool(v["infrastructure_encryption_enabled"].(bool)),
+	}
+}
+
+func flattenServiceBusNamespaceEncryption(encryption *namespaces.Encryption) ([]interface{}, error) {
+	if encryption == nil {
+		return []interface{}{}, nil
+	}
+
+	var keyId string
+	var identityId string
+	if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil && len(*keyVaultProperties) != 0 {
+		props := (*keyVaultProperties)[0]
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, "keys", *props.KeyName, *props.KeyVersion)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
+		}
+		keyId = keyVaultKeyId.ID()
+		if props.Identity != nil && props.Identity.UserAssignedIdentity != nil {
+			identityId = *props.Identity.UserAssignedIdentity
 		}
 	}
 
-	return nil
+	return []interface{}{
+		map[string]interface{}{
+			"infrastructure_encryption_enabled": encryption.RequireInfrastructureEncryption,
+			"key_vault_key_id":                  keyId,
+			"identity_id":                       identityId,
+		},
+	}, nil
+}
+
+func expandSystemAndUserAssignedMap(input []interface{}) (*identity.SystemAndUserAssignedMap, error) {
+	identityType := identity.TypeNone
+	identityIds := make(map[string]identity.UserAssignedIdentityDetails, 0)
+
+	if len(input) > 0 {
+		raw := input[0].(map[string]interface{})
+		typeRaw := raw["type"].(string)
+		if typeRaw == string(identity.TypeSystemAssigned) {
+			identityType = identity.TypeSystemAssigned
+		}
+		if typeRaw == string(identity.TypeSystemAssignedUserAssigned) {
+			identityType = identity.TypeSystemAssignedUserAssigned
+		}
+		if typeRaw == string(identity.TypeUserAssigned) {
+			identityType = identity.TypeUserAssigned
+		}
+
+		identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
+		for _, v := range identityIdsRaw {
+			identityIds[v.(string)] = identity.UserAssignedIdentityDetails{
+				// intentionally empty since the expand shouldn't send these values
+			}
+		}
+	}
+
+	if len(identityIds) > 0 && (identityType != identity.TypeSystemAssignedUserAssigned && identityType != identity.TypeUserAssigned) {
+		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` is set to %q or %q", string(identity.TypeSystemAssignedUserAssigned), string(identity.TypeUserAssigned))
+	}
+
+	if len(identityIds) == 0 {
+		return &identity.SystemAndUserAssignedMap{
+			Type: identityType,
+		}, nil
+	}
+
+	return &identity.SystemAndUserAssignedMap{
+		Type:        identityType,
+		IdentityIds: identityIds,
+	}, nil
+}
+
+func servicebusTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
+	old, new := d.GetChange("minimum_tls_version")
+	if old != "" && new == "" {
+		err = fmt.Errorf("`minimum_tls_version` has been set before, please set a valid value for this property ")
+	}
+	return
 }

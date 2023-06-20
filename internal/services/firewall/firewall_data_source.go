@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func firewallDataSource() *pluginsdk.Resource {
@@ -30,9 +32,9 @@ func firewallDataSource() *pluginsdk.Resource {
 				ValidateFunc: validate.FirewallName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -140,9 +142,9 @@ func firewallDataSource() *pluginsdk.Resource {
 				},
 			},
 
-			"zones": azure.SchemaZonesComputed(),
+			"zones": commonschema.ZonesMultipleComputed(),
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -167,9 +169,8 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("name", id.AzureFirewallName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := read.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(read.Location))
+	d.Set("zones", zones.FlattenUntyped(read.Zones))
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
 		if err := d.Set("ip_configuration", flattenFirewallIPConfigurations(props.IPConfigurations)); err != nil {
@@ -203,10 +204,6 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {
 			return fmt.Errorf("setting `virtual_hub`: %+v", err)
 		}
-	}
-
-	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, read.Tags)

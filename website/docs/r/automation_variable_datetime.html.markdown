@@ -10,7 +10,6 @@ description: |-
 
 Manages a DateTime variable in Azure Automation
 
-
 ## Example Usage
 
 ```hcl
@@ -23,10 +22,7 @@ resource "azurerm_automation_account" "example" {
   name                = "tfex-example-account"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-
-  sku {
-    name = "Basic"
-  }
+  sku_name            = "Basic"
 }
 
 resource "azurerm_automation_variable_datetime" "example" {
@@ -55,13 +51,13 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Automation Variable.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation DateTime Variable.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation DateTime Variable.
@@ -73,5 +69,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Automation DateTime Variable can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_automation_variable_datetime.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-example-rg/providers/Microsoft.Automation/automationAccounts/tfex-example-account/variables/tfex-example-var
+terraform import azurerm_automation_variable_datetime.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-example-rg/providers/Microsoft.Automation/automationAccounts/tfex-example-account/variables/tfex-example-var
 ```

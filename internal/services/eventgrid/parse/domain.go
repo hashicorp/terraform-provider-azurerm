@@ -41,7 +41,7 @@ func (id DomainId) ID() string {
 func DomainID(input string) (*DomainId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an Domain ID: %+v", input, err)
 	}
 
 	resourceId := DomainId{

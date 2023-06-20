@@ -12,8 +12,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = TemplateDeploymentV0ToV1{}
 
-type TemplateDeploymentV0ToV1 struct {
-}
+type TemplateDeploymentV0ToV1 struct{}
 
 func (t TemplateDeploymentV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

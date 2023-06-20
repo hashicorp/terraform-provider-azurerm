@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogicAppWorkflowResource struct {
-}
+type LogicAppWorkflowResource struct{}
 
 func TestAccLogicAppWorkflow_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
@@ -119,12 +118,21 @@ func TestAccLogicAppWorkflow_integrationAccount(t *testing.T) {
 }
 
 func TestAccLogicAppWorkflow_integrationServiceEnvironment(t *testing.T) {
+	t.Skip("skip as Integration Service Environment is being deprecated")
+
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
 	r := LogicAppWorkflowResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.integrationServiceEnvironment(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.integrationServiceEnvironmentUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -167,6 +175,12 @@ func TestAccLogicAppWorkflow_accessControl(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.updateAccessControlWithStep(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -200,17 +214,17 @@ func TestAccLogicAppWorkflow_identity(t *testing.T) {
 }
 
 func (LogicAppWorkflowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WorkflowID(state.ID)
+	id, err := workflows.ParseWorkflowID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Logic.WorkflowClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Logic.WorkflowClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Logic App Workflow %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.WorkflowProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LogicAppWorkflowResource) empty(data acceptance.TestData) string {
@@ -344,6 +358,23 @@ resource "azurerm_logic_app_workflow" "test" {
   location                           = azurerm_resource_group.test.location
   resource_group_name                = azurerm_resource_group.test.name
   integration_service_environment_id = azurerm_integration_service_environment.test.id
+}
+`, IntegrationServiceEnvironmentResource{}.basic(data), data.RandomInteger)
+}
+
+func (r LogicAppWorkflowResource) integrationServiceEnvironmentUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                               = "acctestlaw-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  integration_service_environment_id = azurerm_integration_service_environment.test.id
+
+  tags = {
+    "Source" = "AcceptanceTests"
+  }
 }
 `, IntegrationServiceEnvironmentResource{}.basic(data), data.RandomInteger)
 }
@@ -515,6 +546,35 @@ resource "azurerm_logic_app_workflow" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LogicAppWorkflowResource) updateAccessControlWithStep(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_action_custom" "test" {
+  name         = "test"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+
+  body = <<BODY
+{
+    "description": "A variable to configure the auto expiration age in days. Configured in negative number. Default is -30 (30 days old).",
+    "inputs": {
+        "variables": [
+            {
+                "name": "ExpirationAgeInDays",
+                "type": "Integer",
+                "value": -30
+            }
+        ]
+    },
+    "runAfter": {},
+    "type": "InitializeVariable"
+}
+BODY
+}
+
+`, r.updateAccessControl(data))
 }
 
 func (LogicAppWorkflowResource) systemAssignedIdentity(data acceptance.TestData) string {

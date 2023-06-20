@@ -42,6 +42,10 @@ type Plan struct {
 	// this plan.
 	PlannedValues *StateValues `json:"planned_values,omitempty"`
 
+	// The change operations for resources and data sources within this plan
+	// resulting from resource drift.
+	ResourceDrift []*ResourceChange `json:"resource_drift,omitempty"`
+
 	// The change operations for resources and data sources within this
 	// plan.
 	ResourceChanges []*ResourceChange `json:"resource_changes,omitempty"`
@@ -55,6 +59,19 @@ type Plan struct {
 
 	// The Terraform configuration used to make the plan.
 	Config *Config `json:"configuration,omitempty"`
+
+	// RelevantAttributes represents any resource instances and their
+	// attributes which may have contributed to the planned changes
+	RelevantAttributes []ResourceAttribute `json:"relevant_attributes,omitempty"`
+}
+
+// ResourceAttribute describes a full path to a resource attribute
+type ResourceAttribute struct {
+	// Resource describes resource instance address (e.g. null_resource.foo)
+	Resource string `json:"resource"`
+	// Attribute describes the attribute path using a lossy representation
+	// of cty.Path. (e.g. ["id"] or ["objects", 0, "val"]).
+	Attribute []json.RawMessage `json:"attribute"`
 }
 
 // Validate checks to ensure that the plan is present, and the

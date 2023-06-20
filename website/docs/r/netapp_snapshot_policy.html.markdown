@@ -62,13 +62,13 @@ resource "azurerm_netapp_snapshot_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the NetApp Snapshot Policy. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the NetApp Snapshot Policy. Changing this forces a new resource to be created. 
 
-* `resource_group_name` - (Required) The name of the resource group where the NetApp Snapshot Policy should be created. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group where the NetApp Snapshot Policy should be created. Changing this forces a new resource to be created. 
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. 
 
-* `account_name` - (Required) The name of the NetApp Account in which the NetApp Snapshot Policy should be created. Changing this forces a new resource to be created.
+* `account_name` - (Required) The name of the NetApp Account in which the NetApp Snapshot Policy should be created. Changing this forces a new resource to be created. 
 
 * `enabled` - (Required) Defines that the NetApp Snapshot Policy is enabled or not.
 
@@ -79,6 +79,8 @@ The following arguments are supported:
 * `weekly_schedule` - (Optional) Sets a weekly snapshot schedule. See details in below `weekly_schedule` block.
 
 * `monthly_schedule` - (Optional) Sets a monthly snapshot schedule. See details in below `monthly_schedule` block.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -112,11 +114,11 @@ A `weekly_schedule` block supports the following:
 
 ---
 
-A `weekly_schedule` block supports the following:
+A `monthly_schedule` block supports the following:
 
 * `snapshots_to_keep` - (Required) How many hourly snapshots to keep, valid range is from 0 to 255.
 
-* `monthly_schedule` - (Required) List of the days of the month when the snapshots will be created, valid range is from 1 to 30.
+* `days_of_month` - (Required) List of the days of the month when the snapshots will be created, valid range is from 1 to 30.
 
 * `hour` - (Required) Hour of the day that the snapshots will be created, valid range is from 0 to 23.
 
@@ -126,31 +128,31 @@ A `weekly_schedule` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the NetApp Snapshot.
   
-* `name` - The name of the NetApp Snapshot Policy.
+* `name` - (Required) The name of the NetApp Snapshot Policy. Changing this forces a new resource to be created.
 
-* `resource_group_name` - The name of the resource group where the NetApp Snapshot Policy should be created.
+* `resource_group_name` - (Required) The name of the resource group where the NetApp Snapshot Policy should be created.
   
-* `location` - Specifies the supported Azure location where the resource exists.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `account_name` - The name of the NetApp Account in which the NetApp Snapshot Policy was created.
+* `account_name` - (Required) The name of the NetApp Account in which the NetApp Snapshot Policy was created. Changing this forces a new resource to be created.
 
-* `enabled` - Defines that the NetApp Snapshot Policy is enabled or not.
+* `enabled` - (Required) Defines that the NetApp Snapshot Policy is enabled or not.
 
-* `hourly_schedule` - Hourly snapshot schedule.
+* `hourly_schedule` - (Optional) Hourly snapshot schedule.
 
-* `daily_schedule` - Daily snapshot schedule.
+* `daily_schedule` - (Optional) Daily snapshot schedule.
   
-* `weekly_schedule` - Weekly snapshot schedule.
+* `weekly_schedule` - (Optional) Weekly snapshot schedule.
 
-* `monthly_schedule` - Monthly snapshot schedule.
+* `monthly_schedule` - (Optional) Monthly snapshot schedule.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the NetApp Snapshot Policy.
 * `update` - (Defaults to 30 minutes) Used when updating the NetApp Snapshot Policy.
@@ -162,5 +164,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 NetApp Snapshot Policy can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_netapp_snapshot.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/snapshotPolicies/snapshotpolicy1
+terraform import azurerm_netapp_snapshot_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/snapshotPolicies/snapshotpolicy1
 ```

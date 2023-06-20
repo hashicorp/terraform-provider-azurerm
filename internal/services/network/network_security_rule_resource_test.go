@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkSecurityRuleResource struct {
-}
+type NetworkSecurityRuleResource struct{}
 
 func TestAccNetworkSecurityRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")

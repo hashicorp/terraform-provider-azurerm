@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestAccWindowsVirtualMachine_imageFromImage(t *testing.T) {
@@ -40,10 +41,19 @@ func TestAccWindowsVirtualMachine_imageFromImage(t *testing.T) {
 func TestAccWindowsVirtualMachine_imageFromPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
+	publisher := "plesk"
+	offer := "plesk-onyx-windows"
+	sku := "plsk-win-hst-azr-m"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imageFromPlan(data),
+			Config: r.empty(),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientWithoutResource(r.cancelExistingAgreement(publisher, offer, sku)),
+			),
+		},
+		{
+			Config: r.imageFromPlan(data, publisher, offer, sku),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -112,7 +122,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -217,14 +227,14 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.imageFromExistingMachinePrep(data))
 }
 
-func (r WindowsVirtualMachineResource) imageFromPlan(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) imageFromPlan(data acceptance.TestData, publisher string, offer string, sku string) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_marketplace_agreement" "test" {
-  publisher = "plesk"
-  offer     = "plesk-onyx-windows"
-  plan      = "plsk-win-hst-azr-m"
+  publisher = "%[2]s"
+  offer     = "%[3]s"
+  plan      = "%[4]s"
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
@@ -244,21 +254,21 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   plan {
-    name      = "plsk-win-hst-azr-m"
-    product   = "plesk-onyx-windows"
-    publisher = "plesk"
+    publisher = "%[2]s"
+    product   = "%[3]s"
+    name      = "%[4]s"
   }
 
   source_image_reference {
-    publisher = "plesk"
-    offer     = "plesk-onyx-windows"
-    sku       = "plsk-win-hst-azr-m"
+    publisher = "%[2]s"
+    offer     = "%[3]s"
+    sku       = "%[4]s"
     version   = "latest"
   }
 
   depends_on = ["azurerm_marketplace_agreement.test"]
 }
-`, r.template(data))
+`, r.template(data), publisher, offer, sku)
 }
 
 func (r WindowsVirtualMachineResource) imageFromSharedImageGallery(data acceptance.TestData) string {
@@ -351,8 +361,16 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
+func (WindowsVirtualMachineResource) empty() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+`
+}
+
 func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.VirtualMachineID(state.ID)
+	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return err
 	}
@@ -362,33 +380,55 @@ func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Contex
 		"$args = \"/generalize /oobe /mode:vm /quit\"",
 		"Start-Process powershell -Argument \"$cmd $args\" -Wait",
 	}
-	runCommand := compute.RunCommandInput{
-		CommandID: utils.String("RunPowerShellScript"),
+	runCommand := virtualmachines.RunCommandInput{
+		CommandId: "RunPowerShellScript",
 		Script:    &command,
 	}
 
-	future, err := client.Compute.VMClient.RunCommand(ctx, id.ResourceGroup, id.Name, runCommand)
-	if err != nil {
-		return fmt.Errorf("Bad: Error in running sysprep: %+v", err)
+	if err := client.Compute.VirtualMachinesClient.RunCommandThenPoll(ctx, *id, runCommand); err != nil {
+		return fmt.Errorf("running sysprep for %s: %+v", *id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
-		return fmt.Errorf("Bad: Error waiting for Windows VM to sysprep: %+v", err)
+	if err := client.Compute.VirtualMachinesClient.DeallocateThenPoll(ctx, *id, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
+		return fmt.Errorf("deallocating %s: %+v", *id, err)
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
-	daFuture, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
-	if err != nil {
-		return fmt.Errorf("Bad: Deallocation error: %+v", err)
-	}
-
-	if err := daFuture.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
-		return fmt.Errorf("Bad: Deallocation error: %+v", err)
-	}
-
-	if _, err = client.Compute.VMClient.Generalize(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("Bad: Generalizing error: %+v", err)
+	if _, err = client.Compute.VirtualMachinesClient.Generalize(ctx, *id); err != nil {
+		return fmt.Errorf("generalizing %s: %+v", *id, err)
 	}
 
 	return nil
+}
+
+func (r WindowsVirtualMachineResource) cancelExistingAgreement(publisher string, offer string, sku string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		client := clients.Compute.MarketplaceAgreementsClient
+		subscriptionId := clients.Account.SubscriptionId
+		ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+		defer cancel()
+
+		idGet := agreements.NewOfferPlanID(subscriptionId, publisher, offer, sku)
+		idCancel := agreements.NewPlanID(subscriptionId, publisher, offer, sku)
+
+		existing, err := client.MarketplaceAgreementsGet(ctx, idGet)
+		if err != nil {
+			return err
+		}
+
+		if model := existing.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if accepted := props.Accepted; accepted != nil && *accepted {
+					resp, err := client.MarketplaceAgreementsCancel(ctx, idCancel)
+					if err != nil {
+						if response.WasNotFound(resp.HttpResponse) {
+							return fmt.Errorf("marketplace agreement %q does not exist", idGet)
+						}
+						return fmt.Errorf("canceling %s: %+v", idGet, err)
+					}
+				}
+			}
+		}
+
+		return nil
+	}
 }

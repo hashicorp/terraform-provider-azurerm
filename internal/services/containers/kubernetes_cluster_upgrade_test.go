@@ -15,14 +15,14 @@ func TestAccKubernetesCluster_upgradeAutoScaleMinCount(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 3, 8),
+			Config: r.upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 4, 8),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 4, 8),
+			Config: r.upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 5, 8),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -136,7 +136,7 @@ func TestAccKubernetesCluster_upgradeNodePoolBeforeControlPlaneFails(t *testing.
 		data.ImportStep(),
 		{
 			Config:      r.upgradeControlPlaneDefaultNodePoolConfig(data, olderKubernetesVersion, currentKubernetesVersion),
-			ExpectError: regexp.MustCompile("Node Pools cannot use a version of Kubernetes that is not supported on the Control Plane."),
+			ExpectError: regexp.MustCompile(fmt.Sprintf("Node pool version %s and control plane version %s are incompatible.", currentKubernetesVersion, olderKubernetesVersion)),
 		},
 	})
 }
@@ -205,6 +205,68 @@ func TestAccKubernetesCluster_upgradeCustomNodePoolBeforeControlPlaneFails(t *te
 			Config:      r.upgradeVersionsConfig(data, olderKubernetesVersion, olderKubernetesVersion, currentKubernetesVersion),
 			ExpectError: regexp.MustCompile("Node Pools cannot use a version of Kubernetes that is not supported on the Control Plane."),
 		},
+	})
+}
+
+func TestAccKubernetesCluster_upgradeControlPlaneAndAllPoolsTogetherVersionAlias(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	nodePoolName := "azurerm_kubernetes_cluster_node_pool.test"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// all on the older version
+			Config: r.upgradeVersionsConfig(data, olderKubernetesVersionAlias, olderKubernetesVersionAlias, olderKubernetesVersionAlias),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersionAlias),
+				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(olderKubernetesVersionAlias),
+				check.That(nodePoolName).Key("orchestrator_version").HasValue(olderKubernetesVersionAlias),
+			),
+		},
+		data.ImportStep(),
+		{
+			// upgrade control plane, default and custom node pools
+			Config: r.upgradeVersionsConfig(data, currentKubernetesVersionAlias, currentKubernetesVersionAlias, currentKubernetesVersionAlias),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(currentKubernetesVersionAlias),
+				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(currentKubernetesVersionAlias),
+				check.That(nodePoolName).Key("orchestrator_version").HasValue(currentKubernetesVersionAlias),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_upgradeControlPlaneAndAllPoolsTogetherSpot(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	nodePoolName := "azurerm_kubernetes_cluster_node_pool.test"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// all on the older version
+			Config: r.upgradeVersionsConfigSpot(data, olderKubernetesVersion, olderKubernetesVersion, olderKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(olderKubernetesVersion),
+				check.That(nodePoolName).Key("orchestrator_version").HasValue(olderKubernetesVersion),
+			),
+		},
+		data.ImportStep(),
+		{
+			// upgrade control plane, default and custom node pools
+			Config: r.upgradeVersionsConfigSpot(data, currentKubernetesVersion, currentKubernetesVersion, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(currentKubernetesVersion),
+				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(currentKubernetesVersion),
+				check.That(nodePoolName).Key("orchestrator_version").HasValue(currentKubernetesVersion),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -315,6 +377,29 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   orchestrator_version  = %q
+}
+`, r.upgradeControlPlaneDefaultNodePoolConfig(data, controlPlaneVersion, defaultNodePoolVersion), customNodePoolVersion)
+}
+
+func (r KubernetesClusterResource) upgradeVersionsConfigSpot(data acceptance.TestData, controlPlaneVersion, defaultNodePoolVersion, customNodePoolVersion string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  orchestrator_version  = %q
+  priority              = "Spot"
+  eviction_policy       = "Delete"
+  spot_max_price        = 0.5 # high, but this is a maximum (we pay less) so ensures this won't fail
+  node_labels = {
+    "kubernetes.azure.com/scalesetpriority" = "spot"
+  }
+  node_taints = [
+    "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
+  ]
 }
 `, r.upgradeControlPlaneDefaultNodePoolConfig(data, controlPlaneVersion, defaultNodePoolVersion), customNodePoolVersion)
 }

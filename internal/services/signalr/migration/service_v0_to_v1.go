@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 var _ pluginsdk.StateUpgrade = ServiceV0ToV1{}
 
-type ServiceV0ToV1 struct {
-}
+type ServiceV0ToV1 struct{}
 
 func (s ServiceV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

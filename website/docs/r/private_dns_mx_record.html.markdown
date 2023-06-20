@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `record` - (Required) One or more `record` blocks as defined below.
 
-* `ttl ` - (Required) The Time To Live (TTL) of the DNS record in seconds.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -71,7 +71,7 @@ A `record` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Private DNS MX Record ID.
 
@@ -79,7 +79,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Private DNS MX Record.
 * `update` - (Defaults to 30 minutes) Used when updating the Private DNS MX Record.

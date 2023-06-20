@@ -1,17 +1,14 @@
 package logging
 
 import (
-	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"syscall"
 
 	"github.com/hashicorp/logutils"
-	"github.com/hashicorp/terraform-plugin-log/tfsdklog"
 	testing "github.com/mitchellh/go-testing-interface"
 )
 
@@ -34,7 +31,7 @@ var ValidLevels = []logutils.LogLevel{"TRACE", "DEBUG", "INFO", "WARN", "ERROR"}
 // environment variable. Calls to tflog.* will have their output managed by the
 // tfsdklog sink.
 func LogOutput(t testing.T) (logOutput io.Writer, err error) {
-	logOutput = ioutil.Discard
+	logOutput = io.Discard
 
 	logLevel := LogLevel()
 	if logLevel == "" {
@@ -90,7 +87,7 @@ func LogOutput(t testing.T) (logOutput io.Writer, err error) {
 
 // SetOutput checks for a log destination with LogOutput, and calls
 // log.SetOutput with the result. If LogOutput returns nil, SetOutput uses
-// ioutil.Discard. Any error from LogOutout is fatal.
+// io.Discard. Any error from LogOutout is fatal.
 func SetOutput(t testing.T) {
 	out, err := LogOutput(t)
 	if err != nil {
@@ -98,7 +95,7 @@ func SetOutput(t testing.T) {
 	}
 
 	if out == nil {
-		out = ioutil.Discard
+		out = io.Discard
 	}
 
 	log.SetOutput(out)
@@ -125,7 +122,7 @@ func LogLevel() string {
 
 // IsDebugOrHigher returns whether or not the current log level is debug or trace
 func IsDebugOrHigher() bool {
-	level := string(LogLevel())
+	level := LogLevel()
 	return level == "DEBUG" || level == "TRACE"
 }
 
@@ -137,13 +134,4 @@ func isValidLogLevel(level string) bool {
 	}
 
 	return false
-}
-
-// GetTestLogContext creates a context that is registered to the SDK log sink.
-// This function is for internal usage only and is not supported by the project's
-// compatibility promises.
-func GetTestLogContext(t testing.T) context.Context {
-	ctx := context.Background()
-	ctx = tfsdklog.RegisterTestSink(ctx, t)
-	return ctx
 }

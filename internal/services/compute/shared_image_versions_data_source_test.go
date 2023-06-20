@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SharedImageVersionsDataSource struct {
-}
+type SharedImageVersionsDataSource struct{}
 
 func TestAccDataSourceSharedImageVersions_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_versions", "test")
@@ -29,6 +28,7 @@ func TestAccDataSourceSharedImageVersions_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("images.0.id").Exists(),
 				check.That(data.ResourceName).Key("images.0.managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("images.0.target_region.#").HasValue("1"),
 				check.That(data.ResourceName).Key("images.0.target_region.0.storage_account_type").HasValue("Standard_LRS"),

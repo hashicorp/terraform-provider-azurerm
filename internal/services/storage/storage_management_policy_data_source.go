@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
@@ -95,11 +94,43 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
+												"tier_to_cool_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"auto_tier_to_hot_from_cool_enabled": {
+													Type:     pluginsdk.TypeBool,
+													Computed: true,
+												},
+												"tier_to_cool_after_days_since_creation_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
 												"tier_to_archive_after_days_since_modification_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
+												"tier_to_archive_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_archive_after_days_since_creation_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
 												"delete_after_days_since_modification_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"delete_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"delete_after_days_since_creation_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
@@ -115,9 +146,12 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
 												"change_tier_to_cool_after_days_since_creation": {
 													Type:     pluginsdk.TypeInt,
-													Optional: true,
 													Computed: true,
 												},
 												"delete_after_days_since_creation_greater_than": {
@@ -133,6 +167,10 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"change_tier_to_archive_after_days_since_creation": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_archive_after_days_since_last_tier_change_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
@@ -168,7 +206,7 @@ func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	id := parse.NewStorageAccountManagementPolicyID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroup, storageAccountId.Name, "default")
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ManagementPolicyName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)

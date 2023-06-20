@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IotSecuritySolutionResource struct {
-}
+type IotSecuritySolutionResource struct{}
 
 func TestAccIotSecuritySolution_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_solution", "test")
@@ -166,6 +165,34 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
+}
+
+# "AzureSecurityOfThings" and "Security" will be created automatically by service, so we create them manually in case the resource group can't be deleted.
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "AzureSecurityOfThings"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/AzureSecurityOfThings"
+  }
+}
+
+resource "azurerm_log_analytics_solution" "test2" {
+  solution_name         = "Security"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/Security"
+  }
 }
 
 resource "azurerm_iot_security_solution" "test" {

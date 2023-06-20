@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SentinelAlertRuleDataSource struct {
-}
+type SentinelAlertRuleDataSource struct{}
 
 func TestAccSentinelAlertRuleDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sentinel_alert_rule", "test")
@@ -31,7 +30,7 @@ func (SentinelAlertRuleDataSource) basic(data acceptance.TestData) string {
 
 data "azurerm_sentinel_alert_rule" "test" {
   name                       = azurerm_sentinel_alert_rule_ms_security_incident.test.name
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, SentinelAlertRuleMsSecurityIncidentResource{}.basic(data))
 }

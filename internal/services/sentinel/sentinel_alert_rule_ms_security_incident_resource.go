@@ -5,12 +5,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
-	loganalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -25,9 +23,9 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 		Delete: resourceSentinelAlertRuleMsSecurityIncidentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.AlertRuleID(id)
+			_, err := alertrules.ParseAlertRuleID(id)
 			return err
-		}, importSentinelAlertRule(securityinsight.AlertRuleKindMicrosoftSecurityIncidentCreation)),
+		}, importSentinelAlertRule(alertrules.AlertRuleKindMicrosoftSecurityIncidentCreation)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -48,7 +46,7 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
+				ValidateFunc: alertrules.ValidateWorkspaceID,
 			},
 
 			"display_name": {
@@ -61,13 +59,13 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(securityinsight.MicrosoftSecurityProductNameMicrosoftCloudAppSecurity),
-					string(securityinsight.MicrosoftSecurityProductNameAzureSecurityCenter),
-					string(securityinsight.MicrosoftSecurityProductNameAzureActiveDirectoryIdentityProtection),
-					string(securityinsight.MicrosoftSecurityProductNameAzureSecurityCenterforIoT),
-					string(securityinsight.MicrosoftSecurityProductNameAzureAdvancedThreatProtection),
-					string(securityinsight.MicrosoftSecurityProductNameMicrosoftDefenderAdvancedThreatProtection),
-					string(securityinsight.MicrosoftSecurityProductNameOffice365AdvancedThreatProtection),
+					string(alertrules.MicrosoftSecurityProductNameMicrosoftCloudAppSecurity),
+					string(alertrules.MicrosoftSecurityProductNameAzureSecurityCenter),
+					string(alertrules.MicrosoftSecurityProductNameAzureActiveDirectoryIdentityProtection),
+					string(alertrules.MicrosoftSecurityProductNameAzureSecurityCenterForIoT),
+					string(alertrules.MicrosoftSecurityProductNameAzureAdvancedThreatProtection),
+					string(alertrules.MicrosoftSecurityProductNameMicrosoftDefenderAdvancedThreatProtection),
+					string(alertrules.MicrosoftSecurityProductNameOfficeThreeSixFiveAdvancedThreatProtection),
 				}, false),
 			},
 
@@ -78,10 +76,10 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(securityinsight.AlertSeverityHigh),
-						string(securityinsight.AlertSeverityMedium),
-						string(securityinsight.AlertSeverityLow),
-						string(securityinsight.AlertSeverityInformational),
+						string(alertrules.AlertSeverityHigh),
+						string(alertrules.AlertSeverityMedium),
+						string(alertrules.AlertSeverityLow),
+						string(alertrules.AlertSeverityInformational),
 					}, false),
 				},
 			},
@@ -106,11 +104,10 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 			},
 
 			"display_name_filter": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      true, // remove in 3.0
-				MinItems:      1,
-				ConflictsWith: []string{"text_whitelist"},
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Computed: true, // remove in 3.0
+				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -126,19 +123,6 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
-
-			"text_whitelist": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      true, // remove in 3.0
-				MinItems:      1,
-				ConflictsWith: []string{"display_name_filter"},
-				Deprecated:    "this property has been renamed to display_name_filter to better match the SDK & API",
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
 		},
 	}
 }
@@ -149,65 +133,59 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 	defer cancel()
 
 	name := d.Get("name").(string)
-	workspaceID, err := loganalyticsParse.LogAnalyticsWorkspaceID(d.Get("log_analytics_workspace_id").(string))
+	workspaceID, err := alertrules.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroup, workspaceID.WorkspaceName, name)
+	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
+		resp, err := client.AlertRulesGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
+			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for existing Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 			}
 		}
 
-		id := alertRuleID(resp.Value)
-		if id != nil && *id != "" {
-			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_ms_security_incident", *id)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_ms_security_incident", id.ID())
 		}
 	}
 
-	param := securityinsight.MicrosoftSecurityIncidentCreationAlertRule{
-		Kind: securityinsight.KindBasicAlertRuleKindMicrosoftSecurityIncidentCreation,
-		MicrosoftSecurityIncidentCreationAlertRuleProperties: &securityinsight.MicrosoftSecurityIncidentCreationAlertRuleProperties{
-			ProductFilter:    securityinsight.MicrosoftSecurityProductName(d.Get("product_filter").(string)),
-			DisplayName:      utils.String(d.Get("display_name").(string)),
+	param := alertrules.MicrosoftSecurityIncidentCreationAlertRule{
+		Properties: &alertrules.MicrosoftSecurityIncidentCreationAlertRuleProperties{
+			ProductFilter:    alertrules.MicrosoftSecurityProductName(d.Get("product_filter").(string)),
+			DisplayName:      d.Get("display_name").(string),
 			Description:      utils.String(d.Get("description").(string)),
-			Enabled:          utils.Bool(d.Get("enabled").(bool)),
+			Enabled:          d.Get("enabled").(bool),
 			SeveritiesFilter: expandAlertRuleMsSecurityIncidentSeverityFilter(d.Get("severity_filter").(*pluginsdk.Set).List()),
 		},
 	}
 
 	if v, ok := d.GetOk("alert_rule_template_guid"); ok {
-		param.MicrosoftSecurityIncidentCreationAlertRuleProperties.AlertRuleTemplateName = utils.String(v.(string))
+		param.Properties.AlertRuleTemplateName = utils.String(v.(string))
 	}
 
 	if dnf, ok := d.GetOk("display_name_filter"); ok {
-		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*pluginsdk.Set).List())
-	} else if dnf, ok := d.GetOk("text_whitelist"); ok {
-		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*pluginsdk.Set).List())
+		param.Properties.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("display_name_exclude_filter"); ok {
-		param.DisplayNamesExcludeFilter = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+		param.Properties.DisplayNamesExcludeFilter = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	}
 
-	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name)
+		resp, err := client.AlertRulesGet(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 		}
 
-		if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindMicrosoftSecurityIncidentCreation); err != nil {
+		if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindMicrosoftSecurityIncidentCreation); err != nil {
 			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
-		param.Etag = resp.Value.(securityinsight.MicrosoftSecurityIncidentCreationAlertRule).Etag
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, OperationalInsightsResourceProvider, workspaceID.WorkspaceName, name, param); err != nil {
+	if _, err := client.AlertRulesCreateOrUpdate(ctx, id, param); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 	}
 
@@ -221,14 +199,14 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AlertRuleID(d.Id())
+	id, err := alertrules.ParseAlertRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+	resp, err := client.AlertRulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Sentinel Alert Rule Ms Security Incident %q was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -237,33 +215,34 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 	}
 
-	if err := assertAlertRuleKind(resp.Value, securityinsight.AlertRuleKindMicrosoftSecurityIncidentCreation); err != nil {
-		return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
-	}
-	rule := resp.Value.(securityinsight.MicrosoftSecurityIncidentCreationAlertRule)
-
-	d.Set("name", id.Name)
-
-	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
-	d.Set("log_analytics_workspace_id", workspaceId.ID())
-	if prop := rule.MicrosoftSecurityIncidentCreationAlertRuleProperties; prop != nil {
-		d.Set("product_filter", string(prop.ProductFilter))
-		d.Set("display_name", prop.DisplayName)
-		d.Set("description", prop.Description)
-		d.Set("enabled", prop.Enabled)
-		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
-
-		if err := d.Set("text_whitelist", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
-			return fmt.Errorf(`setting "text_whitelist": %+v`, err)
+	if model := resp.Model; model != nil {
+		if err = assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindMicrosoftSecurityIncidentCreation); err != nil {
+			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
-		if err := d.Set("display_name_filter", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
-			return fmt.Errorf(`setting "display_name_filter": %+v`, err)
-		}
-		if err := d.Set("display_name_exclude_filter", utils.FlattenStringSlice(prop.DisplayNamesExcludeFilter)); err != nil {
-			return fmt.Errorf(`setting "display_name_exclude_filter": %+v`, err)
-		}
-		if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {
-			return fmt.Errorf(`setting "severity_filter": %+v`, err)
+
+		modelPtr := *model
+		rule := modelPtr.(alertrules.MicrosoftSecurityIncidentCreationAlertRule)
+
+		d.Set("name", id.RuleId)
+
+		workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+		d.Set("log_analytics_workspace_id", workspaceId.ID())
+		if prop := rule.Properties; prop != nil {
+			d.Set("product_filter", string(prop.ProductFilter))
+			d.Set("display_name", prop.DisplayName)
+			d.Set("description", prop.Description)
+			d.Set("enabled", prop.Enabled)
+			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+
+			if err := d.Set("display_name_filter", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
+				return fmt.Errorf(`setting "display_name_filter": %+v`, err)
+			}
+			if err := d.Set("display_name_exclude_filter", utils.FlattenStringSlice(prop.DisplayNamesExcludeFilter)); err != nil {
+				return fmt.Errorf(`setting "display_name_exclude_filter": %+v`, err)
+			}
+			if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {
+				return fmt.Errorf(`setting "severity_filter": %+v`, err)
+			}
 		}
 	}
 
@@ -275,29 +254,29 @@ func resourceSentinelAlertRuleMsSecurityIncidentDelete(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AlertRuleID(d.Id())
+	id, err := alertrules.ParseAlertRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+	if _, err := client.AlertRulesDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandAlertRuleMsSecurityIncidentSeverityFilter(input []interface{}) *[]securityinsight.AlertSeverity {
-	result := make([]securityinsight.AlertSeverity, 0)
+func expandAlertRuleMsSecurityIncidentSeverityFilter(input []interface{}) *[]alertrules.AlertSeverity {
+	result := make([]alertrules.AlertSeverity, 0)
 
 	for _, e := range input {
-		result = append(result, securityinsight.AlertSeverity(e.(string)))
+		result = append(result, alertrules.AlertSeverity(e.(string)))
 	}
 
 	return &result
 }
 
-func flattenAlertRuleMsSecurityIncidentSeverityFilter(input *[]securityinsight.AlertSeverity) []interface{} {
+func flattenAlertRuleMsSecurityIncidentSeverityFilter(input *[]alertrules.AlertSeverity) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

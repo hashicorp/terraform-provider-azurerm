@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type CosmosMongoDatabaseDataSourceResource struct {
-}
+type CosmosMongoDatabaseDataSourceResource struct{}
 
 func TestAccDataSourceCosmosMongoDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_mongo_database", "test")

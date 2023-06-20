@@ -1,6 +1,6 @@
-// Terraform Plugin RPC protocol version 6.0
+// Terraform Plugin RPC protocol version 6.3
 //
-// This file defines version 6.0 of the RPC protocol. To implement a plugin
+// This file defines version 6.3 of the RPC protocol. To implement a plugin
 // against this protocol, copy this definition into your own codebase and
 // use protoc to generate stubs for your target language.
 //
@@ -17,7 +17,7 @@
 // branch or any other development branch.
 //
 syntax = "proto3";
-option go_package = "github.com/hashicorp/terraform/internal/tfplugin6";
+option go_package = "github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/tfplugin6";
 
 package tfplugin6;
 
@@ -128,13 +128,16 @@ message Schema {
 
         repeated Attribute attributes = 1;
         NestingMode nesting = 3;
-        int64 min_items = 4;
-        int64 max_items = 5;
+
+        // MinItems and MaxItems were never used in the protocol, and have no
+        // effect on validation.
+        int64 min_items = 4 [deprecated = true];
+        int64 max_items = 5 [deprecated = true];
     }
 
     // The version of the schema.
     // Schemas are versioned, so that providers can upgrade a saved resource
-    // state when the schema is changed. 
+    // state when the schema is changed.
     int64 version = 1;
 
     // Block is the top level configuration block for this schema.
@@ -173,6 +176,18 @@ message GetProviderSchema {
         map<string, Schema> data_source_schemas = 3;
         repeated Diagnostic diagnostics = 4;
         Schema provider_meta = 5;
+        ServerCapabilities server_capabilities = 6;
+    }
+
+
+    // ServerCapabilities allows providers to communicate extra information
+    // regarding supported protocol features. This is used to indicate
+    // availability of certain forward-compatible changes which may be optional
+    // in a major protocol version, but cannot be tested for directly.
+    message ServerCapabilities {
+        // The plan_destroy capability signals that a provider expects a call
+        // to PlanResourceChange when a resource is going to be destroyed.
+        bool plan_destroy = 1;
     }
 }
 
@@ -186,6 +201,15 @@ message ValidateProviderConfig {
 }
 
 message UpgradeResourceState {
+    // Request is the message that is sent to the provider during the
+    // UpgradeResourceState RPC.
+    //
+    // This message intentionally does not include configuration data as any
+    // configuration-based or configuration-conditional changes should occur
+    // during the PlanResourceChange RPC. Additionally, the configuration is
+    // not guaranteed to exist (in the case of resource destruction), be wholly
+    // known, nor match the given prior state, which could lead to unexpected
+    // provider behaviors for practitioners.
     message Request {
         string type_name = 1;
 
@@ -243,6 +267,14 @@ message ConfigureProvider {
 }
 
 message ReadResource {
+    // Request is the message that is sent to the provider during the
+    // ReadResource RPC.
+    //
+    // This message intentionally does not include configuration data as any
+    // configuration-based or configuration-conditional changes should occur
+    // during the PlanResourceChange RPC. Additionally, the configuration is
+    // not guaranteed to be wholly known nor match the given prior state, which
+    // could lead to unexpected provider behaviors for practitioners.
     message Request {
         string type_name = 1;
         DynamicValue current_state = 2;
@@ -262,15 +294,28 @@ message PlanResourceChange {
         DynamicValue prior_state = 2;
         DynamicValue proposed_new_state = 3;
         DynamicValue config = 4;
-        bytes prior_private = 5; 
+        bytes prior_private = 5;
         DynamicValue provider_meta = 6;
     }
 
     message Response {
         DynamicValue planned_state = 1;
         repeated AttributePath requires_replace = 2;
-        bytes planned_private = 3; 
+        bytes planned_private = 3;
         repeated Diagnostic diagnostics = 4;
+
+        // This may be set only by the helper/schema "SDK" in the main Terraform
+        // repository, to request that Terraform Core >=0.12 permit additional
+        // inconsistencies that can result from the legacy SDK type system
+        // and its imprecise mapping to the >=0.12 type system.
+        // The change in behavior implied by this flag makes sense only for the
+        // specific details of the legacy SDK type system, and are not a general
+        // mechanism to avoid proper type handling in providers.
+        //
+        //     ====              DO NOT USE THIS              ====
+        //     ==== THIS MUST BE LEFT UNSET IN ALL OTHER SDKS ====
+        //     ====              DO NOT USE THIS              ====
+        bool legacy_type_system = 5;
     }
 }
 
@@ -280,13 +325,26 @@ message ApplyResourceChange {
         DynamicValue prior_state = 2;
         DynamicValue planned_state = 3;
         DynamicValue config = 4;
-        bytes planned_private = 5; 
+        bytes planned_private = 5;
         DynamicValue provider_meta = 6;
     }
     message Response {
         DynamicValue new_state = 1;
-        bytes private = 2; 
+        bytes private = 2;
         repeated Diagnostic diagnostics = 3;
+
+        // This may be set only by the helper/schema "SDK" in the main Terraform
+        // repository, to request that Terraform Core >=0.12 permit additional
+        // inconsistencies that can result from the legacy SDK type system
+        // and its imprecise mapping to the >=0.12 type system.
+        // The change in behavior implied by this flag makes sense only for the
+        // specific details of the legacy SDK type system, and are not a general
+        // mechanism to avoid proper type handling in providers.
+        //
+        //     ====              DO NOT USE THIS              ====
+        //     ==== THIS MUST BE LEFT UNSET IN ALL OTHER SDKS ====
+        //     ====              DO NOT USE THIS              ====
+        bool legacy_type_system = 4;
     }
 }
 

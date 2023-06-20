@@ -38,8 +38,6 @@ resource "azurerm_nat_gateway" "example" {
   name                    = "nat-Gateway"
   location                = azurerm_resource_group.example.location
   resource_group_name     = azurerm_resource_group.example.name
-  public_ip_address_ids   = [azurerm_public_ip.example.id]
-  public_ip_prefix_ids    = [azurerm_public_ip_prefix.example.id]
   sku_name                = "Standard"
   idle_timeout_in_minutes = 10
   zones                   = ["1"]
@@ -54,23 +52,21 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the NAT Gateway should exist. Changing this forces a new resource to be created.
 
-* `location` - (Optional) Specifies the supported Azure location where the NAT Gateway should exist. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the NAT Gateway should exist. Changing this forces a new resource to be created.
 
 * `idle_timeout_in_minutes` - (Optional) The idle timeout which should be used in minutes. Defaults to `4`.
 
-* `public_ip_address_ids` - (Optional / **Deprecated in favour of `azurerm_nat_gateway_public_ip_association`**) A list of Public IP Address ID's which should be associated with the NAT Gateway resource.
-
-* `public_ip_prefix_ids` - (Optional) / **Deprecated in favour of `azurerm_nat_gateway_public_ip_prefix_association`**) A list of Public IP Prefix ID's which should be associated with the NAT Gateway resource.
-
 * `sku_name` - (Optional) The SKU which should be used. At this time the only supported value is `Standard`. Defaults to `Standard`.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource. 
 
-* `zones` - (Optional) A list of availability zones where the NAT Gateway should be provisioned. Changing this forces a new resource to be created.
+* `zones` - (Optional) A list of Availability Zones in which this NAT Gateway should be located. Changing this forces a new NAT Gateway to be created.
+
+-> **NOTE:** Only one Availability Zone can be defined. For more information, please check out the [Azure documentation](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#availability-zones)
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the NAT Gateway.
 
@@ -78,7 +74,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the NAT Gateway.
 * `update` - (Defaults to 60 minutes) Used when updating the NAT Gateway.

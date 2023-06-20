@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MonitorDiagnosticCategoriesDataSource struct {
-}
+type MonitorDiagnosticCategoriesDataSource struct{}
 
 func TestAccDataSourceMonitorDiagnosticCategories_appService(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_diagnostic_categories", "test")
@@ -21,6 +20,8 @@ func TestAccDataSourceMonitorDiagnosticCategories_appService(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("metrics.#").Exists(),
 				check.That(data.ResourceName).Key("logs.#").Exists(),
+				check.That(data.ResourceName).Key("log_category_types.#").Exists(),
+				check.That(data.ResourceName).Key("log_category_groups.#").Exists(),
 			),
 		},
 	})
@@ -36,6 +37,8 @@ func TestAccDataSourceMonitorDiagnosticCategories_storageAccount(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("metrics.#").Exists(),
 				check.That(data.ResourceName).Key("logs.#").Exists(),
+				check.That(data.ResourceName).Key("log_category_types.#").Exists(),
+				check.That(data.ResourceName).Key("log_category_groups.#").Exists(),
 			),
 		},
 	})

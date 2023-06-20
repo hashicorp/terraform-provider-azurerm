@@ -1,12 +1,18 @@
 package desktopvirtualization
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
-// Registration - Name is the name of this Service
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/virtual-desktops"
+}
+
 func (r Registration) Name() string {
 	return "Desktop Virtualization"
 }
@@ -20,7 +26,9 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{}
+	return map[string]*pluginsdk.Resource{
+		"azurerm_virtual_desktop_host_pool": dataSourceVirtualDesktopHostPool(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
@@ -32,5 +40,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_desktop_application_group":                       resourceVirtualDesktopApplicationGroup(),
 		"azurerm_virtual_desktop_application":                             resourceVirtualDesktopApplication(),
 		"azurerm_virtual_desktop_workspace_application_group_association": resourceVirtualDesktopWorkspaceApplicationGroupAssociation(),
+		"azurerm_virtual_desktop_host_pool_registration_info":             resourceVirtualDesktopHostPoolRegistrationInfo(),
 	}
 }

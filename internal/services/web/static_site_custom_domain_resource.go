@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -43,7 +43,7 @@ func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.StaticSiteID,
 			},
 
 			"domain_name": {
@@ -55,7 +55,7 @@ func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 
 			"validation_type": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					txtValidationType,
@@ -80,7 +80,6 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 	log.Printf("[INFO] preparing arguments for AzureRM Static Site custom domain creation.")
 
 	staticSiteId, err := parse.StaticSiteID(d.Get("static_site_id").(string))
-
 	if err != nil {
 		return err
 	}
@@ -103,6 +102,9 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	validationMethod := d.Get("validation_type").(string)
+	if validationMethod == "" {
+		return fmt.Errorf("`validation_type` can't be empty string")
+	}
 
 	siteEnvelope := web.StaticSiteCustomDomainRequestPropertiesARMResource{
 		StaticSiteCustomDomainRequestPropertiesARMResourceProperties: &web.StaticSiteCustomDomainRequestPropertiesARMResourceProperties{
@@ -203,7 +205,6 @@ func resourceStaticSiteCustomDomainDelete(d *pluginsdk.ResourceData, meta interf
 	log.Printf("[DEBUG] Deleting Static Site Custom Domain %q (resource group %q)", id.CustomDomainName, id.ResourceGroup)
 
 	future, err := client.DeleteStaticSiteCustomDomain(ctx, id.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
-
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

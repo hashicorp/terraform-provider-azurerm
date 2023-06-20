@@ -42,10 +42,10 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to the resource.
 
-* `virtual_network_ids` - A list of ID's of the Virtual Networks associated with this DDoS Protection Plan.
+* `virtual_network_ids` - A list of IDs of the Virtual Networks associated with this DDoS Protection Plan.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Protection Plan.

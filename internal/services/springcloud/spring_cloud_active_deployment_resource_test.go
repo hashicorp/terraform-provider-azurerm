@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SpringCloudActiveDeploymentResource struct {
-}
+type SpringCloudActiveDeploymentResource struct{}
 
 func TestAccSpringCloudActiveDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_active_deployment", "test")
@@ -74,12 +73,22 @@ func (r SpringCloudActiveDeploymentResource) Exists(ctx context.Context, clients
 		return nil, err
 	}
 
-	resp, err := clients.AppPlatform.AppsClient.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
+	it, err := clients.AppPlatform.DeploymentsClient.ListComplete(ctx, id.ResourceGroup, id.SpringName, id.AppName, nil)
 	if err != nil {
-		return nil, fmt.Errorf("reading Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", id.AppName, id.SpringName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("listing active deployment for %q: %+v", id, err)
+	}
+	deployments := make([]string, 0)
+	for it.NotDone() {
+		value := it.Value()
+		if value.Properties != nil && value.Properties.Active != nil && *value.Properties.Active {
+			deployments = append(deployments, *value.Name)
+		}
+		if err := it.NextWithContext(ctx); err != nil {
+			return nil, fmt.Errorf("listing active deployment for %q: %+v", id, err)
+		}
 	}
 
-	return utils.Bool(resp.Properties != nil && resp.Properties.ActiveDeploymentName != nil), nil
+	return utils.Bool(len(deployments) != 0), nil
 }
 
 func (r SpringCloudActiveDeploymentResource) basic(data acceptance.TestData) string {

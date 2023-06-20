@@ -19,6 +19,7 @@ func main() {
 	flag.Parse()
 
 	if debugMode {
+		//nolint:staticcheck
 		err := plugin.Debug(context.Background(), "registry.terraform.io/hashicorp/azurerm",
 			&plugin.ServeOpts{
 				ProviderFunc: provider.AzureProvider,

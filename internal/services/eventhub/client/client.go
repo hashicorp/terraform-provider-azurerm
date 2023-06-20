@@ -1,16 +1,19 @@
 package client
 
 import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationruleseventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/checknameavailabilitydisasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/consumergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubsclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/networkrulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/schemaregistry"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationruleseventhubs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/checknameavailabilitydisasterrecoveryconfigs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/consumergroups"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/disasterrecoveryconfigs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/networkrulesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
 )
 
 type Client struct {
@@ -23,45 +26,80 @@ type Client struct {
 	NamespacesClient                       *namespaces.NamespacesClient
 	NamespaceAuthorizationRulesClient      *authorizationrulesnamespaces.AuthorizationRulesNamespacesClient
 	NetworkRuleSetsClient                  *networkrulesets.NetworkRuleSetsClient
+	SchemaRegistryClient                   *schemaregistry.SchemaRegistryClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	clustersClient := eventhubsclusters.NewEventHubsClustersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&clustersClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	clustersClient, err := eventhubsclusters.NewEventHubsClustersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Clusters Client: %+v", err)
+	}
+	o.Configure(clustersClient.Client, o.Authorizers.ResourceManager)
 
-	consumerGroupsClient := consumergroups.NewConsumerGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&consumerGroupsClient.Client, o.ResourceManagerAuthorizer)
+	consumerGroupsClient, err := consumergroups.NewConsumerGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ConsumerGroups Client: %+v", err)
+	}
+	o.Configure(consumerGroupsClient.Client, o.Authorizers.ResourceManager)
 
-	disasterRecoveryConfigsClient := disasterrecoveryconfigs.NewDisasterRecoveryConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&disasterRecoveryConfigsClient.Client, o.ResourceManagerAuthorizer)
+	disasterRecoveryConfigsClient, err := disasterrecoveryconfigs.NewDisasterRecoveryConfigsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DisasterRecoveryConfigs Client: %+v", err)
+	}
+	o.Configure(disasterRecoveryConfigsClient.Client, o.Authorizers.ResourceManager)
 
-	disasterRecoveryNameAvailabilityClient := checknameavailabilitydisasterrecoveryconfigs.NewCheckNameAvailabilityDisasterRecoveryConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&disasterRecoveryNameAvailabilityClient.Client, o.ResourceManagerAuthorizer)
+	disasterRecoveryNameAvailabilityClient, err := checknameavailabilitydisasterrecoveryconfigs.NewCheckNameAvailabilityDisasterRecoveryConfigsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DisasterRecoveryNameAvailability Client: %+v", err)
+	}
+	o.Configure(disasterRecoveryNameAvailabilityClient.Client, o.Authorizers.ResourceManager)
 
-	eventhubsClient := eventhubs.NewEventHubsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&eventhubsClient.Client, o.ResourceManagerAuthorizer)
+	eventhubsClient, err := eventhubs.NewEventHubsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building EventHubs Client: %+v", err)
+	}
+	o.Configure(eventhubsClient.Client, o.Authorizers.ResourceManager)
 
-	eventHubAuthorizationRulesClient := authorizationruleseventhubs.NewAuthorizationRulesEventHubsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&eventHubAuthorizationRulesClient.Client, o.ResourceManagerAuthorizer)
+	eventHubAuthorizationRulesClient, err := authorizationruleseventhubs.NewAuthorizationRulesEventHubsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building EventHubAuthorizationRules Client: %+v", err)
+	}
+	o.Configure(eventHubAuthorizationRulesClient.Client, o.Authorizers.ResourceManager)
 
-	namespacesClient := namespaces.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&namespacesClient.Client, o.ResourceManagerAuthorizer)
+	namespacesClient, err := namespaces.NewNamespacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Namspaces Client: %+v", err)
+	}
+	o.Configure(namespacesClient.Client, o.Authorizers.ResourceManager)
 
-	namespaceAuthorizationRulesClient := authorizationrulesnamespaces.NewAuthorizationRulesNamespacesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&namespaceAuthorizationRulesClient.Client, o.ResourceManagerAuthorizer)
+	namespaceAuthorizationRulesClient, err := authorizationrulesnamespaces.NewAuthorizationRulesNamespacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building NamespaceAuthorizationRules Client: %+v", err)
+	}
+	o.Configure(namespaceAuthorizationRulesClient.Client, o.Authorizers.ResourceManager)
 
-	networkRuleSetsClient := networkrulesets.NewNetworkRuleSetsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&networkRuleSetsClient.Client, o.ResourceManagerAuthorizer)
+	networkRuleSetsClient, err := networkrulesets.NewNetworkRuleSetsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building NetworkRuleSets Client: %+v", err)
+	}
+	o.Configure(networkRuleSetsClient.Client, o.Authorizers.ResourceManager)
+
+	schemaRegistryClient, err := schemaregistry.NewSchemaRegistryClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SchemaRegistry Client: %+v", err)
+	}
+	o.Configure(schemaRegistryClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ClusterClient:                          &clustersClient,
-		ConsumerGroupClient:                    &consumerGroupsClient,
-		DisasterRecoveryConfigsClient:          &disasterRecoveryConfigsClient,
-		DisasterRecoveryNameAvailabilityClient: &disasterRecoveryNameAvailabilityClient,
-		EventHubsClient:                        &eventhubsClient,
-		EventHubAuthorizationRulesClient:       &eventHubAuthorizationRulesClient,
-		NamespacesClient:                       &namespacesClient,
-		NamespaceAuthorizationRulesClient:      &namespaceAuthorizationRulesClient,
-		NetworkRuleSetsClient:                  &networkRuleSetsClient,
-	}
+		ClusterClient:                          clustersClient,
+		ConsumerGroupClient:                    consumerGroupsClient,
+		DisasterRecoveryConfigsClient:          disasterRecoveryConfigsClient,
+		DisasterRecoveryNameAvailabilityClient: disasterRecoveryNameAvailabilityClient,
+		EventHubsClient:                        eventhubsClient,
+		EventHubAuthorizationRulesClient:       eventHubAuthorizationRulesClient,
+		NamespacesClient:                       namespacesClient,
+		NamespaceAuthorizationRulesClient:      namespaceAuthorizationRulesClient,
+		NetworkRuleSetsClient:                  networkRuleSetsClient,
+		SchemaRegistryClient:                   schemaRegistryClient,
+	}, nil
 }

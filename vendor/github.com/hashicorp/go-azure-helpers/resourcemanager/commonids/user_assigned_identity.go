@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package commonids
 
 import (
@@ -9,20 +12,23 @@ import (
 
 var _ resourceids.ResourceId = UserAssignedIdentityId{}
 
+// UserAssignedIdentityId is a struct representing the Resource ID for a User Assigned Identity
 type UserAssignedIdentityId struct {
-	SubscriptionId    string
-	ResourceGroupName string
-	ResourceName      string
+	SubscriptionId           string
+	ResourceGroupName        string
+	UserAssignedIdentityName string
 }
 
-func NewUserAssignedIdentityID(subscriptionId string, resourceGroupName string, resourceName string) UserAssignedIdentityId {
+// NewUserAssignedIdentityID returns a new UserAssignedIdentityId struct
+func NewUserAssignedIdentityID(subscriptionId string, resourceGroupName string, userAssignedIdentityName string) UserAssignedIdentityId {
 	return UserAssignedIdentityId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroupName: resourceGroupName,
-		ResourceName:      resourceName,
+		SubscriptionId:           subscriptionId,
+		ResourceGroupName:        resourceGroupName,
+		UserAssignedIdentityName: userAssignedIdentityName,
 	}
 }
 
+// ParseUserAssignedIdentityID parses 'input' into a UserAssignedIdentityId
 func ParseUserAssignedIdentityID(input string) (*UserAssignedIdentityId, error) {
 	parser := resourceids.NewParserFromResourceIdType(UserAssignedIdentityId{})
 	parsed, err := parser.Parse(input, false)
@@ -34,20 +40,22 @@ func ParseUserAssignedIdentityID(input string) (*UserAssignedIdentityId, error) 
 	id := UserAssignedIdentityId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.UserAssignedIdentityName, ok = parsed.Parsed["userAssignedIdentityName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "userAssignedIdentityName", *parsed)
 	}
 
 	return &id, nil
 }
 
+// ParseUserAssignedIdentityIDInsensitively parses 'input' case-insensitively into a UserAssignedIdentityId
+// note: this method should only be used for API response data and not user input
 func ParseUserAssignedIdentityIDInsensitively(input string) (*UserAssignedIdentityId, error) {
 	parser := resourceids.NewParserFromResourceIdType(UserAssignedIdentityId{})
 	parsed, err := parser.Parse(input, true)
@@ -59,25 +67,42 @@ func ParseUserAssignedIdentityIDInsensitively(input string) (*UserAssignedIdenti
 	id := UserAssignedIdentityId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
-	if id.ResourceName, ok = parsed.Parsed["resourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceName' was not found in the resource id %q", input)
+	if id.UserAssignedIdentityName, ok = parsed.Parsed["userAssignedIdentityName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "userAssignedIdentityName", *parsed)
 	}
 
 	return &id, nil
 }
 
-func (id UserAssignedIdentityId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ManagedIdentity/userAssignedIdentities/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ResourceName)
+// ValidateUserAssignedIdentityID checks that 'input' can be parsed as a User Assigned Identity ID
+func ValidateUserAssignedIdentityID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseUserAssignedIdentityID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
 }
 
+// ID returns the formatted User Assigned Identity ID
+func (id UserAssignedIdentityId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ManagedIdentity/userAssignedIdentities/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.UserAssignedIdentityName)
+}
+
+// Segments returns a slice of Resource ID Segments which comprise this User Assigned Identity ID
 func (id UserAssignedIdentityId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("subscriptions", "subscriptions", "subscriptions"),
@@ -85,17 +110,18 @@ func (id UserAssignedIdentityId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("resourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("providers", "providers", "providers"),
-		resourceids.ResourceProviderSegment("microsoftManagedIdentity", "Microsoft.ManagedIdentity", "Microsoft.ManagedIdentity"),
+		resourceids.ResourceProviderSegment("resourceProvider", "Microsoft.ManagedIdentity", "Microsoft.ManagedIdentity"),
 		resourceids.StaticSegment("userAssignedIdentities", "userAssignedIdentities", "userAssignedIdentities"),
-		resourceids.UserSpecifiedSegment("resourceName", "resourceValue"),
+		resourceids.UserSpecifiedSegment("userAssignedIdentityName", "userAssignedIdentityValue"),
 	}
 }
 
+// String returns a human-readable description of this User Assigned Identities ID
 func (id UserAssignedIdentityId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Resource Name: %q", id.ResourceName),
+		fmt.Sprintf("Name: %q", id.UserAssignedIdentityName),
 	}
-	return fmt.Sprintf("User Assigned Identities (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("User Assigned Identity (%s)", strings.Join(components, "\n"))
 }

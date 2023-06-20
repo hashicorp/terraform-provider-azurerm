@@ -16,10 +16,11 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_batch_account" "example" {
-  name                = "${var.prefix}batch"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  storage_account_id  = azurerm_storage_account.example.id
+  name                                = "${var.prefix}batch"
+  resource_group_name                 = azurerm_resource_group.example.name
+  location                            = azurerm_resource_group.example.location
+  storage_account_id                  = azurerm_storage_account.example.id
+  storage_account_authentication_mode = "StorageKeys"
 }
 
 resource "azurerm_batch_pool" "fixed" {
@@ -43,11 +44,11 @@ resource "azurerm_batch_pool" "fixed" {
   }
 
   start_task {
-    command_line         = "echo 'Hello World from $env'"
-    max_task_retry_count = 1
-    wait_for_success     = true
+    command_line       = "echo 'Hello World from $env'"
+    task_retry_maximum = 1
+    wait_for_success   = true
 
-    environment = {
+    common_environment_properties = {
       env = "TEST"
     }
 

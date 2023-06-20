@@ -6,16 +6,15 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mariadb/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MariaDbVirtualNetworkRuleResource struct {
-}
+type MariaDbVirtualNetworkRuleResource struct{}
 
 func TestAccMariaDbVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
@@ -92,17 +91,17 @@ func TestAccMariaDbVirtualNetworkRule_multipleSubnets(t *testing.T) {
 }
 
 func (MariaDbVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MariaDBVirtualNetworkRuleID(state.ID)
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.MariaDB.VirtualNetworkRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName)
+	resp, err := clients.MariaDB.VirtualNetworkRulesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.VirtualNetworkRuleProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (MariaDbVirtualNetworkRuleResource) basic(data acceptance.TestData) string {
@@ -127,7 +126,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -141,11 +140,9 @@ resource "azurerm_mariadb_server" "test" {
   ssl_enforcement_enabled      = true
   sku_name                     = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  geo_redundant_backup_enabled = false
+  backup_retention_days        = 7
 }
 
 resource "azurerm_mariadb_virtual_network_rule" "test" {
@@ -192,7 +189,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "subnet1%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/25"
+  address_prefixes     = ["10.7.29.0/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -200,7 +197,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "subnet2%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.128/25"
+  address_prefixes     = ["10.7.29.128/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -214,11 +211,9 @@ resource "azurerm_mariadb_server" "test" {
   ssl_enforcement_enabled      = true
   sku_name                     = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  geo_redundant_backup_enabled = false
+  backup_retention_days        = 7
 }
 
 resource "azurerm_mariadb_virtual_network_rule" "test" {
@@ -252,7 +247,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "subnet1%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/25"
+  address_prefixes     = ["10.7.29.0/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -260,7 +255,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "subnet2%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.128/25"
+  address_prefixes     = ["10.7.29.128/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -274,11 +269,9 @@ resource "azurerm_mariadb_server" "test" {
   ssl_enforcement_enabled      = true
   sku_name                     = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  geo_redundant_backup_enabled = false
+  backup_retention_days        = 7
 }
 
 resource "azurerm_mariadb_virtual_network_rule" "test" {
@@ -319,7 +312,7 @@ resource "azurerm_subnet" "vnet1_subnet1" {
   name                 = "acctestsubnet1%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -327,7 +320,7 @@ resource "azurerm_subnet" "vnet1_subnet2" {
   name                 = "acctestsubnet2%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
-  address_prefix       = "10.7.29.128/29"
+  address_prefixes     = ["10.7.29.128/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -335,7 +328,7 @@ resource "azurerm_subnet" "vnet2_subnet1" {
   name                 = "acctestsubnet3%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet2.name
-  address_prefix       = "10.1.29.0/29"
+  address_prefixes     = ["10.1.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -349,11 +342,9 @@ resource "azurerm_mariadb_server" "test" {
   ssl_enforcement_enabled      = true
   sku_name                     = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  geo_redundant_backup_enabled = false
+  backup_retention_days        = 7
 }
 
 resource "azurerm_mariadb_virtual_network_rule" "rule1" {

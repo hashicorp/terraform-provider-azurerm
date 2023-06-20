@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -122,7 +122,7 @@ func TestAccInferenceCluster_identity(t *testing.T) {
 			Config: r.identitySystemAssignedUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -138,7 +138,7 @@ func TestAccInferenceCluster_identity(t *testing.T) {
 			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -147,21 +147,21 @@ func TestAccInferenceCluster_identity(t *testing.T) {
 }
 
 func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	inferenceClusterClient := client.MachineLearning.MachineLearningComputeClient
-	id, err := parse.InferenceClusterID(state.ID)
+	inferenceClusterClient := client.MachineLearning.ComputeClient
+	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := inferenceClusterClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.ComputeName)
+	resp, err := inferenceClusterClient.ComputeGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Inference Cluster %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (r InferenceClusterResource) basic(data acceptance.TestData) string {
@@ -212,6 +212,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
+  description                   = "This is an example cluster used with Terraform"
   ssl {
     cert  = file("testdata/cert.pem")
     key   = file("testdata/key.pem")
@@ -235,6 +236,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
+  description                   = "This is an example cluster used with Terraform"
   ssl {
     leaf_domain_label         = "contoso"
     overwrite_existing_domain = true
@@ -257,6 +259,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "FastProd"
+  description                   = "This is an example cluster used with Terraform"
   ssl {
     cert  = file("testdata/cert.pem")
     key   = file("testdata/key.pem")
@@ -289,6 +292,7 @@ resource "azurerm_machine_learning_inference_cluster" "import" {
 func (r InferenceClusterResource) templateFastProd(data acceptance.TestData) string {
 	return r.template(data, "Standard_D3_v2", 3)
 }
+
 func (r InferenceClusterResource) templateDevTest(data acceptance.TestData) string {
 	return r.template(data, "Standard_DS2_v2", 1)
 }
@@ -360,7 +364,7 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
   cluster_purpose               = "DevTest"
   identity {
-    type = "SystemAssigned,UserAssigned"
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
@@ -372,7 +376,11 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 func (r InferenceClusterResource) template(data acceptance.TestData, vmSize string, nodeCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -435,7 +443,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[7]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -464,7 +472,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 func (r InferenceClusterResource) privateTemplate(data acceptance.TestData, vmSize string, nodeCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -528,7 +540,7 @@ resource "azurerm_subnet" "test" {
   resource_group_name                            = azurerm_resource_group.test.name
   virtual_network_name                           = azurerm_virtual_network.test.name
   enforce_private_link_endpoint_network_policies = true
-  address_prefix                                 = "10.1.0.0/24"
+  address_prefixes                               = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {

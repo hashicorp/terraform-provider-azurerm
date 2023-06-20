@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -58,6 +58,7 @@ func TestAccRedisEnterpriseCluster_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccRedisEnterpriseCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
 	r := RedisEnterpriseClusterResource{}

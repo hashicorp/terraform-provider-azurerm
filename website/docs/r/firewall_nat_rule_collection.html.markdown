@@ -45,6 +45,8 @@ resource "azurerm_firewall" "example" {
   name                = "testfirewall"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -115,7 +117,7 @@ A `rule` block supports the following:
 
 * `destination_ports` - (Required) A list of destination ports.
 
-* `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.  If `action` is `Dnat`, protocols can only be `TCP` and `UDP`.
+* `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`. If `action` is `Dnat`, protocols can only be `TCP` and `UDP`.
 
 * `source_addresses` - (Optional) A list of source IP addresses and/or IP ranges.
 
@@ -123,15 +125,17 @@ A `rule` block supports the following:
 
 -> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
 
-* `translated_address` - (Required) The address of the service behind the Firewall.
+* `translated_address` - (Optional) The address of the service behind the Firewall.
+
+* `translated_fqdn` - (Optional) The fqdn of the service behind the Firewall.
+
+-> **NOTE** At least one of `translated_address` and `translated_fqdn` must be specified for a rule.
 
 * `translated_port` - (Required) The port of the service behind the Firewall.
 
 ## Timeouts
 
-
-
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall NAT Rule Collection.
 * `update` - (Defaults to 30 minutes) Used when updating the Firewall NAT Rule Collection.

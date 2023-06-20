@@ -25,22 +25,13 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "example" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  workspace_resource_id = azurerm_log_analytics_workspace.example.id
-  workspace_name        = azurerm_log_analytics_workspace.example.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_data_connector_threat_intelligence" "example" {
   name                       = "example"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
 }
 ```
 
@@ -52,9 +43,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Threat Intelligence Data Connector. Changing this forces a new Threat Intelligence Data Connector to be created.
 
+* `lookback_date` - (Optional) The lookback date for the this Threat Intelligence Data Connector in RFC3339. Defaults to `1970-01-01T00:00:00Z`.
+
 ---
 
 * `tenant_id` - (Optional) The ID of the tenant that this Threat Intelligence Data Connector connects to. Changing this forces a new Threat Intelligence Data Connector to be created.
+
+-> **NOTE** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
 
 ## Attributes Reference
 
@@ -64,7 +59,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Threat Intelligence Data Connector.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Threat Intelligence Data Connector.

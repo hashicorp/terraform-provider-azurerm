@@ -22,6 +22,7 @@ func TestAccDataSourceSynapseWorkspace_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("connectivity_endpoints.%").Exists(),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 			),
 		},
 	})

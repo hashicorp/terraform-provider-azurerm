@@ -167,6 +167,16 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
+
+						"tag": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+
+						"filter": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
 					},
 				},
 			},
@@ -212,8 +222,11 @@ func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) e
 		signedProtocol = "https"
 	}
 
+	// TODO: implement support for signedEncryptionScope
+	signedEncryptionScope := ""
+
 	sasToken, err := storage.ComputeAccountSASToken(accountName, accountKey, permissions, services, resourceTypes,
-		start, expiry, signedProtocol, ipAddresses, signedVersion)
+		start, expiry, signedProtocol, ipAddresses, signedVersion, signedEncryptionScope)
 	if err != nil {
 		return err
 	}
@@ -258,6 +271,14 @@ func BuildPermissionsString(perms map[string]interface{}) string {
 
 	if val, pres := perms["process"].(bool); pres && val {
 		retVal += "p"
+	}
+
+	if val, pres := perms["tag"].(bool); pres && val {
+		retVal += "t"
+	}
+
+	if val, pres := perms["filter"].(bool); pres && val {
+		retVal += "f"
 	}
 
 	return retVal

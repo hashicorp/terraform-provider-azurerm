@@ -46,6 +46,8 @@ output "eventhub_namespace_id" {
 
 * `dedicated_cluster_id` - The ID of the EventHub Dedicated Cluster where this Namespace exists.
 
+* `local_authentication_enabled` - Is this EventHub Namespace SAS authentication enabled?
+
 * `tags` - A mapping of tags to assign to the EventHub Namespace.
 
 The following attributes are exported only if there is an authorization rule named
@@ -69,6 +71,6 @@ The following attributes are exported only if there is an authorization rule nam
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Namespace.

@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
+	"time"
 
-	providers "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -139,7 +142,56 @@ func filterOutTemplateDeploymentParameters(input interface{}) interface{} {
 	return output
 }
 
-func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client, properties resources.DeploymentPropertiesExtended) error {
+func deleteNestedResource(ctx context.Context, resourcesClient *resources.Client, resourceProviderApiVersions *map[string]string, nestedResource resources.Reference) error {
+	parsedId, err := azure.ParseAzureResourceID(*nestedResource.ID)
+	if err != nil {
+		return fmt.Errorf("parsing ID %q from Template Output to delete it: %+v", *nestedResource.ID, err)
+	}
+
+	resourceProviderApiVersion, ok := (*resourceProviderApiVersions)[strings.ToLower(parsedId.Provider)]
+	if !ok {
+		resourceProviderApiVersion, ok = (*resourceProviderApiVersions)[strings.ToLower(parsedId.SecondaryProvider)]
+		if !ok {
+			return fmt.Errorf("API version information for RP %q (%q) was not found - nestedResource=%q", parsedId.Provider, parsedId.SecondaryProvider, *nestedResource.ID)
+		}
+	}
+
+	log.Printf("[DEBUG] Deleting Nested Resource %q..", *nestedResource.ID)
+	future, err := resourcesClient.DeleteByID(ctx, *nestedResource.ID, resourceProviderApiVersion)
+
+	// NOTE: resourceProviderApiVersion is gotten from one of resource types of the provider.
+	// When the provider has multiple resource types, it may cause API version mismatched.
+	// For such error, try to get available API version from error code. Ugly but this seems sufficient for now
+	if err != nil && strings.Contains(err.Error(), `Code="NoRegisteredProviderFound"`) {
+		apiPat := regexp.MustCompile(`\d{4}-\d{2}-\d{2}(-preview)*`)
+		matches := apiPat.FindAllStringSubmatch(err.Error(), -1)
+		for _, match := range matches {
+			if resourceProviderApiVersion != match[0] {
+				future, err = resourcesClient.DeleteByID(ctx, *nestedResource.ID, match[0])
+				break
+			}
+		}
+	}
+
+	if err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			log.Printf("[DEBUG] Nested Resource %q has been deleted.. continuing..", *nestedResource.ID)
+			return nil
+		}
+
+		return fmt.Errorf("deleting Nested Resource %q: %+v", *nestedResource.ID, err)
+	}
+
+	log.Printf("[DEBUG] Waiting for Deletion of Nested Resource %q..", *nestedResource.ID)
+	if err := future.WaitForCompletionRef(ctx, resourcesClient.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of Nested Resource %q: %+v", *nestedResource.ID, err)
+	}
+
+	log.Printf("[DEBUG] Deleted Nested Resource %q.", *nestedResource.ID)
+	return nil
+}
+
+func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client, properties resources.DeploymentPropertiesExtended, subscriptionId string) error {
 	if properties.Providers == nil {
 		return fmt.Errorf("`properties.Providers` was nil - insufficient data to clean up this Template Deployment")
 	}
@@ -147,88 +199,89 @@ func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client
 		return fmt.Errorf("`properties.OutputResources` was nil - insufficient data to clean up this Template Deployment")
 	}
 
-	providersClient := client.ProvidersClient
+	providersClient := client.ResourceProvidersClient
 	resourcesClient := client.ResourcesClient
 
 	log.Printf("[DEBUG] Determining the API Versions used for Resources provisioned in this Template..")
-	resourceProviderApiVersions, err := determineResourceProviderAPIVersionsForResources(ctx, providersClient, *properties.Providers)
+	resourceProviderApiVersions, err := determineResourceProviderAPIVersionsForResources(ctx, providersClient, *properties.Providers, subscriptionId)
 	if err != nil {
 		return fmt.Errorf("determining API Versions for Resource Providers: %+v", err)
 	}
 
 	log.Printf("[DEBUG] Deleting the resources provisioned in this Template..")
 	nestedResources := *properties.OutputResources
-
-	// NOTE: this likely wants splitting out into a parallel loop which retries resources which fail deletion
-	// for example when A depends on B - try deleting them both then loop, and if both subsequentally fail then error
-	// but this seems sufficient for now
-	for _, nestedResource := range nestedResources {
-		if nestedResource.ID == nil {
-			continue
-		}
-
-		parsedId, err := azure.ParseAzureResourceID(*nestedResource.ID)
-		if err != nil {
-			return fmt.Errorf("parsing ID %q from Template Output to delete it: %+v", *nestedResource.ID, err)
-		}
-
-		resourceProviderApiVersion, ok := (*resourceProviderApiVersions)[parsedId.Provider]
-		if !ok {
-			resourceProviderApiVersion, ok = (*resourceProviderApiVersions)[parsedId.SecondaryProvider]
-			if !ok {
-				return fmt.Errorf("API version information for RP %q was not found", parsedId.Provider)
-			}
-		}
-
-		log.Printf("[DEBUG] Deleting Nested Resource %q..", *nestedResource.ID)
-		future, err := resourcesClient.DeleteByID(ctx, *nestedResource.ID, resourceProviderApiVersion)
-		if err != nil {
-			if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
-				log.Printf("[DEBUG] Nested Resource %q has been deleted.. continuing..", *nestedResource.ID)
-				continue
-			}
-			return fmt.Errorf("deleting Nested Resource %q: %+v", *nestedResource.ID, err)
-		}
-
-		log.Printf("[DEBUG] Waiting for Deletion of Nested Resource %q..", *nestedResource.ID)
-		if err := future.WaitForCompletionRef(ctx, resourcesClient.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of Nested Resource %q: %+v", *nestedResource.ID, err)
-		}
-
-		log.Printf("[DEBUG] Deleted Nested Resource %q.", *nestedResource.ID)
+	deletedResources := make(map[string]bool)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("could not retrieve context deadline")
 	}
 
-	return nil
+	return pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
+		deletedTimes := 0
+		var errorList []error
+		for _, nestedResource := range nestedResources {
+			if nestedResource.ID == nil {
+				continue
+			}
+
+			if _, exists := deletedResources[*nestedResource.ID]; exists {
+				continue
+			}
+
+			err = deleteNestedResource(ctx, resourcesClient, resourceProviderApiVersions, nestedResource)
+			if err != nil {
+				errorList = append(errorList, err)
+			} else {
+				deletedResources[*nestedResource.ID] = true
+				deletedTimes++
+			}
+		}
+
+		if deletedTimes > 0 {
+			return pluginsdk.RetryableError(fmt.Errorf("may exist nested resources to delete, retrying"))
+		}
+
+		// If `deletedTimes` is 0, it means all resources have been successfully deleted if the `errorList` is empty, or the remaining resources cannot be deleted
+		if len(errorList) > 0 {
+			return pluginsdk.NonRetryableError(fmt.Errorf("%+v", errorList[0]))
+		}
+
+		return nil
+	})
 }
 
-func determineResourceProviderAPIVersionsForResources(ctx context.Context, client *providers.ProvidersClient, providers []resources.Provider) (*map[string]string, error) {
+func determineResourceProviderAPIVersionsForResources(ctx context.Context, client *providers.ProvidersClient, resourceProviders []resources.Provider, subscriptionId string) (*map[string]string, error) {
 	resourceProviderApiVersions := make(map[string]string)
 
-	for _, provider := range providers {
+	for _, provider := range resourceProviders {
 		if provider.Namespace == nil {
 			continue
 		}
 
-		resourceProviderName := *provider.Namespace
-		providerResp, err := client.Get(ctx, resourceProviderName, "")
+		providerId := providers.NewSubscriptionProviderID(subscriptionId, *provider.Namespace)
+		providerResp, err := client.Get(ctx, providerId, providers.DefaultGetOperationOptions())
 		if err != nil {
-			return nil, fmt.Errorf("retrieving Resource Provider MetaData for %q: %+v", resourceProviderName, err)
+			return nil, fmt.Errorf("retrieving MetaData for %s: %+v", providerId, err)
 		}
-		if providerResp.ResourceTypes == nil {
-			return nil, fmt.Errorf("`resourceTypes` was nil for Resource Provider %q", resourceProviderName)
+		resourceTypes := make([]providers.ProviderResourceType, 0)
+		if model := providerResp.Model; model != nil && model.ResourceTypes != nil {
+			resourceTypes = *model.ResourceTypes
+		}
+		if len(resourceTypes) == 0 {
+			return nil, fmt.Errorf("`resourceTypes` was nil/empty for %s", providerId)
 		}
 
 		for _, resourceType := range *provider.ResourceTypes {
 			resourceTypeName := *resourceType.ResourceType
-			availableResourceTypes := *providerResp.ResourceTypes
+			availableResourceTypes := resourceTypes
 			apiVersion := findApiVersionForResourceType(resourceTypeName, availableResourceTypes)
 			if apiVersion == nil {
-				return nil, fmt.Errorf("unable to determine API version for Resource Type %q (Resource Provider %q)", resourceTypeName, resourceProviderName)
+				return nil, fmt.Errorf("unable to determine API version for Resource Type %q (%s)", resourceTypeName, providerId)
 			}
 
 			// NOTE: there's an enhancement in that not all RP's necessarily offer everything in every version
 			// but the majority do, so this is likely sufficient for now
-			resourceProviderApiVersions[resourceProviderName] = *apiVersion
+			resourceProviderApiVersions[strings.ToLower(providerId.ProviderName)] = *apiVersion
 			break
 		}
 	}
@@ -238,14 +291,14 @@ func determineResourceProviderAPIVersionsForResources(ctx context.Context, clien
 
 func findApiVersionForResourceType(resourceType string, availableResourceTypes []providers.ProviderResourceType) *string {
 	for _, item := range availableResourceTypes {
-		if item.ResourceType == nil || item.APIVersions == nil {
+		if item.ResourceType == nil || item.ApiVersions == nil {
 			continue
 		}
 
 		isExactMatch := strings.EqualFold(resourceType, *item.ResourceType)
 		isPrefixMatch := strings.HasPrefix(strings.ToLower(resourceType), strings.ToLower(*item.ResourceType))
 		if isExactMatch || isPrefixMatch {
-			apiVersions := *item.APIVersions
+			apiVersions := *item.ApiVersions
 			apiVersion := apiVersions[0]
 			return &apiVersion
 		}

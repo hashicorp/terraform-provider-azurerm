@@ -141,6 +141,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+  overprovision       = false
 
   disable_password_authentication = false
 

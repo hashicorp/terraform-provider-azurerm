@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func dataSourceSharedImageVersion() *pluginsdk.Resource {
@@ -42,9 +45,9 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 				ValidateFunc: validate.SharedImageName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"managed_image_id": {
 				Type:     pluginsdk.TypeString,
@@ -102,30 +105,32 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 
 func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	imageVersion := d.Get("name").(string)
-	imageName := d.Get("image_name").(string)
-	galleryName := d.Get("gallery_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewSharedImageVersionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("image_name").(string), d.Get("name").(string))
 	sortBySemVer := d.Get("sort_versions_by_semver").(bool)
 
-	image, err := obtainImage(client, ctx, resourceGroup, galleryName, imageName, imageVersion, sortBySemVer)
+	image, err := obtainImage(client, ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, sortBySemVer)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(*image.ID)
-	d.Set("name", image.Name)
-	d.Set("image_name", imageName)
-	d.Set("gallery_name", galleryName)
-	d.Set("resource_group_name", resourceGroup)
+	name := ""
+	if image.Name != nil {
+		name = *image.Name
+	}
+
+	exactId := parse.NewSharedImageVersionID(subscriptionId, id.ResourceGroup, id.GalleryName, id.ImageName, name)
+	d.SetId(exactId.ID())
+	d.Set("name", name)
+	d.Set("image_name", id.ImageName)
+	d.Set("gallery_name", id.GalleryName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("sort_versions_by_semver", sortBySemVer)
 
-	if location := image.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(image.Location))
 
 	if props := image.GalleryImageVersionProperties; props != nil {
 		if profile := props.PublishingProfile; profile != nil {
@@ -163,34 +168,40 @@ func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context
 
 	switch galleryImageVersionName {
 	case "latest":
-		images, err := client.ListByGalleryImage(ctx, resourceGroup, galleryName, galleryImageName)
+		imagesIterator, err := client.ListByGalleryImageComplete(ctx, resourceGroup, galleryName, galleryImageName)
 		if err != nil {
-			if utils.ResponseWasNotFound(images.Response().Response) {
+			if utils.ResponseWasNotFound(imagesIterator.Response().Response) {
 				return nil, notFoundError
 			}
 			return nil, fmt.Errorf("retrieving Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageName, galleryName, resourceGroup, err)
 		}
 
+		images := make([]compute.GalleryImageVersion, 0)
+		for imagesIterator.NotDone() {
+			images = append(images, imagesIterator.Value())
+			if err := imagesIterator.NextWithContext(ctx); err != nil {
+				return nil, fmt.Errorf("listing Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageName, galleryName, resourceGroup, err)
+			}
+		}
+
 		// the last image in the list is the latest version
-		if len(images.Values()) > 0 {
-			values := images.Values()
-			var errs []error
+		if len(images) > 0 {
 			if sortBySemVer {
-				values, errs = sortSharedImageVersions(values)
+				var errs []error
+				images, errs = sortSharedImageVersions(images)
 				if len(errs) > 0 {
 					return nil, fmt.Errorf("parsing version(s): %v", errs)
 				}
 			}
-			image := values[len(values)-1]
+			image := images[len(images)-1]
 			return &image, nil
 		}
-
 		return nil, notFoundError
 
 	case "recent":
-		images, err := client.ListByGalleryImage(ctx, resourceGroup, galleryName, galleryImageName)
+		imagesIterator, err := client.ListByGalleryImageComplete(ctx, resourceGroup, galleryName, galleryImageName)
 		if err != nil {
-			if utils.ResponseWasNotFound(images.Response().Response) {
+			if utils.ResponseWasNotFound(imagesIterator.Response().Response) {
 				return nil, notFoundError
 			}
 			return nil, fmt.Errorf("retrieving Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageName, galleryName, resourceGroup, err)
@@ -198,12 +209,17 @@ func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context
 		var image *compute.GalleryImageVersion
 		var recentDate *time.Time
 		// compare dates until we find the image that was updated most recently
-		for _, currImage := range images.Values() {
+		for imagesIterator.NotDone() {
+			currImage := imagesIterator.Value()
 			if profile := currImage.PublishingProfile; profile != nil {
 				if profile.PublishedDate != nil && (recentDate == nil || profile.PublishedDate.Time.After(*recentDate)) {
 					recentDate = &profile.PublishedDate.Time
 					image = &currImage
 				}
+			}
+
+			if err := imagesIterator.NextWithContext(ctx); err != nil {
+				return nil, fmt.Errorf("listing Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", galleryImageName, galleryName, resourceGroup, err)
 			}
 		}
 

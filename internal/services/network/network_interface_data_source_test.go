@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type NetworkInterfaceDataSource struct {
-}
+type NetworkInterfaceDataSource struct{}
 
 func TestAccDataSourceArmNetworkInterface_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_interface", "test")

@@ -49,6 +49,10 @@ A `images` block exports the following:
 
 * `managed_image_id` - The ID of the Managed Image which was the source of this Shared Image Version.
 
+* `name` - The name of the Image Version.
+
+* `id` - The ID of this Shared Image Version.
+
 * `target_region` - One or more `target_region` blocks as documented below.
 
 * `tags` - A mapping of tags assigned to the Shared Image.
@@ -65,6 +69,6 @@ The `target_region` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Versions of a Shared Image within a Shared Image Gallery.

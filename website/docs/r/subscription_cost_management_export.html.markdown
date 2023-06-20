@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  name                = "example-storage-account"
+  name                = "example"
   resource_group_name = azurerm_resource_group.example.name
 
   location                 = azurerm_resource_group.example.location
@@ -31,12 +31,12 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                 = "examplecontainer"
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_name = azurerm_storage_account.example.name
 }
 
 resource "azurerm_subscription_cost_management_export" "example" {
   name                         = "example"
-  subscription_id              = azurerm_subscription.example.id
+  subscription_id              = data.azurerm_subscription.example.id
   recurrence_type              = "Monthly"
   recurrence_period_start_date = "2020-08-18T00:00:00Z"
   recurrence_period_end_date   = "2020-09-18T00:00:00Z"
@@ -59,13 +59,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Cost Management Export. Changing this forces a new resource to be created.
 
-* `subscription_id` - (Required) The id of the subscription on which to create an export.
+* `subscription_id` - (Required) The id of the subscription on which to create an export. Changing this forces a new resource to be created.
 
 * `recurrence_type` - (Required) How often the requested information will be exported. Valid values include `Annually`, `Daily`, `Monthly`, `Weekly`.
 
 * `recurrence_period_start_date` - (Required) The date the export will start capturing information.
 
-* `recurrence_period_end` - (Required) The date the export will stop capturing information.
+* `recurrence_period_end_date` - (Required) The date the export will stop capturing information.
 
 * `export_data_storage_location` - (Required) A `export_data_storage_location` block as defined below.
 
@@ -77,29 +77,29 @@ The following arguments are supported:
 
 A `export_data_storage_location` block supports the following:
 
-* `container_id` - (Required) The Resource Manager ID of the container where exports will be uploaded.
+* `container_id` - (Required) The Resource Manager ID of the container where exports will be uploaded. Changing this forces a new resource to be created.
 
-* `root_folder_path` - (Required) The path of the directory where exports will be uploaded.
+* `root_folder_path` - (Required) The path of the directory where exports will be uploaded. Changing this forces a new resource to be created.
 
-**Note:** The Resource Manager ID of a Storage Container is exposed via the `resource_manager_id` attribute of the `azurerm_storage_container` resource.
+~> **Note:** The Resource Manager ID of a Storage Container is exposed via the `resource_manager_id` attribute of the `azurerm_storage_container` resource.
 
 ---
 
 A `export_data_options` block supports the following:
 
-* `type` - (Required) The type of the query.
+* `type` - (Required) The type of the query. Possible values are `ActualCost`, `AmortizedCost` and `Usage`.
 
-* `time_frame` - (Required) The time frame for pulling data for the query. If custom, then a specific time period must be provided. Possible values include: `WeekToDate`, `MonthToDate`, `BillingMonthToDate`, `TheLastWeek`, `TheLastMonth`, `TheLastBillingMonth`, `Custom`.
+* `time_frame` - (Required) The time frame for pulling data for the query. If custom, then a specific time period must be provided. Possible values include: `WeekToDate`, `MonthToDate`, `BillingMonthToDate`, `TheLast7Days`, `TheLastMonth`, `TheLastBillingMonth`, `Custom`.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Cost Management Export for this Subscription.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Subscription Cost Management Export.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Subscription Cost Management Export.

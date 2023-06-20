@@ -1,3 +1,5 @@
+// Deprecated: Please note, this package has been deprecated. A replacement package is available [github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/hdinsight/armhdinsight](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/hdinsight/armhdinsight). We strongly encourage you to upgrade to continue receiving updates. See [Migration Guide](https://aka.ms/azsdk/golang/t2/migration) for guidance on upgrading. Refer to our [deprecation policy](https://azure.github.io/azure-sdk/policies_support.html) for more details.
+//
 // Package hdinsight implements the Azure ARM Hdinsight service API version 2018-06-01-preview.
 //
 // HDInsight Management Client

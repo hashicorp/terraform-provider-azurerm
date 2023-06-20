@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type PostgresqlFlexibleServerDataSource struct {
-}
+type PostgresqlFlexibleServerDataSource struct{}
 
 func TestAccDataSourcePostgresqlflexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_postgresql_flexible_server", "test")
@@ -26,7 +25,6 @@ func TestAccDataSourcePostgresqlflexibleServer_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("backup_retention_days").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
-				check.That(data.ResourceName).Key("cmk_enabled").IsEmpty(),
 			),
 		},
 	})

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -79,7 +79,7 @@ func TestAccComputeInstance_identity(t *testing.T) {
 			Config: r.identitySystemAssignedUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -95,7 +95,7 @@ func TestAccComputeInstance_identity(t *testing.T) {
 			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -104,21 +104,20 @@ func TestAccComputeInstance_identity(t *testing.T) {
 }
 
 func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	computeClient := client.MachineLearning.MachineLearningComputeClient
-	id, err := parse.ComputeID(state.ID)
-
+	computeClient := client.MachineLearning.ComputeClient
+	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	computeResource, err := computeClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	computeResource, err := computeClient.ComputeGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(computeResource.Response) {
+		if response.WasNotFound(computeResource.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Compute Cluster %q: %+v", state.ID, err)
 	}
-	return utils.Bool(computeResource.Properties != nil), nil
+	return utils.Bool(computeResource.Model.Properties != nil), nil
 }
 
 func (r ComputeInstanceResource) basic(data acceptance.TestData) string {
@@ -181,12 +180,42 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   network_security_group_id = azurerm_network_security_group.test.id
 }
 
+resource "azurerm_private_dns_zone" "test" {
+  name                = "privatelink.api.azureml.ms"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                  = "test-vlink"
+  resource_group_name   = azurerm_resource_group.test.name
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "test-pe-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+  private_service_connection {
+    name                           = "test-mlworkspace-%d"
+    private_connection_resource_id = azurerm_machine_learning_workspace.test.id
+    subresource_names              = ["amlworkspace"]
+    is_manual_connection           = false
+  }
+  private_dns_zone_group {
+    name                 = "test"
+    private_dns_zone_ids = [azurerm_private_dns_zone.test.id]
+  }
+}
+
 resource "azurerm_machine_learning_compute_instance" "test" {
   name                          = "acctest%d"
   location                      = azurerm_resource_group.test.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
+  node_public_ip_enabled        = false
   ssh {
     public_key = var.ssh_key
   }
@@ -196,10 +225,11 @@ resource "azurerm_machine_learning_compute_instance" "test" {
     Label1 = "Value1"
   }
   depends_on = [
-    azurerm_subnet_network_security_group_association.test
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_private_endpoint.test
   ]
 }
-`, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
+`, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 
 func (r ComputeInstanceResource) requiresImport(data acceptance.TestData) string {
@@ -276,7 +306,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   identity {
-    type = "SystemAssigned,UserAssigned"
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
@@ -288,7 +318,11 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 func (r ComputeInstanceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -326,17 +360,17 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                    = "acctest-MLW%[5]d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  application_insights_id = azurerm_application_insights.test.id
-  key_vault_id            = azurerm_key_vault.test.id
-  storage_account_id      = azurerm_storage_account.test.id
+  name                          = "acctest-MLW%[5]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  application_insights_id       = azurerm_application_insights.test.id
+  key_vault_id                  = azurerm_key_vault.test.id
+  storage_account_id            = azurerm_storage_account.test.id
+  public_network_access_enabled = true
   identity {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary,
-		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
-		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12),
+		data.RandomIntOfLength(15), data.RandomIntOfLength(16))
 }

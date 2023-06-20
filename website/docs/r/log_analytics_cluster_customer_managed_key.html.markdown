@@ -22,6 +22,9 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_log_analytics_cluster" "example" {
   name                = "example-cluster"
   resource_group_name = azurerm_resource_group.example.name
@@ -45,12 +48,13 @@ resource "azurerm_key_vault" "example" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
-      "get",
+      "Create",
+      "Get",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 
@@ -63,9 +67,9 @@ resource "azurerm_key_vault" "example" {
     object_id = azurerm_log_analytics_cluster.example.identity.0.principal_id
 
     key_permissions = [
-      "get",
-      "unwrapkey",
-      "wrapkey",
+      "Get",
+      "Unwrapkey",
+      "Wrapkey",
     ]
   }
 
@@ -103,13 +107,13 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Log Analytics Cluster Customer Managed Key.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the Log Analytics Cluster Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Cluster Customer Managed Key.
@@ -121,5 +125,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Log Analytics Cluster Customer Managed Keys can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_analytics_cluster_customer_managed_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.OperationalInsights/clusters/cluster1/CMK
+terraform import azurerm_log_analytics_cluster_customer_managed_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/clusters/cluster1
 ```

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
@@ -41,8 +41,8 @@ func resourceEventGridDomainTopic() *pluginsdk.Resource {
 				ValidateFunc: validation.All(
 					validation.StringIsNotEmpty,
 					validation.StringMatch(
-						regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
-						"EventGrid domain name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+						regexp.MustCompile("^[-a-zA-Z0-9]{3,128}$"),
+						"EventGrid domain topic name must be 3 - 128 characters long, contain only letters, numbers and hyphens.",
 					),
 				),
 			},
@@ -60,51 +60,42 @@ func resourceEventGridDomainTopic() *pluginsdk.Resource {
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 		},
 	}
 }
 
 func resourceEventGridDomainTopicCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	domainName := d.Get("domain_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDomainTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("domain_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, domainName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing EventGrid Domain Topic %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_eventgrid_domain_topic", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_eventgrid_domain_topic", id.ID())
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, domainName, name)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
 	if err != nil {
-		return fmt.Errorf("creating/updating EventGrid Domain Topic %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for EventGrid Domain Topic %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, domainName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving EventGrid Domain Topic %q (Resource Group %q): %s", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read EventGrid Domain Topic %q (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceEventGridDomainTopicRead(d, meta)
 }

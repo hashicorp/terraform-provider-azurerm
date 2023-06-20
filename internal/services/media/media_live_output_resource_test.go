@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveoutputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -92,17 +92,17 @@ func TestAccLiveOutput_update(t *testing.T) {
 }
 
 func (LiveOutputResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LiveOutputID(state.ID)
+	id, err := liveoutputs.ParseLiveOutputID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Media.LiveOutputsClient.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.LiveeventName, id.Name)
+	resp, err := clients.Media.V20220801Client.LiveOutputs.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Live Event Output %s (Media Services Account %s) (resource group: %s): %v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.LiveOutputProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r LiveOutputResource) basic(data acceptance.TestData) string {
@@ -144,6 +144,7 @@ resource "azurerm_media_live_event_output" "test" {
   manifest_name                = "testmanifest"
   output_snap_time_in_seconds  = 0
   hls_fragments_per_ts_segment = 5
+  rewind_window_duration       = "PT5M"
 }
 `, r.template(data))
 }

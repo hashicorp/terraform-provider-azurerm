@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/dscconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AutomationDscConfigurationResource struct {
-}
+type AutomationDscConfigurationResource struct{}
 
 func TestAccAutomationDscConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
@@ -52,18 +51,32 @@ func TestAccAutomationDscConfiguration_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAutomationDscConfiguration_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
+	r := AutomationDscConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t AutomationDscConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConfigurationID(state.ID)
+	id, err := dscconfiguration.ParseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Automation.DscConfigurationClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := clients.Automation.DscConfigurationClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Dsc Configuration %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.DscConfigurationProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AutomationDscConfigurationResource) basic(data acceptance.TestData) string {
@@ -113,4 +126,37 @@ resource "azurerm_automation_dsc_configuration" "import" {
   description             = azurerm_automation_dsc_configuration.test.description
 }
 `, template)
+}
+
+func (AutomationDscConfigurationResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_dsc_configuration" "test" {
+  name                    = "acctest"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  location                = azurerm_resource_group.test.location
+  content_embedded        = "configuration acctest {}"
+  description             = "test"
+  log_verbose             = "true"
+  tags = {
+    ENV = "prod"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -2,7 +2,6 @@ package pluginsdk
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -11,17 +10,6 @@ import (
 type IDValidationFunc func(id string) error
 
 type ImporterFunc = func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error)
-
-// DefaultImporter is a wrapper around the default importer within the Plugin SDK
-// at this point resources should be using ImporterValidatingResourceId, but this
-// is providing a compatibility shim for the moment
-func DefaultImporter() *schema.ResourceImporter {
-	// NOTE: we should do a secondary sweep and move things _off_ of this, since all resources
-	// should be validating the Resource ID at import time at this point forwards
-	return &schema.ResourceImporter{
-		StateContext: schema.ImportStatePassthroughContext,
-	}
-}
 
 // ImporterValidatingResourceId validates the ID provided at import time is valid
 // using the validateFunc.
@@ -40,7 +28,8 @@ func ImporterValidatingResourceIdThen(validateFunc IDValidationFunc, thenFunc Im
 			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
 
 			if err := validateFunc(d.Id()); err != nil {
-				return []*ResourceData{d}, fmt.Errorf("parsing Resource ID %q: %+v", d.Id(), err)
+				// NOTE: we're intentionally not wrapping this error, since it's prefixed with `parsing %q:`
+				return []*ResourceData{d}, err
 			}
 
 			return thenFunc(ctx, d, meta)

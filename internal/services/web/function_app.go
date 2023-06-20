@@ -6,12 +6,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -131,7 +130,7 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 				"java_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringInSlice([]string{"1.8", "11"}, false),
+					ValidateFunc: validation.StringInSlice([]string{"1.8", "11", "17"}, false),
 				},
 
 				"elastic_instance_minimum": {
@@ -162,8 +161,7 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 						"v4.0",
 						"v5.0",
 						"v6.0",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, false),
 				},
 
 				"vnet_route_all_enabled": {
@@ -293,32 +291,28 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
 	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 
-	// TODO 3.0 - remove this logic for determining which storage account connection string to use
-	storageConnection := ""
-	if v, ok := d.GetOk("storage_connection_string"); ok {
-		storageConnection = v.(string)
-	}
+	var storageConnection string
 
-	storageAccount := ""
+	storageAccountName := ""
 	if v, ok := d.GetOk("storage_account_name"); ok {
-		storageAccount = v.(string)
+		storageAccountName = v.(string)
 	}
 
-	connectionString := ""
+	storageAccountKey := ""
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		connectionString = v.(string)
+		storageAccountKey = v.(string)
 	}
 
-	if storageConnection == "" && storageAccount == "" && connectionString == "" {
-		return nil, fmt.Errorf("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified")
+	if storageAccountName == "" && storageAccountKey == "" {
+		return nil, fmt.Errorf("Both `storage_account_name` and `storage_account_access_key` must be specified")
 	}
 
-	if (storageAccount == "" && connectionString != "") || (storageAccount != "" && connectionString == "") {
+	if (storageAccountName == "" && storageAccountKey != "") || (storageAccountName != "" && storageAccountKey == "") {
 		return nil, fmt.Errorf("both `storage_account_name` and `storage_account_access_key` must be specified")
 	}
 
-	if connectionString != "" && storageAccount != "" {
-		storageConnection = fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, connectionString, endpointSuffix)
+	if storageAccountKey != "" && storageAccountName != "" {
+		storageConnection = fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccountName, storageAccountKey, endpointSuffix)
 	}
 
 	functionVersion := d.Get("version").(string)
@@ -641,30 +635,6 @@ func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 	}
 
 	return append(results, result)
-}
-
-func flattenFunctionAppIdentity(input *web.ManagedServiceIdentity) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	principalID := ""
-	if input.PrincipalID != nil {
-		principalID = *input.PrincipalID
-	}
-
-	tenantID := ""
-	if input.TenantID != nil {
-		tenantID = *input.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
 }
 
 func appSettingsMapToNameValuePair(input map[string]*string) *[]web.NameValuePair {

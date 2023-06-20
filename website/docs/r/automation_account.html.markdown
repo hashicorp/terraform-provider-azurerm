@@ -19,11 +19,10 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_automation_account" "example" {
-  name                = "automationAccount1"
+  name                = "example-account"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-
-  sku_name = "Basic"
+  sku_name            = "Basic"
 
   tags = {
     environment = "development"
@@ -41,25 +40,49 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
+* `sku_name` - (Required) The SKU of the account. Possible values are `Basic` and `Free`.
 
-* `sku_name` - (Optional) The SKU name of the account - only `Basic` is supported at this time.
+---
+
+* `local_authentication_enabled` - (Optional) Whether requests using non-AAD authentication are blocked. Defaults to `true`.
+
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the automation account. Defaults to `true`.
+
+---
+
+An `encryption` block supports the following:
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account.
+
+* `user_assigned_identity_id` - (Optional) The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.
+
+---
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-----
+* `encryption` - (Optional) An `encryption` block as defined below.
 
-A `sku` block supports the following:
+---
 
-* `name` - (Required) The SKU name of the account - only `Basic` is supported at this time.
+An `identity` block supports the following:
 
-----
+* `type` - (Required) The type of identity used for this Automation Account. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) The ID of the User Assigned Identity which should be assigned to this Automation Account.
+
+-> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The Automation Account ID.
+* `id` - The ID of the Automation Account.
+
+* `identity` - An `identity` block as defined below.
 
 * `dsc_server_endpoint` - The DSC Server Endpoint associated with this Automation Account.
 
@@ -67,9 +90,19 @@ The following attributes are exported:
 
 * `dsc_secondary_access_key` - The Secondary Access Key for the DSC Endpoint associated with this Automation Account.
 
+* `hybrid_service_url` - The URL of automation hybrid service which is used for hybrid worker on-boarding With this Automation Account.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Account.
 * `update` - (Defaults to 30 minutes) Used when updating the Automation Account.

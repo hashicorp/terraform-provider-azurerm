@@ -93,9 +93,9 @@ A `proxy` block supports the following:
 
 * `password` - (Optional) The password to connect to the proxy server.
 
-* `url` - (Optional) The URL of the proxy server.
+* `url` - (Required) The URL of the proxy server.
 
-* `username` - (Optional) The username to connect to the proxy server.
+* `username` - (Required) The username to connect to the proxy server.
 
 ---
 
@@ -135,13 +135,13 @@ A `tls` block supports the following:
 
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the API Management API.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Backend.
 * `update` - (Defaults to 30 minutes) Used when updating the API Management Backend.

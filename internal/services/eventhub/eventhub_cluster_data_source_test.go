@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type EventHubClusterDataSource struct {
-}
+type EventHubClusterDataSource struct{}
 
 func TestAccEventHubClusterDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_cluster", "test")

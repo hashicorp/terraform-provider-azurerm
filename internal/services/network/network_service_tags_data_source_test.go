@@ -7,8 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type NetworkServiceTagsDataSource struct {
-}
+type NetworkServiceTagsDataSource struct{}
 
 func TestAccDataSourceAzureRMServiceTags_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_service_tags", "test")

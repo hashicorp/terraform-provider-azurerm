@@ -10,10 +10,11 @@ description: |-
 
 Manages a Customer Managed Key for a Storage Account.
 
+~> **NOTE:** It's possible to define a Customer Managed Key both within [the `azurerm_storage_account` resource](storage_account.html) via the `customer_managed_key` block and by using [the `azurerm_storage_account_customer_managed_key` resource](storage_account_customer_managed_key.html). However it's not possible to use both methods to manage a Customer Managed Key for a Storage Account, since there'll be conflicts.
+
 ## Example Usage
 
 ```hcl
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
@@ -36,8 +37,12 @@ resource "azurerm_key_vault_access_policy" "storage" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_storage_account.example.identity.0.principal_id
 
-  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  secret_permissions = ["Get"]
+  key_permissions = [
+    "Get",
+    "UnwrapKey",
+    "WrapKey"
+  ]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -45,8 +50,24 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  secret_permissions = ["Get"]
+  key_permissions = [
+    "Get",
+    "Create",
+    "Delete",
+    "List",
+    "Restore",
+    "Recover",
+    "UnwrapKey",
+    "WrapKey",
+    "Purge",
+    "Encrypt",
+    "Decrypt",
+    "Sign",
+    "Verify",
+    "GetRotationPolicy",
+    "SetRotationPolicy"
+  ]
 }
 
 
@@ -55,11 +76,18 @@ resource "azurerm_key_vault_key" "example" {
   key_vault_id = azurerm_key_vault.example.id
   key_type     = "RSA"
   key_size     = 2048
-  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey"
+  ]
 
   depends_on = [
     azurerm_key_vault_access_policy.client,
-    azurerm_key_vault_access_policy.storage,
+    azurerm_key_vault_access_policy.storage
   ]
 }
 
@@ -73,6 +101,12 @@ resource "azurerm_storage_account" "example" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      customer_managed_key
+    ]
   }
 }
 
@@ -89,7 +123,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The ID of the Key Vault. Changing this forces a new resource to be created.
+* `key_vault_id` - (Required) The ID of the Key Vault. 
 
 * `key_name` - (Required) The name of Key Vault Key.
 
@@ -99,7 +133,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Storage Account.
 
@@ -107,7 +141,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Account Customer Managed Keys.
 * `update` - (Defaults to 30 minutes) Used when updating the Storage Account Customer Managed Keys.

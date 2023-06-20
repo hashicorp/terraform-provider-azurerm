@@ -23,7 +23,7 @@ func (rmd ResourceMetaData) Encode(input interface{}) error {
 	}
 
 	for k, v := range serialized {
-		// lintignore:R001
+		//lintignore:R001
 		if err := rmd.ResourceData.Set(k, v); err != nil {
 			return fmt.Errorf("setting %q: %+v", k, err)
 		}
@@ -124,7 +124,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 						fieldName := field.Name
 						serialized, err := recurse(nestedType, nestedValue, fieldName, debugLogger)
 						if err != nil {
-							return nil, fmt.Errorf("serializing nested object %q: %+v", sv.Type(), exists)
+							return nil, fmt.Errorf("serializing nested object %q: %+v", sv.Type(), err)
 						}
 						attr[i] = serialized
 					}

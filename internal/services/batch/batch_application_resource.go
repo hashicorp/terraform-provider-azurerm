@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/application"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,7 +31,7 @@ func resourceBatchApplication() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ApplicationID(id)
+			_, err := application.ParseApplicationID(id)
 			return err
 		}),
 
@@ -75,47 +75,39 @@ func resourceBatchApplication() *pluginsdk.Resource {
 
 func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
+	id := application.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for presence of existing Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(resp.Response) {
-		return tf.ImportAsExistsError("azurerm_batch_application", *resp.ID)
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_batch_application", id.ID())
 	}
 
 	allowUpdates := d.Get("allow_updates").(bool)
 	defaultVersion := d.Get("default_version").(string)
 	displayName := d.Get("display_name").(string)
 
-	parameters := batch.Application{
-		ApplicationProperties: &batch.ApplicationProperties{
+	parameters := application.Application{
+		Properties: &application.ApplicationProperties{
 			AllowUpdates:   utils.Bool(allowUpdates),
 			DefaultVersion: utils.String(defaultVersion),
 			DisplayName:    utils.String(displayName),
 		},
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, accountName, name, &parameters); err != nil {
-		return fmt.Errorf("creating Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+	if _, err := client.Create(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err = client.Get(ctx, resourceGroup, accountName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Batch Application %q (Account Name %q / Resource Group %q) ID", name, accountName, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceBatchApplicationRead(d, meta)
 }
@@ -125,28 +117,31 @@ func resourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationID(d.Id())
+	id, err := application.ParseApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Batch Application %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ApplicationName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("account_name", id.BatchAccountName)
-	if applicationProperties := resp.ApplicationProperties; applicationProperties != nil {
-		d.Set("allow_updates", applicationProperties.AllowUpdates)
-		d.Set("default_version", applicationProperties.DefaultVersion)
-		d.Set("display_name", applicationProperties.DisplayName)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("allow_updates", props.AllowUpdates)
+			d.Set("default_version", props.DefaultVersion)
+			d.Set("display_name", props.DisplayName)
+		}
 	}
 
 	return nil
@@ -157,7 +152,7 @@ func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationID(d.Id())
+	id, err := application.ParseApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -166,16 +161,16 @@ func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	defaultVersion := d.Get("default_version").(string)
 	displayName := d.Get("display_name").(string)
 
-	parameters := batch.Application{
-		ApplicationProperties: &batch.ApplicationProperties{
+	parameters := application.Application{
+		Properties: &application.ApplicationProperties{
 			AllowUpdates:   utils.Bool(allowUpdates),
 			DefaultVersion: utils.String(defaultVersion),
 			DisplayName:    utils.String(displayName),
 		},
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, parameters); err != nil {
-		return fmt.Errorf("updating Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceBatchApplicationRead(d, meta)
@@ -186,13 +181,13 @@ func resourceBatchApplicationDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationID(d.Id())
+	id, err := application.ParseApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
-		return fmt.Errorf("deleting Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

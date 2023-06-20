@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CustomDatasetResource struct {
-}
+type CustomDatasetResource struct{}
 
 func TestAccDataFactoryCustomDataset_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_custom_dataset", "test")

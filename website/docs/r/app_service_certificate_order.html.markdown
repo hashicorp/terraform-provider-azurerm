@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. Currently the only valid value is `global`.
 
-* `auto_renew` - (Optional) true if the certificate should be automatically renewed when it expires; otherwise, false. Defaults to true.
+* `auto_renew` - (Optional) true if the certificate should be automatically renewed when it expires; otherwise, false. Defaults to `true`.
 
 * `csr` - (Optional) Last CSR that was created for this order.
 
@@ -46,15 +46,15 @@ The following arguments are supported:
 
 -> **NOTE:** Either `csr` or `distinguished_name` must be set - but not both.
 
-* `key_size` - (Optional) Certificate key size.  Defaults to 2048.
+* `key_size` - (Optional) Certificate key size. Defaults to `2048`.
 
 * `product_type` - (Optional) Certificate product type, such as `Standard` or `WildCard`.
 
-* `validity_in_years` - (Optional) Duration in years (must be between `1` and `3`).  Defaults to `1`.
+* `validity_in_years` - (Optional) Duration in years (must be between `1` and `3`). Defaults to `1`.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The App Service Certificate Order ID.
 
@@ -76,11 +76,11 @@ The following attributes are exported:
 
 * `intermediate_thumbprint` - Certificate thumbprint intermediate certificate.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-`certificates` supports the following:
+The `certificates` block supports the following:
 
 * `certificate_name` - The name of the App Service Certificate.
 
@@ -92,7 +92,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Certificate Order.
 * `update` - (Defaults to 30 minutes) Used when updating the App Service Certificate Order.
@@ -104,5 +104,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 App Service Certificate Orders can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_certificate_order.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.CertificateRegistration/certificateOrders/certificateorder1
+terraform import azurerm_app_service_certificate_order.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.CertificateRegistration/certificateOrders/certificateorder1
 ```

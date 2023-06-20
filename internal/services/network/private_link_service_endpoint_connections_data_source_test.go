@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type PrivateLinkServiceEndpointConnectionDataSource struct {
-}
+type PrivateLinkServiceEndpointConnectionDataSource struct{}
 
 func TestAccDataSourcePrivateLinkServiceEndpointConnections_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_private_link_service_endpoint_connections", "test")

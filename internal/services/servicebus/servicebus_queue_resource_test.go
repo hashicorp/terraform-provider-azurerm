@@ -3,18 +3,18 @@ package servicebus_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ServiceBusQueueResource struct {
-}
+type ServiceBusQueueResource struct{}
 
 func TestAccServiceBusQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
@@ -60,6 +60,7 @@ func TestAccServiceBusQueue_update(t *testing.T) {
 				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -83,6 +84,7 @@ func TestAccServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.enablePartitioningStandard(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -91,6 +93,7 @@ func TestAccServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("5120"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -124,6 +127,17 @@ func TestAccServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 	})
 }
 
+func TestAccServiceBusQueue_enablePartitioningForPremiumError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.enablePartitioningForPremiumError(data),
+			ExpectError: regexp.MustCompile("partitioning Entities is not supported in Premium SKU and must be disabled"),
+		},
+	})
+}
+
 func TestAccServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
@@ -135,6 +149,7 @@ func TestAccServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.enableDuplicateDetection(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -156,6 +171,7 @@ func TestAccServiceBusQueue_enableRequiresSession(t *testing.T) {
 				check.That(data.ResourceName).Key("requires_session").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.enableRequiresSession(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -177,6 +193,7 @@ func TestAccServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *testing.T)
 				check.That(data.ResourceName).Key("dead_lettering_on_message_expiration").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.enableDeadLetteringOnMessageExpiration(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -196,14 +213,13 @@ func TestAccServiceBusQueue_lockDuration(t *testing.T) {
 			Config: r.lockDuration(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("lock_duration").HasValue("PT40S"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.lockDurationUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("lock_duration").HasValue("PT2M"),
 			),
 		},
 		data.ImportStep(),
@@ -236,14 +252,12 @@ func TestAccServiceBusQueue_maxDeliveryCount(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("max_delivery_count").HasValue("10"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.maxDeliveryCount(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("max_delivery_count").HasValue("20"),
-			),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),
 	})
@@ -260,6 +274,7 @@ func TestAccServiceBusQueue_forwardTo(t *testing.T) {
 				check.That(data.ResourceName).Key("forward_to").HasValue(""),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.forwardTo(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -281,6 +296,7 @@ func TestAccServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
 				check.That(data.ResourceName).Key("forward_dead_lettered_messages_to").HasValue(""),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.forwardDeadLetteredMessagesTo(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -355,17 +371,17 @@ func TestAccServiceBusQueue_status(t *testing.T) {
 }
 
 func (t ServiceBusQueueResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.QueueID(state.ID)
+	id, err := queues.ParseQueueID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ServiceBus.QueuesClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	resp, err := clients.ServiceBus.QueuesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Service Bus NameSpace Queue (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ServiceBusQueueResource) basic(data acceptance.TestData) string {
@@ -419,7 +435,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "premium"
+  sku                 = "Premium"
   capacity            = 1
 }
 
@@ -430,6 +446,33 @@ resource "azurerm_servicebus_queue" "test" {
   enable_express      = false
 
   max_message_size_in_kilobytes = 102400
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ServiceBusQueueResource) enablePartitioningForPremiumError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  capacity            = 1
+}
+
+resource "azurerm_servicebus_queue" "test" {
+  name                = "acctestservicebusqueue-%d"
+  namespace_id        = azurerm_servicebus_namespace.test.id
+  enable_partitioning = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -531,7 +574,7 @@ resource "azurerm_servicebus_namespace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku = "standard"
+  sku = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
@@ -558,7 +601,7 @@ resource "azurerm_servicebus_namespace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku = "standard"
+  sku = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {

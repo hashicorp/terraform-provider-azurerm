@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorActionRuleActionGroupResource struct {
-}
+type MonitorActionRuleActionGroupResource struct{}
 
 func TestAccMonitorActionRuleActionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_action_group", "test")

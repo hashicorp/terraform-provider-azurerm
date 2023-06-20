@@ -42,10 +42,16 @@ func (s *RPCServer) Config() string { return "" }
 
 // ServerProtocol impl.
 func (s *RPCServer) Serve(lis net.Listener) {
+	defer s.done()
+
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
-			log.Printf("[ERR] plugin: plugin server: %s", err)
+			severity := "ERR"
+			if errors.Is(err, net.ErrClosed) {
+				severity = "DEBUG"
+			}
+			log.Printf("[%s] plugin: plugin server: %s", severity, err)
 			return
 		}
 
@@ -78,7 +84,7 @@ func (s *RPCServer) ServeConn(conn io.ReadWriteCloser) {
 
 	// Connect the stdstreams (in, out, err)
 	stdstream := make([]net.Conn, 2)
-	for i, _ := range stdstream {
+	for i := range stdstream {
 		stdstream[i], err = mux.Accept()
 		if err != nil {
 			mux.Close()
@@ -129,13 +135,15 @@ type controlServer struct {
 // Ping can be called to verify the connection (and likely the binary)
 // is still alive to a plugin.
 func (c *controlServer) Ping(
-	null bool, response *struct{}) error {
+	null bool, response *struct{},
+) error {
 	*response = struct{}{}
 	return nil
 }
 
 func (c *controlServer) Quit(
-	null bool, response *struct{}) error {
+	null bool, response *struct{},
+) error {
 	// End the server
 	c.server.done()
 
@@ -152,7 +160,8 @@ type dispenseServer struct {
 }
 
 func (d *dispenseServer) Dispense(
-	name string, response *uint32) error {
+	name string, response *uint32,
+) error {
 	// Find the function to create this implementation
 	p, ok := d.plugins[name]
 	if !ok {

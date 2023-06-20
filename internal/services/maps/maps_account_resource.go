@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/sdk/2021-02-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -45,20 +44,20 @@ func resourceMapsAccount() *pluginsdk.Resource {
 				ValidateFunc: validate.AccountName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(maps.NameS0),
-					string(maps.NameS1),
-					string(maps.NameG2),
+					string(accounts.NameSZero),
+					string(accounts.NameSOne),
+					string(accounts.NameGTwo),
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"x_ms_client_id": {
 				Type:     pluginsdk.TypeString,
@@ -107,7 +106,7 @@ func resourceMapsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Sku: accounts.Sku{
 			Name: accounts.Name(d.Get("sku_name").(string)),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -145,12 +144,12 @@ func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("sku_name", model.Sku.Name)
+		d.Set("sku_name", string(model.Sku.Name))
 		if props := model.Properties; props != nil {
 			d.Set("x_ms_client_id", props.UniqueId)
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}

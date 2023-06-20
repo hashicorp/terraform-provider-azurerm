@@ -6,10 +6,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -39,7 +40,7 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 
 		// (@jackofallops - lintignore needed as we need to make sure the JSON is usable in `output_content`)
 
-		//lintignore:S033
+		// lintignore:S033
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -48,7 +49,7 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 				ValidateFunc: validate.TemplateDeploymentName,
 			},
 
-			"location": location.Schema(),
+			"location": commonschema.Location(),
 
 			"template_content": {
 				Type:     pluginsdk.TypeString,

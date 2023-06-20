@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -38,11 +40,7 @@ func dataSourceKeyVaultCertificateData() *pluginsdk.Resource {
 				ValidateFunc: validate.NestedItemName,
 			},
 
-			"key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.VaultID,
-			},
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
 
 			"version": {
 				Type:     pluginsdk.TypeString,
@@ -95,7 +93,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 	defer cancel()
 
 	name := d.Get("name").(string)
-	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
@@ -109,9 +107,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 	cert, err := client.GetCertificate(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
 		if utils.ResponseWasNotFound(cert.Response) {
-			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", name, *keyVaultBaseUri)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("the Certificate %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 
 		return fmt.Errorf("reading Key Vault Certificate: %+v", err)
@@ -121,12 +117,11 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("failure reading Key Vault Certificate ID for %q", name)
 	}
 
-	d.SetId(*cert.ID)
-
-	id, err := parse.ParseNestedItemID(d.Id())
+	id, err := parse.ParseNestedItemID(*cert.ID)
 	if err != nil {
 		return err
 	}
+	d.SetId(id.ID())
 
 	d.Set("name", id.Name)
 
@@ -231,7 +226,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	var keyX509 []byte
-	var pemKeyHeader string = "PRIVATE KEY"
+	var pemKeyHeader string
 	if privateKey != nil {
 		switch v := privateKey.(type) {
 		case *ecdsa.PrivateKey:
@@ -239,6 +234,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 			if err != nil {
 				return fmt.Errorf("marshalling private key type %+v (%q): %+v", v, id.Name, err)
 			}
+			pemKeyHeader = "EC PRIVATE KEY"
 		case *rsa.PrivateKey:
 			keyX509 = x509.MarshalPKCS1PrivateKey(privateKey.(*rsa.PrivateKey))
 			pemKeyHeader = "RSA PRIVATE KEY"

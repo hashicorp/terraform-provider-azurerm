@@ -1,0 +1,57 @@
+name: Feature Request
+description: I have a suggestion (and might want to implement myself)!
+title: "Support for [thing]"
+body:
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the feature you are requesting.
+      options:
+        - label: I have searched the existing issues
+          required: true
+  - type: textarea
+    id: community
+    attributes:
+      label: Community Note
+      description: This note is for the community, please leave and skip this.
+      value: |
+        <!--- Please keep this note for the community --->
+
+        * Please vote on this issue by adding a :thumbsup: [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original issue to help the community and maintainers prioritize this request
+        * Please do not leave "+1" or "me too" comments, they generate extra noise for issue followers and do not help prioritize the request
+        * If you are interested in working on this issue or have submitted a pull request, please leave a comment
+
+        <!--- Thank you for keeping this note for the community --->
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please leave a helpful description of the feature request here.
+    validations:
+      required: true
+  - type: input
+    id: resource
+    attributes:
+      label: New or Affected Resource(s)/Data Source(s)
+      description: Please list the new or affected resources and/or data sources.
+      placeholder: azurerm_XXXXX
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Potential Terraform Configuration
+      description: Please provide an example of what the new resource or enhancement could look like in a Terraform config.
+      render: hcl
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: |
+        Information about referencing Github Issues: https://help.github.com/articles/basic-writing-and-formatting-syntax/#referencing-issues-and-pull-requests
+
+        Are there any other GitHub issues (open or closed) or pull requests that should be linked here? Vendor blog posts or documentation? For example:
+
+        * https://azure.microsoft.com/en-us/roadmap/virtual-network-service-endpoint-for-azure-cosmos-db/

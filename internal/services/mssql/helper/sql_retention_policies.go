@@ -1,7 +1,10 @@
 package helper
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"strconv"
+	"strings"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -9,7 +12,8 @@ import (
 )
 
 func LongTermRetentionPolicySchema() *pluginsdk.Schema {
-	atLeastOneOf := []string{"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
+	atLeastOneOf := []string{
+		"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
 		"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
 	}
 	return &pluginsdk.Schema{
@@ -48,7 +52,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(1, 52),
+					ValidateFunc: validation.IntBetween(0, 52),
 					AtLeastOneOf: atLeastOneOf,
 				},
 			},
@@ -68,6 +72,23 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 35),
+				},
+				"backup_interval_in_hours": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntInSlice([]int{12, 24}),
+					Default:      12,
+					// HyperScale SKus can't set `backup_interval_in_hours so we'll ignore that value when it is 0 in the state file so we don't break the Default Value for existing users
+					DiffSuppressFunc: func(_, old, _ string, d *pluginsdk.ResourceData) bool {
+						skuName, ok := d.GetOk("sku_name")
+						if ok {
+							if strings.HasPrefix(skuName.(string), "HS") {
+								oldInt, _ := strconv.Atoi(old)
+								return oldInt == 0
+							}
+						}
+						return false
+					},
 				},
 			},
 		},
@@ -123,7 +144,7 @@ func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.LongTermRetenti
 	}
 
 	weekOfYear := int32(1)
-	if longTermRetentionPolicy.WeekOfYear != nil {
+	if longTermRetentionPolicy.WeekOfYear != nil && *longTermRetentionPolicy.WeekOfYear != 0 {
 		weekOfYear = *longTermRetentionPolicy.WeekOfYear
 	}
 
@@ -157,22 +178,30 @@ func ExpandShortTermRetentionPolicy(input []interface{}) *sql.BackupShortTermRet
 		shortTermPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
 	}
 
+	if v, ok := shortTermRetentionPolicy["backup_interval_in_hours"]; ok {
+		shortTermPolicyProperties.DiffBackupIntervalInHours = utils.Int32(int32(v.(int)))
+	}
+
 	return &shortTermPolicyProperties
 }
 
 func FlattenShortTermRetentionPolicy(shortTermRetentionPolicy *sql.BackupShortTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
+	result := make([]interface{}, 0)
+
 	if shortTermRetentionPolicy == nil {
-		return []interface{}{}
+		return result
 	}
 
-	retentionDays := int32(7)
+	flattenShortTermRetentionPolicy := map[string]interface{}{}
+
+	flattenShortTermRetentionPolicy["retention_days"] = int32(7)
 	if shortTermRetentionPolicy.RetentionDays != nil {
-		retentionDays = *shortTermRetentionPolicy.RetentionDays
+		flattenShortTermRetentionPolicy["retention_days"] = *shortTermRetentionPolicy.RetentionDays
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"retention_days": retentionDays,
-		},
+	if shortTermRetentionPolicy.DiffBackupIntervalInHours != nil {
+		flattenShortTermRetentionPolicy["backup_interval_in_hours"] = *shortTermRetentionPolicy.DiffBackupIntervalInHours
 	}
+	result = append(result, flattenShortTermRetentionPolicy)
+	return result
 }

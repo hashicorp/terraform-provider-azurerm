@@ -6,16 +6,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataShareResource struct {
-}
+type DataShareResource struct{}
 
 func TestAccDataShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
@@ -129,17 +128,17 @@ func TestAccDataShare_snapshotSchedule(t *testing.T) {
 }
 
 func (t DataShareResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ShareID(state.ID)
+	id, err := share.ParseShareID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataShare.SharesClient.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := clients.DataShare.SharesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Data Share %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ShareProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DataShareResource) template(data acceptance.TestData) string {

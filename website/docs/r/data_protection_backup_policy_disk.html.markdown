@@ -13,15 +13,15 @@ Manages a Backup Policy Disk.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_data_protection_backup_vault" "example" {
   name                = "example-backup-vault"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
 }
@@ -56,9 +56,8 @@ resource "azurerm_data_protection_backup_policy_disk" "example" {
 ## Arguments Reference
 
 The following arguments are supported:
-* `name` - (Required) The name which should be used for this Backup Policy Disk. Changing this forces a new Backup Policy Disk to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Backup Policy Disk should exist. Changing this forces a new Backup Policy Disk to be created.
+* `name` - (Required) The name which should be used for this Backup Policy Disk. Changing this forces a new Backup Policy Disk to be created.
 
 * `vault_id` - (Required) The ID of the Backup Vault within which the Backup Policy Disk should exist. Changing this forces a new Backup Policy Disk to be created.
 
@@ -90,13 +89,13 @@ A `criteria` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Backup Policy Disk.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Policy Disk.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Policy Disk.

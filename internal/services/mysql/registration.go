@@ -1,10 +1,30 @@
 package mysql
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/mysql"
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		MySQLFlexibleServerAdministratorResource{},
+	}
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -21,7 +41,8 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_mysql_server": dataSourceMySqlServer(),
+		"azurerm_mysql_server":          dataSourceMySqlServer(),
+		"azurerm_mysql_flexible_server": dataSourceMysqlFlexibleServer(),
 	}
 }
 

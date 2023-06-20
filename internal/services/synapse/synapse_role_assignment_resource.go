@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol"
 	frsUUID "github.com/gofrs/uuid"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -19,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	accesscontrol "github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse"
 )
 
 func resourceSynapseRoleAssignment() *pluginsdk.Resource {
@@ -83,13 +83,9 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 					"Synapse Contributor",
 					"Synapse Credential User",
 					"Synapse Linked Data Manager",
+					"Synapse Monitoring Operator",
 					"Synapse SQL Administrator",
 					"Synapse User",
-
-					// TODO: to be removed in 3.0
-					"Workspace Admin",
-					"Apache Spark Admin",
-					"Sql Admin",
 				}, false),
 			},
 		},
@@ -100,7 +96,11 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	environment := meta.(*clients.Client).Account.Environment
+	env := meta.(*clients.Client).Account.Environment
+	synapseDomainSuffix, ok := env.Synapse.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine the domain suffix for synapse in environment %q: %+v", env.Name, env.Storage)
+	}
 
 	synapseScope := ""
 	if v, ok := d.GetOk("synapse_workspace_id"); ok {
@@ -114,11 +114,11 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	client, err := synapseClient.RoleAssignmentsClient(workspaceName, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.RoleAssignmentsClient(workspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}
-	roleDefinitionsClient, err := synapseClient.RoleDefinitionsClient(workspaceName, environment.SynapseEndpointSuffix)
+	roleDefinitionsClient, err := synapseClient.RoleDefinitionsClient(workspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	// TODO: unpick this/refactor to use ID Formatters
 	if listResp.Value != nil && len(*listResp.Value) != 0 {
 		existing := (*listResp.Value)[0]
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			resourceId := parse.NewRoleAssignmentId(synapseScope, *existing.ID).ID()
 			return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
 		}
@@ -180,7 +180,12 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	environment := meta.(*clients.Client).Account.Environment
+
+	env := meta.(*clients.Client).Account.Environment
+	synapseDomainSuffix, ok := env.Synapse.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine the domain suffix for synapse in environment %q: %+v", env.Name, env.Storage)
+	}
 
 	id, err := parse.RoleAssignmentID(d.Id())
 	if err != nil {
@@ -192,11 +197,11 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	client, err := synapseClient.RoleAssignmentsClient(workspaceName, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.RoleAssignmentsClient(workspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}
-	roleDefinitionsClient, err := synapseClient.RoleDefinitionsClient(workspaceName, environment.SynapseEndpointSuffix)
+	roleDefinitionsClient, err := synapseClient.RoleDefinitionsClient(workspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -219,9 +224,9 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 
 	synapseWorkspaceId := ""
 	synapseSparkPoolId := ""
-	if _, err := parse.WorkspaceID(id.Scope); err == nil {
+	if _, err := parse.WorkspaceIDInsensitively(id.Scope); err == nil {
 		synapseWorkspaceId = id.Scope
-	} else if _, err := parse.SparkPoolID(id.Scope); err == nil {
+	} else if _, err := parse.SparkPoolIDInsensitively(id.Scope); err == nil {
 		synapseSparkPoolId = id.Scope
 	}
 
@@ -242,7 +247,11 @@ func resourceSynapseRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interfa
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	environment := meta.(*clients.Client).Account.Environment
+	env := meta.(*clients.Client).Account.Environment
+	synapseDomainSuffix, ok := env.Synapse.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine the domain suffix for synapse in environment %q: %+v", env.Name, env.Storage)
+	}
 
 	id, err := parse.RoleAssignmentID(d.Id())
 	if err != nil {
@@ -254,7 +263,7 @@ func resourceSynapseRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	client, err := synapseClient.RoleAssignmentsClient(workspaceName, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.RoleAssignmentsClient(workspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}

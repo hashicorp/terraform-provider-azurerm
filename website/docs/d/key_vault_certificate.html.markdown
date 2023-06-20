@@ -47,7 +47,6 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-
 * `id` - The Key Vault Certificate ID.
 
 * `name` - Specifies the name of the Key Vault Certificate.
@@ -73,6 +72,10 @@ The following attributes are exported:
 * `not_before` - Not Before date of certificate in RFC3339 format.
 
 * `tags` - A mapping of tags to assign to the resource.
+
+* `resource_manager_id` - The (Versioned) ID for this Key Vault Certificate. This property points to a specific version of a Key Vault Certificate, as such using this won't auto-rotate values if used in other Azure Services.
+
+* `resource_manager_versionless_id` - The Versionless ID of the Key Vault Certificate. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Certificate is updated.
 
 ---
 
@@ -145,6 +148,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Certificate.
+* `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Certificate.

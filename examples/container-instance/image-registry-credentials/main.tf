@@ -11,8 +11,8 @@ resource "azurerm_container_group" "example" {
   name                = "${var.prefix}-continst"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  ip_address_type     = "public"
-  os_type             = "linux"
+  ip_address_type     = "Public"
+  os_type             = "Linux"
 
   image_registry_credential {
     server   = "hub.docker.com"

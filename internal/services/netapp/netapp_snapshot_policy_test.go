@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshotpolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetAppSnapshotPolicyResource struct {
-}
+type NetAppSnapshotPolicyResource struct{}
 
 func TestAccNetAppSnapshotPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot_policy", "test")
@@ -141,18 +140,33 @@ func TestAccNetAppSnapshotPolicy_updateSnapshotPolicy(t *testing.T) {
 	})
 }
 
+func TestAccNetAppSnapshotPolicy_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot_policy", "test")
+	r := NetAppSnapshotPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetAppSnapshotPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SnapshotPolicyID(state.ID)
+	id, err := snapshotpolicy.ParseSnapshotPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.NetApp.SnapshotPoliciesClient.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
+	resp, err := clients.NetApp.SnapshotPoliciesClient.SnapshotPoliciesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Netapp SnapshotPolicy (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (NetAppSnapshotPolicyResource) basic(data acceptance.TestData) string {
@@ -376,4 +390,47 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
+}
+
+func (NetAppSnapshotPolicyResource) complete(data acceptance.TestData) string {
+	template := NetAppSnapshotPolicyResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_snapshot_policy" "test" {
+  name                = "acctest-NetAppSnapshotPolicy-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  enabled             = true
+
+  hourly_schedule {
+    snapshots_to_keep = 1
+    minute            = 15
+  }
+
+  daily_schedule {
+    snapshots_to_keep = 1
+    hour              = 22
+    minute            = 15
+  }
+
+  weekly_schedule {
+    snapshots_to_keep = 1
+    days_of_week      = ["Monday", "Friday"]
+    hour              = 23
+    minute            = 0
+  }
+
+  monthly_schedule {
+    snapshots_to_keep = 1
+    days_of_month     = [1, 15, 30]
+    hour              = 5
+    minute            = 0
+  }
+  tags = {
+    environment = "test"
+  }
+}
+`, template, data.RandomInteger)
 }

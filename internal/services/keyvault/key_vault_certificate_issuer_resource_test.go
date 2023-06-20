@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -13,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultCertificateIssuerResource struct {
-}
+type KeyVaultCertificateIssuerResource struct{}
 
 func TestAccKeyVaultCertificateIssuer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
@@ -108,7 +108,7 @@ func (r KeyVaultCertificateIssuerResource) Exists(ctx context.Context, clients *
 	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *
 	keyVaultsClient := client.KeyVault
 
 	name := state.Attributes["name"]
-	keyVaultId, err := parse.VaultID(state.Attributes["key_vault_id"])
+	keyVaultId, err := commonids.ParseKeyVaultID(state.Attributes["key_vault_id"])
 	if err != nil {
 		return nil, err
 	}
@@ -188,19 +188,19 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "delete",
-      "import",
-      "get",
-      "manageissuers",
-      "setissuers",
+      "Delete",
+      "Import",
+      "Get",
+      "ManageIssuers",
+      "SetIssuers",
     ]
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 }
@@ -255,19 +255,19 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "delete",
-      "import",
-      "get",
-      "manageissuers",
-      "setissuers",
+      "Delete",
+      "Import",
+      "Get",
+      "ManageIssuers",
+      "SetIssuers",
     ]
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 }

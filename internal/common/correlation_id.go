@@ -32,7 +32,7 @@ func correlationRequestID() string {
 		if err != nil {
 			log.Printf("[WARN] Failed to generate uuid for msCorrelationRequestID: %+v", err)
 		}
-		log.Printf("[DEBUG] Genereated Provider Correlation Request Id: %s", msCorrelationRequestID)
+		log.Printf("[DEBUG] Generated Provider Correlation Request Id: %s", msCorrelationRequestID)
 	})
 
 	return msCorrelationRequestID

@@ -7,24 +7,41 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
+// TODO: @tombuildsstuff: this wants refactoring and fixing into sub-ID parsers
+
 type RoleAssignmentId struct {
-	SubscriptionID   string
-	ResourceGroup    string
-	ManagementGroup  string
-	ResourceScope    string
-	ResourceProvider string
-	Name             string
-	TenantId         string
+	SubscriptionID           string
+	ResourceGroup            string
+	ManagementGroup          string
+	ResourceScope            string
+	ResourceProvider         string
+	Name                     string
+	SubscriptionAlias        string
+	TenantId                 string
+	IsSubscriptionLevel      bool
+	IsSubscriptionAliasLevel bool
 }
 
-func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resourceScope, managementGroup, name, tenantId string) (*RoleAssignmentId, error) {
-	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" {
-		return nil, fmt.Errorf("one of subscriptionId, resourceGroup, or managementGroup must be provided")
+func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resourceScope, managementGroup, name, tenantId, subscriptionAlias string, isSubLevel bool, isSubAliasLevel bool) (*RoleAssignmentId, error) {
+	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" && !isSubLevel && !isSubAliasLevel {
+		return nil, fmt.Errorf("one of subscriptionId, resourceGroup, managementGroup, isSubscriptionLevel or isSubscriptionAliasLevel must be provided")
 	}
 
 	if managementGroup != "" {
-		if subscriptionId != "" || resourceGroup != "" {
-			return nil, fmt.Errorf("cannot provide subscriptionId or resourceGroup when managementGroup is provided")
+		if subscriptionId != "" || resourceGroup != "" || isSubLevel {
+			return nil, fmt.Errorf("cannot provide subscriptionId, resourceGroup or isSubscriptionLevel when managementGroup is provided")
+		}
+	}
+
+	if isSubLevel {
+		if subscriptionId != "" || resourceGroup != "" || managementGroup != "" {
+			return nil, fmt.Errorf("cannot provide subscriptionId, resourceGroup or managementGroup when isSubscriptionLevel is provided")
+		}
+	}
+
+	if isSubAliasLevel {
+		if subscriptionId != "" || resourceGroup != "" || managementGroup != "" {
+			return nil, fmt.Errorf("cannot provide subscriptionId, resourceGroup or managementGroup when isSubscriptionAliasLevel is provided")
 		}
 	}
 
@@ -35,13 +52,16 @@ func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resour
 	}
 
 	return &RoleAssignmentId{
-		SubscriptionID:   subscriptionId,
-		ResourceGroup:    resourceGroup,
-		ResourceProvider: resourceProvider,
-		ResourceScope:    resourceScope,
-		ManagementGroup:  managementGroup,
-		Name:             name,
-		TenantId:         tenantId,
+		SubscriptionID:           subscriptionId,
+		ResourceGroup:            resourceGroup,
+		ResourceProvider:         resourceProvider,
+		ResourceScope:            resourceScope,
+		ManagementGroup:          managementGroup,
+		SubscriptionAlias:        subscriptionAlias,
+		Name:                     name,
+		TenantId:                 tenantId,
+		IsSubscriptionLevel:      isSubLevel,
+		IsSubscriptionAliasLevel: isSubAliasLevel,
 	}, nil
 }
 
@@ -61,6 +81,16 @@ func (id RoleAssignmentId) AzureResourceID() string {
 	if id.ResourceGroup != "" {
 		fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Authorization/roleAssignments/%s"
 		return fmt.Sprintf(fmtString, id.SubscriptionID, id.ResourceGroup, id.Name)
+	}
+
+	if id.IsSubscriptionAliasLevel {
+		fmtString := "/providers/Microsoft.Subscription/aliases/%s/providers/Microsoft.Authorization/roleAssignments/%s"
+		return fmt.Sprintf(fmtString, id.SubscriptionAlias, id.Name)
+	}
+
+	if id.IsSubscriptionLevel {
+		fmtString := "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/%s"
+		return fmt.Sprintf(fmtString, id.Name)
 	}
 
 	fmtString := "/subscriptions/%s/providers/Microsoft.Authorization/roleAssignments/%s"
@@ -111,6 +141,23 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		if roleAssignmentId.Name, err = id.PopSegment("roleAssignments"); err != nil {
 			return nil, err
 		}
+	case strings.HasPrefix(input, "/providers/Microsoft.Subscription/"):
+		idParts := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
+		if len(idParts) != 2 {
+			return nil, fmt.Errorf("could not parse Role Assignment ID %q for subscription scope", input)
+		}
+		if strings.Contains(input, "/aliases/") {
+			roleAssignmentId.IsSubscriptionAliasLevel = true
+			aliasParts := strings.Split(idParts[0], "/")
+			alias := aliasParts[len(aliasParts)-1]
+			roleAssignmentId.SubscriptionAlias = alias
+		} else {
+			roleAssignmentId.IsSubscriptionLevel = true
+		}
+		if idParts[1] == "" {
+			return nil, fmt.Errorf("ID was missing a value for the roleAssignments element")
+		}
+		roleAssignmentId.Name = idParts[1]
 	case strings.HasPrefix(input, "/providers/Microsoft.Management/"):
 		idParts := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
 		if len(idParts) != 2 {

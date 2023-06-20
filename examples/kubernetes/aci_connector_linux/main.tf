@@ -59,32 +59,16 @@ resource "azurerm_kubernetes_cluster" "example" {
     type = "SystemAssigned"
   }
 
-  addon_profile {
-    aci_connector_linux {
-      enabled     = true
-      subnet_name = azurerm_subnet.example-aci.name
-    }
-
-    azure_policy {
-      enabled = false
-    }
-
-    http_application_routing {
-      enabled = false
-    }
-
-    kube_dashboard {
-      enabled = true
-    }
-
-    oms_agent {
-      enabled = false
-    }
+  aci_connector_linux {
+    subnet_name = azurerm_subnet.example-aci.name
   }
+
+  azure_policy_enabled             = false
+  http_application_routing_enabled = false
 }
 
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_subnet.example-aci.id
   role_definition_name = "Network Contributor"
-  principal_id         = azurerm_kubernetes_cluster.example.identity.0.principal_id
+  principal_id         = azurerm_kubernetes_cluster.example.aci_connector_linux[0].connector_identity[0].object_id
 }

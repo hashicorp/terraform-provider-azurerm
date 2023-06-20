@@ -3,18 +3,19 @@ package eventhub
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -51,9 +52,9 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -65,7 +66,7 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 				),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -93,7 +94,7 @@ func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	cluster := eventhubsclusters.Cluster{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Tags:     tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku:      expandEventHubClusterSkuName(d.Get("sku_name").(string)),
 	}
 
@@ -133,7 +134,7 @@ func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("sku_name", flattenEventHubClusterSkuName(model.Sku))
 		d.Set("location", location.NormalizeNilable(model.Location))
 
-		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
@@ -152,19 +153,13 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutDelete), func() *pluginsdk.RetryError {
 		future, err := client.ClustersDelete(ctx, *id)
 		if err != nil {
-			if response.WasNotFound(future.HttpResponse) {
-				return nil
-			}
-			if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") || future.HttpResponse.StatusCode == 429 {
+			if strings.Contains(err.Error(), "ClusterMoratoriumInEffect") || response.WasBadRequest(future.HttpResponse) || response.WasStatusCode(future.HttpResponse, http.StatusTooManyRequests) {
 				return pluginsdk.RetryableError(fmt.Errorf("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
 			}
 			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
 		}
 
-		if err := future.Poller.PollUntilDone(); err != nil {
-			if response.WasNotFound(future.Poller.HttpResponse) {
-				return nil
-			}
+		if err := future.Poller.PollUntilDone(ctx); err != nil {
 			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
 		}
 

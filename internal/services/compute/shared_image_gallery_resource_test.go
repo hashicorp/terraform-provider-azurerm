@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SharedImageGalleryResource struct {
-}
+type SharedImageGalleryResource struct{}
 
 func TestAccSharedImageGallery_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
@@ -71,18 +71,21 @@ func TestAccSharedImageGallery_complete(t *testing.T) {
 }
 
 func (t SharedImageGalleryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SharedImageGalleryID(state.ID)
+	id, err := galleries.ParseGalleryID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new selectParameterin the GET method
-	resp, err := clients.Compute.GalleriesClient.Get(ctx, id.ResourceGroup, id.GalleryName, "")
+	resp, err := clients.Compute.GalleriesClient.Get(ctx, *id, galleries.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Shared Image Gallery %q", id.String())
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
+
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (SharedImageGalleryResource) basic(data acceptance.TestData) string {

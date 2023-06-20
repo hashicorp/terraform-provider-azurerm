@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -13,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultManagedStorageAccountSasTokenDefinitionResource struct {
-}
+type KeyVaultManagedStorageAccountSasTokenDefinitionResource struct{}
 
 func TestAccKeyVaultManagedStorageAccountSasTokenDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account_sas_token_definition", "test")
@@ -276,6 +276,8 @@ data "azurerm_storage_account_sas" "test" {
     create  = true
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 
@@ -323,7 +325,7 @@ func (KeyVaultManagedStorageAccountSasTokenDefinitionResource) Exists(ctx contex
 	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return nil, err
 	}

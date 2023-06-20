@@ -8,17 +8,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -41,6 +47,7 @@ var (
 	apimTlsEcdheRsaWithAes128CbcShaCiphers   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
 	apimTlsRsaWithAes128GcmSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256"
 	apimTlsRsaWithAes256CbcSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256"
+	apimTlsRsaWithAes256GcmSha384Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_GCM_SHA384"
 	apimTlsRsaWithAes128CbcSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256"
 	apimTlsRsaWithAes256CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA"
 	apimTlsRsaWithAes128CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA"
@@ -64,540 +71,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(3 * time.Hour),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": schemaz.SchemaApiManagementName(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"publisher_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: apimValidate.ApiManagementServicePublisherName,
-			},
-
-			"publisher_email": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: apimValidate.ApiManagementServicePublisherEmail,
-			},
-
-			"sku_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: apimValidate.ApimSkuName(),
-			},
-
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(apimanagement.ApimIdentityTypeNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.ApimIdentityTypeNone),
-								string(apimanagement.ApimIdentityTypeSystemAssigned),
-								string(apimanagement.ApimIdentityTypeUserAssigned),
-								string(apimanagement.ApimIdentityTypeSystemAssignedUserAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
-
-			"virtual_network_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(apimanagement.VirtualNetworkTypeNone),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.VirtualNetworkTypeNone),
-					string(apimanagement.VirtualNetworkTypeExternal),
-					string(apimanagement.VirtualNetworkTypeInternal),
-				}, false),
-			},
-
-			"virtual_network_configuration": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"subnet_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
-			},
-
-			"client_certificate_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"gateway_disabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"min_api_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"notification_sender_email": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"additional_location": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"location": location.SchemaWithoutForceNew(),
-
-						"virtual_network_configuration": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"subnet_id": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
-									},
-								},
-							},
-						},
-
-						"gateway_regional_url": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"public_ip_addresses": {
-							Type: pluginsdk.TypeList,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							Computed: true,
-						},
-
-						"private_ip_addresses": {
-							Type: pluginsdk.TypeList,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"certificate": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 10,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"encoded_certificate": {
-							Type:      pluginsdk.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-
-						"certificate_password": {
-							Type:      pluginsdk.TypeString,
-							Optional:  true,
-							Sensitive: true,
-						},
-
-						"store_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.StoreNameCertificateAuthority),
-								string(apimanagement.StoreNameRoot),
-							}, false),
-						},
-
-						"expiry": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"subject": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"thumbprint": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"protocols": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enable_http2": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-					},
-				},
-			},
-
-			"security": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enable_backend_ssl30": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"enable_backend_tls10": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"enable_backend_tls11": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"enable_frontend_ssl30": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"enable_frontend_tls10": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"enable_frontend_tls11": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						// TODO: Remove in v3.0
-						"enable_triple_des_ciphers": {
-							Type:          pluginsdk.TypeBool,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"security.0.triple_des_ciphers_enabled"},
-							Deprecated:    "this has been renamed to the boolean attribute `triple_des_ciphers_enabled`.",
-						},
-
-						"triple_des_ciphers_enabled": {
-							Type:          pluginsdk.TypeBool,
-							Optional:      true,
-							Computed:      true, // TODO: v3.0 remove Computed and set Default: false
-							ConflictsWith: []string{"security.0.enable_triple_des_ciphers"},
-						},
-
-						"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_rsa_with_aes128_gcm_sha256_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_rsa_with_aes256_cbc_sha256_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_rsa_with_aes128_cbc_sha256_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_rsa_with_aes256_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"tls_rsa_with_aes128_cbc_sha_ciphers_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-					},
-				},
-			},
-
-			"hostname_configuration": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"management": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: apiManagementResourceHostnameSchema(),
-							},
-							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
-						},
-						"portal": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: apiManagementResourceHostnameSchema(),
-							},
-							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
-						},
-						"developer_portal": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: apiManagementResourceHostnameSchema(),
-							},
-							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
-						},
-						"proxy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: apiManagementResourceHostnameProxySchema(),
-							},
-							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
-						},
-						"scm": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: apiManagementResourceHostnameSchema(),
-							},
-							AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
-						},
-					},
-				},
-			},
-
-			//lintignore:XS003
-			"policy": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"xml_content": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Computed:         true,
-							ConflictsWith:    []string{"policy.0.xml_link"},
-							DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
-						},
-
-						"xml_link": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							ConflictsWith: []string{"policy.0.xml_content"},
-						},
-					},
-				},
-			},
-
-			"sign_in": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-						},
-					},
-				},
-			},
-
-			"sign_up": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-						},
-
-						"terms_of_service": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"consent_required": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"text": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
-			"zones": azure.SchemaZones(),
-
-			"gateway_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"management_api_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"gateway_regional_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"public_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"private_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"portal_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"developer_portal_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"scm_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"tenant_access": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"primary_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"secondary_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceApiManagementSchema(),
 
 		// we can only change `virtual_network_type` from None to Internal Or External, Else the subnet can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
 		// we can not change the subnet from subnet1 to subnet2 either, Else the subnet1 can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
@@ -616,8 +90,578 @@ func resourceApiManagementService() *pluginsdk.Resource {
 	}
 }
 
+func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": schemaz.SchemaApiManagementName(),
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
+
+		"publisher_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: apimValidate.ApiManagementServicePublisherName,
+		},
+
+		"publisher_email": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: apimValidate.ApiManagementServicePublisherEmail,
+		},
+
+		"sku_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: apimValidate.ApimSkuName(),
+		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"virtual_network_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(apimanagement.VirtualNetworkTypeNone),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(apimanagement.VirtualNetworkTypeNone),
+				string(apimanagement.VirtualNetworkTypeExternal),
+				string(apimanagement.VirtualNetworkTypeInternal),
+			}, false),
+		},
+
+		"virtual_network_configuration": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: networkValidate.SubnetID,
+					},
+				},
+			},
+		},
+
+		"client_certificate_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"gateway_disabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"min_api_version": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"notification_sender_email": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+
+		"additional_location": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"gateway_disabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"location": commonschema.LocationWithoutForceNew(),
+
+					"virtual_network_configuration": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"subnet_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: networkValidate.SubnetID,
+								},
+							},
+						},
+					},
+
+					"capacity": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IntBetween(0, 12),
+					},
+
+					"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
+					"gateway_regional_url": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"public_ip_addresses": {
+						Type: pluginsdk.TypeList,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+						Computed: true,
+					},
+
+					"public_ip_address_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: networkValidate.PublicIpAddressID,
+					},
+
+					"private_ip_addresses": {
+						Type: pluginsdk.TypeList,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"certificate": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 10,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"encoded_certificate": {
+						Type:      pluginsdk.TypeString,
+						Required:  true,
+						Sensitive: true,
+					},
+
+					"certificate_password": {
+						Type:      pluginsdk.TypeString,
+						Optional:  true,
+						Sensitive: true,
+					},
+
+					"store_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(apimanagement.StoreNameCertificateAuthority),
+							string(apimanagement.StoreNameRoot),
+						}, false),
+					},
+
+					"expiry": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"subject": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"thumbprint": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"protocols": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enable_http2": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+						// TODO 4.0: change this from enable_* to *_enabled
+					},
+				},
+			},
+		},
+
+		"security": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_backend_ssl30": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_backend_tls10": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_backend_tls11": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_frontend_ssl30": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_frontend_tls10": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					// TODO 4.0: change this from enable_* to *_enabled
+					"enable_frontend_tls11": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"triple_des_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_rsa_with_aes128_gcm_sha256_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_rsa_with_aes256_cbc_sha256_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_rsa_with_aes128_cbc_sha256_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_rsa_with_aes256_gcm_sha384_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_rsa_with_aes256_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"tls_rsa_with_aes128_cbc_sha_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"hostname_configuration": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"management": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: apiManagementResourceHostnameSchema(),
+						},
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
+					},
+					"portal": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: apiManagementResourceHostnameSchema(),
+						},
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
+					},
+					"developer_portal": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: apiManagementResourceHostnameSchema(),
+						},
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
+					},
+					"proxy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: apiManagementResourceHostnameProxySchema(),
+						},
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
+					},
+					"scm": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: apiManagementResourceHostnameSchema(),
+						},
+						AtLeastOneOf: []string{"hostname_configuration.0.management", "hostname_configuration.0.portal", "hostname_configuration.0.developer_portal", "hostname_configuration.0.proxy", "hostname_configuration.0.scm"},
+					},
+				},
+			},
+		},
+
+		// lintignore:XS003
+		"policy": {
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"xml_content": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						Computed:         true,
+						ConflictsWith:    []string{"policy.0.xml_link"},
+						DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
+					},
+
+					"xml_link": {
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						ConflictsWith: []string{"policy.0.xml_content"},
+					},
+				},
+			},
+		},
+
+		"sign_in": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+				},
+			},
+		},
+
+		"delegation": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subscriptions_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"user_registration_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"url": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					},
+					"validation_key": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.Base64EncodedString,
+						Sensitive:    true,
+					},
+				},
+			},
+		},
+
+		"sign_up": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+
+					"terms_of_service": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"consent_required": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"text": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
+		"gateway_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"management_api_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"gateway_regional_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"public_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"public_ip_address_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: networkValidate.PublicIpAddressID,
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"private_ip_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"portal_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"developer_portal_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"scm_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"tenant_access": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"primary_key": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"secondary_key": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+				},
+			},
+		},
+
+		"tags": tags.Schema(),
+	}
+}
+
 func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	apiClient := meta.(*clients.Client).ApiManagement.ApiClient
+	deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
+	productsClient := meta.(*clients.Client).ApiManagement.ProductsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -644,8 +688,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	publisherName := d.Get("publisher_name").(string)
-	publisherEmail := d.Get("publisher_email").(string)
+	publicIpAddressId := d.Get("public_ip_address_id").(string)
 	notificationSenderEmail := d.Get("notification_sender_email").(string)
 	virtualNetworkType := d.Get("virtual_network_type").(string)
 
@@ -655,13 +698,72 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 	certificates := expandAzureRmApiManagementCertificates(d)
 
+	publicNetworkAccess := apimanagement.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = apimanagement.PublicNetworkAccessDisabled
+	}
+
+	if d.IsNewResource() {
+		// before creating check to see if the resource exists in the soft delete state
+		softDeleted, err := deletedServicesClient.GetByName(ctx, id.ServiceName, location)
+		if err != nil {
+			// If Terraform lacks permission to read at the Subscription we'll get 403, not 404
+			if !utils.ResponseWasNotFound(softDeleted.Response) && !utils.ResponseWasForbidden(softDeleted.Response) {
+				return fmt.Errorf("checking for the presence of an existing Soft-Deleted API Management %q (Location %q): %+v", id.ServiceName, location, err)
+			}
+		}
+
+		// if so, does the user want us to recover it?
+		if !utils.ResponseWasNotFound(softDeleted.Response) && !utils.ResponseWasForbidden(softDeleted.Response) {
+			if !meta.(*clients.Client).Features.ApiManagement.RecoverSoftDeleted {
+				// this exists but the users opted out, so they must import this it out-of-band
+				return fmt.Errorf(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
+			}
+
+			// First recover the deleted API Management, since all other properties are ignored during a restore operation
+			// (don't set the ID just yet to avoid tainting on failure)
+			params := apimanagement.ServiceResource{
+				Location: utils.String(location),
+				ServiceProperties: &apimanagement.ServiceProperties{
+					Restore: utils.Bool(true),
+				},
+			}
+
+			// We only handle the error here because no request body is returned https://github.com/Azure/azure-rest-api-specs/issues/23456
+			_, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params)
+			if err != nil {
+				return fmt.Errorf("recovering %s: %+v", id, err)
+			}
+
+			// Wait for the ProvisioningState to become "Succeeded" before attempting to update
+			log.Printf("[DEBUG] Waiting for %s to become ready", id)
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Deleted", "Activating", "Updating", "Unknown"},
+				Target:                    []string{"Succeeded", "Ready"},
+				Refresh:                   apiManagementRefreshFunc(ctx, client, id.ServiceName, id.ResourceGroup),
+				MinTimeout:                1 * time.Minute,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+			}
+		}
+	}
+
 	properties := apimanagement.ServiceResource{
 		Location: utils.String(location),
 		ServiceProperties: &apimanagement.ServiceProperties{
-			PublisherName:    utils.String(publisherName),
-			PublisherEmail:   utils.String(publisherEmail),
-			CustomProperties: customProperties,
-			Certificates:     certificates,
+			PublisherName:       pointer.FromString(d.Get("publisher_name").(string)),
+			PublisherEmail:      pointer.FromString(d.Get("publisher_email").(string)),
+			PublicNetworkAccess: publicNetworkAccess,
+			CustomProperties:    customProperties,
+			Certificates:        certificates,
 		},
 		Tags: tags.Expand(t),
 		Sku:  sku,
@@ -673,7 +775,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	// intentionally not gated since we specify a default value (of None) in the expand, which we need on updates
 	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandAzureRmApiManagementIdentity(identityRaw)
+	identity, err := expandIdentity(identityRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -681,7 +783,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	if _, ok := d.GetOk("additional_location"); ok {
 		var err error
-		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
+		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, *sku)
 		if err != nil {
 			return err
 		}
@@ -701,6 +803,15 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 			}
 			properties.ServiceProperties.VirtualNetworkConfiguration = virtualNetworkConfiguration
 		}
+	}
+
+	if publicIpAddressId != "" {
+		if sku.Name != apimanagement.SkuTypePremium && sku.Name != apimanagement.SkuTypeDeveloper {
+			if virtualNetworkType == string(apimanagement.VirtualNetworkTypeNone) {
+				return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network.")
+			}
+		}
+		properties.ServiceProperties.PublicIPAddressID = utils.String(publicIpAddressId)
 	}
 
 	if d.HasChange("client_certificate_enabled") {
@@ -723,11 +834,16 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	if v := d.Get("zones").([]interface{}); len(v) > 0 {
+	if v := d.Get("zones").(*schema.Set).List(); len(v) > 0 {
 		if sku.Name != apimanagement.SkuTypePremium {
 			return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
 		}
-		properties.Zones = azure.ExpandZones(v)
+
+		if publicIpAddressId == "" {
+			return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
+		}
+		zones := zones.ExpandUntyped(v)
+		properties.Zones = &zones
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, properties)
@@ -740,6 +856,65 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.SetId(id.ID())
+
+	// Remove sample products and APIs after creating (v3.0 behaviour)
+	if d.IsNewResource() {
+		apis := make([]apimanagement.APIContract, 0)
+
+		for apisIter, err := apiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apisIter.NotDone(); err = apisIter.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing APIs after creation of %s: %+v", id, err)
+			}
+			if apisIter.Response().IsEmpty() {
+				break
+			}
+			if apisList := apisIter.Values(); apisList != nil {
+				apis = append(apis, apisList...)
+			}
+		}
+
+		for _, api := range apis {
+			if api.ID == nil {
+				continue
+			}
+			apiId, err := parse.ApiID(*api.ID)
+			if err != nil {
+				return fmt.Errorf("parsing API ID: %+v", err)
+			}
+			log.Printf("[DEBUG] Deleting %s", apiId)
+			if resp, err := apiClient.Delete(ctx, apiId.ResourceGroup, apiId.ServiceName, apiId.Name, "", utils.Bool(true)); err != nil && !utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("deleting %s: %+v", apiId, err)
+			}
+		}
+
+		products := make([]apimanagement.ProductContract, 0)
+
+		for productsIter, err := productsClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, nil, ""); productsIter.NotDone(); err = productsIter.NextWithContext(ctx) {
+			if err != nil {
+				return fmt.Errorf("listing products after creation of %s: %+v", id, err)
+			}
+			if productsIter.Response().IsEmpty() {
+				break
+			}
+			if productList := productsIter.Values(); products != nil {
+				products = append(products, productList...)
+			}
+		}
+
+		for _, product := range products {
+			if product.ID == nil {
+				continue
+			}
+			productId, err := parse.ProductID(*product.ID)
+			if err != nil {
+				return fmt.Errorf("parsing product ID: %+v", err)
+			}
+			log.Printf("[DEBUG] Deleting %s", productId)
+			if resp, err := productsClient.Delete(ctx, productId.ResourceGroup, productId.ServiceName, productId.Name, "", utils.Bool(true)); err != nil && !utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("deleting %s: %+v", productId, err)
+			}
+		}
+	}
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
 	if sku.Name == apimanagement.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
@@ -762,6 +937,18 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
 		if _, err := signUpClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, signUpSettings, ""); err != nil {
 			return fmt.Errorf(" setting Sign Up settings for %s: %+v", id, err)
+		}
+	}
+
+	delegationSettingsRaw := d.Get("delegation").([]interface{})
+	if sku.Name == apimanagement.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
+		return fmt.Errorf("`delegation` is not support for sku tier `Consumption`")
+	}
+	if sku.Name != apimanagement.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
+		delegationSettings := expandApiManagementDelegationSettings(delegationSettingsRaw)
+		delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
+		if _, err := delegationClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, delegationSettings, ""); err != nil {
+			return fmt.Errorf(" setting Delegation settings for %s: %+v", id, err)
 		}
 	}
 
@@ -808,8 +995,8 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+	delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
 	tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -844,9 +1031,9 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity, err := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
+	identity, err := flattenIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -863,6 +1050,8 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
+		d.Set("public_ip_address_id", props.PublicIPAddressID)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == apimanagement.PublicNetworkAccessEnabled)
 		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 		d.Set("virtual_network_type", props.VirtualNetworkType)
 		d.Set("client_certificate_enabled", props.EnableClientCertificate)
@@ -880,17 +1069,23 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `protocols`: %+v", err)
 		}
 
-		apimHostNameSuffix := environment.APIManagementHostNameSuffix
-		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d, id.ServiceName, apimHostNameSuffix)
+		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d)
 		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
-
-		if err := d.Set("additional_location", flattenApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
+		additionalLocation, err := flattenApiManagementAdditionalLocations(props.AdditionalLocations)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("additional_location", additionalLocation); err != nil {
 			return fmt.Errorf("setting `additional_location`: %+v", err)
 		}
 
-		if err := d.Set("virtual_network_configuration", flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)); err != nil {
+		virtualNetworkConfiguration, err := flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("virtual_network_configuration", virtualNetworkConfiguration); err != nil {
 			return fmt.Errorf("setting `virtual_network_configuration`: %+v", err)
 		}
 
@@ -909,7 +1104,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("setting `policy`: %+v", err)
 	}
 
-	d.Set("zones", azure.FlattenZones(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
 		signInSettings, err := signInClient.Get(ctx, id.ResourceGroup, id.ServiceName)
@@ -928,9 +1123,24 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
 			return fmt.Errorf("setting `sign_up`: %+v", err)
 		}
+
+		delegationSettings, err := delegationClient.Get(ctx, id.ResourceGroup, id.ServiceName)
+		if err != nil {
+			return fmt.Errorf("retrieving Delegation Settings for %s: %+v", *id, err)
+		}
+
+		delegationValidationKeyContract, err := delegationClient.ListSecrets(ctx, id.ResourceGroup, id.ServiceName)
+		if err != nil {
+			return fmt.Errorf("retrieving Delegation Validation Key for %s: %+v", *id, err)
+		}
+
+		if err := d.Set("delegation", flattenApiManagementDelegationSettings(delegationSettings, delegationValidationKeyContract)); err != nil {
+			return fmt.Errorf("setting `delegation`: %+v", err)
+		}
 	} else {
 		d.Set("sign_in", []interface{}{})
 		d.Set("sign_up", []interface{}{})
+		d.Set("delegation", []interface{}{})
 	}
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
@@ -948,6 +1158,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -971,7 +1182,6 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	// Purge the soft deleted Api Management permanently if the feature flag is enabled
 	if meta.(*clients.Client).Features.ApiManagement.PurgeSoftDeleteOnDestroy {
 		log.Printf("[DEBUG] %s marked for purge - executing purge", *id)
-		deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
 		_, err := deletedServicesClient.GetByName(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
 		if err != nil {
 			return err
@@ -1108,7 +1318,7 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 	return output
 }
 
-func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *pluginsdk.ResourceData, name, apimHostNameSuffix string) []interface{} {
+func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *pluginsdk.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -1125,11 +1335,6 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 		if config.HostName != nil {
 			output["host_name"] = *config.HostName
-		}
-
-		// There'll always be a default custom domain with hostName "apim_name.azure-api.net" and Type "Proxy", which should be ignored
-		if *config.HostName == strings.ToLower(name)+"."+apimHostNameSuffix && config.Type == apimanagement.HostnameTypeProxy {
-			continue
 		}
 
 		if config.NegotiateClientCertificate != nil {
@@ -1156,6 +1361,14 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			if config.Certificate.Subject != nil {
 				output["subject"] = *config.Certificate.Subject
 			}
+		}
+
+		if config.CertificateSource != "" {
+			output["certificate_source"] = config.CertificateSource
+		}
+
+		if config.CertificateStatus != "" {
+			output["certificate_status"] = config.CertificateStatus
 		}
 
 		var configType string
@@ -1237,7 +1450,7 @@ func expandAzureRmApiManagementCertificates(d *pluginsdk.ResourceData) *[]apiman
 	return &results
 }
 
-func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku *apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
+func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
 	inputLocations := d.Get("additional_location").([]interface{})
 	parentVnetConfig := d.Get("virtual_network_configuration").([]interface{})
 
@@ -1247,9 +1460,14 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 		config := v.(map[string]interface{})
 		location := azure.NormalizeLocation(config["location"].(string))
 
+		if config["capacity"].(int) > 0 {
+			sku.Capacity = utils.Int32(int32(config["capacity"].(int)))
+		}
+
 		additionalLocation := apimanagement.AdditionalLocation{
-			Location: utils.String(location),
-			Sku:      sku,
+			Location:       utils.String(location),
+			Sku:            &sku,
+			DisableGateway: utils.Bool(config["gateway_disabled"].(bool)),
 		}
 
 		childVnetConfig := config["virtual_network_configuration"].([]interface{})
@@ -1266,111 +1484,126 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			}
 		}
 
+		publicIPAddressID := config["public_ip_address_id"].(string)
+		if publicIPAddressID != "" {
+			if sku.Name != apimanagement.SkuTypePremium {
+				if len(childVnetConfig) == 0 {
+					return nil, fmt.Errorf("`public_ip_address_id` for an additional location is only supported when sku type is `Premium`, and the APIM instance is deployed in a virtual network.")
+				}
+			}
+			additionalLocation.PublicIPAddressID = &publicIPAddressID
+		}
+
+		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			additionalLocation.Zones = &zones
+		}
+
 		additionalLocations = append(additionalLocations, additionalLocation)
 	}
 
 	return &additionalLocations, nil
 }
 
-func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) []interface{} {
+func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return results, nil
 	}
 
 	for _, prop := range *input {
-		output := make(map[string]interface{})
-
-		if prop.Location != nil {
-			output["location"] = azure.NormalizeLocation(*prop.Location)
-		}
-
+		var publicIPAddresses []string
 		if prop.PublicIPAddresses != nil {
-			output["public_ip_addresses"] = *prop.PublicIPAddresses
+			publicIPAddresses = *prop.PublicIPAddresses
 		}
 
+		publicIpAddressId := ""
+		if prop.PublicIPAddressID != nil {
+			publicIpAddressId = *prop.PublicIPAddressID
+		}
+
+		var privateIPAddresses []string
 		if prop.PrivateIPAddresses != nil {
-			output["private_ip_addresses"] = *prop.PrivateIPAddresses
+			privateIPAddresses = *prop.PrivateIPAddresses
 		}
 
+		var capacity *int32
+		if prop.Sku.Capacity != nil {
+			capacity = prop.Sku.Capacity
+		}
+
+		gatewayRegionalUrl := ""
 		if prop.GatewayRegionalURL != nil {
-			output["gateway_regional_url"] = *prop.GatewayRegionalURL
+			gatewayRegionalUrl = *prop.GatewayRegionalURL
 		}
 
-		output["virtual_network_configuration"] = flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration)
-
-		results = append(results, output)
+		var gatewayDisabled bool
+		if prop.DisableGateway != nil {
+			gatewayDisabled = *prop.DisableGateway
+		}
+		virtualNetworkConfiguration, err := flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration)
+		if err != nil {
+			return results, err
+		}
+		results = append(results, map[string]interface{}{
+			"capacity":                      capacity,
+			"gateway_regional_url":          gatewayRegionalUrl,
+			"location":                      location.NormalizeNilable(prop.Location),
+			"private_ip_addresses":          privateIPAddresses,
+			"public_ip_address_id":          publicIpAddressId,
+			"public_ip_addresses":           publicIPAddresses,
+			"virtual_network_configuration": virtualNetworkConfiguration,
+			"zones":                         zones.FlattenUntyped(prop.Zones),
+			"gateway_disabled":              gatewayDisabled,
+		})
 	}
 
-	return results
+	return results, nil
 }
 
-func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.ServiceIdentity, error) {
-	if len(vs) == 0 {
-		return &apimanagement.ServiceIdentity{
-			Type: apimanagement.ApimIdentityTypeNone,
-		}, nil
+func expandIdentity(input []interface{}) (*apimanagement.ServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := vs[0].(map[string]interface{})
-	managedServiceIdentity := apimanagement.ServiceIdentity{
-		Type: apimanagement.ApimIdentityType(v["type"].(string)),
+	out := apimanagement.ServiceIdentity{
+		Type: apimanagement.ApimIdentityType(string(expanded.Type)),
 	}
-
-	var identityIdSet []interface{}
-	if identityIds, exists := v["identity_ids"]; exists {
-		identityIdSet = identityIds.(*pluginsdk.Set).List()
-	}
-
-	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if managedServiceIdentity.Type == apimanagement.ApimIdentityTypeUserAssigned || managedServiceIdentity.Type == apimanagement.ApimIdentityTypeSystemAssignedUserAssigned {
-		if len(identityIdSet) == 0 {
-			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
-		}
-
-		userAssignedIdentities := make(map[string]*apimanagement.UserIdentityProperties)
-		for _, id := range identityIdSet {
-			userAssignedIdentities[id.(string)] = &apimanagement.UserIdentityProperties{}
-		}
-
-		managedServiceIdentity.UserAssignedIdentities = userAssignedIdentities
-	} else if len(identityIdSet) > 0 {
-		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
-		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
-	}
-
-	return &managedServiceIdentity, nil
-}
-
-func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) ([]interface{}, error) {
-	if identity == nil || identity.Type == apimanagement.ApimIdentityTypeNone {
-		return make([]interface{}, 0), nil
-	}
-
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
-	if identity.PrincipalID != nil {
-		result["principal_id"] = identity.PrincipalID.String()
-	}
-
-	if identity.TenantID != nil {
-		result["tenant_id"] = identity.TenantID.String()
-	}
-
-	identityIds := make([]interface{}, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*apimanagement.UserIdentityProperties)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &apimanagement.UserIdentityProperties{
+				// intentionally empty
 			}
-			identityIds = append(identityIds, parsedId.ID())
 		}
-		result["identity_ids"] = pluginsdk.NewSet(pluginsdk.HashString, identityIds)
+	}
+	return &out, nil
+}
+
+func flattenIdentity(input *apimanagement.ServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transform.TenantId = input.TenantID.String()
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
 
-	return []interface{}{result}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func expandAzureRmApiManagementSkuName(d *pluginsdk.ResourceData) *apimanagement.ServiceSkuProperties {
@@ -1412,6 +1645,7 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 	tlsEcdheRsaWithAes256CbcShaCiphers := false
 	tlsEcdheRsaWithAes128CbcShaCiphers := false
 	tlsRsaWithAes128GcmSha256Ciphers := false
+	tlsRsaWithAes256GcmSha384Ciphers := false
 	tlsRsaWithAes256CbcSha256Ciphers := false
 	tlsRsaWithAes128CbcSha256Ciphers := false
 	tlsRsaWithAes256CbcShaCiphers := false
@@ -1426,10 +1660,6 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		frontendProtocolTls10 = v["enable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
 
-		// TODO: Remove and simplify after deprecation
-		if v, exists := v["enable_triple_des_ciphers"]; exists {
-			tripleDesCiphers = v.(bool)
-		}
 		if v, exists := v["triple_des_ciphers_enabled"]; exists {
 			tripleDesCiphers = v.(bool)
 		}
@@ -1439,6 +1669,7 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		tlsEcdheRsaWithAes256CbcShaCiphers = v["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
 		tlsEcdheRsaWithAes128CbcShaCiphers = v["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
 		tlsRsaWithAes128GcmSha256Ciphers = v["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"].(bool)
+		tlsRsaWithAes256GcmSha384Ciphers = v["tls_rsa_with_aes256_gcm_sha384_ciphers_enabled"].(bool)
 		tlsRsaWithAes256CbcSha256Ciphers = v["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"].(bool)
 		tlsRsaWithAes128CbcSha256Ciphers = v["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"].(bool)
 		tlsRsaWithAes256CbcShaCiphers = v["tls_rsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
@@ -1505,6 +1736,7 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		customProperties[apimTlsEcdheRsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheRsaWithAes256CbcShaCiphers))
 		customProperties[apimTlsEcdheRsaWithAes128CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheRsaWithAes128CbcShaCiphers))
 		customProperties[apimTlsRsaWithAes128GcmSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128GcmSha256Ciphers))
+		customProperties[apimTlsRsaWithAes256GcmSha384Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256GcmSha384Ciphers))
 		customProperties[apimTlsRsaWithAes256CbcSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256CbcSha256Ciphers))
 		customProperties[apimTlsRsaWithAes128CbcSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128CbcSha256Ciphers))
 		customProperties[apimTlsRsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256CbcShaCiphers))
@@ -1546,11 +1778,11 @@ func flattenApiManagementSecurityCustomProperties(input map[string]*string, skuI
 	if !skuIsConsumption {
 		output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 		output["triple_des_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
-		output["enable_triple_des_ciphers"] = output["triple_des_ciphers_enabled"] // TODO: remove in v3.0
 		output["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcShaCiphers)
 		output["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcShaCiphers)
 		output["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes256CbcShaCiphers)
 		output["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes128CbcShaCiphers)
+		output["tls_rsa_with_aes256_gcm_sha384_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256GcmSha384Ciphers)
 		output["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128GcmSha256Ciphers)
 		output["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcSha256Ciphers)
 		output["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcSha256Ciphers)
@@ -1569,18 +1801,22 @@ func flattenApiManagementProtocolsCustomProperties(input map[string]*string) []i
 	return []interface{}{output}
 }
 
-func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.VirtualNetworkConfiguration) []interface{} {
+func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.VirtualNetworkConfiguration) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	virtualNetworkConfiguration := make(map[string]interface{})
 
 	if input.SubnetResourceID != nil {
-		virtualNetworkConfiguration["subnet_id"] = *input.SubnetResourceID
+		subnetId, err := networkParse.SubnetIDInsensitively(*input.SubnetResourceID)
+		if err != nil {
+			return []interface{}{}, err
+		}
+		virtualNetworkConfiguration["subnet_id"] = subnetId.ID()
 	}
 
-	return []interface{}{virtualNetworkConfiguration}
+	return []interface{}{virtualNetworkConfiguration}, nil
 }
 
 func parseApiManagementNilableDictionary(input map[string]*string, key string) bool {
@@ -1628,6 +1864,78 @@ func flattenApiManagementSignInSettings(input apimanagement.PortalSigninSettings
 	return []interface{}{
 		map[string]interface{}{
 			"enabled": enabled,
+		},
+	}
+}
+
+func expandApiManagementDelegationSettings(input []interface{}) apimanagement.PortalDelegationSettings {
+	if len(input) == 0 {
+		return apimanagement.PortalDelegationSettings{}
+	}
+
+	vs := input[0].(map[string]interface{})
+
+	props := apimanagement.PortalDelegationSettingsProperties{
+		UserRegistration: &apimanagement.RegistrationDelegationSettingsProperties{
+			Enabled: utils.Bool(vs["user_registration_enabled"].(bool)),
+		},
+		Subscriptions: &apimanagement.SubscriptionsDelegationSettingsProperties{
+			Enabled: utils.Bool(vs["subscriptions_enabled"].(bool)),
+		},
+	}
+
+	validationKey := vs["validation_key"].(string)
+	if !vs["user_registration_enabled"].(bool) && !vs["subscriptions_enabled"].(bool) && validationKey == "" {
+		// for some reason we cannot leave this empty
+		props.ValidationKey = utils.String("cGxhY2Vob2xkZXIxCg==")
+	}
+	if validationKey != "" {
+		props.ValidationKey = utils.String(validationKey)
+	}
+
+	url := vs["url"].(string)
+	if !vs["user_registration_enabled"].(bool) && !vs["subscriptions_enabled"].(bool) && url == "" {
+		// for some reason we cannot leave this empty
+		props.URL = utils.String("https://www.placeholder.com")
+	}
+	if url != "" {
+		props.URL = utils.String(url)
+	}
+
+	return apimanagement.PortalDelegationSettings{
+		PortalDelegationSettingsProperties: &props,
+	}
+}
+
+func flattenApiManagementDelegationSettings(input apimanagement.PortalDelegationSettings, keyContract apimanagement.PortalSettingValidationKeyContract) []interface{} {
+	url := ""
+	subscriptionsEnabled := false
+	userRegistrationEnabled := false
+
+	if props := input.PortalDelegationSettingsProperties; props != nil {
+		if props.URL != nil {
+			url = *props.URL
+		}
+
+		if props.Subscriptions != nil && props.Subscriptions.Enabled != nil {
+			subscriptionsEnabled = *props.Subscriptions.Enabled
+		}
+
+		if props.UserRegistration != nil && props.UserRegistration.Enabled != nil {
+			userRegistrationEnabled = *props.UserRegistration.Enabled
+		}
+	}
+	validationKey := ""
+	if keyContract.ValidationKey != nil {
+		validationKey = *keyContract.ValidationKey
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"url":                       url,
+			"subscriptions_enabled":     subscriptionsEnabled,
+			"user_registration_enabled": userRegistrationEnabled,
+			"validation_key":            validationKey,
 		},
 	}
 }
@@ -1838,4 +2146,21 @@ func flattenAPIManagementCertificates(d *pluginsdk.ResourceData, inputs *[]apima
 		outputs = append(outputs, output)
 	}
 	return outputs
+}
+
+func optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(name, location string) string {
+	message := `
+An existing soft-deleted API Management exists with the Name %q in the location %q, however
+automatically recovering this API Management has been disabled via the "features" block.
+
+Terraform can automatically recover the soft-deleted API Management when this behaviour is
+enabled within the "features" block (located within the "provider" block) - more
+information can be found here:
+
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+
+Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
+this into Terraform via "terraform import", or pick a different name/location.
+`
+	return fmt.Sprintf(message, name, location)
 }

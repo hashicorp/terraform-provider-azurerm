@@ -3,18 +3,22 @@ package network
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceExpressRouteGateway() *pluginsdk.Resource {
@@ -43,21 +47,27 @@ func resourceExpressRouteGateway() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"virtual_hub_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.VirtualHubID,
 			},
 
 			"scale_units": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(1, 10),
+			},
+
+			"allow_non_virtual_wan_traffic": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"tags": tags.Schema(),
@@ -92,9 +102,22 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	t := d.Get("tags").(map[string]interface{})
 
 	minScaleUnits := int32(d.Get("scale_units").(int))
+
+	erConnectionsClient := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
+	erConnections, err := erConnectionsClient.List(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		// service will return 404 error if Gateway not exist
+		if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusNotFound {
+			log.Printf("[Debug]: Gateway connection not found. HTTP Code 404.")
+		} else {
+			return fmt.Errorf(" get Gateway Connections error %s: %+v", id, err)
+		}
+	}
+
 	parameters := network.ExpressRouteGateway{
 		Location: utils.String(location),
 		ExpressRouteGatewayProperties: &network.ExpressRouteGatewayProperties{
+			AllowNonVirtualWanTraffic: utils.Bool(d.Get("allow_non_virtual_wan_traffic").(bool)),
 			AutoScaleConfiguration: &network.ExpressRouteGatewayPropertiesAutoScaleConfiguration{
 				Bounds: &network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds{
 					Min: &minScaleUnits,
@@ -103,6 +126,7 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 			VirtualHub: &network.VirtualHubID{
 				ID: &virtualHubId,
 			},
+			ExpressRouteConnections: erConnections.Value,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -152,6 +176,7 @@ func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 			virtualHubId = *props.VirtualHub.ID
 		}
 		d.Set("virtual_hub_id", virtualHubId)
+		d.Set("allow_non_virtual_wan_traffic", props.AllowNonVirtualWanTraffic)
 
 		scaleUnits := 0
 		if props.AutoScaleConfiguration != nil && props.AutoScaleConfiguration.Bounds != nil && props.AutoScaleConfiguration.Bounds.Min != nil {

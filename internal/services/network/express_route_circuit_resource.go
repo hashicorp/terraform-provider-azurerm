@@ -6,7 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
@@ -55,9 +57,9 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku": {
 				Type:     pluginsdk.TypeList,
@@ -73,8 +75,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 								string(network.ExpressRouteCircuitSkuTierLocal),
 								string(network.ExpressRouteCircuitSkuTierStandard),
 								string(network.ExpressRouteCircuitSkuTierPremium),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 
 						"family": {
@@ -83,8 +84,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ExpressRouteCircuitSkuFamilyMeteredData),
 								string(network.ExpressRouteCircuitSkuFamilyUnlimitedData),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 					},
 				},
@@ -142,6 +142,12 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"authorization_key": {
+				Type:      pluginsdk.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+
 			"service_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -174,8 +180,8 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_express_route_circuit", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_express_route_circuit", id.ID())
 		}
 	}
 
@@ -217,7 +223,9 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if !d.IsNewResource() {
 		erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = &allowRdfeOps
 	} else {
-		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{}
+		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{
+			AuthorizationKey: utils.String(d.Get("authorization_key").(string)),
+		}
 
 		// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
 		if _, ok := d.GetOk("express_route_port_id"); ok {
@@ -260,6 +268,18 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("for %s to be able to be queried: %+v", id, err)
 	}
 
+	//  authorization_key can only be set after Circuit is created
+	if erc.AuthorizationKey != nil && *erc.AuthorizationKey != "" {
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, erc)
+		if err != nil {
+			return fmt.Errorf(" Updating %s: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf(" Updating %s: %+v", id, err)
+		}
+	}
+
 	d.SetId(id.ID())
 
 	return resourceExpressRouteCircuitRead(d, meta)
@@ -288,22 +308,19 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
 
-	if resp.Sku != nil {
-		sku := flattenExpressRouteCircuitSku(resp.Sku)
-		if err := d.Set("sku", sku); err != nil {
-			return fmt.Errorf("setting `sku`: %+v", err)
-		}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	sku := flattenExpressRouteCircuitSku(resp.Sku)
+	if err := d.Set("sku", sku); err != nil {
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	if resp.ExpressRoutePort != nil {
 		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
 
 		if resp.ExpressRoutePort.ID != nil {
-			portID, err := parse.ExpressRoutePortID(*resp.ExpressRoutePort.ID)
+			portID, err := parse.ExpressRoutePortIDInsensitively(*resp.ExpressRoutePort.ID)
 			if err != nil {
 				return err
 			}
@@ -364,6 +381,10 @@ func expandExpressRouteCircuitSku(d *pluginsdk.ResourceData) *network.ExpressRou
 }
 
 func flattenExpressRouteCircuitSku(sku *network.ExpressRouteCircuitSku) []interface{} {
+	if sku == nil {
+		return []interface{}{}
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"tier":   string(sku.Tier),

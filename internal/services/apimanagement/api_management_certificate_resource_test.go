@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementCertificateResource struct {
-}
+type ApiManagementCertificateResource struct{}
 
 func TestAccApiManagementCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_certificate", "test")
@@ -193,11 +192,11 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id    = azurerm_api_management.test.identity.0.principal_id
 
   secret_permissions = [
-    "get",
+    "Get",
   ]
 
   certificate_permissions = [
-    "get",
+    "Get",
   ]
 }
 
@@ -243,11 +242,11 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
   secret_permissions = [
-    "get",
+    "Get",
   ]
 
   certificate_permissions = [
-    "get",
+    "Get",
   ]
 }
 
@@ -279,7 +278,6 @@ resource "azurerm_key_vault" "test" {
   name                = "acct%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  soft_delete_enabled = true
 
   tenant_id = data.azurerm_client_config.test.tenant_id
 
@@ -292,18 +290,18 @@ resource "azurerm_key_vault_access_policy" "sptest" {
   object_id    = data.azurerm_client_config.test.object_id
 
   secret_permissions = [
-    "delete",
-    "get",
-    "purge",
-    "set",
+    "Delete",
+    "Get",
+    "Purge",
+    "Set",
   ]
 
   certificate_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "import",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Import",
   ]
 }
 

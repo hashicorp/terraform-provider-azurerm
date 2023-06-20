@@ -1,24 +1,33 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	DashboardsClient           *portal.DashboardsClient
-	TenantConfigurationsClient *portal.TenantConfigurationsClient
+	DashboardsClient           *dashboard.DashboardClient
+	TenantConfigurationsClient *tenantconfiguration.TenantConfigurationClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	dashboardsClient := portal.NewDashboardsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&dashboardsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	dashboardsClient, err := dashboard.NewDashboardClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Dashboard client: %+v", err)
+	}
+	o.Configure(dashboardsClient.Client, o.Authorizers.ResourceManager)
 
-	tenantConfigurationsClient := portal.NewTenantConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&tenantConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+	tenantConfigurationsClient, err := tenantconfiguration.NewTenantConfigurationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building TenantConfiguration client: %+v", err)
+	}
+	o.Configure(tenantConfigurationsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		DashboardsClient:           &dashboardsClient,
-		TenantConfigurationsClient: &tenantConfigurationsClient,
-	}
+		DashboardsClient:           dashboardsClient,
+		TenantConfigurationsClient: tenantConfigurationsClient,
+	}, nil
 }

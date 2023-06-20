@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LinkedServiceResource struct {
-}
+type LinkedServiceResource struct{}
 
 func TestAccSynapseLinkedService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_linked_service", "test")
@@ -126,8 +125,12 @@ func (t LinkedServiceResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, err
 	}
 
-	environment := clients.Account.Environment
-	client, err := clients.Synapse.LinkedServiceClient(id.WorkspaceName, environment.SynapseEndpointSuffix)
+	suffix, ok := clients.Account.Environment.Synapse.DomainSuffix()
+	if !ok {
+		return nil, fmt.Errorf("could not determine Synapse domain suffix for environment %q", clients.Account.Environment.Name)
+	}
+
+	client, err := clients.Synapse.LinkedServiceClient(id.WorkspaceName, *suffix)
 	if err != nil {
 		return nil, err
 	}
@@ -299,6 +302,9 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
   managed_virtual_network_enabled      = true
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_firewall_rule" "test" {

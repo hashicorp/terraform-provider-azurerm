@@ -14,7 +14,6 @@ resource "random_string" "azustring" {
   special = false
   upper   = false
   number  = false
-
 }
 
 # Storage account to hold diag data from VMs and Azure Resources
@@ -279,6 +278,8 @@ resource "azurerm_firewall" "azufw" {
   name                = "firewall1"
   resource_group_name = azurerm_resource_group.azurg.name
   location            = azurerm_resource_group.azurg.location
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"

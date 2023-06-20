@@ -4,12 +4,23 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
+
+var _ resourceids.Id = AssessmentId{}
 
 type AssessmentId struct {
 	TargetResourceID string
 	Name             string
+}
+
+func (id AssessmentId) String() string {
+	components := []string{
+		fmt.Sprintf("Target Resource %q", id.TargetResourceID),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return fmt.Sprintf("Assessment %s", strings.Join(components, " / "))
 }
 
 func NewAssessmentID(targetResourceID, name string) AssessmentId {

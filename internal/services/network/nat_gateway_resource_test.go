@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NatGatewayResource struct {
-}
+type NatGatewayResource struct{}
 
 func TestAccNatGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")
@@ -40,8 +39,6 @@ func TestAccNatGateway_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("public_ip_address_ids.#").HasValue("1"),
-				check.That(data.ResourceName).Key("public_ip_prefix_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
 				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("10"),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
@@ -66,8 +63,6 @@ func TestAccNatGateway_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("public_ip_address_ids.#").HasValue("1"),
-				check.That(data.ResourceName).Key("public_ip_prefix_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
 				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("10"),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
@@ -144,11 +139,19 @@ resource "azurerm_nat_gateway" "test" {
   name                    = "acctestnatGateway-%d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  public_ip_address_ids   = [azurerm_public_ip.test.id]
-  public_ip_prefix_ids    = [azurerm_public_ip_prefix.test.id]
   sku_name                = "Standard"
   idle_timeout_in_minutes = 10
   zones                   = ["1"]
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
+}
+
+resource "azurerm_nat_gateway_public_ip_prefix_association" "test" {
+  nat_gateway_id      = azurerm_nat_gateway.test.id
+  public_ip_prefix_id = azurerm_public_ip_prefix.test.id
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

@@ -1,22 +1,23 @@
 package consumption
 
 import (
-	"strings"
-
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type SubscriptionConsumptionBudget struct {
 	base consumptionBudgetBaseResource
 }
 
-var _ sdk.Resource = SubscriptionConsumptionBudget{}
-var _ sdk.ResourceWithCustomImporter = SubscriptionConsumptionBudget{}
-var _ sdk.ResourceWithStateMigration = SubscriptionConsumptionBudget{}
+var (
+	_ sdk.Resource                   = SubscriptionConsumptionBudget{}
+	_ sdk.ResourceWithCustomImporter = SubscriptionConsumptionBudget{}
+	_ sdk.ResourceWithStateMigration = SubscriptionConsumptionBudget{}
+)
 
 func (r SubscriptionConsumptionBudget) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
@@ -24,22 +25,13 @@ func (r SubscriptionConsumptionBudget) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotWhiteSpace,
+			ValidateFunc: validate.ConsumptionBudgetName(),
 		},
 		"subscription_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			//ValidateFunc: commonids.ValidateSubscriptionID, // TODO uncomment this in 3.0
-			// TODO remove in 3.0
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				n := strings.Split(old, "/")
-				if len(n) >= 3 {
-					subscriptionID := n[2]
-					return new == subscriptionID
-				}
-				return false
-			},
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
 	}
 	return r.base.arguments(schema)
@@ -58,7 +50,7 @@ func (r SubscriptionConsumptionBudget) ResourceType() string {
 }
 
 func (r SubscriptionConsumptionBudget) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ConsumptionBudgetSubscriptionID
+	return budgets.ValidateScopedBudgetID
 }
 
 func (r SubscriptionConsumptionBudget) Create() sdk.ResourceFunc {
@@ -78,7 +70,7 @@ func (r SubscriptionConsumptionBudget) Update() sdk.ResourceFunc {
 }
 
 func (r SubscriptionConsumptionBudget) CustomImporter() sdk.ResourceRunFunc {
-	return r.base.importerFunc("subscription")
+	return r.base.importerFunc()
 }
 
 func (r SubscriptionConsumptionBudget) StateUpgraders() sdk.StateUpgradeData {
