@@ -47,7 +47,7 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_variable_bool" "test" {
-	count = 3
+  count = 3
 
   name                    = "acctestBoolVar-%d-${count.index}"
   resource_group_name     = azurerm_resource_group.test.name
@@ -57,7 +57,7 @@ resource "azurerm_automation_variable_bool" "test" {
 }
 
 resource "azurerm_automation_variable_datetime" "test" {
-	count = 3
+  count = 3
 
   name                    = "acctestDateTimeVar-%d-${count.index}"
   resource_group_name     = azurerm_resource_group.test.name
@@ -67,7 +67,7 @@ resource "azurerm_automation_variable_datetime" "test" {
 }
 
 resource "azurerm_automation_variable_int" "test" {
-	count = 3
+  count = 3
 
   name                    = "acctestIntVar-%d-${count.index}"
   resource_group_name     = azurerm_resource_group.test.name
@@ -77,7 +77,7 @@ resource "azurerm_automation_variable_int" "test" {
 }
 
 resource "azurerm_automation_variable_string" "test" {
-	count = 3
+  count = 3
 
   name                    = "acctestStringVar-%d-${count.index}"
   resource_group_name     = azurerm_resource_group.test.name
@@ -87,7 +87,7 @@ resource "azurerm_automation_variable_string" "test" {
 }
 
 resource "azurerm_automation_variable_string" "encrypted" {
-	count = 3
+  count = 3
 
   name                    = "acctestEncryptedVar-%d-${count.index}"
   resource_group_name     = azurerm_resource_group.test.name
@@ -101,13 +101,13 @@ data "azurerm_automation_variables" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
 
-	depends_on = [
-		azurerm_automation_variable_bool.test,
-		azurerm_automation_variable_datetime.test,
-		azurerm_automation_variable_int.test,
-		azurerm_automation_variable_string.test,
-		azurerm_automation_variable_string.encrypted,
-	]
+  depends_on = [
+    azurerm_automation_variable_bool.test,
+    azurerm_automation_variable_datetime.test,
+    azurerm_automation_variable_int.test,
+    azurerm_automation_variable_string.test,
+    azurerm_automation_variable_string.encrypted,
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
