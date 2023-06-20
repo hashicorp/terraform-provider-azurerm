@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagerconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routefilters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/scopeconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityadminconfigurations"
@@ -56,7 +57,7 @@ type Client struct {
 	PublicIPPrefixesClient                   *network.PublicIPPrefixesClient
 	RouteMapsClient                          *network.RouteMapsClient
 	RoutesClient                             *routes.RoutesClient
-	RouteFiltersClient                       *network.RouteFiltersClient
+	RouteFiltersClient                       *routefilters.RouteFiltersClient
 	RouteTablesClient                        *network.RouteTablesClient
 	SecurityGroupClient                      *network.SecurityGroupsClient
 	SecurityPartnerProviderClient            *network.SecurityPartnerProvidersClient
@@ -247,8 +248,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(RoutesClient.Client, o.Authorizers.ResourceManager)
 
-	RouteFiltersClient := network.NewRouteFiltersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&RouteFiltersClient.Client, o.ResourceManagerAuthorizer)
+	RouteFiltersClient, err := routefilters.NewRouteFiltersClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(RouteFiltersClient.Client, o.Authorizers.ResourceManager)
 
 	RouteTablesClient := network.NewRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RouteTablesClient.Client, o.ResourceManagerAuthorizer)
@@ -358,7 +359,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		PublicIPPrefixesClient:                   &PublicIPPrefixesClient,
 		RouteMapsClient:                          &RouteMapsClient,
 		RoutesClient:                             RoutesClient,
-		RouteFiltersClient:                       &RouteFiltersClient,
+		RouteFiltersClient:                       RouteFiltersClient,
 		RouteTablesClient:                        &RouteTablesClient,
 		SecurityGroupClient:                      &SecurityGroupClient,
 		SecurityPartnerProviderClient:            &SecurityPartnerProviderClient,
