@@ -22,11 +22,11 @@ resource "azurerm_new_relic_monitor" "example" {
   name                = "example-nrm"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  
+
   plan {
     effective_date = "2023-06-06T00:00:00Z"
   }
-  
+
   user {
     email        = "user@example.com"
     first_name   = "Example"
@@ -36,10 +36,10 @@ resource "azurerm_new_relic_monitor" "example" {
 }
 
 resource "azurerm_new_relic_tag_rule" "example" {
-  monitor_id = azurerm_new_relic_monitor.example.id
+  monitor_id               = azurerm_new_relic_monitor.example.id
   aad_log_enabled          = true
   activity_log_enabled     = true
-  metric_enabled = true
+  metric_enabled           = true
   subscription_log_enabled = true
 
   log_tag_filter {
@@ -47,7 +47,7 @@ resource "azurerm_new_relic_tag_rule" "example" {
     action = "Include"
     value  = "value"
   }
-  
+
   metric_tag_filter {
     name   = "key"
     action = "Exclude"
@@ -82,7 +82,7 @@ A `log_tag_filter` block supports the following:
 
 * `action` - (Required) Valid actions for a filtering tag. Possible values are `Exclude` and `Include`. Exclusion takes priority over inclusion.
 
-* `value` - (Optional) Specifies the value of the tag.
+* `value` - (Required) Specifies the value of the tag.
 
 ---
 
@@ -92,7 +92,7 @@ A `metric_tag_filter` block supports the following:
 
 * `action` - (Required) Valid actions for a filtering tag. Possible values are `Exclude` and `Include`. Exclusion takes priority over inclusion.
 
-* `value` - (Optional) Specifies the value of the tag.
+* `value` - (Required) Specifies the value of the tag.
 
 ## Attributes Reference
 

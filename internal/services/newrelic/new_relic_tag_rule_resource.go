@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/tagrules"
@@ -348,7 +347,7 @@ func (r NewRelicTagRuleResource) tagFilterSchema() *pluginsdk.Schema {
 
 				"value": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Required: true,
 				},
 			},
 		},

@@ -6,9 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/tagrules"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -123,11 +122,13 @@ resource "azurerm_new_relic_monitor" "test" {
   name                = "acctest-nrm-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
   plan {
     effective_date = "%[3]s"
   }
+
   user {
-    email = "%[4]s"
+    email        = "%[4]s"
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
@@ -164,10 +165,10 @@ func (r NewRelicTagRuleResource) complete(data acceptance.TestData, email string
 			%s
 
 resource "azurerm_new_relic_tag_rule" "test" {
-  monitor_id = azurerm_new_relic_monitor.test.id
+  monitor_id               = azurerm_new_relic_monitor.test.id
   aad_log_enabled          = true
   activity_log_enabled     = true
-  metric_enabled = true
+  metric_enabled           = true
   subscription_log_enabled = true
 
   log_tag_filter {
@@ -179,9 +180,9 @@ resource "azurerm_new_relic_tag_rule" "test" {
   log_tag_filter {
     name   = "log2"
     action = "Exclude"
-    value  = "log2"
+    value  = ""
   }
-  
+
   metric_tag_filter {
     name   = "metric1"
     action = "Include"
@@ -191,7 +192,7 @@ resource "azurerm_new_relic_tag_rule" "test" {
   metric_tag_filter {
     name   = "metric2"
     action = "Exclude"
-    value  = "metric2"
+    value  = ""
   }
 }
 `, template)
@@ -203,16 +204,16 @@ func (r NewRelicTagRuleResource) update(data acceptance.TestData, email string) 
 			%s
 
 resource "azurerm_new_relic_tag_rule" "test" {
-  monitor_id = azurerm_new_relic_monitor.test.id
+  monitor_id               = azurerm_new_relic_monitor.test.id
   aad_log_enabled          = false
   activity_log_enabled     = false
-  metric_enabled = false
+  metric_enabled           = false
   subscription_log_enabled = false
 
   log_tag_filter {
     name   = "log2"
     action = "Exclude"
-    value  = "log2"
+    value  = ""
   }
 
   log_tag_filter {
@@ -220,11 +221,11 @@ resource "azurerm_new_relic_tag_rule" "test" {
     action = "Include"
     value  = "log1"
   }
-  
+
   metric_tag_filter {
     name   = "metric1"
     action = "Exclude"
-    value  = "metric2"
+    value  = ""
   }
 
   metric_tag_filter {
