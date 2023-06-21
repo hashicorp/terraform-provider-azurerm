@@ -37,9 +37,9 @@ The following arguments are supported:
 
 * `name` - (Optional) A unique UUID/GUID for this Role Assignment - one will be generated if not specified. Changing this forces a new resource to be created.
 
-* `role_definition_id` - (Optional) The Scoped-ID of the Role Definition. Changing this forces a new resource to be created.
+* `role_definition_id` - (Optional) The Scoped-ID of the Role Definition. Changing this forces a new resource to be created. Conflicts with `role_definition_name`.
 
-* `role_definition_name` - (Optional) The name of a built-in Role. Changing this forces a new resource to be created.
+* `role_definition_name` - (Optional) The name of a built-in Role. Changing this forces a new resource to be created. Conflicts with `role_definition_id`.
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (i.e. not the "Application ID" for applications). To assign Azure roles, the Principal must have `Microsoft.Authorization/roleAssignments/write` permissions. See [documentation](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal) for more information. The calling principal must first be assigned Privileged Role Administrator (like `Owner` role) or Global Administrator. See [documentation](https://learn.microsoft.com/en-us/marketplace/create-manage-private-azure-marketplace-new#prerequisites) for more information.
 
@@ -78,3 +78,8 @@ Role Assignments can be imported using the `resource id`, e.g.
 terraform import azurerm_role_assignment_marketplace.example /providers/Microsoft.Marketplace/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000
 ```
 
+~> **NOTE:** for cross tenant scenario, the format of `resource id` is composed of Azure resource ID and tenantId. for example:
+
+```text
+/providers/Microsoft.Marketplace/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000
+```

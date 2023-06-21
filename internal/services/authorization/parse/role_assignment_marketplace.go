@@ -34,20 +34,6 @@ func (id RoleAssignmentMarketplaceId) String() string {
 	return fmt.Sprintf("Role Assignment Marketplace (%s)", strings.Join(components, "\n"))
 }
 
-func ValidateRoleAssignmentMarketplaceID(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
-	if _, err := RoleAssignmentMarketplaceID(v); err != nil {
-		errors = append(errors, err)
-	}
-
-	return
-}
-
 func RoleAssignmentMarketplaceID(input string) (*RoleAssignmentMarketplaceId, error) {
 	if len(input) == 0 {
 		return nil, fmt.Errorf("Role Assignment Marketplace ID is empty string")

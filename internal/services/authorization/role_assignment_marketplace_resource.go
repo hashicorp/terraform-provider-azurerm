@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -45,7 +46,7 @@ func (r RoleAssignmentMarketplaceResource) ModelObject() interface{} {
 }
 
 func (r RoleAssignmentMarketplaceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return parse.ValidateRoleAssignmentMarketplaceID
+	return validate.RoleAssignmentMarketplaceID
 }
 
 func (r RoleAssignmentMarketplaceResource) Arguments() map[string]*pluginsdk.Schema {
@@ -69,7 +70,7 @@ func (r RoleAssignmentMarketplaceResource) Arguments() map[string]*pluginsdk.Sch
 			Optional:     true,
 			ForceNew:     true,
 			ExactlyOneOf: []string{"role_definition_name"},
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.RoleResourceID,
 		},
 
 		"role_definition_name": {
