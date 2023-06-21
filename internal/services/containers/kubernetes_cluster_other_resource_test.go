@@ -584,21 +584,21 @@ func TestAccKubernetesCluster_ultraSSD(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
 			Config: r.ultraSSD(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
 			Config: r.ultraSSD(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 }
 
@@ -630,9 +630,10 @@ func TestAccKubernetesCluster_osSku(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.osSku(data),
+			Config: r.osSku(data, "AzureLinux"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux"),
 			),
 		},
 		data.ImportStep(),
@@ -785,6 +786,46 @@ func TestAccKubernetesCluster_azureMonitorKubernetesMetrics(t *testing.T) {
 			Config: r.azureMonitorKubernetesMetricsDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_nodeOsUpgradeChannel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeOsUpgradeChannel(data, "Unmanaged"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("Unmanaged"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeOsUpgradeChannel(data, "SecurityPatch"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("SecurityPatch"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeOsUpgradeChannel(data, "NodeImage"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("NodeImage"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeOsUpgradeChannel(data, "None"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("None"),
 			),
 		},
 		data.ImportStep(),
@@ -1773,6 +1814,7 @@ resource "azurerm_key_vault_access_policy" "acctest" {
     "Create",
     "Delete",
     "Purge",
+    "GetRotationPolicy",
   ]
 }
 
@@ -1889,6 +1931,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix                = "acctestaks%d"
   kubernetes_version        = %q
   automatic_channel_upgrade = %s
+  node_os_channel_upgrade   = "NodeImage"
 
   default_node_pool {
     name       = "default"
@@ -2027,11 +2070,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   maintenance_window {
     not_allowed {
-      end   = "2021-11-30T12:00:00Z"
+      end   = "2021-11-29T12:00:00Z"
       start = "2021-11-26T03:00:00Z"
     }
     not_allowed {
-      end   = "2021-12-30T12:00:00Z"
+      end   = "2021-12-29T12:00:00Z"
       start = "2021-12-26T03:00:00Z"
     }
     allowed {
@@ -2063,11 +2106,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name              = "default"
-    node_count        = 1
-    vm_size           = "Standard_D2s_v3"
-    ultra_ssd_enabled = %t
-    zones             = ["1", "2", "3"]
+    name                        = "default"
+    temporary_name_for_rotation = "temp"
+    node_count                  = 1
+    vm_size                     = "Standard_D2s_v3"
+    ultra_ssd_enabled           = %t
+    zones                       = ["1", "2", "3"]
   }
 
   identity {
@@ -2140,7 +2184,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, privateClusterPublicFqdnEnabled)
 }
 
-func (KubernetesClusterResource) osSku(data acceptance.TestData) string {
+func (KubernetesClusterResource) osSku(data acceptance.TestData, osSKu string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2161,14 +2205,14 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_D2s_v3"
-    os_sku     = "Ubuntu"
+    os_sku     = "%s"
   }
 
   identity {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSKu)
 }
 
 func (KubernetesClusterResource) oidcIssuer(data acceptance.TestData, enabled bool) string {
@@ -2534,4 +2578,31 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) nodeOsUpgradeChannel(data acceptance.TestData, nodeOsUpgradeChannel string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                    = "acctestaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%d"
+  node_os_channel_upgrade = "%s"
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, nodeOsUpgradeChannel)
 }

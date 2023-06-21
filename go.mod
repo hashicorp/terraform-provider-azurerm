@@ -16,7 +16,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/go-azure-helpers v0.56.0
-	github.com/hashicorp/go-azure-sdk v0.20230606.1092251
+	github.com/hashicorp/go-azure-sdk v0.20230614.1151152
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.6.0
@@ -48,7 +48,7 @@ require (
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320 // indirect
 	github.com/hashicorp/go-hclog v1.4.0 // indirect
 	github.com/hashicorp/go-plugin v1.4.8 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.4 // indirect
 	github.com/hashicorp/hc-install v0.5.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.16.2 // indirect
 	github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80 // indirect
