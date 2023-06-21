@@ -94,7 +94,7 @@ A `form_parameter` block supports the following:
 
 * `values` - (Optional) One or more acceptable values for this Form Parameter.
 
-* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+* `example` - (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The name of the Schema.
 
@@ -116,7 +116,7 @@ A `header` block supports the following:
 
 * `values` - (Optional) One or more acceptable values for this Header.
 
-* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+* `example` - (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The name of the Schema.
 
@@ -138,7 +138,7 @@ A `query_parameter` block supports the following:
 
 * `values` - (Optional) One or more acceptable values for this Query Parameter.
 
-* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+* `example` - (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The name of the Schema.
 
@@ -204,7 +204,7 @@ A `template_parameter` block supports the following:
 
 * `values` - (Optional) One or more acceptable values for this Template Parameter.
 
-* `example` - (Optional) (Optional) One or more `example` blocks as defined above.
+* `example` - (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The name of the Schema.
 
