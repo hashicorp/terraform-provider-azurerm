@@ -29,28 +29,58 @@ func TestAccSiteRecoveryProtectionContainerMapping_basic(t *testing.T) {
 		data.ImportStep(),
 	})
 }
-
-func TestAccSiteRecoveryProtectionContainerMapping_withAutoUpdateExtension(t *testing.T) {
+func TestAccSiteRecoveryProtectionContainerMapping_withSystemAssignedAutoUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_protection_container_mapping", "test")
 	r := SiteRecoveryProtectionContainerMappingResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.autoUpdateExtension(data, true),
+			Config: r.autoUpdateExtension(data, true, "SystemAssignedIdentity"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.autoUpdateExtension(data, false),
+			Config: r.autoUpdateExtension(data, false, "SystemAssignedIdentity"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.autoUpdateExtension(data, true),
+			Config: r.autoUpdateExtension(data, true, "SystemAssignedIdentity"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSiteRecoveryProtectionContainerMapping_withAutoUpdateExtension(t *testing.T) {
+	t.Skip("skipped as RunAsAccount is deprecated and it's not allowed to create new ones.")
+
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_protection_container_mapping", "test")
+	r := SiteRecoveryProtectionContainerMappingResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoUpdateExtension(data, true, "RunAsAccount"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoUpdateExtension(data, false, "RunAsAccount"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoUpdateExtension(data, true, "RunAsAccount"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -141,7 +171,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryProtectionContainerMappingResource) autoUpdateExtension(data acceptance.TestData, enabled bool) string {
+func (r SiteRecoveryProtectionContainerMappingResource) autoUpdateExtension(data acceptance.TestData, enabled bool, authType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -151,6 +181,10 @@ resource "azurerm_automation_account" "test" {
   resource_group_name = azurerm_resource_group.test1.name
 
   sku_name = "Basic"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   tags = {
     Environment = "Test"
@@ -168,9 +202,10 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   automatic_update {
     enabled               = %[3]t
     automation_account_id = azurerm_automation_account.test.id
+    authentication_type   = "%[4]s"
   }
 }
-`, r.template(data), data.RandomInteger, enabled)
+`, r.template(data), data.RandomInteger, enabled, authType)
 }
 
 func (r SiteRecoveryProtectionContainerMappingResource) autoUpdateExtension_changeAutomationAccount(data acceptance.TestData, enabled bool) string {

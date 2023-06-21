@@ -75,7 +75,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "datalake" to testConfiguration(parallelism = 2, useDevTestSubscription = true),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
-        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false), useDevTestSubscription = true),
+        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
         // Elastic can't provision many in parallel
         "elastic" to testConfiguration(parallelism = 1, useDevTestSubscription = true),
@@ -162,7 +162,7 @@ var serviceTestConfigurationOverrides = mapOf(
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
         "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
-        // moved to alt subsription
+        // moved to alt subscription
         "appconfiguration" to testConfiguration(useDevTestSubscription = true),
         "dns" to testConfiguration(useDevTestSubscription = true),
         "eventgrid" to testConfiguration(useDevTestSubscription = true),

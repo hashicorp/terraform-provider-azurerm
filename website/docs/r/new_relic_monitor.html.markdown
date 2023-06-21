@@ -22,9 +22,11 @@ resource "azurerm_new_relic_monitor" "example" {
   name                = "example-nrm"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+
   plan {
     effective_date = "2023-06-06T00:00:00Z"
   }
+
   user {
     email        = "user@example.com"
     first_name   = "Example"

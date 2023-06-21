@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -16,9 +17,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
@@ -84,6 +85,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return true
 			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if d.HasChange("oidc_issuer_enabled") {
+					d.SetNewComputed("oidc_issuer_url")
+				}
+				return nil
+			},
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -727,6 +734,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"node_os_channel_upgrade": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(managedclusters.NodeOSUpgradeChannelNodeImage),
+					string(managedclusters.NodeOSUpgradeChannelNone),
+					string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
+					string(managedclusters.NodeOSUpgradeChannelUnmanaged),
+				}, false),
+			},
+
 			"key_management_service": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1291,6 +1309,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Deprecated:   "`docker_bridge_cidr` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.",
 			ValidateFunc: validate.CIDR,
 		}
+		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["network_plugin_mode"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedclusters.NetworkPluginModeOverlay),
+				"Overlay",
+			}, false),
+		}
 	}
 
 	return resource
@@ -1342,9 +1369,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	// supplied by the user which will result in a diff in some cases, so if versions have been supplied check that they
 	// are identical
 	agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
-	if nodePoolVersion := agentProfile.Properties.CurrentOrchestratorVersion; nodePoolVersion != nil {
-		if kubernetesVersion != "" && kubernetesVersion != *nodePoolVersion {
-			return fmt.Errorf("version mismatch between the control plane running %s and default node pool running %s, they must use the same kubernetes versions", kubernetesVersion, *nodePoolVersion)
+	if prop := agentProfile.Properties; prop != nil {
+		if nodePoolVersion := prop.CurrentOrchestratorVersion; nodePoolVersion != nil {
+			if kubernetesVersion != "" && kubernetesVersion != *nodePoolVersion {
+				return fmt.Errorf("version mismatch between the control plane running %s and default node pool running %s, they must use the same kubernetes versions", kubernetesVersion, *nodePoolVersion)
+			}
 		}
 	}
 
@@ -1442,6 +1471,21 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	autoUpgradeProfile := &managedclusters.ManagedClusterAutoUpgradeProfile{}
+	autoChannelUpgrade := d.Get("automatic_channel_upgrade").(string)
+	nodeOsChannelUpgrade := d.Get("node_os_channel_upgrade").(string)
+	if autoChannelUpgrade != "" {
+		if autoChannelUpgrade == string(managedclusters.UpgradeChannelNodeNegativeimage) && nodeOsChannelUpgrade != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
+			return fmt.Errorf("`node_os_channel_upgrade` cannot be set to a value other than `NodeImage` if `automatic_channel_upgrade` is set to `node-image`")
+		}
+		autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(autoChannelUpgrade))
+	} else {
+		autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannelNone)
+	}
+	if nodeOsChannelUpgrade != "" {
+		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
+	}
+
 	parameters := managedclusters.ManagedCluster{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
@@ -1450,41 +1494,30 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Tier: utils.ToPtr(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
-			ApiServerAccessProfile: apiAccessProfile,
-			AadProfile:             azureADProfile,
-			AddonProfiles:          addonProfiles,
-			AgentPoolProfiles:      agentProfiles,
-			AutoScalerProfile:      autoScalerProfile,
-			AzureMonitorProfile:    azureMonitorProfile,
-			DnsPrefix:              utils.String(dnsPrefix),
-			EnableRBAC:             utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
-			KubernetesVersion:      utils.String(kubernetesVersion),
-			LinuxProfile:           linuxProfile,
-			WindowsProfile:         windowsProfile,
-			NetworkProfile:         networkProfile,
-			NodeResourceGroup:      utils.String(nodeResourceGroup),
-			PublicNetworkAccess:    &publicNetworkAccess,
-			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
-			HTTPProxyConfig:        httpProxyConfig,
-			OidcIssuerProfile:      oidcIssuerProfile,
-			SecurityProfile:        securityProfile,
-
+			ApiServerAccessProfile:    apiAccessProfile,
+			AadProfile:                azureADProfile,
+			AddonProfiles:             addonProfiles,
+			AgentPoolProfiles:         agentProfiles,
+			AutoScalerProfile:         autoScalerProfile,
+			AutoUpgradeProfile:        autoUpgradeProfile,
+			AzureMonitorProfile:       azureMonitorProfile,
+			DnsPrefix:                 utils.String(dnsPrefix),
+			EnableRBAC:                utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
+			KubernetesVersion:         utils.String(kubernetesVersion),
+			LinuxProfile:              linuxProfile,
+			WindowsProfile:            windowsProfile,
+			NetworkProfile:            networkProfile,
+			NodeResourceGroup:         utils.String(nodeResourceGroup),
+			PublicNetworkAccess:       &publicNetworkAccess,
+			DisableLocalAccounts:      utils.Bool(d.Get("local_account_disabled").(bool)),
+			HTTPProxyConfig:           httpProxyConfig,
+			OidcIssuerProfile:         oidcIssuerProfile,
+			SecurityProfile:           securityProfile,
 			StorageProfile:            storageProfile,
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
 		Tags: tags.Expand(t),
 	}
-
-	if v := d.Get("automatic_channel_upgrade").(string); v != "" {
-		parameters.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{
-			UpgradeChannel: utils.ToPtr(managedclusters.UpgradeChannel(v)),
-		}
-	} else {
-		parameters.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{
-			UpgradeChannel: utils.ToPtr(managedclusters.UpgradeChannelNone),
-		}
-	}
-
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	kubernetesClusterIdentityRaw := d.Get("kubelet_identity").([]interface{})
 	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
@@ -1736,6 +1769,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("network_profile") {
 		updateCluster = true
 
+		if existing.Model.Properties.NetworkProfile == nil {
+			return fmt.Errorf("updating %s: `network_profile` was nil", *id)
+		}
+
 		networkProfile := *existing.Model.Properties.NetworkProfile
 
 		if networkProfile.LoadBalancerProfile == nil && networkProfile.NatGatewayProfile == nil {
@@ -1902,13 +1939,21 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if existing.Model.Properties.AutoUpgradeProfile == nil {
 			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
 		}
-
-		channel := managedclusters.UpgradeChannelNone
-		if v := d.Get("automatic_channel_upgrade").(string); v != "" {
-			channel = managedclusters.UpgradeChannel(v)
+		channel := d.Get("automatic_channel_upgrade").(string)
+		if channel == string(managedclusters.UpgradeChannelNodeNegativeimage) && d.Get("node_os_channel_upgrade").(string) != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
+			return fmt.Errorf("`node_os_channel_upgrade` must be set to `NodeImage` if `automatic_channel_upgrade` is set to `node-image`")
 		}
-
-		existing.Model.Properties.AutoUpgradeProfile.UpgradeChannel = &channel
+		if channel == "" {
+			channel = string(managedclusters.UpgradeChannelNone)
+		}
+		existing.Model.Properties.AutoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(channel))
+	}
+	if d.HasChange("node_os_channel_upgrade") {
+		updateCluster = true
+		if existing.Model.Properties.AutoUpgradeProfile == nil {
+			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
+		}
+		existing.Model.Properties.AutoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(d.Get("node_os_channel_upgrade").(string)))
 	}
 
 	if d.HasChange("http_proxy_config") {
@@ -1929,6 +1974,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		updateCluster = true
 		azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
 		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
@@ -1936,6 +1984,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
 		microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
 		existing.Model.Properties.SecurityProfile.Defender = microsoftDefender
 	}
 
@@ -2061,15 +2112,34 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		// if the default node pool name has changed it means the initial attempt at resizing failed
-		if d.HasChange("default_node_pool.0.vm_size") || d.HasChange("default_node_pool.0.name") {
+		cycleNodePoolProperties := []string{
+			"default_node_pool.0.name",
+			"default_node_pool.0.enable_host_encryption",
+			"default_node_pool.0.enable_node_public_ip",
+			"default_node_pool.0.kubelet_config",
+			"default_node_pool.0.linux_os_config",
+			"default_node_pool.0.max_pods",
+			"default_node_pool.0.node_taints",
+			"default_node_pool.0.only_critical_addons_enabled",
+			"default_node_pool.0.os_disk_size_gb",
+			"default_node_pool.0.os_disk_type",
+			"default_node_pool.0.os_sku",
+			"default_node_pool.0.pod_subnet_id",
+			"default_node_pool.0.ultra_ssd_enabled",
+			"default_node_pool.0.vnet_subnet_id",
+			"default_node_pool.0.vm_size",
+			"default_node_pool.0.zones",
+		}
+
+		// if the default node pool name has changed, it means the initial attempt at resizing failed
+		if d.HasChanges(cycleNodePoolProperties...) {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
 			// to provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
 			// bringing up the new one.
 
 			if v := d.Get("default_node_pool.0.temporary_name_for_rotation").(string); v == "" {
-				return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating `vm_size`")
+				return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating any of the following properties %q", cycleNodePoolProperties)
 			}
 
 			temporaryNodePoolName := d.Get("default_node_pool.0.temporary_name_for_rotation").(string)
@@ -2214,10 +2284,17 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("public_network_access_enabled", publicNetworkAccess != managedclusters.PublicNetworkAccessDisabled)
 
 			upgradeChannel := ""
-			if profile := props.AutoUpgradeProfile; profile != nil && profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
-				upgradeChannel = string(*profile.UpgradeChannel)
+			nodeOSUpgradeChannel := ""
+			if profile := props.AutoUpgradeProfile; profile != nil {
+				if profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
+					upgradeChannel = string(*profile.UpgradeChannel)
+				}
+				if profile.NodeOSUpgradeChannel != nil {
+					nodeOSUpgradeChannel = string(*profile.NodeOSUpgradeChannel)
+				}
 			}
 			d.Set("automatic_channel_upgrade", upgradeChannel)
+			d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
 
 			enablePrivateCluster := false
 			enablePrivateClusterPublicFQDN := false
@@ -2311,7 +2388,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `linux_profile`: %+v", err)
 			}
 
-			networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile)
+			networkProfileRaw := d.Get("network_profile").([]interface{})
+			networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile, networkProfileRaw)
 			if err := d.Set("network_profile", networkProfile); err != nil {
 				return fmt.Errorf("setting `network_profile`: %+v", err)
 			}
@@ -2865,11 +2943,6 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		networkProfile.PodCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
-	if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
-		dockerBridgeCidr := v.(string)
-		networkProfile.DockerBridgeCidr = utils.String(dockerBridgeCidr)
-	}
-
 	if v, ok := config["service_cidr"]; ok && v.(string) != "" {
 		serviceCidr := v.(string)
 		networkProfile.ServiceCidr = utils.String(serviceCidr)
@@ -3004,7 +3077,7 @@ func resourceReferencesToIds(refs *[]managedclusters.ResourceReference) []string
 	return nil
 }
 
-func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile) []interface{} {
+func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile, raw []interface{}) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -3015,8 +3088,11 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	}
 
 	dockerBridgeCidr := ""
-	if profile.DockerBridgeCidr != nil {
-		dockerBridgeCidr = *profile.DockerBridgeCidr
+	if len(raw) != 0 && raw[0] != nil {
+		config := raw[0].(map[string]interface{})
+		if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
+			dockerBridgeCidr = v.(string)
+		}
 	}
 
 	serviceCidr := ""

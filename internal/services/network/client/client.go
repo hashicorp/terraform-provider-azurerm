@@ -3,7 +3,15 @@ package client
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/adminrulecollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/adminrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectivityconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagerconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/scopeconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityadminconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/staticmembers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
@@ -29,17 +37,15 @@ type Client struct {
 	InterfacesClient                         *network.InterfacesClient
 	IPGroupsClient                           *network.IPGroupsClient
 	LocalNetworkGatewaysClient               *network.LocalNetworkGatewaysClient
-	ManagersClient                           *network.ManagersClient
-	ManagerAdminRulesClient                  *network.AdminRulesClient
-	ManagerAdminRuleCollectionsClient        *network.AdminRuleCollectionsClient
-	ManagerDeploymentsClient                 *networkmanagers.NetworkManagersClient
-	ManagerConnectivityConfigurationsClient  *network.ConnectivityConfigurationsClient
-	ManagerManagementGroupConnectionsClient  *network.ManagementGroupNetworkManagerConnectionsClient
-	ManagerNetworkGroupsClient               *network.GroupsClient
-	ManagerScopeConnectionsClient            *network.ScopeConnectionsClient
-	ManagerSecurityAdminConfigurationsClient *network.SecurityAdminConfigurationsClient
-	ManagerStaticMembersClient               *network.StaticMembersClient
-	ManagerSubscriptionConnectionsClient     *network.SubscriptionNetworkManagerConnectionsClient
+	ManagersClient                           *networkmanagers.NetworkManagersClient
+	ManagerAdminRulesClient                  *adminrules.AdminRulesClient
+	ManagerAdminRuleCollectionsClient        *adminrulecollections.AdminRuleCollectionsClient
+	ManagerConnectivityConfigurationsClient  *connectivityconfigurations.ConnectivityConfigurationsClient
+	ManagerConnectionsClient                 *networkmanagerconnections.NetworkManagerConnectionsClient
+	ManagerNetworkGroupsClient               *networkgroups.NetworkGroupsClient
+	ManagerScopeConnectionsClient            *scopeconnections.ScopeConnectionsClient
+	ManagerSecurityAdminConfigurationsClient *securityadminconfigurations.SecurityAdminConfigurationsClient
+	ManagerStaticMembersClient               *staticmembers.StaticMembersClient
 	NatRuleClient                            *network.NatRulesClient
 	PointToSiteVpnGatewaysClient             *network.P2sVpnGatewaysClient
 	ProfileClient                            *network.ProfilesClient
@@ -141,44 +147,59 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
-	ManagersClient := network.NewManagersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagersClient.Client, o.ResourceManagerAuthorizer)
-
-	ManagerAdminRulesClient := network.NewAdminRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagerAdminRulesClient.Client, o.ResourceManagerAuthorizer)
-
-	ManagerAdminRuleCollectionsClient := network.NewAdminRuleCollectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagerAdminRuleCollectionsClient.Client, o.ResourceManagerAuthorizer)
-
-	ManagerConnectivityConfigurationsClient := network.NewConnectivityConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagerConnectivityConfigurationsClient.Client, o.ResourceManagerAuthorizer)
-
-	ManagerDeploymentsClient, err := networkmanagers.NewNetworkManagersClientWithBaseURI(o.Environment.ResourceManager)
+	ManagersClient, err := networkmanagers.NewNetworkManagersClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building deployment client: %+v", err)
+		return nil, fmt.Errorf("building network managers client: %+v", err)
 	}
-	o.Configure(ManagerDeploymentsClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(ManagersClient.Client, o.Authorizers.ResourceManager)
 
-	ManagerDeploymentStatusClient := network.NewManagerDeploymentStatusClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagerDeploymentStatusClient.Client, o.ResourceManagerAuthorizer)
+	ManagerAdminRulesClient, err := adminrules.NewAdminRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building network manager admin rules client: %+v", err)
+	}
+	o.Configure(ManagerAdminRulesClient.Client, o.Authorizers.ResourceManager)
 
-	ManagerScopeConnectionsClient := network.NewScopeConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagerScopeConnectionsClient.Client, o.ResourceManagerAuthorizer)
+	ManagerAdminRuleCollectionsClient, err := adminrulecollections.NewAdminRuleCollectionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building network manager admin rule collections client: %+v", err)
+	}
+	o.Configure(ManagerAdminRuleCollectionsClient.Client, o.Authorizers.ResourceManager)
 
-	ManagerSecurityAdminConfigurationsClient := network.NewSecurityAdminConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagerSecurityAdminConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+	ManagerConnectivityConfigurationsClient, err := connectivityconfigurations.NewConnectivityConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building network manager connectivity configurations client: %+v", err)
+	}
+	o.Configure(ManagerConnectivityConfigurationsClient.Client, o.Authorizers.ResourceManager)
 
-	ManagerManagementGroupConnectionsClient := network.NewManagementGroupNetworkManagerConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagerManagementGroupConnectionsClient.Client, o.ResourceManagerAuthorizer)
+	ManagerConnectionsClient, err := networkmanagerconnections.NewNetworkManagerConnectionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building network maanger connections client: %+v", err)
+	}
+	o.Configure(ManagerConnectionsClient.Client, o.Authorizers.ResourceManager)
 
-	ManagerNetworkGroupsClient := network.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagerNetworkGroupsClient.Client, o.ResourceManagerAuthorizer)
+	ManagerNetworkGroupsClient, err := networkgroups.NewNetworkGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building network manager network groups client: %+v", err)
+	}
+	o.Configure(ManagerNetworkGroupsClient.Client, o.Authorizers.ResourceManager)
 
-	ManagerStaticMembersClient := network.NewStaticMembersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagerStaticMembersClient.Client, o.ResourceManagerAuthorizer)
+	ManagerScopeConnectionsClient, err := scopeconnections.NewScopeConnectionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building network manager scope connections client: %+v", err)
+	}
+	o.Configure(ManagerScopeConnectionsClient.Client, o.Authorizers.ResourceManager)
 
-	ManagerSubscriptionConnectionsClient := network.NewSubscriptionNetworkManagerConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagerSubscriptionConnectionsClient.Client, o.ResourceManagerAuthorizer)
+	ManagerSecurityAdminConfigurationsClient, err := securityadminconfigurations.NewSecurityAdminConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building network manager security admin configurations client: %+v", err)
+	}
+	o.Configure(ManagerSecurityAdminConfigurationsClient.Client, o.Authorizers.ResourceManager)
+
+	ManagerStaticMembersClient, err := staticmembers.NewStaticMembersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building network manager static members client: %+v", err)
+	}
+	o.Configure(ManagerStaticMembersClient.Client, o.Authorizers.ResourceManager)
 
 	NatRuleClient := network.NewNatRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&NatRuleClient.Client, o.ResourceManagerAuthorizer)
@@ -315,17 +336,15 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		InterfacesClient:                         &InterfacesClient,
 		IPGroupsClient:                           &IpGroupsClient,
 		LocalNetworkGatewaysClient:               &LocalNetworkGatewaysClient,
-		ManagersClient:                           &ManagersClient,
-		ManagerAdminRulesClient:                  &ManagerAdminRulesClient,
-		ManagerAdminRuleCollectionsClient:        &ManagerAdminRuleCollectionsClient,
-		ManagerConnectivityConfigurationsClient:  &ManagerConnectivityConfigurationsClient,
-		ManagerDeploymentsClient:                 ManagerDeploymentsClient,
-		ManagerManagementGroupConnectionsClient:  &ManagerManagementGroupConnectionsClient,
-		ManagerNetworkGroupsClient:               &ManagerNetworkGroupsClient,
-		ManagerScopeConnectionsClient:            &ManagerScopeConnectionsClient,
-		ManagerSecurityAdminConfigurationsClient: &ManagerSecurityAdminConfigurationsClient,
-		ManagerStaticMembersClient:               &ManagerStaticMembersClient,
-		ManagerSubscriptionConnectionsClient:     &ManagerSubscriptionConnectionsClient,
+		ManagersClient:                           ManagersClient,
+		ManagerAdminRulesClient:                  ManagerAdminRulesClient,
+		ManagerAdminRuleCollectionsClient:        ManagerAdminRuleCollectionsClient,
+		ManagerConnectivityConfigurationsClient:  ManagerConnectivityConfigurationsClient,
+		ManagerConnectionsClient:                 ManagerConnectionsClient,
+		ManagerNetworkGroupsClient:               ManagerNetworkGroupsClient,
+		ManagerScopeConnectionsClient:            ManagerScopeConnectionsClient,
+		ManagerSecurityAdminConfigurationsClient: ManagerSecurityAdminConfigurationsClient,
+		ManagerStaticMembersClient:               ManagerStaticMembersClient,
 		NatRuleClient:                            &NatRuleClient,
 		PointToSiteVpnGatewaysClient:             &pointToSiteVpnGatewaysClient,
 		ProfileClient:                            &ProfileClient,

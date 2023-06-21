@@ -618,9 +618,13 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
+
+		avsDataStore := false
 		if props.AvsDataStore != nil {
-			d.Set("azure_vmware_data_store_enabled", strings.EqualFold(string(*props.AvsDataStore), string(volumes.AvsDataStoreEnabled)))
+			avsDataStore = strings.EqualFold(string(*props.AvsDataStore), string(volumes.AvsDataStoreEnabled))
 		}
+		d.Set("azure_vmware_data_store_enabled", avsDataStore)
+
 		if err := d.Set("export_policy_rule", flattenNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
 			return fmt.Errorf("setting `export_policy_rule`: %+v", err)
 		}
