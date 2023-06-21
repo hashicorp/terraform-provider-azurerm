@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -731,6 +732,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"node_os_channel_upgrade": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(managedclusters.NodeOSUpgradeChannelNodeImage),
+					string(managedclusters.NodeOSUpgradeChannelNone),
+					string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
+					string(managedclusters.NodeOSUpgradeChannelUnmanaged),
+				}, false),
 			},
 
 			"key_management_service": {
@@ -1459,6 +1471,21 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	autoUpgradeProfile := &managedclusters.ManagedClusterAutoUpgradeProfile{}
+	autoChannelUpgrade := d.Get("automatic_channel_upgrade").(string)
+	nodeOsChannelUpgrade := d.Get("node_os_channel_upgrade").(string)
+	if autoChannelUpgrade != "" {
+		if autoChannelUpgrade == string(managedclusters.UpgradeChannelNodeNegativeimage) && nodeOsChannelUpgrade != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
+			return fmt.Errorf("`node_os_channel_upgrade` cannot be set to a value other than `NodeImage` if `automatic_channel_upgrade` is set to `node-image`")
+		}
+		autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(autoChannelUpgrade))
+	} else {
+		autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannelNone)
+	}
+	if nodeOsChannelUpgrade != "" {
+		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
+	}
+
 	parameters := managedclusters.ManagedCluster{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
@@ -1467,41 +1494,30 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Tier: utils.ToPtr(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
-			ApiServerAccessProfile: apiAccessProfile,
-			AadProfile:             azureADProfile,
-			AddonProfiles:          addonProfiles,
-			AgentPoolProfiles:      agentProfiles,
-			AutoScalerProfile:      autoScalerProfile,
-			AzureMonitorProfile:    azureMonitorProfile,
-			DnsPrefix:              utils.String(dnsPrefix),
-			EnableRBAC:             utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
-			KubernetesVersion:      utils.String(kubernetesVersion),
-			LinuxProfile:           linuxProfile,
-			WindowsProfile:         windowsProfile,
-			NetworkProfile:         networkProfile,
-			NodeResourceGroup:      utils.String(nodeResourceGroup),
-			PublicNetworkAccess:    &publicNetworkAccess,
-			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
-			HTTPProxyConfig:        httpProxyConfig,
-			OidcIssuerProfile:      oidcIssuerProfile,
-			SecurityProfile:        securityProfile,
-
+			ApiServerAccessProfile:    apiAccessProfile,
+			AadProfile:                azureADProfile,
+			AddonProfiles:             addonProfiles,
+			AgentPoolProfiles:         agentProfiles,
+			AutoScalerProfile:         autoScalerProfile,
+			AutoUpgradeProfile:        autoUpgradeProfile,
+			AzureMonitorProfile:       azureMonitorProfile,
+			DnsPrefix:                 utils.String(dnsPrefix),
+			EnableRBAC:                utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
+			KubernetesVersion:         utils.String(kubernetesVersion),
+			LinuxProfile:              linuxProfile,
+			WindowsProfile:            windowsProfile,
+			NetworkProfile:            networkProfile,
+			NodeResourceGroup:         utils.String(nodeResourceGroup),
+			PublicNetworkAccess:       &publicNetworkAccess,
+			DisableLocalAccounts:      utils.Bool(d.Get("local_account_disabled").(bool)),
+			HTTPProxyConfig:           httpProxyConfig,
+			OidcIssuerProfile:         oidcIssuerProfile,
+			SecurityProfile:           securityProfile,
 			StorageProfile:            storageProfile,
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
 		Tags: tags.Expand(t),
 	}
-
-	if v := d.Get("automatic_channel_upgrade").(string); v != "" {
-		parameters.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{
-			UpgradeChannel: utils.ToPtr(managedclusters.UpgradeChannel(v)),
-		}
-	} else {
-		parameters.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{
-			UpgradeChannel: utils.ToPtr(managedclusters.UpgradeChannelNone),
-		}
-	}
-
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	kubernetesClusterIdentityRaw := d.Get("kubelet_identity").([]interface{})
 	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
@@ -1923,13 +1939,21 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if existing.Model.Properties.AutoUpgradeProfile == nil {
 			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
 		}
-
-		channel := managedclusters.UpgradeChannelNone
-		if v := d.Get("automatic_channel_upgrade").(string); v != "" {
-			channel = managedclusters.UpgradeChannel(v)
+		channel := d.Get("automatic_channel_upgrade").(string)
+		if channel == string(managedclusters.UpgradeChannelNodeNegativeimage) && d.Get("node_os_channel_upgrade").(string) != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
+			return fmt.Errorf("`node_os_channel_upgrade` must be set to `NodeImage` if `automatic_channel_upgrade` is set to `node-image`")
 		}
-
-		existing.Model.Properties.AutoUpgradeProfile.UpgradeChannel = &channel
+		if channel == "" {
+			channel = string(managedclusters.UpgradeChannelNone)
+		}
+		existing.Model.Properties.AutoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(channel))
+	}
+	if d.HasChange("node_os_channel_upgrade") {
+		updateCluster = true
+		if existing.Model.Properties.AutoUpgradeProfile == nil {
+			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
+		}
+		existing.Model.Properties.AutoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(d.Get("node_os_channel_upgrade").(string)))
 	}
 
 	if d.HasChange("http_proxy_config") {
@@ -2260,10 +2284,17 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("public_network_access_enabled", publicNetworkAccess != managedclusters.PublicNetworkAccessDisabled)
 
 			upgradeChannel := ""
-			if profile := props.AutoUpgradeProfile; profile != nil && profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
-				upgradeChannel = string(*profile.UpgradeChannel)
+			nodeOSUpgradeChannel := ""
+			if profile := props.AutoUpgradeProfile; profile != nil {
+				if profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
+					upgradeChannel = string(*profile.UpgradeChannel)
+				}
+				if profile.NodeOSUpgradeChannel != nil {
+					nodeOSUpgradeChannel = string(*profile.NodeOSUpgradeChannel)
+				}
 			}
 			d.Set("automatic_channel_upgrade", upgradeChannel)
+			d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
 
 			enablePrivateCluster := false
 			enablePrivateClusterPublicFQDN := false
