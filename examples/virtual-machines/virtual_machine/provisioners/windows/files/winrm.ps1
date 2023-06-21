@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 $profiles = Get-NetConnectionProfile
 Foreach ($i in $profiles) {
     Write-Host ("Updating Interface ID {0} to be Private.." -f $profiles.InterfaceIndex)

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) HashiCorp, Inc.
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 // specifies the default hour (UTC) at which tests should be triggered, if enabled
 var defaultStartHour = 0
 
