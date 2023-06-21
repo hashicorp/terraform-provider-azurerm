@@ -1,5 +1,9 @@
 ## 3.62.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_new_relic_monitor` [GH-21958]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230614.1151152` of `github.com/hashicorp/go-azure-sdk` [GH-22176]
