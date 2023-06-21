@@ -79,7 +79,7 @@ resource "azurerm_mobile_network_attached_data_network" "example" {
   user_plane_access_ipv4_gateway              = "10.204.141.1"
   user_plane_access_ipv4_subnet               = "10.204.141.0/24"
 
-  network_address_port_translation_configuration {
+  network_address_port_translation {
     pinhole_maximum_number = 65536
     pinhole_timeouts_in_seconds {
       icmp = 30
@@ -125,7 +125,7 @@ The following arguments are supported:
 
 * `dns_addresses` - (Required) Specifies the DNS servers to signal to UEs to use for this attached data network.
 
-* `network_address_port_translation_configuration` - (Optional) A `network_address_port_translation_configuration` block as defined below.
+* `network_address_port_translation` - (Optional) A `network_address_port_translation` block as defined below.
 
 * `user_equipment_address_pool_prefix` - (Optional) Specifies the user equipment (UE) address pool prefixes for the attached data network from which the packet core instance will dynamically assign IP addresses to UEs. The packet core instance assigns an IP address to a UE when the UE sets up a PDU session. At least one of `user_equipment_address_pool_prefix` and `user_equipment_static_address_pool_prefix`. If you define both, they must be of the same size.
 
@@ -137,7 +137,7 @@ The following arguments are supported:
 
 ---
 
-A `network_address_port_translation_configuration` block supports the following:
+A `network_address_port_translation` block supports the following:
 
 * `pinhole_limits` - (Optional) Maximum number of UDP and TCP pinholes that can be open simultaneously on the core interface. For 5G networks, this is the N6 interface. For 4G networks, this is the SGi interface. Must be between 1 and 65536.
 

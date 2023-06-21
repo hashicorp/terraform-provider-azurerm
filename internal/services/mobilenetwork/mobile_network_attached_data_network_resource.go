@@ -23,7 +23,7 @@ type AttachedDataNetworkModel struct {
 	MobileNetworkPacketCoreDataPlaneId   string                   `tfschema:"mobile_network_packet_core_data_plane_id"`
 	DnsAddresses                         []string                 `tfschema:"dns_addresses"`
 	Location                             string                   `tfschema:"location"`
-	NaptConfiguration                    []NaptConfigurationModel `tfschema:"network_address_port_translation_configuration"`
+	NaptConfiguration                    []NaptConfigurationModel `tfschema:"network_address_port_translation"`
 	Tags                                 map[string]string        `tfschema:"tags"`
 	UserEquipmentAddressPoolPrefix       []string                 `tfschema:"user_equipment_address_pool_prefixes"`
 	UserEquipmentStaticAddressPoolPrefix []string                 `tfschema:"user_equipment_static_address_pool_prefixes"`
@@ -99,7 +99,7 @@ func (r AttachedDataNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"network_address_port_translation_configuration": {
+		"network_address_port_translation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -350,7 +350,7 @@ func (r AttachedDataNetworkResource) Update() sdk.ResourceFunc {
 				attachedDataNetwork.Properties.DnsAddresses = plan.DnsAddresses
 			}
 
-			if metadata.ResourceData.HasChange("network_address_port_translation_configuration") {
+			if metadata.ResourceData.HasChange("network_address_port_translation") {
 				attachedDataNetwork.Properties.NaptConfiguration = expandNaptConfigurationModel(plan.NaptConfiguration)
 			}
 

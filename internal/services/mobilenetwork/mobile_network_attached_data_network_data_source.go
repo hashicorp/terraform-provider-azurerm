@@ -63,7 +63,7 @@ func (r AttachedDataNetworkDataSource) Attributes() map[string]*pluginsdk.Schema
 			},
 		},
 
-		"network_address_port_translation_configuration": {
+		"network_address_port_translation": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{

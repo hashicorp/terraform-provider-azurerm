@@ -42,7 +42,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `dns_addresses` - The DNS servers to signal to UEs to use for this attached data network.
 
-* `network_address_port_translation_configuration` - A `network_address_port_translation_configuration` block as defined below.
+* `network_address_port_translation` - A `network_address_port_translation` block as defined below.
 
 * `user_plane_access_name` - The logical name for thie user data plane interface.
 
@@ -60,7 +60,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `network_address_port_translation_configuration` block supports the following:
+A `network_address_port_translation` block supports the following:
 
 * `pinhole_limits` - Maximum number of UDP and TCP pinholes that can be open simultaneously on the core interface. For 5G networks, this is the N6 interface. For 4G networks, this is the SGi interface.
 

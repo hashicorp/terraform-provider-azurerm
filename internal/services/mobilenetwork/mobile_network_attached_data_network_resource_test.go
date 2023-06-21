@@ -199,7 +199,7 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   user_plane_access_ipv4_gateway              = "10.204.141.1"
   user_plane_access_ipv4_subnet               = "10.204.141.0/24"
 
-  network_address_port_translation_configuration {
+  network_address_port_translation {
     pinhole_maximum_number = 65536
 
     pinhole_timeouts_in_seconds {
@@ -244,7 +244,7 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   user_plane_access_ipv4_gateway              = "10.204.141.1"
   user_plane_access_ipv4_subnet               = "10.204.141.0/24"
 
-  network_address_port_translation_configuration {
+  network_address_port_translation {
     pinhole_maximum_number = 65536
     pinhole_timeouts_in_seconds {
       icmp = 30
