@@ -205,7 +205,7 @@ func TestAccKubernetesCluster_addAgent(t *testing.T) {
 			Config: r.addAgentConfig(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node5_pool.0.node_count").HasValue("1"),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("1"),
 			),
 		},
 		{
