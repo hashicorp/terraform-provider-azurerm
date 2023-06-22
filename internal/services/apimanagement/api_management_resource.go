@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -138,7 +138,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: networkValidate.SubnetID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 				},
 			},
@@ -190,7 +190,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 								"subnet_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: networkValidate.SubnetID,
+									ValidateFunc: commonids.ValidateSubnetID,
 								},
 							},
 						},
@@ -1809,7 +1809,7 @@ func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.Virtua
 	virtualNetworkConfiguration := make(map[string]interface{})
 
 	if input.SubnetResourceID != nil {
-		subnetId, err := networkParse.SubnetIDInsensitively(*input.SubnetResourceID)
+		subnetId, err := commonids.ParseSubnetIDInsensitively(*input.SubnetResourceID)
 		if err != nil {
 			return []interface{}{}, err
 		}

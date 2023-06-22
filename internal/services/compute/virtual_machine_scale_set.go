@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -665,7 +666,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				"subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: networkValidate.SubnetID,
+					ValidateFunc: commonids.ValidateSubnetID,
 				},
 
 				"version": {

@@ -1,4 +1,7 @@
-package managedclusters
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package commonids
 
 import (
 	"fmt"
@@ -7,37 +10,34 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+var _ resourceids.ResourceId = KubernetesClusterId{}
 
-var _ resourceids.ResourceId = ManagedClusterId{}
-
-// ManagedClusterId is a struct representing the Resource ID for a Managed Cluster
-type ManagedClusterId struct {
+// KubernetesClusterId is a struct representing the Resource ID for a Kubernetes Cluster
+type KubernetesClusterId struct {
 	SubscriptionId     string
 	ResourceGroupName  string
 	ManagedClusterName string
 }
 
-// NewManagedClusterID returns a new ManagedClusterId struct
-func NewManagedClusterID(subscriptionId string, resourceGroupName string, managedClusterName string) ManagedClusterId {
-	return ManagedClusterId{
+// NewKubernetesClusterID returns a new KubernetesClusterId struct
+func NewKubernetesClusterID(subscriptionId string, resourceGroupName string, managedClusterName string) KubernetesClusterId {
+	return KubernetesClusterId{
 		SubscriptionId:     subscriptionId,
 		ResourceGroupName:  resourceGroupName,
 		ManagedClusterName: managedClusterName,
 	}
 }
 
-// ParseManagedClusterID parses 'input' into a ManagedClusterId
-func ParseManagedClusterID(input string) (*ManagedClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedClusterId{})
+// ParseKubernetesClusterID parses 'input' into a KubernetesClusterId
+func ParseKubernetesClusterID(input string) (*KubernetesClusterId, error) {
+	parser := resourceids.NewParserFromResourceIdType(KubernetesClusterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := ManagedClusterId{}
+	id := KubernetesClusterId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
@@ -54,17 +54,17 @@ func ParseManagedClusterID(input string) (*ManagedClusterId, error) {
 	return &id, nil
 }
 
-// ParseManagedClusterIDInsensitively parses 'input' case-insensitively into a ManagedClusterId
+// ParseKubernetesClusterIdInsensitively parses 'input' case-insensitively into a KubernetesClusterId
 // note: this method should only be used for API response data and not user input
-func ParseManagedClusterIDInsensitively(input string) (*ManagedClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedClusterId{})
+func ParseKubernetesClusterIDInsensitively(input string) (*KubernetesClusterId, error) {
+	parser := resourceids.NewParserFromResourceIdType(KubernetesClusterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := ManagedClusterId{}
+	id := KubernetesClusterId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
@@ -81,29 +81,29 @@ func ParseManagedClusterIDInsensitively(input string) (*ManagedClusterId, error)
 	return &id, nil
 }
 
-// ValidateManagedClusterID checks that 'input' can be parsed as a Managed Cluster ID
-func ValidateManagedClusterID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateKubernetesClusterID checks that 'input' can be parsed as a Kubernetes Cluster ID
+func ValidateKubernetesClusterID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseManagedClusterID(v); err != nil {
+	if _, err := ParseKubernetesClusterID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Managed Cluster ID
-func (id ManagedClusterId) ID() string {
+// ID returns the formatted Kubernetes Cluster ID
+func (id KubernetesClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusters/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Managed Cluster ID
-func (id ManagedClusterId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Kubernetes Cluster ID
+func (id KubernetesClusterId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -116,12 +116,12 @@ func (id ManagedClusterId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Managed Cluster ID
-func (id ManagedClusterId) String() string {
+// String returns a human-readable description of this Kubernetes Cluster ID
+func (id KubernetesClusterId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Managed Cluster Name: %q", id.ManagedClusterName),
+		fmt.Sprintf("Kubernetes Cluster Name: %q", id.ManagedClusterName),
 	}
-	return fmt.Sprintf("Managed Cluster (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Kubernetes Cluster (%s)", strings.Join(components, "\n"))
 }

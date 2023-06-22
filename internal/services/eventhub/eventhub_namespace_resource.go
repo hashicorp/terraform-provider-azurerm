@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -24,8 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -161,7 +160,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
-										ValidateFunc:     networkValidate.SubnetID,
+										ValidateFunc:     commonids.ValidateSubnetID,
 										DiffSuppressFunc: suppress.CaseDifference,
 									},
 
@@ -702,7 +701,7 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 					// the API returns the subnet ID's resource group name in lowercase
 					// https://github.com/Azure/azure-sdk-for-go/issues/5855
 					// for some reason the DiffSuppressFunc for `subnet_id` isn't working as intended, so we'll also flatten the id insensitively
-					subnetId, err := parse.SubnetIDInsensitively(*v)
+					subnetId, err := commonids.ParseSubnetIDInsensitively(*v)
 					if err != nil {
 						return nil, fmt.Errorf("parsing `subnet_id`: %+v", err)
 					}

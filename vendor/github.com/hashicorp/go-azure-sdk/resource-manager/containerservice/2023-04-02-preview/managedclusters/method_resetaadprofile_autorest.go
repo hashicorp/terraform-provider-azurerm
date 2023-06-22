@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type ResetAADProfileOperationResponse struct {
 }
 
 // ResetAADProfile ...
-func (c ManagedClustersClient) ResetAADProfile(ctx context.Context, id ManagedClusterId, input ManagedClusterAADProfile) (result ResetAADProfileOperationResponse, err error) {
+func (c ManagedClustersClient) ResetAADProfile(ctx context.Context, id commonids.KubernetesClusterId, input ManagedClusterAADProfile) (result ResetAADProfileOperationResponse, err error) {
 	req, err := c.preparerForResetAADProfile(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedclusters.ManagedClustersClient", "ResetAADProfile", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ManagedClustersClient) ResetAADProfile(ctx context.Context, id ManagedCl
 }
 
 // ResetAADProfileThenPoll performs ResetAADProfile then polls until it's completed
-func (c ManagedClustersClient) ResetAADProfileThenPoll(ctx context.Context, id ManagedClusterId, input ManagedClusterAADProfile) error {
+func (c ManagedClustersClient) ResetAADProfileThenPoll(ctx context.Context, id commonids.KubernetesClusterId, input ManagedClusterAADProfile) error {
 	result, err := c.ResetAADProfile(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ResetAADProfile: %+v", err)
@@ -50,7 +51,7 @@ func (c ManagedClustersClient) ResetAADProfileThenPoll(ctx context.Context, id M
 }
 
 // preparerForResetAADProfile prepares the ResetAADProfile request.
-func (c ManagedClustersClient) preparerForResetAADProfile(ctx context.Context, id ManagedClusterId, input ManagedClusterAADProfile) (*http.Request, error) {
+func (c ManagedClustersClient) preparerForResetAADProfile(ctx context.Context, id commonids.KubernetesClusterId, input ManagedClusterAADProfile) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

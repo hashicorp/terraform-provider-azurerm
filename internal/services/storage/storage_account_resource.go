@@ -27,7 +27,6 @@ import (
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	vnetParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -2269,7 +2268,7 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 						continue
 					}
 
-					id, err2 := vnetParse.SubnetID(*v.VirtualNetworkResourceID)
+					id, err2 := commonids.ParseSubnetID(*v.VirtualNetworkResourceID)
 					if err2 != nil {
 						return err2
 					}

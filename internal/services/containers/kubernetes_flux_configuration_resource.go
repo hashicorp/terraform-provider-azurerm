@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -134,7 +134,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: managedclusters.ValidateManagedClusterID,
+			ValidateFunc: commonids.ValidateKubernetesClusterID,
 		},
 
 		"kustomizations": {
@@ -530,7 +530,7 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Containers.KubernetesFluxConfigurationClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			clusterID, err := managedclusters.ParseManagedClusterID(model.ClusterID)
+			clusterID, err := commonids.ParseKubernetesClusterID(model.ClusterID)
 			if err != nil {
 				return err
 			}
@@ -699,7 +699,7 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 
 			state := KubernetesFluxConfigurationModel{
 				Name:      id.FluxConfigurationName,
-				ClusterID: managedclusters.NewManagedClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
+				ClusterID: commonids.NewKubernetesClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
 			}
 
 			if model := resp.Model; model != nil {

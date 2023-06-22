@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -38,7 +39,7 @@ func (r RoleBindingsListOperationResponse) LoadMore(ctx context.Context) (resp R
 }
 
 // RoleBindingsList ...
-func (c TrustedAccessClient) RoleBindingsList(ctx context.Context, id ManagedClusterId) (resp RoleBindingsListOperationResponse, err error) {
+func (c TrustedAccessClient) RoleBindingsList(ctx context.Context, id commonids.KubernetesClusterId) (resp RoleBindingsListOperationResponse, err error) {
 	req, err := c.preparerForRoleBindingsList(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trustedaccess.TrustedAccessClient", "RoleBindingsList", nil, "Failure preparing request")
@@ -60,7 +61,7 @@ func (c TrustedAccessClient) RoleBindingsList(ctx context.Context, id ManagedClu
 }
 
 // preparerForRoleBindingsList prepares the RoleBindingsList request.
-func (c TrustedAccessClient) preparerForRoleBindingsList(ctx context.Context, id ManagedClusterId) (*http.Request, error) {
+func (c TrustedAccessClient) preparerForRoleBindingsList(ctx context.Context, id commonids.KubernetesClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -142,12 +143,12 @@ func (c TrustedAccessClient) responderForRoleBindingsList(resp *http.Response) (
 }
 
 // RoleBindingsListComplete retrieves all of the results into a single object
-func (c TrustedAccessClient) RoleBindingsListComplete(ctx context.Context, id ManagedClusterId) (RoleBindingsListCompleteResult, error) {
+func (c TrustedAccessClient) RoleBindingsListComplete(ctx context.Context, id commonids.KubernetesClusterId) (RoleBindingsListCompleteResult, error) {
 	return c.RoleBindingsListCompleteMatchingPredicate(ctx, id, TrustedAccessRoleBindingOperationPredicate{})
 }
 
 // RoleBindingsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c TrustedAccessClient) RoleBindingsListCompleteMatchingPredicate(ctx context.Context, id ManagedClusterId, predicate TrustedAccessRoleBindingOperationPredicate) (resp RoleBindingsListCompleteResult, err error) {
+func (c TrustedAccessClient) RoleBindingsListCompleteMatchingPredicate(ctx context.Context, id commonids.KubernetesClusterId, predicate TrustedAccessRoleBindingOperationPredicate) (resp RoleBindingsListCompleteResult, err error) {
 	items := make([]TrustedAccessRoleBinding, 0)
 
 	page, err := c.RoleBindingsList(ctx, id)

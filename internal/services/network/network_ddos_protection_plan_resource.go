@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -205,13 +206,13 @@ func expandNetworkDDoSProtectionPlanVnetNames(d *pluginsdk.ResourceData) (*[]str
 	vnetNames := make([]string, 0)
 
 	for _, vnetID := range vnetIDs {
-		vnetResourceID, err := parse.VirtualNetworkID(vnetID.(string))
+		vnetResourceID, err := commonids.ParseVirtualNetworkID(vnetID.(string))
 		if err != nil {
 			return nil, err
 		}
 
-		if !utils.SliceContainsValue(vnetNames, vnetResourceID.Name) {
-			vnetNames = append(vnetNames, vnetResourceID.Name)
+		if !utils.SliceContainsValue(vnetNames, vnetResourceID.VirtualNetworkName) {
+			vnetNames = append(vnetNames, vnetResourceID.VirtualNetworkName)
 		}
 	}
 
@@ -239,13 +240,13 @@ func extractVnetNames(d *pluginsdk.ResourceData) (*[]string, error) {
 	vnetNames := make([]string, 0)
 
 	for _, vnetID := range vnetIDs {
-		vnetResourceID, err := parse.VirtualNetworkID(vnetID.(string))
+		vnetResourceID, err := commonids.ParseVirtualNetworkID(vnetID.(string))
 		if err != nil {
 			return nil, err
 		}
 
-		if !utils.SliceContainsValue(vnetNames, vnetResourceID.Name) {
-			vnetNames = append(vnetNames, vnetResourceID.Name)
+		if !utils.SliceContainsValue(vnetNames, vnetResourceID.VirtualNetworkName) {
+			vnetNames = append(vnetNames, vnetResourceID.VirtualNetworkName)
 		}
 	}
 
