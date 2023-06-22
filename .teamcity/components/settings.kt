@@ -5,7 +5,7 @@ var defaultStartHour = 0
 var defaultParallelism = 20
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.1.5"
+var defaultTerraformCoreVersion = "1.5.1"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -50,7 +50,7 @@ var serviceTestConfigurationOverrides = mapOf(
         // Cosmos is only available in certain locations
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
 
-        //Confidential Ledger
+        // Confidential Ledger
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
@@ -70,9 +70,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // data factory uses NC class VMs which are not available in eastus2
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false), useDevTestSubscription = true),
-
-        // Data Lake has a low quota
-        "datalake" to testConfiguration(parallelism = 2, useDevTestSubscription = true),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
