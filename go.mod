@@ -15,8 +15,8 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.1.2
-	github.com/hashicorp/go-azure-helpers v0.56.0
-	github.com/hashicorp/go-azure-sdk v0.20230614.1151152
+	github.com/hashicorp/go-azure-helpers v0.57.0
+	github.com/hashicorp/go-azure-sdk v0.20230622.1085613
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.6.0
@@ -84,4 +84,4 @@ require (
 	software.sslmate.com/src/go-pkcs12 v0.2.0 // indirect
 )
 
-go 1.19
+go 1.20

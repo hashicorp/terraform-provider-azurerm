@@ -35,7 +35,6 @@ import (
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -52,7 +51,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		Delete: resourceKubernetesClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := managedclusters.ParseManagedClusterID(id)
+			_, err := commonids.ParseKubernetesClusterID(id)
 			return err
 		}),
 
@@ -134,7 +133,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: networkValidate.SubnetID,
+							ValidateFunc: commonids.ValidateSubnetID,
 						},
 
 						"authorized_ip_ranges": {
@@ -1335,7 +1334,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
 
-	id := managedclusters.NewManagedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewKubernetesClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -1610,7 +1609,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedclusters.ParseManagedClusterID(d.Id())
+	id, err := commonids.ParseKubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -2220,7 +2219,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedclusters.ParseManagedClusterID(d.Id())
+	id, err := commonids.ParseKubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -2520,7 +2519,7 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedclusters.ParseManagedClusterID(d.Id())
+	id, err := commonids.ParseKubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}

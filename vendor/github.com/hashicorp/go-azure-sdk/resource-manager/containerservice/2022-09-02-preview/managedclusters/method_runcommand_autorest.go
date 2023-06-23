@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type RunCommandOperationResponse struct {
 }
 
 // RunCommand ...
-func (c ManagedClustersClient) RunCommand(ctx context.Context, id ManagedClusterId, input RunCommandRequest) (result RunCommandOperationResponse, err error) {
+func (c ManagedClustersClient) RunCommand(ctx context.Context, id commonids.KubernetesClusterId, input RunCommandRequest) (result RunCommandOperationResponse, err error) {
 	req, err := c.preparerForRunCommand(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedclusters.ManagedClustersClient", "RunCommand", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ManagedClustersClient) RunCommand(ctx context.Context, id ManagedCluster
 }
 
 // RunCommandThenPoll performs RunCommand then polls until it's completed
-func (c ManagedClustersClient) RunCommandThenPoll(ctx context.Context, id ManagedClusterId, input RunCommandRequest) error {
+func (c ManagedClustersClient) RunCommandThenPoll(ctx context.Context, id commonids.KubernetesClusterId, input RunCommandRequest) error {
 	result, err := c.RunCommand(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RunCommand: %+v", err)
@@ -50,7 +51,7 @@ func (c ManagedClustersClient) RunCommandThenPoll(ctx context.Context, id Manage
 }
 
 // preparerForRunCommand prepares the RunCommand request.
-func (c ManagedClustersClient) preparerForRunCommand(ctx context.Context, id ManagedClusterId, input RunCommandRequest) (*http.Request, error) {
+func (c ManagedClustersClient) preparerForRunCommand(ctx context.Context, id commonids.KubernetesClusterId, input RunCommandRequest) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

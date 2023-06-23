@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -23,8 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -126,7 +125,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"private_static_ip_address": {
@@ -433,7 +432,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("subnet_id"); ok {
-		parsed, parseErr := networkParse.SubnetID(v.(string))
+		parsed, parseErr := commonids.ParseSubnetID(v.(string))
 		if parseErr != nil {
 			return err
 		}
@@ -441,8 +440,8 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		locks.ByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
 		defer locks.UnlockByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
 
-		locks.ByName(parsed.Name, network.SubnetResourceName)
-		defer locks.UnlockByName(parsed.Name, network.SubnetResourceName)
+		locks.ByName(parsed.SubnetName, network.SubnetResourceName)
+		defer locks.UnlockByName(parsed.SubnetName, network.SubnetResourceName)
 
 		parameters.Properties.SubnetId = utils.String(v.(string))
 	}
@@ -689,7 +688,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		subnetId := ""
 		if props.SubnetId != nil {
-			parsed, err := networkParse.SubnetIDInsensitively(*props.SubnetId)
+			parsed, err := commonids.ParseSubnetIDInsensitively(*props.SubnetId)
 			if err != nil {
 				return err
 			}
@@ -748,7 +747,7 @@ func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: `model` was nil", *id)
 	}
 	if subnetID := read.Model.Properties.SubnetId; subnetID != nil {
-		parsed, parseErr := networkParse.SubnetIDInsensitively(*subnetID)
+		parsed, parseErr := commonids.ParseSubnetIDInsensitively(*subnetID)
 		if parseErr != nil {
 			return err
 		}
@@ -756,8 +755,8 @@ func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		locks.ByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
 		defer locks.UnlockByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
 
-		locks.ByName(parsed.Name, network.SubnetResourceName)
-		defer locks.UnlockByName(parsed.Name, network.SubnetResourceName)
+		locks.ByName(parsed.SubnetName, network.SubnetResourceName)
+		defer locks.UnlockByName(parsed.SubnetName, network.SubnetResourceName)
 	}
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {

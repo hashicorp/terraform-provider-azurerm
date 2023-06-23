@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type SubnetServiceAssociationLinkDeleteOperationResponse struct {
 }
 
 // SubnetServiceAssociationLinkDelete ...
-func (c ContainerInstanceClient) SubnetServiceAssociationLinkDelete(ctx context.Context, id SubnetId) (result SubnetServiceAssociationLinkDeleteOperationResponse, err error) {
+func (c ContainerInstanceClient) SubnetServiceAssociationLinkDelete(ctx context.Context, id commonids.SubnetId) (result SubnetServiceAssociationLinkDeleteOperationResponse, err error) {
 	req, err := c.preparerForSubnetServiceAssociationLinkDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.ContainerInstanceClient", "SubnetServiceAssociationLinkDelete", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ContainerInstanceClient) SubnetServiceAssociationLinkDelete(ctx context.
 }
 
 // SubnetServiceAssociationLinkDeleteThenPoll performs SubnetServiceAssociationLinkDelete then polls until it's completed
-func (c ContainerInstanceClient) SubnetServiceAssociationLinkDeleteThenPoll(ctx context.Context, id SubnetId) error {
+func (c ContainerInstanceClient) SubnetServiceAssociationLinkDeleteThenPoll(ctx context.Context, id commonids.SubnetId) error {
 	result, err := c.SubnetServiceAssociationLinkDelete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing SubnetServiceAssociationLinkDelete: %+v", err)
@@ -50,7 +51,7 @@ func (c ContainerInstanceClient) SubnetServiceAssociationLinkDeleteThenPoll(ctx 
 }
 
 // preparerForSubnetServiceAssociationLinkDelete prepares the SubnetServiceAssociationLinkDelete request.
-func (c ContainerInstanceClient) preparerForSubnetServiceAssociationLinkDelete(ctx context.Context, id SubnetId) (*http.Request, error) {
+func (c ContainerInstanceClient) preparerForSubnetServiceAssociationLinkDelete(ctx context.Context, id commonids.SubnetId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
