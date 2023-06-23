@@ -10,15 +10,14 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AgreementProperties struct {
-	Accepted             *bool   `json:"accepted,omitempty"`
-	LicenseTextLink      *string `json:"licenseTextLink,omitempty"`
-	MarketplaceTermsLink *string `json:"marketplaceTermsLink,omitempty"`
-	Plan                 *string `json:"plan,omitempty"`
-	PrivacyPolicyLink    *string `json:"privacyPolicyLink,omitempty"`
-	Product              *string `json:"product,omitempty"`
-	Publisher            *string `json:"publisher,omitempty"`
-	RetrieveDatetime     *string `json:"retrieveDatetime,omitempty"`
-	Signature            *string `json:"signature,omitempty"`
+	Accepted          *bool   `json:"accepted,omitempty"`
+	LicenseTextLink   *string `json:"licenseTextLink,omitempty"`
+	Plan              *string `json:"plan,omitempty"`
+	PrivacyPolicyLink *string `json:"privacyPolicyLink,omitempty"`
+	Product           *string `json:"product,omitempty"`
+	Publisher         *string `json:"publisher,omitempty"`
+	RetrieveDatetime  *string `json:"retrieveDatetime,omitempty"`
+	Signature         *string `json:"signature,omitempty"`
 }
 
 func (o *AgreementProperties) GetRetrieveDatetimeAsTime() (*time.Time, error) {
