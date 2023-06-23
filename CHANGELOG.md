@@ -1,3 +1,10 @@
+## 3.62.1 (Unreleased)
+
+BUG FIXES:
+
+* dependencies: `compute/marketplace_agreement` - Downgrade API version to `2015-06-01` [GH-22264]
+
+
 ## 3.62.0 (June 22, 2023)
 
 FEATURES:
