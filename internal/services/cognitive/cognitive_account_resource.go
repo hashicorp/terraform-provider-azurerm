@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -22,7 +23,6 @@ import (
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -345,7 +345,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err := networkParse.SubnetIDInsensitively(v)
+		id, err := commonids.ParseSubnetIDInsensitively(v)
 		if err != nil {
 			return err
 		}
@@ -432,7 +432,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err := networkParse.SubnetIDInsensitively(v)
+		id, err := commonids.ParseSubnetIDInsensitively(v)
 		if err != nil {
 			return err
 		}
@@ -807,7 +807,7 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 	if input.VirtualNetworkRules != nil {
 		for _, v := range *input.VirtualNetworkRules {
 			id := v.Id
-			subnetId, err := networkParse.SubnetIDInsensitively(v.Id)
+			subnetId, err := commonids.ParseSubnetIDInsensitively(v.Id)
 			if err == nil {
 				id = subnetId.ID()
 			}

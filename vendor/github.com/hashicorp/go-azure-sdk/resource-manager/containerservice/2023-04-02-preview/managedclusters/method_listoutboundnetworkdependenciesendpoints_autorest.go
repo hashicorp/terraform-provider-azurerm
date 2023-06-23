@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -38,7 +39,7 @@ func (r ListOutboundNetworkDependenciesEndpointsOperationResponse) LoadMore(ctx 
 }
 
 // ListOutboundNetworkDependenciesEndpoints ...
-func (c ManagedClustersClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Context, id ManagedClusterId) (resp ListOutboundNetworkDependenciesEndpointsOperationResponse, err error) {
+func (c ManagedClustersClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Context, id commonids.KubernetesClusterId) (resp ListOutboundNetworkDependenciesEndpointsOperationResponse, err error) {
 	req, err := c.preparerForListOutboundNetworkDependenciesEndpoints(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedclusters.ManagedClustersClient", "ListOutboundNetworkDependenciesEndpoints", nil, "Failure preparing request")
@@ -60,7 +61,7 @@ func (c ManagedClustersClient) ListOutboundNetworkDependenciesEndpoints(ctx cont
 }
 
 // preparerForListOutboundNetworkDependenciesEndpoints prepares the ListOutboundNetworkDependenciesEndpoints request.
-func (c ManagedClustersClient) preparerForListOutboundNetworkDependenciesEndpoints(ctx context.Context, id ManagedClusterId) (*http.Request, error) {
+func (c ManagedClustersClient) preparerForListOutboundNetworkDependenciesEndpoints(ctx context.Context, id commonids.KubernetesClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -142,12 +143,12 @@ func (c ManagedClustersClient) responderForListOutboundNetworkDependenciesEndpoi
 }
 
 // ListOutboundNetworkDependenciesEndpointsComplete retrieves all of the results into a single object
-func (c ManagedClustersClient) ListOutboundNetworkDependenciesEndpointsComplete(ctx context.Context, id ManagedClusterId) (ListOutboundNetworkDependenciesEndpointsCompleteResult, error) {
+func (c ManagedClustersClient) ListOutboundNetworkDependenciesEndpointsComplete(ctx context.Context, id commonids.KubernetesClusterId) (ListOutboundNetworkDependenciesEndpointsCompleteResult, error) {
 	return c.ListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate(ctx, id, OutboundEnvironmentEndpointOperationPredicate{})
 }
 
 // ListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ManagedClustersClient) ListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate(ctx context.Context, id ManagedClusterId, predicate OutboundEnvironmentEndpointOperationPredicate) (resp ListOutboundNetworkDependenciesEndpointsCompleteResult, err error) {
+func (c ManagedClustersClient) ListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate(ctx context.Context, id commonids.KubernetesClusterId, predicate OutboundEnvironmentEndpointOperationPredicate) (resp ListOutboundNetworkDependenciesEndpointsCompleteResult, err error) {
 	items := make([]OutboundEnvironmentEndpoint, 0)
 
 	page, err := c.ListOutboundNetworkDependenciesEndpoints(ctx, id)
