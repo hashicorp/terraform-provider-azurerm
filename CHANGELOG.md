@@ -1,3 +1,10 @@
+## 3.63.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230622.1085613` of `github.com/hashicorp/go-azure-sdk` [GH-22247]
+* dependencies: updating to `v0.57.0` of `github.com/hashicorp/go-azure-helpers` [GH-22247]
+
 ## 3.62.0 (June 22, 2023)
 
 FEATURES:
