@@ -1786,7 +1786,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
-			return fmt.Errorf("creating/updating aksManagedAutoUpgradeSchedule maintenance config for %s: %+v", id, err)
+			return fmt.Errorf("creating/updating auto upgrade schedule maintenance config for %s: %+v", id, err)
 		}
 	}
 
@@ -1797,7 +1797,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
-			return fmt.Errorf("creating/updating aksManagedNodeOSUpgradeSchedule maintenance config for %s: %+v", id, err)
+			return fmt.Errorf("creating/updating node os upgrade schedule maintenance config for %s: %+v", id, err)
 		}
 	}
 
@@ -2417,7 +2417,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		} else {
 			if _, err := client.Delete(ctx, maintenanceId); err != nil {
-				return fmt.Errorf("deleting Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+				return fmt.Errorf("deleting Maintenance Configuration for %s: %+v", id, err)
 			}
 		}
 	}
@@ -2431,11 +2431,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				Properties: maintenanceWindowProperties,
 			}
 			if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
-				return fmt.Errorf("creating/updating aksManagedAutoUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+				return fmt.Errorf("creating/updating Auto Upgrade Schedule Maintenance Configuration for %s: %+v", id, err)
 			}
 		} else {
 			if _, err := client.Delete(ctx, maintenanceId); err != nil {
-				return fmt.Errorf("deleting aksManagedAutoUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+				return fmt.Errorf("deleting Auto Upgrade Schedule Maintenance Configuration for %s: %+v", id, err)
 			}
 		}
 	}
@@ -2449,11 +2449,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				Properties: maintenanceWindowProperties,
 			}
 			if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
-				return fmt.Errorf("creating/updating aksManagedNodeOSUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+				return fmt.Errorf("creating/updating Node OS Upgrade Schedule Maintenance Configuration for %s: %+v", id, err)
 			}
 		} else {
 			if _, err := client.Delete(ctx, maintenanceId); err != nil {
-				return fmt.Errorf("deleting aksManagedNodeOSUpgradeSchedule Maintenance Configuration for Managed Kubernetes Cluster (%q): %+v", id, err)
+				return fmt.Errorf("deleting Node OS Upgrade Schedule Maintenance Configuration for %s: %+v", id, err)
 			}
 		}
 	}
