@@ -584,7 +584,7 @@ A `maintenance_window_auto_upgrade` block supports the following:
 
 * `duration` - (Required) The duration of the window for maintenance to run in hours.
 
-* `day_of_week` - (Optional) The day of the week for the maintenance run. Options are `Monday`, `Tuesday`, `Wednesday`, `Thurday`, `Friday`, `Saterday` and `Sunday`. Required in combination with weekly frequency.
+* `day_of_week` - (Optional) The day of the week for the maintenance run. Options are `Monday`, `Tuesday`, `Wednesday`, `Thurday`, `Friday`, `Saturday` and `Sunday`. Required in combination with weekly frequency.
 
 * `week_index` - (Optional) The week in the month used for the maintenance run. Options are `First`, `Second`, `Third`, `Fourth`, and `Last`.
  Required in combination with relative monthly frequency.
@@ -607,7 +607,7 @@ A `maintenance_window_node_os` block supports the following:
 
 * `duration` - (Required) The duration of the window for maintenance to run in hours.
 
-* `day_of_week` - (Optional) The day of the week for the maintenance run. Options are `Monday`, `Tuesday`, `Wednesday`, `Thurday`, `Friday`, `Saterday` and `Sunday`. Required in combination with weekly frequency.
+* `day_of_week` - (Optional) The day of the week for the maintenance run. Options are `Monday`, `Tuesday`, `Wednesday`, `Thurday`, `Friday`, `Saturday` and `Sunday`. Required in combination with weekly frequency.
 
 * `week_index` - (Optional) The week in the month used for the maintenance run. Options are `First`, `Second`, `Third`, `Fourth`, and `Last`.
 
