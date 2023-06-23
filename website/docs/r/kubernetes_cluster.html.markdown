@@ -141,6 +141,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
+* `maintenance_window_auto_upgrade` - (Optional) A `maintenance_window_auto_upgrade` block as defined below.
+
+* `maintenance_window_node_os` - (Optional) A `maintenance_window_node_os` block as defined below.
+
 * `microsoft_defender` - (Optional) A `microsoft_defender` block as defined below.
 
 * `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
@@ -567,6 +571,51 @@ A `linux_profile` block supports the following:
 A `maintenance_window` block supports the following:
 
 * `allowed` - (Optional) One or more `allowed` blocks as defined below.
+
+* `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
+
+---
+
+A `maintenance_window_auto_upgrade` block supports the following:
+
+* `frequency` - (Required) Frequency of maintenance. Possible options are `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
+
+* `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
+
+* `duration` - (Required) The duration of the window for maintenance to run in hours.
+
+* `day_of_week` - (Optional) The day of the week for the maintenance run. Options are `Monday`, `Tuesday`, `Wednesday`, `Thurday`, `Friday`, `Saterday` and `Sunday`. Required in combination with weekly frequency.
+
+* `week_index` - (Optional) The week in the month used for the maintenance run. Options are `First`, `Second`, `Third`, `Fourth`, and `Last`.
+ Required in combination with relative monthly frequency.
+
+* `start_time` - (Optional) The time for maintenance to begin, based on the timezone determined by `utc_offset`. Format is `HH:mm`.
+
+* `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
+
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect. 
+
+* `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
+
+---
+
+A `maintenance_window_node_os` block supports the following:
+
+* `frequency` - (Required) Frequency of maintenance. Possible options are `Daily`, `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
+
+* `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
+
+* `duration` - (Required) The duration of the window for maintenance to run in hours.
+
+* `day_of_week` - (Optional) The day of the week for the maintenance run. Options are `Monday`, `Tuesday`, `Wednesday`, `Thurday`, `Friday`, `Saterday` and `Sunday`. Required in combination with weekly frequency.
+
+* `week_index` - (Optional) The week in the month used for the maintenance run. Options are `First`, `Second`, `Third`, `Fourth`, and `Last`.
+
+* `start_time` - (Optional) The time for maintenance to begin, based on the timezone determined by `utc_offset`. Format is `HH:mm`.
+
+* `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
+
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect. 
 
 * `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
 
