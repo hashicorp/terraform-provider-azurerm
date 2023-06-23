@@ -11,20 +11,20 @@ ENHANCEMENTS:
 * dependencies: `network/manager` - swap to use `hashicorp/go-azure-sdk` [GH-22119]
 * dependencies: `network/route` - swap to use `hashicorp/go-azure-sdk` [GH-22227]
 * `azurerm_cosmosdb_gremlin_graph` - support for the `analytical_storage_ttl` property [GH-22179]
-* `azurerm_kubernetes_cluster` - add support for the value `AzureLinux` for the field `os_sku` within the `default_node_pool` block [GH-22139]
-* `azurerm_kubernetes_cluster` - add support for the property `node_os_channel_upgrade` [GH-22187]
-* `azurerm_kubernetes_cluster_node_pool` - add support for the value `AzureLinux` for the field `os_sku` [GH-22139]
-* `azurerm_monitor_workspace` - add support for `public_network_access_enabled` [GH-22197]
-* `azurerm_virtual_hub` - add support for `virtual_router_auto_scale_min_capacity` [GH-21614]
+* `azurerm_kubernetes_cluster` - support for the value `AzureLinux` for the field `os_sku` within the `default_node_pool` block [GH-22139]
+* `azurerm_kubernetes_cluster` - support for the property `node_os_channel_upgrade` [GH-22187]
+* `azurerm_kubernetes_cluster_node_pool` - support for the value `AzureLinux` for the field `os_sku` [GH-22139]
+* `azurerm_monitor_workspace` - support for `public_network_access_enabled` [GH-22197]
+* `azurerm_virtual_hub` - support for `virtual_router_auto_scale_min_capacity` [GH-21614]
 
 BUG FIXES:
 
-* `azurerm_application_insights_workbook` - `display_name` can now be correctly updated [GH-22148]
-* `azurerm_bastion_host` - fix validation to set ForceNew when the `sku` is downgraded [GH-22147]
-* `azurerm_container_app` - fix bug in Container Volume preventing use of `EmptyDir` [GH-22196]
-* `azurerm_kubernetes_cluster` - fix validation preventing cluster's with `network_plugin_mode` set to `Overlay` due to a case change in the upstream API [GH-22153]
+* `azurerm_application_insights_workbook` - the `display_name` property can now be updated [GH-22148]
+* `azurerm_bastion_host` - will now create a new resource when the `sku` property is downgraded [GH-22147]
+* `azurerm_container_app` - the `EmptyDir` property now functions [GH-22196]
+* `azurerm_kubernetes_cluster` - fix the validation preventing cluster's with `network_plugin_mode` set to `Overlay` due to a case change in the upstream API [GH-22153]
 * `azurerm_resource_deployment_script_*` - fix issue where `identity` wasn't specified but was being sent as `TypeNone` to the api [GH-22165]
-* `azurerm_bastion_host` - `ip_configuration` is Required [GH-22154]
+* `azurerm_bastion_host` - the `ip_configuration` propery is now required [GH-22154]
 
 ## 3.61.0 (June 12, 2023)
 
