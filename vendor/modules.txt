@@ -425,7 +425,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/virtualnetworkrules
-github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements
+github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accountfilters
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accounts

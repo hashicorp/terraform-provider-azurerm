@@ -16,7 +16,7 @@ import (
 type MarketplaceAgreementsListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *OldAgreementTermsList
+	Model        *AgreementTermsList
 }
 
 // MarketplaceAgreementsList ...
