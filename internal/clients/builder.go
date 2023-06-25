@@ -129,7 +129,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		TerraformVersion: builder.TerraformVersion,
 
 		BatchManagementAuthorizer: authWrapper.AutorestAuthorizer(batchManagementAuth),
-		KeyVaultAuthorizer:        authWrapper.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
+		KeyVaultAuthorizer:        authWrapper.AutorestAuthorizer(keyVaultAuth),
 		ResourceManagerAuthorizer: authWrapper.AutorestAuthorizer(resourceManagerAuth),
 		StorageAuthorizer:         authWrapper.AutorestAuthorizer(storageAuth),
 		SynapseAuthorizer:         authWrapper.AutorestAuthorizer(synapseAuth),
