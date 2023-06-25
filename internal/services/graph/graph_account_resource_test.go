@@ -155,7 +155,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azuread_application" "test" {
-  display_name = "acctestspa%[1]d"
+  display_name = "acctestsap%[1]d"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

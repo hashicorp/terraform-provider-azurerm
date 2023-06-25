@@ -36,9 +36,11 @@ type AccountResourceSchema struct {
 func (r AccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return graphservicesprods.ValidateAccountID
 }
+
 func (r AccountResource) ResourceType() string {
 	return "azurerm_graph_account"
 }
+
 func (r AccountResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -56,6 +58,7 @@ func (r AccountResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 }
+
 func (r AccountResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"billing_plan_id": {
@@ -64,6 +67,7 @@ func (r AccountResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 	}
 }
+
 func (r AccountResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -96,7 +100,7 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(config.Tags),
 			}
 
-			if _, err := client.AccountsCreateAndUpdate(ctx, id, payload); err != nil {
+			if err := client.AccountsCreateAndUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -105,6 +109,7 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r AccountResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -142,6 +147,7 @@ func (r AccountResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r AccountResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -161,6 +167,7 @@ func (r AccountResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r AccountResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
