@@ -200,13 +200,10 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   user_plane_access_ipv4_subnet               = "10.204.141.0/24"
 
   network_address_port_translation {
-    pinhole_maximum_number = 65536
-
-    pinhole_timeouts_in_seconds {
-      icmp = 30
-      tcp  = 100
-      udp  = 39
-    }
+    pinhole_maximum_number          = 65536
+    icmp_pinhole_timeout_in_seconds = 30
+    tcp_pinhole_timeout_in_seconds  = 100
+    udp_pinhole_timeout_in_seconds  = 39
 
     port_range {
       max_port = 49999
@@ -245,12 +242,11 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   user_plane_access_ipv4_subnet               = "10.204.141.0/24"
 
   network_address_port_translation {
-    pinhole_maximum_number = 65536
-    pinhole_timeouts_in_seconds {
-      icmp = 30
-      tcp  = 100
-      udp  = 39
-    }
+    pinhole_maximum_number          = 65536
+    icmp_pinhole_timeout_in_seconds = 30
+    tcp_pinhole_timeout_in_seconds  = 100
+    udp_pinhole_timeout_in_seconds  = 39
+
     port_range {
       max_port = 49999
       min_port = 1024

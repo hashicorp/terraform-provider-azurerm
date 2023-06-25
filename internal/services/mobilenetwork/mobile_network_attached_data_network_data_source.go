@@ -73,27 +73,19 @@ func (r AttachedDataNetworkDataSource) Attributes() map[string]*pluginsdk.Schema
 						Optional: true,
 					},
 
-					"pinhole_timeouts_in_seconds": {
-						Type:     pluginsdk.TypeList,
+					"icmp_pinhole_timeout_in_seconds": {
+						Type:     pluginsdk.TypeInt,
 						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"icmp": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
-								},
+					},
 
-								"tcp": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
-								},
+					"tcp_pinhole_timeout_in_seconds": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
 
-								"udp": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
-								},
-							},
-						},
+					"udp_pinhole_timeout_in_seconds": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
 					},
 
 					"port_range": {

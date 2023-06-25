@@ -34,16 +34,12 @@ type AttachedDataNetworkModel struct {
 }
 
 type NaptConfigurationModel struct {
-	PinholeLimits     int64                     `tfschema:"pinhole_maximum_number"`
-	PinholeTimeouts   []PinholeTimeoutsModel    `tfschema:"pinhole_timeouts_in_seconds"`
-	PortRange         []PortRangeModel          `tfschema:"port_range"`
-	PortReuseHoldTime []PortReuseHoldTimesModel `tfschema:"port_reuse_minimum_hold_time_in_seconds"`
-}
-
-type PinholeTimeoutsModel struct {
-	Icmp int64 `tfschema:"icmp"`
-	Tcp  int64 `tfschema:"tcp"`
-	Udp  int64 `tfschema:"udp"`
+	PinholeLimits      int64                     `tfschema:"pinhole_maximum_number"`
+	IcmpPinholeTimeout int64                     `tfschema:"icmp_pinhole_timeout_in_seconds"`
+	TcpPinholeTimeout  int64                     `tfschema:"tcp_pinhole_timeout_in_seconds"`
+	UdpPinholeTimeout  int64                     `tfschema:"udp_pinhole_timeout_in_seconds"`
+	PortRange          []PortRangeModel          `tfschema:"port_range"`
+	PortReuseHoldTime  []PortReuseHoldTimesModel `tfschema:"port_reuse_minimum_hold_time_in_seconds"`
 }
 
 type PortRangeModel struct {
@@ -112,34 +108,25 @@ func (r AttachedDataNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IntBetween(1, 65536),
 					},
 
-					"pinhole_timeouts_in_seconds": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"icmp": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      180,
-									ValidateFunc: validation.IntBetween(1, 180),
-								},
+					"icmp_pinhole_timeout_in_seconds": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      180,
+						ValidateFunc: validation.IntBetween(1, 180),
+					},
 
-								"tcp": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      180,
-									ValidateFunc: validation.IntBetween(1, 180),
-								},
+					"tcp_pinhole_timeout_in_seconds": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      180,
+						ValidateFunc: validation.IntBetween(1, 180),
+					},
 
-								"udp": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      180,
-									ValidateFunc: validation.IntBetween(1, 180),
-								},
-							},
-						},
+					"udp_pinhole_timeout_in_seconds": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      180,
+						ValidateFunc: validation.IntBetween(1, 180),
 					},
 
 					"port_range": {
@@ -505,26 +492,15 @@ func expandNaptConfigurationModel(inputList []NaptConfigurationModel) *attachedd
 
 	output.Enabled = pointer.To(attacheddatanetwork.NaptEnabledEnabled)
 
-	output.PinholeTimeouts = expandPinholeTimeoutsModel(input.PinholeTimeouts)
+	output.PinholeTimeouts = &attacheddatanetwork.PinholeTimeouts{
+		Icmp: &input.IcmpPinholeTimeout,
+		Tcp:  &input.TcpPinholeTimeout,
+		Udp:  &input.UdpPinholeTimeout,
+	}
 
 	output.PortRange = expandPortRangeModel(input.PortRange)
 
 	output.PortReuseHoldTime = expandPortReuseHoldTimesModel(input.PortReuseHoldTime)
-
-	return &output
-}
-
-func expandPinholeTimeoutsModel(inputList []PinholeTimeoutsModel) *attacheddatanetwork.PinholeTimeouts {
-	if len(inputList) == 0 {
-		return nil
-	}
-
-	input := &inputList[0]
-	output := attacheddatanetwork.PinholeTimeouts{
-		Icmp: &input.Icmp,
-		Tcp:  &input.Tcp,
-		Udp:  &input.Udp,
-	}
 
 	return &output
 }
@@ -565,28 +541,17 @@ func flattenNaptConfigurationModel(input *attacheddatanetwork.NaptConfiguration)
 
 	output.PinholeLimits = pointer.From(input.PinholeLimits)
 
-	output.PinholeTimeouts = flattenPinholeTimeoutsModel(input.PinholeTimeouts)
+	if input.PinholeTimeouts != nil {
+		output.IcmpPinholeTimeout = pointer.From(input.PinholeTimeouts.Icmp)
+		output.TcpPinholeTimeout = pointer.From(input.PinholeTimeouts.Tcp)
+		output.UdpPinholeTimeout = pointer.From(input.PinholeTimeouts.Udp)
+	}
 
 	output.PortRange = flattenPortRangeModel(input.PortRange)
 
 	output.PortReuseHoldTime = flattenPortReuseHoldTimesModel(input.PortReuseHoldTime)
 
 	return []NaptConfigurationModel{output}
-}
-
-func flattenPinholeTimeoutsModel(input *attacheddatanetwork.PinholeTimeouts) []PinholeTimeoutsModel {
-	if input == nil {
-		return []PinholeTimeoutsModel{}
-	}
-	output := PinholeTimeoutsModel{}
-
-	output.Icmp = pointer.From(input.Icmp)
-
-	output.Tcp = pointer.From(input.Tcp)
-
-	output.Udp = pointer.From(input.Udp)
-
-	return []PinholeTimeoutsModel{output}
 }
 
 func flattenPortRangeModel(input *attacheddatanetwork.PortRange) []PortRangeModel {

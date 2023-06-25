@@ -80,12 +80,11 @@ resource "azurerm_mobile_network_attached_data_network" "example" {
   user_plane_access_ipv4_subnet               = "10.204.141.0/24"
 
   network_address_port_translation {
-    pinhole_maximum_number = 65536
-    pinhole_timeouts_in_seconds {
-      icmp = 30
-      tcp  = 100
-      udp  = 39
-    }
+    pinhole_maximum_number          = 65536
+    icmp_pinhole_timeout_in_seconds = 30
+    tcp_pinhole_timeout_in_seconds  = 100
+    udp_pinhole_timeout_in_seconds  = 39
+
     port_range {
       max_port = 49999
       min_port = 1024
@@ -141,21 +140,15 @@ A `network_address_port_translation` block supports the following:
 
 * `pinhole_limits` - (Optional) Maximum number of UDP and TCP pinholes that can be open simultaneously on the core interface. For 5G networks, this is the N6 interface. For 4G networks, this is the SGi interface. Must be between 1 and 65536.
 
-* `pinhole_timeouts_in_seconds` - (Optional) A `pinhole_timeouts_in_seconds` block as defined below.
+* `icmp_pinhole_timeout_in_seconds` - (Optional) Pinhole timeout for ICMP pinholes in seconds. Must between `1` to `180`, Default to `180`. 
+
+* `tcp_pinhole_timeout_in_seconds` - (Optional) Pinhole timeout for TCP pinholes in seconds. Must between `1` to `180`, Default to `180`. 
+
+* `udp_pinhole_timeout_in_seconds` - (Optional) Pinhole timeout for UDP pinholes in seconds. Must between `1` to `180`, Default to `180`. 
 
 * `port_range` - (Optional) A `port_range` block as defined below.
 
 * `port_reuse_minimum_hold_time_in_seconds` - (Optional) A `port_reuse_minimum_hold_time_in_seconds` block as defined below.
-
----
-
-A `pinhole_timeouts_in_seconds` block supports the following:
-
-* `icmp` - (Optional) Pinhole timeout for ICMP pinholes in seconds. Default for ICMP Echo is 60 seconds, as per RFC 5508 section 3.2.
-
-* `tcp` - (Optional) Pinhole timeout for TCP pinholes in seconds. Default for TCP is 2 hours 4 minutes, as per RFC 5382 section 5.
-
-* `udp` - (Optional) Pinhole timeout for UDP pinholes in seconds. Default for UDP is 5 minutes, as per RFC 4787 section 4.3.
 
 ---
 
