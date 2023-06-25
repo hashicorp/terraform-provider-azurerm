@@ -8,5 +8,6 @@ type InitContainerPropertiesDefinition struct {
 	EnvironmentVariables *[]EnvironmentVariable                         `json:"environmentVariables,omitempty"`
 	Image                *string                                        `json:"image,omitempty"`
 	InstanceView         *InitContainerPropertiesDefinitionInstanceView `json:"instanceView,omitempty"`
+	SecurityContext      *SecurityContextDefinition                     `json:"securityContext,omitempty"`
 	VolumeMounts         *[]VolumeMount                                 `json:"volumeMounts,omitempty"`
 }

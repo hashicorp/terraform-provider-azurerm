@@ -61,6 +61,34 @@ func parseContainerGroupNetworkProtocol(input string) (*ContainerGroupNetworkPro
 	return &out, nil
 }
 
+type ContainerGroupPriority string
+
+const (
+	ContainerGroupPriorityRegular ContainerGroupPriority = "Regular"
+	ContainerGroupPrioritySpot    ContainerGroupPriority = "Spot"
+)
+
+func PossibleValuesForContainerGroupPriority() []string {
+	return []string{
+		string(ContainerGroupPriorityRegular),
+		string(ContainerGroupPrioritySpot),
+	}
+}
+
+func parseContainerGroupPriority(input string) (*ContainerGroupPriority, error) {
+	vals := map[string]ContainerGroupPriority{
+		"regular": ContainerGroupPriorityRegular,
+		"spot":    ContainerGroupPrioritySpot,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ContainerGroupPriority(input)
+	return &out, nil
+}
+
 type ContainerGroupRestartPolicy string
 
 const (
@@ -95,12 +123,14 @@ func parseContainerGroupRestartPolicy(input string) (*ContainerGroupRestartPolic
 type ContainerGroupSku string
 
 const (
-	ContainerGroupSkuDedicated ContainerGroupSku = "Dedicated"
-	ContainerGroupSkuStandard  ContainerGroupSku = "Standard"
+	ContainerGroupSkuConfidential ContainerGroupSku = "Confidential"
+	ContainerGroupSkuDedicated    ContainerGroupSku = "Dedicated"
+	ContainerGroupSkuStandard     ContainerGroupSku = "Standard"
 )
 
 func PossibleValuesForContainerGroupSku() []string {
 	return []string{
+		string(ContainerGroupSkuConfidential),
 		string(ContainerGroupSkuDedicated),
 		string(ContainerGroupSkuStandard),
 	}
@@ -108,8 +138,9 @@ func PossibleValuesForContainerGroupSku() []string {
 
 func parseContainerGroupSku(input string) (*ContainerGroupSku, error) {
 	vals := map[string]ContainerGroupSku{
-		"dedicated": ContainerGroupSkuDedicated,
-		"standard":  ContainerGroupSkuStandard,
+		"confidential": ContainerGroupSkuConfidential,
+		"dedicated":    ContainerGroupSkuDedicated,
+		"standard":     ContainerGroupSkuStandard,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

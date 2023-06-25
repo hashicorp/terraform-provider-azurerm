@@ -12,5 +12,6 @@ type ContainerProperties struct {
 	Ports                *[]ContainerPort                 `json:"ports,omitempty"`
 	ReadinessProbe       *ContainerProbe                  `json:"readinessProbe,omitempty"`
 	Resources            ResourceRequirements             `json:"resources"`
+	SecurityContext      *SecurityContextDefinition       `json:"securityContext,omitempty"`
 	VolumeMounts         *[]VolumeMount                   `json:"volumeMounts,omitempty"`
 }

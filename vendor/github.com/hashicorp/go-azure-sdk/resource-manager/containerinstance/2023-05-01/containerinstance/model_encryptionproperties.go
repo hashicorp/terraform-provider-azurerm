@@ -4,7 +4,8 @@ package containerinstance
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EncryptionProperties struct {
-	KeyName      string `json:"keyName"`
-	KeyVersion   string `json:"keyVersion"`
-	VaultBaseUrl string `json:"vaultBaseUrl"`
+	Identity     *string `json:"identity,omitempty"`
+	KeyName      string  `json:"keyName"`
+	KeyVersion   string  `json:"keyVersion"`
+	VaultBaseUrl string  `json:"vaultBaseUrl"`
 }
