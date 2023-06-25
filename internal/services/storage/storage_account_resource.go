@@ -1326,18 +1326,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return err
 		}
 
-		// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
-		// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
-		if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
-			blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-				Enable: utils.Bool(v),
-			}
-		}
-
-		if v, ok := d.GetOk("blob_properties.0.container_delete_retention_policy"); ok {
-			blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}))
-		}
-
 		// See: https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#:~:text=Storage%20accounts%20with%20a%20hierarchical%20namespace%20enabled%20for%20use%20with%20Azure%20Data%20Lake%20Storage%20Gen2%20are%20not%20currently%20supported.
 		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && isHnsEnabled {
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
@@ -1806,22 +1794,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		blobProperties, err := expandBlobProperties(d.Get("blob_properties").([]interface{}))
 		if err != nil {
 			return err
-		}
-
-		// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
-		// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
-		if d.HasChange("blob_properties.0.last_access_time_enabled") {
-			lastAccessTimeTracking := false
-			if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
-				lastAccessTimeTracking = true
-			}
-			blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-				Enable: utils.Bool(lastAccessTimeTracking),
-			}
-		}
-
-		if d.HasChange("blob_properties.0.container_delete_retention_policy") {
-			blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}))
 		}
 
 		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && d.Get("is_hns_enabled").(bool) {
@@ -2620,6 +2592,9 @@ func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, 
 			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
 				Enabled: utils.Bool(false),
 			},
+			LastAccessTimeTrackingPolicy: &storage.LastAccessTimeTrackingPolicy{
+				Enable: utils.Bool(false),
+			},
 		},
 	}
 
@@ -2631,6 +2606,9 @@ func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, 
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
+
+	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
+	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(containerDeletePolicyRaw)
 
 	restorePolicyRaw := v["restore_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(restorePolicyRaw)
@@ -2650,6 +2628,10 @@ func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, 
 
 	if version, ok := v["default_service_version"].(string); ok && version != "" {
 		props.DefaultServiceVersion = utils.String(version)
+	}
+
+	props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+		Enable: utils.Bool(v["last_access_time_enabled"].(bool)),
 	}
 
 	// Sanity check for the prerequisites of restore_policy
