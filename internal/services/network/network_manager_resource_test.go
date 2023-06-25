@@ -33,6 +33,7 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerNetworkGroup_complete,
 			"update":         testAccNetworkManagerNetworkGroup_update,
 			"requiresImport": testAccNetworkManagerNetworkGroup_requiresImport,
+			"dataSource":     testAccNetworkManagerNetworkGroupDataSource_complete,
 		},
 		"SubscriptionConnection": {
 			"basic":          testAccNetworkSubscriptionNetworkManagerConnection_basic,
