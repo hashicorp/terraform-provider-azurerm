@@ -2388,7 +2388,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "List",
     "Purge",
     "Update",
- 	"GetRotationPolicy",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -2427,7 +2427,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Get",
     "UnwrapKey",
     "WrapKey",
- 	"GetRotationPolicy",
+    "GetRotationPolicy",
   ]
 
   tenant_id  = data.azurerm_client_config.current.tenant_id
