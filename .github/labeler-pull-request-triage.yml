@@ -225,6 +225,9 @@ service/netapp:
 service/network:
   - internal/services/network/**/*
 
+service/network-function:
+  - internal/services/networkfunction/**/*
+
 service/nginx:
   - internal/services/nginx/**/*
 
