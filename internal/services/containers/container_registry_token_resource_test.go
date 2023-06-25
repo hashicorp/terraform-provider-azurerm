@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -89,17 +89,17 @@ func TestAccContainerRegistryToken_update(t *testing.T) {
 }
 
 func (t ContainerRegistryTokenResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ContainerRegistryTokenID(state.ID)
+	id, err := tokens.ParseTokenID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Containers.TokensClient.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
+	resp, err := clients.Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Container Registry Token (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r ContainerRegistryTokenResource) basic(data acceptance.TestData) string {

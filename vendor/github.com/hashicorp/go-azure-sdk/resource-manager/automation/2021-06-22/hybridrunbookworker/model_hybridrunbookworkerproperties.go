@@ -13,7 +13,7 @@ type HybridRunbookWorkerProperties struct {
 	IP                 *string     `json:"ip,omitempty"`
 	LastSeenDateTime   *string     `json:"lastSeenDateTime,omitempty"`
 	RegisteredDateTime *string     `json:"registeredDateTime,omitempty"`
-	VmResourceId       *string     `json:"vmResourceId,omitempty"`
+	VMResourceId       *string     `json:"vmResourceId,omitempty"`
 	WorkerName         *string     `json:"workerName,omitempty"`
 	WorkerType         *WorkerType `json:"workerType,omitempty"`
 }

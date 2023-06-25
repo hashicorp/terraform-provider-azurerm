@@ -135,7 +135,6 @@ A `node_placement` block exports the following:
 
 ---
 
-
 A `start_task` block exports the following:
 
 * `command_line` - The command line executed by the start task.
@@ -389,7 +388,6 @@ A `windows` block exports the following:
 Windows operating system settings on the virtual machine. This property must not be specified if the imageReference specifies a Linux OS image.
 
 * `enable_automatic_updates` - Whether automatic updates are enabled on the virtual machine.
-
 
 ## Timeouts
 

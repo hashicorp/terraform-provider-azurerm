@@ -470,7 +470,7 @@ func (id ResourceIdGenerator) codeForParser() string {
 func %[1]sID(input string) (*%[1]sId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %%q as an %[1]s ID: %%+v", input, err)
 	}
 
 	resourceId := %[1]sId{

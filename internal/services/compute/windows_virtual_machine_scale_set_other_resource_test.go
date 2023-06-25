@@ -889,29 +889,29 @@ func TestAccWindowsVirtualMachineScaleSet_otherLicenseTypeUpdated(t *testing.T) 
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationsBasic(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplicationsBasic(data),
+			Config: r.otherGalleryApplicationBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_applications.0.order").HasValue("0"),
+				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
 			),
 		},
 		data.ImportStep("admin_password"),
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationsComplete(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplicationsComplete(data),
+			Config: r.otherGalleryApplicationComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1236,10 +1236,32 @@ func (r WindowsVirtualMachineScaleSetResource) otherEdgeZone(data acceptance.Tes
 	data.Locations.Primary = "westus"
 
 	return fmt.Sprintf(`
-%[1]s
+locals {
+  vm_name = "%[1]s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[3]d"
+  location = "%[2]s"
+}
 
 data "azurerm_extended_locations" "test" {
   location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[3]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1275,7 +1297,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data))
+`, r.vmName(data), data.Locations.Primary, data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherUserData(data acceptance.TestData, userData string) string {
@@ -1738,6 +1760,7 @@ resource "azurerm_key_vault" "test" {
 
     key_permissions = [
       "Create",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -2189,8 +2212,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherWinRMHTTPS(data acceptance.TestData) string {
-	// key vault name can only be up to 24 chars
-	trimmedName := fmt.Sprintf("%d", data.RandomInteger)[0:5]
 	return fmt.Sprintf(`
 %s
 
@@ -2224,6 +2245,7 @@ resource "azurerm_key_vault" "test" {
       "Update",
       "Verify",
       "WrapKey",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -2354,7 +2376,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     protocol        = "Https"
   }
 }
-`, r.template(data), trimmedName)
+`, r.template(data), data.RandomString)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) updateLoadBalancerHealthProbeSKU(data acceptance.TestData, isStandardSku bool) string {
@@ -3535,7 +3557,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), licenseType)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationsBasic(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -3571,14 +3593,14 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  gallery_applications {
-    package_reference_id = azurerm_gallery_application_version.test.id
+  gallery_application {
+    version_id = azurerm_gallery_application_version.test.id
   }
 }
-`, r.otherGalleryApplicationsTemplate(data))
+`, r.otherGalleryApplicationTemplate(data))
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationsComplete(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -3614,17 +3636,17 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  gallery_applications {
-    package_reference_id             = azurerm_gallery_application_version.test.id
-    configuration_reference_blob_uri = azurerm_storage_blob.test2.id
-    order                            = 1
-    tag                              = "app"
+  gallery_application {
+    version_id             = azurerm_gallery_application_version.test.id
+    configuration_blob_uri = azurerm_storage_blob.test2.id
+    order                  = 1
+    tag                    = "app"
   }
 }
-`, r.otherGalleryApplicationsTemplate(data))
+`, r.otherGalleryApplicationTemplate(data))
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationsTemplate(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -3646,16 +3668,16 @@ resource "azurerm_storage_blob" "test" {
   name                   = "script"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "script"
+  type                   = "Page"
+  size                   = 512
 }
 
 resource "azurerm_storage_blob" "test2" {
   name                   = "script2"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "script2"
+  type                   = "Page"
+  size                   = 512
 }
 
 resource "azurerm_shared_image_gallery" "test" {

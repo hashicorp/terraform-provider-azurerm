@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"
-	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"         // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2021-04-01/objectreplicationpolicies"
+	storage_v2022_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/localusers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/shim"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
@@ -26,6 +27,7 @@ import (
 
 type Client struct {
 	AccountsClient              *storage.AccountsClient
+	LocalUsersClient            *localusers.LocalUsersClient
 	FileSystemsClient           *filesystems.Client
 	ADLSGen2PathsClient         *paths.Client
 	ManagementPoliciesClient    *storage.ManagementPoliciesClient
@@ -35,10 +37,11 @@ type Client struct {
 	EncryptionScopesClient      *storage.EncryptionScopesClient
 	Environment                 azure.Environment
 	FileServicesClient          *storage.FileServicesClient
-	ObjectReplicationClient     *objectreplicationpolicies.ObjectReplicationPoliciesClient
 	SyncServiceClient           *storagesync.ServicesClient
 	SyncGroupsClient            *storagesync.SyncGroupsClient
 	SubscriptionId              string
+
+	ResourceManager *storage_v2022_05_01.Client
 
 	resourceManagerAuthorizer autorest.Authorizer
 	storageAdAuth             *autorest.Authorizer
@@ -48,10 +51,13 @@ func NewClient(options *common.ClientOptions) *Client {
 	accountsClient := storage.NewAccountsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&accountsClient.Client, options.ResourceManagerAuthorizer)
 
-	fileSystemsClient := filesystems.NewWithEnvironment(options.Environment)
+	localUsersClient := localusers.NewLocalUsersClientWithBaseURI(options.ResourceManagerEndpoint)
+	localUsersClient.Client.Authorizer = options.ResourceManagerAuthorizer
+
+	fileSystemsClient := filesystems.NewWithEnvironment(options.AzureEnvironment)
 	options.ConfigureClient(&fileSystemsClient.Client, options.StorageAuthorizer)
 
-	adlsGen2PathsClient := paths.NewWithEnvironment(options.Environment)
+	adlsGen2PathsClient := paths.NewWithEnvironment(options.AzureEnvironment)
 	options.ConfigureClient(&adlsGen2PathsClient.Client, options.StorageAuthorizer)
 
 	managementPoliciesClient := storage.NewManagementPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
@@ -72,8 +78,10 @@ func NewClient(options *common.ClientOptions) *Client {
 	fileServicesClient := storage.NewFileServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&fileServicesClient.Client, options.ResourceManagerAuthorizer)
 
-	objectReplicationPolicyClient := objectreplicationpolicies.NewObjectReplicationPoliciesClientWithBaseURI(options.ResourceManagerEndpoint)
-	options.ConfigureClient(&objectReplicationPolicyClient.Client, options.ResourceManagerAuthorizer)
+	resourceManager := storage_v2022_05_01.NewClientWithBaseURI(options.ResourceManagerEndpoint,
+		func(c *autorest.Client) {
+			c.Authorizer = options.ResourceManagerAuthorizer
+		})
 
 	syncServiceClient := storagesync.NewServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&syncServiceClient.Client, options.ResourceManagerAuthorizer)
@@ -85,6 +93,7 @@ func NewClient(options *common.ClientOptions) *Client {
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
 		AccountsClient:              &accountsClient,
+		LocalUsersClient:            &localUsersClient,
 		FileSystemsClient:           &fileSystemsClient,
 		ADLSGen2PathsClient:         &adlsGen2PathsClient,
 		ManagementPoliciesClient:    &managementPoliciesClient,
@@ -92,9 +101,9 @@ func NewClient(options *common.ClientOptions) *Client {
 		BlobInventoryPoliciesClient: &blobInventoryPoliciesClient,
 		CloudEndpointsClient:        &cloudEndpointsClient,
 		EncryptionScopesClient:      &encryptionScopesClient,
-		Environment:                 options.Environment,
+		Environment:                 options.AzureEnvironment,
 		FileServicesClient:          &fileServicesClient,
-		ObjectReplicationClient:     &objectReplicationPolicyClient,
+		ResourceManager:             &resourceManager,
 		SubscriptionId:              options.SubscriptionId,
 		SyncServiceClient:           &syncServiceClient,
 		SyncGroupsClient:            &syncGroupsClient,

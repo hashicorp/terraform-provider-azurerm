@@ -7,22 +7,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = VirtualNetworkLinkId{}
 
 // VirtualNetworkLinkId is a struct representing the Resource ID for a Virtual Network Link
 type VirtualNetworkLinkId struct {
 	SubscriptionId         string
 	ResourceGroupName      string
-	PrivateZoneName        string
+	PrivateDnsZoneName     string
 	VirtualNetworkLinkName string
 }
 
 // NewVirtualNetworkLinkID returns a new VirtualNetworkLinkId struct
-func NewVirtualNetworkLinkID(subscriptionId string, resourceGroupName string, privateZoneName string, virtualNetworkLinkName string) VirtualNetworkLinkId {
+func NewVirtualNetworkLinkID(subscriptionId string, resourceGroupName string, privateDnsZoneName string, virtualNetworkLinkName string) VirtualNetworkLinkId {
 	return VirtualNetworkLinkId{
 		SubscriptionId:         subscriptionId,
 		ResourceGroupName:      resourceGroupName,
-		PrivateZoneName:        privateZoneName,
+		PrivateDnsZoneName:     privateDnsZoneName,
 		VirtualNetworkLinkName: virtualNetworkLinkName,
 	}
 }
@@ -39,19 +42,19 @@ func ParseVirtualNetworkLinkID(input string) (*VirtualNetworkLinkId, error) {
 	id := VirtualNetworkLinkId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
-	if id.PrivateZoneName, ok = parsed.Parsed["privateZoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateZoneName' was not found in the resource id %q", input)
+	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneName", *parsed)
 	}
 
 	if id.VirtualNetworkLinkName, ok = parsed.Parsed["virtualNetworkLinkName"]; !ok {
-		return nil, fmt.Errorf("the segment 'virtualNetworkLinkName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkLinkName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseVirtualNetworkLinkIDInsensitively(input string) (*VirtualNetworkLinkId
 	id := VirtualNetworkLinkId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
-	if id.PrivateZoneName, ok = parsed.Parsed["privateZoneName"]; !ok {
-		return nil, fmt.Errorf("the segment 'privateZoneName' was not found in the resource id %q", input)
+	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneName", *parsed)
 	}
 
 	if id.VirtualNetworkLinkName, ok = parsed.Parsed["virtualNetworkLinkName"]; !ok {
-		return nil, fmt.Errorf("the segment 'virtualNetworkLinkName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkLinkName", *parsed)
 	}
 
 	return &id, nil
@@ -106,7 +109,7 @@ func ValidateVirtualNetworkLinkID(input interface{}, key string) (warnings []str
 // ID returns the formatted Virtual Network Link ID
 func (id VirtualNetworkLinkId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/privateDnsZones/%s/virtualNetworkLinks/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.PrivateZoneName, id.VirtualNetworkLinkName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName, id.VirtualNetworkLinkName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Virtual Network Link ID
@@ -119,7 +122,7 @@ func (id VirtualNetworkLinkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticPrivateDnsZones", "privateDnsZones", "privateDnsZones"),
-		resourceids.UserSpecifiedSegment("privateZoneName", "privateZoneValue"),
+		resourceids.UserSpecifiedSegment("privateDnsZoneName", "privateDnsZoneValue"),
 		resourceids.StaticSegment("staticVirtualNetworkLinks", "virtualNetworkLinks", "virtualNetworkLinks"),
 		resourceids.UserSpecifiedSegment("virtualNetworkLinkName", "virtualNetworkLinkValue"),
 	}
@@ -130,7 +133,7 @@ func (id VirtualNetworkLinkId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Private Zone Name: %q", id.PrivateZoneName),
+		fmt.Sprintf("Private Dns Zone Name: %q", id.PrivateDnsZoneName),
 		fmt.Sprintf("Virtual Network Link Name: %q", id.VirtualNetworkLinkName),
 	}
 	return fmt.Sprintf("Virtual Network Link (%s)", strings.Join(components, "\n"))

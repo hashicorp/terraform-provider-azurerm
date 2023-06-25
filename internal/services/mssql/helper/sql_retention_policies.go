@@ -1,7 +1,10 @@
 package helper
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"strconv"
+	"strings"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -75,6 +78,17 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntInSlice([]int{12, 24}),
 					Default:      12,
+					// HyperScale SKus can't set `backup_interval_in_hours so we'll ignore that value when it is 0 in the state file so we don't break the Default Value for existing users
+					DiffSuppressFunc: func(_, old, _ string, d *pluginsdk.ResourceData) bool {
+						skuName, ok := d.GetOk("sku_name")
+						if ok {
+							if strings.HasPrefix(skuName.(string), "HS") {
+								oldInt, _ := strconv.Atoi(old)
+								return oldInt == 0
+							}
+						}
+						return false
+					},
 				},
 			},
 		},
@@ -130,7 +144,7 @@ func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.LongTermRetenti
 	}
 
 	weekOfYear := int32(1)
-	if longTermRetentionPolicy.WeekOfYear != nil {
+	if longTermRetentionPolicy.WeekOfYear != nil && *longTermRetentionPolicy.WeekOfYear != 0 {
 		weekOfYear = *longTermRetentionPolicy.WeekOfYear
 	}
 

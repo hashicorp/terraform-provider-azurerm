@@ -73,9 +73,9 @@ resource "azurerm_lb_nat_rule" "example1" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the NAT Rule.
-* `resource_group_name` - (Required) The name of the resource group in which to create the resource.
-* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the NAT Rule.
+* `name` - (Required) Specifies the name of the NAT Rule. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
+* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the NAT Rule. Changing this forces a new resource to be created.
 * `frontend_ip_configuration_name` - (Required) The name of the frontend IP configuration exposing this rule.
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp`, `Tcp` or `All`.
 * `frontend_port` - (Optional) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 1 and 65534, inclusive.
@@ -85,11 +85,11 @@ The following arguments are supported:
 * `backend_address_pool_id` - (Optional) Specifies a reference to backendAddressPool resource.
 * `idle_timeout_in_minutes` - (Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between `4` and `30` minutes. Defaults to `4` minutes.
 * `enable_floating_ip` - (Optional) Are the Floating IPs enabled for this Load Balancer Rule? A "floating” IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to `false`.
-* `enable_tcp_reset` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? Defaults to `false`.
+* `enable_tcp_reset` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? 
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Load Balancer NAT Rule.
 

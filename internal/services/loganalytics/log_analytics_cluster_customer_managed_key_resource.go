@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
@@ -68,6 +69,9 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -76,12 +80,20 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil && props.KeyVaultProperties != nil {
-			keyProps := *props.KeyVaultProperties
-			if keyProps.KeyName != nil && *keyProps.KeyName != "" {
-				return tf.ImportAsExistsError("azurerm_log_analytics_cluster_customer_managed_key", id.ID())
-			}
+
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
+	}
+
+	props := model.Properties
+	if props == nil {
+		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
+	}
+
+	if props.KeyVaultProperties != nil {
+		if keyProps := *props.KeyVaultProperties; keyProps.KeyName != nil && *keyProps.KeyName != "" {
+			return tf.ImportAsExistsError("azurerm_log_analytics_cluster_customer_managed_key", id.ID())
 		}
 	}
 
@@ -90,17 +102,13 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
 	}
 
-	clusterPatch := clusters.ClusterPatch{
-		Properties: &clusters.ClusterPatchProperties{
-			KeyVaultProperties: &clusters.KeyVaultProperties{
-				KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
-				KeyName:     utils.String(keyId.Name),
-				KeyVersion:  utils.String(keyId.Version),
-			},
-		},
+	model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
+		KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
+		KeyName:     utils.String(keyId.Name),
+		KeyVersion:  utils.String(keyId.Version),
 	}
 
-	if _, err := client.Update(ctx, *id, clusterPatch); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
 	}
 
@@ -126,31 +134,40 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 		return err
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
 	}
 
-	clusterPatch := clusters.ClusterPatch{
-		Properties: &clusters.ClusterPatchProperties{
-			KeyVaultProperties: &clusters.KeyVaultProperties{
-				KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
-				KeyName:     utils.String(keyId.Name),
-				KeyVersion:  utils.String(keyId.Version),
-			},
-		},
-	}
-
-	if _, err := client.Update(ctx, *id, clusterPatch); err != nil {
-		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
-	}
-
-	updateWait, err := logAnalyticsClusterWaitForState(ctx, client, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		return err
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", *id)
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for update of Customer Managed Key for %s: %+v", *id, err)
+
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
+	}
+
+	if props := model.Properties; props == nil {
+		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
+	}
+
+	model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
+		KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
+		KeyName:     utils.String(keyId.Name),
+		KeyVersion:  utils.String(keyId.Version),
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	return resourceLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
@@ -224,26 +241,44 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	clusterPatch := clusters.ClusterPatch{
-		Properties: &clusters.ClusterPatchProperties{
-			KeyVaultProperties: &clusters.KeyVaultProperties{
-				KeyVaultUri: nil,
-				KeyName:     nil,
-				KeyVersion:  nil,
-			},
-		},
-	}
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
-	if _, err = client.Update(ctx, *id, clusterPatch); err != nil {
-		return fmt.Errorf("removing Customer Managed Key from %s: %+v", *id, err)
-	}
-
-	deleteWait, err := logAnalyticsClusterWaitForState(ctx, client, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		return err
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", *id)
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for removal of Customer Managed Key from %s: %+v", *id, err)
+
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
+	}
+
+	props := model.Properties
+	if props == nil {
+		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
+	}
+
+	if props.KeyVaultProperties == nil {
+		return fmt.Errorf("deleting `azurerm_log_analytics_cluster_customer_managed_key` %s: `customer managed key does not exist!`", *id)
+	}
+
+	if props.KeyVaultProperties.KeyName == nil || *props.KeyVaultProperties.KeyName == "" {
+		return fmt.Errorf("deleting `azurerm_log_analytics_cluster_customer_managed_key` %s: `customer managed key does not exist!`", *id)
+	}
+
+	model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
+		KeyVaultUri: nil,
+		KeyName:     nil,
+		KeyVersion:  nil,
+	}
+
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	return nil

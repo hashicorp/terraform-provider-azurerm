@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
@@ -282,7 +283,7 @@ func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta inte
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("filter_type", props.FilterType)
+			d.Set("filter_type", string(pointer.From(props.FilterType)))
 
 			if props.Action != nil {
 				d.Set("action", props.Action.SqlExpression)
@@ -330,6 +331,9 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules
 		return nil, fmt.Errorf("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")
 	}
 
+	if configs[0] == nil {
+		return nil, fmt.Errorf("at least one property must not be empty in the `correlation_filter` block")
+	}
 	config := configs[0].(map[string]interface{})
 
 	contentType := config["content_type"].(string)

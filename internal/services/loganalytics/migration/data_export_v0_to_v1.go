@@ -4,11 +4,8 @@ import (
 	"context"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/dataexport"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ pluginsdk.StateUpgrade = DataExportV0ToV1{}
@@ -34,22 +31,23 @@ func (DataExportV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Required:         true,
 			ForceNew:         true,
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.LogAnalyticsDataExportName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 
 		"workspace_resource_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: dataexport.ValidateWorkspaceID,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"destination_resource_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"enabled": {
@@ -63,8 +61,7 @@ func (DataExportV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.NoZeroValues,
+				Type: pluginsdk.TypeString,
 			},
 		},
 

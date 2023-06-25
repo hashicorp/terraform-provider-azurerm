@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Container Registry Task.
 
-* `timeout_in_seconds` - (Optional) The timeout of this Container Registry Task in seconds. The valid range lies from 300 to 28800. Defaults to 3600.
+* `timeout_in_seconds` - (Optional) The timeout of this Container Registry Task in seconds. The valid range lies from 300 to 28800. Defaults to `3600`.
 
 ---
 
@@ -143,7 +143,7 @@ A `docker_step` block supports the following:
 
 * `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
 
-* `dockerfile_path` - (Required) The  Dockerfile path relative to the source context.
+* `dockerfile_path` - (Required) The Dockerfile path relative to the source context.
 
 * `arguments` - (Optional) Specifies a map of arguments to be used when executing this step.
 
@@ -163,9 +163,9 @@ A `encoded_step` block supports the following:
 
 * `task_content` - (Required) The (optionally base64 encoded) content of the build template.
 
-* `context_access_token` - (Required) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
+* `context_access_token` - (Optional) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
 
-* `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
+* `context_path` - (Optional) The URL (absolute or relative) of the source context for this step.
 
 * `secret_values` - (Optional) Specifies a map of secret values that can be passed when running a task.
 
@@ -179,9 +179,9 @@ A `file_step` block supports the following:
 
 * `task_file_path` - (Required) The task template file path relative to the source context.
 
-* `context_access_token` - (Required) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
+* `context_access_token` - (Optional) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
 
-* `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
+* `context_path` - (Optional) The URL (absolute or relative) of the source context for this step.
 
 * `secret_values` - (Optional) Specifies a map of secret values that can be passed when running a task.
 
@@ -253,7 +253,7 @@ A `timer_trigger` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container Registry Task.
 

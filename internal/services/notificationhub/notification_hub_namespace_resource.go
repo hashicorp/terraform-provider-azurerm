@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
@@ -54,9 +53,9 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -225,14 +224,19 @@ func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta inte
 func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, id)
+		statusCode := "dropped connection"
+		if resp.HttpResponse != nil {
+			statusCode = strconv.Itoa(resp.HttpResponse.StatusCode)
+		}
+
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
-				return nil, "404", nil
+				return nil, statusCode, nil
 			}
 
 			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
+		return resp, statusCode, nil
 	}
 }

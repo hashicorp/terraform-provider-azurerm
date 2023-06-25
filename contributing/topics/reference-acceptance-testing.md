@@ -111,7 +111,7 @@ At a minimum, a Resource requires:
 
 * A `basic` test ([Example](#Example---Basic---Resource)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
 
-* A `requiresImport` test ([Example](#Example---Resource---Requires-Import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. See [requires-import](requires-import.md).  The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
+* A `requiresImport` test ([Example](#Example---Resource---Requires-Import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
 
 * A `complete` test ([Example](#Example---Resource---Complete)) - this tests all possible fields (e.g. all Required/Optional fields) for this Resource.
 

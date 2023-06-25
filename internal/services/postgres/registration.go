@@ -36,16 +36,17 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_postgresql_configuration":                  resourcePostgreSQLConfiguration(),
-		"azurerm_postgresql_database":                       resourcePostgreSQLDatabase(),
-		"azurerm_postgresql_firewall_rule":                  resourcePostgreSQLFirewallRule(),
-		"azurerm_postgresql_server":                         resourcePostgreSQLServer(),
-		"azurerm_postgresql_server_key":                     resourcePostgreSQLServerKey(),
-		"azurerm_postgresql_virtual_network_rule":           resourcePostgreSQLVirtualNetworkRule(),
-		"azurerm_postgresql_active_directory_administrator": resourcePostgreSQLAdministrator(),
-		"azurerm_postgresql_flexible_server":                resourcePostgresqlFlexibleServer(),
-		"azurerm_postgresql_flexible_server_firewall_rule":  resourcePostgresqlFlexibleServerFirewallRule(),
-		"azurerm_postgresql_flexible_server_configuration":  resourcePostgresqlFlexibleServerConfiguration(),
-		"azurerm_postgresql_flexible_server_database":       resourcePostgresqlFlexibleServerDatabase(),
+		"azurerm_postgresql_configuration":                                  resourcePostgreSQLConfiguration(),
+		"azurerm_postgresql_database":                                       resourcePostgreSQLDatabase(),
+		"azurerm_postgresql_firewall_rule":                                  resourcePostgreSQLFirewallRule(),
+		"azurerm_postgresql_server":                                         resourcePostgreSQLServer(),
+		"azurerm_postgresql_server_key":                                     resourcePostgreSQLServerKey(),
+		"azurerm_postgresql_virtual_network_rule":                           resourcePostgreSQLVirtualNetworkRule(),
+		"azurerm_postgresql_active_directory_administrator":                 resourcePostgreSQLAdministrator(),
+		"azurerm_postgresql_flexible_server":                                resourcePostgresqlFlexibleServer(),
+		"azurerm_postgresql_flexible_server_firewall_rule":                  resourcePostgresqlFlexibleServerFirewallRule(),
+		"azurerm_postgresql_flexible_server_configuration":                  resourcePostgresqlFlexibleServerConfiguration(),
+		"azurerm_postgresql_flexible_server_database":                       resourcePostgresqlFlexibleServerDatabase(),
+		"azurerm_postgresql_flexible_server_active_directory_administrator": resourcePostgresqlFlexibleServerAdministrator(),
 	}
 }

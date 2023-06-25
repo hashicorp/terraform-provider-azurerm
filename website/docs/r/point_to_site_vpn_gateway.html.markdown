@@ -105,6 +105,8 @@ The following arguments are supported:
 
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers for the Point-to-Site VPN Gateway.
 
+* `routing_preference_internet_enabled` - (Optional) Is the Routing Preference for the Public IP Interface of the VPN Gateway enabled? Defaults to `false`. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the Point-to-Site VPN Gateway.
 
 ---
@@ -117,7 +119,7 @@ A `connection_configuration` block supports the following:
 
 * `route` - (Optional) A `route` block as defined below.
 
-* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to false.
+* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
 
 ---
 
@@ -131,6 +133,10 @@ A `route` block supports the following:
 
 * `associated_route_table_id` - (Required) The Virtual Hub Route Table resource id associated with this Routing Configuration.
 
+* `inbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for inbound learned routes.
+
+* `outbound_route_map_id` - (Optional) The resource ID of the Route Map associated with this Routing Configuration for outbound advertised routes.
+
 * `propagated_route_table` - (Optional) A `propagated_route_table` block as defined below.
 
 ---
@@ -143,7 +149,7 @@ A `propagated_route_table` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Point-to-Site VPN Gateway.
 
@@ -161,5 +167,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Point-to-Site VPN Gateway's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_point_to_site_vpn_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/p2svpnGateways/gateway1
+terraform import azurerm_point_to_site_vpn_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/p2sVpnGateways/gateway1
 ```

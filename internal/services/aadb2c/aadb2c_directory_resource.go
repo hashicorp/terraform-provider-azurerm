@@ -3,12 +3,12 @@ package aadb2c
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -57,7 +57,7 @@ func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"country_code": {
 			Description:  "Country code of the B2C tenant. See https://aka.ms/B2CDataResidency for valid country codes.",
@@ -132,7 +132,7 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AadB2c.TenantsClient
+			client := metadata.Client.AadB2c.Tenants
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model AadB2cDirectoryModel
@@ -151,11 +151,11 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
-			if err != nil && existing.HttpResponse.StatusCode != http.StatusNotFound {
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -168,15 +168,17 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking availability of `domain_name`: %v", err)
 			}
 
-			if availabilityResult.Model.NameAvailable == nil || !*availabilityResult.Model.NameAvailable {
-				reason := "unknown reason"
-				if availabilityResult.Model.Reason != nil {
-					reason = *availabilityResult.Model.Reason
+			if availabilityResult.Model != nil {
+				if availabilityResult.Model.NameAvailable == nil || !*availabilityResult.Model.NameAvailable {
+					reason := "unknown reason"
+					if availabilityResult.Model.Reason != nil {
+						reason = *availabilityResult.Model.Reason
+					}
+					if availabilityResult.Model.Message != nil {
+						reason = fmt.Sprintf("%s (%s)", reason, *availabilityResult.Model.Message)
+					}
+					return fmt.Errorf("checking availability of `domain_name`: the specified domain %q is unavailable: %s", model.DomainName, reason)
 				}
-				if availabilityResult.Model.Message != nil {
-					reason = fmt.Sprintf("%s (%s)", reason, *availabilityResult.Model.Message)
-				}
-				return fmt.Errorf("checking availability of `domain_name`: the specified domain %q is unavailable: %s", model.DomainName, reason)
 			}
 
 			metadata.Logger.Infof("Creating %s", id)
@@ -210,7 +212,7 @@ func (r AadB2cDirectoryResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AadB2c.TenantsClient
+			client := metadata.Client.AadB2c.Tenants
 
 			id, err := tenants.ParseB2CDirectoryID(metadata.ResourceData.Id())
 			if err != nil {
@@ -246,7 +248,7 @@ func (r AadB2cDirectoryResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AadB2c.TenantsClient
+			client := metadata.Client.AadB2c.Tenants
 
 			id, err := tenants.ParseB2CDirectoryID(metadata.ResourceData.Id())
 			if err != nil {
@@ -256,7 +258,7 @@ func (r AadB2cDirectoryResource) Read() sdk.ResourceFunc {
 			metadata.Logger.Infof("Reading %s", id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if resp.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
@@ -310,7 +312,7 @@ func (r AadB2cDirectoryResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AadB2c.TenantsClient
+			client := metadata.Client.AadB2c.Tenants
 
 			id, err := tenants.ParseB2CDirectoryID(metadata.ResourceData.Id())
 			if err != nil {

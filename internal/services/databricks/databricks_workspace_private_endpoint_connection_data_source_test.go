@@ -24,7 +24,7 @@ func TestAccDatabricksWorkspacePrivateEndpointConnectionDataSource_basic(t *test
 				check.That(data.ResourceName).Key("connections.0.workspace_private_endpoint_id").Exists(),
 				check.That(data.ResourceName).Key("connections.0.status").Exists(),
 				check.That(data.ResourceName).Key("connections.0.description").Exists(),
-				check.That(data.ResourceName).Key("connections.0.action_required").IsEmpty(),
+				check.That(data.ResourceName).Key("connections.0.action_required").HasValue("None"),
 			),
 		},
 	})

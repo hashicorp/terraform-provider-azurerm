@@ -51,8 +51,12 @@ func (r SynapseManagedPrivateEndpointResource) Exists(ctx context.Context, clien
 		return nil, err
 	}
 
-	environment := client.Account.Environment
-	managedPrivateEndpointsClient, err := client.Synapse.ManagedPrivateEndpointsClient(id.WorkspaceName, environment.SynapseEndpointSuffix)
+	suffix, ok := client.Account.Environment.Synapse.DomainSuffix()
+	if !ok {
+		return nil, fmt.Errorf("could not determine Synapse domain suffix for environment %q", client.Account.Environment.Name)
+	}
+
+	managedPrivateEndpointsClient, err := client.Synapse.ManagedPrivateEndpointsClient(id.WorkspaceName, *suffix)
 	if err != nil {
 		return nil, err
 	}

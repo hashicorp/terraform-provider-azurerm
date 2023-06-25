@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/clusterprincipalassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,8 +23,13 @@ func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
 		Read:   resourceKustoClusterPrincipalAssignmentRead,
 		Delete: resourceKustoClusterPrincipalAssignmentDelete,
 
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.KustoAttachedClusterPrincipalAssignmentV0ToV1{},
+		}),
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ClusterPrincipalAssignmentID(id)
+			_, err := clusterprincipalassignments.ParsePrincipalAssignmentID(id)
 			return err
 		}),
 
@@ -35,7 +41,7 @@ func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"cluster_name": {
 				Type:         pluginsdk.TypeString,
@@ -76,24 +82,17 @@ func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
 			},
 
 			"principal_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.PrincipalTypeApp),
-					string(kusto.PrincipalTypeGroup),
-					string(kusto.PrincipalTypeUser),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(clusterprincipalassignments.PossibleValuesForPrincipalType(), false),
 			},
 
 			"role": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.ClusterPrincipalRoleAllDatabasesAdmin),
-					string(kusto.ClusterPrincipalRoleAllDatabasesViewer),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(clusterprincipalassignments.PossibleValuesForClusterPrincipalRole(), false),
 			},
 		},
 	}
@@ -105,16 +104,16 @@ func resourceKustoClusterPrincipalAssignmentCreateUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewClusterPrincipalAssignmentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
+	id := clusterprincipalassignments.NewPrincipalAssignmentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		principalAssignment, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
+		principalAssignment, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(principalAssignment.Response) {
+			if !response.WasNotFound(principalAssignment.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(principalAssignment.Response) {
+		if !response.WasNotFound(principalAssignment.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_kusto_cluster_principal_assignment", id.ID())
 		}
 	}
@@ -124,22 +123,18 @@ func resourceKustoClusterPrincipalAssignmentCreateUpdate(d *pluginsdk.ResourceDa
 	principalType := d.Get("principal_type").(string)
 	role := d.Get("role").(string)
 
-	principalAssignment := kusto.ClusterPrincipalAssignment{
-		ClusterPrincipalProperties: &kusto.ClusterPrincipalProperties{
-			TenantID:      utils.String(tenantID),
-			PrincipalID:   utils.String(principalID),
-			PrincipalType: kusto.PrincipalType(principalType),
-			Role:          kusto.ClusterPrincipalRole(role),
+	principalAssignment := clusterprincipalassignments.ClusterPrincipalAssignment{
+		Properties: &clusterprincipalassignments.ClusterPrincipalProperties{
+			TenantId:      utils.String(tenantID),
+			PrincipalId:   principalID,
+			PrincipalType: clusterprincipalassignments.PrincipalType(principalType),
+			Role:          clusterprincipalassignments.ClusterPrincipalRole(role),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName, principalAssignment)
+	err := client.CreateOrUpdateThenPoll(ctx, id, principalAssignment)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -151,14 +146,14 @@ func resourceKustoClusterPrincipalAssignmentRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ClusterPrincipalAssignmentID(d.Id())
+	id, err := clusterprincipalassignments.ParsePrincipalAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -167,34 +162,36 @@ func resourceKustoClusterPrincipalAssignmentRead(d *pluginsdk.ResourceData, meta
 
 	d.Set("name", id.PrincipalAssignmentName)
 	d.Set("cluster_name", id.ClusterName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	principalID := ""
-	if resp.PrincipalID != nil {
-		principalID = *resp.PrincipalID
+	if resp.Model != nil {
+		props := resp.Model.Properties
+
+		if props != nil {
+			d.Set("principal_id", props.PrincipalId)
+
+			principalName := ""
+			if props.PrincipalName != nil {
+				principalName = *props.PrincipalName
+			}
+			d.Set("principal_name", principalName)
+
+			d.Set("principal_type", string(props.PrincipalType))
+			d.Set("role", string(props.Role))
+
+			tenantID := ""
+			if props.TenantId != nil {
+				tenantID = *props.TenantId
+			}
+			d.Set("tenant_id", tenantID)
+
+			tenantName := ""
+			if props.TenantName != nil {
+				tenantName = *props.TenantName
+			}
+			d.Set("tenant_name", tenantName)
+		}
 	}
-	d.Set("principal_id", principalID)
-
-	principalName := ""
-	if resp.PrincipalName != nil {
-		principalName = *resp.PrincipalName
-	}
-	d.Set("principal_name", principalName)
-
-	d.Set("principal_type", string(resp.PrincipalType))
-	d.Set("role", string(resp.Role))
-
-	tenantID := ""
-	if resp.TenantID != nil {
-		tenantID = *resp.TenantID
-	}
-	d.Set("tenant_id", tenantID)
-
-	tenantName := ""
-	if resp.TenantName != nil {
-		tenantName = *resp.TenantName
-	}
-	d.Set("tenant_name", tenantName)
 
 	return nil
 }
@@ -204,18 +201,14 @@ func resourceKustoClusterPrincipalAssignmentDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ClusterPrincipalAssignmentID(d.Id())
+	id, err := clusterprincipalassignments.ParsePrincipalAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HPCCacheAccessPolicyResource struct{}
@@ -98,30 +100,35 @@ func (r HPCCacheAccessPolicyResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.CacheName)
+	resp, err := client.Get(ctx, caches.NewCacheID(id.SubscriptionId, id.ResourceGroup, id.CacheName))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	props := resp.CacheProperties
+	m := resp.Model
+	if m == nil {
+		return pointer.To(false), nil
+	}
+
+	props := m.Properties
 	if props == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
 	settings := props.SecuritySettings
 	if settings == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
 	policies := settings.AccessPolicies
 	if policies == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
-	return utils.Bool(hpccache.CacheGetAccessPolicyByName(*policies, id.Name) != nil), nil
+	return pointer.To(hpccache.CacheGetAccessPolicyByName(*policies, id.Name) != nil), nil
 }
 
 func (r HPCCacheAccessPolicyResource) basic(data acceptance.TestData) string {

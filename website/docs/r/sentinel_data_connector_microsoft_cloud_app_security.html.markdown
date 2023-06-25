@@ -27,22 +27,13 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "example" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  workspace_resource_id = azurerm_log_analytics_workspace.example.id
-  workspace_name        = azurerm_log_analytics_workspace.example.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_data_connector_microsoft_cloud_app_security" "example" {
   name                       = "example"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
 }
 ```
 
@@ -62,7 +53,7 @@ The following arguments are supported:
 
 -> **NOTE:** One of either `alerts_enabled` or `discovery_logs_enabled` has to be specified.
 
-* `tenant_id` - (Optional) The ID of the Tenant that this Microsoft Cloud App Security Data Connector connects to. Changing this forces a new Microsoft Cloud App Security Data Connector to be created.
+* `tenant_id` - (Optional) The ID of the Tenant that this Microsoft Cloud App Security Data Connector connects to.
 
 -> **NOTE** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
 

@@ -29,7 +29,6 @@ output "cidrs" {
 
 * `resource_group_name` - Specifies the Name of the Resource Group within which the IP Group exists
 
-
 ## Attributes Reference
 
 * `id` - The ID of the IP Group.
@@ -39,7 +38,6 @@ output "cidrs" {
 * `cidrs` - A list of CIDRs or IP addresses.
 
 * `tags` - A mapping of tags assigned to the resource.
-
 
 ## Timeouts
 

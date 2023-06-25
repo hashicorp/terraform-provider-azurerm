@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -50,7 +50,7 @@ func TestAccDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_dev_test_lab_linux_virtual_machine"),
+			ExpectError: acceptance.RequiresImportError("azurerm_dev_test_linux_virtual_machine"),
 		},
 	})
 }
@@ -130,17 +130,17 @@ func TestAccDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 }
 
 func (DevTestLinuxVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DevTestVirtualMachineID(state.ID)
+	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DevTestLabs.VirtualMachinesClient.Get(ctx, id.ResourceGroup, id.LabName, id.VirtualMachineName, "")
+	resp, err := clients.DevTestLabs.VirtualMachinesClient.Get(ctx, *id, virtualmachines.GetOperationOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.LabVirtualMachineProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DevTestLinuxVirtualMachineResource) basic(data acceptance.TestData) string {

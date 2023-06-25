@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -56,7 +56,13 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 			"partner_namespace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty, // nolint: staticcheck
+			},
+
+			"alias_authorization_rule_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"primary_connection_string_alias": {
@@ -189,7 +195,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 
 	primaryId := disasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 
-	d.Set("name", id.Alias)
+	d.Set("name", id.DisasterRecoveryConfigName)
 	d.Set("primary_namespace_id", primaryId.ID())
 
 	if model := resp.Model; model != nil {
@@ -198,7 +204,15 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 		}
 	}
 
-	authRuleId := disasterrecoveryconfigs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.Alias)
+	// the auth rule cannot be retrieved by dr config name, the shared access policy should either be specified by user or using the default one which is `RootManageSharedAccessKey`
+	authRuleId := disasterrecoveryconfigs.NewDisasterRecoveryConfigAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.DisasterRecoveryConfigName, serviceBusNamespaceDefaultAuthorizationRule)
+	if input := d.Get("alias_authorization_rule_id").(string); input != "" {
+		ruleId, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigAuthorizationRuleID(input)
+		if err != nil {
+			return fmt.Errorf("parsing primary namespace auth rule id error: %+v", err)
+		}
+		authRuleId = *ruleId
+	}
 
 	keys, err := client.ListKeys(ctx, authRuleId)
 
@@ -226,13 +240,10 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 		return err
 	}
 
-	breakPair, err := client.BreakPairing(ctx, *id)
-	if err != nil {
+	// @tombuildsstuff: whilst we previously checked the 200 response, since that's the only valid status
+	// code defined in the Swagger, anything else would raise an error thus the check is superfluous
+	if _, err := client.BreakPairing(ctx, *id); err != nil {
 		return fmt.Errorf("breaking pairing %s: %+v", id, err)
-	}
-
-	if breakPair.HttpResponse.StatusCode != http.StatusOK {
-		return fmt.Errorf("breaking pairing for %s: %+v", *id, err)
 	}
 
 	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
@@ -244,21 +255,30 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 	}
 
 	// no future for deletion so wait for it to vanish
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
 	deleteWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"200"},
 		Target:     []string{"404"},
 		MinTimeout: 30 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout:    time.Until(deadline),
 		Refresh: func() (interface{}, string, error) {
 			resp, err := client.Get(ctx, *id)
+			statusCode := "dropped connection"
+			if resp.HttpResponse != nil {
+				statusCode = strconv.Itoa(resp.HttpResponse.StatusCode)
+			}
+
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
+					return resp, statusCode, nil
 				}
 				return nil, "nil", fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
+			return resp, statusCode, nil
 		},
 	}
 
@@ -269,13 +289,19 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 	namespaceId := disasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	// it can take some time for the name to become available again
 	// this is mainly here 	to enable updating the resource in place
+	deadline, ok = ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
 	nameFreeWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"NameInUse"},
 		Target:     []string{"None"},
 		MinTimeout: 30 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout:    time.Until(deadline),
 		Refresh: func() (interface{}, string, error) {
-			resp, err := client.CheckNameAvailability(ctx, namespaceId, disasterrecoveryconfigs.CheckNameAvailability{Name: id.Alias})
+			resp, err := client.CheckNameAvailability(ctx, namespaceId, disasterrecoveryconfigs.CheckNameAvailability{
+				Name: id.DisasterRecoveryConfigName,
+			})
 			if err != nil {
 				return resp, "Error", fmt.Errorf("checking for the status of %s: %+v", *id, err)
 			}
@@ -300,7 +326,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *disasterrecoveryconfigs.DisasterRecoveryConfigsClient, id disasterrecoveryconfigs.DisasterRecoveryConfigId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("context had no deadline")
+		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(disasterrecoveryconfigs.ProvisioningStateDRAccepted)},

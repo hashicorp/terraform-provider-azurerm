@@ -61,17 +61,19 @@ The following arguments are supported:
 
 * `allow_classic_operations` - (Optional) Allow the circuit to interact with classic (RDFE) resources. Defaults to `false`.
 
-* `express_route_port_id` - (Optional) The ID of the Express Route Port this Express Route Circuit is based on.
+* `express_route_port_id` - (Optional) The ID of the Express Route Port this Express Route Circuit is based on. Changing this forces a new resource to be created.
 
 * `bandwidth_in_gbps` - (Optional) The bandwidth in Gbps of the circuit being created on the Express Route Port.
 
 ~> **NOTE:** The `express_route_port_id` and the `bandwidth_in_gbps` should be set together and they conflict with `service_provider_name`, `peering_location` and `bandwidth_in_mbps`.
 
+* `authorization_key` - (Optional) The authorization key. This can be used to set up an ExpressRoute Circuit with an ExpressRoute Port from another subscription.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-`sku` supports the following:
+The `sku` block supports the following:
 
 * `tier` - (Required) The service tier. Possible values are `Basic`, `Local`, `Standard` or `Premium`.
 
@@ -81,7 +83,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the ExpressRoute circuit.
 * `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. Possible values are `NotProvisioned`, `Provisioning`, `Provisioned`, and `Deprovisioning`.

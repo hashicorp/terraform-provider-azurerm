@@ -21,6 +21,6 @@ type ComputeInstanceProperties struct {
 	SshSettings                      *ComputeInstanceSshSettings           `json:"sshSettings,omitempty"`
 	State                            *ComputeInstanceState                 `json:"state,omitempty"`
 	Subnet                           *ResourceId                           `json:"subnet,omitempty"`
+	VMSize                           *string                               `json:"vmSize,omitempty"`
 	Versions                         *ComputeInstanceVersion               `json:"versions,omitempty"`
-	VmSize                           *string                               `json:"vmSize,omitempty"`
 }

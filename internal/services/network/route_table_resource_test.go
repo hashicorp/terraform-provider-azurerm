@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -26,6 +26,23 @@ func TestAccRouteTable_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRouteTable_basicNilNextHopIPAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
+	r := RouteTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nilNextHopIPAddess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
+				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -214,32 +231,27 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 }
 
 func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.RouteTableID(state.ID)
+	id, err := routetables.ParseRouteTableID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.RouteTablesClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.RouteTablesClient.Get(ctx, *id, routetables.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Route Table (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (RouteTableResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.RouteTableID(state.ID)
+	id, err := routetables.ParseRouteTableID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.Network.RouteTablesClient.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err = client.Network.RouteTablesClient.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Route Table %q: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Network.RouteTablesClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion of Route Table %q: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -260,6 +272,32 @@ resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RouteTableResource) nilNextHopIPAddess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestrt%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  route {
+    name                   = "route1"
+    address_prefix         = "101.1.0.0/16"
+    next_hop_type          = "Internet"
+    next_hop_in_ip_address = null
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

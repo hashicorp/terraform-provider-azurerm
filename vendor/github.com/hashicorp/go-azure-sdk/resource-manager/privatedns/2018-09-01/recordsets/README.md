@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue", "A", "relativeRecordSetValue")
+id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateDnsZoneValue", "A", "relativeRecordSetValue")
 
 payload := recordsets.RecordSet{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue", "A", "relativeRecordSetValue")
+id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateDnsZoneValue", "A", "relativeRecordSetValue")
 
 read, err := client.Delete(ctx, id, recordsets.DefaultDeleteOperationOptions())
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue", "A", "relativeRecordSetValue")
+id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateDnsZoneValue", "A", "relativeRecordSetValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue")
+id := recordsets.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateDnsZoneValue")
 
 // alternatively `client.List(ctx, id, recordsets.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, recordsets.DefaultListOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewPrivateZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue", "A")
+id := recordsets.NewPrivateZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateDnsZoneValue", "A")
 
 // alternatively `client.ListByType(ctx, id, recordsets.DefaultListByTypeOperationOptions())` can be used to do batched pagination
 items, err := client.ListByTypeComplete(ctx, id, recordsets.DefaultListByTypeOperationOptions())
@@ -111,7 +111,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue", "A", "relativeRecordSetValue")
+id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateDnsZoneValue", "A", "relativeRecordSetValue")
 
 payload := recordsets.RecordSet{
 	// ...

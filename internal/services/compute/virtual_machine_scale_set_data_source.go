@@ -3,10 +3,9 @@ package compute
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -98,6 +99,11 @@ func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						},
 
 						"zone": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"power_state": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -276,6 +282,16 @@ func flattenVirtualMachineScaleSetVM(input compute.VirtualMachineScaleSetVM, con
 		output["private_ip_addresses"] = connectionInfo.privateAddresses
 		output["public_ip_address"] = connectionInfo.primaryPublicAddress
 		output["public_ip_addresses"] = connectionInfo.publicAddresses
+	}
+
+	if instance := input.InstanceView; instance != nil {
+		if statues := instance.Statuses; statues != nil {
+			for _, status := range *statues {
+				if status.Code != nil && strings.HasPrefix(strings.ToLower(*status.Code), "powerstate/") {
+					output["power_state"] = strings.SplitN(*status.Code, "/", 2)[1]
+				}
+			}
+		}
 	}
 
 	return output

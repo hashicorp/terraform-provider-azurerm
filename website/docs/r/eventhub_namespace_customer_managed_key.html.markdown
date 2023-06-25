@@ -70,6 +70,7 @@ resource "azurerm_key_vault_access_policy" "example2" {
     "List",
     "Purge",
     "Recover",
+    "GetRotationPolicy",
   ]
 }
 
@@ -102,7 +103,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the EventHub Namespace.
 

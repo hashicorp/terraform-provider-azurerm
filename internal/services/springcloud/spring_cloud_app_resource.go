@@ -6,13 +6,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudApp() *pluginsdk.Resource {
@@ -28,6 +28,11 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 		Read:   resourceSpringCloudAppRead,
 		Update: resourceSpringCloudAppUpdate,
 		Delete: resourceSpringCloudAppDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudAppV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SpringCloudAppID(id)
@@ -49,7 +54,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudAppName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"service_name": {
 				Type:         pluginsdk.TypeString,
@@ -120,6 +125,56 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"ingress_settings": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"backend_protocol": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(appplatform.BackendProtocolDefault),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(appplatform.BackendProtocolDefault),
+								string(appplatform.BackendProtocolGRPC),
+							}, false),
+						},
+
+						"read_timeout_in_seconds": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      300,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"send_timeout_in_seconds": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      60,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"session_affinity": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(appplatform.SessionAffinityNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(appplatform.SessionAffinityCookie),
+								string(appplatform.SessionAffinityNone),
+							}, false),
+						},
+
+						"session_cookie_max_age": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+					},
+				},
 			},
 
 			"persistent_disk": {
@@ -231,6 +286,9 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			PublicEndpoint: utils.Bool(enabled),
 		}
 	}
+	// IngressSettings could only be set by update
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21536
+	app.Properties.IngressSettings = expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]interface{}))
 	future, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
 	if err != nil {
 		return fmt.Errorf("update %q: %+v", id, err)
@@ -270,6 +328,7 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
 			Public:                utils.Bool(d.Get("is_public").(bool)),
 			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
+			IngressSettings:       expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]interface{})),
 			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
 			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), *id),
 		},
@@ -336,6 +395,9 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		if err := d.Set("custom_persistent_disk", flattenAppCustomPersistentDiskResourceArray(prop.CustomPersistentDisks)); err != nil {
 			return fmt.Errorf("setting `custom_persistent_disk`: %+v", err)
+		}
+		if err := d.Set("ingress_settings", flattenSpringCloudAppIngressSettings(prop.IngressSettings)); err != nil {
+			return fmt.Errorf("setting `ingress_settings`: %+v", err)
 		}
 		if prop.VnetAddons != nil {
 			d.Set("public_endpoint_enabled", prop.VnetAddons.PublicEndpoint)
@@ -409,15 +471,14 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 				MountPath:    utils.String(v["mount_path"].(string)),
 				ReadOnly:     utils.Bool(v["read_only_enabled"].(bool)),
 				MountOptions: utils.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
-				Type:         appplatform.TypeAzureFileVolume,
 			},
 		})
 	}
 	return &results
 }
 
-func expandSpringCloudAppAddon(input string) (map[string]map[string]interface{}, error) {
-	var addonConfig map[string]map[string]interface{}
+func expandSpringCloudAppAddon(input string) (map[string]interface{}, error) {
+	var addonConfig map[string]interface{}
 	if len(input) != 0 {
 		err := json.Unmarshal([]byte(input), &addonConfig)
 		if err != nil {
@@ -425,6 +486,21 @@ func expandSpringCloudAppAddon(input string) (map[string]map[string]interface{},
 		}
 	}
 	return addonConfig, nil
+}
+
+func expandSpringCloudAppIngressSetting(input []interface{}) *appplatform.IngressSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	raw := input[0].(map[string]interface{})
+
+	return &appplatform.IngressSettings{
+		ReadTimeoutInSeconds: utils.Int32(int32(raw["read_timeout_in_seconds"].(int))),
+		SendTimeoutInSeconds: utils.Int32(int32(raw["send_timeout_in_seconds"].(int))),
+		SessionAffinity:      appplatform.SessionAffinity(raw["session_affinity"].(string)),
+		SessionCookieMaxAge:  utils.Int32(int32(raw["session_cookie_max_age"].(int))),
+		BackendProtocol:      appplatform.BackendProtocol(raw["backend_protocol"].(string)),
+	}
 }
 
 func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) (*[]interface{}, error) {
@@ -483,7 +559,10 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 	for _, item := range *input {
 		var storageName string
 		if item.StorageID != nil {
-			if id, err := parse.SpringCloudStorageID(*item.StorageID); err == nil {
+			// The returned value has inconsistent casing
+			// TODO: Remove the normalization codes once the following issue is fixed.
+			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22205
+			if id, err := parse.SpringCloudStorageIDInsensitively(*item.StorageID); err == nil {
 				storageName = id.StorageName
 			}
 		}
@@ -517,10 +596,60 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 	return results
 }
 
-func flattenSpringCloudAppAddon(configs map[string]map[string]interface{}) *string {
+func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
 	if len(configs) == 0 {
 		return nil
 	}
+	// The returned value has inconsistent casing
+	// TODO: Remove the normalization codes once the following issue is fixed.
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22481
+	if raw, ok := configs["applicationConfigurationService"]; ok && raw != nil {
+		if applicationConfigurationService, ok := raw.(map[string]interface{}); ok && len(applicationConfigurationService) != 0 {
+			if resourceId, ok := applicationConfigurationService["resourceId"]; ok && resourceId != nil {
+				applicationConfigurationServiceId, err := parse.SpringCloudConfigurationServiceIDInsensitively(resourceId.(string))
+				if err == nil {
+					applicationConfigurationService["resourceId"] = applicationConfigurationServiceId.ID()
+					configs["applicationConfigurationService"] = applicationConfigurationService
+				}
+			}
+		}
+	}
+	if raw, ok := configs["serviceRegistry"]; ok && raw != nil {
+		if serviceRegistry, ok := raw.(map[string]interface{}); ok && len(serviceRegistry) != 0 {
+			if resourceId, ok := serviceRegistry["resourceId"]; ok && resourceId != nil {
+				serviceRegistryId, err := parse.SpringCloudServiceRegistryIDInsensitively(resourceId.(string))
+				if err == nil {
+					serviceRegistry["resourceId"] = serviceRegistryId.ID()
+					configs["serviceRegistry"] = serviceRegistry
+				}
+			}
+		}
+	}
 	addonConfig, _ := json.Marshal(configs)
 	return utils.String(string(addonConfig))
+}
+
+func flattenSpringCloudAppIngressSettings(input *appplatform.IngressSettings) interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+	var readTimeout, sendTimeout, maxAge int32
+	backendProtocol := string(input.BackendProtocol)
+	sessionAffinity := string(input.SessionAffinity)
+	if input.ReadTimeoutInSeconds != nil {
+		readTimeout = *input.ReadTimeoutInSeconds
+	}
+	if input.SendTimeoutInSeconds != nil {
+		sendTimeout = *input.SendTimeoutInSeconds
+	}
+	if input.SessionCookieMaxAge != nil {
+		maxAge = *input.SessionCookieMaxAge
+	}
+	return []interface{}{map[string]interface{}{
+		"backend_protocol":        backendProtocol,
+		"read_timeout_in_seconds": readTimeout,
+		"send_timeout_in_seconds": sendTimeout,
+		"session_affinity":        sessionAffinity,
+		"session_cookie_max_age":  maxAge,
+	}}
 }

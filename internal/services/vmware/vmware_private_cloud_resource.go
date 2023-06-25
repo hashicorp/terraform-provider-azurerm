@@ -1,15 +1,17 @@
 package vmware
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/privateclouds"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -57,6 +59,8 @@ func resourceVmwarePrivateCloud() *pluginsdk.Resource {
 					"av20",
 					"av36",
 					"av36t",
+					"av36p",
+					"av52",
 				}, false),
 			},
 
@@ -217,9 +221,9 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 		Sku: privateclouds.Sku{
 			Name: d.Get("sku_name").(string),
 		},
-		Properties: privateclouds.PrivateCloudProperties{
-			ManagementCluster: privateclouds.ManagementCluster{
-				ClusterSize: int64(d.Get("management_cluster.0.size").(int)),
+		Properties: &privateclouds.PrivateCloudProperties{
+			ManagementCluster: privateclouds.CommonClusterProperties{
+				ClusterSize: pointer.To(int64(d.Get("management_cluster.0.size").(int))),
 			},
 			NetworkBlock:    d.Get("network_subnet_cidr").(string),
 			Internet:        &internet,
@@ -229,8 +233,24 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, privateCloud); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, privateCloud); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(privateclouds.PrivateCloudProvisioningStateBuilding)},
+		Target:     []string{string(privateclouds.PrivateCloudProvisioningStateSucceeded)},
+		Refresh:    privateCloudStateRefreshFunc(ctx, client, id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for vmware private cloud %s provisioning state to become available error: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -285,7 +305,7 @@ func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("nsxt_certificate_thumbprint", props.NsxtCertificateThumbprint)
 		d.Set("provisioning_subnet_cidr", props.ProvisioningNetwork)
 		d.Set("vcenter_certificate_thumbprint", props.VcenterCertificateThumbprint)
-		d.Set("vmotion_subnet_cidr", props.VmotionNetwork)
+		d.Set("vmotion_subnet_cidr", props.VMotionNetwork)
 
 		d.Set("sku_name", model.Sku.Name)
 
@@ -316,8 +336,8 @@ func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("management_cluster") {
-		privateCloudUpdate.Properties.ManagementCluster = &privateclouds.ManagementCluster{
-			ClusterSize: int64(d.Get("management_cluster.0.size").(int)),
+		privateCloudUpdate.Properties.ManagementCluster = &privateclouds.CommonClusterProperties{
+			ClusterSize: pointer.To(int64(d.Get("management_cluster.0.size").(int))),
 		}
 	}
 
@@ -355,4 +375,20 @@ func resourceVmwarePrivateCloudDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func privateCloudStateRefreshFunc(ctx context.Context, client *privateclouds.PrivateCloudsClient, id privateclouds.PrivateCloudId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for status of vmware private cloud %s error: %+v", id, err)
+		}
+
+		if model := res.Model; model != nil {
+			if model.Properties.ProvisioningState != nil {
+				return res, string(*res.Model.Properties.ProvisioningState), nil
+			}
+		}
+		return nil, "", fmt.Errorf("unable to read the provisioning state")
+	}
 }

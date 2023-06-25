@@ -1,11 +1,11 @@
 package vmware
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/privateclouds"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func flattenPrivateCloudManagementCluster(input privateclouds.ManagementCluster) []interface{} {
+func flattenPrivateCloudManagementCluster(input privateclouds.CommonClusterProperties) []interface{} {
 	return []interface{}{
 		map[string]interface{}{
 			"size":  input.ClusterSize,

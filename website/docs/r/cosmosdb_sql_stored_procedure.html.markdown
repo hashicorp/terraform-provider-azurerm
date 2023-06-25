@@ -41,7 +41,7 @@ resource "azurerm_cosmosdb_sql_stored_procedure" "example" {
   container_name      = azurerm_cosmosdb_sql_container.example.name
 
   body = <<BODY
-  	function () { var context = getContext(); var response = context.getResponse(); response.setBody('Hello, World'); }
+   function () { var context = getContext(); var response = context.getResponse(); response.setBody('Hello, World'); }
 BODY
 }
 ```
@@ -62,10 +62,9 @@ The following arguments are supported:
 
 * `body` - (Required) The body of the stored procedure.
 
-
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Cosmos DB SQL Stored Procedure.
 

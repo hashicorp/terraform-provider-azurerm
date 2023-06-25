@@ -13,7 +13,6 @@ import (
 func TestShareV0ToV1(t *testing.T) {
 	clouds := []azure.Environment{
 		azure.ChinaCloud,
-		azure.GermanCloud,
 		azure.PublicCloud,
 		azure.USGovernmentCloud,
 	}
@@ -28,11 +27,13 @@ func TestShareV0ToV1(t *testing.T) {
 			"storage_account_name": "account1",
 			"quota":                5120,
 		}
+
 		meta := &clients.Client{
 			Account: &clients.ResourceManagerAccount{
-				Environment: cloud,
+				AzureEnvironment: cloud,
 			},
 		}
+
 		expected := map[string]interface{}{
 			"id":                   "share1/group1/account1",
 			"name":                 "share1",
@@ -57,7 +58,6 @@ func TestShareV0ToV1(t *testing.T) {
 func TestShareV1ToV2(t *testing.T) {
 	clouds := []azure.Environment{
 		azure.ChinaCloud,
-		azure.GermanCloud,
 		azure.PublicCloud,
 		azure.USGovernmentCloud,
 	}
@@ -72,11 +72,13 @@ func TestShareV1ToV2(t *testing.T) {
 			"storage_account_name": "account1",
 			"quota":                5120,
 		}
+
 		meta := &clients.Client{
 			Account: &clients.ResourceManagerAccount{
-				Environment: cloud,
+				AzureEnvironment: cloud,
 			},
 		}
+
 		expected := map[string]interface{}{
 			"id":                   fmt.Sprintf("https://account1.file.%s/share1", cloud.StorageEndpointSuffix),
 			"name":                 "share1",

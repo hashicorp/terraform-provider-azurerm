@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestAccWindowsVirtualMachine_imageFromImage(t *testing.T) {
@@ -369,7 +370,7 @@ provider "azurerm" {
 }
 
 func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.VirtualMachineID(state.ID)
+	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return err
 	}
@@ -379,32 +380,21 @@ func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Contex
 		"$args = \"/generalize /oobe /mode:vm /quit\"",
 		"Start-Process powershell -Argument \"$cmd $args\" -Wait",
 	}
-	runCommand := compute.RunCommandInput{
-		CommandID: utils.String("RunPowerShellScript"),
+	runCommand := virtualmachines.RunCommandInput{
+		CommandId: "RunPowerShellScript",
 		Script:    &command,
 	}
 
-	future, err := client.Compute.VMClient.RunCommand(ctx, id.ResourceGroup, id.Name, runCommand)
-	if err != nil {
-		return fmt.Errorf("Bad: Error in running sysprep: %+v", err)
+	if err := client.Compute.VirtualMachinesClient.RunCommandThenPoll(ctx, *id, runCommand); err != nil {
+		return fmt.Errorf("running sysprep for %s: %+v", *id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
-		return fmt.Errorf("Bad: Error waiting for Windows VM to sysprep: %+v", err)
+	if err := client.Compute.VirtualMachinesClient.DeallocateThenPoll(ctx, *id, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
+		return fmt.Errorf("deallocating %s: %+v", *id, err)
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
-	daFuture, err := client.Compute.VMClient.Deallocate(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
-	if err != nil {
-		return fmt.Errorf("Bad: Deallocation error: %+v", err)
-	}
-
-	if err := daFuture.WaitForCompletionRef(ctx, client.Compute.VMClient.Client); err != nil {
-		return fmt.Errorf("Bad: Deallocation error: %+v", err)
-	}
-
-	if _, err = client.Compute.VMClient.Generalize(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("Bad: Generalizing error: %+v", err)
+	if _, err = client.Compute.VirtualMachinesClient.Generalize(ctx, *id); err != nil {
+		return fmt.Errorf("generalizing %s: %+v", *id, err)
 	}
 
 	return nil
@@ -413,21 +403,28 @@ func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Contex
 func (r WindowsVirtualMachineResource) cancelExistingAgreement(publisher string, offer string, sku string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.Compute.MarketplaceAgreementsClient
-		id := parse.NewPlanID(client.SubscriptionID, publisher, offer, sku)
+		subscriptionId := clients.Account.SubscriptionId
+		ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+		defer cancel()
 
-		existing, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)
+		idGet := agreements.NewOfferPlanID(subscriptionId, publisher, offer, sku)
+		idCancel := agreements.NewPlanID(subscriptionId, publisher, offer, sku)
+
+		existing, err := client.MarketplaceAgreementsGet(ctx, idGet)
 		if err != nil {
 			return err
 		}
 
-		if props := existing.AgreementProperties; props != nil {
-			if accepted := props.Accepted; accepted != nil && *accepted {
-				resp, err := client.Cancel(ctx, id.AgreementName, id.OfferName, id.Name)
-				if err != nil {
-					if utils.ResponseWasNotFound(resp.Response) {
-						return fmt.Errorf("marketplace agreement %q does not exist", id)
+		if model := existing.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if accepted := props.Accepted; accepted != nil && *accepted {
+					resp, err := client.MarketplaceAgreementsCancel(ctx, idCancel)
+					if err != nil {
+						if response.WasNotFound(resp.HttpResponse) {
+							return fmt.Errorf("marketplace agreement %q does not exist", idGet)
+						}
+						return fmt.Errorf("canceling %s: %+v", idGet, err)
 					}
-					return fmt.Errorf("canceling Marketplace Agreement : %+v", err)
 				}
 			}
 		}

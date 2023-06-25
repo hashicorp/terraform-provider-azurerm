@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
@@ -116,6 +116,16 @@ func (t thatWithKeyType) Exists() pluginsdk.TestCheckFunc {
 // IsEmpty returns a TestCheckFunc which validates that the specific key is empty on the resource
 func (t thatWithKeyType) IsEmpty() pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttr(t.resourceName, t.key, "")
+}
+
+// IsNotEmpty returns a TestCheckFunc which validates that the specific key is not empty on the resource
+func (t thatWithKeyType) IsNotEmpty() pluginsdk.TestCheckFunc {
+	return resource.TestCheckResourceAttrWith(t.resourceName, t.key, func(value string) error {
+		if value == "" {
+			return fmt.Errorf("value is empty")
+		}
+		return nil
+	})
 }
 
 // IsSet returns a TestCheckFunc which validates that the specific key is set on the resource

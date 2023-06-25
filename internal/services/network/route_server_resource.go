@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceRouteServer() *pluginsdk.Resource {
@@ -72,7 +73,7 @@ func resourceRouteServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"branch_to_branch_traffic_enabled": {
@@ -140,8 +141,13 @@ func resourceRouteServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: t,
 	}
 
-	if _, err := serverClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	serverFuture, err := serverClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	if err != nil {
 		return fmt.Errorf("creating Route Server %q (Resource Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if err := serverFuture.WaitForCompletionRef(ctx, serverClient.Client); err != nil {
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -153,7 +159,7 @@ func resourceRouteServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		ContinuousTargetOccurence: 5,
 		Timeout:                   time.Until(timeout),
 	}
-	_, err := stateConf.WaitForStateContext(ctx)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("waiting for creation/update of Route Server %q (Resource Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}

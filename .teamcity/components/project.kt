@@ -1,10 +1,14 @@
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.Project
 
 const val providerName = "azurerm"
+var enableTestTriggersGlobally = false
 
 fun AzureRM(environment: String, configuration : ClientConfiguration) : Project {
     return Project{
+        // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
+        enableTestTriggersGlobally = configuration.enableTestTriggersGlobally
+
         vcsRoot(providerRepository)
 
         var pullRequestBuildConfig = pullRequestBuildConfiguration(environment, configuration)
@@ -30,7 +34,7 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
         var service = serviceDetails(serviceName, displayName, environment)
         var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth)
 
-        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse,  testConfig.useAltSubscription)
+        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse,  testConfig.useAltSubscription, testConfig.useDevTestSubscription)
 
         list.add(buildConfig)
     }
@@ -46,11 +50,12 @@ fun pullRequestBuildConfiguration(environment: String, configuration: ClientConf
     return buildConfiguration
 }
 
-class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth, useAltSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false)) {
+class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false)) {
     var parallelism = parallelism
     var startHour = startHour
     var daysOfWeek = daysOfWeek
     var daysOfMonth = daysOfMonth
     var useAltSubscription = useAltSubscription
+    var useDevTestSubscription = useDevTestSubscription
     var locationOverride = locationOverride
 }

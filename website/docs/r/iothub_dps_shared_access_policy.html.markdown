@@ -69,7 +69,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the IoTHub Device Provisioning Service Shared Access Policy.
 
@@ -82,8 +82,6 @@ The following attributes are exported:
 * `secondary_connection_string` - The secondary connection string of the Shared Access Policy.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

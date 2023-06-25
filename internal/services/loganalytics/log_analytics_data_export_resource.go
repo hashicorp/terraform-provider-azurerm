@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/dataexport"
@@ -55,7 +56,7 @@ func resourceLogAnalyticsDataExport() *pluginsdk.Resource {
 				ValidateFunc:     validate.LogAnalyticsDataExportName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"workspace_resource_id": {
 				Type:         pluginsdk.TypeString,
@@ -136,14 +137,23 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if strings.Contains(destinationId, "Microsoft.EventHub") {
-		eventhubId, err := eventhubs.ParseEventhubID(destinationId)
-		if err != nil {
-			return fmt.Errorf("parsing destination eventhub id error: %+v", err)
-		}
-		destinationId = namespaces.NewNamespaceID(eventhubId.SubscriptionId, eventhubId.ResourceGroupName, eventhubId.NamespaceName).ID()
-		parameters.Properties.Destination.ResourceId = destinationId
-		parameters.Properties.Destination.MetaData = &dataexport.DestinationMetaData{
-			EventHubName: utils.String(eventhubId.EventHubName),
+		_, err := eventhubs.ValidateNamespaceID(destinationId, "destination_resource_id")
+		if err == nil {
+			eventhubNamespace, err := eventhubs.ParseNamespaceID(destinationId)
+			if err != nil {
+				return fmt.Errorf("parsing destination eventhub namespaces id error: %+v", err)
+			}
+			parameters.Properties.Destination.ResourceId = eventhubNamespace.ID()
+		} else {
+			eventhubId, err := eventhubs.ParseEventhubID(destinationId)
+			if err != nil {
+				return fmt.Errorf("parsing destination eventhub id error: %+v", err)
+			}
+			destinationId = namespaces.NewNamespaceID(eventhubId.SubscriptionId, eventhubId.ResourceGroupName, eventhubId.NamespaceName).ID()
+			parameters.Properties.Destination.ResourceId = destinationId
+			parameters.Properties.Destination.MetaData = &dataexport.DestinationMetaData{
+				EventHubName: utils.String(eventhubId.EventhubName),
+			}
 		}
 	}
 
@@ -230,7 +240,7 @@ func flattenDataExportDestination(input *dataexport.Destination) (string, error)
 		if *input.Type == dataexport.TypeEventHub {
 			if input.MetaData != nil && input.MetaData.EventHubName != nil {
 				eventhubName := *input.MetaData.EventHubName
-				eventhubNamespaceId, err := eventhubs.ParseNamespaceID(resourceID)
+				eventhubNamespaceId, err := eventhubs.ParseNamespaceIDInsensitively(resourceID)
 				eventhubId := eventhubs.NewEventhubID(eventhubNamespaceId.SubscriptionId, eventhubNamespaceId.ResourceGroupName, eventhubNamespaceId.NamespaceName, eventhubName)
 				if err != nil {
 					return "", fmt.Errorf("parsing destination eventhub namespace ID error")

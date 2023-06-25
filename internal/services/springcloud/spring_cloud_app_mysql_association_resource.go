@@ -5,16 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	mysqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 const (
@@ -28,6 +29,11 @@ func resourceSpringCloudAppMysqlAssociation() *pluginsdk.Resource {
 		Read:   resourceSpringCloudAppMysqlAssociationRead,
 		Update: resourceSpringCloudAppMysqlAssociationCreateUpdate,
 		Delete: resourceSpringCloudAppMysqlAssociationDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudAppMySqlAssociationV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.SpringCloudAppAssociationID(id)
@@ -110,9 +116,9 @@ func resourceSpringCloudAppMysqlAssociationCreateUpdate(d *pluginsdk.ResourceDat
 
 	bindingResource := appplatform.BindingResource{
 		Properties: &appplatform.BindingResourceProperties{
-			BindingParameters: map[string]interface{}{
-				springCloudAppMysqlAssociationKeyDatabase: d.Get("database_name").(string),
-				springCloudAppMysqlAssociationKeyUsername: d.Get("username").(string),
+			BindingParameters: map[string]*string{
+				springCloudAppMysqlAssociationKeyDatabase: utils.String(d.Get("database_name").(string)),
+				springCloudAppMysqlAssociationKeyUsername: utils.String(d.Get("username").(string)),
 			},
 			Key:        utils.String(d.Get("password").(string)),
 			ResourceID: utils.String(d.Get("mysql_server_id").(string)),
@@ -157,14 +163,14 @@ func resourceSpringCloudAppMysqlAssociationRead(d *pluginsdk.ResourceData, meta 
 		d.Set("mysql_server_id", props.ResourceID)
 
 		databaseName := ""
-		if v, ok := props.BindingParameters[springCloudAppMysqlAssociationKeyDatabase]; ok {
-			databaseName = v.(string)
+		if v, ok := props.BindingParameters[springCloudAppMysqlAssociationKeyDatabase]; ok && v != nil {
+			databaseName = *v
 		}
 		d.Set("database_name", databaseName)
 
 		username := ""
-		if v, ok := props.BindingParameters[springCloudAppMysqlAssociationKeyUsername]; ok {
-			username = v.(string)
+		if v, ok := props.BindingParameters[springCloudAppMysqlAssociationKeyUsername]; ok && v != nil {
+			username = *v
 		}
 		d.Set("username", username)
 	}

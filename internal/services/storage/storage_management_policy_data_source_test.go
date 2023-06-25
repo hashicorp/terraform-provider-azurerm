@@ -27,9 +27,12 @@ func TestAccDataSourceStorageManagementPolicy_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than").HasValue("10"),
 				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than").HasValue("50"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_archive_after_days_since_last_tier_change_greater_than").HasValue("10"),
 				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("100"),
 				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.#").HasValue("1"),
 				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("30"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.tier_to_archive_after_days_since_last_tier_change_greater_than").HasValue("10"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.change_tier_to_archive_after_days_since_creation").HasValue("10"),
 			),
 		},
 	})
@@ -91,12 +94,15 @@ resource "azurerm_storage_management_policy" "test" {
     }
     actions {
       base_blob {
-        tier_to_cool_after_days_since_modification_greater_than    = 10
-        tier_to_archive_after_days_since_modification_greater_than = 50
-        delete_after_days_since_modification_greater_than          = 100
+        tier_to_cool_after_days_since_modification_greater_than        = 10
+        tier_to_archive_after_days_since_modification_greater_than     = 50
+        tier_to_archive_after_days_since_last_tier_change_greater_than = 10
+        delete_after_days_since_modification_greater_than              = 100
       }
       snapshot {
-        delete_after_days_since_creation_greater_than = 30
+        delete_after_days_since_creation_greater_than                  = 30
+        change_tier_to_archive_after_days_since_creation               = 10
+        tier_to_archive_after_days_since_last_tier_change_greater_than = 10
       }
     }
   }

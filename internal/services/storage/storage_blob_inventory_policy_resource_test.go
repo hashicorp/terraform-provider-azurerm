@@ -210,12 +210,16 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
       "IsCurrentVersion",
       "Snapshot",
       "BlobType",
+      "Deleted",
+      "RemainingRetentionDays",
     ]
     filter {
       blob_types            = ["blockBlob", "pageBlob"]
       include_blob_versions = true
+      include_deleted       = true
       include_snapshots     = true
       prefix_match          = ["*/test"]
+      exclude_prefixes      = ["syslog.log"]
     }
   }
 }
@@ -243,10 +247,13 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
       "IsCurrentVersion",
       "Snapshot",
       "BlobType",
+      "Deleted",
+      "RemainingRetentionDays",
     ]
     filter {
       blob_types            = ["blockBlob", "pageBlob"]
       include_blob_versions = true
+      include_deleted       = true
       include_snapshots     = true
       prefix_match          = ["*/test"]
     }

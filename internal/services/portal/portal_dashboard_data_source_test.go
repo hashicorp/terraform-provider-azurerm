@@ -79,7 +79,6 @@ data "azurerm_portal_dashboard" "test" {
 }
 
 func (PortalDashboardDataSource) displayName(data acceptance.TestData) string {
-	resourceName := "azurerm_portal_dashboard"
 	return fmt.Sprintf(`
 
 %s
@@ -88,7 +87,7 @@ data "azurerm_portal_dashboard" "test" {
   display_name        = "Test Display Name"
   resource_group_name = azurerm_resource_group.test.name
 
-  depends_on = ["%s.test"]
+  depends_on = ["azurerm_portal_dashboard.test"]
 }
-`, PortalDashboardResource{}.hiddenTitle(data), resourceName)
+`, PortalDashboardResource{}.hiddenTitle(data))
 }

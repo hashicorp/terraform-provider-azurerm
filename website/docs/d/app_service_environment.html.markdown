@@ -61,9 +61,8 @@ A `cluster_setting` block exports the following:
 
 * `value` - The value for the Cluster Setting.
 
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-- `read` - (Defaults to 5 minutes) Used when retrieving the App Service Environment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Environment.

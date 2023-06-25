@@ -27,16 +27,6 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group where the SQL Managed Instance exists.
 
----
-
-An `identity` block exports the following:
-
-* `principal_id` - The Principal ID associated with this Managed Service Identity.
-
-* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
-
-* `type` - The identity type of this Managed Service Identity.
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -44,6 +34,8 @@ The following attributes are exported:
 * `administrator_login` - The administrator login name for the SQL Managed Instance.
 
 * `collation` - Specifies how the SQL Managed Instance will be collated.
+
+* `customer_managed_key` - Specifies KeyVault key, used by SQL Managed Instance for Transparent Data Encryption.
 
 * `dns_zone_partner_id` - The ID of the SQL Managed Instance which shares the DNS zone.
 
@@ -84,6 +76,8 @@ The `identity` block exports the following:
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
+
+* `identity_ids` - A list of User Assigned Managed Identity IDs assigned with the Identity of this SQL Managed Instance.
 
 * `type` - The identity type of the SQL Managed Instance.
 

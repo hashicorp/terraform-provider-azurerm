@@ -16,6 +16,8 @@ Manages an Alias for a Subscription - which adds an Alias to an existing Subscri
 
 ~> **NOTE:** Azure supports Multiple Aliases per Subscription, however, to reliably manage this resource in Terraform only a single Alias is supported.
 
+~> **NOTE:** When using this resource across tenants the `client_id` and `tenant_id` of the `provider` config block should be for the home tenant details for the SPN / User or a permissions error will likely be encountered. See [the official documentation](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/programmatically-create-subscription) for more details. 
+
 ## Example Usage - creating a new Alias and Subscription for an Enrollment Account
 
 ```hcl
@@ -87,7 +89,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Either `billing_scope_id` or `subscription_id` has to be specified.
 
-* `workload` - (Optional) The workload type of the Subscription.  Possible values are `Production` (default) and `DevTest`. Changing this forces a new Subscription to be created.
+* `workload` - (Optional) The workload type of the Subscription. Possible values are `Production` (default) and `DevTest`. Changing this forces a new Subscription to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Subscription.
 

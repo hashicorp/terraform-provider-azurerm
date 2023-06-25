@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/dicomservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HealthCareDicomResource struct{}
@@ -98,17 +98,17 @@ func TestAccHealthCareDicomResource_requiresImport(t *testing.T) {
 }
 
 func (HealthCareDicomResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DicomServiceID(state.ID)
+	id, err := dicomservices.ParseDicomServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.HealthCare.HealthcareWorkspaceDicomServiceClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := clients.HealthCare.HealthcareWorkspaceDicomServiceClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s, %+v", *id, err)
 	}
 
-	return utils.Bool(resp.DicomServiceProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r HealthCareDicomResource) basic(data acceptance.TestData) string {

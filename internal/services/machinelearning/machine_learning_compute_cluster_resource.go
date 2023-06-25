@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -49,7 +50,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"vm_size": {
 				Type:     pluginsdk.TypeString,
@@ -61,7 +62,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{string(machinelearningcomputes.VmPriorityDedicated), string(machinelearningcomputes.VmPriorityLowPriority)}, false),
+				ValidateFunc: validation.StringInSlice([]string{string(machinelearningcomputes.VMPriorityDedicated), string(machinelearningcomputes.VMPriorityLowPriority)}, false),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
@@ -93,6 +94,13 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			},
 
 			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
+			"node_public_ip_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -174,12 +182,17 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
 	}
 
-	vmPriority := machinelearningcomputes.VmPriority(d.Get("vm_priority").(string))
+	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" {
+		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
+	}
+
+	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
 	computeClusterAmlComputeProperties := machinelearningcomputes.AmlComputeProperties{
-		VmSize:                 utils.String(d.Get("vm_size").(string)),
-		VmPriority:             &vmPriority,
+		VMSize:                 utils.String(d.Get("vm_size").(string)),
+		VMPriority:             &vmPriority,
 		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
 		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
+		EnableNodePublicIP:     pointer.To(d.Get("node_public_ip_enabled").(bool)),
 	}
 
 	computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = utils.ToPtr(machinelearningcomputes.RemoteLoginPortPublicAccessDisabled)
@@ -265,10 +278,15 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 	d.Set("description", computeCluster.Description)
 	if props := computeCluster.Properties; props != nil {
-		d.Set("vm_size", props.VmSize)
-		d.Set("vm_priority", props.VmPriority)
+		d.Set("vm_size", props.VMSize)
+		d.Set("vm_priority", string(pointer.From(props.VMPriority)))
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
 		d.Set("ssh", flattenUserAccountCredentials(props.UserAccountCredentials))
+		enableNodePublicIP := true
+		if props.EnableNodePublicIP != nil {
+			enableNodePublicIP = *props.EnableNodePublicIP
+		}
+		d.Set("node_public_ip_enabled", enableNodePublicIP)
 		if props.Subnet != nil {
 			d.Set("subnet_resource_id", props.Subnet.Id)
 		}
@@ -339,7 +357,7 @@ func expandScaleSettings(input []interface{}) *machinelearningcomputes.ScaleSett
 }
 
 func expandUserAccountCredentials(input []interface{}) *machinelearningcomputes.UserAccountCredentials {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})

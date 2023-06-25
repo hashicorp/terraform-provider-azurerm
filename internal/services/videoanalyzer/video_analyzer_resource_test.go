@@ -83,8 +83,8 @@ func (VideoAnalyzerResource) Exists(ctx context.Context, clients *clients.Client
 	return utils.Bool(resp.Model != nil), nil
 }
 
+//nolint:unused
 func (r VideoAnalyzerResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -110,11 +110,11 @@ resource "azurerm_video_analyzer" "test" {
     azurerm_role_assignment.reader,
   ]
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
+//nolint:unused
 func (r VideoAnalyzerResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -135,11 +135,11 @@ resource "azurerm_video_analyzer" "import" {
     ]
   }
 }
-`, template)
+`, r.template(data))
 }
 
+//nolint:unused
 func (r VideoAnalyzerResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -169,9 +169,10 @@ resource "azurerm_video_analyzer" "test" {
     label = "test"
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
+//nolint:unused
 func (VideoAnalyzerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

@@ -1,0 +1,69 @@
+site_name: Terraform AzureRM Provider - Contributor Guide
+site_description: 'Contributor documentation and reference for the Terraform AzureRM Provider'
+copyright: HashiCorp
+
+repo_name: hashicorp/terraform-provider-azurerm
+repo_url: https://github.com/hashicorp/terraform-provider-azurerm
+edit_uri: "https://github.com/hashicorp/terraform-provider-azurerm/tree/main/contributing"
+
+docs_dir: contributing
+site_dir: site
+
+remote_branch: main-gh-pages
+
+dev_addr: 127.0.0.1:47000
+
+nav:
+  - Welcome: README.md
+  - Basics:
+      - Overview of the Provider: topics/high-level-overview.md
+      - Building the Provider: topics/building-the-provider.md
+      - Debugging the Provider: topics/debugging-the-provider.md
+      - Running Tests: topics/running-the-tests.md
+      - Opening a Pull Request: topics/guide-opening-a-pr.md
+  - Guides:
+      - Adding a new Service Package: topics/guide-new-service-package.md
+      - Adding a new Data Source: topics/guide-new-data-source.md
+      - Adding a new Resource: topics/guide-new-resource.md
+      - Adding fields to an existing Data Source: topics/guide-new-fields-to-data-source.md
+      - Adding fields to an existing Resource: topics/guide-new-fields-to-resource.md
+      - When to create a new Resource vs Inline Block: topics/guide-new-resource-vs-inline.md
+  - Reference:
+    - Acceptance Testing: topics/reference-acceptance-testing.md
+    - Working with Errors: topics/reference-errors.md
+    - Naming: topics/reference-naming.md
+    - Schema Design: topics/schema-design-considerations.md
+    - Glossary: topics/reference-glossary.md
+  - Maintainers:
+    - Updates to the Changelog: topics/maintainer-changelog.md
+  - FAQ: topics/frequently-asked-questions.md
+
+theme:
+  name: material
+  logo: images/hashicorp.png
+  favicon: images/hashicorp-black.png
+  palette:
+    scheme: hashicorp
+    primary: black
+    accent: blue
+  icon:
+    repo: fontawesome/brands/github
+  font: false
+  features:
+    - navigation.instant
+    - content.tabs.link
+
+plugins:
+  - search:
+      lang:
+        - en
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - toc:
+      permalink: "#"
+
+extra_css:
+  - extra.css

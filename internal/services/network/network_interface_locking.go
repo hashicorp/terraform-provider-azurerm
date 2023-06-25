@@ -1,10 +1,10 @@
 package network
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type networkInterfaceIPConfigurationLockingDetails struct {
@@ -38,13 +38,13 @@ func determineResourcesToLockFromIPConfiguration(input *[]network.InterfaceIPCon
 			continue
 		}
 
-		id, err := parse.SubnetID(*config.Subnet.ID)
+		id, err := commonids.ParseSubnetID(*config.Subnet.ID)
 		if err != nil {
 			return nil, err
 		}
 
 		virtualNetworkName := id.VirtualNetworkName
-		subnetName := id.Name
+		subnetName := id.SubnetName
 
 		if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
 			virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)

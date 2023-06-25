@@ -23,7 +23,7 @@ resource "azurerm_linux_web_app" "example" {
 
   site_config {
     application_stack {
-      node_version = "16-lts"
+      node_version = "18-lts"
     }
   }
 }

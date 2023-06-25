@@ -48,7 +48,7 @@ The following attributes are exported:
 * `name` - The name of the Backend Address Pool.
 
 * `backend_address` - A list of `backend_address` block as defined below.
- 
+
 * `backend_ip_configurations` - A list of references to IP addresses defined in network interfaces.
 
 * `load_balancing_rules` - A list of the Load Balancing Rules associated with this Backend Address Pool.

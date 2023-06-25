@@ -35,6 +35,9 @@ service/authorization:
   - internal/services/authorization/**/*
   - internal/services/managedidentity/**/*
 
+service/automanage:
+  - internal/services/automanage/**/*
+
 service/automation:
   - internal/services/automation/**/*
 
@@ -138,6 +141,9 @@ service/hpc-cache:
 service/hsm:
   - internal/services/hsm/**/*
 
+service/hybrid-compute:
+  - internal/services/hybridcompute/**/*
+
 service/iot-central:
   - internal/services/iotcentral/**/*
 
@@ -152,6 +158,9 @@ service/key-vault:
 
 service/kusto:
   - internal/services/kusto/**/*
+
+service/labservice:
+  - internal/services/labservice/**/*
 
 service/lighthouse:
   - internal/services/lighthouse/**/*
@@ -195,11 +204,17 @@ service/media:
 service/mixed-reality:
   - internal/services/mixedreality/**/*
 
+service/mobile-network:
+  - internal/services/mobilenetwork/**/*
+
 service/monitor:
   - internal/services/monitor/**/*
 
 service/mssql:
   - internal/services/mssql/**/*
+
+service/mssqlmanagedinstance:
+  - internal/services/mssqlmanagedinstance/**/*
 
 service/mysql:
   - internal/services/mysql/**/*
@@ -207,8 +222,8 @@ service/mysql:
 service/netapp:
   - internal/services/netapp/**/*
 
-service/network-function:
-  - internal/services/networkfunction/**/*
+service/network:
+  - internal/services/network/**/*
 
 service/nginx:
   - internal/services/nginx/**/*
@@ -227,6 +242,9 @@ service/postgresql:
 
 service/power-bi:
   - internal/services/powerbi/**/*
+
+service/private-dns-resolver:
+  - internal/services/privatednsresolver/**/*
 
 service/purview:
   - internal/services/purview/**/*

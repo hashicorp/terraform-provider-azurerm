@@ -208,7 +208,7 @@ func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
+	if err := waitForRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
 			_, err := client.RemediationsCancelAtManagementGroup(ctx, *id)
 			return err
@@ -225,7 +225,6 @@ func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData
 
 func managementGroupPolicyRemediationCancellationRefreshFunc(ctx context.Context,
 	client *remediations.RemediationsClient, id remediations.Providers2RemediationId) pluginsdk.StateRefreshFunc {
-
 	return func() (interface{}, string, error) {
 		resp, err := client.RemediationsGetAtManagementGroup(ctx, id)
 		if err != nil {

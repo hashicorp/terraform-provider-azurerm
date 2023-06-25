@@ -13,10 +13,22 @@ Manages a Automation Hybrid Runbook Worker Group.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_automation_account" "example" {
+  name                = "example-account"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Basic"
+}
+
 resource "azurerm_automation_hybrid_runbook_worker_group" "example" {
   name                    = "example"
-  resource_group_name     = "example"
-  automation_account_name = "example"
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
 }
 ```
 
@@ -26,7 +38,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the Automation Account in which the Runbook Worker Group is created. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name which should be used for this Automation Account Runbook Worker Group.
+* `name` - (Required) The name which should be used for this Automation Account Runbook Worker Group. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Automation should exist. Changing this forces a new Automation to be created.
 
@@ -36,7 +48,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Automation Hybrid Runbook Worker Group.
 

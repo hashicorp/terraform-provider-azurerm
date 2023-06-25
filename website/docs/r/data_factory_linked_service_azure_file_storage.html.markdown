@@ -42,18 +42,23 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "example" {
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data
-  factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `description` - (Optional) The description for the Data Factory Linked Service.
+
+* `host` - (Optional) The Host name of the server.
 
 * `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service.
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service.
 
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
+
+* `password` - (Optional) The password to log in the server.
+
+* `user_id` - (Optional) The user ID to log in the server.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service.
 
@@ -77,7 +82,7 @@ A `key_vault_password` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Linked Service.
 

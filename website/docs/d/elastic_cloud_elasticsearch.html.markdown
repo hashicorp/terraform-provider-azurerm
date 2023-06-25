@@ -88,7 +88,6 @@ The `logs` block exports the following:
 
 * `send_subscription_logs` - Should the Azure Subscription Logs should be sent to the Elasticsearch cluster?
 
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

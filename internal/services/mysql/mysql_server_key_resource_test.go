@@ -111,7 +111,7 @@ resource "azurerm_key_vault_access_policy" "server" {
   key_vault_id       = azurerm_key_vault.test.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = azurerm_mysql_server.test.identity.0.principal_id
-  key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
+  key_permissions    = ["Get", "UnwrapKey", "WrapKey", "GetRotationPolicy", "SetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 
@@ -119,7 +119,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   key_vault_id       = azurerm_key_vault.test.id
   tenant_id          = data.azurerm_client_config.current.tenant_id
   object_id          = data.azurerm_client_config.current.object_id
-  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy", "SetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 

@@ -50,7 +50,6 @@ A `connections` block exports the following:
 
 * `action_required` - Actions required for a private endpoint connection.
 
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

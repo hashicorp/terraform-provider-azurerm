@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/serviceresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -93,17 +93,17 @@ func TestAccDatabaseMigrationService_update(t *testing.T) {
 }
 
 func (t DatabaseMigrationServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServiceID(state.ID)
+	id, err := serviceresource.ParseServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DatabaseMigration.ServicesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.DatabaseMigration.ServicesClient.ServicesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Database Migration Service (Service Name %q / Group Name %q) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s", *id)
 	}
 
-	return utils.Bool(resp.ServiceProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DatabaseMigrationServiceResource) base(data acceptance.TestData) string {

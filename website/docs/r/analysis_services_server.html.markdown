@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `ipv4_firewall_rule` - (Optional) One or more `ipv4_firewall_rule` block(s) as defined below.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `ipv4_firewall_rule` block supports the following:
@@ -72,10 +74,9 @@ A `ipv4_firewall_rule` block supports the following:
 
 * `range_end` - (Required) End of the firewall rule range as IPv4 address.
 
-
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Analysis Services Server.
 

@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description for the Data Factory Tumbling Window Trigger.
 
-* `end_time` - (Required) Specifies the end time of Tumbling Window, formatted as an RFC3339 string.
+* `end_time` - (Optional) Specifies the end time of Tumbling Window, formatted as an RFC3339 string.
 
 * `max_concurrency` - (Optional) The max number for simultaneous trigger run fired by Tumbling Window. Possible values are between `1` and `50`. Defaults to `50`.
 
@@ -114,7 +114,7 @@ A `retry` block supports the following:
 
 * `count` - (Required) The maximum retry attempts if the pipeline run failed.
 
-* `interval` - (Optional) The Interval in seconds between each retry if the pipeline run failed.
+* `interval` - (Optional) The Interval in seconds between each retry if the pipeline run failed. Defaults to `30`.
 
 ---
 
@@ -128,7 +128,7 @@ A `trigger_dependency` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Tumbling Window Trigger.
 

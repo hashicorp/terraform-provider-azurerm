@@ -23,10 +23,10 @@ resource "azurerm_key_vault" "example" {
     ip_rules       = ["10.0.1.0/24"] # <- this should be the CIDR for your clients IP to allow it through the Key Vault Firewall Policy
   }
 
-  # Grant access to the Frontdoor Enterprise Application(e.g. Microsoft.AzureFrontDoor-Cdn) to the Key Vaults Certificates
+  # Grant access to the Frontdoor Enterprise Application(e.g. Microsoft.Azure.Cdn) to the Key Vaults Certificates
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id for the Microsoft.AzureFrontDoor-Cdn Enterprise Application.
+    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id for the Microsoft.Azure.Cdn Enterprise Application.
 
     secret_permissions = [
       "Get",
@@ -288,19 +288,46 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
   }
 }
 
+resource "azurerm_cdn_frontdoor_route" "example" {
+  name                          = "${var.prefix}-route"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
+  enabled                       = true
+
+  https_redirect_enabled     = true
+  forwarding_protocol        = "HttpsOnly"
+  patterns_to_match          = ["/*"]
+  supported_protocols        = ["Http", "Https"]
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
+
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
+  link_to_default_domain          = false
+
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
+    query_strings                 = ["account", "settings", "foo", "bar"]
+    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
+  }
+}
+
 resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
   name                     = "${var.prefix}-custom-domain"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = join(".", ["contoso", azurerm_dns_zone.example.name])
 
-  associate_with_cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
-
   tls {
     certificate_type        = "CustomerCertificate"
     minimum_tls_version     = "TLS12"
     cdn_frontdoor_secret_id = azurerm_cdn_frontdoor_secret.example.id
   }
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain_association" "contoso" {
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.example.id]
 }
 
 resource "azurerm_dns_txt_record" "contoso" {
@@ -312,33 +339,6 @@ resource "azurerm_dns_txt_record" "contoso" {
   record {
     value = azurerm_cdn_frontdoor_custom_domain.contoso.validation_token
   }
-}
-
-resource "azurerm_cdn_frontdoor_route" "example" {
-  name                          = "${var.prefix}-route"
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
-  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
-  enabled                       = true
-
-  https_redirect_enabled         = true
-  forwarding_protocol            = "HttpsOnly"
-
-  patterns_to_match          = ["/*"]
-  supported_protocols        = ["Http", "Https"]
-  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
-
-  cache {
-    compression_enabled           = true
-    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
-    query_strings                 = ["account", "settings", "foo", "bar"]
-    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
-  }
-}
-
-resource "azurerm_cdn_frontdoor_route_disable_link_to_default_domain" "example" {
-  cdn_frontdoor_route_id          = azurerm_cdn_frontdoor_route.example.id
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
 }
 
 resource "azurerm_dns_cname_record" "contoso" {

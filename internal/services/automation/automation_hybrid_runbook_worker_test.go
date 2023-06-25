@@ -114,10 +114,6 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 
-  tags = {
-    azsecpack                                                                  = "nonprod"
-    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

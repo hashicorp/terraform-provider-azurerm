@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "iotAppValue")
 
 payload := apps.App{
 	// ...
@@ -83,7 +83,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "iotAppValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -95,7 +95,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "iotAppValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -162,7 +162,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "iotAppValue")
 
 payload := apps.AppPatch{
 	// ...

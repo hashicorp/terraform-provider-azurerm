@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -171,6 +172,11 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -317,30 +323,31 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 			d.Set("sku", skuName)
 			d.Set("capacity", sku.Capacity)
+
+			if props := model.Properties; props != nil {
+				d.Set("zone_redundant", props.ZoneRedundant)
+				if customerManagedKey, err := flattenServiceBusNamespaceEncryption(props.Encryption); err == nil {
+					d.Set("customer_managed_key", customerManagedKey)
+				}
+				localAuthEnabled := true
+				if props.DisableLocalAuth != nil {
+					localAuthEnabled = !*props.DisableLocalAuth
+				}
+				d.Set("local_auth_enabled", localAuthEnabled)
+
+				publicNetworkAccess := true
+				if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == namespaces.PublicNetworkAccessDisabled {
+					publicNetworkAccess = false
+				}
+				d.Set("public_network_access_enabled", publicNetworkAccess)
+
+				if props.MinimumTlsVersion != nil {
+					d.Set("minimum_tls_version", string(pointer.From(props.MinimumTlsVersion)))
+				}
+
+				d.Set("endpoint", props.ServiceBusEndpoint)
+			}
 		}
-
-		if props := model.Properties; model != nil {
-			d.Set("zone_redundant", props.ZoneRedundant)
-			if customerManagedKey, err := flattenServiceBusNamespaceEncryption(props.Encryption); err == nil {
-				d.Set("customer_managed_key", customerManagedKey)
-			}
-			localAuthEnabled := true
-			if props.DisableLocalAuth != nil {
-				localAuthEnabled = !*props.DisableLocalAuth
-			}
-			d.Set("local_auth_enabled", localAuthEnabled)
-
-			publicNetworkAccess := true
-			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == namespaces.PublicNetworkAccessDisabled {
-				publicNetworkAccess = false
-			}
-			d.Set("public_network_access_enabled", publicNetworkAccess)
-
-			if props.MinimumTlsVersion != nil {
-				d.Set("minimum_tls_version", *props.MinimumTlsVersion)
-			}
-		}
-
 	}
 
 	authRuleId := namespacesauthorizationrule.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, serviceBusNamespaceDefaultAuthorizationRule)

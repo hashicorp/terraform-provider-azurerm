@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSnapshot() *pluginsdk.Resource {
@@ -120,11 +119,11 @@ func dataSourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSnapshotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := snapshots.NewSnapshotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("loading %s: %+v", id, err)
@@ -132,32 +131,46 @@ func dataSourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.SetId(id.ID())
 
-	if props := resp.SnapshotProperties; props != nil {
-		d.Set("os_type", string(props.OsType))
-		d.Set("time_created", props.TimeCreated.String())
-
-		if props.DiskSizeGB != nil {
-			d.Set("disk_size_gb", int(*props.DiskSizeGB))
-		}
-
-		if err := d.Set("encryption_settings", flattenSnapshotDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
-			return fmt.Errorf("setting `encryption_settings`: %+v", err)
-		}
-
-		trustedLaunchEnabled := false
-		if securityProfile := props.SecurityProfile; securityProfile != nil {
-			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
-				trustedLaunchEnabled = true
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			osType := ""
+			if props.OsType != nil {
+				osType = string(*props.OsType)
 			}
-		}
-		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
-	}
+			d.Set("os_type", osType)
 
-	if data := resp.CreationData; data != nil {
-		d.Set("creation_option", string(data.CreateOption))
-		d.Set("source_uri", data.SourceURI)
-		d.Set("source_resource_id", data.SourceResourceID)
-		d.Set("storage_account_id", data.StorageAccountID)
+			timeCreated := ""
+			if props.TimeCreated != nil {
+				t, err := time.Parse(time.RFC3339, *props.TimeCreated)
+				if err != nil {
+					return fmt.Errorf("converting `time_reated`: %+v", err)
+				}
+				timeCreated = t.Format(time.RFC3339)
+			}
+			d.Set("time_created", timeCreated)
+
+			diskSizeGb := 0
+			if props.DiskSizeGB != nil {
+				diskSizeGb = int(*props.DiskSizeGB)
+			}
+			d.Set("disk_size_gb", diskSizeGb)
+
+			if err := d.Set("encryption_settings", flattenSnapshotDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+				return fmt.Errorf("setting `encryption_settings`: %+v", err)
+			}
+
+			trustedLaunchEnabled := false
+			if securityProfile := props.SecurityProfile; securityProfile != nil && securityProfile.SecurityType != nil {
+				trustedLaunchEnabled = *securityProfile.SecurityType == snapshots.DiskSecurityTypesTrustedLaunch
+			}
+			d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+
+			data := props.CreationData
+			d.Set("creation_option", string(data.CreateOption))
+			d.Set("source_uri", data.SourceUri)
+			d.Set("source_resource_id", data.SourceResourceId)
+			d.Set("storage_account_id", data.StorageAccountId)
+		}
 	}
 
 	return nil

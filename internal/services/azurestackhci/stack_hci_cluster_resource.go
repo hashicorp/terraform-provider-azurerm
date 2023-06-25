@@ -9,13 +9,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2020-10-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-12-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmStackHCICluster() *pluginsdk.Resource {
@@ -70,7 +71,7 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 }
 
 func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
+	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -90,16 +91,16 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	cluster := clusters.Cluster{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &clusters.ClusterProperties{
-			AadClientId: d.Get("client_id").(string),
+			AadClientId: utils.String(d.Get("client_id").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("tenant_id"); ok {
-		cluster.Properties.AadTenantId = v.(string)
+		cluster.Properties.AadTenantId = utils.String(v.(string))
 	} else {
 		tenantId := meta.(*clients.Client).Account.TenantId
-		cluster.Properties.AadTenantId = tenantId
+		cluster.Properties.AadTenantId = utils.String(tenantId)
 	}
 
 	if _, err := client.Create(ctx, id, cluster); err != nil {
@@ -112,7 +113,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
+	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -152,7 +153,7 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
+	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -161,7 +162,7 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	cluster := clusters.ClusterUpdate{}
+	cluster := clusters.ClusterPatch{}
 
 	if d.HasChange("tags") {
 		cluster.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
@@ -175,7 +176,7 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
+	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -184,7 +185,7 @@ func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	if _, err := client.Delete(ctx, *id); err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

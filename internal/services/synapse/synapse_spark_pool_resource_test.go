@@ -120,6 +120,14 @@ func TestAccSynapseSparkPool_sparkVersion(t *testing.T) {
 		},
 		// not returned by service
 		data.ImportStep("spark_events_folder", "spark_log_folder"),
+		{
+			Config: r.sparkVersion(data, "3.3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// not returned by service
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
 	})
 }
 
@@ -258,6 +266,8 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_size_family                    = "MemoryOptimized"
   node_size                           = "Medium"
   dynamic_executor_allocation_enabled = true
+  min_executors                       = 1
+  max_executors                       = 3
   session_level_packages_enabled      = true
   cache_size                          = 100
   auto_pause {

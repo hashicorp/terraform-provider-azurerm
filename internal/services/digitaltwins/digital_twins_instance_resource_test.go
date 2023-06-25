@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/digitaltwinsinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -134,17 +134,17 @@ func TestAccDigitalTwinsInstance_identity(t *testing.T) {
 }
 
 func (DigitalTwinsInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DigitalTwinsInstanceID(state.ID)
+	id, err := digitaltwinsinstance.ParseDigitalTwinsInstanceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DigitalTwins.InstanceClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.DigitalTwins.InstanceClient.DigitalTwinsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Digital Twins Instance %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DigitalTwinsInstanceResource) template(data acceptance.TestData) string {

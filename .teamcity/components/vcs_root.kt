@@ -1,4 +1,4 @@
-import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
+import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
 
 object providerRepository : GitVcsRoot({
     name = "terraform-provider-azurerm"

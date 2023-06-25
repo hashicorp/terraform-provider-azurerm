@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -48,22 +48,24 @@ func TestAccDataShareDataSetKustoDatabase_requiresImport(t *testing.T) {
 }
 
 func (t DataShareDataSetKustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataSetID(state.ID)
+	id, err := dataset.ParseDataSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	respRaw, err := clients.DataShare.DataSetClient.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	resp, err := clients.DataShare.DataSetClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Data Share Data Set %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	resp, ok := respRaw.Value.AsKustoDatabaseDataSet()
-	if !ok {
-		return nil, fmt.Errorf("Data Share Data Set %q (Resource Group %q / accountName %q) is not Kusto Database DataSet", id.ShareName, id.ResourceGroup, id.AccountName)
+	if model := resp.Model; model != nil {
+		ds := *model
+		if _, ok := ds.(dataset.KustoDatabaseDataSet); ok {
+			return utils.Bool(true), nil
+		}
 	}
 
-	return utils.Bool(resp.KustoDatabaseDataSetProperties != nil), nil
+	return nil, fmt.Errorf("%s is not a kusto database dataset", *id)
 }
 
 func (DataShareDataSetKustoDatabaseResource) template(data acceptance.TestData) string {

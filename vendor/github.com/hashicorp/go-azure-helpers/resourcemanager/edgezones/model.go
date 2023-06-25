@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package edgezones
 
 import (
@@ -20,7 +23,7 @@ func (m *Model) MarshalJSON() ([]byte, error) {
 		out["name"] = m.Name
 		out["type"] = "EdgeZone"
 	}
-	
+
 	return json.Marshal(out)
 }
 

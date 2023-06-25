@@ -152,10 +152,16 @@ func TestAccApplicationInsights_basicWorkspaceMode(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic_workspace_mode(data),
+			Config: r.basicWorkspaceMode(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("workspace_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWorkspaceModeUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -279,7 +285,7 @@ resource "azurerm_application_insights" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
 }
 
-func (AppInsightsResource) basic_workspace_mode(data acceptance.TestData) string {
+func (AppInsightsResource) basicWorkspaceMode(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -306,6 +312,43 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (AppInsightsResource) basicWorkspaceModeUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appinsights-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_log_analytics_workspace" "test2" {
+  name                = "acctest2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test2.id
+  application_type    = "web"
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (AppInsightsResource) requiresImport(data acceptance.TestData, applicationType string) string {

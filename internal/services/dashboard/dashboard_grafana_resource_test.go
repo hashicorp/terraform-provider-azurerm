@@ -138,10 +138,15 @@ resource "azurerm_dashboard_grafana" "import" {
 func (r DashboardGrafanaResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+			%[1]s
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "a-uid-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
 
 resource "azurerm_dashboard_grafana" "test" {
-  name                              = "a-dg-%d"
+  name                              = "a-dg-%[2]d"
   resource_group_name               = azurerm_resource_group.test.name
   location                          = azurerm_resource_group.test.location
   api_key_enabled                   = true
@@ -149,7 +154,12 @@ resource "azurerm_dashboard_grafana" "test" {
   public_network_access_enabled     = false
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  azure_monitor_workspace_integrations {
+    resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d"
   }
 
   tags = {
@@ -171,6 +181,14 @@ resource "azurerm_dashboard_grafana" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  azure_monitor_workspace_integrations {
+    resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d"
+  }
+
+  azure_monitor_workspace_integrations {
+    resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d-2"
   }
 
   tags = {

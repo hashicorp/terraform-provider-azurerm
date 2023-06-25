@@ -45,10 +45,9 @@ The following arguments are supported:
 
 * `enabled` - (Required) Should Advanced Threat Protection be enabled on this resource?
 
-
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Advanced Threat Protection resource.
 

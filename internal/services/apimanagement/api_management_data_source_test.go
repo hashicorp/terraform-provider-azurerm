@@ -23,6 +23,24 @@ func TestAccDataSourceApiManagement_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("public_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("tenant_access.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceApiManagement_tenantAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management", "test")
+	r := ApiManagementDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.tenantAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("publisher_email").HasValue("pub1@email.com"),
+				check.That(data.ResourceName).Key("publisher_name").HasValue("pub1"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_1"),
+				check.That(data.ResourceName).Key("tenant_access.0.enabled").Exists(),
 			),
 		},
 	})
@@ -87,6 +105,66 @@ func TestAccDataSourceApiManagement_virtualNetwork(t *testing.T) {
 			),
 		},
 	})
+}
+
+func (ApiManagementDataSource) tenantAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "amtestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+}
+
+resource "azurerm_api_management_product" "test" {
+  product_id            = "test-product"
+  api_management_name   = azurerm_api_management.test.name
+  resource_group_name   = azurerm_resource_group.test.name
+  display_name          = "Test Product"
+  subscription_required = true
+  approval_required     = false
+  published             = true
+}
+
+resource "azurerm_api_management_user" "test" {
+  user_id             = "acctestuser%[1]d"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  first_name          = "Acceptance"
+  last_name           = "Test"
+  email               = "azure-acctest%[1]d@example.com"
+}
+
+data "azurerm_api_management" "test" {
+  name                = azurerm_api_management.test.name
+  resource_group_name = azurerm_api_management.test.resource_group_name
+}
+
+resource "azurerm_api_management_subscription" "test" {
+  subscription_id     = "This-Is-A-Valid-Subscription-ID"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
+  user_id             = azurerm_api_management_user.test.id
+  product_id          = azurerm_api_management_product.test.id
+  display_name        = "Butter Parser API Enterprise Edition"
+  state               = "active"
+  allow_tracing       = false
+  primary_key         = data.azurerm_api_management.test.tenant_access[0].primary_key
+  secondary_key       = data.azurerm_api_management.test.tenant_access[0].secondary_key
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ApiManagementDataSource) basic(data acceptance.TestData) string {

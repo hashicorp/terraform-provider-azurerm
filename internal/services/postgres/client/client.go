@@ -11,10 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
 	flexibleserverconfigurations "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
-	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases"
-	flexibleserverfirewallrules "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/firewallrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
-	flexibleservers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/servers"
+	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/administrators"
+	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databases"
+	flexibleserverfirewallrules "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/firewallrules"
+	flexibleservers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -26,6 +27,7 @@ type Client struct {
 	FlexibleServersConfigurationsClient *flexibleserverconfigurations.ConfigurationsClient
 	FlexibleServerFirewallRuleClient    *flexibleserverfirewallrules.FirewallRulesClient
 	FlexibleServerDatabaseClient        *flexibleserverdatabases.DatabasesClient
+	FlexibleServerAdministratorsClient  *flexibleserveradministrators.AdministratorsClient
 	ServersClient                       *servers.ServersClient
 	ServerRestartClient                 *serverrestart.ServerRestartClient
 	ServerKeysClient                    *serverkeys.ServerKeysClient
@@ -78,6 +80,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	flexibleServerConfigurationsClient := flexibleserverconfigurations.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&flexibleServerConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
+	flexibleServerAdministratorsClient := flexibleserveradministrators.NewAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&flexibleServerAdministratorsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ConfigurationsClient:                &configurationsClient,
 		DatabasesClient:                     &databasesClient,
@@ -87,6 +92,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServerRestartClient:                 &restartServerClient,
 		FlexibleServerFirewallRuleClient:    &flexibleServerFirewallRuleClient,
 		FlexibleServerDatabaseClient:        &flexibleServerDatabaseClient,
+		FlexibleServerAdministratorsClient:  &flexibleServerAdministratorsClient,
 		ServersClient:                       &serversClient,
 		ServerKeysClient:                    &serverKeysClient,
 		ServerSecurityAlertPoliciesClient:   &serverSecurityAlertPoliciesClient,

@@ -86,7 +86,7 @@ func (a DeploymentResource) basic(data acceptance.TestData) string {
 resource "azurerm_nginx_deployment" "test" {
   name                     = "acctest-%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "publicpreview_Monthly_gmz7xq9ge3py"
+  sku                      = "standard_Monthly"
   location                 = azurerm_resource_group.test.location
   diagnose_support_enabled = true
 
@@ -113,7 +113,7 @@ func (a DeploymentResource) update(data acceptance.TestData) string {
 resource "azurerm_nginx_deployment" "test" {
   name                     = "acctest-%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "publicpreview_Monthly_gmz7xq9ge3py"
+  sku                      = "standard_Monthly"
   location                 = azurerm_resource_group.test.location
   diagnose_support_enabled = false
 
@@ -147,7 +147,7 @@ resource "azurerm_user_assigned_identity" "test" {
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "publicpreview_Monthly_gmz7xq9ge3py"
+  sku                 = "standard_Monthly"
   location            = azurerm_resource_group.test.location
 
   identity {

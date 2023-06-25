@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := storageinsights.NewStorageInsightConfigID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "storageInsightValue")
+id := storageinsights.NewStorageInsightConfigID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "storageInsightConfigValue")
 
 payload := storageinsights.StorageInsight{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := storageinsights.NewStorageInsightConfigID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "storageInsightValue")
+id := storageinsights.NewStorageInsightConfigID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "storageInsightConfigValue")
 
 read, err := client.StorageInsightConfigsDelete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := storageinsights.NewStorageInsightConfigID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "storageInsightValue")
+id := storageinsights.NewStorageInsightConfigID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "storageInsightConfigValue")
 
 read, err := client.StorageInsightConfigsGet(ctx, id)
 if err != nil {

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMValue")
 
 payload := dedicatedhsms.DedicatedHsm{
 	// ...
@@ -41,7 +41,7 @@ if err := client.DedicatedHsmCreateOrUpdateThenPoll(ctx, id, payload); err != ni
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMValue")
 
 if err := client.DedicatedHsmDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DedicatedHsmDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMValue")
 
 read, err := client.DedicatedHsmGet(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMValue")
 
 // alternatively `client.DedicatedHsmListOutboundNetworkDependenciesEndpoints(ctx, id)` can be used to do batched pagination
 items, err := client.DedicatedHsmListOutboundNetworkDependenciesEndpointsComplete(ctx, id)
@@ -120,7 +120,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMValue")
 
 payload := dedicatedhsms.DedicatedHsmPatchParameters{
 	// ...

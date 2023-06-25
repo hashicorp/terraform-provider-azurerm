@@ -15,10 +15,38 @@ import (
 
 type MonitorAADDiagnosticSettingResource struct{}
 
-func TestAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
+// NOTE: this is a combined test rather than separate split out tests due to
+// Azure only being happy about provisioning five per subscription at once and
+// there are existing resource in the test subscription hard to clear.
+// (which our test suite can't easily workaround)
+func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"eventhubDefault":       testAccMonitorAADDiagnosticSetting_eventhubDefault,
+			"eventhub":              testAccMonitorAADDiagnosticSetting_eventhub,
+			"requiresImport":        testAccMonitorAADDiagnosticSetting_requiresImport,
+			"logAnalyticsWorkspace": testAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace,
+			"storageAccount":        testAccMonitorAADDiagnosticSetting_storageAccount,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.eventhubDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -29,10 +57,10 @@ func TestAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.eventhub(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -43,11 +71,11 @@ func TestAccMonitorAADDiagnosticSetting_eventhub(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_requiresImport(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.eventhub(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -61,11 +89,11 @@ func TestAccMonitorAADDiagnosticSetting_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.logAnalyticsWorkspace(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -76,11 +104,11 @@ func TestAccMonitorAADDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 	})
 }
 
-func TestAccMonitorAADDiagnosticSetting_storageAccount(t *testing.T) {
+func testAccMonitorAADDiagnosticSetting_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccount(data),
 			Check: acceptance.ComposeTestCheckFunc(

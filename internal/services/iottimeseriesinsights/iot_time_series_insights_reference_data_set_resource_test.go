@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15/referencedatasets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IoTTimeSeriesInsightsReferenceDataSetResource struct{}
@@ -75,17 +76,20 @@ func TestAccIoTTimeSeriesInsightsReferenceDataSet_complete(t *testing.T) {
 }
 
 func (IoTTimeSeriesInsightsReferenceDataSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ReferenceDataSetID(state.ID)
+	id, err := referencedatasets.ParseReferenceDataSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.IoTTimeSeriesInsights.ReferenceDataSetsClient.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
+	resp, err := clients.IoTTimeSeriesInsights.ReferenceDataSets.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving IoT Time Series Insights Reference Data Set (%q): %+v", id.String(), err)
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ReferenceDataSetResourceProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (IoTTimeSeriesInsightsReferenceDataSetResource) basic(data acceptance.TestData) string {

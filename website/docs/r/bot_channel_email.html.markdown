@@ -53,10 +53,9 @@ The following arguments are supported:
 
 * `email_password` - (Required) The email password that the Bot will authenticate with.
 
-
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Email Integration for a Bot Channel.
 

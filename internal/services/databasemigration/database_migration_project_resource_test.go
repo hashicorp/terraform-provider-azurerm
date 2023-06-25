@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/projectresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -92,17 +92,17 @@ func TestAccDatabaseMigrationProject_update(t *testing.T) {
 }
 
 func (t DatabaseMigrationProjectResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ProjectID(state.ID)
+	id, err := projectresource.ParseProjectID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DatabaseMigration.ProjectsClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := clients.DatabaseMigration.ProjectsClient.ProjectsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Database Migration Project (Project Name %q / Service Name %q / Group Name %q) does not exist", id.Name, id.ServiceName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s", *id)
 	}
 
-	return utils.Bool(resp.ProjectProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DatabaseMigrationProjectResource) basic(data acceptance.TestData) string {

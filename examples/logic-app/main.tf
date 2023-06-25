@@ -21,7 +21,7 @@ resource "azurerm_logic_app_trigger_recurrence" "hourly" {
 }
 
 resource "azurerm_logic_app_action_http" "main" {
-  name         = "clear-stale-objects"
+  name         = "clear-stable-objects"
   logic_app_id = "${azurerm_logic_app_workflow.example.id}"
   method       = "DELETE"
   uri          = "http://example.com/clear-stable-objects"

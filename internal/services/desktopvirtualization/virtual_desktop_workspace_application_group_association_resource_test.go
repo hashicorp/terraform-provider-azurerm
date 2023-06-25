@@ -125,6 +125,9 @@ resource "azurerm_virtual_desktop_workspace" "test" {
   name                = "acctestWS%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  tags = {
+    environment = "test"
+  }
 }
 
 resource "azurerm_virtual_desktop_host_pool" "test" {
@@ -168,6 +171,9 @@ resource "azurerm_virtual_desktop_workspace" "test" {
   name                = "acctestWS%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  tags = {
+    environment = "test"
+  }
 }
 
 resource "azurerm_virtual_desktop_host_pool" "test" {

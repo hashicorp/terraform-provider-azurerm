@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingpoliciesandstreaminglocators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/media/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -96,17 +96,17 @@ func TestAccStreamingLocator_update(t *testing.T) {
 }
 
 func (StreamingLocatorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StreamingLocatorID(state.ID)
+	id, err := streamingpoliciesandstreaminglocators.ParseStreamingLocatorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Media.StreamingLocatorsClient.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	resp, err := clients.Media.V20220801Client.StreamingPoliciesAndStreamingLocators.StreamingLocatorsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Content Key Policy %s (Media Services Account %s) (resource group: %s): %v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.StreamingLocatorProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r StreamingLocatorResource) basic(data acceptance.TestData) string {
@@ -141,6 +141,12 @@ func (r StreamingLocatorResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_media_services_account_filter" "test" {
+  name                        = "Filter-1"
+  resource_group_name         = azurerm_resource_group.test.name
+  media_services_account_name = azurerm_media_services_account.test.name
+}
+
 resource "azurerm_media_streaming_locator" "test" {
   name                        = "Job-1"
   resource_group_name         = azurerm_resource_group.test.name
@@ -151,6 +157,7 @@ resource "azurerm_media_streaming_locator" "test" {
   end_time                    = "2028-12-31T23:59:59Z"
   streaming_locator_id        = "90000000-0000-0000-0000-000000000000"
   alternative_media_id        = "my-Alternate-MediaID"
+  filter_names                = [azurerm_media_services_account_filter.test.name]
 }
 `, r.template(data))
 }

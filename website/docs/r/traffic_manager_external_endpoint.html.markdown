@@ -62,8 +62,7 @@ The following arguments are supported:
 
 * `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`.
 
-* `endpoint_location` - (Optional) Specifies the Azure location of the Endpoint,
-    this must be specified for Profiles using the `Performance` routing method.
+* `endpoint_location` - (Optional) Specifies the Azure location of the Endpoint, this must be specified for Profiles using the `Performance` routing method.
 
 ---
 
@@ -73,12 +72,9 @@ The following arguments are supported:
 
 * `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/rest/api/trafficmanager/geographichierarchies/getdefault).
 
-* `priority` - (Optional) Specifies the priority of this Endpoint, this must be
-  specified for Profiles using the `Priority` traffic routing method. Supports
-  values between 1 and 1000, with no Endpoints sharing the same value. If
-  omitted the value will be computed in order of creation.
+* `priority` - (Optional) Specifies the priority of this Endpoint, this must be specified for Profiles using the `Priority` traffic routing method. Supports values between 1 and 1000, with no Endpoints sharing the same value. If omitted the value will be computed in order of creation.
 
-* `subnet` - (Optional) One or more `subnet` blocks as defined below
+* `subnet` - (Optional) One or more `subnet` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -98,10 +94,9 @@ A `subnet` block supports the following:
 
 * `scope` - (Optional) The block size (number of leading bits in the subnet mask).
 
-
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the External Endpoint.
 

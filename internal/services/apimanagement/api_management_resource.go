@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -18,10 +19,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,7 +39,7 @@ var (
 	apimFrontendProtocolSsl3                 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"
 	apimFrontendProtocolTls10                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
 	apimFrontendProtocolTls11                = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
-	apimTripleDesCiphers                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_3DES_EDE_CBC_SHA"
+	apimTripleDesCiphers                     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
 	apimHttp2Protocol                        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
 	apimTlsEcdheEcdsaWithAes256CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
 	apimTlsEcdheEcdsaWithAes128CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA"
@@ -44,6 +47,7 @@ var (
 	apimTlsEcdheRsaWithAes128CbcShaCiphers   = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
 	apimTlsRsaWithAes128GcmSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256"
 	apimTlsRsaWithAes256CbcSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256"
+	apimTlsRsaWithAes256GcmSha384Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_GCM_SHA384"
 	apimTlsRsaWithAes128CbcSha256Ciphers     = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256"
 	apimTlsRsaWithAes256CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA"
 	apimTlsRsaWithAes128CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA"
@@ -90,9 +94,9 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementName(),
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"publisher_name": {
 			Type:         pluginsdk.TypeString,
@@ -134,7 +138,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 				},
 			},
@@ -186,7 +190,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 								"subnet_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: azure.ValidateResourceID,
+									ValidateFunc: commonids.ValidateSubnetID,
 								},
 							},
 						},
@@ -217,7 +221,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: networkValidate.PublicIpAddressID,
 					},
 
 					"private_ip_addresses": {
@@ -380,6 +384,11 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
+					"tls_rsa_with_aes256_gcm_sha384_ciphers_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
 					"tls_rsa_with_aes256_cbc_sha_ciphers_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -445,7 +454,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"policy": {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
@@ -481,6 +490,38 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
+					},
+				},
+			},
+		},
+
+		"delegation": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subscriptions_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"user_registration_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"url": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					},
+					"validation_key": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.Base64EncodedString,
+						Sensitive:    true,
 					},
 				},
 			},
@@ -551,7 +592,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"public_ip_address_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: networkValidate.PublicIpAddressID,
 		},
 
 		"public_network_access_enabled": {
@@ -688,19 +729,17 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 				},
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params)
+			// We only handle the error here because no request body is returned https://github.com/Azure/azure-rest-api-specs/issues/23456
+			_, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params)
 			if err != nil {
 				return fmt.Errorf("recovering %s: %+v", id, err)
-			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for recovery of %q: %+v", id, err)
 			}
 
 			// Wait for the ProvisioningState to become "Succeeded" before attempting to update
 			log.Printf("[DEBUG] Waiting for %s to become ready", id)
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("context had no deadline")
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Deleted", "Activating", "Updating", "Unknown"},
@@ -744,7 +783,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	if _, ok := d.GetOk("additional_location"); ok {
 		var err error
-		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
+		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, *sku)
 		if err != nil {
 			return err
 		}
@@ -803,7 +842,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		if publicIpAddressId == "" {
 			return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
 		}
-		zones := zones.Expand(v)
+		zones := zones.ExpandUntyped(v)
 		properties.Zones = &zones
 	}
 
@@ -875,7 +914,6 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("deleting %s: %+v", productId, err)
 			}
 		}
-
 	}
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
@@ -899,6 +937,18 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
 		if _, err := signUpClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, signUpSettings, ""); err != nil {
 			return fmt.Errorf(" setting Sign Up settings for %s: %+v", id, err)
+		}
+	}
+
+	delegationSettingsRaw := d.Get("delegation").([]interface{})
+	if sku.Name == apimanagement.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
+		return fmt.Errorf("`delegation` is not support for sku tier `Consumption`")
+	}
+	if sku.Name != apimanagement.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
+		delegationSettings := expandApiManagementDelegationSettings(delegationSettingsRaw)
+		delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
+		if _, err := delegationClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, delegationSettings, ""); err != nil {
+			return fmt.Errorf(" setting Delegation settings for %s: %+v", id, err)
 		}
 	}
 
@@ -945,8 +995,8 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+	delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
 	tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1019,17 +1069,23 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `protocols`: %+v", err)
 		}
 
-		apimHostNameSuffix := environment.APIManagementHostNameSuffix
-		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d, id.ServiceName, apimHostNameSuffix)
+		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d)
 		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
-
-		if err := d.Set("additional_location", flattenApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
+		additionalLocation, err := flattenApiManagementAdditionalLocations(props.AdditionalLocations)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("additional_location", additionalLocation); err != nil {
 			return fmt.Errorf("setting `additional_location`: %+v", err)
 		}
 
-		if err := d.Set("virtual_network_configuration", flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)); err != nil {
+		virtualNetworkConfiguration, err := flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("virtual_network_configuration", virtualNetworkConfiguration); err != nil {
 			return fmt.Errorf("setting `virtual_network_configuration`: %+v", err)
 		}
 
@@ -1038,7 +1094,6 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			minApiVersion = *props.APIVersionConstraint.MinAPIVersion
 		}
 		d.Set("min_api_version", minApiVersion)
-
 	}
 
 	if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
@@ -1049,7 +1104,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("setting `policy`: %+v", err)
 	}
 
-	d.Set("zones", zones.Flatten(resp.Zones))
+	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
 		signInSettings, err := signInClient.Get(ctx, id.ResourceGroup, id.ServiceName)
@@ -1068,9 +1123,24 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
 			return fmt.Errorf("setting `sign_up`: %+v", err)
 		}
+
+		delegationSettings, err := delegationClient.Get(ctx, id.ResourceGroup, id.ServiceName)
+		if err != nil {
+			return fmt.Errorf("retrieving Delegation Settings for %s: %+v", *id, err)
+		}
+
+		delegationValidationKeyContract, err := delegationClient.ListSecrets(ctx, id.ResourceGroup, id.ServiceName)
+		if err != nil {
+			return fmt.Errorf("retrieving Delegation Validation Key for %s: %+v", *id, err)
+		}
+
+		if err := d.Set("delegation", flattenApiManagementDelegationSettings(delegationSettings, delegationValidationKeyContract)); err != nil {
+			return fmt.Errorf("setting `delegation`: %+v", err)
+		}
 	} else {
 		d.Set("sign_in", []interface{}{})
 		d.Set("sign_up", []interface{}{})
+		d.Set("delegation", []interface{}{})
 	}
 
 	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
@@ -1248,7 +1318,7 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 	return output
 }
 
-func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *pluginsdk.ResourceData, name, apimHostNameSuffix string) []interface{} {
+func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *pluginsdk.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -1380,7 +1450,7 @@ func expandAzureRmApiManagementCertificates(d *pluginsdk.ResourceData) *[]apiman
 	return &results
 }
 
-func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku *apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
+func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sku apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
 	inputLocations := d.Get("additional_location").([]interface{})
 	parentVnetConfig := d.Get("virtual_network_configuration").([]interface{})
 
@@ -1396,7 +1466,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location:       utils.String(location),
-			Sku:            sku,
+			Sku:            &sku,
 			DisableGateway: utils.Bool(config["gateway_disabled"].(bool)),
 		}
 
@@ -1424,7 +1494,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.PublicIPAddressID = &publicIPAddressID
 		}
 
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 		if len(zones) > 0 {
 			additionalLocation.Zones = &zones
 		}
@@ -1435,10 +1505,10 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 	return &additionalLocations, nil
 }
 
-func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) []interface{} {
+func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return results, nil
 	}
 
 	for _, prop := range *input {
@@ -1471,7 +1541,10 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 		if prop.DisableGateway != nil {
 			gatewayDisabled = *prop.DisableGateway
 		}
-
+		virtualNetworkConfiguration, err := flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration)
+		if err != nil {
+			return results, err
+		}
 		results = append(results, map[string]interface{}{
 			"capacity":                      capacity,
 			"gateway_regional_url":          gatewayRegionalUrl,
@@ -1479,13 +1552,13 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			"private_ip_addresses":          privateIPAddresses,
 			"public_ip_address_id":          publicIpAddressId,
 			"public_ip_addresses":           publicIPAddresses,
-			"virtual_network_configuration": flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration),
-			"zones":                         zones.Flatten(prop.Zones),
+			"virtual_network_configuration": virtualNetworkConfiguration,
+			"zones":                         zones.FlattenUntyped(prop.Zones),
 			"gateway_disabled":              gatewayDisabled,
 		})
 	}
 
-	return results
+	return results, nil
 }
 
 func expandIdentity(input []interface{}) (*apimanagement.ServiceIdentity, error) {
@@ -1572,6 +1645,7 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 	tlsEcdheRsaWithAes256CbcShaCiphers := false
 	tlsEcdheRsaWithAes128CbcShaCiphers := false
 	tlsRsaWithAes128GcmSha256Ciphers := false
+	tlsRsaWithAes256GcmSha384Ciphers := false
 	tlsRsaWithAes256CbcSha256Ciphers := false
 	tlsRsaWithAes128CbcSha256Ciphers := false
 	tlsRsaWithAes256CbcShaCiphers := false
@@ -1595,6 +1669,7 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		tlsEcdheRsaWithAes256CbcShaCiphers = v["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
 		tlsEcdheRsaWithAes128CbcShaCiphers = v["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
 		tlsRsaWithAes128GcmSha256Ciphers = v["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"].(bool)
+		tlsRsaWithAes256GcmSha384Ciphers = v["tls_rsa_with_aes256_gcm_sha384_ciphers_enabled"].(bool)
 		tlsRsaWithAes256CbcSha256Ciphers = v["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"].(bool)
 		tlsRsaWithAes128CbcSha256Ciphers = v["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"].(bool)
 		tlsRsaWithAes256CbcShaCiphers = v["tls_rsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
@@ -1661,6 +1736,7 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		customProperties[apimTlsEcdheRsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheRsaWithAes256CbcShaCiphers))
 		customProperties[apimTlsEcdheRsaWithAes128CbcShaCiphers] = utils.String(strconv.FormatBool(tlsEcdheRsaWithAes128CbcShaCiphers))
 		customProperties[apimTlsRsaWithAes128GcmSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128GcmSha256Ciphers))
+		customProperties[apimTlsRsaWithAes256GcmSha384Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256GcmSha384Ciphers))
 		customProperties[apimTlsRsaWithAes256CbcSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256CbcSha256Ciphers))
 		customProperties[apimTlsRsaWithAes128CbcSha256Ciphers] = utils.String(strconv.FormatBool(tlsRsaWithAes128CbcSha256Ciphers))
 		customProperties[apimTlsRsaWithAes256CbcShaCiphers] = utils.String(strconv.FormatBool(tlsRsaWithAes256CbcShaCiphers))
@@ -1706,6 +1782,7 @@ func flattenApiManagementSecurityCustomProperties(input map[string]*string, skuI
 		output["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcShaCiphers)
 		output["tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes256CbcShaCiphers)
 		output["tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes128CbcShaCiphers)
+		output["tls_rsa_with_aes256_gcm_sha384_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256GcmSha384Ciphers)
 		output["tls_rsa_with_aes128_gcm_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128GcmSha256Ciphers)
 		output["tls_rsa_with_aes256_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcSha256Ciphers)
 		output["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcSha256Ciphers)
@@ -1724,18 +1801,22 @@ func flattenApiManagementProtocolsCustomProperties(input map[string]*string) []i
 	return []interface{}{output}
 }
 
-func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.VirtualNetworkConfiguration) []interface{} {
+func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.VirtualNetworkConfiguration) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	virtualNetworkConfiguration := make(map[string]interface{})
 
 	if input.SubnetResourceID != nil {
-		virtualNetworkConfiguration["subnet_id"] = *input.SubnetResourceID
+		subnetId, err := commonids.ParseSubnetIDInsensitively(*input.SubnetResourceID)
+		if err != nil {
+			return []interface{}{}, err
+		}
+		virtualNetworkConfiguration["subnet_id"] = subnetId.ID()
 	}
 
-	return []interface{}{virtualNetworkConfiguration}
+	return []interface{}{virtualNetworkConfiguration}, nil
 }
 
 func parseApiManagementNilableDictionary(input map[string]*string, key string) bool {
@@ -1783,6 +1864,78 @@ func flattenApiManagementSignInSettings(input apimanagement.PortalSigninSettings
 	return []interface{}{
 		map[string]interface{}{
 			"enabled": enabled,
+		},
+	}
+}
+
+func expandApiManagementDelegationSettings(input []interface{}) apimanagement.PortalDelegationSettings {
+	if len(input) == 0 {
+		return apimanagement.PortalDelegationSettings{}
+	}
+
+	vs := input[0].(map[string]interface{})
+
+	props := apimanagement.PortalDelegationSettingsProperties{
+		UserRegistration: &apimanagement.RegistrationDelegationSettingsProperties{
+			Enabled: utils.Bool(vs["user_registration_enabled"].(bool)),
+		},
+		Subscriptions: &apimanagement.SubscriptionsDelegationSettingsProperties{
+			Enabled: utils.Bool(vs["subscriptions_enabled"].(bool)),
+		},
+	}
+
+	validationKey := vs["validation_key"].(string)
+	if !vs["user_registration_enabled"].(bool) && !vs["subscriptions_enabled"].(bool) && validationKey == "" {
+		// for some reason we cannot leave this empty
+		props.ValidationKey = utils.String("cGxhY2Vob2xkZXIxCg==")
+	}
+	if validationKey != "" {
+		props.ValidationKey = utils.String(validationKey)
+	}
+
+	url := vs["url"].(string)
+	if !vs["user_registration_enabled"].(bool) && !vs["subscriptions_enabled"].(bool) && url == "" {
+		// for some reason we cannot leave this empty
+		props.URL = utils.String("https://www.placeholder.com")
+	}
+	if url != "" {
+		props.URL = utils.String(url)
+	}
+
+	return apimanagement.PortalDelegationSettings{
+		PortalDelegationSettingsProperties: &props,
+	}
+}
+
+func flattenApiManagementDelegationSettings(input apimanagement.PortalDelegationSettings, keyContract apimanagement.PortalSettingValidationKeyContract) []interface{} {
+	url := ""
+	subscriptionsEnabled := false
+	userRegistrationEnabled := false
+
+	if props := input.PortalDelegationSettingsProperties; props != nil {
+		if props.URL != nil {
+			url = *props.URL
+		}
+
+		if props.Subscriptions != nil && props.Subscriptions.Enabled != nil {
+			subscriptionsEnabled = *props.Subscriptions.Enabled
+		}
+
+		if props.UserRegistration != nil && props.UserRegistration.Enabled != nil {
+			userRegistrationEnabled = *props.UserRegistration.Enabled
+		}
+	}
+	validationKey := ""
+	if keyContract.ValidationKey != nil {
+		validationKey = *keyContract.ValidationKey
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"url":                       url,
+			"subscriptions_enabled":     subscriptionsEnabled,
+			"user_registration_enabled": userRegistrationEnabled,
+			"validation_key":            validationKey,
 		},
 	}
 }
@@ -1949,7 +2102,6 @@ func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformat
 
 	if input.SecondaryKey != nil {
 		result["secondary_key"] = *input.SecondaryKey
-
 	}
 
 	return []interface{}{result}

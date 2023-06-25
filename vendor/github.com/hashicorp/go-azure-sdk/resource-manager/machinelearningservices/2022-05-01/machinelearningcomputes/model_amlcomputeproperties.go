@@ -24,9 +24,9 @@ type AmlComputeProperties struct {
 	Subnet                        *ResourceId                  `json:"subnet,omitempty"`
 	TargetNodeCount               *int64                       `json:"targetNodeCount,omitempty"`
 	UserAccountCredentials        *UserAccountCredentials      `json:"userAccountCredentials,omitempty"`
+	VMPriority                    *VMPriority                  `json:"vmPriority,omitempty"`
+	VMSize                        *string                      `json:"vmSize,omitempty"`
 	VirtualMachineImage           *VirtualMachineImage         `json:"virtualMachineImage,omitempty"`
-	VmPriority                    *VmPriority                  `json:"vmPriority,omitempty"`
-	VmSize                        *string                      `json:"vmSize,omitempty"`
 }
 
 func (o *AmlComputeProperties) GetAllocationStateTransitionTimeAsTime() (*time.Time, error) {

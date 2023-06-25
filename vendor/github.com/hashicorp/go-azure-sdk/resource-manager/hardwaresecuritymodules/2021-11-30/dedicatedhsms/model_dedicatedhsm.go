@@ -2,6 +2,7 @@ package dedicatedhsms
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -16,5 +17,5 @@ type DedicatedHsm struct {
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Tags       *map[string]string     `json:"tags,omitempty"`
 	Type       *string                `json:"type,omitempty"`
-	Zones      *[]string              `json:"zones,omitempty"`
+	Zones      *zones.Schema          `json:"zones,omitempty"`
 }

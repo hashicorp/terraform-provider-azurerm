@@ -47,7 +47,7 @@ func (id AccessPolicyApplicationId) ID() string {
 func AccessPolicyApplicationID(input string) (*AccessPolicyApplicationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an AccessPolicyApplication ID: %+v", input, err)
 	}
 
 	resourceId := AccessPolicyApplicationId{

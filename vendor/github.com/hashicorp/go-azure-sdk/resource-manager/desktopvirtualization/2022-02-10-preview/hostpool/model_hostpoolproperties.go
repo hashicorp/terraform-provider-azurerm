@@ -26,6 +26,6 @@ type HostPoolProperties struct {
 	SsoSecretType                 *SSOSecretType                 `json:"ssoSecretType,omitempty"`
 	SsoadfsAuthority              *string                        `json:"ssoadfsAuthority,omitempty"`
 	StartVMOnConnect              *bool                          `json:"startVMOnConnect,omitempty"`
+	VMTemplate                    *string                        `json:"vmTemplate,omitempty"`
 	ValidationEnvironment         *bool                          `json:"validationEnvironment,omitempty"`
-	VmTemplate                    *string                        `json:"vmTemplate,omitempty"`
 }

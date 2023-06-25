@@ -172,20 +172,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
-		"network": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"relaxed_locking": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
-				},
-			},
-		},
-
 		"template_deployment": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -260,6 +246,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  os.Getenv("TF_ACC") == "",
+					},
+				},
+			},
+		},
+
+		"managed_disk": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"expand_without_downtime": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
 					},
 				},
 			},
@@ -437,6 +438,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			resourceGroupRaw := items[0].(map[string]interface{})
 			if v, ok := resourceGroupRaw["prevent_deletion_if_contains_resources"]; ok {
 				featuresMap.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["managed_disk"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			managedDiskRaw := items[0].(map[string]interface{})
+			if v, ok := managedDiskRaw["expand_without_downtime"]; ok {
+				featuresMap.ManagedDisk.ExpandWithoutDowntime = v.(bool)
 			}
 		}
 	}

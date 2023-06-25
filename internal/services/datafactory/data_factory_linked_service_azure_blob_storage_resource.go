@@ -2,9 +2,10 @@ package datafactory
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -54,7 +55,20 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
+			},
+
+			"connection_string_insecure": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					accountKeyRegex := regexp.MustCompile("AccountKey=[^;]+")
+
+					maskedNew := accountKeyRegex.ReplaceAllString(new, "")
+					return (new == d.Get(k).(string)) && (maskedNew == old)
+				},
 			},
 
 			"storage_kind": {
@@ -73,7 +87,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 			},
 
 			// TODO for @favoretti: rename this to 'sas_token_linked_key_vault_key' for 3.4.0
@@ -145,7 +159,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 			},
 
 			"service_principal_id": {
@@ -231,6 +245,10 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 		}
 	}
 
+	if v, ok := d.GetOk("connection_string_insecure"); ok {
+		blobStorageProperties.ConnectionString = v.(string)
+	}
+
 	if v, ok := d.GetOk("sas_uri"); ok {
 		if sasToken, ok := d.GetOk("key_vault_sas_token"); ok {
 			blobStorageProperties.SasURI = utils.String(v.(string))
@@ -263,7 +281,6 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 
 		blobStorageProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
 		blobStorageProperties.Tenant = utils.String(d.Get("tenant_id").(string))
-
 	}
 
 	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
@@ -347,6 +364,11 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 		} else {
 			d.Set("service_endpoint", blobStorage.ServiceEndpoint)
 			d.Set("use_managed_identity", true)
+		}
+
+		// blobStorage.ConnectionString is returned as a String when using `connection_string_insecure` and SecureString when using `connection_string`
+		if insecureConnectionString, ok := blobStorage.ConnectionString.(string); ok {
+			d.Set("connection_string_insecure", insecureConnectionString)
 		}
 	}
 

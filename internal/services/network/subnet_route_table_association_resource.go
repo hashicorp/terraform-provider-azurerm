@@ -5,8 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
@@ -31,7 +31,7 @@ func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SubnetID(id)
+			_, err := commonids.ParseSubnetID(id)
 			return err
 		}),
 
@@ -40,7 +40,7 @@ func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"route_table_id": {
@@ -64,7 +64,7 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 	subnetId := d.Get("subnet_id").(string)
 	routeTableId := d.Get("route_table_id").(string)
 
-	parsedSubnetId, err := parse.SubnetID(subnetId)
+	parsedSubnetId, err := commonids.ParseSubnetID(subnetId)
 	if err != nil {
 		return err
 	}
@@ -77,9 +77,9 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 	locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
 	defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
 
-	subnetName := parsedSubnetId.Name
+	subnetName := parsedSubnetId.SubnetName
 	virtualNetworkName := parsedSubnetId.VirtualNetworkName
-	resourceGroup := parsedSubnetId.ResourceGroup
+	resourceGroup := parsedSubnetId.ResourceGroupName
 
 	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(virtualNetworkName, VirtualNetworkResourceName)
@@ -128,7 +128,7 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("waiting for provisioning state of subnet for Route Table Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
-	vnetId := parse.NewVirtualNetworkID(parsedSubnetId.SubscriptionId, parsedSubnetId.ResourceGroup, parsedSubnetId.VirtualNetworkName)
+	vnetId := commonids.NewVirtualNetworkID(parsedSubnetId.SubscriptionId, parsedSubnetId.ResourceGroupName, parsedSubnetId.VirtualNetworkName)
 	vnetStateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(network.ProvisioningStateUpdating)},
 		Target:     []string{string(network.ProvisioningStateSucceeded)},
@@ -150,13 +150,13 @@ func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubnetID(d.Id())
+	id, err := commonids.ParseSubnetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroupName
 	virtualNetworkName := id.VirtualNetworkName
-	subnetName := id.Name
+	subnetName := id.SubnetName
 
 	resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -191,13 +191,13 @@ func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubnetID(d.Id())
+	id, err := commonids.ParseSubnetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroupName
 	virtualNetworkName := id.VirtualNetworkName
-	subnetName := id.Name
+	subnetName := id.SubnetName
 
 	// retrieve the subnet
 	read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")

@@ -55,9 +55,9 @@ The following arguments are supported:
 
 * `request_message` - (Optional) Specify the request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 
-## Attributes Reference:
+## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Azure Search Shared Private Link resource.
 

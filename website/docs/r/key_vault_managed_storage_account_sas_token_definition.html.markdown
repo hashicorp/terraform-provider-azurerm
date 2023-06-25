@@ -57,19 +57,21 @@ data "azurerm_storage_account_sas" "example" {
     create  = true
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = ""
+  name                = "example-keyvault"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  tenant_id           = data.azurerm_client_config.example.tenant_id
   sku_name            = "standard"
 
   access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.example.tenant_id
+    object_id = data.azurerm_client_config.example.object_id
 
     secret_permissions = [
       "Get",
@@ -89,7 +91,7 @@ resource "azurerm_key_vault" "example" {
   }
 }
 
-resource "azurerm_key_vault_managed_storage_account" "test" {
+resource "azurerm_key_vault_managed_storage_account" "example" {
   name                         = "examplemanagedstorage"
   key_vault_id                 = azurerm_key_vault.example.id
   storage_account_id           = azurerm_storage_account.example.id
@@ -123,7 +125,7 @@ The following arguments are supported:
 
 ---
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the SAS Definition.
+* `tags` - (Optional) A mapping of tags which should be assigned to the SAS Definition. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

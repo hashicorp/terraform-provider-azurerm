@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -32,9 +33,10 @@ func testAccSecurityCenterContact_basic(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template("basic@example.com", "+1-555-555-5555", true, true),
+			Config: r.template("test-account", "basic@example.com", "+1-555-555-5555", true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("test-account"),
 				check.That(data.ResourceName).Key("email").HasValue("basic@example.com"),
 				check.That(data.ResourceName).Key("phone").HasValue("+1-555-555-5555"),
 				check.That(data.ResourceName).Key("alert_notifications").HasValue("true"),
@@ -50,9 +52,10 @@ func testAccSecurityCenterContact_requiresImport(t *testing.T) {
 	r := SecurityCenterContactResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template("require@example.com", "+1-555-555-5555", true, true),
+			Config: r.template("test-account", "require@example.com", "+1-555-555-5555", true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("test-account"),
 				check.That(data.ResourceName).Key("email").HasValue("require@example.com"),
 				check.That(data.ResourceName).Key("phone").HasValue("+1-555-555-5555"),
 				check.That(data.ResourceName).Key("alert_notifications").HasValue("true"),
@@ -60,7 +63,7 @@ func testAccSecurityCenterContact_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-			return r.requiresImportCfg("email1@example.com", "+1-555-555-5555", true, true)
+			return r.requiresImportCfg("test-account", "email1@example.com", "+1-555-555-5555", true, true)
 		}),
 	})
 }
@@ -71,9 +74,10 @@ func testAccSecurityCenterContact_update(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template("update@example.com", "+1-555-555-5555", true, true),
+			Config: r.template("test-account", "update@example.com", "+1-555-555-5555", true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("test-account"),
 				check.That(data.ResourceName).Key("email").HasValue("update@example.com"),
 				check.That(data.ResourceName).Key("phone").HasValue("+1-555-555-5555"),
 				check.That(data.ResourceName).Key("alert_notifications").HasValue("true"),
@@ -81,9 +85,10 @@ func testAccSecurityCenterContact_update(t *testing.T) {
 			),
 		},
 		{
-			Config: r.template("updated@example.com", "+1-555-678-6789", false, false),
+			Config: r.template("test-account", "updated@example.com", "+1-555-678-6789", false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("test-account"),
 				check.That(data.ResourceName).Key("email").HasValue("updated@example.com"),
 				check.That(data.ResourceName).Key("phone").HasValue("+1-555-678-6789"),
 				check.That(data.ResourceName).Key("alert_notifications").HasValue("false"),
@@ -100,9 +105,10 @@ func testAccSecurityCenterContact_phoneOptional(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.templateWithoutPhone("basic@example.com", true, true),
+			Config: r.templateWithoutPhone("test-account", "basic@example.com", true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("test-account"),
 				check.That(data.ResourceName).Key("email").HasValue("basic@example.com"),
 				check.That(data.ResourceName).Key("phone").HasValue(""),
 				check.That(data.ResourceName).Key("alert_notifications").HasValue("true"),
@@ -113,58 +119,64 @@ func testAccSecurityCenterContact_phoneOptional(t *testing.T) {
 	})
 }
 
-func (SecurityCenterContactResource) Exists(ctx context.Context, clients *clients.Client, _ *pluginsdk.InstanceState) (*bool, error) {
-	contactName := "default1"
-
-	resp, err := clients.SecurityCenter.ContactsClient.Get(ctx, contactName)
+func (SecurityCenterContactResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.ContactID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("reading Security Center Subscription Contact (%s): %+v", contactName, err)
+		return nil, err
+	}
+
+	resp, err := clients.SecurityCenter.ContactsClient.Get(ctx, id.SecurityContactName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ContactProperties != nil), nil
 }
 
-func (SecurityCenterContactResource) template(email, phone string, notifications, adminAlerts bool) string {
+func (SecurityCenterContactResource) template(name, email, phone string, notifications, adminAlerts bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_security_center_contact" "test" {
+  name  = "%s"
   email = "%s"
   phone = "%s"
 
   alert_notifications = %t
   alerts_to_admins    = %t
 }
-`, email, phone, notifications, adminAlerts)
+`, name, email, phone, notifications, adminAlerts)
 }
 
-func (SecurityCenterContactResource) templateWithoutPhone(email string, notifications, adminAlerts bool) string {
+func (SecurityCenterContactResource) templateWithoutPhone(name, email string, notifications, adminAlerts bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_security_center_contact" "test" {
+  name  = "%s"
   email = "%s"
 
   alert_notifications = %t
   alerts_to_admins    = %t
 }
-`, email, notifications, adminAlerts)
+`, name, email, notifications, adminAlerts)
 }
 
-func (r SecurityCenterContactResource) requiresImportCfg(email, phone string, notifications, adminAlerts bool) string {
+func (r SecurityCenterContactResource) requiresImportCfg(name, email, phone string, notifications, adminAlerts bool) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_security_center_contact" "import" {
+  name  = azurerm_security_center_contact.test.name
   email = azurerm_security_center_contact.test.email
   phone = azurerm_security_center_contact.test.phone
 
   alert_notifications = azurerm_security_center_contact.test.alert_notifications
   alerts_to_admins    = azurerm_security_center_contact.test.alerts_to_admins
 }
-`, r.template(email, phone, notifications, adminAlerts))
+`, r.template(name, email, phone, notifications, adminAlerts))
 }

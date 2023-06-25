@@ -430,7 +430,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   sku_name                      = "Basic"
   high_business_impact          = true
   public_network_access_enabled = true
-  image_build_compute_name      = "terraformCompute"
+  image_build_compute_name      = "terraformComputeUpdate"
 
   identity {
     type = "SystemAssigned"
@@ -477,6 +477,9 @@ provider "azurerm" {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
     }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
   }
 }
 
@@ -515,6 +518,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Get",
     "Delete",
     "Purge",
+    "GetRotationPolicy",
   ]
 }
 

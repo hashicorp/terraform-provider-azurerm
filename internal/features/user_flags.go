@@ -11,6 +11,7 @@ type UserFeatures struct {
 	TemplateDeployment     TemplateDeploymentFeatures
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 	ResourceGroup          ResourceGroupFeatures
+	ManagedDisk            ManagedDiskFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -60,6 +61,10 @@ type ApiManagementFeatures struct {
 
 type ApplicationInsightFeatures struct {
 	DisableGeneratedRule bool
+}
+
+type ManagedDiskFeatures struct {
+	ExpandWithoutDowntime bool
 }
 
 type AppConfigurationFeatures struct {

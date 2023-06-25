@@ -32,6 +32,9 @@ website/vendor
 
 .vscode/
 
+# mkdocs output
+site/
+
 # Test exclusions
 !command/test-fixtures/**/*.tfstate
 !command/test-fixtures/**/.terraform/

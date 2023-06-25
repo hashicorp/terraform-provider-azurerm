@@ -32,10 +32,13 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_profile": dataSourceCdnProfile(),
 
 		// FrontDoor
-		"azurerm_cdn_frontdoor_endpoint":     dataSourceCdnFrontDoorEndpoint(),
-		"azurerm_cdn_frontdoor_origin_group": dataSourceCdnFrontDoorOriginGroup(),
-		"azurerm_cdn_frontdoor_profile":      dataSourceCdnFrontDoorProfile(),
-		"azurerm_cdn_frontdoor_rule_set":     dataSourceCdnFrontDoorRuleSet(),
+		"azurerm_cdn_frontdoor_custom_domain":   dataSourceCdnFrontDoorCustomDomain(),
+		"azurerm_cdn_frontdoor_endpoint":        dataSourceCdnFrontDoorEndpoint(),
+		"azurerm_cdn_frontdoor_firewall_policy": dataSourceCdnFrontDoorFirewallPolicy(),
+		"azurerm_cdn_frontdoor_origin_group":    dataSourceCdnFrontDoorOriginGroup(),
+		"azurerm_cdn_frontdoor_profile":         dataSourceCdnFrontDoorProfile(),
+		"azurerm_cdn_frontdoor_rule_set":        dataSourceCdnFrontDoorRuleSet(),
+		"azurerm_cdn_frontdoor_secret":          dataSourceCdnFrontDoorSecret(),
 	}
 }
 
@@ -49,6 +52,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 		// FrontDoor
 		"azurerm_cdn_frontdoor_custom_domain":                        resourceCdnFrontDoorCustomDomain(),
+		"azurerm_cdn_frontdoor_custom_domain_association":            resourceCdnFrontDoorCustomDomainAssociation(),
 		"azurerm_cdn_frontdoor_endpoint":                             resourceCdnFrontDoorEndpoint(),
 		"azurerm_cdn_frontdoor_firewall_policy":                      resourceCdnFrontDoorFirewallPolicy(),
 		"azurerm_cdn_frontdoor_origin":                               resourceCdnFrontDoorOrigin(),

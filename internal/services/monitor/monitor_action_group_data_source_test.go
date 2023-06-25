@@ -98,9 +98,9 @@ func TestAccDataSourceMonitorActionGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("azure_app_push_receiver.0.email_address").HasValue("admin@contoso.com"),
 				check.That(data.ResourceName).Key("sms_receiver.#").HasValue("2"),
 				check.That(data.ResourceName).Key("sms_receiver.0.country_code").HasValue("1"),
-				check.That(data.ResourceName).Key("sms_receiver.0.phone_number").HasValue("1231231234"),
+				check.That(data.ResourceName).Key("sms_receiver.0.phone_number").HasValue("2123456789"),
 				check.That(data.ResourceName).Key("sms_receiver.1.country_code").HasValue("1"),
-				check.That(data.ResourceName).Key("sms_receiver.1.phone_number").HasValue("5551238888"),
+				check.That(data.ResourceName).Key("sms_receiver.1.phone_number").HasValue("3123456789"),
 				check.That(data.ResourceName).Key("webhook_receiver.#").HasValue("2"),
 				check.That(data.ResourceName).Key("webhook_receiver.0.service_uri").HasValue("http://example.com/alert"),
 				check.That(data.ResourceName).Key("webhook_receiver.1.service_uri").HasValue("https://backup.example.com/warning"),
@@ -114,9 +114,9 @@ func TestAccDataSourceMonitorActionGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("automation_runbook_receiver.0.use_common_alert_schema").HasValue("false"),
 				check.That(data.ResourceName).Key("voice_receiver.#").HasValue("2"),
 				check.That(data.ResourceName).Key("voice_receiver.0.country_code").HasValue("1"),
-				check.That(data.ResourceName).Key("voice_receiver.0.phone_number").HasValue("1231231234"),
+				check.That(data.ResourceName).Key("voice_receiver.0.phone_number").HasValue("2123456789"),
 				check.That(data.ResourceName).Key("voice_receiver.1.country_code").HasValue("1"),
-				check.That(data.ResourceName).Key("voice_receiver.1.phone_number").HasValue("5551238888"),
+				check.That(data.ResourceName).Key("voice_receiver.1.phone_number").HasValue("3123456789"),
 				check.That(data.ResourceName).Key("logic_app_receiver.#").HasValue("1"),
 				check.That(data.ResourceName).Key("logic_app_receiver.0.resource_id").HasValue(laResourceID),
 				check.That(data.ResourceName).Key("logic_app_receiver.0.callback_url").HasValue("http://test-host:100/workflows/fb9c8d79b15f41ce9b12861862f43546/versions/08587100027316071865/triggers/manualTrigger/paths/invoke?api-version=2015-08-01-preview&sp=%2Fversions%2F08587100027316071865%2Ftriggers%2FmanualTrigger%2Frun&sv=1.0&sig=IxEQ_ygZf6WNEQCbjV0Vs6p6Y4DyNEJVAa86U5B4xhk"),
@@ -231,13 +231,13 @@ resource "azurerm_monitor_action_group" "test" {
   sms_receiver {
     name         = "oncallmsg"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 
   sms_receiver {
     name         = "remotesupportmsg"
     country_code = "1"
-    phone_number = "5551238888"
+    phone_number = "3123456789"
   }
 
   webhook_receiver {
@@ -263,13 +263,13 @@ resource "azurerm_monitor_action_group" "test" {
   voice_receiver {
     name         = "oncall"
     country_code = "1"
-    phone_number = "1231231234"
+    phone_number = "2123456789"
   }
 
   voice_receiver {
     name         = "remotesupport"
     country_code = "1"
-    phone_number = "5551238888"
+    phone_number = "3123456789"
   }
 
   logic_app_receiver {

@@ -207,14 +207,14 @@ func resourceArmResourceGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
+	if err := waitForRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
 			_, err := client.RemediationsCancelAtResourceGroup(ctx, *id)
 			return err
 		},
 		resourceGroupPolicyRemediationCancellationRefreshFunc(ctx, client, *id),
 	); err != nil {
-
+		return fmt.Errorf("waiting for remediation to delete %s: %+v", id, err)
 	}
 
 	_, err = client.RemediationsDeleteAtResourceGroup(ctx, *id)

@@ -85,6 +85,9 @@ func TestAccStorageAccountNetworkRules_privateLinkAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
 
+	// Not all regions support setting the private endpoint resource as the endpoint resource in network_rules.private_link_access in the storage account
+	data.Locations.Primary = "westeurope"
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disablePrivateLinkAccess(data),

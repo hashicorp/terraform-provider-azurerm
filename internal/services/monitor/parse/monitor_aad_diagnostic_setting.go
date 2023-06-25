@@ -3,9 +3,13 @@ package parse
 import (
 	"fmt"
 	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 const aadDiagnosticSettingIdPrefix = "/providers/Microsoft.AADIAM/diagnosticSettings/"
+
+var _ resourceids.Id = MonitorAADDiagnosticSettingId{}
 
 type MonitorAADDiagnosticSettingId struct {
 	Name string

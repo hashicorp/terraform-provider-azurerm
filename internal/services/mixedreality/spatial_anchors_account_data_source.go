@@ -71,7 +71,7 @@ func dataSourceSpatialAnchorsAccountRead(d *pluginsdk.ResourceData, meta interfa
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.AccountName)
+	d.Set("name", id.SpatialAnchorsAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

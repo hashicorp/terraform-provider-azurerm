@@ -65,8 +65,8 @@ resource "azurerm_linux_virtual_machine" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 }
@@ -117,14 +117,14 @@ The following arguments are supported:
 
 ---
 
-* `name` - (Optional) The name which should be used for this Data Collection Rule. Changing this forces a new Data Collection Rule to be created.
+* `name` - (Optional) The name which should be used for this Data Collection Rule Association. Changing this forces a new Data Collection Rule Association to be created. Defaults to `configurationAccessEndpoint`.
 
 -> **NOTE** `name` is required when `data_collection_rule_id` is specified. And when `data_collection_endpoint_id` is specified, the `name` is populated with `configurationAccessEndpoint`.
 
 * `data_collection_endpoint_id` - (Optional) The ID of the Data Collection Endpoint which will be associated to the target resource.
 
 * `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule which will be associated to the target resource.
- 
+
 -> **NOTE** Exactly one of `data_collection_endpoint_id` and `data_collection_rule_id` blocks must be specified.
 
 * `description` - (Optional) The description of the Data Collection Rule Association.

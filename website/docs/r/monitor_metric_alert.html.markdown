@@ -68,7 +68,7 @@ resource "azurerm_monitor_metric_alert" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the Metric Alert. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance. Changing this forces a new resource to be created.
 * `scopes` - (Required) A set of strings of resource IDs at which the metric criteria should be applied.
 * `criteria` - (Optional) One or more (static) `criteria` blocks as defined below.
 
@@ -113,7 +113,7 @@ A `criteria` block supports the following:
 * `metric_namespace` - (Required) One of the metric namespaces to be monitored.
 * `metric_name` - (Required) One of the metric names to be monitored.
 * `aggregation` - (Required) The statistic that runs over the metric values. Possible values are `Average`, `Count`, `Minimum`, `Maximum` and `Total`.
-* `operator` - (Required) The criteria operator. Possible values are `Equals`, `NotEquals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan` and `LessThanOrEqual`.
+* `operator` - (Required) The criteria operator. Possible values are `Equals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan` and `LessThanOrEqual`.
 * `threshold` - (Required) The criteria threshold value that activates the alert.
 * `dimension` - (Optional) One or more `dimension` blocks as defined below.
 * `skip_metric_validation` - (Optional) Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted? Defaults to `false`.
@@ -128,10 +128,10 @@ A `dynamic_criteria` block supports the following:
 * `operator` - (Required) The criteria operator. Possible values are `LessThan`, `GreaterThan` and `GreaterOrLessThan`.
 * `alert_sensitivity` - (Required) The extent of deviation required to trigger an alert. Possible values are `Low`, `Medium` and `High`.
 * `dimension` - (Optional) One or more `dimension` blocks as defined below.
-* `evaluation_total_count` - (Optional) The number of aggregated lookback points. The lookback time window is calculated based on the aggregation granularity (`window_size`) and the selected number of aggregated points.
-* `evaluation_failure_count` - (Optional) The number of violations to trigger an alert. Should be smaller or equal to `evaluation_total_count`.
+* `evaluation_total_count` - (Optional) The number of aggregated lookback points. The lookback time window is calculated based on the aggregation granularity (`window_size`) and the selected number of aggregated points. Defaults to `4`.
+* `evaluation_failure_count` - (Optional) The number of violations to trigger an alert. Should be smaller or equal to `evaluation_total_count`. Defaults to `4`.
 * `ignore_data_before` - (Optional) The [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) date from which to start learning the metric historical data and calculate the dynamic thresholds.
-* `skip_metric_validation` - (Optional) Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted? Defaults to `false`.
+* `skip_metric_validation` - (Optional) Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted? 
 
 ---
 
@@ -151,7 +151,7 @@ A `dimension` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the metric alert.
 

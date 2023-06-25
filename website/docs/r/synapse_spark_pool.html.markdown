@@ -91,35 +91,39 @@ The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) The ID of the Synapse Workspace where the Synapse Spark Pool should exist. Changing this forces a new Synapse Spark Pool to be created.
 
-* `node_size_family` - (Required) The kind of nodes that the Spark Pool provides. Possible value is `MemoryOptimized`.
+* `node_size_family` - (Required) The kind of nodes that the Spark Pool provides. Possible values are `MemoryOptimized` and `None`.
 
-* `node_size` - (Required) The level of node in the Spark Pool. Possible value is `Small`, `Medium` and `Large`.
+* `node_size` - (Required) The level of node in the Spark Pool. Possible values are `Small`, `Medium`, `Large`, `None`, `XLarge`, `XXLarge` and `XXXLarge`.
 
 * `node_count` - (Optional) The number of nodes in the Spark Pool. Exactly one of `node_count` or `auto_scale` must be specified.
 
-* `auto_scale` - (Optional)  An `auto_scale` block as defined below. Exactly one of `node_count` or `auto_scale` must be specified.
+* `auto_scale` - (Optional) An `auto_scale` block as defined below. Exactly one of `node_count` or `auto_scale` must be specified.
 
-* `auto_pause` - (Optional)  An `auto_pause` block as defined below.
+* `auto_pause` - (Optional) An `auto_pause` block as defined below.
 
 * `cache_size` - (Optional) The cache size in the Spark Pool.
 
-* `compute_isolation_enabled` - (Optional) Indicates whether compute isolation is enabled or not. Defaults to `false`. 
+* `compute_isolation_enabled` - (Optional) Indicates whether compute isolation is enabled or not. Defaults to `false`.
 
 ~> **NOTE:** The `compute_isolation_enabled` is only available with the XXXLarge (80 vCPU / 504 GB) node size and only available in the following regions: East US, West US 2, South Central US, US Gov Arizona, US Gov Virginia. See [Isolated Compute](https://docs.microsoft.com/azure/synapse-analytics/spark/apache-spark-pool-configurations#isolated-compute) for more information.
 
 * `dynamic_executor_allocation_enabled` - (Optional) Indicates whether Dynamic Executor Allocation is enabled or not. Defaults to `false`.
+
+* `min_executors` - (Optional) The minimum number of executors allocated only when `dynamic_executor_allocation_enabled` set to `true`.
+
+* `max_executors` - (Optional) The maximum number of executors allocated only when `dynamic_executor_allocation_enabled` set to `true`.
   
-* `library_requirement` - (Optional)  A `library_requirement` block as defined below.
+* `library_requirement` - (Optional) A `library_requirement` block as defined below.
 
 * `session_level_packages_enabled` - (Optional) Indicates whether session level packages are enabled or not. Defaults to `false`.
 
-* `spark_config` - (Optional)  A `spark_config` block as defined below.
+* `spark_config` - (Optional) A `spark_config` block as defined below.
 
 * `spark_log_folder` - (Optional) The default folder where Spark logs will be written. Defaults to `/logs`.
 
 * `spark_events_folder` - (Optional) The Spark events folder. Defaults to `/events`.
 
-* `spark_version` - (Optional) The Apache Spark version. Possible values are `2.4` and `3.1` and `3.2`. Defaults to `2.4`.
+* `spark_version` - (Optional) The Apache Spark version. Possible values are `2.4` , `3.1` , `3.2` and `3.3`. Defaults to `2.4`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Spark Pool.
 
@@ -155,7 +159,7 @@ An `spark_config` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Synapse Spark Pool.
 

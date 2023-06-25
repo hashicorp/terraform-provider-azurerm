@@ -52,11 +52,11 @@ The following arguments are supported:
 
 ---
 
-* `display_name` - (Optional) The display name of the API Management API Operation Tag.
+* `display_name` - (Required) The display name of the API Management API Operation Tag.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the API Management API Operation Tag.
 

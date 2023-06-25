@@ -127,6 +127,34 @@ func TestAccSharedImage_withTrustedLaunchEnabled(t *testing.T) {
 	})
 }
 
+func TestAccSharedImage_withConfidentialVM(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withConfidentialVM(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSharedImage_withConfidentialVMSupported(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withConfidentialVmSupported(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSharedImage_withAcceleratedNetworkSupportEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
@@ -499,6 +527,76 @@ resource "azurerm_shared_image" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, hyperVGen, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (SharedImageResource) withConfidentialVmSupported(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                      = "acctestimg%[1]d"
+  gallery_name              = azurerm_shared_image_gallery.test.name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  os_type                   = "Linux"
+  hyper_v_generation        = "V2"
+  confidential_vm_supported = true
+
+  identifier {
+    publisher = "AccTesPublisher%[1]d"
+    offer     = "AccTesOffer%[1]d"
+    sku       = "AccTesSku%[1]d"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (SharedImageResource) withConfidentialVM(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                    = "acctestimg%[1]d"
+  gallery_name            = azurerm_shared_image_gallery.test.name
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  os_type                 = "Linux"
+  hyper_v_generation      = "V2"
+  confidential_vm_enabled = true
+
+  identifier {
+    publisher = "AccTesPublisher%[1]d"
+    offer     = "AccTesOffer%[1]d"
+    sku       = "AccTesSku%[1]d"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (SharedImageResource) withTrustedLaunchEnabled(data acceptance.TestData) string {

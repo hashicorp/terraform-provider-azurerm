@@ -149,7 +149,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
 	  QUERY
     time_aggregation_method = "Count"
     threshold               = 5.0
-    operator                = "GreaterThan"
+    operator                = "Equal"
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)

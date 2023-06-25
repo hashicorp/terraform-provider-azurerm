@@ -124,7 +124,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 						fieldName := field.Name
 						serialized, err := recurse(nestedType, nestedValue, fieldName, debugLogger)
 						if err != nil {
-							return nil, fmt.Errorf("serializing nested object %q: %+v", sv.Type(), exists)
+							return nil, fmt.Errorf("serializing nested object %q: %+v", sv.Type(), err)
 						}
 						attr[i] = serialized
 					}

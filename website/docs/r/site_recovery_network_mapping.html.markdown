@@ -74,19 +74,19 @@ resource "azurerm_site_recovery_network_mapping" "recovery-mapping" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the network mapping.
+* `name` - (Required) The name of the network mapping. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located.
+* `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located. Changing this forces a new resource to be created.
 
-* `recovery_vault_name` - (Required) The name of the vault that should be updated.
+* `recovery_vault_name` - (Required) The name of the vault that should be updated. Changing this forces a new resource to be created.
 
-* `source_recovery_fabric_name` - (Required) Specifies the ASR fabric where mapping should be created.
+* `source_recovery_fabric_name` - (Required) Specifies the ASR fabric where mapping should be created. Changing this forces a new resource to be created.
 
-* `target_recovery_fabric_name` - (Required) The Azure Site Recovery fabric object corresponding to the recovery Azure region.
+* `target_recovery_fabric_name` - (Required) The Azure Site Recovery fabric object corresponding to the recovery Azure region. Changing this forces a new resource to be created.
 
-* `source_network_id` - (Required) The id of the primary network.
+* `source_network_id` - (Required) The id of the primary network. Changing this forces a new resource to be created.
 
-* `target_network_id` - (Required) The id of the recovery network.
+* `target_network_id` - (Required) The id of the recovery network. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

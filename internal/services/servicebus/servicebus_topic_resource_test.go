@@ -89,18 +89,21 @@ func TestAccServiceBusTopic_basicDisableEnable(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.basicDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -115,6 +118,7 @@ func TestAccServiceBusTopic_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -122,6 +126,7 @@ func TestAccServiceBusTopic_update(t *testing.T) {
 				check.That(data.ResourceName).Key("enable_express").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -136,6 +141,7 @@ func TestAccServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.enablePartitioningStandard(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -174,6 +180,7 @@ func TestAccServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.enablePartitioningPremium(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -196,6 +203,7 @@ func TestAccServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.enableDuplicateDetection(data),
 			Check: acceptance.ComposeTestCheckFunc(

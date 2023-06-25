@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
@@ -57,12 +57,13 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"event_delivery_schema": eventSubscriptionSchemaEventDeliverySchema(),
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
+			// TODO: this can become `function_id` in 4.0?
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
 				utils.RemoveFromStringArray(
 					PossibleSystemTopicEventSubscriptionEndpointTypes(),
@@ -70,6 +71,7 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 				),
 			),
 
+			// TODO: this can become `eventhub_id` in 4.0
 			"eventhub_endpoint_id": eventSubscriptionSchemaEventHubEndpointID(
 				utils.RemoveFromStringArray(
 					PossibleSystemTopicEventSubscriptionEndpointTypes(),
@@ -77,6 +79,7 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 				),
 			),
 
+			// TODO: this can become `hybrid_connection_id` (or possible `arc_connection_id`?) in 4.0
 			"hybrid_connection_endpoint_id": eventSubscriptionSchemaHybridConnectionEndpointID(
 				utils.RemoveFromStringArray(
 					PossibleSystemTopicEventSubscriptionEndpointTypes(),
@@ -304,7 +307,6 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 					return fmt.Errorf("setting `%q` for EventGrid SystemTopic delivery properties %q: %s", "hybrid_connection_endpoint", id.EventSubscriptionName, err)
 				}
 			}
-
 		}
 		if serviceBusQueueEndpoint, ok := destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_queue_endpoint_id", serviceBusQueueEndpoint.ResourceID); err != nil {

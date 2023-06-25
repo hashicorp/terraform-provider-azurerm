@@ -5,13 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -54,7 +53,7 @@ func resourceMsSqlVirtualNetworkRule() *pluginsdk.Resource {
 			"subnet_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: networkValidate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"ignore_missing_vnet_service_endpoint": {
@@ -78,7 +77,7 @@ func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	id := parse.NewVirtualNetworkRuleID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, d.Get("name").(string))
 
-	subnetId, err := networkParse.SubnetID(d.Get("subnet_id").(string))
+	subnetId, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing subnet ID %q: %+v", d.Get("subnet_id"), err)
 	}
@@ -151,7 +150,7 @@ func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interfa
 
 		subnetId := ""
 		if sid := props.VirtualNetworkSubnetID; sid != nil {
-			id, err := networkParse.SubnetID(*props.VirtualNetworkSubnetID)
+			id, err := commonids.ParseSubnetIDInsensitively(*props.VirtualNetworkSubnetID)
 			if err != nil {
 				return fmt.Errorf("parsing subnet ID returned by API %q: %+v", *sid, err)
 			}

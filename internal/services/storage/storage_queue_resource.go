@@ -54,6 +54,11 @@ func resourceStorageQueue() *pluginsdk.Resource {
 			},
 
 			"metadata": MetaDataSchema(),
+
+			"resource_manager_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -135,6 +140,7 @@ func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -174,6 +180,9 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 	if err := d.Set("metadata", FlattenMetaData(queue.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %s", err)
 	}
+
+	resourceManagerId := parse.NewStorageQueueResourceManagerID(subscriptionId, account.ResourceGroup, id.AccountName, "default", id.Name)
+	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil
 }

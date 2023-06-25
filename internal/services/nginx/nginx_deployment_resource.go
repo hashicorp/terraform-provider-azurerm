@@ -51,59 +51,6 @@ type DeploymentModel struct {
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
 
-func (d *DeploymentModel) LoadSDK(model *nginxdeployment.NginxDeployment) {
-	d.Name = pointer.ToString(model.Name)
-	d.Location = pointer.ToString(model.Location)
-	d.Tags = pointer.ToMapOfStringStrings(model.Tags)
-	if model.Sku != nil {
-		d.Sku = model.Sku.Name
-	}
-
-	prop := model.Properties
-	d.IpAddress = pointer.ToString(prop.IPAddress)
-	d.ManagedResourceGroup = pointer.ToString(prop.ManagedResourceGroup)
-	d.NginxVersion = pointer.ToString(prop.NginxVersion)
-	d.DiagnoseSupportEnabled = pointer.ToBool(prop.EnableDiagnosticsSupport)
-
-	if prop.Logging != nil && prop.Logging.StorageAccount != nil {
-		d.LoggingStorageAccount = []LoggingStorageAccount{
-			{
-				Name:          pointer.ToString(prop.Logging.StorageAccount.AccountName),
-				ContainerName: pointer.ToString(prop.Logging.StorageAccount.ContainerName),
-			},
-		}
-	}
-
-	if prop.NetworkProfile == nil {
-		return
-	}
-
-	if frontend := prop.NetworkProfile.FrontEndIPConfiguration; frontend != nil {
-		if publicIps := frontend.PublicIPAddresses; publicIps != nil && len(*publicIps) > 0 {
-			d.FrontendPublic = append(d.FrontendPublic, FrontendPublic{})
-			for _, ip := range *publicIps {
-				d.FrontendPublic[0].IpAddress = append(d.FrontendPublic[0].IpAddress, pointer.ToString(ip.Id))
-			}
-		}
-
-		if privateIPs := frontend.PrivateIPAddresses; privateIPs != nil && len(*privateIPs) > 0 {
-			for _, ip := range *privateIPs {
-				d.FrontendPrivate = append(d.FrontendPrivate, FrontendPrivate{
-					IpAddress:        pointer.ToString(ip.PrivateIPAddress),
-					AllocationMethod: pointer.ToString((*string)(ip.PrivateIPAllocationMethod)),
-					SubnetId:         pointer.ToString(ip.SubnetId),
-				})
-			}
-		}
-	}
-
-	if netIf := prop.NetworkProfile.NetworkInterfaceConfiguration; netIf != nil {
-		d.NetworkInterface = []NetworkInterface{
-			{SubnetId: pointer.ToString(netIf.SubnetId)},
-		}
-	}
-}
-
 type DeploymentResource struct{}
 
 var _ sdk.ResourceWithUpdate = (*DeploymentResource)(nil)
@@ -127,6 +74,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(
 				[]string{
 					"publicpreview_Monthly_gmz7xq9ge3py",
+					"standard_Monthly",
 				}, false),
 		},
 
@@ -338,13 +286,9 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding user identities: %+v", err)
 			}
 
-			future, err := client.DeploymentsCreate(ctx, id, req)
+			err = client.DeploymentsCreateOrUpdateThenPoll(ctx, id, req)
 			if err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
-			}
-
-			if err := future.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %v", id, err)
 			}
 
 			meta.SetID(id)
@@ -365,23 +309,77 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 			client := meta.Client.Nginx.NginxDeployment
 			result, err := client.DeploymentsGet(ctx, *id)
 			if err != nil {
-				return err
+				if response.WasNotFound(result.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := result.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s got nil model", id)
+			output := DeploymentModel{
+				Name:              id.NginxDeploymentName,
+				ResourceGroupName: id.ResourceGroupName,
 			}
 
-			var output DeploymentModel
-			output.LoadSDK(model)
-			output.ResourceGroupName = id.ResourceGroupName
-			output.Name = id.DeploymentName
+			if model := result.Model; model != nil {
+				output.Location = pointer.ToString(model.Location)
+				output.Tags = pointer.ToMapOfStringStrings(model.Tags)
+				if model.Sku != nil {
+					output.Sku = model.Sku.Name
+				}
 
-			if id, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity); err != nil {
-				return fmt.Errorf("flattening `identity`: %v", err)
-			} else {
-				output.Identity = *id
+				if props := model.Properties; props != nil {
+					output.IpAddress = pointer.ToString(props.IPAddress)
+					output.ManagedResourceGroup = pointer.ToString(props.ManagedResourceGroup)
+					output.NginxVersion = pointer.ToString(props.NginxVersion)
+					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
+
+					if props.Logging != nil && props.Logging.StorageAccount != nil {
+						output.LoggingStorageAccount = []LoggingStorageAccount{
+							{
+								Name:          pointer.ToString(props.Logging.StorageAccount.AccountName),
+								ContainerName: pointer.ToString(props.Logging.StorageAccount.ContainerName),
+							},
+						}
+					}
+
+					if profile := props.NetworkProfile; profile != nil {
+						if frontend := profile.FrontEndIPConfiguration; frontend != nil {
+							if publicIps := frontend.PublicIPAddresses; publicIps != nil && len(*publicIps) > 0 {
+								output.FrontendPublic = append(output.FrontendPublic, FrontendPublic{})
+								for _, ip := range *publicIps {
+									output.FrontendPublic[0].IpAddress = append(output.FrontendPublic[0].IpAddress, pointer.ToString(ip.Id))
+								}
+							}
+
+							if privateIPs := frontend.PrivateIPAddresses; privateIPs != nil && len(*privateIPs) > 0 {
+								for _, ip := range *privateIPs {
+									method := ""
+									if ip.PrivateIPAllocationMethod != nil {
+										method = string(*ip.PrivateIPAllocationMethod)
+									}
+
+									output.FrontendPrivate = append(output.FrontendPrivate, FrontendPrivate{
+										IpAddress:        pointer.ToString(ip.PrivateIPAddress),
+										AllocationMethod: method,
+										SubnetId:         pointer.ToString(ip.SubnetId),
+									})
+								}
+							}
+						}
+
+						if netIf := profile.NetworkInterfaceConfiguration; netIf != nil {
+							output.NetworkInterface = []NetworkInterface{
+								{SubnetId: pointer.ToString(netIf.SubnetId)},
+							}
+						}
+					}
+
+					flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+					if err != nil {
+						return fmt.Errorf("flattening `identity`: %v", err)
+					}
+					output.Identity = *flattenedIdentity
+				}
 			}
 
 			return meta.Encode(&output)
@@ -393,6 +391,8 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: time.Minute * 30,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
+			client := meta.Client.Nginx.NginxDeployment
+
 			id, err := nginxdeployment.ParseNginxDeploymentID(meta.ResourceData.Id())
 			if err != nil {
 				return err
@@ -431,14 +431,10 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				req.Properties.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
 			}
 
-			res, err := meta.Client.Nginx.NginxDeployment.DeploymentsUpdate(ctx, *id, req)
-			if err != nil {
+			if err := client.DeploymentsUpdateThenPoll(ctx, *id, req); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 
-			if err = res.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("polling update %s: %v", id, err)
-			}
 			return nil
 		},
 	}
@@ -448,20 +444,17 @@ func (m DeploymentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
+			client := meta.Client.Nginx.NginxDeployment
 			id, err := nginxdeployment.ParseNginxDeploymentID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 			meta.Logger.Infof("deleting %s", id)
 
-			client := meta.Client.Nginx.NginxDeployment
-			result, err := client.DeploymentsDelete(ctx, *id)
-			if err != nil {
+			if err := client.DeploymentsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
-			if err := result.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting delete %s: %v", id, err)
-			}
+
 			return nil
 		},
 	}

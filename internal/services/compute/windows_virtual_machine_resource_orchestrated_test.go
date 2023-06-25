@@ -179,6 +179,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   platform_fault_domain_count = 2
+  single_placement_group      = false
 
   tags = {
     ENV = "Test"

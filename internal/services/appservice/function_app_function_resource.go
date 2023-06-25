@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -229,7 +229,7 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 			// Check and wait for the Function to have no in flight operations
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("context had no deadline")
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 
 			createWait := &pluginsdk.StateChangeConf{
@@ -352,7 +352,7 @@ func (r FunctionAppFunctionResource) Delete() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("context had no deadline")
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 
 			deleteWait := &pluginsdk.StateChangeConf{
@@ -430,7 +430,7 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("context had no deadline")
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 
 			updateWait := &pluginsdk.StateChangeConf{
@@ -479,7 +479,8 @@ func expandFunctionFiles(input []FunctionFiles) map[string]*string {
 	}
 	result := make(map[string]*string)
 	for _, v := range input {
-		result[v.Name] = &v.Content
+		content := v.Content
+		result[v.Name] = &content
 	}
 
 	return result

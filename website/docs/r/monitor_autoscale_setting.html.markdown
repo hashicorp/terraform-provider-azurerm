@@ -64,8 +64,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -136,6 +136,11 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     }
   }
 
+  predictive {
+    scale_mode      = "Enabled"
+    look_ahead_time = "PT5M"
+  }
+
   notification {
     email {
       send_to_subscription_administrator    = true
@@ -200,8 +205,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -337,8 +342,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -432,11 +437,13 @@ The following arguments are supported:
 
 * `profile` - (Required) Specifies one or more (up to 20) `profile` blocks as defined below.
 
-* `target_resource_id` - (Required) Specifies the resource ID of the resource that the autoscale setting should be added to.
+* `target_resource_id` - (Required) Specifies the resource ID of the resource that the autoscale setting should be added to. Changing this forces a new resource to be created.
 
 * `enabled` - (Optional) Specifies whether automatic scaling is enabled for the target resource. Defaults to `true`.
 
 * `notification` - (Optional) Specifies a `notification` block as defined below.
+
+* `predictive` - (Optional) A `predictive` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -486,9 +493,9 @@ A `metric_trigger` block supports the following:
 
 * `operator` - (Required) Specifies the operator used to compare the metric data and threshold. Possible values are: `Equals`, `NotEquals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`, `LessThanOrEqual`.
 
-* `statistic` - (Required) Specifies how the metrics from multiple instances are combined. Possible values are `Average`, `Min` and `Max`.
+* `statistic` - (Required) Specifies how the metrics from multiple instances are combined. Possible values are `Average`, `Max`, `Min` and `Sum`.
 
-* `time_aggregation` - (Required) Specifies how the data that's collected should be combined over time. Possible values include `Average`, `Count`, `Maximum`, `Minimum`, `Last` and `Total`. Defaults to `Average`.
+* `time_aggregation` - (Required) Specifies how the data that's collected should be combined over time. Possible values include `Average`, `Count`, `Maximum`, `Minimum`, `Last` and `Total`.
 
 * `time_grain` - (Required) Specifies the granularity of metrics that the rule monitors, which must be one of the pre-defined values returned from the metric definitions for the metric. This value must be between 1 minute and 12 hours an be formatted as an ISO 8601 string.
 
@@ -512,7 +519,7 @@ A `scale_action` block supports the following:
 
 * `type` - (Required) The type of action that should occur. Possible values are `ChangeCount`, `ExactCount`, `PercentChangeCount` and `ServiceAllowedNextValue`.
 
-* `value` - (Required) The number of instances involved in the scaling action. Defaults to `1`.
+* `value` - (Required) The number of instances involved in the scaling action.
 
 ---
 
@@ -522,13 +529,13 @@ A `fixed_date` block supports the following:
 
 * `start` - (Required) Specifies the start date for the profile, formatted as an RFC3339 date string.
 
-* `timezone` (Optional) The Time Zone of the `start` and `end` times. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
+* `timezone` - (Optional) The Time Zone of the `start` and `end` times. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
 
 ---
 
 A `recurrence` block supports the following:
 
-* `timezone` - (Required) The Time Zone used for the `hours` field. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
+* `timezone` - (Optional) The Time Zone used for the `hours` field. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
 
 * `days` - (Required) A list of days that this profile takes effect on. Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
 
@@ -540,7 +547,7 @@ A `recurrence` block supports the following:
 
 A `notification` block supports the following:
 
-* `email` - (Required) A `email` block as defined below.
+* `email` - (Optional) A `email` block as defined below.
 
 * `webhook` - (Optional) One or more `webhook` blocks as defined below.
 
@@ -572,9 +579,17 @@ A `dimensions` block supports the following:
 
 * `values` - (Required) A list of dimension values.
 
+---
+
+A `predictive` block supports the following:
+
+* `scale_mode` - (Required) Specifies the predictive scale mode. Possible values are `Enabled` or `ForecastOnly`.
+
+* `look_ahead_time` - (Optional) Specifies the amount of time by which instances are launched in advance. It must be between `PT1M` and `PT1H` in ISO 8601 format.
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the AutoScale Setting.
 
@@ -592,5 +607,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 AutoScale Setting can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_autoscale_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/autoscaleSettings/setting1
+terraform import azurerm_monitor_autoscale_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/autoScaleSettings/setting1
 ```

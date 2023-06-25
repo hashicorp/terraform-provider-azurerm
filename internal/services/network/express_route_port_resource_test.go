@@ -40,6 +40,7 @@ func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("link2.0.rack_id").Exists(),
 				check.That(data.ResourceName).Key("link2.0.connector_type").Exists(),
 				check.That(data.ResourceName).Key("ethertype").Exists(),
+				check.That(data.ResourceName).Key("billing_type").Exists(),
 				check.That(data.ResourceName).Key("guid").Exists(),
 				check.That(data.ResourceName).Key("mtu").Exists(),
 			),
@@ -50,7 +51,7 @@ func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
 
 func TestAccAzureRMExpressRoutePort_adminState(t *testing.T) {
 	if _, ok := os.LookupEnv(ARMTestExpressRoutePortAdminState); !ok {
-		t.Skip(fmt.Sprintf("Enabling admin state will cause high cost, please set environment variable %q if you want to test it.", ARMTestExpressRoutePortAdminState))
+		t.Skipf("Enabling admin state will cause high cost, please set environment variable %q if you want to test it.", ARMTestExpressRoutePortAdminState)
 	}
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
@@ -139,8 +140,9 @@ resource "azurerm_express_route_port" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "Airtel-Chennai2-CLS"
-  bandwidth_in_gbps   = 1
+  bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
+  billing_type        = "MeteredData"
   tags = {
     ENV = "Test"
   }
@@ -158,7 +160,7 @@ resource "azurerm_express_route_port" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "Area51-ERDirect"
-  bandwidth_in_gbps   = 1
+  bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   link1 {
     admin_enabled = true
@@ -199,7 +201,7 @@ resource "azurerm_express_route_port" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "CDC-Canberra"
-  bandwidth_in_gbps   = 1
+  bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {
     type         = "UserAssigned"
@@ -266,7 +268,7 @@ resource "azurerm_express_route_port" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   peering_location    = "CDC-Canberra2"
-  bandwidth_in_gbps   = 1
+  bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {
     type         = "UserAssigned"

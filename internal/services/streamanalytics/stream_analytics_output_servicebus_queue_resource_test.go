@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -59,14 +61,14 @@ func TestAccStreamAnalyticsOutputServiceBusQueue_json(t *testing.T) {
 	})
 }
 
-func TestAccStreamAnalyticsOutputServiceBusQueue_authenticationMode(t *testing.T) {
+func TestAccStreamAnalyticsOutputServiceBusQueue_authenticationModeMsi(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 	r := StreamAnalyticsOutputServiceBusQueueResource{}
 	identity := "identity { type = \"SystemAssigned\" }"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.authenticationMode(data, identity),
+			Config: r.authenticationModeMsi(data, identity),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -184,16 +186,17 @@ func TestAccStreamAnalyticsOutputServiceBusQueue_systemPropertyColumns(t *testin
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	jobName := state.Attributes["stream_analytics_job_name"]
-	resourceGroup := state.Attributes["resource_group_name"]
-
-	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, resourceGroup, jobName, name)
+	id, err := outputs.ParseOutputID(state.ID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		return nil, err
+	}
+
+	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Stream Output %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -431,7 +434,7 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "import" {
 `, template)
 }
 
-func (r StreamAnalyticsOutputServiceBusQueueResource) authenticationMode(data acceptance.TestData, identity string) string {
+func (r StreamAnalyticsOutputServiceBusQueueResource) authenticationModeMsi(data acceptance.TestData, identity string) string {
 	template := r.template(data, identity)
 	return fmt.Sprintf(`
 %s
@@ -442,8 +445,7 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
   queue_name                = azurerm_servicebus_queue.test.name
   servicebus_namespace      = azurerm_servicebus_namespace.test.name
-  shared_access_policy_key  = azurerm_servicebus_namespace.test.default_primary_key
-  shared_access_policy_name = "RootManageSharedAccessKey"
+  authentication_mode       = "Msi"
 
   serialization {
     type     = "Json"

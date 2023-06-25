@@ -116,6 +116,8 @@ func TestAccPublicIpPrefix_prefixLength31(t *testing.T) {
 func TestAccPublicIpPrefix_prefixLength24(t *testing.T) {
 	// NOTE: This test will fail unless the subscription is updated
 	//        to accept a minimum PrefixLength of 24
+	// more detail about [public ip limits](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/public-ip-addresses#limits)
+	// you can submit a support request to increase the limit in [Azure Portal](https://learn.microsoft.com/en-us/azure/networking/check-usage-against-limits#azure-portal)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIPPrefixResource{}
 
@@ -183,6 +185,7 @@ func TestAccPublicIpPrefix_zonesSingle(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccPublicIpPrefix_zonesMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIPPrefixResource{}
@@ -359,6 +362,7 @@ resource "azurerm_public_ip_prefix" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
+
 func (PublicIPPrefixResource) zonesMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

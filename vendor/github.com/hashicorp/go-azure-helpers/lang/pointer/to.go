@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package pointer
 
 // ToBool turns a pointer to a bool into a bool, returning the default value for a bool if it's nil

@@ -54,6 +54,10 @@ provider "azurerm" {
       permanently_delete_on_destroy = true
     }
 
+    managed_disk {
+      expand_without_downtime = true
+    }
+
     resource_group {
       prevent_deletion_if_contains_resources = true
     }
@@ -93,6 +97,8 @@ The `features` block supports the following:
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
 
+* `managed_disk` - (Optional) A `managed_disk` block as defined below.
+
 * `resource_group` - (Optional) A `resource_group` block as defined below.
 
 * `template_deployment` - (Optional) A `template_deployment` block as defined below.
@@ -107,7 +113,7 @@ The `api_management` block supports the following:
 
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
-* `recover_soft_deleted` - (Optional) Should the `azurerm_api_management` resources recover a Soft-Deleted API Management service? Defaults to `true`
+* `recover_soft_deleted` - (Optional) Should the `azurerm_api_management` resources recover a Soft-Deleted API Management service? Defaults to `true`.
 
 ---
 
@@ -115,13 +121,13 @@ The `app_configuration` block supports the following:
 
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_app_configuration` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
-* `recover_soft_deleted` - (Optional) Should the `azurerm_app_configuration` resources recover a Soft-Deleted App Configuration service? Defaults to `true`
-* 
+* `recover_soft_deleted` - (Optional) Should the `azurerm_app_configuration` resources recover a Soft-Deleted App Configuration service? Defaults to `true`.
+
 ---
 
 The `application_insights` block supports the following:
 
-* `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule during the create step? Defaults to `false`.
+* `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule during the creation step? Defaults to `false`.
 
 ---
 
@@ -162,6 +168,14 @@ The `log_analytics_workspace` block supports the following:
 * `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 -> **Note:** This will be defaulted to `false` in the next major version of the Azure Provider (4.0).
+
+---
+
+The `managed_disk` block supports the following:
+
+* `expand_without_downtime` - (Optional) Specifies whether Managed Disks which can be Expanded without Downtime (on either [a Linux VM](https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime) [or a Windows VM](https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime)) should be expanded without restarting the associated Virtual Machine. Defaults to `true`.
+
+~> **Note:** Expand Without Downtime requires a specific configuration for the Managed Disk and Virtual Machine - Terraform will use Expand Without Downtime when the Managed Disk and Virtual Machine meet these requirements, and shut the Virtual Machine down as needed if this is inapplicable. More information on when Expand Without Downtime is applicable can be found in the [Linux VM](https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime) [or Windows VM](https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime) documentation.
 
 ---
 

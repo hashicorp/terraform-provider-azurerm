@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
@@ -83,6 +83,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 				),
 			),
 
+			// TODO: this can become `service_bus_queue_id` in 4.0
 			"service_bus_queue_endpoint_id": eventSubscriptionSchemaServiceBusQueueEndpointID(
 				utils.RemoveFromStringArray(
 					PossibleEventSubscriptionEndpointTypes(),
@@ -90,6 +91,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 				),
 			),
 
+			// TODO: this can become `service_bus_topic_id` in 4.0
 			"service_bus_topic_endpoint_id": eventSubscriptionSchemaServiceBusTopicEndpointID(
 				utils.RemoveFromStringArray(
 					PossibleEventSubscriptionEndpointTypes(),

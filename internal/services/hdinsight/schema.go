@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -109,6 +110,29 @@ func SchemaHDInsightsGateway() *pluginsdk.Schema {
 					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 						return (new == d.Get(k).(string)) && (old == "*****")
 					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsComputeIsolation() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*schema.Schema{
+				"compute_isolation_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"host_sku": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
@@ -424,6 +448,21 @@ func ExpandHDInsightsRolesScriptActions(input []interface{}) *[]hdinsight.Script
 	return &scriptActions
 }
 
+func ExpandHDInsightComputeIsolationProperties(input []interface{}) *hdinsight.ComputeIsolationProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	enableComputeIsolation := v["compute_isolation_enabled"].(bool)
+	hostSku := v["host_sku"].(string)
+
+	return &hdinsight.ComputeIsolationProperties{
+		EnableComputeIsolation: &enableComputeIsolation,
+		HostSku:                &hostSku,
+	}
+}
+
 func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {
 	vs := input[0].(map[string]interface{})
 
@@ -554,6 +593,29 @@ func ExpandHDInsightsNetwork(input []interface{}) *hdinsight.NetworkProperties {
 	return &hdinsight.NetworkProperties{
 		ResourceProviderConnection: connDir,
 		PrivateLink:                privateLink,
+	}
+}
+
+func FlattenHDInsightComputeIsolationProperties(input hdinsight.ComputeIsolationProperties) []interface{} {
+	var hostSku string
+	var enableComputeIsolation bool
+
+	if input.EnableComputeIsolation != nil {
+		enableComputeIsolation = *input.EnableComputeIsolation
+	}
+	if input.HostSku != nil {
+		hostSku = *input.HostSku
+	}
+
+	if !enableComputeIsolation {
+		return nil
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"compute_isolation_enabled": enableComputeIsolation,
+			"host_sku":                  hostSku,
+		},
 	}
 }
 
@@ -725,11 +787,12 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				// TODO: this should become `storage_account_id` in 4.0
 				"storage_resource_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: storageValidate.StorageAccountID,
 				},
 				"is_default": {
 					Type:     pluginsdk.TypeBool,
@@ -749,11 +812,12 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				// TODO: this should become `storage_account_id` in 4.0
 				"storage_resource_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: storageValidate.StorageAccountID,
 				},
 				"filesystem_id": {
 					Type:         pluginsdk.TypeString,
@@ -761,6 +825,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				// TODO: this should become `user_assigned_identity_id` in 4.0
 				"managed_identity_resource_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
@@ -955,6 +1020,8 @@ type HDInsightNodeDefinition struct {
 	FixedTargetInstanceCount *int32
 	CanAutoScaleByCapacity   bool
 	CanAutoScaleOnSchedule   bool
+	// todo remove in 4.0
+	CanAutoScaleByCapacityDeprecated4PointOh bool
 }
 
 func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
@@ -994,14 +1061,14 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
 		"virtual_network_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
 		"script_actions": SchemaHDInsightsScriptActions(),
@@ -1030,6 +1097,37 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 					ConflictsWith: []string{
 						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
 					},
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"min_instance_count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: countValidation,
+							},
+							"max_instance_count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: countValidation,
+							},
+						},
+					},
+				}
+				if definition.CanAutoScaleOnSchedule {
+					autoScales["capacity"].ConflictsWith = []string{
+						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+					}
+				}
+			}
+			// managing `azurerm_hdinsight_interactive_query_cluster` autoscaling through `capacity` doesn't work so we'll deprecate this portion of the schema for 4.0
+			if definition.CanAutoScaleByCapacityDeprecated4PointOh {
+				autoScales["capacity"] = &pluginsdk.Schema{
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					ConflictsWith: []string{
+						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+					},
+					Deprecated: "HDInsight interactive query clusters can no longer be configured through `autoscale.0.capacity`. Use `autoscale.0.recurrence` instead.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"min_instance_count": {

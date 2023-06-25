@@ -56,18 +56,21 @@ resource "azurerm_spring_cloud_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created. 
 
 * `resource_group_name` - (Required) Specifies The name of the resource group in which to create the Spring Cloud Service. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `container_registry` - (Optional) One or more `container_registry` block as defined below. This field is applicable only for Spring Cloud Service with enterprise tier.
+
 * `log_stream_public_endpoint_enabled` - (Optional) Should the log stream in vnet injection instance could be accessed from Internet?
 
 * `build_agent_pool_size` - (Optional) Specifies the size for this Spring Cloud Service's default build agent pool. Possible values are `S1`, `S2`, `S3`, `S4` and `S5`. This field is applicable only for Spring Cloud Service with enterprise tier.
 
+* `default_build_service` - (Optional) A `default_build_service` block as defined below. This field is applicable only for Spring Cloud Service with enterprise tier.
 
-* `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`.
+* `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`. Changing this forces a new resource to be created.
 
 * `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.
 
@@ -93,7 +96,7 @@ The `network` block supports the following:
 
 * `app_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Apps. Changing this forces a new resource to be created.
 
-* `read_timeout_seconds` - (Optional) Ingress read time out in seconds. Changing this forces a new resource to be created.
+* `read_timeout_seconds` - (Optional) Ingress read time out in seconds.
 
 * `service_runtime_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Service Runtime. Changing this forces a new resource to be created.
 
@@ -112,6 +115,24 @@ The `config_server_git_setting` block supports the following:
 * `ssh_auth` - (Optional) A `ssh_auth` block as defined below.
 
 * `repository` - (Optional) One or more `repository` blocks as defined below.
+
+---
+
+The `container_registry` block supports the following:
+
+* `name` - (Required) Specifies the name of the container registry.
+
+* `username` - (Required) Specifies the username of the container registry.
+
+* `password` - (Required) Specifies the password of the container registry.
+
+* `server` - (Required) Specifies the login server of the container registry.
+
+---
+
+The `default_build_service` block supports the following:
+
+* `container_registry_name` - (Optional) Specifies the name of the container registry used in the default build service.
 
 ---
 
@@ -149,19 +170,19 @@ The `ssh_auth` block supports the following:
 
 * `host_key_algorithm` - (Optional) The host key algorithm, should be `ssh-dss`, `ssh-rsa`, `ecdsa-sha2-nistp256`, `ecdsa-sha2-nistp384`, or `ecdsa-sha2-nistp521`. Required only if `host-key` exists.
 
-* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match.
+* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match. Defaults to `true`.
 
 ---
 
 The `trace` block supports the following:
 
-* `connection_string` - (Required) The connection string used for Application Insights.
+* `connection_string` - (Optional) The connection string used for Application Insights.
 
 * `sample_rate` - (Optional) The sampling rate of Application Insights Agent. Must be between `0.0` and `100.0`. Defaults to `10.0`.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spring Cloud Service.
 
@@ -173,13 +194,13 @@ The following attributes are exported:
 
 ---
 
-The `required_network_traffic_rules` supports the following:
+The `required_network_traffic_rules` block supports the following:
 
 * `direction` - The direction of required traffic. Possible values are `Inbound`, `Outbound`.
 
 * `fqdns` - The FQDN list of required traffic.
 
-* `ips` - The IP list of required traffic.
+* `ip_addresses` - The IP list of required traffic.
 
 * `port` - The port of required traffic.
 
@@ -199,5 +220,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Spring Cloud services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_spring_cloud_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AppPlatform/Spring/spring1
+terraform import azurerm_spring_cloud_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AppPlatform/spring/spring1
 ```

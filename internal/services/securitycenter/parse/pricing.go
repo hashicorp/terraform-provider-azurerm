@@ -38,7 +38,7 @@ func (id PricingId) ID() string {
 func PricingID(input string) (*PricingId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an Pricing ID: %+v", input, err)
 	}
 
 	resourceId := PricingId{

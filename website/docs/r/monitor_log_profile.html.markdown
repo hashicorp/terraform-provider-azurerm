@@ -65,8 +65,7 @@ resource "azurerm_monitor_log_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Log Profile. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the Log Profile. Changing this forces a new resource to be created.
 
 * `categories` - (Required) List of categories of the logs.
 
@@ -84,11 +83,11 @@ The `retention_policy` block supports:
 
 * `enabled` - (Required) A boolean value to indicate whether the retention policy is enabled.
 
-* `days` - (Optional) The number of days for the retention policy. Defaults to 0.
+* `days` - (Optional) The number of days for the retention policy. Defaults to `0`.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Log Profile.
 

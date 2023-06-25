@@ -56,7 +56,7 @@ The following attributes are exported:
 
 * `os_type` - A string indicating the Operating System type for this function app.
 
-~> **NOTE:** This value will be `linux` for Linux Derivatives, or an empty string for Windows. 
+~> **NOTE:** This value will be `linux` for Linux Derivatives, or an empty string for Windows.
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses.
 
@@ -69,7 +69,7 @@ The following attributes are exported:
 The `connection_string` supports the following:
 
 * `name` - The name of the Connection String.
-* `type` - The type of the Connection String. 
+* `type` - The type of the Connection String.
 * `value` - The value for the Connection String.
 
 ---
@@ -158,13 +158,13 @@ A `source_control` block exports the following:
 
 * `repo_url` -  The URL of the source code repository.
 
-* `branch` - The branch of the remote repository in use. 
+* `branch` - The branch of the remote repository in use.
 
 * `manual_integration` - Limits to manual integration.  
 
 * `rollback_enabled` - Is roll-back enabled for the repository.
 
-* `use_mercurial` - Uses Mercurial if `true`, otherwise uses Git. 
+* `use_mercurial` - Uses Mercurial if `true`, otherwise uses Git.
 
 ---
 

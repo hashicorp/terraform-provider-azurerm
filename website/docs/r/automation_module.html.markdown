@@ -46,15 +46,27 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Module is created. Changing this forces a new resource to be created.
 
-* `module_link` - (Required) The published Module link.
+* `module_link` - (Required) A `module_link` block as defined below.
 
-`module_link` supports the following:
+---
+
+The `module_link` block supports the following:
 
 * `uri` - (Required) The URI of the module content (zip or nupkg).
 
+* `hash` - (Optional) A `hash` block as defined below.
+
+---
+
+The `hash` block supports the following:
+
+* `algorithm` - (Required) Specifies the algorithm used for the hash content.
+
+* `value` - (Required) The hash value of the content.
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Automation Module ID.
 

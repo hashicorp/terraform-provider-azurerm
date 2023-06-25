@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var (
@@ -82,7 +82,7 @@ func (r BackendAddressPoolAddressResource) Arguments() map[string]*pluginsdk.Sch
 			Optional:      true,
 			RequiredWith:  []string{"ip_address"},
 			ConflictsWith: []string{"backend_address_ip_configuration_id"},
-			ValidateFunc:  networkValidate.VirtualNetworkID,
+			ValidateFunc:  commonids.ValidateVirtualNetworkID,
 			Description:   "For regional load balancer, user needs to specify `virtual_network_id` and `ip_address`",
 		},
 

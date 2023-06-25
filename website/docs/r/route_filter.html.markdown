@@ -39,7 +39,7 @@ The following arguments are supported:
 
 ---
 
-* `rule` - (Optional) A `rules` block as defined below.
+* `rule` - (Optional) A `rule` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Route Filter.
 
@@ -57,7 +57,7 @@ A `rule` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Route Filter.
 

@@ -93,13 +93,19 @@ The following arguments are supported:
 
 ~> **NOTE:** Creating a `GeoRestore` server requires the source server with `geo_redundant_backup_enabled` enabled.
 
-~> **NOTE:** The best practise is that it has to wait greater than 10 minutes to create the `GeoRestore` server once the source server is created.
+~> **NOTE:** When a server is first created it may not be immediately available for `geo restore` or `replica`. It may take a few minutes to several hours for the necessary metadata to be populated. Please see the [Geo Restore](https://learn.microsoft.com/azure/mysql/single-server/how-to-restore-server-portal#geo-restore) and the [Replica](https://learn.microsoft.com/azure/mysql/flexible-server/concepts-read-replicas#create-a-replica) for more information.
+
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
+
+~> **NOTE:** `identity` is required when `customer_managed_key` is specified.
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the MySQL Flexible Server. Changing this forces a new MySQL Flexible Server to be created.
 
 * `geo_redundant_backup_enabled` - (Optional) Should geo redundant backup enabled? Defaults to `false`. Changing this forces a new MySQL Flexible Server to be created.
 
 * `high_availability` - (Optional) A `high_availability` block as defined below.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
@@ -109,7 +115,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The `private_dns_zone_id` is required when setting a `delegated_subnet_id`. The `azurerm_private_dns_zone` should end with suffix `.mysql.database.azure.com`.
 
-* `replication_role` - The replication role. Possible value is `None`.
+* `replication_role` - (Optional) The replication role. Possible value is `None`.
 
 ~> **NOTE:** The `replication_role` cannot be set while creating and only can be updated from `Replica` to `None`.
 
@@ -126,6 +132,28 @@ The following arguments are supported:
 * `zone` - (Optional) Specifies the Availability Zone in which this MySQL Flexible Server should be located. Possible values are `1`, `2` and `3`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the MySQL Flexible Server.
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key.
+
+* `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id for a Customer Managed Key. Should be added with `identity_ids`.
+
+* `geo_backup_key_vault_key_id` - (Optional) The ID of the geo backup Key Vault Key. It can't cross region and need Customer Managed Key in same region as geo backup.
+
+* `geo_backup_user_assigned_identity_id` - (Optional) The geo backup user managed identity id for a Customer Managed Key. Should be added with `identity_ids`. It can't cross region and need identity in same region as geo backup.
+
+~> **NOTE:** `primary_user_assigned_identity_id` or `geo_backup_user_assigned_identity_id` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this MySQL Flexible Server. The only possible value is `UserAssigned`.
+
+* `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this MySQL Flexible Server.
 
 ---
 
@@ -153,7 +181,7 @@ A `maintenance_window` block supports the following:
 
 A `storage` block supports the following:
 
-* `auto_grow_enabled` - (Optional) Should Storage Auto Grow be enabled? Defaults to `true`. 
+* `auto_grow_enabled` - (Optional) Should Storage Auto Grow be enabled? Defaults to `true`.
 
 * `iops` - (Optional) The storage IOPS for the MySQL Flexible Server. Possible values are between `360` and `20000`.
 
@@ -161,11 +189,11 @@ A `storage` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MySQL Flexible Server.
 
-* `fqdn` -  The fully qualified domain name of the MySQL Flexible Server.
+* `fqdn` - The fully qualified domain name of the MySQL Flexible Server.
 
 * `public_network_access_enabled` - Is the public network access enabled?
 
