@@ -3,7 +3,7 @@ package parse
 import "testing"
 
 func TestNewNestedItemID(t *testing.T) {
-	childType := "keys"
+	childType := NestedItemTypeKey
 	childName := "test"
 	childVersion := "testVersionString"
 	cases := []struct {
@@ -38,17 +38,21 @@ func TestNewNestedItemID(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing %q", tc.keyVaultBaseUrl)
+
 		id, err := NewNestedItemID(tc.keyVaultBaseUrl, childType, childName, childVersion)
 		if err != nil {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for New Resource ID '%s': %+v", tc.keyVaultBaseUrl, err)
 				return
 			}
+			t.Logf("[DEBUG]   --> [Received Expected Error]: %+v", err)
 			continue
 		}
 		if id.ID() != tc.Expected {
 			t.Fatalf("Expected id for %q to be %q, got %q", tc.keyVaultBaseUrl, tc.Expected, id)
 		}
+		t.Logf("[DEBUG]   --> [Valid Value]: %+v", tc.keyVaultBaseUrl)
 	}
 }
 
@@ -63,11 +67,31 @@ func TestParseNestedItemID(t *testing.T) {
 			ExpectError: true,
 		},
 		{
+			Input:       "https",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-keyvault.vault.azure.net",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-keyvault.vault.azure.net/",
+			ExpectError: true,
+		},
+		{
 			Input:       "https://my-keyvault.vault.azure.net/secrets",
 			ExpectError: true,
 		},
 		{
 			Input:       "https://my-keyvault.vault.azure.net/secrets/bird",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-keyvault.vault.azure.net/invalidNestedItemObjectType/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
 			ExpectError: true,
 		},
 		{
@@ -108,9 +132,12 @@ func TestParseNestedItemID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing %q", tc.Input)
+
 		secretId, err := ParseNestedItemID(tc.Input)
 		if err != nil {
 			if tc.ExpectError {
+				t.Logf("[DEBUG]   --> [Received Expected Error]: %+v", err)
 				continue
 			}
 
@@ -136,6 +163,7 @@ func TestParseNestedItemID(t *testing.T) {
 		if tc.Input != secretId.ID() {
 			t.Fatalf("Expected 'ID()' to be '%s', got '%s'", tc.Input, secretId.ID())
 		}
+		t.Logf("[DEBUG]   --> [Valid Value]: %+v", tc.Input)
 	}
 }
 
@@ -151,6 +179,10 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 		},
 		{
 			Input:       "https://my-keyvault.vault.azure.net/secrets",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-keyvault.vault.azure.net/invalidNestedItemObjectType/hello/world",
 			ExpectError: true,
 		},
 		{
@@ -200,9 +232,12 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing %q", tc.Input)
+
 		secretId, err := ParseOptionallyVersionedNestedItemID(tc.Input)
 		if err != nil {
 			if tc.ExpectError {
+				t.Logf("[DEBUG]   --> [Received Expected Error]: %+v", err)
 				continue
 			}
 
@@ -228,5 +263,6 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 		if tc.Input != secretId.ID() {
 			t.Fatalf("Expected 'ID()' to be '%s', got '%s'", tc.Input, secretId.ID())
 		}
+		t.Logf("[DEBUG]   --> [Valid Value]: %+v", tc.Input)
 	}
 }

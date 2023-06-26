@@ -1178,7 +1178,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// BlobStorage does not support ZRS
 	if accountKind == string(storage.KindBlobStorage) {
 		if string(parameters.Sku.Name) == string(storage.SkuNameStandardZRS) {
-			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
+			return fmt.Errorf("a `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 		}
 	}
 
@@ -1209,7 +1209,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// AccountTier must be Premium for FileStorage
 	if accountKind == string(storage.KindFileStorage) {
 		if string(parameters.Sku.Tier) == string(storage.SkuNameStandardLRS) {
-			return fmt.Errorf("A `account_tier` of `Standard` is not supported for FileStorage accounts.")
+			return fmt.Errorf("a `account_tier` of `Standard` is not supported for FileStorage accounts")
 		}
 	}
 
@@ -1363,7 +1363,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
 		}
 		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
+			return fmt.Errorf("unable to locate Storage Account %q", id.Name)
 		}
 
 		queueClient, err := storageClient.QueuesClient(ctx, *account)
@@ -1420,7 +1420,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
 		}
 		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
+			return fmt.Errorf("unable to locate Storage Account %q", id.Name)
 		}
 
 		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
@@ -1462,7 +1462,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorage) {
 		if storageType == string(storage.SkuNameStandardZRS) {
-			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
+			return fmt.Errorf("a `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 		}
 	}
 
@@ -1844,7 +1844,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
 		}
 		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
+			return fmt.Errorf("unable to locate Storage Account %q", id.Name)
 		}
 
 		queueClient, err := storageClient.QueuesClient(ctx, *account)
@@ -1899,7 +1899,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
 		}
 		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
+			return fmt.Errorf("unable to locate Storage Account %q", id.Name)
 		}
 
 		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
@@ -2161,7 +2161,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
+		return fmt.Errorf("unable to locate Storage Account %q", id.Name)
 	}
 
 	var tier storage.SkuTier
@@ -2463,7 +2463,7 @@ func flattenStorageAccountCustomerManagedKey(storageAccountId *parse.StorageAcco
 		return nil, fmt.Errorf("retrieving %s: `properties.encryption.keyVaultProperties.keyVaultURI` was nil", *storageAccountId)
 	}
 
-	keyId, err := keyVaultParse.NewNestedItemID(keyVaultURI, "keys", keyName, keyVersion)
+	keyId, err := keyVaultParse.NewNestedItemID(keyVaultURI, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
 	if err != nil {
 		return nil, err
 	}
