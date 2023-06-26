@@ -1473,14 +1473,20 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	autoUpgradeProfile := &managedclusters.ManagedClusterAutoUpgradeProfile{}
 	autoChannelUpgrade := d.Get("automatic_channel_upgrade").(string)
 	nodeOsChannelUpgrade := d.Get("node_os_channel_upgrade").(string)
-	if autoChannelUpgrade != "" {
+
+	// this check needs to be separate and gated since node_os_channel_upgrade is a preview feature
+	if nodeOsChannelUpgrade != "" && autoChannelUpgrade != "" {
 		if autoChannelUpgrade == string(managedclusters.UpgradeChannelNodeNegativeimage) && nodeOsChannelUpgrade != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
 			return fmt.Errorf("`node_os_channel_upgrade` cannot be set to a value other than `NodeImage` if `automatic_channel_upgrade` is set to `node-image`")
 		}
+	}
+
+	if autoChannelUpgrade != "" {
 		autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(autoChannelUpgrade))
 	} else {
 		autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannelNone)
 	}
+
 	if nodeOsChannelUpgrade != "" {
 		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
 	}
@@ -1939,16 +1945,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
 		}
 		channel := d.Get("automatic_channel_upgrade").(string)
-		if channel == string(managedclusters.UpgradeChannelNodeNegativeimage) && d.Get("node_os_channel_upgrade").(string) != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
-			return fmt.Errorf("`node_os_channel_upgrade` must be set to `NodeImage` if `automatic_channel_upgrade` is set to `node-image`")
-		}
 		if channel == "" {
 			channel = string(managedclusters.UpgradeChannelNone)
 		}
 		existing.Model.Properties.AutoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(channel))
 	}
+
 	if d.HasChange("node_os_channel_upgrade") {
 		updateCluster = true
+		if d.Get("automatic_channel_upgrade").(string) == string(managedclusters.UpgradeChannelNodeNegativeimage) && d.Get("node_os_channel_upgrade").(string) != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
+			return fmt.Errorf("`node_os_channel_upgrade` must be set to `NodeImage` if `automatic_channel_upgrade` is set to `node-image`")
+		}
 		if existing.Model.Properties.AutoUpgradeProfile == nil {
 			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
 		}
