@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230622.1085613` of `github.com/hashicorp/go-azure-sdk` [GH-22247]
 * dependencies: updating to `v0.57.0` of `github.com/hashicorp/go-azure-helpers` [GH-22247]
+* `azurerm_monitor_aad_diagnostic_setting` - deprecate log in favour of enabled_log [GH-21390]
 
 ## 3.62.1 (June 22, 2023)
 
