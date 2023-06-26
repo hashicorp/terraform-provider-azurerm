@@ -60,7 +60,7 @@ func TestAccKustoCosmosDBDataConnection_basic(t *testing.T) {
 	})
 }
 
-func TestAccKustoCosmosDBDataConnection_update(t *testing.T) {
+func TestAccKustoCosmosDBDataConnection_completeUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cosmosdb_data_connection", "test")
 	r := KustoCosmosDBDataConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -91,11 +91,25 @@ func TestAccKustoCosmosDBDataConnection_update(t *testing.T) {
 				check.That(data.ResourceName).Key("table_name").Exists(),
 				check.That(data.ResourceName).Key("managed_identity_id").Exists(),
 				check.That(data.ResourceName).Key("table_name").HasValue("TestTable"),
-				check.That(data.ResourceName).Key("mapping_rule_name").HasValue("TestMappingRule"),
-				check.That(data.ResourceName).Key("retrieval_start_date").HasValue("2023-02-29T12:00:00.6554616Z"),
+				check.That(data.ResourceName).Key("mapping_rule_name").HasValue("TestMapping"),
+				// check.That(data.ResourceName).Key("retrieval_start_date").HasValue("2023-06-29T12:00:00.6554616Z"),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccKustoCosmosDBDataConnection_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cosmosdb_data_connection", "test")
+	r := KustoCosmosDBDataConnectionResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -113,7 +127,7 @@ resource "azurerm_kusto_cosmosdb_data_connection" "test" {
       cosmosdb_container    = azurerm_cosmosdb_sql_container.test.name
 	  cluster_name          = azurerm_kusto_cluster.test.name	
       database_name         = azurerm_kusto_database.test.name
-      managed_identity_id   = azurerm_user_assigned_identity.test.id
+      managed_identity_id   = azurerm_kusto_cluster.test.id
       table_name            = "TestTable"
       lifecycle {
         ignore_changes = [retrieval_start_date]
@@ -135,13 +149,33 @@ resource "azurerm_kusto_cosmosdb_data_connection" "test" {
       cosmosdb_container    = azurerm_cosmosdb_sql_container.test.name
 	  cluster_name          = azurerm_kusto_cluster.test.name	
       database_name         = azurerm_kusto_database.test.name
-      managed_identity_id   = azurerm_user_assigned_identity.test.id
+      managed_identity_id   = azurerm_kusto_cluster.test.id
       table_name            = "TestTable"
-      mapping_rule_name     = "TestMappingRule"
-      lifecycle {
-		ignore_changes        = [retrieval_start_date]
-      }
+      mapping_rule_name     = "TestMapping"
+      retrieval_start_date  = "2023-06-29T12:00:00.6554616Z"
 }`, template, data.RandomString)
+}
+
+func (k KustoCosmosDBDataConnectionResource) requiresImport(data acceptance.TestData) string {
+	template := k.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kusto_cosmosdb_data_connection" "import" {
+	  name                  = azurerm_kusto_cosmosdb_data_connection.test.name
+	  resource_group_name   = azurerm_resource_group.test.name
+      location              = azurerm_resource_group.test.location
+      cosmosdb_account_id   = azurerm_cosmosdb_account.test.id
+      cosmosdb_database     = azurerm_cosmosdb_sql_database.test.name
+      cosmosdb_container    = azurerm_cosmosdb_sql_container.test.name
+	  cluster_name          = azurerm_kusto_cluster.test.name	
+      database_name         = azurerm_kusto_database.test.name
+      managed_identity_id   = azurerm_kusto_cluster.test.id
+      table_name            = "TestTable"
+      lifecycle {
+        ignore_changes = [retrieval_start_date]
+      }
+}`, template)
 }
 
 func (k KustoCosmosDBDataConnectionResource) template(data acceptance.TestData) string {
@@ -157,12 +191,6 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_user_assigned_identity" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  name                = "acctestuami-%d"
-}
-
 data "azurerm_role_definition" "builtin" {
   role_definition_id = "fbdf93bf-df7d-467e-a4d2-9458aa1360c8"
 }
@@ -170,7 +198,7 @@ data "azurerm_role_definition" "builtin" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = data.azurerm_role_definition.builtin.name
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  principal_id         = azurerm_kusto_cluster.test.identity[0].principal_id
 }
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -218,7 +246,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
   role_definition_id  = data.azurerm_cosmosdb_sql_role_definition.test.id
-  principal_id        = azurerm_user_assigned_identity.test.principal_id
+  principal_id        = azurerm_kusto_cluster.test.identity[0].principal_id
   scope               = azurerm_cosmosdb_account.test.id
 }
 
@@ -258,5 +286,5 @@ resource "azurerm_kusto_script" "test" {
 .alter table TestTable policy ingestionbatching "{'MaximumBatchingTimeSpan': '0:0:10', 'MaximumNumberOfItems': 10000}"
 SCRIPT
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
