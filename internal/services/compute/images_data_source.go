@@ -181,12 +181,14 @@ func filterToImagesMatchingTags(input []images.Image, filterTags map[string]stri
 	output := make([]images.Image, 0)
 
 	for _, item := range input {
-		tagsMatch := false
-		if item.Tags != nil {
+		tagsMatch := true
+		if item.Tags == nil {
+			tagsMatch = false
+		} else {
 			for tagKey, tagValue := range filterTags {
 				otherVal, exists := (*item.Tags)[tagKey]
-				if exists && tagValue == otherVal {
-					tagsMatch = true
+				if !exists || tagValue != otherVal {
+					tagsMatch = false
 					break
 				}
 			}
