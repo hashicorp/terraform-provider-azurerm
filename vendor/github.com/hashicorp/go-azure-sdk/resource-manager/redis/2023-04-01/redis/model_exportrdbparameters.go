@@ -8,4 +8,5 @@ type ExportRDBParameters struct {
 	Format                         *string `json:"format,omitempty"`
 	PreferredDataArchiveAuthMethod *string `json:"preferred-data-archive-auth-method,omitempty"`
 	Prefix                         string  `json:"prefix"`
+	StorageSubscriptionId          *string `json:"storage-subscription-id,omitempty"`
 }

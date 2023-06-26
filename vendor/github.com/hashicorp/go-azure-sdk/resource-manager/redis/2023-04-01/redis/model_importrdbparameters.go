@@ -7,4 +7,5 @@ type ImportRDBParameters struct {
 	Files                          []string `json:"files"`
 	Format                         *string  `json:"format,omitempty"`
 	PreferredDataArchiveAuthMethod *string  `json:"preferred-data-archive-auth-method,omitempty"`
+	StorageSubscriptionId          *string  `json:"storage-subscription-id,omitempty"`
 }
