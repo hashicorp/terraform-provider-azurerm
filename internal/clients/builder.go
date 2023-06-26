@@ -109,6 +109,11 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("building account: %+v", err)
 	}
 
+	managedHSMAuth, err := auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.ManagedHSM)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build authorizer for Managed HSM API: %+v", err)
+	}
+
 	client := Client{
 		Account: account,
 	}
@@ -117,6 +122,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		Authorizers: &common.Authorizers{
 			BatchManagement: batchManagementAuth,
 			KeyVault:        keyVaultAuth,
+			ManagedHSM:      managedHSMAuth,
 			ResourceManager: resourceManagerAuth,
 			Storage:         storageAuth,
 			Synapse:         synapseAuth,
@@ -133,6 +139,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 		BatchManagementAuthorizer: authWrapper.AutorestAuthorizer(batchManagementAuth),
 		KeyVaultAuthorizer:        authWrapper.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
+		ManagedHSMAuthorizer:      authWrapper.AutorestAuthorizer(managedHSMAuth).BearerAuthorizerCallback(),
 		ResourceManagerAuthorizer: authWrapper.AutorestAuthorizer(resourceManagerAuth),
 		StorageAuthorizer:         authWrapper.AutorestAuthorizer(storageAuth),
 		SynapseAuthorizer:         authWrapper.AutorestAuthorizer(synapseAuth),
