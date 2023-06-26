@@ -258,7 +258,7 @@ A `recovery_group` block supports the following:
 
 * `type` - (Required) The Recovery Plan Group Type. Possible values are `Boot`, `Failover` and `Shutdown`.
 
-* `replicated_protected_items` - (Optional) (required) one or more id of protected VM.
+* `replicated_protected_items` - (Optional) (required) one or more id of protected VM. It must not be specified when `type` is `Shutdown`.
 
 * `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
 

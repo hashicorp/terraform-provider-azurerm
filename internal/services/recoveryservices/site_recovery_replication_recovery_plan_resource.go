@@ -525,6 +525,9 @@ func validateRecoverGroup(input []RecoveryGroupModel) (bool, error) {
 		}
 		if group.GroupType == replicationrecoveryplans.RecoveryPlanGroupTypeShutdown {
 			shutdownCount += 1
+			if len(group.ReplicatedProtectedItems) > 0 {
+				return false, fmt.Errorf("`replicated_protected_items` must not be specified for `recovery_group` with `Shutdown` type.")
+			}
 		}
 	}
 	if bootCount == 0 || shutdownCount == 0 || failoverCount == 0 {
