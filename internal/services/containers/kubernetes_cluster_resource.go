@@ -2300,7 +2300,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 			}
 			d.Set("automatic_channel_upgrade", upgradeChannel)
-			d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
+
+			// the API returns `node_os_channel_upgrade` when `automatic_channel_upgrade` is set to `node-image`
+			// since it's a preview feature we will only set this if it's explicitly been set in the config for the time being
+			if v, ok := d.GetOk("node_os_channel_upgrade"); ok && v.(string) != "" {
+				d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
+			}
 
 			enablePrivateCluster := false
 			enablePrivateClusterPublicFQDN := false
