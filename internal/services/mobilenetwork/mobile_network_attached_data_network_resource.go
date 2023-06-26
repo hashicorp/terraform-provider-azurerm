@@ -34,22 +34,18 @@ type AttachedDataNetworkModel struct {
 }
 
 type NaptConfigurationModel struct {
-	PinholeLimits      int64                     `tfschema:"pinhole_maximum_number"`
-	IcmpPinholeTimeout int64                     `tfschema:"icmp_pinhole_timeout_in_seconds"`
-	TcpPinholeTimeout  int64                     `tfschema:"tcp_pinhole_timeout_in_seconds"`
-	UdpPinholeTimeout  int64                     `tfschema:"udp_pinhole_timeout_in_seconds"`
-	PortRange          []PortRangeModel          `tfschema:"port_range"`
-	PortReuseHoldTime  []PortReuseHoldTimesModel `tfschema:"port_reuse_minimum_hold_time_in_seconds"`
+	PinholeLimits           int64            `tfschema:"pinhole_maximum_number"`
+	IcmpPinholeTimeout      int64            `tfschema:"icmp_pinhole_timeout_in_seconds"`
+	TcpPinholeTimeout       int64            `tfschema:"tcp_pinhole_timeout_in_seconds"`
+	UdpPinholeTimeout       int64            `tfschema:"udp_pinhole_timeout_in_seconds"`
+	PortRange               []PortRangeModel `tfschema:"port_range"`
+	TcpReuseMinimumHoldTime int64            `tfschema:"tcp_port_reuse_minimum_hold_time_in_seconds"`
+	UdpReuseMinimumHoldTime int64            `tfschema:"udp_port_reuse_minimum_hold_time_in_seconds"`
 }
 
 type PortRangeModel struct {
 	MaxPort int64 `tfschema:"max_port"`
 	MinPort int64 `tfschema:"min_port"`
-}
-
-type PortReuseHoldTimesModel struct {
-	Tcp int64 `tfschema:"tcp"`
-	Udp int64 `tfschema:"udp"`
 }
 
 type AttachedDataNetworkResource struct{}
@@ -152,27 +148,18 @@ func (r AttachedDataNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"port_reuse_minimum_hold_time_in_seconds": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"tcp": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      120,
-									ValidateFunc: validation.IntAtLeast(1),
-								},
+					"tcp_port_reuse_minimum_hold_time_in_seconds": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      120,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
 
-								"udp": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									Default:      60,
-									ValidateFunc: validation.IntAtLeast(60),
-								},
-							},
-						},
+					"udp_port_reuse_minimum_hold_time_in_seconds": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      60,
+						ValidateFunc: validation.IntAtLeast(60),
 					},
 				},
 			},
@@ -500,7 +487,10 @@ func expandNaptConfigurationModel(inputList []NaptConfigurationModel) *attachedd
 
 	output.PortRange = expandPortRangeModel(input.PortRange)
 
-	output.PortReuseHoldTime = expandPortReuseHoldTimesModel(input.PortReuseHoldTime)
+	output.PortReuseHoldTime = &attacheddatanetwork.PortReuseHoldTimes{
+		Tcp: &input.TcpReuseMinimumHoldTime,
+		Udp: &input.UdpReuseMinimumHoldTime,
+	}
 
 	return &output
 }
@@ -514,20 +504,6 @@ func expandPortRangeModel(inputList []PortRangeModel) *attacheddatanetwork.PortR
 	output := attacheddatanetwork.PortRange{
 		MaxPort: &input.MaxPort,
 		MinPort: &input.MinPort,
-	}
-
-	return &output
-}
-
-func expandPortReuseHoldTimesModel(inputList []PortReuseHoldTimesModel) *attacheddatanetwork.PortReuseHoldTimes {
-	if len(inputList) == 0 {
-		return nil
-	}
-
-	input := &inputList[0]
-	output := attacheddatanetwork.PortReuseHoldTimes{
-		Tcp: &input.Tcp,
-		Udp: &input.Udp,
 	}
 
 	return &output
@@ -549,7 +525,10 @@ func flattenNaptConfigurationModel(input *attacheddatanetwork.NaptConfiguration)
 
 	output.PortRange = flattenPortRangeModel(input.PortRange)
 
-	output.PortReuseHoldTime = flattenPortReuseHoldTimesModel(input.PortReuseHoldTime)
+	if input.PortReuseHoldTime != nil {
+		output.TcpReuseMinimumHoldTime = pointer.From(input.PortReuseHoldTime.Tcp)
+		output.UdpReuseMinimumHoldTime = pointer.From(input.PortReuseHoldTime.Udp)
+	}
 
 	return []NaptConfigurationModel{output}
 }
@@ -566,18 +545,4 @@ func flattenPortRangeModel(input *attacheddatanetwork.PortRange) []PortRangeMode
 	output.MinPort = pointer.From(input.MinPort)
 
 	return []PortRangeModel{output}
-}
-
-func flattenPortReuseHoldTimesModel(input *attacheddatanetwork.PortReuseHoldTimes) []PortReuseHoldTimesModel {
-	if input == nil {
-		return []PortReuseHoldTimesModel{}
-	}
-
-	output := PortReuseHoldTimesModel{}
-
-	output.Tcp = pointer.From(input.Tcp)
-
-	output.Udp = pointer.From(input.Udp)
-
-	return []PortReuseHoldTimesModel{output}
 }

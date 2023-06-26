@@ -200,18 +200,16 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   user_plane_access_ipv4_subnet               = "10.204.141.0/24"
 
   network_address_port_translation {
-    pinhole_maximum_number          = 65536
-    icmp_pinhole_timeout_in_seconds = 30
-    tcp_pinhole_timeout_in_seconds  = 100
-    udp_pinhole_timeout_in_seconds  = 39
+    pinhole_maximum_number                      = 65536
+    icmp_pinhole_timeout_in_seconds             = 30
+    tcp_pinhole_timeout_in_seconds              = 100
+    udp_pinhole_timeout_in_seconds              = 39
+    tcp_port_reuse_minimum_hold_time_in_seconds = 120
+    udp_port_reuse_minimum_hold_time_in_seconds = 60
 
     port_range {
       max_port = 49999
       min_port = 1024
-    }
-    port_reuse_minimum_hold_time_in_seconds {
-      tcp = 120
-      udp = 60
     }
   }
 
@@ -242,18 +240,16 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
   user_plane_access_ipv4_subnet               = "10.204.141.0/24"
 
   network_address_port_translation {
-    pinhole_maximum_number          = 65536
-    icmp_pinhole_timeout_in_seconds = 30
-    tcp_pinhole_timeout_in_seconds  = 100
-    udp_pinhole_timeout_in_seconds  = 39
+    pinhole_maximum_number                      = 65536
+    icmp_pinhole_timeout_in_seconds             = 30
+    tcp_pinhole_timeout_in_seconds              = 100
+    udp_pinhole_timeout_in_seconds              = 39
+    tcp_port_reuse_minimum_hold_time_in_seconds = 120
+    udp_port_reuse_minimum_hold_time_in_seconds = 60
 
     port_range {
       max_port = 49999
       min_port = 1024
-    }
-    port_reuse_minimum_hold_time_in_seconds {
-      tcp = 120
-      udp = 60
     }
   }
 

@@ -37,14 +37,12 @@ func (r AttachedDataNetworkDataSource) Arguments() map[string]*pluginsdk.Schema 
 		"mobile_network_data_network_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"mobile_network_packet_core_data_plane_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: packetcoredataplane.ValidatePacketCoreDataPlaneID,
 		},
 	}
@@ -106,22 +104,14 @@ func (r AttachedDataNetworkDataSource) Attributes() map[string]*pluginsdk.Schema
 						},
 					},
 
-					"port_reuse_minimum_hold_time_in_seconds": {
-						Type:     pluginsdk.TypeList,
+					"tcp_port_reuse_minimum_hold_time_in_seconds": {
+						Type:     pluginsdk.TypeInt,
 						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"tcp": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
-								},
+					},
 
-								"udp": {
-									Type:     pluginsdk.TypeInt,
-									Computed: true,
-								},
-							},
-						},
+					"udp_port_reuse_minimum_hold_time_in_seconds": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
 					},
 				},
 			},
