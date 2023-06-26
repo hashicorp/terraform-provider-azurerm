@@ -1281,7 +1281,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"custom_ca_trust_certificates": {
+			"custom_ca_trust_certificates_base64": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 10,
@@ -1495,8 +1495,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
 	}
 
-	customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates").([]interface{})
-	securityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
+	if customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{}); len(customCaTrustCertListRaw) > 0 {
+		securityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
+	}
 
 	parameters := managedclusters.ManagedCluster{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
@@ -1992,9 +1993,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
-	if d.HasChanges("custom_ca_trust_certificates") {
+	if d.HasChanges("custom_ca_trust_certificates_base64") {
 		updateCluster = true
-		customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates").([]interface{})
+		customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{})
 		existing.Model.Properties.SecurityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
 	}
 
@@ -2313,6 +2314,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("automatic_channel_upgrade", upgradeChannel)
 			d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
+
+			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile.CustomCATrustCertificates)
+			d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList)
 
 			enablePrivateCluster := false
 			enablePrivateClusterPublicFQDN := false

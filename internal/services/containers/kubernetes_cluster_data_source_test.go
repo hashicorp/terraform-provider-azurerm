@@ -565,8 +565,8 @@ func TestAccDataSourceKubernetesCluster_customCaTrustCerts(t *testing.T) {
 		{
 			Config: r.customCaTrustCertificates(data, fakeCertList),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("custom_ca_trust_certificates.0").Exists(),
-				check.That(data.ResourceName).Key("custom_ca_trust_certificates.1").Exists(),
+				check.That(data.ResourceName).Key("custom_ca_trust_certificates_base64.0").Exists(),
+				check.That(data.ResourceName).Key("custom_ca_trust_certificates_base64.1").Exists(),
 			),
 		},
 	})
