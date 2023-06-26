@@ -20,5 +20,6 @@ type RedisCommonPropertiesRedisConfiguration struct {
 	RdbBackupFrequency                 *string `json:"rdb-backup-frequency,omitempty"`
 	RdbBackupMaxSnapshotCount          *string `json:"rdb-backup-max-snapshot-count,omitempty"`
 	RdbStorageConnectionString         *string `json:"rdb-storage-connection-string,omitempty"`
+	StorageSubscriptionId              *string `json:"storage-subscription-id,omitempty"`
 	ZonalConfiguration                 *string `json:"zonal-configuration,omitempty"`
 }
