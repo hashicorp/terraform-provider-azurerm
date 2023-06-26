@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 output "subnet_id" {
   value = "${azurerm_kubernetes_cluster.example.agent_pool_profile.0.vnet_subnet_id}"
 }
