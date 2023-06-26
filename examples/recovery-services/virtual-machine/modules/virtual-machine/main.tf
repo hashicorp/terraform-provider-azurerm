@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 data "azurerm_resource_group" "example" {
   name = "${var.resource_group_name}"
 }

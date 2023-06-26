@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -17,7 +18,7 @@ type GetOperationResponse struct {
 }
 
 // Get ...
-func (c ManagedClustersClient) Get(ctx context.Context, id ManagedClusterId) (result GetOperationResponse, err error) {
+func (c ManagedClustersClient) Get(ctx context.Context, id commonids.KubernetesClusterId) (result GetOperationResponse, err error) {
 	req, err := c.preparerForGet(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedclusters.ManagedClustersClient", "Get", nil, "Failure preparing request")
@@ -40,7 +41,7 @@ func (c ManagedClustersClient) Get(ctx context.Context, id ManagedClusterId) (re
 }
 
 // preparerForGet prepares the Get request.
-func (c ManagedClustersClient) preparerForGet(ctx context.Context, id ManagedClusterId) (*http.Request, error) {
+func (c ManagedClustersClient) preparerForGet(ctx context.Context, id commonids.KubernetesClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

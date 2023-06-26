@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type GetUpgradeProfileOperationResponse struct {
 }
 
 // GetUpgradeProfile ...
-func (c ManagedClustersClient) GetUpgradeProfile(ctx context.Context, id ManagedClusterId) (result GetUpgradeProfileOperationResponse, err error) {
+func (c ManagedClustersClient) GetUpgradeProfile(ctx context.Context, id commonids.KubernetesClusterId) (result GetUpgradeProfileOperationResponse, err error) {
 	req, err := c.preparerForGetUpgradeProfile(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedclusters.ManagedClustersClient", "GetUpgradeProfile", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c ManagedClustersClient) GetUpgradeProfile(ctx context.Context, id Managed
 }
 
 // preparerForGetUpgradeProfile prepares the GetUpgradeProfile request.
-func (c ManagedClustersClient) preparerForGetUpgradeProfile(ctx context.Context, id ManagedClusterId) (*http.Request, error) {
+func (c ManagedClustersClient) preparerForGetUpgradeProfile(ctx context.Context, id commonids.KubernetesClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

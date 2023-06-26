@@ -157,7 +157,7 @@ A `liveness_probe` block supports the following:
 
 * `initial_delay` - (Optional) The time in seconds to wait after the container has started before the probe is started.
 
-* `interval_seconds` - (Optional) (Optional) How often, in seconds, the probe should run. Possible values are in the range `1` - `240`. Defaults to `10`.
+* `interval_seconds` - (Optional) How often, in seconds, the probe should run. Possible values are in the range `1` - `240`. Defaults to `10`.
 
 * `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
 

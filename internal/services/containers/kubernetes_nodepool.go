@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -199,8 +201,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Computed: true, // defaults to Ubuntu if using Linux
 						ValidateFunc: validation.StringInSlice([]string{
 							string(agentpools.OSSKUAzureLinux),
-							string(agentpools.OSSKUCBLMariner),
-							string(agentpools.OSSKUMariner),
 							string(agentpools.OSSKUUbuntu),
 							string(agentpools.OSSKUWindowsTwoZeroOneNine),
 							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
@@ -216,7 +216,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"vnet_subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: networkValidate.SubnetID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"orchestrator_version": {
 						Type:         pluginsdk.TypeString,
@@ -227,7 +227,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"pod_subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: networkValidate.SubnetID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"proximity_placement_group_id": {
 						Type:         pluginsdk.TypeString,
@@ -271,6 +271,17 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 				}
 
 				s["zones"] = commonschema.ZonesMultipleOptional()
+
+				if !features.FourPointOhBeta() {
+					s["os_sku"].ValidateFunc = validation.StringInSlice([]string{
+						string(agentpools.OSSKUAzureLinux),
+						string(agentpools.OSSKUCBLMariner),
+						string(agentpools.OSSKUMariner),
+						string(agentpools.OSSKUUbuntu),
+						string(agentpools.OSSKUWindowsTwoZeroOneNine),
+						string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+					}, false)
+				}
 
 				return s
 			}(),
