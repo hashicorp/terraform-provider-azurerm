@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"math/rand"
-	"os"
 	"testing"
 )
 
@@ -42,14 +41,14 @@ func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_extended_custom_locations", "test")
 	r := CustomLocationResource{}
 	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := CustomLocationResource{}.generateKey()
+	_, publicKey, err := CustomLocationResource{}.generateKey()
 	if err != nil {
 		t.Fatalf("failed to generate key: %+v", err)
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, credential, privateKey, publicKey),
+			Config: r.basic(data, credential, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -58,16 +57,10 @@ func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
 	})
 }
 
-func (r CustomLocationResource) basic(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
-	template := r.template(data, credential, privateKey, publicKey)
+func (r CustomLocationResource) basic(data acceptance.TestData, credential string, publicKey string) string {
+	template := r.template(data, credential, publicKey)
 	return fmt.Sprintf(`
 %s
-
-//resource "azurerm_role_assignment" "admin" {
-//  scope                = azurerm_kubernetes_cluster.test.id
-//  role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
-//  principal_id         = "51dfe1e8-70c6-4de5-a08e-e18aff23d815"
-//}
 
 resource "azurerm_extended_custom_locations" "test" {
   name = "acctestcustomlocation%d"
@@ -83,7 +76,7 @@ resource "azurerm_extended_custom_locations" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CustomLocationResource) template(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
+func (r CustomLocationResource) template(data acceptance.TestData, credential string, publicKey string) string {
 	data.Locations.Primary = "eastus"
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -179,10 +172,6 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 
-data "azurerm_extended_locations" "test" {
-  location = azurerm_resource_group.test.location
-}
-
 resource "azurerm_arc_kubernetes_cluster" "test" {
   name                         = "acctest-akcc-%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
@@ -192,8 +181,6 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  %[5]s
-
   depends_on = [
     azurerm_linux_virtual_machine.test
   ]
@@ -202,7 +189,7 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
 resource "azurerm_arc_kubernetes_cluster_extension" "test" {
   name				= "foo"
   cluster_id 	  = azurerm_arc_kubernetes_cluster.test.id
-  extension_type 	= "microsoft.flux"
+  extension_type 	= "microsoft.azuredefender.kubernetes"
 
   identity {
 	type = "SystemAssigned"
@@ -212,7 +199,7 @@ resource "azurerm_arc_kubernetes_cluster_extension" "test" {
   	azurerm_linux_virtual_machine.test
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, credential, publicKey, r.provisionTemplate(data, credential, privateKey))
+`, data.RandomInteger, data.Locations.Primary, credential, publicKey)
 }
 
 func (r CustomLocationResource) generateKey() (string, string, error) {
@@ -235,50 +222,50 @@ func (r CustomLocationResource) generateKey() (string, string, error) {
 	return string(privatePem), base64.StdEncoding.EncodeToString(x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)), nil
 }
 
-func (r CustomLocationResource) provisionTemplate(data acceptance.TestData, credential string, privateKey string) string {
-	return fmt.Sprintf(`
-connection {
-  type     = "ssh"
-  host     = azurerm_public_ip.test.ip_address
-  user     = "adminuser"
-  password = "%[1]s"
-}
-
-provisioner "file" {
-  content = templatefile("testdata/install_agent.sh.tftpl", {
-    subscription_id     = "%[4]s"
-    resource_group_name = azurerm_resource_group.test.name
-    cluster_name        = "acctest-akcc-%[2]d"
-    location            = azurerm_resource_group.test.location
-    tenant_id           = "%[5]s"
-    working_dir         = "%[3]s"
-  })
-  destination = "%[3]s/install_agent.sh"
-}
-
-provisioner "file" {
-  source      = "testdata/install_agent.py"
-  destination = "%[3]s/install_agent.py"
-}
-
-provisioner "file" {
-  source      = "testdata/kind.yaml"
-  destination = "%[3]s/kind.yaml"
-}
-
-provisioner "file" {
-  content     = <<EOT
-%[6]s
-EOT
-  destination = "%[3]s/private.pem"
-}
-
-provisioner "remote-exec" {
-  inline = [
-    "sudo sed -i 's/\r$//' %[3]s/install_agent.sh",
-    "sudo chmod +x %[3]s/install_agent.sh",
-    "bash %[3]s/install_agent.sh > %[3]s/agent_log",
-  ]
-}
-`, credential, data.RandomInteger, "/home/adminuser", os.Getenv("ARM_SUBSCRIPTION_ID"), os.Getenv("ARM_TENANT_ID"), privateKey)
-}
+//func (r CustomLocationResource) provisionTemplate(data acceptance.TestData, credential string, privateKey string) string {
+//	return fmt.Sprintf(`
+//connection {
+//  type     = "ssh"
+//  host     = azurerm_public_ip.test.ip_address
+//  user     = "adminuser"
+//  password = "%[1]s"
+//}
+//
+//provisioner "file" {
+//  content = templatefile("testdata/install_agent.sh.tftpl", {
+//    subscription_id     = "%[4]s"
+//    resource_group_name = azurerm_resource_group.test.name
+//    cluster_name        = "acctest-akcc-%[2]d"
+//    location            = azurerm_resource_group.test.location
+//    tenant_id           = "%[5]s"
+//    working_dir         = "%[3]s"
+//  })
+//  destination = "%[3]s/install_agent.sh"
+//}
+//
+//provisioner "file" {
+//  source      = "testdata/install_agent.py"
+//  destination = "%[3]s/install_agent.py"
+//}
+//
+//provisioner "file" {
+//  source      = "testdata/kind.yaml"
+//  destination = "%[3]s/kind.yaml"
+//}
+//
+//provisioner "file" {
+//  content     = <<EOT
+//%[6]s
+//EOT
+//  destination = "%[3]s/private.pem"
+//}
+//
+//provisioner "remote-exec" {
+//  inline = [
+//    "sudo sed -i 's/\r$//' %[3]s/install_agent.sh",
+//    "sudo chmod +x %[3]s/install_agent.sh",
+//    "bash %[3]s/install_agent.sh > %[3]s/agent_log",
+//  ]
+//}
+//`, credential, data.RandomInteger, "/home/adminuser", os.Getenv("ARM_SUBSCRIPTION_ID"), os.Getenv("ARM_TENANT_ID"), privateKey)
+//}
