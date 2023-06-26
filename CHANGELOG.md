@@ -2,9 +2,20 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230622.1085613` of `github.com/hashicorp/go-azure-sdk` [GH-22247]
+* dependencies: updating to `v0.20230623.1103505` of `github.com/hashicorp/go-azure-sdk` [GH-22263]
 * dependencies: updating to `v0.57.0` of `github.com/hashicorp/go-azure-helpers` [GH-22247]
+* dependencies: `containers/containerinstance`: updating to API Version `2023-05-01` [GH-22276]
 * `azurerm_monitor_aad_diagnostic_setting` - deprecate log in favour of enabled_log [GH-21390]
+
+BUG FIXES:
+
+* `azurerm_automation_schedule` - prevent diffs for `expiry_time` when it hasn't been set in the user's configuration [GH-21886]
+* `azurerm_frontdoor` - throw an error if the resource cannot be found during an update [GH-21975]
+* `azurerm_image` - set `os_disk.size_gb` to `ForceNew` [GH-22272]
+* `azurerm_linux_virtual_machine` - throw an error if the resource cannot be found during an update [GH-21975]
+* `azurerm_ssh_public_key` - throw an error if the resource cannot be found during an update [GH-21975]
+* `azurerm_storage_share` - revert the resource ID format back to what it was previously due to a discrepancy in the API and Portal [GH-22271]
+* `azurerm_windows_virtual_machine` - throw an error if the resource cannot be found during an update [GH-21975]
 
 ## 3.62.1 (June 22, 2023)
 
