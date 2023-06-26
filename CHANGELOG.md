@@ -15,6 +15,7 @@ BUG FIXES:
 * `azurerm_frontdoor` - throw an error if the resource cannot be found during an update [GH-21975]
 * `azurerm_image` - set `os_disk.size_gb` to `ForceNew` [GH-22272]
 * `azurerm_linux_virtual_machine` - throw an error if the resource cannot be found during an update [GH-21975]
+* `azurerm_site_recovery_replicated_vm` - set `network_interface.failover_test_subnet_name`, `network_interface.failover_test_public_ip_address_id` and `network_interface.failover_test_static_ip` correctly [GH-22217]
 * `azurerm_ssh_public_key` - throw an error if the resource cannot be found during an update [GH-21975]
 * `azurerm_storage_share` - revert the resource ID format back to what it was previously due to a discrepancy in the API and Portal [GH-22271]
 * `azurerm_windows_virtual_machine` - throw an error if the resource cannot be found during an update [GH-21975]
