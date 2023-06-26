@@ -31,7 +31,7 @@ func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
 			"storageAccount":        testAccMonitorAADDiagnosticSetting_storageAccount,
 			"storageAccountUpdate":  testAccMonitorAADDiagnosticSetting_updateToEnabledLog,
 			"updateEnabledLog":      testAccMonitorAADDiagnosticSetting_updateEnabledLog,
-			"updateToDisabled":      testAccMonitorAADDiagnosticSetting_updateToDisabled, //remove this test in 4.0 version
+			"updateToDisabled":      testAccMonitorAADDiagnosticSetting_updateToDisabled, // remove this test in 4.0 version
 		},
 	}
 
@@ -814,6 +814,7 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
 }
 
+// remove this in 4.0 version
 func (MonitorAADDiagnosticSettingResource) disabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
