@@ -18,6 +18,7 @@ BUG FIXES:
 * `azurerm_site_recovery_replicated_vm` - set `network_interface.failover_test_subnet_name`, `network_interface.failover_test_public_ip_address_id` and `network_interface.failover_test_static_ip` correctly [GH-22217]
 * `azurerm_ssh_public_key` - throw an error if the resource cannot be found during an update [GH-21975]
 * `azurerm_storage_share` - revert the resource ID format back to what it was previously due to a discrepancy in the API and Portal [GH-22271]
+* `azurerm_storage_account` - the `last_access_time_enabled` and `container_delete_retention_policy` properties are now supported in usgovernment [GH-22273]
 * `azurerm_windows_virtual_machine` - throw an error if the resource cannot be found during an update [GH-21975]
 
 ## 3.62.1 (June 22, 2023)
