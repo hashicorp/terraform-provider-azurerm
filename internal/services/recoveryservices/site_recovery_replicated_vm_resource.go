@@ -32,7 +32,6 @@ import (
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -763,7 +762,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 			targetNetworkId := ""
 			if id := pointer.From(a2aDetails.SelectedRecoveryAzureNetworkId); id != "" {
-				parsedTargetNetworkId, err := networkParse.VirtualNetworkIDInsensitively(id)
+				parsedTargetNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(id)
 				if err != nil {
 					return err
 				}
@@ -773,7 +772,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 			testNetworkId := ""
 			if tfoNetworkId := pointer.From(a2aDetails.SelectedTfoAzureNetworkId); tfoNetworkId != "" {
-				parsedTfoNetworkId, err := networkParse.VirtualNetworkIDInsensitively(tfoNetworkId)
+				parsedTfoNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(tfoNetworkId)
 				if err != nil {
 					return err
 				}
