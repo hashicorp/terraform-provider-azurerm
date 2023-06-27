@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type SharedImageVersionDataSource struct{}
@@ -63,6 +64,12 @@ func TestAccDataSourceSharedImageVersion_excludeFromLatest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_version", "test")
 	r := SharedImageVersionDataSource{}
 
+	expectedVersion := "0.0.1"
+	if !features.FourPointOhBeta() {
+		// `ExcludeFromLatest` is not considered in 3.0 so `0.0.2` will still be the latest image
+		expectedVersion = "0.0.2"
+	}
+
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
@@ -75,7 +82,7 @@ func TestAccDataSourceSharedImageVersion_excludeFromLatest(t *testing.T) {
 		{
 			Config: r.excludeFromLatest(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue("0.0.1"),
+				check.That(data.ResourceName).Key("name").HasValue(expectedVersion),
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("target_region.#").HasValue("1"),
 				check.That(data.ResourceName).Key("target_region.0.storage_account_type").HasValue("Standard_LRS"),
