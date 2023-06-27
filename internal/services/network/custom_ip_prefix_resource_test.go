@@ -23,11 +23,8 @@ const (
 func TestAccCustomIpPrefixV4(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"ipv4": {
-			"basic":                testAccCustomIpPrefix_ipv4,
-			"commissioned":         testAccCustomIpPrefix_ipv4Commissioned,
-			"commissionedRegional": testAccCustomIpPrefix_ipv4CommissionedUnadvertised,
-			"update":               testAccCustomIpPrefix_ipv4Update,
-			"requiresImport":       testAccCustomIpPrefix_ipv4RequiresImport,
+			"commissioned":   testAccCustomIpPrefix_ipv4,
+			"requiresImport": testAccCustomIpPrefix_ipv4RequiresImport,
 		},
 	})
 }
@@ -35,10 +32,7 @@ func TestAccCustomIpPrefixV4(t *testing.T) {
 func TestAccCustomIpPrefixV6(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"ipv6": {
-			"basic":                testAccCustomIpPrefix_ipv6,
-			"commissioned":         testAccCustomIpPrefix_ipv6Commissioned,
-			"commissionedRegional": testAccCustomIpPrefix_ipv6CommissionedUnadvertised,
-			"update":               testAccCustomIpPrefix_ipv6Update,
+			"commissioned": testAccCustomIpPrefix_ipv6,
 		},
 	})
 }
@@ -49,35 +43,12 @@ func testAccCustomIpPrefix_ipv4(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.ipv4(data),
+			Config: r.ipv4Provisioned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func testAccCustomIpPrefix_ipv4Commissioned(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
-	r := CustomIpPrefixResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.ipv4Commissioned(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccCustomIpPrefix_ipv4CommissionedUnadvertised(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
-	r := CustomIpPrefixResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ipv4CommissionedUnadvertised(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -92,30 +63,8 @@ func testAccCustomIpPrefix_ipv4CommissionedUnadvertised(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func testAccCustomIpPrefix_ipv4Update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
-	r := CustomIpPrefixResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.ipv4(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.ipv4Commissioned(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.ipv4(data),
+			Config: r.ipv4Provisioned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -130,7 +79,7 @@ func testAccCustomIpPrefix_ipv4RequiresImport(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.ipv4(data),
+			Config: r.ipv4Provisioned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -153,32 +102,6 @@ func testAccCustomIpPrefix_ipv6(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func testAccCustomIpPrefix_ipv6Commissioned(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "global")
-	data2 := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "regional")
-	r := CustomIpPrefixResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.ipv6Commissioned(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data2.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccCustomIpPrefix_ipv6CommissionedUnadvertised(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "global")
-	data2 := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "regional")
-	r := CustomIpPrefixResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ipv6CommissionedGlobalUnadvertised(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -206,35 +129,6 @@ func testAccCustomIpPrefix_ipv6CommissionedUnadvertised(t *testing.T) {
 	})
 }
 
-func testAccCustomIpPrefix_ipv6Update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_custom_ip_prefix", "test")
-	r := CustomIpPrefixResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.ipv6(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.ipv6Commissioned(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.ipv6(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (CustomIpPrefixResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CustomIpPrefixID(state.ID)
 	if err != nil {
@@ -253,7 +147,7 @@ func (CustomIpPrefixResource) Exists(ctx context.Context, client *clients.Client
 	return utils.Bool(true), nil
 }
 
-func (r CustomIpPrefixResource) ipv4(data acceptance.TestData) string {
+func (r CustomIpPrefixResource) ipv4Provisioned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -349,7 +243,7 @@ resource "azurerm_custom_ip_prefix" "import" {
   roa_validity_end_date         = azurerm_custom_ip_prefix.test.roa_validity_end_date
   wan_validation_signed_message = azurerm_custom_ip_prefix.test.wan_validation_signed_message
 }
-`, r.ipv4(data))
+`, r.ipv4Provisioned(data))
 }
 
 func (r CustomIpPrefixResource) ipv6(data acceptance.TestData) string {
