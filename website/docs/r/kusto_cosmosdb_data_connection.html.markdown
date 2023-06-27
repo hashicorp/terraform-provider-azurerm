@@ -16,7 +16,7 @@ Manages a Kusto / Cosmos Database Data Connection.
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "accexampleRG"
+  name     = "exampleRG"
   location = "West Europe"
 }
 
@@ -31,7 +31,7 @@ resource "azurerm_role_assignment" "example" {
 }
 
 resource "azurerm_cosmosdb_account" "example" {
-  name                = "accexample-ca"
+  name                = "example-ca"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   offer_type          = "Standard"
@@ -50,13 +50,13 @@ resource "azurerm_cosmosdb_account" "example" {
 }
 
 resource "azurerm_cosmosdb_sql_database" "example" {
-  name                = "accexamplecosmosdbsqldb"
+  name                = "examplecosmosdbsqldb"
   resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
   account_name        = azurerm_cosmosdb_account.example.name
 }
 
 resource "azurerm_cosmosdb_sql_container" "example" {
-  name                = "accexamplecosmosdbsqlcon"
+  name                = "examplecosmosdbsqlcon"
   resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
   account_name        = azurerm_cosmosdb_account.example.name
   database_name       = azurerm_cosmosdb_sql_database.example.name
@@ -80,7 +80,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "example" {
 }
 
 resource "azurerm_kusto_cluster" "example" {
-  name                = "accexamplekc%s"
+  name                = "examplekc"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku {
@@ -94,7 +94,7 @@ resource "azurerm_kusto_cluster" "example" {
 }
 
 resource "azurerm_kusto_database" "example" {
-  name                = "accexamplekd"
+  name                = "examplekd"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.example.name
