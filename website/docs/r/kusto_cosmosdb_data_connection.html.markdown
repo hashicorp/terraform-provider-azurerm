@@ -174,7 +174,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Explorer.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Explorer.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Explorer.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Data Explorer.
 
 ## Import
