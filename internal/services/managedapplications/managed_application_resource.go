@@ -377,14 +377,14 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) (map[string
 	return results, nil
 }
 
-func flattenManagedApplicationParameterValuesValueToString(input interface{}) (string, error) {
+func flattenManagedApplicationParameterValuesValueToString(input *map[string]interface{}) (string, error) {
 	if input == nil {
 		return "", nil
 	}
 
-	for k, v := range input.(map[string]interface{}) {
+	for k, v := range *input {
 		if v != nil {
-			delete(input.(map[string]interface{})[k].(map[string]interface{}), "type")
+			delete((*input)[k].(map[string]interface{}), "type")
 		}
 	}
 
