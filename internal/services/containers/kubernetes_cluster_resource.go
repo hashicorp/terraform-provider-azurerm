@@ -1280,6 +1280,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 				Default:  false,
 			},
+
+			"custom_ca_trust_certificates_base64": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 10,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsBase64,
+				},
+			},
 		},
 	}
 
@@ -1483,6 +1493,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	if nodeOsChannelUpgrade != "" {
 		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
+	}
+
+	if customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{}); len(customCaTrustCertListRaw) > 0 {
+		securityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
 	}
 
 	parameters := managedclusters.ManagedCluster{
@@ -1979,6 +1993,12 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
+	if d.HasChanges("custom_ca_trust_certificates_base64") {
+		updateCluster = true
+		customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{})
+		existing.Model.Properties.SecurityProfile.CustomCATrustCertificates = convertCustomCaTrustCertsInput(customCaTrustCertListRaw)
+	}
+
 	if d.HasChanges("microsoft_defender") {
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
@@ -2294,6 +2314,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("automatic_channel_upgrade", upgradeChannel)
 			d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
+
+			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile.CustomCATrustCertificates)
+			d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList)
 
 			enablePrivateCluster := false
 			enablePrivateClusterPublicFQDN := false
@@ -3998,4 +4021,19 @@ func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPo
 	}
 
 	return err
+}
+
+func convertCustomCaTrustCertsInput(input []interface{}) *[]string {
+	if len(input) == 0 {
+		return nil
+	}
+
+	customCaTrustCertList := make([]string, 0)
+
+	for _, value := range input {
+		customCaTrustCertList = append(customCaTrustCertList, value.(string))
+	}
+
+	return &customCaTrustCertList
+
 }
