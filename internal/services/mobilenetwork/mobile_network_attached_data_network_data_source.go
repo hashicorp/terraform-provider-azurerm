@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/attacheddatanetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcoredataplane"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -204,7 +205,7 @@ func (r AttachedDataNetworkDataSource) Read() sdk.ResourceFunc {
 				state.UserPlaneAccessIPv4Gateway = pointer.From(props.UserPlaneDataInterface.IPv4Gateway)
 				state.UserPlaneAccessIPv4Subnet = pointer.From(props.UserPlaneDataInterface.IPv4Subnet)
 				state.UserPlaneAccessName = pointer.From(props.UserPlaneDataInterface.Name)
-				state.Tags = pointer.From(model.Tags)
+				state.Tags = tags.Flatten(model.Tags)
 			}
 
 			metadata.SetID(id)

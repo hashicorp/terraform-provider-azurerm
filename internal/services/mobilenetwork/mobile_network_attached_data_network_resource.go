@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/attacheddatanetwork"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/packetcoredataplane"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -24,7 +25,7 @@ type AttachedDataNetworkModel struct {
 	DnsAddresses                         []string                 `tfschema:"dns_addresses"`
 	Location                             string                   `tfschema:"location"`
 	NaptConfiguration                    []NaptConfigurationModel `tfschema:"network_address_port_translation"`
-	Tags                                 map[string]string        `tfschema:"tags"`
+	Tags                                 map[string]interface{}   `tfschema:"tags"`
 	UserEquipmentAddressPoolPrefix       []string                 `tfschema:"user_equipment_address_pool_prefixes"`
 	UserEquipmentStaticAddressPoolPrefix []string                 `tfschema:"user_equipment_static_address_pool_prefixes"`
 	UserPlaneAccessIPv4Address           string                   `tfschema:"user_plane_access_ipv4_address"`
@@ -255,7 +256,7 @@ func (r AttachedDataNetworkResource) Create() sdk.ResourceFunc {
 					UserPlaneDataInterface: attacheddatanetwork.InterfaceProperties{},
 					NaptConfiguration:      expandNaptConfigurationModel(model.NaptConfiguration),
 				},
-				Tags: &model.Tags,
+				Tags: tags.Expand(model.Tags),
 			}
 
 			// if we pass an empty array the service will return an error
@@ -380,7 +381,7 @@ func (r AttachedDataNetworkResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				if len(plan.Tags) > 0 {
-					attachedDataNetwork.Tags = &plan.Tags
+					attachedDataNetwork.Tags = tags.Expand(plan.Tags)
 				} else {
 					attachedDataNetwork = nil
 				}
@@ -432,7 +433,7 @@ func (r AttachedDataNetworkResource) Read() sdk.ResourceFunc {
 				state.UserPlaneAccessIPv4Gateway = pointer.From(props.UserPlaneDataInterface.IPv4Gateway)
 				state.UserPlaneAccessIPv4Subnet = pointer.From(props.UserPlaneDataInterface.IPv4Subnet)
 				state.UserPlaneAccessName = pointer.From(props.UserPlaneDataInterface.Name)
-				state.Tags = pointer.From(model.Tags)
+				state.Tags = tags.Flatten(model.Tags)
 			}
 
 			return metadata.Encode(&state)
