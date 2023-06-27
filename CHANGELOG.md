@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.57.0` of `github.com/hashicorp/go-azure-helpers` [GH-22247]
 * dependencies: `containers/containerinstance`: updating to API Version `2023-05-01` [GH-22276]
 * dependencies: `redis`: updating to API Version `2023-04-01` [GH-22285]
+* `azurerm_container_app` - Support for both system and user assigned identities at the same time [GH-21149]
 * `azurerm_key_vault_managed_hardware_security_module` - support for activating an HSM through `security_domain_key_vault_certificate_ids` [GH-22162]
 * `azurerm_monitor_aad_diagnostic_setting` - deprecate log in favour of enabled_log [GH-21390]
 
