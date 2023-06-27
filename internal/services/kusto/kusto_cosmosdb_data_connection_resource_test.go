@@ -64,21 +64,21 @@ func TestAccKustoCosmosDBDataConnection_completeUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cosmosdb_data_connection", "test")
 	r := KustoCosmosDBDataConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		//{
-		//	Config: r.basic(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//		check.That(data.ResourceName).Key("cosmosdb_account_id").Exists(),
-		//		check.That(data.ResourceName).Key("cosmosdb_database").Exists(),
-		//		check.That(data.ResourceName).Key("cosmosdb_container").Exists(),
-		//		check.That(data.ResourceName).Key("cluster_name").Exists(),
-		//		check.That(data.ResourceName).Key("database_name").Exists(),
-		//		check.That(data.ResourceName).Key("table_name").Exists(),
-		//		check.That(data.ResourceName).Key("managed_identity_id").Exists(),
-		//		check.That(data.ResourceName).Key("table_name").HasValue("TestTable"),
-		//	),
-		//},
-		//data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cosmosdb_account_id").Exists(),
+				check.That(data.ResourceName).Key("cosmosdb_database").Exists(),
+				check.That(data.ResourceName).Key("cosmosdb_container").Exists(),
+				check.That(data.ResourceName).Key("cluster_name").Exists(),
+				check.That(data.ResourceName).Key("database_name").Exists(),
+				check.That(data.ResourceName).Key("table_name").Exists(),
+				check.That(data.ResourceName).Key("managed_identity_id").Exists(),
+				check.That(data.ResourceName).Key("table_name").HasValue("TestTable"),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -92,7 +92,7 @@ func TestAccKustoCosmosDBDataConnection_completeUpdated(t *testing.T) {
 				check.That(data.ResourceName).Key("managed_identity_id").Exists(),
 				check.That(data.ResourceName).Key("table_name").HasValue("TestTable"),
 				check.That(data.ResourceName).Key("mapping_rule_name").HasValue("TestMapping"),
-				// check.That(data.ResourceName).Key("retrieval_start_date").HasValue("2023-06-29T12:00:00.6554616Z"),
+				check.That(data.ResourceName).Key("retrieval_start_date").HasValue("2023-06-26T12:00:00.6554616Z"),
 			),
 		},
 		data.ImportStep(),
@@ -152,7 +152,7 @@ resource "azurerm_kusto_cosmosdb_data_connection" "test" {
       managed_identity_id   = azurerm_kusto_cluster.test.id
       table_name            = "TestTable"
       mapping_rule_name     = "TestMapping"
-      retrieval_start_date  = "2023-06-29T12:00:00.6554616Z"
+      retrieval_start_date  = "2023-06-26T12:00:00.6554616Z"
 }`, template, data.RandomString)
 }
 
