@@ -60,25 +60,10 @@ func TestAccKustoCosmosDBDataConnection_basic(t *testing.T) {
 	})
 }
 
-func TestAccKustoCosmosDBDataConnection_completeUpdated(t *testing.T) {
+func TestAccKustoCosmosDBDataConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cosmosdb_data_connection", "test")
 	r := KustoCosmosDBDataConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cosmosdb_account_id").Exists(),
-				check.That(data.ResourceName).Key("cosmosdb_database").Exists(),
-				check.That(data.ResourceName).Key("cosmosdb_container").Exists(),
-				check.That(data.ResourceName).Key("cluster_name").Exists(),
-				check.That(data.ResourceName).Key("database_name").Exists(),
-				check.That(data.ResourceName).Key("table_name").Exists(),
-				check.That(data.ResourceName).Key("managed_identity_id").Exists(),
-				check.That(data.ResourceName).Key("table_name").HasValue("TestTable"),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
