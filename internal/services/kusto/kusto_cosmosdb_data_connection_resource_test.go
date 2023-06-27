@@ -119,19 +119,19 @@ func (k KustoCosmosDBDataConnectionResource) basic(data acceptance.TestData) str
 %s
 
 resource "azurerm_kusto_cosmosdb_data_connection" "test" {
-	  name                  = "acctestkcd%s"
-	  resource_group_name   = azurerm_resource_group.test.name
-      location              = azurerm_resource_group.test.location
-      cosmosdb_account_id   = azurerm_cosmosdb_account.test.id
-      cosmosdb_database     = azurerm_cosmosdb_sql_database.test.name
-      cosmosdb_container    = azurerm_cosmosdb_sql_container.test.name
-	  cluster_name          = azurerm_kusto_cluster.test.name	
-      database_name         = azurerm_kusto_database.test.name
-      managed_identity_id   = azurerm_kusto_cluster.test.id
-      table_name            = "TestTable"
-      lifecycle {
-        ignore_changes = [retrieval_start_date]
-      }
+  name                = "acctestkcd%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cosmosdb_account_id = azurerm_cosmosdb_account.test.id
+  cosmosdb_database   = azurerm_cosmosdb_sql_database.test.name
+  cosmosdb_container  = azurerm_cosmosdb_sql_container.test.name
+  cluster_name        = azurerm_kusto_cluster.test.name
+  database_name       = azurerm_kusto_database.test.name
+  managed_identity_id = azurerm_kusto_cluster.test.id
+  table_name          = "TestTable"
+  lifecycle {
+    ignore_changes = [retrieval_start_date]
+  }
 }`, template, data.RandomString)
 }
 
@@ -141,18 +141,18 @@ func (k KustoCosmosDBDataConnectionResource) complete(data acceptance.TestData) 
 %s
 
 resource "azurerm_kusto_cosmosdb_data_connection" "test" {
-	  name                  = "acctestkcd%s"
-	  resource_group_name   = azurerm_resource_group.test.name
-      location              = azurerm_resource_group.test.location
-      cosmosdb_account_id   = azurerm_cosmosdb_account.test.id
-      cosmosdb_database     = azurerm_cosmosdb_sql_database.test.name
-      cosmosdb_container    = azurerm_cosmosdb_sql_container.test.name
-	  cluster_name          = azurerm_kusto_cluster.test.name	
-      database_name         = azurerm_kusto_database.test.name
-      managed_identity_id   = azurerm_kusto_cluster.test.id
-      table_name            = "TestTable"
-      mapping_rule_name     = "TestMapping"
-      retrieval_start_date  = "2023-06-26T12:00:00.6554616Z"
+  name                 = "acctestkcd%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  cosmosdb_account_id  = azurerm_cosmosdb_account.test.id
+  cosmosdb_database    = azurerm_cosmosdb_sql_database.test.name
+  cosmosdb_container   = azurerm_cosmosdb_sql_container.test.name
+  cluster_name         = azurerm_kusto_cluster.test.name
+  database_name        = azurerm_kusto_database.test.name
+  managed_identity_id  = azurerm_kusto_cluster.test.id
+  table_name           = "TestTable"
+  mapping_rule_name    = "TestMapping"
+  retrieval_start_date = "2023-06-26T12:00:00.6554616Z"
 }`, template, data.RandomString)
 }
 
@@ -162,19 +162,19 @@ func (k KustoCosmosDBDataConnectionResource) requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_kusto_cosmosdb_data_connection" "import" {
-	  name                  = azurerm_kusto_cosmosdb_data_connection.test.name
-	  resource_group_name   = azurerm_resource_group.test.name
-      location              = azurerm_resource_group.test.location
-      cosmosdb_account_id   = azurerm_cosmosdb_account.test.id
-      cosmosdb_database     = azurerm_cosmosdb_sql_database.test.name
-      cosmosdb_container    = azurerm_cosmosdb_sql_container.test.name
-	  cluster_name          = azurerm_kusto_cluster.test.name	
-      database_name         = azurerm_kusto_database.test.name
-      managed_identity_id   = azurerm_kusto_cluster.test.id
-      table_name            = "TestTable"
-      lifecycle {
-        ignore_changes = [retrieval_start_date]
-      }
+  name                = azurerm_kusto_cosmosdb_data_connection.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cosmosdb_account_id = azurerm_cosmosdb_account.test.id
+  cosmosdb_database   = azurerm_cosmosdb_sql_database.test.name
+  cosmosdb_container  = azurerm_cosmosdb_sql_container.test.name
+  cluster_name        = azurerm_kusto_cluster.test.name
+  database_name       = azurerm_kusto_database.test.name
+  managed_identity_id = azurerm_kusto_cluster.test.id
+  table_name          = "TestTable"
+  lifecycle {
+    ignore_changes = [retrieval_start_date]
+  }
 }`, template)
 }
 
@@ -209,9 +209,9 @@ resource "azurerm_cosmosdb_account" "test" {
   kind                = "GlobalDocumentDB"
 
   consistency_policy {
-    consistency_level = "Session"
+    consistency_level       = "Session"
     max_interval_in_seconds = 5
-    max_staleness_prefix = 100
+    max_staleness_prefix    = 100
   }
 
   geo_location {
@@ -227,16 +227,16 @@ resource "azurerm_cosmosdb_sql_database" "test" {
 }
 
 resource "azurerm_cosmosdb_sql_container" "test" {
-  name                  = "acctestcosmosdbsqlcon-%d"
-  resource_group_name   = azurerm_cosmosdb_account.test.resource_group_name
-  account_name          = azurerm_cosmosdb_account.test.name
-  database_name         = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path    = "/part"
-  throughput            = 400
+  name                = "acctestcosmosdbsqlcon-%d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path  = "/part"
+  throughput          = 400
 }
 
 data "azurerm_cosmosdb_sql_role_definition" "test" {
-  role_definition_id = "00000000-0000-0000-0000-000000000001"
+  role_definition_id  = "00000000-0000-0000-0000-000000000001"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
 }
@@ -272,8 +272,8 @@ resource "azurerm_kusto_database" "test" {
 }
 
 resource "azurerm_kusto_script" "test" {
-  name = "create-table-script"
-  database_id = azurerm_kusto_database.test.id
+  name           = "create-table-script"
+  database_id    = azurerm_kusto_database.test.id
   script_content = <<SCRIPT
 .create table TestTable(Id:string, Name:string, _ts:long, _timestamp:datetime)
 .create table TestTable ingestion json mapping "TestMapping"
