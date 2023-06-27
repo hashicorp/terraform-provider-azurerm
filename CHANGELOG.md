@@ -7,8 +7,10 @@ ENHANCEMENTS:
 * dependencies: `containers/containerinstance`: updating to API Version `2023-05-01` [GH-22276]
 * dependencies: `network/securityrules`: migrate to `go-azure-sdk` [GH-22242]
 * dependencies: `redis`: updating to API Version `2023-04-01` [GH-22285]
+* Data Source: `azurerm_kubernetes_cluster` - add support for the `custom_ca_trust_certificates_base64` property [GH-22032]
 * `azurerm_container_app` - Support for both system and user assigned identities at the same time [GH-21149]
 * `azurerm_key_vault_managed_hardware_security_module` - support for activating an HSM through `security_domain_key_vault_certificate_ids` [GH-22162]
+* `azurerm_kubernetes_cluster` - add support for the `custom_ca_trust_certificates_base64` property [GH-22032]
 * `azurerm_monitor_aad_diagnostic_setting` - deprecate log in favour of enabled_log [GH-21390]
 
 BUG FIXES:
