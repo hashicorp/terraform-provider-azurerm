@@ -98,8 +98,7 @@ resource "azurerm_automation_variable_string" "encrypted" {
 }
 
 data "azurerm_automation_variables" "test" {
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
+  automation_account_id = azurerm_automation_account.test.id
 
   depends_on = [
     azurerm_automation_variable_bool.test,

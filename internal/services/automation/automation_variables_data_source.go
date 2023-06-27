@@ -6,10 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -24,19 +22,16 @@ func dataSourceAutomationVariables() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": commonschema.ResourceGroupName(),
-
-			"automation_account_name": {
+			"automation_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.RunbookName(),
+				ValidateFunc: variable.ValidateAutomationAccountID,
 			},
 
 			"bool": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
-					// How do I make this related to the specific type?
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:         pluginsdk.TypeString,
@@ -66,7 +61,6 @@ func dataSourceAutomationVariables() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
-					// How do I make this related to the specific type?
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:         pluginsdk.TypeString,
@@ -96,7 +90,6 @@ func dataSourceAutomationVariables() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
-					// How do I make this related to the specific type?
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:         pluginsdk.TypeString,
@@ -126,7 +119,6 @@ func dataSourceAutomationVariables() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
-					// How do I make this related to the specific type?
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:         pluginsdk.TypeString,
@@ -156,7 +148,6 @@ func dataSourceAutomationVariables() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
-					// How do I make this related to the specific type?
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:         pluginsdk.TypeString,
@@ -186,7 +177,6 @@ func dataSourceAutomationVariables() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
-					// How do I make this related to the specific type?
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:         pluginsdk.TypeString,
@@ -226,7 +216,7 @@ func dataSourceAutomationVariablesRead(d *pluginsdk.ResourceData, meta interface
 
 	variableList, err := client.ListByAutomationAccountComplete(ctx, automationId)
 	if err != nil {
-		return fmt.Errorf("listing variables in Automation Account %q: %+v", automationId, err)
+		return fmt.Errorf("listing variables in %s: %+v", automationId, err)
 	}
 
 	d.SetId(automationId.ID())
@@ -247,9 +237,9 @@ func dataSourceAutomationVariablesRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		res := map[string]interface{}{
-			"name":        *v.Name,
-			"description": *v.Properties.Description,
-			"encrypted":   *v.Properties.IsEncrypted,
+			"name":        pointer.From(v.Name),
+			"description": pointer.From(v.Properties.Description),
+			"encrypted":   pointer.From(v.Properties.IsEncrypted),
 		}
 
 		datePattern := regexp.MustCompile(`"\\/Date\((-?[0-9]+)\)\\/"`)
