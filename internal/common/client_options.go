@@ -23,6 +23,7 @@ import (
 type Authorizers struct {
 	BatchManagement auth.Authorizer
 	KeyVault        auth.Authorizer
+	ManagedHSM      auth.Authorizer
 	ResourceManager auth.Authorizer
 	Storage         auth.Authorizer
 	Synapse         auth.Authorizer
@@ -58,6 +59,7 @@ type ClientOptions struct {
 	AttestationAuthorizer     autorest.Authorizer
 	BatchManagementAuthorizer autorest.Authorizer
 	KeyVaultAuthorizer        autorest.Authorizer
+	ManagedHSMAuthorizer      autorest.Authorizer
 	ResourceManagerAuthorizer autorest.Authorizer
 	StorageAuthorizer         autorest.Authorizer
 	SynapseAuthorizer         autorest.Authorizer

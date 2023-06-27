@@ -317,6 +317,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"target_static_ip": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -331,6 +332,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"target_subnet_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -345,6 +347,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+
 			"recovery_public_ip_address_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -567,9 +570,9 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		targetStaticIp := vmNicInput["target_static_ip"].(string)
 		targetSubnetName := vmNicInput["target_subnet_name"].(string)
 		recoveryPublicIPAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
-		testStaticIp := vmNicInput["target_static_ip"].(string)
-		testSubNetName := vmNicInput["target_subnet_name"].(string)
-		testPublicIpAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
+		testStaticIp := vmNicInput["failover_test_static_ip"].(string)
+		testSubNetName := vmNicInput["failover_test_subnet_name"].(string)
+		testPublicIpAddressID := vmNicInput["failover_test_public_ip_address_id"].(string)
 
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {

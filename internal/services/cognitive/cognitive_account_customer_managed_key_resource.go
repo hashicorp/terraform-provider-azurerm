@@ -150,7 +150,7 @@ func resourceCognitiveAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, m
 
 	d.Set("cognitive_account_id", id.ID())
 	if props := resp.Model.Properties.Encryption.KeyVaultProperties; props != nil {
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, "keys", *props.KeyName, *props.KeyVersion)
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, keyVaultParse.NestedItemTypeKey, *props.KeyName, *props.KeyVersion)
 		if err != nil {
 			return fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 		}

@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/firewallrules` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/firewallrules` Documentation
 
-The `firewallrules` SDK allows for interaction with the Azure Resource Manager Service `redis` (API Version `2022-06-01`).
+The `firewallrules` SDK allows for interaction with the Azure Resource Manager Service `redis` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/firewallrules"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/firewallrules"
 ```
 
 

@@ -29,14 +29,14 @@ func TestAccImage_standaloneImage(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setupUnmanagedDisks(data, "LRS"),
+			Config: r.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.standaloneImageProvision(data, "LRS", ""),
+			Config: r.standaloneImageProvision(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -52,14 +52,14 @@ func TestAccImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setupUnmanagedDisks(data, "LRS"),
+			Config: r.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.standaloneImageProvision(data, "LRS", "V2"),
+			Config: r.standaloneImageProvision(data, "V2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -75,14 +75,14 @@ func TestAccImage_requiresImport(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setupUnmanagedDisks(data, "LRS"),
+			Config: r.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.standaloneImageProvision(data, "LRS", ""),
+			Config: r.standaloneImageProvision(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -98,7 +98,7 @@ func TestAccImage_customImageFromVMWithUnmanagedDisks(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setupUnmanagedDisks(data, "LRS"),
+			Config: r.setupUnmanagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
@@ -143,7 +143,7 @@ func TestAccImage_customImageFromVMSSWithUnmanagedDisks(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  r.setupUnmanagedDisks(data, "LRS"),
+			Config:  r.setupUnmanagedDisks(data),
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
@@ -374,7 +374,7 @@ resource "azurerm_virtual_machine" "testsource" {
 `, template)
 }
 
-func (r ImageResource) setupUnmanagedDisks(data acceptance.TestData, storageType string) string {
+func (r ImageResource) setupUnmanagedDisks(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -408,7 +408,7 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
-  account_replication_type = "%s"
+  account_replication_type = "LRS"
 
   allow_nested_items_to_be_public = true
 }
@@ -459,16 +459,16 @@ resource "azurerm_virtual_machine" "testsource" {
     cost-center = "Ops"
   }
 }
-`, template, storageType)
+`, template)
 }
 
-func (r ImageResource) standaloneImageProvision(data acceptance.TestData, storageType string, hyperVGen string) string {
+func (r ImageResource) standaloneImageProvision(data acceptance.TestData, hyperVGen string) string {
 	hyperVGenAtt := ""
 	if hyperVGen != "" {
 		hyperVGenAtt = fmt.Sprintf(`hyper_v_generation = "%s"`, hyperVGen)
 	}
 
-	template := r.setupUnmanagedDisks(data, storageType)
+	template := r.setupUnmanagedDisks(data)
 	return fmt.Sprintf(`
 %s
 
@@ -476,7 +476,6 @@ resource "azurerm_image" "test" {
   name                = "accteste"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  zone_resilient      = %t
 
   %s
 
@@ -493,11 +492,11 @@ resource "azurerm_image" "test" {
     cost-center = "Ops"
   }
 }
-`, template, storageType == "ZRS", hyperVGenAtt)
+`, template, hyperVGenAtt)
 }
 
 func (r ImageResource) standaloneImageRequiresImport(data acceptance.TestData) string {
-	template := r.standaloneImageProvision(data, "LRS", "")
+	template := r.standaloneImageProvision(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -523,7 +522,7 @@ resource "azurerm_image" "import" {
 }
 
 func (r ImageResource) customImageFromVMWithUnmanagedDisksProvision(data acceptance.TestData) string {
-	template := r.setupUnmanagedDisks(data, "LRS")
+	template := r.setupUnmanagedDisks(data)
 	return fmt.Sprintf(`
 %s
 
@@ -662,7 +661,7 @@ resource "azurerm_virtual_machine" "testdestination" {
 }
 
 func (r ImageResource) customImageFromVMSSWithUnmanagedDisksProvision(data acceptance.TestData) string {
-	template := r.setupUnmanagedDisks(data, "LRS")
+	template := r.setupUnmanagedDisks(data)
 	return fmt.Sprintf(`
 %s
 
