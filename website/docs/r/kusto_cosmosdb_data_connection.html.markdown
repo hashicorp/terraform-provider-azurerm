@@ -136,7 +136,7 @@ resource "azurerm_kusto_cosmosdb_data_connection" "test" {
 
 The following arguments are supported:
 
-* `cluster_name` - (Required) The name of the Kusto cluster.Changing this forces a new Data Explorer to be created.
+* `cluster_name` - (Required) The name of the Kusto cluster. Changing this forces a new Data Explorer to be created.
 
 * `cosmosdb_account_id` - (Required) The resource ID of the Cosmos DB account used to create the data connection. Changing this forces a new Data Explorer to be created.
 
