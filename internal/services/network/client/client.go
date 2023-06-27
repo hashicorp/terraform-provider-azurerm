@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routetables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/scopeconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityadminconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/staticmembers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
@@ -62,7 +63,7 @@ type Client struct {
 	RouteTablesClient                        *routetables.RouteTablesClient
 	SecurityGroupClient                      *network.SecurityGroupsClient
 	SecurityPartnerProviderClient            *network.SecurityPartnerProvidersClient
-	SecurityRuleClient                       *network.SecurityRulesClient
+	SecurityRuleClient                       *securityrules.SecurityRulesClient
 	ServiceEndpointPoliciesClient            *network.ServiceEndpointPoliciesClient
 	ServiceEndpointPolicyDefinitionsClient   *network.ServiceEndpointPolicyDefinitionsClient
 	ServiceTagsClient                        *network.ServiceTagsClient
@@ -267,8 +268,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	SecurityPartnerProviderClient := network.NewSecurityPartnerProvidersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SecurityPartnerProviderClient.Client, o.ResourceManagerAuthorizer)
 
-	SecurityRuleClient := network.NewSecurityRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&SecurityRuleClient.Client, o.ResourceManagerAuthorizer)
+	SecurityRuleClient, err := securityrules.NewSecurityRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building network security rule client: %+v", err)
+	}
+	o.Configure(SecurityRuleClient.Client, o.Authorizers.ResourceManager)
 
 	ServiceEndpointPoliciesClient := network.NewServiceEndpointPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServiceEndpointPoliciesClient.Client, o.ResourceManagerAuthorizer)
@@ -370,7 +374,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		RouteTablesClient:                        RouteTablesClient,
 		SecurityGroupClient:                      &SecurityGroupClient,
 		SecurityPartnerProviderClient:            &SecurityPartnerProviderClient,
-		SecurityRuleClient:                       &SecurityRuleClient,
+		SecurityRuleClient:                       SecurityRuleClient,
 		ServiceEndpointPoliciesClient:            &ServiceEndpointPoliciesClient,
 		ServiceEndpointPolicyDefinitionsClient:   &ServiceEndpointPolicyDefinitionsClient,
 		ServiceTagsClient:                        &ServiceTagsClient,

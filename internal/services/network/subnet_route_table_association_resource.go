@@ -6,11 +6,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -47,7 +46,7 @@ func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.RouteTableID,
+				ValidateFunc: routetables.ValidateRouteTableID,
 			},
 		},
 	}
@@ -69,13 +68,13 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	parsedRouteTableId, err := parse.RouteTableID(routeTableId)
+	parsedRouteTableId, err := routetables.ParseRouteTableID(routeTableId)
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
-	defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
+	locks.ByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
+	defer locks.UnlockByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
 
 	subnetName := parsedSubnetId.SubnetName
 	virtualNetworkName := parsedSubnetId.VirtualNetworkName
@@ -221,13 +220,13 @@ func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta i
 	}
 
 	// once we have the route table id to lock on, lock on that
-	parsedRouteTableId, err := parse.RouteTableID(*props.RouteTable.ID)
+	parsedRouteTableId, err := routetables.ParseRouteTableID(*props.RouteTable.ID)
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
-	defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
+	locks.ByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
+	defer locks.UnlockByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
 
 	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(virtualNetworkName, VirtualNetworkResourceName)
