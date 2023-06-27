@@ -66,19 +66,19 @@ A `network_address_port_translation` block supports the following:
 
 * `pinhole_timeouts_in_seconds` - A `pinhole_timeouts_in_seconds` block as defined below.
 
+* `icmp_pinhole_timeouts_in_seconds` - Pinhole timeout for ICMP pinholes in seconds. 
+
+* `tcp_pinhole_timeouts_in_seconds` - Pinhole timeout for TCP pinholes in seconds.
+
+* `udp_pinhole_timeouts_in_seconds` - Pinhole timeout for UDP pinholes in seconds.
+
 * `port_range` - A `port_range` block as defined below.
 
 * `port_reuse_minimum_hold_time_in_seconds` - A `port_reuse_minimum_hold_time_in_seconds` block as defined below.
 
----
+* `tcp_port_reuse_minimum_hold_time_in_seconds` - Minimum time in seconds that will pass before a TCP port that was used by a closed pinhole can be reused.
 
-A `pinhole_timeouts_in_seconds` block supports the following:
-
-* `icmp` - Pinhole timeout for ICMP pinholes in seconds. Default for ICMP Echo is 60 seconds, as per RFC 5508 section 3.2.
-
-* `tcp` - Pinhole timeout for TCP pinholes in seconds. Default for TCP is 2 hours 4 minutes, as per RFC 5382 section 5.
-
-* `udp` - Pinhole timeout for UDP pinholes in seconds. Default for UDP is 5 minutes, as per RFC 4787 section 4.3.
+* `udp_port_reuse_minimum_hold_time_in_seconds` - Minimum time in seconds that will pass before a UDP port that was used by a closed pinhole can be reused.
 
 ---
 
@@ -87,16 +87,6 @@ A `port_range` block supports the following:
 * `max_port` - The maximum port number.
 
 * `min_port` - The minimum port number.
-
----
-
-A `port_reuse_minimum_hold_time_in_seconds` block supports the following:
-
-* `tcp` - Minimum time in seconds that will pass before a TCP port that was used by a closed pinhole can be reused.
-
-* `udp` - Minimum time in seconds that will pass before a UDP port that was used by a closed pinhole can be reused.
-
----
 
 ## Timeouts
 

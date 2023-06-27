@@ -173,7 +173,7 @@ func (r AttachedDataNetworkDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := attacheddatanetwork.NewAttachedDataNetworkID(packetCoreDataPlaneId.SubscriptionId, packetCoreDataPlaneId.ResourceGroupName, packetCoreDataPlaneId.PacketCoreControlPlaneName, packetCoreDataPlaneId.PacketCoreDataPlaneName, inputModel.Name)
+			id := attacheddatanetwork.NewAttachedDataNetworkID(packetCoreDataPlaneId.SubscriptionId, packetCoreDataPlaneId.ResourceGroupName, packetCoreDataPlaneId.PacketCoreControlPlaneName, packetCoreDataPlaneId.PacketCoreDataPlaneName, inputModel.MobileNetworkDataNetworkName)
 			if err != nil {
 				return err
 			}
@@ -188,7 +188,7 @@ func (r AttachedDataNetworkDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := AttachedDataNetworkModel{
-				Name:                               id.AttachedDataNetworkName,
+				MobileNetworkDataNetworkName:       id.AttachedDataNetworkName,
 				MobileNetworkPacketCoreDataPlaneId: packetcoredataplane.NewPacketCoreDataPlaneID(id.SubscriptionId, id.ResourceGroupName, id.PacketCoreControlPlaneName, id.PacketCoreDataPlaneName).ID(),
 			}
 

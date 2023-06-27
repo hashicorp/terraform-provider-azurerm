@@ -19,7 +19,7 @@ import (
 )
 
 type AttachedDataNetworkModel struct {
-	Name                                 string                   `tfschema:"mobile_network_data_network_name"`
+	MobileNetworkDataNetworkName         string                   `tfschema:"mobile_network_data_network_name"`
 	MobileNetworkPacketCoreDataPlaneId   string                   `tfschema:"mobile_network_packet_core_data_plane_id"`
 	DnsAddresses                         []string                 `tfschema:"dns_addresses"`
 	Location                             string                   `tfschema:"location"`
@@ -238,7 +238,7 @@ func (r AttachedDataNetworkResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := attacheddatanetwork.NewAttachedDataNetworkID(packetCoreDataPlaneId.SubscriptionId, packetCoreDataPlaneId.ResourceGroupName, packetCoreDataPlaneId.PacketCoreControlPlaneName, packetCoreDataPlaneId.PacketCoreDataPlaneName, model.Name)
+			id := attacheddatanetwork.NewAttachedDataNetworkID(packetCoreDataPlaneId.SubscriptionId, packetCoreDataPlaneId.ResourceGroupName, packetCoreDataPlaneId.PacketCoreControlPlaneName, packetCoreDataPlaneId.PacketCoreDataPlaneName, model.MobileNetworkDataNetworkName)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -317,7 +317,7 @@ func (r AttachedDataNetworkResource) Update() sdk.ResourceFunc {
 
 			attachedDataNetwork := resp.Model
 			if attachedDataNetwork == nil {
-				return fmt.Errorf("retrieving %s: addtachedDataNetwork was nil", id)
+				return fmt.Errorf("retrieving %s: Model was nil", id)
 			}
 
 			if metadata.ResourceData.HasChange("dns_addresses") {
@@ -416,7 +416,7 @@ func (r AttachedDataNetworkResource) Read() sdk.ResourceFunc {
 			}
 
 			state := AttachedDataNetworkModel{
-				Name:                               id.AttachedDataNetworkName,
+				MobileNetworkDataNetworkName:       id.AttachedDataNetworkName,
 				MobileNetworkPacketCoreDataPlaneId: packetcoredataplane.NewPacketCoreDataPlaneID(id.SubscriptionId, id.ResourceGroupName, id.PacketCoreControlPlaneName, id.PacketCoreDataPlaneName).ID(),
 			}
 

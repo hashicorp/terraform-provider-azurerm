@@ -89,10 +89,9 @@ resource "azurerm_mobile_network_attached_data_network" "example" {
       max_port = 49999
       min_port = 1024
     }
-    port_reuse_minimum_hold_time_in_seconds {
-      tcp = 120
-      udp = 60
-    }
+    tcp_port_reuse_minimum_hold_time_in_seconds     = 120
+    udp_tcp_port_reuse_minimum_hold_time_in_seconds = 60
+
   }
 
   tags = {
@@ -148,7 +147,9 @@ A `network_address_port_translation` block supports the following:
 
 * `port_range` - (Optional) A `port_range` block as defined below.
 
-* `port_reuse_minimum_hold_time_in_seconds` - (Optional) A `port_reuse_minimum_hold_time_in_seconds` block as defined below.
+* `tcp_port_reuse_minimum_hold_time_in_seconds` - (Optional) Minimum time in seconds that will pass before a TCP port that was used by a closed pinhole can be reused. Defaults to `120`.  
+
+* `udp_port_reuse_minimum_hold_time_in_seconds` - (Optional) Minimum time in seconds that will pass before a UDP port that was used by a closed pinhole can be reused. Defaults to `60`.
 
 ---
 
@@ -157,14 +158,6 @@ A `port_range` block supports the following:
 * `max_port` - (Optional) Specifies the maximum port number.
 
 * `min_port` - (Optional) Specifies the minimum port number.
-
----
-
-A `port_reuse_minimum_hold_time_in_seconds` block supports the following:
-
-* `tcp` - (Optional) Minimum time in seconds that will pass before a TCP port that was used by a closed pinhole can be reused. Default for TCP is 2 minutes.
-
-* `udp` - (Optional) Minimum time in seconds that will pass before a UDP port that was used by a closed pinhole can be reused. Default for UDP is 1 minute.
 
 ## Attributes Reference
 
