@@ -32,10 +32,13 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(12 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontDoorCustomDomainID(id)
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			// NOTE: We need to parse the Resource ID insensitively here because
+			// portal and other CLI tools create the Resource ID with a lowercased
+			// customDomains(e.g. customdomains) segment (see issue #21950)
+			_, err := parse.FrontDoorCustomDomainIDInsensitively(id)
 			return err
-		}),
+		}, importCdnFrontDoorCustomDomain()),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -179,13 +182,17 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 
 func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorCustomDomainID(d.Id())
+	// NOTE: need to parse this insensitively due to the import scenario
+	insensitive, err := parse.FrontDoorCustomDomainIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
+
+	id := parse.NewFrontDoorCustomDomainID(subscriptionId, insensitive.ResourceGroup, insensitive.ProfileName, insensitive.CustomDomainName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 	if err != nil {
