@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/vnetpeering"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
@@ -14,8 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -73,7 +72,7 @@ func resourceDatabricksVirtualNetworkPeering() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VirtualNetworkID,
+				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
 
 			"address_space_prefixes": {
@@ -164,7 +163,7 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 		// The RP always creates the same vNet ID for the Databricks internal vNet in the below format:
 		// '/subscriptions/{subscription}/resourceGroups/{group1}/providers/Microsoft.Network/virtualNetworks/workers-vnet'
 		DatabricksVirtualNetwork: &vnetpeering.VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork{
-			Id: utils.String(networkParse.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, "workers-vnet").ID()),
+			Id: utils.String(commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, "workers-vnet").ID()),
 		},
 		RemoteAddressSpace: &vnetpeering.AddressSpace{
 			AddressPrefixes: remoteAddressSpace,

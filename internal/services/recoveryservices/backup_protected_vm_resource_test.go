@@ -201,6 +201,34 @@ func TestAccBackupProtectedVm_removeVM(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectedVm_protectionStopped(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
+	r := BackupProtectedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protectionStopped(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// vault cannot be deleted unless we unregister all backups
+			Config: r.base(data),
+		},
+	})
+}
+
 func (t BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protecteditems.ParseProtectedItemID(state.ID)
 	if err != nil {
@@ -333,6 +361,7 @@ resource "azurerm_virtual_machine" "test" {
     enabled     = true
     storage_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
+
 }
 
 resource "azurerm_recovery_services_vault" "test" {
@@ -686,4 +715,19 @@ resource "azurerm_backup_protected_vm" "test" {
   source_vm_id        = azurerm_virtual_machine.test.id
 }
 `, r.additionalVault(data))
+}
+
+func (r BackupProtectedVmResource) protectionStopped(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_protected_vm" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  source_vm_id        = azurerm_virtual_machine.test.id
+
+  include_disk_luns = [0]
+  protection_state  = "ProtectionStopped"
+}
+`, r.base(data))
 }

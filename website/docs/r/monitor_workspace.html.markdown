@@ -38,6 +38,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Azure Monitor Workspace should exist. Changing this forces a new resource to be created.
 
+* `public_network_access_enabled` - (Optional) Is public network access enabled? Defaults to `true`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Monitor Workspace.
 
 ## Attributes Reference

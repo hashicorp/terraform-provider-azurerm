@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -22,7 +23,6 @@ import (
 	loadBalancerParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	machineLearningValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -230,7 +230,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							ValidateFunc: networkValidate.VirtualNetworkID,
+							ValidateFunc: commonids.ValidateVirtualNetworkID,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -675,7 +675,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if encryptKeyVaultURI != "" {
-			key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, "keys", encryptKeyName, encryptKeyVersion)
+			key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, keyVaultParse.NestedItemTypeKey, encryptKeyName, encryptKeyVersion)
 			if err == nil {
 				d.Set("managed_services_cmk_key_vault_key_id", key.ID())
 			}
@@ -697,7 +697,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if encryptDiskKeyVaultURI != "" {
-			key, err := keyVaultParse.NewNestedItemID(encryptDiskKeyVaultURI, "keys", encryptDiskKeyName, encryptDiskKeyVersion)
+			key, err := keyVaultParse.NewNestedItemID(encryptDiskKeyVaultURI, keyVaultParse.NestedItemTypeKey, encryptDiskKeyName, encryptDiskKeyVersion)
 			if err == nil {
 				d.Set("managed_disk_cmk_key_vault_key_id", key.ID())
 			}

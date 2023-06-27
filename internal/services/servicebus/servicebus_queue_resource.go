@@ -52,7 +52,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: azValidate.QueueName(),
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"namespace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -330,7 +330,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	log.Printf("[DEBUG] Waiting for %s status to become ready", id)
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("context had no deadline")
+		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	statusPropertyChangeConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Updating"},

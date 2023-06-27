@@ -100,6 +100,13 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"node_public_ip_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+
 			"ssh": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -175,12 +182,17 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
 	}
 
+	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" {
+		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
+	}
+
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
 	computeClusterAmlComputeProperties := machinelearningcomputes.AmlComputeProperties{
 		VMSize:                 utils.String(d.Get("vm_size").(string)),
 		VMPriority:             &vmPriority,
 		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
 		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
+		EnableNodePublicIP:     pointer.To(d.Get("node_public_ip_enabled").(bool)),
 	}
 
 	computeClusterAmlComputeProperties.RemoteLoginPortPublicAccess = utils.ToPtr(machinelearningcomputes.RemoteLoginPortPublicAccessDisabled)
@@ -270,6 +282,11 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("vm_priority", string(pointer.From(props.VMPriority)))
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
 		d.Set("ssh", flattenUserAccountCredentials(props.UserAccountCredentials))
+		enableNodePublicIP := true
+		if props.EnableNodePublicIP != nil {
+			enableNodePublicIP = *props.EnableNodePublicIP
+		}
+		d.Set("node_public_ip_enabled", enableNodePublicIP)
 		if props.Subnet != nil {
 			d.Set("subnet_resource_id", props.Subnet.Id)
 		}

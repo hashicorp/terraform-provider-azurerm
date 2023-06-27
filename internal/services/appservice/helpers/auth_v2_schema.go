@@ -92,7 +92,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					// ValidateFunc: validation.StringInSlice([]string{}, false), // TODO - find the correct strings for the Auth names
-					Description: "The Default Authentication Provider to use when the `unauthenticated_action` is set to `RedirectToLoginPage`.",
+					Description: "The Default Authentication Provider to use when the `unauthenticated_action` is set to `RedirectToLoginPage`. Possible values include: `apple`, `azureactivedirectory`, `facebook`, `github`, `google`, `twitter` and the `name` of your `custom_oidc_v2` provider.",
 				},
 
 				"excluded_paths": {

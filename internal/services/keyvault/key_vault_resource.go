@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -333,6 +332,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.Properties.SoftDeleteRetentionInDays = pointer.To(int64(v.(int)))
 	}
 
+	parameters.Properties.CreateMode = pointer.To(vaults.CreateModeDefault)
 	if recoverSoftDeletedKeyVault {
 		parameters.Properties.CreateMode = pointer.To(vaults.CreateModeRecover)
 	}
@@ -340,7 +340,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err := networkParse.SubnetIDInsensitively(v)
+		id, err := commonids.ParseSubnetIDInsensitively(v)
 		if err != nil {
 			return err
 		}
@@ -484,7 +484,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 		virtualNetworkNames := make([]string, 0)
 		for _, v := range subnetIds {
-			id, err := networkParse.SubnetIDInsensitively(v)
+			id, err := commonids.ParseSubnetIDInsensitively(v)
 			if err != nil {
 				return err
 			}
@@ -755,7 +755,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		if acls := model.Properties.NetworkAcls; acls != nil {
 			if rules := acls.VirtualNetworkRules; rules != nil {
 				for _, v := range *rules {
-					subnetId, err := networkParse.SubnetIDInsensitively(v.Id)
+					subnetId, err := commonids.ParseSubnetIDInsensitively(v.Id)
 					if err != nil {
 						return err
 					}
@@ -910,7 +910,7 @@ func flattenKeyVaultNetworkAcls(input *vaults.NetworkRuleSet) []interface{} {
 		if input.VirtualNetworkRules != nil {
 			for _, v := range *input.VirtualNetworkRules {
 				subnetIdRaw := v.Id
-				subnetId, err := networkParse.SubnetIDInsensitively(subnetIdRaw)
+				subnetId, err := commonids.ParseSubnetIDInsensitively(subnetIdRaw)
 				if err == nil {
 					subnetIdRaw = subnetId.ID()
 				}

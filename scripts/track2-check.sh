@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 function checkForAzCoreUsages {
   result=$(grep -R "github.com/Azure/azure-sdk-for-go/sdk/azcore" go.mod go.sum)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +19,7 @@ type POSTOperationResponse struct {
 }
 
 // POST ...
-func (c ResolvePrivateLinkServiceIdClient) POST(ctx context.Context, id ManagedClusterId, input PrivateLinkResource) (result POSTOperationResponse, err error) {
+func (c ResolvePrivateLinkServiceIdClient) POST(ctx context.Context, id commonids.KubernetesClusterId, input PrivateLinkResource) (result POSTOperationResponse, err error) {
 	req, err := c.preparerForPOST(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resolveprivatelinkserviceid.ResolvePrivateLinkServiceIdClient", "POST", nil, "Failure preparing request")
@@ -41,7 +42,7 @@ func (c ResolvePrivateLinkServiceIdClient) POST(ctx context.Context, id ManagedC
 }
 
 // preparerForPOST prepares the POST request.
-func (c ResolvePrivateLinkServiceIdClient) preparerForPOST(ctx context.Context, id ManagedClusterId, input PrivateLinkResource) (*http.Request, error) {
+func (c ResolvePrivateLinkServiceIdClient) preparerForPOST(ctx context.Context, id commonids.KubernetesClusterId, input PrivateLinkResource) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

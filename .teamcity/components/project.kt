@@ -1,10 +1,14 @@
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.Project
 
 const val providerName = "azurerm"
+var enableTestTriggersGlobally = false
 
 fun AzureRM(environment: String, configuration : ClientConfiguration) : Project {
     return Project{
+        // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
+        enableTestTriggersGlobally = configuration.enableTestTriggersGlobally
+
         vcsRoot(providerRepository)
 
         var pullRequestBuildConfig = pullRequestBuildConfiguration(environment, configuration)

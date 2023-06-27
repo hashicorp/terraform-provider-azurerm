@@ -41,7 +41,7 @@ output "database_id" {
 
 * `name` - The name of the MS SQL Database.
 
-* `server_id` - The id of the MS SQL Server on which to create the database.
+* `server_id` - The id of the MS SQL Server on which to read the database.
 
 ## Attributes Reference
 

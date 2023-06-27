@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) HashiCorp, Inc.
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 // specifies the default hour (UTC) at which tests should be triggered, if enabled
 var defaultStartHour = 0
 
@@ -8,7 +13,7 @@ var defaultParallelism = 20
 var defaultTimeout = 12
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.1.5"
+var defaultTerraformCoreVersion = "1.5.1"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -53,7 +58,7 @@ var serviceTestConfigurationOverrides = mapOf(
         // Cosmos is only available in certain locations
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
 
-        //Confidential Ledger
+        // Confidential Ledger
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
@@ -74,11 +79,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // data factory uses NC class VMs which are not available in eastus2
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false), useDevTestSubscription = true),
 
-        // Data Lake has a low quota
-        "datalake" to testConfiguration(parallelism = 2, useDevTestSubscription = true),
-
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
-        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false), useDevTestSubscription = true),
+        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
         // Elastic can't provision many in parallel
         "elastic" to testConfiguration(parallelism = 1, useDevTestSubscription = true),
@@ -121,6 +123,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // network has increased timeout to accommodate the custom_ip_prefix resource
         "network" to testConfiguration(timeout = 24),
+
+        // New Relic is only available in East US region
+        "newrelic" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus", "eastus", false)),
 
         // Orbital is only available in certain locations
         "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),

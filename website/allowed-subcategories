@@ -9,6 +9,7 @@ Application Insights
 ArcKubernetes
 Attestation
 Authorization
+Automanage
 Automation
 Azure Stack HCI
 Base
@@ -71,6 +72,7 @@ Mobile Network
 Monitor
 NetApp
 Network
+New Relic
 Nginx
 Orbital
 Policy
