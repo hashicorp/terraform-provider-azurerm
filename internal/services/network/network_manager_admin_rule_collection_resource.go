@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/adminrulecollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ManagerAdminRuleCollectionModel struct {
@@ -34,7 +34,7 @@ func (r ManagerAdminRuleCollectionResource) ModelObject() interface{} {
 }
 
 func (r ManagerAdminRuleCollectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NetworkManagerAdminRuleCollectionID
+	return adminrulecollections.ValidateRuleCollectionID
 }
 
 func (r ManagerAdminRuleCollectionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -50,7 +50,7 @@ func (r ManagerAdminRuleCollectionResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NetworkManagerSecurityAdminConfigurationID,
+			ValidateFunc: adminrulecollections.ValidateSecurityAdminConfigurationID,
 		},
 
 		"network_group_ids": {
@@ -58,7 +58,7 @@ func (r ManagerAdminRuleCollectionResource) Arguments() map[string]*pluginsdk.Sc
 			Required: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.NetworkManagerNetworkGroupID,
+				ValidateFunc: networkgroups.ValidateNetworkGroupID,
 			},
 		},
 
@@ -83,34 +83,34 @@ func (r ManagerAdminRuleCollectionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Network.ManagerAdminRuleCollectionsClient
-			configurationId, err := parse.NetworkManagerSecurityAdminConfigurationID(model.SecurityAdminConfigurationId)
+			configurationId, err := adminrulecollections.ParseSecurityAdminConfigurationID(model.SecurityAdminConfigurationId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewNetworkManagerAdminRuleCollectionID(configurationId.SubscriptionId, configurationId.ResourceGroup,
+			id := adminrulecollections.NewRuleCollectionID(configurationId.SubscriptionId, configurationId.ResourceGroupName,
 				configurationId.NetworkManagerName, configurationId.SecurityAdminConfigurationName, model.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName)
+			existing, err := client.Get(ctx, id)
 
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			adminRuleCollection := &network.AdminRuleCollection{
-				AdminRuleCollectionPropertiesFormat: &network.AdminRuleCollectionPropertiesFormat{
+			adminRuleCollection := adminrulecollections.AdminRuleCollection{
+				Properties: &adminrulecollections.AdminRuleCollectionPropertiesFormat{
 					AppliesToGroups: expandNetworkManagerNetworkGroupIds(model.NetworkGroupIds),
 				},
 			}
 
 			if model.Description != "" {
-				adminRuleCollection.AdminRuleCollectionPropertiesFormat.Description = &model.Description
+				adminRuleCollection.Properties.Description = &model.Description
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *adminRuleCollection, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, adminRuleCollection); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -126,7 +126,7 @@ func (r ManagerAdminRuleCollectionResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.ManagerAdminRuleCollectionsClient
 
-			id, err := parse.NetworkManagerAdminRuleCollectionID(metadata.ResourceData.Id())
+			id, err := adminrulecollections.ParseRuleCollectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -136,15 +136,18 @@ func (r ManagerAdminRuleCollectionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-
-			properties := existing.AdminRuleCollectionPropertiesFormat
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
+			properties := existing.Model.Properties
 
 			if metadata.ResourceData.HasChange("network_group_ids") {
 				properties.AppliesToGroups = expandNetworkManagerNetworkGroupIds(model.NetworkGroupIds)
@@ -154,7 +157,7 @@ func (r ManagerAdminRuleCollectionResource) Update() sdk.ResourceFunc {
 				properties.Description = utils.String(model.Description)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, existing, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -169,28 +172,32 @@ func (r ManagerAdminRuleCollectionResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.ManagerAdminRuleCollectionsClient
 
-			id, err := parse.NetworkManagerAdminRuleCollectionID(metadata.ResourceData.Id())
+			id, err := adminrulecollections.ParseRuleCollectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			properties := existing.AdminRuleCollectionPropertiesFormat
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
+			properties := existing.Model.Properties
 
 			state := ManagerAdminRuleCollectionModel{
 				Name:                         id.RuleCollectionName,
-				SecurityAdminConfigurationId: parse.NewNetworkManagerSecurityAdminConfigurationID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName).ID(),
+				SecurityAdminConfigurationId: adminrulecollections.NewSecurityAdminConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName, id.SecurityAdminConfigurationName).ID(),
 				NetworkGroupIds:              flattenNetworkManagerNetworkGroupIds(properties.AppliesToGroups),
 			}
 
@@ -209,48 +216,42 @@ func (r ManagerAdminRuleCollectionResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.ManagerAdminRuleCollectionsClient
 
-			id, err := parse.NetworkManagerAdminRuleCollectionID(metadata.ResourceData.Id())
+			id, err := adminrulecollections.ParseRuleCollectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName, utils.Bool(true))
+			err = client.DeleteThenPoll(ctx, *id, adminrulecollections.DeleteOperationOptions{
+				Force: utils.Bool(true),
+			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-			}
 			return nil
 		},
 	}
 }
 
-func expandNetworkManagerNetworkGroupIds(inputList []string) *[]network.ManagerSecurityGroupItem {
-	var outputList []network.ManagerSecurityGroupItem
+func expandNetworkManagerNetworkGroupIds(inputList []string) []adminrulecollections.NetworkManagerSecurityGroupItem {
+	var outputList []adminrulecollections.NetworkManagerSecurityGroupItem
 	for _, v := range inputList {
 		input := v
-		output := network.ManagerSecurityGroupItem{
-			NetworkGroupID: utils.String(input),
+		output := adminrulecollections.NetworkManagerSecurityGroupItem{
+			NetworkGroupId: input,
 		}
 
 		outputList = append(outputList, output)
 	}
 
-	return &outputList
+	return outputList
 }
 
-func flattenNetworkManagerNetworkGroupIds(inputList *[]network.ManagerSecurityGroupItem) []string {
+func flattenNetworkManagerNetworkGroupIds(inputList []adminrulecollections.NetworkManagerSecurityGroupItem) []string {
 	var outputList []string
-	if inputList == nil {
-		return outputList
-	}
 
-	for _, input := range *inputList {
-		if input.NetworkGroupID != nil {
-			outputList = append(outputList, *input.NetworkGroupID)
-		}
+	for _, input := range inputList {
+		outputList = append(outputList, input.NetworkGroupId)
 	}
 
 	return outputList

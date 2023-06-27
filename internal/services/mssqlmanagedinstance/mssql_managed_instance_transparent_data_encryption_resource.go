@@ -105,7 +105,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 		}
 
 		// Make sure it's a key, if not, throw an error
-		if keyId.NestedItemType == "keys" {
+		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
 			keyName := keyId.Name
 			keyVersion := keyId.Version
 

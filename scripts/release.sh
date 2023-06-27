@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 REPO_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
 cd "${REPO_DIR}"

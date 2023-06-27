@@ -76,6 +76,10 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Read() sdk.ResourceFunc {
 				if group := prop.Groups; group != nil {
 					state.RecoveryGroup = flattenRecoveryGroups(*group)
 				}
+
+				if details := prop.ProviderSpecificDetails; details != nil && len(*details) > 0 {
+					state.A2ASettings = flattenRecoveryPlanProviderSpecficInput(details)
+				}
 			}
 
 			metadata.SetID(id)
@@ -127,6 +131,7 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Attributes() map[string]*
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"replicated_protected_items": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -134,15 +139,45 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Attributes() map[string]*
 							Type: pluginsdk.TypeString,
 						},
 					},
+
 					"pre_action": {
 						Type:     pluginsdk.TypeSet,
 						Computed: true,
 						Elem:     dataSourceSiteRecoveryReplicationPlanActions(),
 					},
+
 					"post_action": {
 						Type:     pluginsdk.TypeSet,
 						Computed: true,
 						Elem:     dataSourceSiteRecoveryReplicationPlanActions(),
+					},
+				},
+			},
+		},
+
+		"azure_to_azure_settings": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"primary_zone": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+
+					"recovery_zone": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+
+					"primary_edge_zone": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+
+					"recovery_edge_zone": {
+						Type:     schema.TypeString,
+						Computed: true,
 					},
 				},
 			},

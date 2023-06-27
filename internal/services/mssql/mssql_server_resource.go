@@ -262,7 +262,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
 
-		if keyId.NestedItemType == "keys" {
+		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
 			// msSql requires the versioned key URL...
 			props.KeyID = pointer.To(keyId.ID())
 		} else {
@@ -368,7 +368,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
 
-		if keyId.NestedItemType == "keys" {
+		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
 			props.KeyID = pointer.To(keyId.ID())
 		} else {
 			return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
@@ -517,7 +517,8 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("version", props.Version)
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
-		if v := props.MinimalTLSVersion; v == nil {
+		// todo remove `|| *v == "None"` when https://github.com/Azure/azure-rest-api-specs/issues/24348 is addressed
+		if v := props.MinimalTLSVersion; v == nil || *v == "None" {
 			d.Set("minimum_tls_version", "Disabled")
 		} else {
 			d.Set("minimum_tls_version", props.MinimalTLSVersion)
@@ -737,7 +738,8 @@ func flattenSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListR
 
 func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
-	if old != "" && old != "Disabled" && new == "Disabled" {
+	// todo remove `old != "None"` when https://github.com/Azure/azure-rest-api-specs/issues/24348 is addressed
+	if old != "" && old != "None" && old != "Disabled" && new == "Disabled" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
 	}
 	return

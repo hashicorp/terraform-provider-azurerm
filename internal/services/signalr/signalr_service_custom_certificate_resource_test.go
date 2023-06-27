@@ -162,6 +162,7 @@ func (r CustomCertSignalrServiceResource) Exists(ctx context.Context, client *cl
 	if err != nil {
 		return nil, err
 	}
+
 	resp, err := client.SignalR.SignalRClient.CustomCertificatesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -169,5 +170,6 @@ func (r CustomCertSignalrServiceResource) Exists(ctx context.Context, client *cl
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
 	return utils.Bool(true), nil
 }

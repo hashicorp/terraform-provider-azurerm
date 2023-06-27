@@ -188,6 +188,28 @@ func TestAccCosmosDbGremlinGraph_serverless(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbGremlinGraph_analyticalStorageTtl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
+	r := CosmosGremlinGraphResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.analyticalStorageTtl(data, -1),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.analyticalStorageTtl(data, 2),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosGremlinGraphResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseGraphID(state.ID)
 	if err != nil {
@@ -464,4 +486,55 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   partition_key_path  = "/test"
 }
 `, CosmosGremlinDatabaseResource{}.serverless(data), data.RandomInteger)
+}
+
+func (CosmosGremlinGraphResource) analyticalStorageTtl(data acceptance.TestData, analyticalStorageTtl int64) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                       = "acctest-ca-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  offer_type                 = "Standard"
+  kind                       = "GlobalDocumentDB"
+  analytical_storage_enabled = true
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  capabilities {
+    name = "EnableGremlin"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+
+resource "azurerm_cosmosdb_gremlin_database" "test" {
+  name                = "acctest-db-%[1]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+
+resource "azurerm_cosmosdb_gremlin_graph" "test" {
+  name                   = "acctest-CGRPC-%[1]d"
+  resource_group_name    = azurerm_cosmosdb_account.test.resource_group_name
+  account_name           = azurerm_cosmosdb_account.test.name
+  database_name          = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path     = "/test"
+  throughput             = 400
+  analytical_storage_ttl = %[3]d
+}
+`, data.RandomInteger, data.Locations.Primary, analyticalStorageTtl)
 }

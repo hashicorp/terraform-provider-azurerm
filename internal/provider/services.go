@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package provider
 
 import (
@@ -12,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch"
@@ -83,6 +87,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital"
@@ -130,6 +135,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		applicationinsights.Registration{},
 		appservice.Registration{},
 		arckubernetes.Registration{},
+		automanage.Registration{},
 		automation.Registration{},
 		batch.Registration{},
 		bot.Registration{},
@@ -164,6 +170,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		mysql.Registration{},
 		network.Registration{},
 		netapp.Registration{},
+		newrelic.Registration{},
 		nginx.Registration{},
 		policy.Registration{},
 		privatednsresolver.Registration{},
