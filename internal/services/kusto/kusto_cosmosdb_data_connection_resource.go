@@ -88,11 +88,13 @@ func (r CosmosDBDataConnectionResource) Arguments() map[string]*schema.Schema {
 		"mapping_rule_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"retrieval_start_date": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
