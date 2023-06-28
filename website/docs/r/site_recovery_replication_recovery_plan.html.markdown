@@ -276,7 +276,7 @@ An `action` block supports the following:
 
 * `fail_over_types` - (Required) Types of fail over. Possible values are `TestFailover`, `PlannedFailover` and `UnplannedFailover`
 
-* `fabric_location` - (Optional) The fabric location of runbook or script. Possible values are `Primary` and `Recovery`.
+* `fabric_location` - (Optional) The fabric location of runbook or script. Possible values are `Primary` and `Recovery`. It must not be specified when `type` is `ManualActionDetails`.
 
 -> **NOTE:** This is required when `type` is set to `AutomationRunbookActionDetails` or `ScriptActionDetails`.
 

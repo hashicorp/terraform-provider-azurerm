@@ -124,6 +124,18 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_wrongSettings(t *testing.T) {
 	})
 }
 
+func TestAccSiteRecoveryReplicationRecoveryPlan_wrongActions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
+	r := SiteRecoveryReplicationRecoveryPlan{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.wrongActions(data),
+			ExpectError: regexp.MustCompile("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type"),
+		},
+	})
+}
+
 func (SiteRecoveryReplicationRecoveryPlan) template(data acceptance.TestData) string {
 	tags := ""
 	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
@@ -589,6 +601,41 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   recovery_group {
     type                       = "Shutdown"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SiteRecoveryReplicationRecoveryPlan) wrongActions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_site_recovery_replication_recovery_plan" "test" {
+  name                      = "acctest-%[2]d"
+  recovery_vault_id         = azurerm_recovery_services_vault.test.id
+  source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
+  target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
+
+  recovery_group {
+    type                       = "Boot"
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+
+    post_action {
+      name                      = "testPreAction"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+      fabric_location           = "Primary"
+    }
+  }
+
+  recovery_group {
+    type = "Failover"
+  }
+
+  recovery_group {
+    type = "Shutdown"
   }
 }
 `, r.template(data), data.RandomInteger)
