@@ -87,7 +87,7 @@ func resourceDnsZone() *pluginsdk.Resource {
 
 						"host_name": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -180,13 +180,27 @@ func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if v, ok := d.GetOk("soa_record"); ok {
 		soaRecord := v.([]interface{})[0].(map[string]interface{})
+
+		inputSOARecord := expandArmDNSZoneSOARecord(soaRecord)
+
+		if *inputSOARecord.Host == "" {
+			resourceDnsZoneRead(d, meta)
+			if v1, ok := d.GetOk("soa_record"); ok {
+				readSoaRecord := v1.([]interface{})[0].(map[string]interface{})
+				readSOARecord := expandArmDNSZoneSOARecord(readSoaRecord)
+				inputSOARecord.Host = readSOARecord.Host
+			}
+		}
+
 		rsParameters := recordsets.RecordSet{
 			Properties: &recordsets.RecordSetProperties{
 				TTL:       utils.Int64(int64(soaRecord["ttl"].(int))),
 				Metadata:  tags.Expand(soaRecord["tags"].(map[string]interface{})),
-				SOARecord: expandArmDNSZoneSOARecord(soaRecord),
+				SOARecord: inputSOARecord,
 			},
 		}
 
@@ -199,8 +213,6 @@ func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("creating/updating %s: %+v", soaRecordId, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceDnsZoneRead(d, meta)
 }
