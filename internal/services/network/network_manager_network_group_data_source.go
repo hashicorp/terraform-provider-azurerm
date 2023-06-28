@@ -87,10 +87,7 @@ func (r ManagerNetworkGroupDataSource) Read() sdk.ResourceFunc {
 			state := ManagerNetworkGroupModel{
 				Name:             id.NetworkGroupName,
 				NetworkManagerId: networkgroups.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID(),
-			}
-
-			if properties.Description != nil {
-				state.Description = pointer.From(properties.Description)
+				Description:      pointer.From(properties.Description),
 			}
 
 			metadata.SetID(id)
