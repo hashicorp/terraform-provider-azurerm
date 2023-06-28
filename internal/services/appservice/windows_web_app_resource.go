@@ -563,7 +563,6 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				state = WindowsWebAppModel{
 					Name:                          id.SiteName,
 					ResourceGroup:                 id.ResourceGroup,
-					ServicePlanId:                 pointer.From(props.ServerFarmID),
 					Location:                      location.NormalizeNilable(webApp.Location),
 					AuthSettings:                  helpers.FlattenAuthSettings(auth),
 					AuthV2Settings:                helpers.FlattenAuthV2Settings(authV2),
@@ -589,6 +588,13 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					PossibleOutboundIPAddressList: strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ","),
 					Tags:                          tags.ToTypedObject(webApp.Tags),
 				}
+
+				serverFarmId, err := parse.ServicePlanID(pointer.From(props.ServerFarmID))
+				if err != nil {
+					return fmt.Errorf("parsing Service Plan ID for %s: %+v", id, err)
+				}
+
+				state.ServicePlanId = serverFarmId.ID()
 
 				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 					hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.ID)
