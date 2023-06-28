@@ -435,12 +435,20 @@ func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("deleting %s: %+v", ruleId, deleteErr)
 		}
 
-		actionGroupsClient := meta.(*clients.Client).Monitor.ActionGroupsClient
-		actionGroupName := "Application Insights Smart Detection"
-		actionGroupId := actiongroupsapis.NewActionGroupID(id.SubscriptionId, id.ResourceGroup, actionGroupName)
-		deleteActionGroupResp, deleteErr := actionGroupsClient.ActionGroupsDelete(ctx, actionGroupId)
-		if deleteErr != nil && response.WasNotFound(deleteActionGroupResp.HttpResponse) {
-			return fmt.Errorf("deleting %s: %+v", actionGroupId, deleteErr)
+		applicationInsights, err := client.ListByResourceGroupComplete(ctx, id.ResourceGroup)
+		if err != nil {
+			return fmt.Errorf("listing Application Insights in resource group %s: %+v", id.ResourceGroup, err)
+		}
+
+		if applicationInsights.Response().IsEmpty() {
+			log.Printf("[DEBUG] No Application Insights found in resource group %s, try to delete Action Group", id.ResourceGroup)
+			actionGroupsClient := meta.(*clients.Client).Monitor.ActionGroupsClient
+			actionGroupName := "Application Insights Smart Detection"
+			actionGroupId := actiongroupsapis.NewActionGroupID(id.SubscriptionId, id.ResourceGroup, actionGroupName)
+			deleteActionGroupResp, deleteErr := actionGroupsClient.ActionGroupsDelete(ctx, actionGroupId)
+			if deleteErr != nil && response.WasNotFound(deleteActionGroupResp.HttpResponse) {
+				return fmt.Errorf("deleting %s: %+v", actionGroupId, deleteErr)
+			}
 		}
 	}
 
