@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -90,6 +91,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+			ValidateFunc: validate.AppSettings,
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -310,7 +312,17 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinux(webApp.SiteConfig, nil, metadata, servicePlan)
+			sc := webApp.SiteConfig[0]
+
+			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+					if sc.AlwaysOn {
+						return fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
+					}
+				}
+			}
+
+			siteConfig, err := sc.ExpandForCreate(webApp.AppSettings)
 			if err != nil {
 				return err
 			}
@@ -358,13 +370,13 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
+			appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
+				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
 			}
 
-			if appSettings.Properties != nil {
-				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
+			if appSettingsUpdate.Properties != nil {
+				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("setting App Settings for Linux %s: %+v", id, err)
 				}
 			}
@@ -457,11 +469,6 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
 
-			props := webApp.SiteProperties
-			if props == nil {
-				return fmt.Errorf("reading properties of Linux %s", id)
-			}
-
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
 			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
@@ -526,48 +533,45 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Publishing Credential information for Linux %s: %+v", id, err)
 			}
 
-			state := LinuxWebAppModel{
-				Name:                        id.SiteName,
-				ResourceGroup:               id.ResourceGroup,
-				Location:                    location.NormalizeNilable(webApp.Location),
-				ServicePlanId:               pointer.From(props.ServerFarmID),
-				ClientAffinityEnabled:       pointer.From(props.ClientAffinityEnabled),
-				ClientCertEnabled:           pointer.From(props.ClientCertEnabled),
-				ClientCertMode:              string(props.ClientCertMode),
-				ClientCertExclusionPaths:    pointer.From(props.ClientCertExclusionPaths),
-				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
-				DefaultHostname:             pointer.From(props.DefaultHostName),
-				Kind:                        pointer.From(webApp.Kind),
-				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
-				Enabled:                     pointer.From(props.Enabled),
-				HttpsOnly:                   pointer.From(props.HTTPSOnly),
-				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
-				Tags:                        tags.ToTypedObject(webApp.Tags),
+			state := LinuxWebAppModel{}
+			if props := webApp.SiteProperties; props != nil {
+				state = LinuxWebAppModel{
+					Name:                          id.SiteName,
+					ResourceGroup:                 id.ResourceGroup,
+					Location:                      location.NormalizeNilable(webApp.Location),
+					ServicePlanId:                 pointer.From(props.ServerFarmID),
+					ClientAffinityEnabled:         pointer.From(props.ClientAffinityEnabled),
+					ClientCertEnabled:             pointer.From(props.ClientCertEnabled),
+					ClientCertMode:                string(props.ClientCertMode),
+					ClientCertExclusionPaths:      pointer.From(props.ClientCertExclusionPaths),
+					CustomDomainVerificationId:    pointer.From(props.CustomDomainVerificationID),
+					DefaultHostname:               pointer.From(props.DefaultHostName),
+					Kind:                          pointer.From(webApp.Kind),
+					KeyVaultReferenceIdentityID:   pointer.From(props.KeyVaultReferenceIdentity),
+					Enabled:                       pointer.From(props.Enabled),
+					HttpsOnly:                     pointer.From(props.HTTPSOnly),
+					StickySettings:                helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
+					OutboundIPAddresses:           pointer.From(props.OutboundIPAddresses),
+					OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
+					PossibleOutboundIPAddresses:   pointer.From(props.PossibleOutboundIPAddresses),
+					PossibleOutboundIPAddressList: strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ","),
+					Tags:                          tags.ToTypedObject(webApp.Tags),
+				}
+
+				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+					hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.ID)
+					if err != nil {
+						return err
+					}
+					state.HostingEnvId = hostingEnvId.ID()
+				}
+
+				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
+					state.VirtualNetworkSubnetID = subnetId
+				}
 			}
 
-			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				state.HostingEnvId = pointer.From(hostingEnv.ID)
-			}
-
-			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
-				state.VirtualNetworkSubnetID = subnetId
-			}
-
-			var healthCheckCount *int
-			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
-			if err != nil {
-				return fmt.Errorf("flattening app settings for Linux %s: %+v", id, err)
-			}
-
-			if v := props.OutboundIPAddresses; v != nil {
-				state.OutboundIPAddresses = *v
-				state.OutboundIPAddressList = strings.Split(*v, ",")
-			}
-
-			if v := props.PossibleOutboundIPAddresses; v != nil {
-				state.PossibleOutboundIPAddresses = *v
-				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
-			}
+			state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
 
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
 
@@ -577,7 +581,29 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
-			state.SiteConfig = helpers.FlattenSiteConfigLinux(webAppSiteConfig.SiteConfig, healthCheckCount)
+			siteConfig := helpers.SiteConfigLinux{}
+			siteConfig.Flatten(webAppSiteConfig.SiteConfig)
+			siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
+
+			// For non-import cases we check for use of the deprecated docker settings - remove in 4.0
+			_, usesDeprecatedDocker := metadata.ResourceData.GetOk("site_config.0.application_stack.0.docker_image")
+
+			if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
+				if !features.FourPointOhBeta() {
+					siteConfig.DecodeDockerDeprecatedAppStack(state.AppSettings, usesDeprecatedDocker)
+				} else {
+					siteConfig.DecodeDockerAppStack(state.AppSettings)
+				}
+			}
+
+			state.SiteConfig = []helpers.SiteConfigLinux{siteConfig}
+
+			// Filter out all settings we've consumed above
+			if !features.FourPointOhBeta() && usesDeprecatedDocker {
+				state.AppSettings = helpers.FilterManagedAppSettingsDeprecated(state.AppSettings)
+			} else {
+				state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
+			}
 
 			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
@@ -645,8 +671,6 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			// TODO - Need locking here for source control meta resource?
-
 			var state LinuxWebAppModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -657,24 +681,30 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
-			var serviceFarmId string
-			servicePlanChange := false
-			if existing.SiteProperties.ServerFarmID != nil {
-				serviceFarmId = *existing.ServerFarmID
+			servicePlanChange := metadata.ResourceData.HasChange("service_plan_id")
+			if servicePlanChange {
+				if existing.SiteProperties != nil {
+					existing.SiteProperties.ServerFarmID = pointer.To(state.ServicePlanId)
+				}
 			}
-			if metadata.ResourceData.HasChange("service_plan_id") {
-				serviceFarmId = state.ServicePlanId
-				existing.SiteProperties.ServerFarmID = pointer.To(serviceFarmId)
-				servicePlanChange = true
-			}
-			servicePlanId, err := parse.ServicePlanID(serviceFarmId)
+
+			servicePlanId, err := parse.ServicePlanID(state.ServicePlanId)
 			if err != nil {
 				return err
 			}
 
 			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
 			if err != nil {
-				return fmt.Errorf("reading App %s: %+v", servicePlanId, err)
+				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
+			}
+
+			sc := state.SiteConfig[0]
+			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+					if sc.AlwaysOn {
+						return fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+					}
+				}
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
@@ -713,11 +743,10 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("site_config") || servicePlanChange {
-				siteConfig, err := helpers.ExpandSiteConfigLinux(state.SiteConfig, existing.SiteConfig, metadata, servicePlan)
+				existing.SiteConfig, err = sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
 				if err != nil {
-					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
+					return err
 				}
-				existing.SiteConfig = siteConfig
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
