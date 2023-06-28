@@ -1,5 +1,12 @@
 ## 3.63.0 (Unreleased)
 
+BREAKING CHANGES:
+* `azurerm_linux_web_app` - the `win32_status` property of the `status_code` block in `auto_heal` has changed from `string` to `int`.  [GH-22003]
+* `azurerm_linux_web_app_slot` -the `win32_status` property of the `status_code` block in `auto_heal` has changed from `string` to `int`.  [GH-22003]
+* `azurerm_windows_web_app` - the `win32_status` property of the `status_code` block in `auto_heal` has changed from `string` to `int`.  [GH-22003]
+* `azurerm_windows_web_app_slot` - the `win32_status` property of the `status_code` block in `auto_heal` has changed from `string` to `int`.  [GH-22003]
+
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230623.1103505` of `github.com/hashicorp/go-azure-sdk` [GH-22263]
@@ -19,11 +26,15 @@ BUG FIXES:
 * `azurerm_frontdoor` - throw an error if the resource cannot be found during an update [GH-21975]
 * `azurerm_image` - set `os_disk.size_gb` to `ForceNew` [GH-22272]
 * `azurerm_linux_virtual_machine` - throw an error if the resource cannot be found during an update [GH-21975]
+* `azurerm_linux_web_app` - deprecated `docker_image` and `docker_image_tag` in favour of `docker_image_name`, `docker_registry_url`, `docker_registry_username`, and `docker_registry_password`. These settings now manage the respective `app_settings` values of the same name. [GH-22003]
+* `azurerm_linux_web_app_slot` - deprecated `docker_image` and `docker_image_tag` in favour of `docker_image_name`, `docker_registry_url`, `docker_registry_username`, and `docker_registry_password`. These settings now manage the respective `app_settings` values of the same name.  [GH-22003]
 * `azurerm_site_recovery_replicated_vm` - set `network_interface.failover_test_subnet_name`, `network_interface.failover_test_public_ip_address_id` and `network_interface.failover_test_static_ip` correctly [GH-22217]
 * `azurerm_ssh_public_key` - throw an error if the resource cannot be found during an update [GH-21975]
 * `azurerm_storage_share` - revert the resource ID format back to what it was previously due to a discrepancy in the API and Portal [GH-22271]
 * `azurerm_storage_account` - the `last_access_time_enabled` and `container_delete_retention_policy` properties are now supported in usgovernment [GH-22273]
 * `azurerm_windows_virtual_machine` - throw an error if the resource cannot be found during an update [GH-21975]
+* `azurerm_windows_web_app` - deprecated `docker_container_registry`, `docker_container_name`, and `docker_container_tag` in favour of `docker_image_name`, `docker_registry_url`, `docker_registry_username`, and `docker_registry_password`. These settings now manage the respective `app_settings` values of the same name.  [GH-22003]
+* `azurerm_windows_web_app_slot` - deprecated `docker_container_registry`, `docker_container_name`, and `docker_container_tag` in favour of `docker_image_name`, `docker_registry_url`, `docker_registry_username`, and `docker_registry_password`. These settings now manage the respective `app_settings` values of the same name.  [GH-22003]
 
 ## 3.62.1 (June 22, 2023)
 
