@@ -1,12 +1,12 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_network_security_admin_configuration"
+page_title: "Azure Resource Manager: azurerm_network_manager_security_admin_configuration"
 description: |-
   Manages a Network Manager Security Admin Configuration.
 ---
 
-# azurerm_network_security_admin_configuration
+# azurerm_network_manager_security_admin_configuration
 
 Manages a Network Manager Security Admin Configuration.
 
