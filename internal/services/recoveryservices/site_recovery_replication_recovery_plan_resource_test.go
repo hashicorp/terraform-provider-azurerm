@@ -3,6 +3,7 @@ package recoveryservices_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -108,6 +109,18 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withEdgeZones(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccSiteRecoveryReplicationRecoveryPlan_wrongSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_recovery_plan", "test")
+	r := SiteRecoveryReplicationRecoveryPlan{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.wrongSettings(data),
+			ExpectError: regexp.MustCompile("`replicated_protected_items` must not be specified for `recovery_group` with `Shutdown` type."),
+		},
 	})
 }
 
@@ -549,6 +562,33 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   azure_to_azure_settings {
     primary_edge_zone  = data.azurerm_extended_locations.test.extended_locations[0]
     recovery_edge_zone = data.azurerm_extended_locations.test.extended_locations[0]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SiteRecoveryReplicationRecoveryPlan) wrongSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_site_recovery_replication_recovery_plan" "test" {
+  name                      = "acctest-%[2]d"
+  recovery_vault_id         = azurerm_recovery_services_vault.test.id
+  source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
+  target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
+
+  recovery_group {
+    type                       = "Boot"
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+  }
+
+  recovery_group {
+    type = "Failover"
+  }
+
+  recovery_group {
+    type                       = "Shutdown"
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 }
 `, r.template(data), data.RandomInteger)
