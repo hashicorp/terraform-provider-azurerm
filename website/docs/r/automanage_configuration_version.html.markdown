@@ -1,14 +1,14 @@
 ---
 subcategory: "Automanage"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automanage_configuration"
+page_title: "Azure Resource Manager: azurerm_automanage_configuration_version"
 description: |-
-  Manages an Automanage Configuration.
+  Manages an Automanage Configuration Profile Version.
 ---
 
-# azurerm_automanage_configuration
+# azurerm_automanage_configuration_version
 
-Manages an Automanage Configuration.
+Manages an Automanage Configuration Profile Version. Any changes to the configuration profile could be supplied as properties in this resource.
 
 ## Example Usage
 
@@ -22,69 +22,15 @@ resource "azurerm_automanage_configuration" "example" {
   name                = "example-acmp"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+}
 
-  antimalware {
-    exclusions {
-      extensions = "exe;dll"
-      paths      = "C:\\Windows\\Temp;D:\\Temp"
-      processes  = "svchost.exe;notepad.exe"
-    }
-
-    real_time_protection_enabled   = true
-    scheduled_scan_enabled         = true
-    scheduled_scan_type            = "Quick"
-    scheduled_scan_day             = 1
-    scheduled_scan_time_in_minutes = 1339
-  }
-
-  azure_security_baseline {
-    assignment_type = "ApplyAndAutoCorrect"
-  }
-
-  automation_account_enabled = true
-
-  backup {
-    policy_name                        = "acctest-backup-policy-%d"
-    time_zone                          = "UTC"
-    instant_rp_retention_range_in_days = 2
-
-    schedule_policy {
-      schedule_run_frequency = "Daily"
-      schedule_run_days      = ["Monday", "Tuesday"]
-      schedule_run_times     = ["12:00"]
-      schedule_policy_type   = "SimpleSchedulePolicy"
-    }
-
-    retention_policy {
-      retention_policy_type = "LongTermRetentionPolicy"
-
-      daily_schedule {
-        retention_times = ["12:00"]
-        retention_duration {
-          count         = 7
-          duration_type = "Days"
-        }
-      }
-
-      weekly_schedule {
-        retention_times = ["14:00"]
-        retention_duration {
-          count         = 4
-          duration_type = "Weeks"
-        }
-      }
-    }
-  }
-
-  boot_diagnostics_enabled    = true
-  defender_for_cloud_enabled  = true
-  guest_configuration_enabled = true
-  log_analytics_enabled       = true
-  status_change_alert_enabled = true
-
-  tags = {
-    "env" = "test"
-  }
+resource "azurerm_automanage_configuration_version" "example" {
+  name                       = "version1"
+  resource_group_name        = azurerm_resource_group.example.name
+  location                   = azurerm_resource_group.example.location
+  configuration_profile_name = azurerm_automanage_configuration.example.name
+  # change the configuration profile to enable boot diagnostics
+  boot_diagnostics_enabled = true
 }
 ```
 
@@ -97,6 +43,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group where the Automanage Configuration should exist. Changing this forces a new Automanage Configuration to be created.
 
 * `location` - (Required) The Azure Region where the Automanage Configuration should exist. Changing this forces a new Automanage Configuration to be created.
+
+* `configuration_profile_name` - (Required) The name of the Automanage Configuration Profile where this version should exist. Changing this forces a new Automanage Configuration to be created.
 
 * `antimalware` - (Optional) A `antimalware` block as defined below.
 
@@ -215,7 +163,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Automanage Configuration.
+* `id` - The ID of the Automanage Configuration Profile Version.
 
 ## Timeouts
 
@@ -228,8 +176,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Automanage Configuration can be imported using the `resource id`, e.g.
+Automanage Configuration Profile Version can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automanage_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1
+terraform import azurerm_automanage_configuration_version.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automanage/configurationProfiles/configurationProfile1/versions/version1
 ```
