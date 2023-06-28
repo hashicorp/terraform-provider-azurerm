@@ -6,14 +6,18 @@ import (
 )
 
 type Client struct {
-	ConfigurationClient *automanage.ConfigurationProfilesClient
+	ConfigurationClient        *automanage.ConfigurationProfilesClient
+	ConfigurationVersionClient *automanage.ConfigurationProfilesVersionsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	configurationProfileClient := automanage.NewConfigurationProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	configurationVersionsClient := automanage.NewConfigurationProfilesVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configurationProfileClient.Client, o.ResourceManagerAuthorizer)
+	o.ConfigureClient(&configurationVersionsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ConfigurationClient: &configurationProfileClient,
+		ConfigurationClient:        &configurationProfileClient,
+		ConfigurationVersionClient: &configurationVersionsClient,
 	}
 }
