@@ -136,31 +136,31 @@ resource "azurerm_kusto_cosmosdb_data_connection" "test" {
 
 The following arguments are supported:
 
-* `cluster_name` - (Required) The name of the Kusto cluster. Changing this forces a new Data Explorer to be created.
+* `cluster_name` - (Required) The name of the Kusto cluster. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-* `cosmosdb_account_id` - (Required) The resource ID of the Cosmos DB account used to create the data connection. Changing this forces a new Data Explorer to be created.
+* `cosmosdb_account_id` - (Required) The resource ID of the Cosmos DB account used to create the data connection. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-* `cosmosdb_container` - (Required) The name of an existing container in the Cosmos DB database. Changing this forces a new Data Explorer to be created.
+* `cosmosdb_container` - (Required) The name of an existing container in the Cosmos DB database. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-* `cosmosdb_database` - (Required) The name of an existing database in the Cosmos DB account. Changing this forces a new Data Explorer to be created.
+* `cosmosdb_database` - (Required) The name of an existing database in the Cosmos DB account. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-* `database_name` - (Required) The name of the database in the Kusto cluster. Changing this forces a new Data Explorer to be created.
+* `database_name` - (Required) The name of the database in the Kusto cluster. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-* `location` - (Required) The Azure Region where the Data Explorer should exist. Changing this forces a new Data Explorer to be created.
+* `location` - (Required) The Azure Region where the Data Explorer should exist. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-* `managed_identity_id` - (Required) The resource ID of a managed system or user-assigned identity. The identity is used to authenticate with Cosmos DB. Changing this forces a new Data Explorer to be created.
+* `managed_identity_id` - (Required) The resource ID of a managed system or user-assigned identity. The identity is used to authenticate with Cosmos DB. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-* `name` - (Required) The name of the data connection. Changing this forces a new Data Explorer to be created.
+* `name` - (Required) The name of the data connection. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Data Explorer should exist. Changing this forces a new Data Explorer to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Data Explorer should exist. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-* `table_name` - (Required) The case-sensitive name of the existing target table in your cluster. Retrieved data is ingested into this table. Changing this forces a new Data Explorer to be created.
+* `table_name` - (Required) The case-sensitive name of the existing target table in your cluster. Retrieved data is ingested into this table. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
 ---
 
-* `mapping_rule_name` - (Optional) The name of an existing mapping rule to use when ingesting the retrieved data.
+* `mapping_rule_name` - (Optional) The name of an existing mapping rule to use when ingesting the retrieved data. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-* `retrieval_start_date` - (Optional) If defined, the data connection retrieves Cosmos DB documents created or updated after the specified retrieval start date.
+* `retrieval_start_date` - (Optional) If defined, the data connection retrieves Cosmos DB documents created or updated after the specified retrieval start date. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
 ## Attributes Reference
 
