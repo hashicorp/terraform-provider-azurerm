@@ -817,15 +817,13 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	}
 
 	// RDB Backup
-	// nolint : staticcheck
-	v, valExists := d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
-	if valExists {
-		if v := raw["rdb_backup_enabled"].(bool); v {
-			if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
-				return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
-			}
+	config := d.GetRawConfig().AsValueMap()["redis_configuration"].AsValueSlice()[0].AsValueMap()
+	if !config["rdb_backup_enabled"].IsNull() {
+		rdbBackupEnabled := d.Get("redis_configuration.0.rdb_backup_enabled").(bool)
+		if rdbBackupEnabled && raw["rdb_storage_connection_string"].(string) == "" {
+			return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
 		}
-		output.RdbBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
+		output.RdbBackupEnabled = utils.String(strconv.FormatBool(rdbBackupEnabled))
 	}
 
 	if v := raw["rdb_backup_frequency"].(int); v > 0 {
@@ -845,10 +843,8 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	}
 
 	// AOF Backup
-	// nolint : staticcheck
-	v, valExists = d.GetOkExists("redis_configuration.0.aof_backup_enabled")
-	if valExists {
-		output.AofBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
+	if !config["aof_backup_enabled"].IsNull() {
+		output.AofBackupEnabled = utils.String(strconv.FormatBool(d.Get("redis_configuration.0.aof_backup_enabled").(bool)))
 	}
 
 	if v := raw["aof_storage_connection_string_0"].(string); v != "" {
