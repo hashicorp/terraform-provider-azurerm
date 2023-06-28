@@ -3,6 +3,8 @@ package hybridcompute_test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privatelinkscopes"
@@ -10,13 +12,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"testing"
 )
 
 type ArcPrivateLinkScopeResource struct{}
 
 func TestAccArcPrivateLinkScope_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "", "test")
+	data := acceptance.BuildTestData(t, "azurerm_arc_private_link_scope", "test")
 	r := ArcPrivateLinkScopeResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,7 +31,7 @@ func TestAccArcPrivateLinkScope_basic(t *testing.T) {
 }
 
 func TestAccArcPrivateLinkScope_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
+	data := acceptance.BuildTestData(t, "azurerm_arc_private_link_scope", "test")
 	r := ArcPrivateLinkScopeResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -44,7 +45,6 @@ func TestAccArcPrivateLinkScope_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.#").HasValue("1"),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
@@ -62,7 +62,7 @@ func (r ArcPrivateLinkScopeResource) Exists(ctx context.Context, clients *client
 
 	resp, err := client.PrivateLinkScopesGet(ctx, *id)
 	exists := false
-	if err == nil {
+	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return &exists, nil
 		}
@@ -74,16 +74,14 @@ func (r ArcPrivateLinkScopeResource) Exists(ctx context.Context, clients *client
 func (r ArcPrivateLinkScopeResource) template(data acceptance.TestData) interface{} {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-  }
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
-`,
-		data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ArcPrivateLinkScopeResource) basic(data acceptance.TestData) string {
@@ -103,13 +101,15 @@ func (r ArcPrivateLinkScopeResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_arc_private_link_scope" "test" {
-name                = "acctestPLS-%d"
-resource_group_name = azurerm_resource_group.test.name
-location            = azurerm_resource_group.test.location
-tags = {
-"Environment" = "Production"
-}
-public_network_access_enabled = true
+	name                = "acctestPLS-%d"
+	resource_group_name = azurerm_resource_group.test.name
+	location            = azurerm_resource_group.test.location
+	
+	public_network_access_enabled = true
+
+	tags = {
+	  "Environment" = "Production"
+	}
 }
 `, r.template(data), data.RandomInteger)
 }

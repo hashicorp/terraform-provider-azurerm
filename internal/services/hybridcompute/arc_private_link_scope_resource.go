@@ -3,6 +3,8 @@ package hybridcompute
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -11,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"time"
 )
 
 type PrivateLinkScopeModel struct {
@@ -80,9 +81,10 @@ func (a ArcPrivateLinkScopeResource) Create() sdk.ResourceFunc {
 			}
 
 			properties := privatelinkscopes.HybridComputePrivateLinkScope{
-				Location: location.Normalize(model.Location),
-				Name:     &model.Name,
-				Tags:     &model.Tags,
+				Location:   location.Normalize(model.Location),
+				Name:       &model.Name,
+				Tags:       &model.Tags,
+				Properties: &privatelinkscopes.HybridComputePrivateLinkScopeProperties{},
 			}
 
 			var publicNetwork privatelinkscopes.PublicNetworkAccessType
@@ -143,6 +145,10 @@ func (a ArcPrivateLinkScopeResource) Update() sdk.ResourceFunc {
 				properties.Properties.PublicNetworkAccess = &publicNetwork
 			}
 
+			if metadata.ResourceData.HasChange("tags") {
+				properties.Tags = &model.Tags
+			}
+
 			if _, err := client.PrivateLinkScopesCreateOrUpdate(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -187,7 +193,7 @@ func (a ArcPrivateLinkScopeResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			return metadata.Encode(state)
+			return metadata.Encode(&state)
 		},
 	}
 }
