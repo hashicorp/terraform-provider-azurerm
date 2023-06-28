@@ -570,7 +570,7 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 		Timeout:      time.Until(timeout),
 
 		// Decommissioning -> Provisioned is known to flip-flop
-		ContinuousTargetOccurence: 2,
+		ContinuousTargetOccurence: 4,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
