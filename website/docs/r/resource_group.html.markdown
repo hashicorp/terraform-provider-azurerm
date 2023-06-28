@@ -33,6 +33,8 @@ The following arguments are supported:
 
 ---
 
+* `managed_by` - (Optional) The ID of the resource or application that manages this Resource Group.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group.
 
 ## Attributes Reference
@@ -45,15 +47,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 90 minutes) Used when creating the Resource Group.
+* `create` - (Defaults to 1 hour and 30 minutes) Used when creating the Resource Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
-* `update` - (Defaults to 90 minutes) Used when updating the Resource Group.
-* `delete` - (Defaults to 90 minutes) Used when deleting the Resource Group.
+* `update` - (Defaults to 1 hour and 30 minutes) Used when updating the Resource Group.
+* `delete` - (Defaults to 1 hour and 30 minutes) Used when deleting the Resource Group.
 
 ## Import
 
 Resource Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_resource_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example
+terraform import azurerm_resource_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1
 ```
