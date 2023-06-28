@@ -38,11 +38,11 @@ func ParseScopedRoleEligibilityScheduleInstanceID(input string) (*ScopedRoleElig
 	id := ScopedRoleEligibilityScheduleInstanceId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.RoleEligibilityScheduleInstanceName, ok = parsed.Parsed["roleEligibilityScheduleInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'roleEligibilityScheduleInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleEligibilityScheduleInstanceName", *parsed)
 	}
 
 	return &id, nil
@@ -61,11 +61,11 @@ func ParseScopedRoleEligibilityScheduleInstanceIDInsensitively(input string) (*S
 	id := ScopedRoleEligibilityScheduleInstanceId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.RoleEligibilityScheduleInstanceName, ok = parsed.Parsed["roleEligibilityScheduleInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'roleEligibilityScheduleInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleEligibilityScheduleInstanceName", *parsed)
 	}
 
 	return &id, nil

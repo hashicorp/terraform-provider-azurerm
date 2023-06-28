@@ -1,6 +1,10 @@
 package roleassignmentschedulerequests
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForPrincipalType() []string {
 		string(PrincipalTypeServicePrincipal),
 		string(PrincipalTypeUser),
 	}
+}
+
+func (s *PrincipalType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrincipalType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePrincipalType(input string) (*PrincipalType, error) {
@@ -68,6 +85,19 @@ func PossibleValuesForRequestType() []string {
 		string(RequestTypeSelfExtend),
 		string(RequestTypeSelfRenew),
 	}
+}
+
+func (s *RequestType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRequestType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRequestType(input string) (*RequestType, error) {
@@ -145,6 +175,19 @@ func PossibleValuesForStatus() []string {
 	}
 }
 
+func (s *Status) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseStatus(input string) (*Status, error) {
 	vals := map[string]Status{
 		"accepted":                    StatusAccepted,
@@ -193,6 +236,19 @@ func PossibleValuesForType() []string {
 		string(TypeAfterDuration),
 		string(TypeNoExpiration),
 	}
+}
+
+func (s *Type) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseType(input string) (*Type, error) {

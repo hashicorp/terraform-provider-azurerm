@@ -9,8 +9,7 @@ import (
 	"time"
 
 	// nolint: staticcheck
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -146,6 +145,7 @@ func (PimActiveRoleAssignmentResource) Attributes() map[string]*pluginsdk.Schema
 	return map[string]*pluginsdk.Schema{
 		"principal_type": {
 			Type:        pluginsdk.TypeString,
+			Computed:    true,
 			Description: "The type of principal.",
 		},
 	}
@@ -592,9 +592,7 @@ func createActiveRoleAssignment(ctx context.Context, client *roleassignmentsched
 		// Retry deletes while that error exists.
 		result, err := client.Create(ctx, id, *payload)
 		if err != nil {
-			detail := err.(autorest.DetailedError)
-			r := detail.Original.(*azure.RequestError)
-			if r.ServiceError.Code == "SubjectNotFound" {
+			if *result.OData.Error.Code == "SubjectNotFound" {
 				return nil, "Exist", nil
 			}
 
@@ -644,13 +642,11 @@ func deleteActiveRoleAssignment(ctx context.Context, client *roleassignmentsched
 		// Retry deletes while that error exists.
 		result, err := client.Create(ctx, id, *payload)
 		if err != nil {
-			detail := err.(autorest.DetailedError)
-			r := detail.Original.(*azure.RequestError)
-			if r.ServiceError.Code == "ActiveDurationTooShort" {
+			if *result.OData.Error.Code == "ActiveDurationTooShort" {
 				return nil, "Exist", nil
 			}
 
-			if r.ServiceError.Code == "RoleAssignmentDoesNotExist" {
+			if *result.OData.Error.Code == "RoleAssignmentDoesNotExist" {
 				return nil, "Deleted", nil
 			}
 
