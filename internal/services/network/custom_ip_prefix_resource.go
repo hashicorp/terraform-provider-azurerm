@@ -568,6 +568,9 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 		Refresh:      r.commissionedStateRefreshFunc(ctx, id),
 		PollInterval: 5 * time.Minute,
 		Timeout:      time.Until(timeout),
+
+		// Decommissioning -> Provisioned is known to flip-flop
+		ContinuousTargetOccurence: 2,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
