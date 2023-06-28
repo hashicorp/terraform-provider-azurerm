@@ -32,8 +32,13 @@ resource "azurerm_network_manager" "example" {
   description    = "example network manager"
 }
 
-data "azurerm_network_manager_network_group" "example" {
+resource "azurerm_network_manager_network_group" "example" {
   name               = "example-group"
+  network_manager_id = azurerm_network_manager.example.id
+}
+
+data "azurerm_network_manager_network_group" "example" {
+  name               = azurerm_network_manager_network_group.example.name
   network_manager_id = azurerm_network_manager.example.id
 }
 ```
@@ -42,7 +47,7 @@ data "azurerm_network_manager_network_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Network Manager Network Group.
+* `name` - (Required) Specifies the name of the Network Manager Network Group.
 
 * `network_manager_id` - (Required) Specifies the ID of the Network Manager.
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -89,7 +90,7 @@ func (r ManagerNetworkGroupDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if properties.Description != nil {
-				state.Description = *properties.Description
+				state.Description = pointer.From(properties.Description)
 			}
 
 			metadata.SetID(id)
