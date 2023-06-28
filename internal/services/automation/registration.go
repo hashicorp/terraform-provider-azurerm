@@ -11,7 +11,9 @@ var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		AutomationVariablesDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
@@ -49,7 +51,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_automation_variable_datetime": dataSourceAutomationVariableDateTime(),
 		"azurerm_automation_variable_int":      dataSourceAutomationVariableInt(),
 		"azurerm_automation_variable_string":   dataSourceAutomationVariableString(),
-		"azurerm_automation_variables":         dataSourceAutomationVariables(),
 	}
 }
 
