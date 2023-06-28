@@ -1,11 +1,14 @@
 ## 3.63.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_network_manager_network_group` [GH-22277]
+
 BREAKING CHANGES:
 * `azurerm_linux_web_app` - the `win32_status` property of the `status_code` block in `auto_heal` has changed from `string` to `int`.  [GH-22003]
 * `azurerm_linux_web_app_slot` -the `win32_status` property of the `status_code` block in `auto_heal` has changed from `string` to `int`.  [GH-22003]
 * `azurerm_windows_web_app` - the `win32_status` property of the `status_code` block in `auto_heal` has changed from `string` to `int`.  [GH-22003]
 * `azurerm_windows_web_app_slot` - the `win32_status` property of the `status_code` block in `auto_heal` has changed from `string` to `int`.  [GH-22003]
-
 
 ENHANCEMENTS:
 
@@ -18,13 +21,17 @@ ENHANCEMENTS:
 * `azurerm_container_app` - Support for both system and user assigned identities at the same time [GH-21149]
 * `azurerm_key_vault_managed_hardware_security_module` - support for activating an HSM through `security_domain_key_vault_certificate_ids` [GH-22162]
 * `azurerm_kubernetes_cluster` - add support for the `custom_ca_trust_certificates_base64` property [GH-22032]
+* `azurerm_kubernetes_cluster` - add support for the `maintenance_window_auto_upgrade` block [GH-21760]
+* `azurerm_kubernetes_cluster` - add support for the `maintenance_window_node_os` block [GH-21760]
 * `azurerm_monitor_aad_diagnostic_setting` - deprecate log in favour of enabled_log [GH-21390]
+* `azurerm_resource_group` - add support for `managed_by` field [GH-22012]
 
 BUG FIXES:
 
 * `azurerm_automation_schedule` - prevent diffs for `expiry_time` when it hasn't been set in the user's configuration [GH-21886]
 * `azurerm_frontdoor` - throw an error if the resource cannot be found during an update [GH-21975]
 * `azurerm_image` - set `os_disk.size_gb` to `ForceNew` [GH-22272]
+* `azurerm_kubernetes_cluster` - fix validation for `node_os_channel_upgrade` block [GH-22284]
 * `azurerm_linux_virtual_machine` - throw an error if the resource cannot be found during an update [GH-21975]
 * `azurerm_linux_web_app` - deprecated `docker_image` and `docker_image_tag` in favour of `docker_image_name`, `docker_registry_url`, `docker_registry_username`, and `docker_registry_password`. These settings now manage the respective `app_settings` values of the same name. [GH-22003]
 * `azurerm_linux_web_app_slot` - deprecated `docker_image` and `docker_image_tag` in favour of `docker_image_name`, `docker_registry_url`, `docker_registry_username`, and `docker_registry_password`. These settings now manage the respective `app_settings` values of the same name.  [GH-22003]
