@@ -185,9 +185,9 @@ resource "azurerm_spring_cloud_gateway" "test" {
   application_performance_monitoring_types = ["ApplicationInsights", "NewRelic"]
 
   addon_json = jsonencode({
-	api = {
-	  groupId = "test1"
-	}
+    api = {
+      groupId = "test1"
+    }
   })
 
   api_metadata {
@@ -199,13 +199,13 @@ resource "azurerm_spring_cloud_gateway" "test" {
   }
 
   cors {
-    credentials_allowed = false
-    allowed_headers     = ["*"]
-    allowed_methods     = ["PUT"]
-    allowed_origins     = ["test.com"]
+    credentials_allowed     = false
+    allowed_headers         = ["*"]
+    allowed_methods         = ["PUT"]
+    allowed_origins         = ["test.com"]
     allowed_origin_patterns = ["test*.com"]
-    exposed_headers     = ["x-test-header"]
-    max_age_seconds     = 86400
+    exposed_headers         = ["x-test-header"]
+    max_age_seconds         = 86400
   }
 
   environment_variables = {
