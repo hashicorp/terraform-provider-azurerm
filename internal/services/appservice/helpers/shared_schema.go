@@ -272,7 +272,7 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 				"allowed_origins": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
-					//MinItems: 1,
+					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},

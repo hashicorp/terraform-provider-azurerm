@@ -1607,6 +1607,7 @@ resource "azurerm_linux_web_app" "test" {
     worker_count                = 1
     minimum_tls_version         = "1.1"
     scm_minimum_tls_version     = "1.1"
+
     cors {
       allowed_origins = [
         "http://www.contoso.com",
@@ -1776,14 +1777,13 @@ resource "azurerm_linux_web_app" "test" {
     worker_count                      = 2
     minimum_tls_version               = "1.2"
     scm_minimum_tls_version           = "1.2"
+
     cors {
       allowed_origins = [
         "http://www.contoso.com",
         "www.contoso.com",
         "contoso.com",
       ]
-
-      support_credentials = true
     }
 
     container_registry_use_managed_identity = true
