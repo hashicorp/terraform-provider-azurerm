@@ -861,6 +861,7 @@ github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securit
 github.com/tombuildsstuff/kermit/sdk/synapse/2019-06-01-preview/synapse
 github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse
 github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse
+github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web
 github.com/tombuildsstuff/kermit/version
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
