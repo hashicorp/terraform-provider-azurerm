@@ -54,6 +54,7 @@ type LinuxFunctionAppModel struct {
 	ForceDisableContentShare    bool                                 `tfschema:"content_share_force_disabled"`
 	HttpsOnly                   bool                                 `tfschema:"https_only"`
 	KeyVaultReferenceIdentityID string                               `tfschema:"key_vault_reference_identity_id"`
+	PublicNetworkAccess         bool                                 `tfschema:"public_network_access_enabled"`
 	SiteConfig                  []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	StorageAccounts             []helpers.StorageAccount             `tfschema:"storage_account"`
 	Tags                        map[string]string                    `tfschema:"tags"`
@@ -250,6 +251,12 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			Description:  "The User Assigned Identity to use for Key Vault access.",
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionApp(),
@@ -495,6 +502,15 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pan := helpers.PublicNetworkAccessEnabled
+				if !functionApp.PublicNetworkAccess {
+					pan = helpers.PublicNetworkAccessDisabled
+				}
+
+				siteEnvelope.PublicNetworkAccess = pointer.To(pan)
+			}
+
 			if functionApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionApp.KeyVaultReferenceIdentityID)
 			}
@@ -689,6 +705,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
+				PublicNetworkAccess:         !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
@@ -973,6 +990,14 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pan := helpers.PublicNetworkAccessEnabled
+				if !state.PublicNetworkAccess {
+					pan = helpers.PublicNetworkAccessDisabled
+				}
+				existing.PublicNetworkAccess = pointer.To(pan)
+			}
 
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, existing)
 			if err != nil {
