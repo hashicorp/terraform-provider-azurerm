@@ -3,12 +3,12 @@ subcategory: "Mobile Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mobile_network_attached_data_network"
 description: |-
-  Manages a Mobile Network Attached Data Network.
+  Gets information about an existing Mobile Network Attached Data Network.
 ---
 
 # azurerm_mobile_network_attached_data_network
 
-Manages a Mobile Network Attached Data Network.
+Use this data source to access information about an existing Mobile Network Attached Data Network.
 
 ## Example Usage
 
@@ -18,8 +18,8 @@ data "azurerm_mobile_network_packet_core_control_plane" "example" {
   resource_group_name = "example-rg"
 }
 
-resource "azurerm_mobile_network_attached_data_network" "example" {
-  name                                     = "example-data-network"
+data "azurerm_mobile_network_attached_data_network" "example" {
+  mobile_network_data_network_name         = data.azurerm_mobile_network_packet_core_control_plane.example.name
   mobile_network_packet_core_data_plane_id = data.azurerm_mobile_network_packet_core_control_plane.example.id
 }
 ```
@@ -28,9 +28,9 @@ resource "azurerm_mobile_network_attached_data_network" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Mobile Network Attached Data Network. Must be as same as `azurerm_mobile_network_data_network`, Changing this forces a new Mobile Network Attached Data Network to be created.
+* `mobile_network_data_network_name` - The Name of the `azurerm_mobile_network_data_network` this resource belongs to.
 
-* `mobile_network_packet_core_data_plane_id` - (Required) Specifies the ID of the Mobile Network Attached Data Network. Changing this forces a new Mobile Network Attached Data Network to be created.
+* `mobile_network_packet_core_data_plane_id` - The ID of the `azurerm_mobile_network_packet_core_data_plane` which the Mobile Network Attached Data Network belongs to.
 
 ## Attributes Reference
 
@@ -64,8 +64,6 @@ A `network_address_port_translation` block supports the following:
 
 * `pinhole_limits` - Maximum number of UDP and TCP pinholes that can be open simultaneously on the core interface. For 5G networks, this is the N6 interface. For 4G networks, this is the SGi interface.
 
-* `pinhole_timeouts_in_seconds` - A `pinhole_timeouts_in_seconds` block as defined below.
-
 * `icmp_pinhole_timeouts_in_seconds` - Pinhole timeout for ICMP pinholes in seconds. 
 
 * `tcp_pinhole_timeouts_in_seconds` - Pinhole timeout for TCP pinholes in seconds.
@@ -73,8 +71,6 @@ A `network_address_port_translation` block supports the following:
 * `udp_pinhole_timeouts_in_seconds` - Pinhole timeout for UDP pinholes in seconds.
 
 * `port_range` - A `port_range` block as defined below.
-
-* `port_reuse_minimum_hold_time_in_seconds` - A `port_reuse_minimum_hold_time_in_seconds` block as defined below.
 
 * `tcp_port_reuse_minimum_hold_time_in_seconds` - Minimum time in seconds that will pass before a TCP port that was used by a closed pinhole can be reused.
 
@@ -84,19 +80,12 @@ A `network_address_port_translation` block supports the following:
 
 A `port_range` block supports the following:
 
-* `max_port` - The maximum port number.
+* `maximum` - The maximum port number.
 
-* `min_port` - The minimum port number.
+* `minimum` - The minimum port number.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating the Mobile Network Attached Data Network.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Attached Data Network.
-* `update` - (Defaults to 180 minutes) Used when updating the Mobile Network Attached Data Network.
-* `delete` - (Defaults to 180 minutes) Used when deleting the Mobile Network Attached Data Network.
-
-## Import
-
-Mobile Network Attached Data Network can be imported using the `resource id`, e.g.

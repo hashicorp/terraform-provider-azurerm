@@ -49,7 +49,7 @@ func TestAccMobileNetworkAttachedDataNetwork_requiresImport(t *testing.T) {
 	r := MobileNetworkAttachedDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -163,24 +163,22 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
 }
 
 func (r MobileNetworkAttachedDataNetworkResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+	config := r.complete(data)
 	return fmt.Sprintf(`
 			%s
 
 resource "azurerm_mobile_network_attached_data_network" "import" {
-  mobile_network_data_network_name         = azurerm_mobile_network_data_network.test.name
-  mobile_network_packet_core_data_plane_id = azurerm_mobile_network_packet_core_data_plane.test.id
-  location                                 = "%s"
+  mobile_network_data_network_name         = azurerm_mobile_network_attached_data_network.test.mobile_network_data_network_name
+  mobile_network_packet_core_data_plane_id = azurerm_mobile_network_attached_data_network.test.mobile_network_packet_core_data_plane_id
+  location                                 = azurerm_mobile_network_attached_data_network.test.location
   dns_addresses                            = azurerm_mobile_network_attached_data_network.test.dns_addresses
-  user_equipment_address_pool_prefixes     = ["2.4.0.0/16"]
-  user_plane_access_name                   = "test"
-  user_plane_access_ipv4_address           = "10.204.141.4"
-  user_plane_access_ipv4_gateway           = "10.204.141.1"
-  user_plane_access_ipv4_subnet            = "10.204.141.0/24"
-
-  depends_on = [azurerm_mobile_network_data_network.test]
+  user_equipment_address_pool_prefixes     = azurerm_mobile_network_attached_data_network.test.user_equipment_address_pool_prefixes
+  user_plane_access_name                   = azurerm_mobile_network_attached_data_network.test.user_plane_access_name
+  user_plane_access_ipv4_address           = azurerm_mobile_network_attached_data_network.test.user_plane_access_ipv4_address
+  user_plane_access_ipv4_gateway           = azurerm_mobile_network_attached_data_network.test.user_plane_access_ipv4_gateway
+  user_plane_access_ipv4_subnet            = azurerm_mobile_network_attached_data_network.test.user_plane_access_ipv4_subnet
 }
-`, config, data.Locations.Primary)
+`, config)
 }
 
 func (r MobileNetworkAttachedDataNetworkResource) complete(data acceptance.TestData) string {
@@ -208,8 +206,8 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
     udp_port_reuse_minimum_hold_time_in_seconds = 60
 
     port_range {
-      max_port = 49999
-      min_port = 1024
+      maximum = 49999
+      minimum = 1024
     }
   }
 
@@ -217,7 +215,6 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
     key = "value"
   }
 
-  depends_on = [azurerm_mobile_network_data_network.test]
 
 }
 `, r.template(data), data.Locations.Primary)
@@ -248,8 +245,8 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
     udp_port_reuse_minimum_hold_time_in_seconds = 60
 
     port_range {
-      max_port = 49999
-      min_port = 1024
+      maximum = 49999
+      minimum = 1024
     }
   }
 
@@ -257,7 +254,6 @@ resource "azurerm_mobile_network_attached_data_network" "test" {
     key = "value"
   }
 
-  depends_on = [azurerm_mobile_network_data_network.test]
 
 }
 `, r.template(data), data.Locations.Primary)

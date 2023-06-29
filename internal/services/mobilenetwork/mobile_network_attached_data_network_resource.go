@@ -45,8 +45,8 @@ type NaptConfigurationModel struct {
 }
 
 type PortRangeModel struct {
-	MaxPort int64 `tfschema:"max_port"`
-	MinPort int64 `tfschema:"min_port"`
+	Maximum int64 `tfschema:"maximum"`
+	Minimum int64 `tfschema:"minimum"`
 }
 
 type AttachedDataNetworkResource struct{}
@@ -132,14 +132,14 @@ func (r AttachedDataNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"max_port": {
+								"maximum": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Default:      49999,
 									ValidateFunc: validation.IntBetween(1024, 65535),
 								},
 
-								"min_port": {
+								"minimum": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Default:      1024,
@@ -249,12 +249,12 @@ func (r AttachedDataNetworkResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			attachedDataNetwork := &attacheddatanetwork.AttachedDataNetwork{
+			attachedDataNetwork := attacheddatanetwork.AttachedDataNetwork{
 				Location: location.Normalize(model.Location),
 				Properties: attacheddatanetwork.AttachedDataNetworkPropertiesFormat{
 					DnsAddresses:           model.DnsAddresses,
 					UserPlaneDataInterface: attacheddatanetwork.InterfaceProperties{},
-					NaptConfiguration:      expandNaptConfigurationModel(model.NaptConfiguration),
+					NaptConfiguration:      expandNaptConfiguration(model.NaptConfiguration),
 				},
 				Tags: tags.Expand(model.Tags),
 			}
@@ -285,7 +285,7 @@ func (r AttachedDataNetworkResource) Create() sdk.ResourceFunc {
 				attachedDataNetwork.Properties.UserPlaneDataInterface.IPv4Gateway = &model.UserPlaneAccessIPv4Gateway
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *attachedDataNetwork); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, attachedDataNetwork); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -316,17 +316,18 @@ func (r AttachedDataNetworkResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			attachedDataNetwork := resp.Model
-			if attachedDataNetwork == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: Model was nil", id)
 			}
+
+			attachedDataNetwork := *resp.Model
 
 			if metadata.ResourceData.HasChange("dns_addresses") {
 				attachedDataNetwork.Properties.DnsAddresses = plan.DnsAddresses
 			}
 
 			if metadata.ResourceData.HasChange("network_address_port_translation") {
-				attachedDataNetwork.Properties.NaptConfiguration = expandNaptConfigurationModel(plan.NaptConfiguration)
+				attachedDataNetwork.Properties.NaptConfiguration = expandNaptConfiguration(plan.NaptConfiguration)
 			}
 
 			if metadata.ResourceData.HasChange("user_equipment_address_pool_prefixes") {
@@ -380,14 +381,11 @@ func (r AttachedDataNetworkResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				if len(plan.Tags) > 0 {
-					attachedDataNetwork.Tags = tags.Expand(plan.Tags)
-				} else {
-					attachedDataNetwork = nil
-				}
+				// pass empty array instead of nil to remove all tags
+				attachedDataNetwork.Tags = tags.Expand(plan.Tags)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *attachedDataNetwork); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, attachedDataNetwork); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -426,7 +424,7 @@ func (r AttachedDataNetworkResource) Read() sdk.ResourceFunc {
 
 				state.Location = location.Normalize(model.Location)
 				state.DnsAddresses = props.DnsAddresses
-				state.NaptConfiguration = flattenNaptConfigurationModel(props.NaptConfiguration)
+				state.NaptConfiguration = flattenNaptConfiguration(props.NaptConfiguration)
 				state.UserEquipmentAddressPoolPrefix = pointer.From(props.UserEquipmentAddressPoolPrefix)
 				state.UserEquipmentStaticAddressPoolPrefix = pointer.From(props.UserEquipmentStaticAddressPoolPrefix)
 				state.UserPlaneAccessIPv4Address = pointer.From(props.UserPlaneDataInterface.IPv4Address)
@@ -468,12 +466,12 @@ func (r AttachedDataNetworkResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandNaptConfigurationModel(inputList []NaptConfigurationModel) *attacheddatanetwork.NaptConfiguration {
+func expandNaptConfiguration(inputList []NaptConfigurationModel) *attacheddatanetwork.NaptConfiguration {
 	if len(inputList) == 0 {
 		return nil
 	}
 
-	input := &inputList[0]
+	input := inputList[0]
 	output := attacheddatanetwork.NaptConfiguration{
 		PinholeLimits: &input.PinholeLimits,
 	}
@@ -486,7 +484,7 @@ func expandNaptConfigurationModel(inputList []NaptConfigurationModel) *attachedd
 		Udp:  &input.UdpPinholeTimeout,
 	}
 
-	output.PortRange = expandPortRangeModel(input.PortRange)
+	output.PortRange = expandPortRange(input.PortRange)
 
 	output.PortReuseHoldTime = &attacheddatanetwork.PortReuseHoldTimes{
 		Tcp: &input.TcpReuseMinimumHoldTime,
@@ -496,21 +494,21 @@ func expandNaptConfigurationModel(inputList []NaptConfigurationModel) *attachedd
 	return &output
 }
 
-func expandPortRangeModel(inputList []PortRangeModel) *attacheddatanetwork.PortRange {
+func expandPortRange(inputList []PortRangeModel) *attacheddatanetwork.PortRange {
 	if len(inputList) == 0 {
 		return nil
 	}
 
 	input := &inputList[0]
 	output := attacheddatanetwork.PortRange{
-		MaxPort: &input.MaxPort,
-		MinPort: &input.MinPort,
+		MaxPort: &input.Maximum,
+		MinPort: &input.Minimum,
 	}
 
 	return &output
 }
 
-func flattenNaptConfigurationModel(input *attacheddatanetwork.NaptConfiguration) []NaptConfigurationModel {
+func flattenNaptConfiguration(input *attacheddatanetwork.NaptConfiguration) []NaptConfigurationModel {
 	if input == nil {
 		return []NaptConfigurationModel{}
 	}
@@ -524,7 +522,7 @@ func flattenNaptConfigurationModel(input *attacheddatanetwork.NaptConfiguration)
 		output.UdpPinholeTimeout = pointer.From(input.PinholeTimeouts.Udp)
 	}
 
-	output.PortRange = flattenPortRangeModel(input.PortRange)
+	output.PortRange = flattenPortRange(input.PortRange)
 
 	if input.PortReuseHoldTime != nil {
 		output.TcpReuseMinimumHoldTime = pointer.From(input.PortReuseHoldTime.Tcp)
@@ -534,16 +532,16 @@ func flattenNaptConfigurationModel(input *attacheddatanetwork.NaptConfiguration)
 	return []NaptConfigurationModel{output}
 }
 
-func flattenPortRangeModel(input *attacheddatanetwork.PortRange) []PortRangeModel {
+func flattenPortRange(input *attacheddatanetwork.PortRange) []PortRangeModel {
 	if input == nil {
 		return []PortRangeModel{}
 	}
 
 	output := PortRangeModel{}
 
-	output.MaxPort = pointer.From(input.MaxPort)
+	output.Maximum = pointer.From(input.MaxPort)
 
-	output.MinPort = pointer.From(input.MinPort)
+	output.Minimum = pointer.From(input.MinPort)
 
 	return []PortRangeModel{output}
 }

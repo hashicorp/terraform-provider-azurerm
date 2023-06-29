@@ -68,7 +68,7 @@ resource "azurerm_mobile_network_data_network" "example" {
 }
 
 resource "azurerm_mobile_network_attached_data_network" "example" {
-  name                                        = "example-data-network"
+  mobile_network_data_network_name            = azurerm_mobile_network_data_network.example.name
   mobile_network_packet_core_data_plane_id    = azurerm_mobile_network_packet_core_data_plane.example.id
   location                                    = azurerm_resource_group.example.location
   dns_addresses                               = ["1.1.1.1"]
@@ -86,8 +86,8 @@ resource "azurerm_mobile_network_attached_data_network" "example" {
     udp_pinhole_timeout_in_seconds  = 39
 
     port_range {
-      max_port = 49999
-      min_port = 1024
+      maximum = 49999
+      minimum = 1024
     }
     tcp_port_reuse_minimum_hold_time_in_seconds     = 120
     udp_tcp_port_reuse_minimum_hold_time_in_seconds = 60
@@ -98,8 +98,6 @@ resource "azurerm_mobile_network_attached_data_network" "example" {
     key = "value"
   }
 
-  depends_on = [azurerm_mobile_network_data_network.example]
-
 }
 ```
 
@@ -107,9 +105,9 @@ resource "azurerm_mobile_network_attached_data_network" "example" {
 
 The following arguments are supported:
 
-* `mobile_network_data_network_name` - (Required) Specifies the `name` of `azurerm_mobile_network_data_network`, Changing this forces a new Mobile Network Attached Data Network to be created.
+* `mobile_network_data_network_name` - (Required) Specifies the name of the `azurerm_mobile_network_data_network` which the Attached Data Network belongs to, Changing this forces a new Mobile Network Attached Data Network to be created.
 
-* `mobile_network_packet_core_data_plane_id` - (Required) Specifies the ID of the Mobile Network Attached Data Network. Changing this forces a new Mobile Network Attached Data Network to be created.
+* `mobile_network_packet_core_data_plane_id` - (Required) Specifies the ID of the `azurerm_mobile_network_packet_core_data_plane` which the Mobile Network Attached Data Network belongs to. Changing this forces a new Mobile Network Attached Data Network to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network Attached Data Network should exist. Changing this forces a new Mobile Network Attached Data Network to be created.
 
@@ -155,9 +153,9 @@ A `network_address_port_translation` block supports the following:
 
 A `port_range` block supports the following:
 
-* `max_port` - (Optional) Specifies the maximum port number.
+* `maximum` - (Optional) Specifies the maximum port number.
 
-* `min_port` - (Optional) Specifies the minimum port number.
+* `minimum` - (Optional) Specifies the minimum port number.
 
 ## Attributes Reference
 

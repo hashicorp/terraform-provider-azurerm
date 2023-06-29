@@ -19,6 +19,36 @@ import (
 
 type AttachedDataNetworkDataSource struct{}
 
+type AttachedDataNetworkDataSourceModel struct {
+	MobileNetworkDataNetworkName         string                             `tfschema:"mobile_network_data_network_name"`
+	MobileNetworkPacketCoreDataPlaneId   string                             `tfschema:"mobile_network_packet_core_data_plane_id"`
+	DnsAddresses                         []string                           `tfschema:"dns_addresses"`
+	Location                             string                             `tfschema:"location"`
+	NaptConfiguration                    []NaptConfigurationDataSourceModel `tfschema:"network_address_port_translation"`
+	Tags                                 map[string]interface{}             `tfschema:"tags"`
+	UserEquipmentAddressPoolPrefix       []string                           `tfschema:"user_equipment_address_pool_prefixes"`
+	UserEquipmentStaticAddressPoolPrefix []string                           `tfschema:"user_equipment_static_address_pool_prefixes"`
+	UserPlaneAccessIPv4Address           string                             `tfschema:"user_plane_access_ipv4_address"`
+	UserPlaneAccessIPv4Gateway           string                             `tfschema:"user_plane_access_ipv4_gateway"`
+	UserPlaneAccessIPv4Subnet            string                             `tfschema:"user_plane_access_ipv4_subnet"`
+	UserPlaneAccessName                  string                             `tfschema:"user_plane_access_name"`
+}
+
+type NaptConfigurationDataSourceModel struct {
+	PinholeLimits           int64                      `tfschema:"pinhole_maximum_number"`
+	IcmpPinholeTimeout      int64                      `tfschema:"icmp_pinhole_timeout_in_seconds"`
+	TcpPinholeTimeout       int64                      `tfschema:"tcp_pinhole_timeout_in_seconds"`
+	UdpPinholeTimeout       int64                      `tfschema:"udp_pinhole_timeout_in_seconds"`
+	PortRange               []PortRangeDataSourceModel `tfschema:"port_range"`
+	TcpReuseMinimumHoldTime int64                      `tfschema:"tcp_port_reuse_minimum_hold_time_in_seconds"`
+	UdpReuseMinimumHoldTime int64                      `tfschema:"udp_port_reuse_minimum_hold_time_in_seconds"`
+}
+
+type PortRangeDataSourceModel struct {
+	Maximum int64 `tfschema:"maximum"`
+	Minimum int64 `tfschema:"minimum"`
+}
+
 var _ sdk.DataSource = AttachedDataNetworkDataSource{}
 
 func (r AttachedDataNetworkDataSource) ResourceType() string {
@@ -26,7 +56,7 @@ func (r AttachedDataNetworkDataSource) ResourceType() string {
 }
 
 func (r AttachedDataNetworkDataSource) ModelObject() interface{} {
-	return &AttachedDataNetworkModel{}
+	return &AttachedDataNetworkDataSourceModel{}
 }
 
 func (r AttachedDataNetworkDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -92,12 +122,12 @@ func (r AttachedDataNetworkDataSource) Attributes() map[string]*pluginsdk.Schema
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"max_port": {
+								"maximum": {
 									Type:     pluginsdk.TypeInt,
 									Computed: true,
 								},
 
-								"min_port": {
+								"minimum": {
 									Type:     pluginsdk.TypeInt,
 									Computed: true,
 								},
@@ -188,7 +218,7 @@ func (r AttachedDataNetworkDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := AttachedDataNetworkModel{
+			state := AttachedDataNetworkDataSourceModel{
 				MobileNetworkDataNetworkName:       id.AttachedDataNetworkName,
 				MobileNetworkPacketCoreDataPlaneId: packetcoredataplane.NewPacketCoreDataPlaneID(id.SubscriptionId, id.ResourceGroupName, id.PacketCoreControlPlaneName, id.PacketCoreDataPlaneName).ID(),
 			}
@@ -198,7 +228,7 @@ func (r AttachedDataNetworkDataSource) Read() sdk.ResourceFunc {
 
 				state.Location = location.Normalize(model.Location)
 				state.DnsAddresses = props.DnsAddresses
-				state.NaptConfiguration = flattenNaptConfigurationModel(props.NaptConfiguration)
+				state.NaptConfiguration = flattenDataSourceNaptConfiguration(props.NaptConfiguration)
 				state.UserEquipmentAddressPoolPrefix = pointer.From(props.UserEquipmentAddressPoolPrefix)
 				state.UserEquipmentStaticAddressPoolPrefix = pointer.From(props.UserEquipmentStaticAddressPoolPrefix)
 				state.UserPlaneAccessIPv4Address = pointer.From(props.UserPlaneDataInterface.IPv4Address)
@@ -213,4 +243,42 @@ func (r AttachedDataNetworkDataSource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
+}
+
+func flattenDataSourceNaptConfiguration(input *attacheddatanetwork.NaptConfiguration) []NaptConfigurationDataSourceModel {
+	if input == nil {
+		return []NaptConfigurationDataSourceModel{}
+	}
+	output := NaptConfigurationDataSourceModel{}
+
+	output.PinholeLimits = pointer.From(input.PinholeLimits)
+
+	if input.PinholeTimeouts != nil {
+		output.IcmpPinholeTimeout = pointer.From(input.PinholeTimeouts.Icmp)
+		output.TcpPinholeTimeout = pointer.From(input.PinholeTimeouts.Tcp)
+		output.UdpPinholeTimeout = pointer.From(input.PinholeTimeouts.Udp)
+	}
+
+	output.PortRange = flattenDataSourcePortRange(input.PortRange)
+
+	if input.PortReuseHoldTime != nil {
+		output.TcpReuseMinimumHoldTime = pointer.From(input.PortReuseHoldTime.Tcp)
+		output.UdpReuseMinimumHoldTime = pointer.From(input.PortReuseHoldTime.Udp)
+	}
+
+	return []NaptConfigurationDataSourceModel{output}
+}
+
+func flattenDataSourcePortRange(input *attacheddatanetwork.PortRange) []PortRangeDataSourceModel {
+	if input == nil {
+		return []PortRangeDataSourceModel{}
+	}
+
+	output := PortRangeDataSourceModel{}
+
+	output.Maximum = pointer.From(input.MaxPort)
+
+	output.Minimum = pointer.From(input.MinPort)
+
+	return []PortRangeDataSourceModel{output}
 }
