@@ -249,6 +249,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `upgrade_settings` - (Optional) An `upgrade_settings` block as defined below.
+
 * `web_app_routing` - (Optional) A `web_app_routing` block as defined below.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
@@ -858,6 +860,13 @@ A `sysctl_config` block supports the following:
 * `vm_swappiness` - (Optional) The sysctl setting vm.swappiness. Must be between `0` and `100`. Changing this forces a new resource to be created.
 
 * `vm_vfs_cache_pressure` - (Optional) The sysctl setting vm.vfs_cache_pressure. Must be between `0` and `100`. Changing this forces a new resource to be created.
+
+---
+
+An `upgrade_settings` block supports the following:
+
+* `controle_plane_upgrade_overrides` - (Required) The list of upgrade overrides to apply on the AKS control plane.  Only `IgnoreKubernetesDeprecations` is supported.
+* `until` - (Required) Time in the future at which the override will stop being in effect. Must be an RFC3339 compatible string (e.g. `2025-01-25T14:26:04Z`)
 
 ---
 

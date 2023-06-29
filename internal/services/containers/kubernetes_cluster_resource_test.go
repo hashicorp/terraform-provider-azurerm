@@ -265,6 +265,20 @@ func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_upgradeControlePlaneSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeSettings(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterResource) hostEncryption(data acceptance.TestData, controlPlaneVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -737,4 +751,39 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
+}
+
+func (KubernetesClusterResource) upgradeSettings(data acceptance.TestData, controlPlaneVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kubernetes_version  = %q
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  upgrade_settings {
+    controle_plane_upgrade_overrides = ["IgnoreKubernetesDeprecations"]
+    until                            = "3023-06-30T12:00:00Z" 
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, controlPlaneVersion)
 }

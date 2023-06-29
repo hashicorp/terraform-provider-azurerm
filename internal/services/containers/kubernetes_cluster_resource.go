@@ -1384,6 +1384,30 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
+			"upgrade_settings": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"control_plane_upgrade_overrides": {
+							Type:         pluginsdk.TypeSet,
+							Computed:     true,
+							Required:     true,
+							MinItems:     1,
+							ValidateFunc: validation.StringInSlice([]string{"IgnoreKubernetesDeprecations"}, false),
+						},
+						"until": {
+							Type:         pluginsdk.TypeString,
+							Computed:     true,
+							Required:     true,
+							ValidateFunc: validation.IsRFC3339Time,
+						},
+					},
+				},
+			},
+
 			"windows_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1723,6 +1747,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	kubernetesClusterIdentityRaw := d.Get("kubelet_identity").([]interface{})
 	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
+	kubernetesClusterUpgradeSettings := d.Get("upgrade_settings").([]interface{})
 
 	if len(managedClusterIdentityRaw) == 0 && len(servicePrincipalProfileRaw) == 0 {
 		return fmt.Errorf("either an `identity` or `service_principal` block must be specified for cluster authentication")
@@ -1740,6 +1765,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	if len(kubernetesClusterIdentityRaw) > 0 {
 		parameters.Properties.IdentityProfile = expandKubernetesClusterIdentityProfile(kubernetesClusterIdentityRaw)
+	}
+
+	if len(kubernetesClusterUpgradeSettings) > 0 {
+		parameters.Properties.UpgradeSettings = expandKubernetesClusterUpgradeSettings(kubernetesClusterUpgradeSettings)
 	}
 
 	servicePrincipalSet := false
@@ -2270,6 +2299,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
 	}
 
+	if d.HasChange("upgrade_settings") {
+		updateCluster = true
+		existing.Model.Properties.UpgradeSettings = expandKubernetesClusterUpgradeSettings(d.Get("upgrade_settings").([]interface{}))
+	}
+
 	if updateCluster {
 		// If Defender was explicitly disabled in a prior update then we should strip SecurityProfile.AzureDefender from the request
 		// body to prevent errors in cases where Defender is disabled for the entire subscription
@@ -2765,6 +2799,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
 			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
 				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
+			}
+
+			kubernetesClusterUpgradeSettings := flattenKubernetesClusterUpgradeSettings(props.UpgradeSettings)
+			if err := d.Set("upgrade_settings", kubernetesClusterUpgradeSettings); err != nil {
+				return fmt.Errorf("setting `upgrade_settings`: %+v", err)
 			}
 		}
 
@@ -4447,6 +4486,45 @@ func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedC
 		map[string]interface{}{
 			"annotations_allowed": annotationAllowList,
 			"labels_allowed":      labelAllowList,
+		},
+	}
+}
+
+func expandKubernetesClusterUpgradeSettings(input []interface{}) *managedclusters.ClusterUpgradeSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	values := input[0].(map[string]interface{})
+
+	overrides := []managedclusters.ControlPlaneUpgradeOverride{}
+
+	for _, override := range values["control_plane_upgrade_overrides"].([]interface{}) {
+		overrides = append(overrides, managedclusters.ControlPlaneUpgradeOverride(override.(string)))
+	}
+	until := values["until"].(string)
+
+	upgradeSettings := managedclusters.ClusterUpgradeSettings{
+		OverrideSettings: &managedclusters.UpgradeOverrideSettings{
+			ControlPlaneOverrides: &overrides,
+			Until:                 &until,
+		},
+	}
+
+	return &upgradeSettings
+}
+
+func flattenKubernetesClusterUpgradeSettings(input *managedclusters.ClusterUpgradeSettings) []interface{} {
+	if input == nil || input.OverrideSettings == nil {
+		return nil
+	}
+	if input.OverrideSettings.ControlPlaneOverrides == nil || input.OverrideSettings.Until == nil {
+		return nil
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"controle_plane_upgrade_overrides": *input.OverrideSettings.ControlPlaneOverrides,
+			"until":                            *input.OverrideSettings.Until,
 		},
 	}
 }
