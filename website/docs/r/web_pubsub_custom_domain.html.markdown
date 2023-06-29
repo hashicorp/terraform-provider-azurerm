@@ -128,5 +128,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Custom Domain for a Web PubSub service can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_web_pubsub_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/WebPubSub/webpubsub1/customDomains/customDomain1
+terraform import azurerm_web_pubsub_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/webpubsub1/customDomains/customDomain1
 ```
