@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -782,8 +783,13 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   upgrade_settings {
     controle_plane_upgrade_overrides = ["IgnoreKubernetesDeprecations"]
-    until                            = "3023-06-30T12:00:00Z" 
+    until                            = "%s" 
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, controlPlaneVersion)
+  `,
+		data.RandomInteger,
+		data.Locations.Primary,
+		data.RandomInteger,
+		controlPlaneVersion,
+		time.Now().UTC().Add(5*24*time.Hour).Format("2006-01-02T15:04:05Z")) // Until cannot be more than 30 days in the future
 }
