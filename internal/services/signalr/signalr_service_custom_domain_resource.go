@@ -150,7 +150,7 @@ func (r CustomDomainSignalrServiceResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SignalR.SignalRClient
-			id, err := signalr.ParseCustomDomainIDInsensitively(metadata.ResourceData.Id())
+			id, err := signalr.ParseCustomDomainID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
