@@ -1,7 +1,7 @@
 package schema
 
 import (
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,19 +26,19 @@ func VnetConfigurationSchema() *pluginsdk.Schema {
 				"virtual_network_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: networkValidate.VirtualNetworkID,
+					ValidateFunc: commonids.ValidateVirtualNetworkID,
 				},
 
 				"trusted_subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: networkValidate.SubnetID,
+					ValidateFunc: commonids.ValidateSubnetID,
 				},
 
 				"untrusted_subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: networkValidate.SubnetID,
+					ValidateFunc: commonids.ValidateSubnetID,
 				},
 
 				"ip_of_trust_for_udr": {
