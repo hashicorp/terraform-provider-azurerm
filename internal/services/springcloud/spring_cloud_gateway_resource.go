@@ -1,6 +1,7 @@
 package springcloud
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -56,6 +57,13 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudServiceID,
+			},
+
+			"addon_json": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"api_metadata": {
@@ -173,6 +181,15 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 						},
 
 						"allowed_origins": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"allowed_origin_patterns": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
@@ -336,8 +353,14 @@ func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", springId.SpringName, springId.ResourceGroup)
 	}
 
+	addonConfig, err := expandSpringCloudGatewayAddon(d.Get("addon_json").(string))
+	if err != nil {
+		return err
+	}
+
 	gatewayResource := appplatform.GatewayResource{
 		Properties: &appplatform.GatewayProperties{
+			AddonConfigs:          addonConfig,
 			ClientAuth:            expandGatewayClientAuth(d.Get("client_authorization").([]interface{})),
 			APIMetadataProperties: expandGatewayGatewayAPIMetadataProperties(d.Get("api_metadata").([]interface{})),
 			ApmTypes:              expandGatewayGatewayApmTypes(d.Get("application_performance_monitoring_types").([]interface{})),
@@ -393,6 +416,9 @@ func resourceSpringCloudGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
 	if props := resp.Properties; props != nil {
+		if err := d.Set("addon_json", flattenSpringCloudAppAddon(props.AddonConfigs)); err != nil {
+			return fmt.Errorf("setting `addon_json`: %s", err)
+		}
 		if err := d.Set("api_metadata", flattenGatewayGatewayAPIMetadataProperties(props.APIMetadataProperties)); err != nil {
 			return fmt.Errorf("setting `api_metadata`: %+v", err)
 		}
@@ -464,12 +490,13 @@ func expandGatewayGatewayCorsProperties(input []interface{}) *appplatform.Gatewa
 	}
 	v := input[0].(map[string]interface{})
 	return &appplatform.GatewayCorsProperties{
-		AllowedOrigins:   utils.ExpandStringSlice(v["allowed_origins"].(*pluginsdk.Set).List()),
-		AllowedMethods:   utils.ExpandStringSlice(v["allowed_methods"].(*pluginsdk.Set).List()),
-		AllowedHeaders:   utils.ExpandStringSlice(v["allowed_headers"].(*pluginsdk.Set).List()),
-		MaxAge:           utils.Int32(int32(v["max_age_seconds"].(int))),
-		AllowCredentials: utils.Bool(v["credentials_allowed"].(bool)),
-		ExposedHeaders:   utils.ExpandStringSlice(v["exposed_headers"].(*pluginsdk.Set).List()),
+		AllowedOrigins:        utils.ExpandStringSlice(v["allowed_origins"].(*pluginsdk.Set).List()),
+		AllowedOriginPatterns: utils.ExpandStringSlice(v["allowed_origin_patterns"].(*pluginsdk.Set).List()),
+		AllowedMethods:        utils.ExpandStringSlice(v["allowed_methods"].(*pluginsdk.Set).List()),
+		AllowedHeaders:        utils.ExpandStringSlice(v["allowed_headers"].(*pluginsdk.Set).List()),
+		MaxAge:                utils.Int32(int32(v["max_age_seconds"].(int))),
+		AllowCredentials:      utils.Bool(v["credentials_allowed"].(bool)),
+		ExposedHeaders:        utils.ExpandStringSlice(v["exposed_headers"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -534,6 +561,17 @@ func expandGatewayClientAuth(input []interface{}) *appplatform.GatewayProperties
 	}
 }
 
+func expandSpringCloudGatewayAddon(input string) (map[string]interface{}, error) {
+	var addonConfig map[string]interface{}
+	if len(input) != 0 {
+		err := json.Unmarshal([]byte(input), &addonConfig)
+		if err != nil {
+			return nil, fmt.Errorf("unable to unmarshal `addon_json`: %+v", err)
+		}
+	}
+	return addonConfig, nil
+}
+
 func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayAPIMetadataProperties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -585,12 +623,13 @@ func flattenGatewayGatewayCorsProperties(input *appplatform.GatewayCorsPropertie
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"credentials_allowed": allowCredentials,
-			"allowed_headers":     utils.FlattenStringSlice(input.AllowedHeaders),
-			"allowed_methods":     utils.FlattenStringSlice(input.AllowedMethods),
-			"allowed_origins":     utils.FlattenStringSlice(input.AllowedOrigins),
-			"exposed_headers":     utils.FlattenStringSlice(input.ExposedHeaders),
-			"max_age_seconds":     maxAge,
+			"credentials_allowed":     allowCredentials,
+			"allowed_headers":         utils.FlattenStringSlice(input.AllowedHeaders),
+			"allowed_methods":         utils.FlattenStringSlice(input.AllowedMethods),
+			"allowed_origins":         utils.FlattenStringSlice(input.AllowedOrigins),
+			"allowed_origin_patterns": utils.FlattenStringSlice(input.AllowedOriginPatterns),
+			"exposed_headers":         utils.FlattenStringSlice(input.ExposedHeaders),
+			"max_age_seconds":         maxAge,
 		},
 	}
 }
@@ -683,4 +722,12 @@ func flattenGatewayClientAuth(input *appplatform.GatewayPropertiesClientAuth) []
 			"verification_enabled": input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled,
 		},
 	}
+}
+
+func flattenSpringCloudGatewayAddon(configs map[string]interface{}) *string {
+	if len(configs) == 0 {
+		return nil
+	}
+	addonConfig, _ := json.Marshal(configs)
+	return utils.String(string(addonConfig))
 }

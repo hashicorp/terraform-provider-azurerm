@@ -184,6 +184,12 @@ resource "azurerm_spring_cloud_gateway" "test" {
   instance_count                           = 2
   application_performance_monitoring_types = ["ApplicationInsights", "NewRelic"]
 
+  addon_json = jsonencode({
+	api = {
+	  groupId = "test1"
+	}
+  })
+
   api_metadata {
     description       = "test description"
     documentation_url = "https://www.test.com/docs"
@@ -197,6 +203,7 @@ resource "azurerm_spring_cloud_gateway" "test" {
     allowed_headers     = ["*"]
     allowed_methods     = ["PUT"]
     allowed_origins     = ["test.com"]
+    allowed_origin_patterns = ["test*.com"]
     exposed_headers     = ["x-test-header"]
     max_age_seconds     = 86400
   }

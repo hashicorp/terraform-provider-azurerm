@@ -80,6 +80,8 @@ The following arguments are supported:
 
 ---
 
+* `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Gateway.
+
 * `api_metadata` - (Optional) A `api_metadata` block as defined below.
 
 * `application_performance_monitoring_types` - (Optional) Specifies a list of application performance monitoring types used in the Spring Cloud Gateway. The allowed values are `AppDynamics`, `ApplicationInsights`, `Dynatrace`, `ElasticAPM` and `NewRelic`.
@@ -135,6 +137,8 @@ A `cors` block supports the following:
 * `allowed_methods` - (Optional) Allowed HTTP methods on cross-site requests. The special value `*` allows all methods. If not set, `GET` and `HEAD` are allowed by default. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
 
 * `allowed_origins` - (Optional) Allowed origins to make cross-site requests. The special value `*` allows all domains.
+
+* `allowed_origin_patterns` - (Optional)  Allowed origin patterns to make cross-site requests.
 
 * `exposed_headers` - (Optional) HTTP response headers to expose for cross-site requests.
 
