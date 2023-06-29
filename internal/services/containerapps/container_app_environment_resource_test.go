@@ -57,7 +57,7 @@ func TestAccContainerAppEnvironment_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("log_analytics_workspace_id"),
+		data.ImportStep("log_analytics_workspace_id", "dapr_ai_connection_string"),
 	})
 }
 
@@ -72,14 +72,14 @@ func TestAccContainerAppEnvironment_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("log_analytics_workspace_id"),
+		data.ImportStep("log_analytics_workspace_id", "dapr_ai_connection_string"),
 		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("log_analytics_workspace_id"),
+		data.ImportStep("log_analytics_workspace_id", "dapr_ai_connection_string"),
 	})
 }
 
@@ -134,16 +134,28 @@ resource "azurerm_container_app_environment" "import" {
 func (r ContainerAppEnvironmentResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 %[1]s
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
 
 resource "azurerm_container_app_environment" "test" {
   name                       = "accTest-CAEnv%[2]d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  dapr_ai_connection_string  = azurerm_application_insights.test.connection_string
 
   infrastructure_subnet_id = azurerm_subnet.control.id
 
@@ -160,7 +172,11 @@ resource "azurerm_container_app_environment" "test" {
 func (r ContainerAppEnvironmentResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 %[1]s

@@ -27,6 +27,7 @@ type ContainerAppEnvironmentModel struct {
 	LogAnalyticsWorkspaceId     string                 `tfschema:"log_analytics_workspace_id"`
 	InfrastructureSubnetId      string                 `tfschema:"infrastructure_subnet_id"`
 	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
+	DaprAIConnectionString      string                 `tfschema:"dapr_ai_connection_string"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
@@ -86,6 +87,12 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			ForceNew:    true,
 			Default:     false,
 			Description: "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
+		},
+
+		"dapr_ai_connection_string": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Application Insights connection string used by Dapr to export Service to Service communication telemetry",
 		},
 
 		"tags": commonschema.Tags(),
@@ -191,7 +198,8 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 							SharedKey:  keys.Model.PrimarySharedKey,
 						},
 					},
-					VnetConfiguration: &managedenvironments.VnetConfiguration{},
+					DaprAIConnectionString: pointer.To(containerAppEnvironment.DaprAIConnectionString),
+					VnetConfiguration:      &managedenvironments.VnetConfiguration{},
 				},
 				Tags: tags.Expand(containerAppEnvironment.Tags),
 			}
@@ -254,6 +262,10 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 			// Reading in log_analytics_workspace_id is not possible, so reading from config. Import will need to ignore_changes unfortunately
 			if v := metadata.ResourceData.Get("log_analytics_workspace_id").(string); v != "" {
 				state.LogAnalyticsWorkspaceId = v
+			}
+
+			if v := metadata.ResourceData.Get("dapr_ai_connection_string").(string); v != "" {
+				state.DaprAIConnectionString = v
 			}
 
 			if err := metadata.Encode(&state); err != nil {

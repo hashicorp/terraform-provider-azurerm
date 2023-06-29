@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Required) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
 
+* `dapr_ai_connection_string` - (Optional) Application Insights connection string used by Dapr to export Service to Service communication telemetry.
+
 ---
 
 * `infrastructure_subnet_id` - (Optional) The existing Subnet to use for the Container Apps Control Plane. Changing this forces a new resource to be created. 
