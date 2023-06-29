@@ -176,7 +176,7 @@ func (r CosmosDBDataConnectionResource) Read() sdk.ResourceFunc {
 
 			id, err := dataconnections.ParseDataConnectionID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)
