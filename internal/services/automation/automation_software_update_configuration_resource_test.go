@@ -260,8 +260,6 @@ func TestAccSoftwareUpdateConfiguration_windowsUpdate(t *testing.T) {
 
 func (a SoftwareUpdateConfigurationResource) defaultTimeZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %s
 
 resource "azurerm_automation_software_update_configuration" "test" {
@@ -393,8 +391,6 @@ resource "azurerm_automation_software_update_configuration" "test" {
 
 func (a SoftwareUpdateConfigurationResource) withTask(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 resource "azurerm_automation_runbook" "test" {
   name                    = "Get-AzureVMTutorial"
   location                = azurerm_resource_group.test.location
@@ -533,10 +529,6 @@ resource "azurerm_automation_software_update_configuration" "test" {
 
 func (a SoftwareUpdateConfigurationResource) windowsBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
-
-
 %s
 
 resource "azurerm_automation_software_update_configuration" "test" {
