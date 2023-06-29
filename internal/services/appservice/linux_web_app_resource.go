@@ -344,6 +344,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
 					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
+					VnetRouteAllEnabled:   siteConfig.VnetRouteAllEnabled,
 				},
 			}
 
@@ -747,6 +748,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
+				existing.VnetRouteAllEnabled = existing.SiteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {

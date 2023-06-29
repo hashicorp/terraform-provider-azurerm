@@ -326,6 +326,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:        pointer.To(webAppSlot.ClientCertEnabled),
 					ClientCertMode:           web.ClientCertMode(webAppSlot.ClientCertMode),
 					ClientCertExclusionPaths: pointer.To(webAppSlot.ClientCertExclusionPaths),
+					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
 				},
 			}
 
@@ -743,6 +744,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
+				existing.VnetRouteAllEnabled = existing.SiteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {

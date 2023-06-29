@@ -352,6 +352,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
 					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
+					VnetRouteAllEnabled:   siteConfig.VnetRouteAllEnabled,
 				},
 			}
 
@@ -802,6 +803,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
+				existing.VnetRouteAllEnabled = existing.SiteConfig.VnetRouteAllEnabled
 			}
 
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, existing)

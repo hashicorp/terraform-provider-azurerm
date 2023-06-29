@@ -488,6 +488,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:    utils.Bool(functionApp.ClientCertEnabled),
 					ClientCertMode:       web.ClientCertMode(functionApp.ClientCertMode),
 					DailyMemoryTimeQuota: utils.Int32(int32(functionApp.DailyMemoryTimeQuota)),
+					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
 				},
 			}
 
@@ -967,6 +968,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config") {
 				existing.SiteConfig = siteConfig
+				existing.VnetRouteAllEnabled = existing.SiteConfig.VnetRouteAllEnabled
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)

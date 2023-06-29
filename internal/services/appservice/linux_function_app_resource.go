@@ -491,6 +491,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:    utils.Bool(functionApp.ClientCertEnabled),
 					ClientCertMode:       web.ClientCertMode(functionApp.ClientCertMode),
 					DailyMemoryTimeQuota: utils.Int32(int32(functionApp.DailyMemoryTimeQuota)), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
+					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
 				},
 			}
 
@@ -964,6 +965,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config") {
 				existing.SiteConfig = siteConfig
+				existing.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {

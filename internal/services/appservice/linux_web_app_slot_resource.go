@@ -323,6 +323,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 					ClientAffinityEnabled: pointer.To(webAppSlot.ClientAffinityEnabled),
 					ClientCertEnabled:     pointer.To(webAppSlot.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webAppSlot.ClientCertMode),
+					VnetRouteAllEnabled:   siteConfig.VnetRouteAllEnabled,
 				},
 			}
 
@@ -719,6 +720,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 				}
 				existing.SiteConfig = siteConfig
+				existing.VnetRouteAllEnabled = existing.SiteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
