@@ -152,10 +152,8 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 				properties.RetrievalStartDate = &model.RetrievalStartDate
 			}
 
-			l := location.Normalize(model.Location)
-
 			dataConnection := dataconnections.CosmosDbDataConnection{
-				Location:   &l,
+				Location:   pointer.To(location.Normalize(model.Location)),
 				Name:       &model.Name,
 				Properties: &properties,
 			}
