@@ -258,7 +258,7 @@ A `recovery_group` block supports the following:
 
 * `type` - (Required) The Recovery Plan Group Type. Possible values are `Boot`, `Failover` and `Shutdown`.
 
-* `replicated_protected_items` - (Optional) (required) one or more id of protected VM.
+* `replicated_protected_items` - (Optional) One or more protected VM IDs. It must not be specified when `type` is `Shutdown`.
 
 * `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
 
@@ -276,7 +276,7 @@ An `action` block supports the following:
 
 * `fail_over_types` - (Required) Types of fail over. Possible values are `TestFailover`, `PlannedFailover` and `UnplannedFailover`
 
-* `fabric_location` - (Optional) The fabric location of runbook or script. Possible values are `Primary` and `Recovery`.
+* `fabric_location` - (Optional) The fabric location of runbook or script. Possible values are `Primary` and `Recovery`. It must not be specified when `type` is `ManualActionDetails`.
 
 -> **NOTE:** This is required when `type` is set to `AutomationRunbookActionDetails` or `ScriptActionDetails`.
 
