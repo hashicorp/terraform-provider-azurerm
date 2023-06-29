@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-11-01/network"
 )
 
 // TODO: refactor this

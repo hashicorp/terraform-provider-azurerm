@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/staticmembers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-11-01/network"
 )
 
 type Client struct {

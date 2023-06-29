@@ -11,7 +11,7 @@ import (
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-11-01/network"
 )
 
 // UpdateNetworkInterfaceAllowingRemovalOfNSG patches our way around a design flaw in the Azure

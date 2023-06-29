@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-11-01/network"
 )
 
 func DeleteFirewall(ctx context.Context, client *network.AzureFirewallsClient, resourceGroupName string, azureFirewallName string) (result network.AzureFirewallsDeleteFuture, err error) {

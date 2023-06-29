@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-11-01/network"
 )
 
 // nolint: deadcode unused

@@ -4,7 +4,7 @@
 package firewall
 
 import (
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-11-01/network"
 )
 
 func flattenNetworkSubResourceID(input *[]network.SubResource) []interface{} {
