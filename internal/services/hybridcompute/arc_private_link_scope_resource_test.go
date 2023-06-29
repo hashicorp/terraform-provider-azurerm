@@ -89,10 +89,10 @@ func (r ArcPrivateLinkScopeResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_arc_private_link_scope" "test" {
-	  name                = "acctestPLS-%d"
-	  resource_group_name = azurerm_resource_group.test.name
-	  location            = azurerm_resource_group.test.location
-}		
+  name                = "acctestPLS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
 `, r.template(data), data.RandomInteger)
 }
 
@@ -101,15 +101,15 @@ func (r ArcPrivateLinkScopeResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_arc_private_link_scope" "test" {
-	name                = "acctestPLS-%d"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	
-	public_network_access_enabled = true
+  name                = "acctestPLS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
-	tags = {
-	  "Environment" = "Production"
-	}
+  public_network_access_enabled = true
+
+  tags = {
+    "Environment" = "Production"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
