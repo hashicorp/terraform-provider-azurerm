@@ -416,7 +416,7 @@ func resourceSpringCloudGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
 	if props := resp.Properties; props != nil {
-		if err := d.Set("addon_json", flattenSpringCloudAppAddon(props.AddonConfigs)); err != nil {
+		if err := d.Set("addon_json", flattenSpringCloudGatewayAddon(props.AddonConfigs)); err != nil {
 			return fmt.Errorf("setting `addon_json`: %s", err)
 		}
 		if err := d.Set("api_metadata", flattenGatewayGatewayAPIMetadataProperties(props.APIMetadataProperties)); err != nil {
