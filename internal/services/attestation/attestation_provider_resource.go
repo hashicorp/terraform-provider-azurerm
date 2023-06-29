@@ -58,10 +58,6 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 				return fmt.Errorf("`tpm_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
 			}
 
-			if o, n := diff.GetChange("azure_vm_policy_base64"); o.(string) != "" && n.(string) == "" {
-				return fmt.Errorf("`azure_vm_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
-			}
-
 			if o, n := diff.GetChange("sev_snp_policy_base64"); o.(string) != "" && n.(string) == "" {
 				return fmt.Errorf("`sev_snp_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
 			}
@@ -119,12 +115,6 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 
-				"azure_vm_policy_base64": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
-				},
-
 				"sev_snp_policy_base64": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -136,7 +126,7 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 				s["policy"] = &pluginsdk.Schema{
 					Type:       pluginsdk.TypeList,
 					Optional:   true,
-					Deprecated: "This field is no longer used and will be removed in v4.0 of the Azure Provider - use `open_enclave_policy_base64`, `sgx_enclave_policy_base64`, `tpm_policy_base64`, `azure_vm_policy_base64` and `sev_snp_policy_base64` instead.",
+					Deprecated: "This field is no longer used and will be removed in v4.0 of the Azure Provider - use `open_enclave_policy_base64`, `sgx_enclave_policy_base64`, `tpm_policy_base64` and `sev_snp_policy_base64` instead.",
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"environment_type": {
@@ -225,11 +215,6 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("updating value for `tpm_policy_base64`: %+v", err)
 		}
 	}
-	if v := d.Get("azure_vm_policy_base64"); v != "" {
-		if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeAzureVM, d.Get("azure_vm_policy_base64").(string)); err != nil {
-			return fmt.Errorf("updating value for `azure_vm_policy_base64`: %+v", err)
-		}
-	}
 	if v := d.Get("sev_snp_policy_base64"); v != "" {
 		if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeSevSnpVM, d.Get("sev_snp_policy_base64").(string)); err != nil {
 			return fmt.Errorf("updating value for `sev_snp_policy_base64`: %+v", err)
@@ -281,10 +266,6 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil && !utils.ResponseWasBadRequest(tpmPolicy.Response) {
 		return fmt.Errorf("retrieving Tpm Policy for %s: %+v", *id, err)
 	}
-	azureVmPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeAzureVM)
-	if err != nil && !utils.ResponseWasBadRequest(azureVmPolicy.Response) {
-		return fmt.Errorf("retrieving AzureVM Policy for %s: %+v", *id, err)
-	}
 	sevSnpPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeSevSnpVM)
 	if err != nil && !utils.ResponseWasBadRequest(sevSnpPolicy.Response) {
 		return fmt.Errorf("retrieving SEV-SNP Policy for %s: %+v", *id, err)
@@ -324,12 +305,6 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 	d.Set("tpm_policy_base64", utils.NormalizeNilableString(tpmPolicyData))
 
-	azureVmPolicyData, err := base64DataFromAttestationJWT(azureVmPolicy.Token)
-	if err != nil {
-		return fmt.Errorf("parsing AzureVM policy for %s: %+v", *id, err)
-	}
-	d.Set("azure_vm_policy_base64", utils.NormalizeNilableString(azureVmPolicyData))
-
 	sevSnpPolicyData, err := base64DataFromAttestationJWT(sevSnpPolicy.Token)
 	if err != nil {
 		return fmt.Errorf("parsing SEV-SNP policy for %s: %+v", *id, err)
@@ -364,7 +339,7 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if d.HasChanges("open_enclave_policy_base64", "sgx_enclave_policy_base64", "tpm_policy_base64", "azure_vm_policy_base64", "sev_snp_policy_base64") {
+	if d.HasChanges("open_enclave_policy_base64", "sgx_enclave_policy_base64", "tpm_policy_base64", "sev_snp_policy_base64") {
 		dataPlaneUri, err := attestationClients.DataPlaneEndpointForProvider(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("determining Data Plane URI for %s: %+v", *id, err)
@@ -387,11 +362,6 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 		if d.HasChange("tpm_policy_base64") {
 			if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeTpm, d.Get("tpm_policy_base64").(string)); err != nil {
 				return fmt.Errorf("updating value for `tpm_policy_base64`: %+v", err)
-			}
-		}
-		if d.HasChange("azure_vm_policy_base64") {
-			if _, err = dataPlaneClient.Set(ctx, *dataPlaneUri, attestation.TypeAzureVM, d.Get("azure_vm_policy_base64").(string)); err != nil {
-				return fmt.Errorf("updating value for `azure_vm_policy_base64`: %+v", err)
 			}
 		}
 		if d.HasChange("sev_snp_policy_base64") {

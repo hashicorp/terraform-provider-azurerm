@@ -230,7 +230,6 @@ resource "azurerm_attestation_provider" "test" {
       "open_enclave_policy_base64",
       "sgx_enclave_policy_base64",
       "tpm_policy_base64",
-      "azure_vm_policy_base64",
       "sev_snp_policy_base64",
     ]
   }
@@ -256,7 +255,6 @@ resource "azurerm_attestation_provider" "test" {
       "open_enclave_policy_base64",
       "sgx_enclave_policy_base64",
       "tpm_policy_base64",
-	  "azure_vm_policy_base64",
       "sev_snp_policy_base64",
     ]
   }
@@ -282,7 +280,6 @@ resource "azurerm_attestation_provider" "import" {
       "open_enclave_policy_base64",
       "sgx_enclave_policy_base64",
       "tpm_policy_base64",
-	  "azure_vm_policy_base64",
       "sev_snp_policy_base64",
     ]
   }
@@ -316,7 +313,6 @@ EOT
       "open_enclave_policy_base64",
       "sgx_enclave_policy_base64",
       "tpm_policy_base64",
-	  "azure_vm_policy_base64",
       "sev_snp_policy_base64",
     ]
   }
@@ -341,7 +337,6 @@ resource "azurerm_attestation_provider" "test" {
   open_enclave_policy_base64 = %[3]q
   sgx_enclave_policy_base64  = %[3]q
   tpm_policy_base64  = %[3]q
-  azure_vm_policy_base64 = %[3]q
   sev_snp_policy_base64 = %[3]q
 
   lifecycle {

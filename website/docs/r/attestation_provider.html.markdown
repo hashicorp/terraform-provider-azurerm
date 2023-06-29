@@ -47,8 +47,6 @@ The following arguments are supported:
 
 * `tpm_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
 
-* `azure_vm_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
-
 * `sev_snp_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
 
 -> [More information on the JWT Policies can be found in this article on `learn.microsoft.com`](https://learn.microsoft.com/azure/attestation/author-sign-policy).
