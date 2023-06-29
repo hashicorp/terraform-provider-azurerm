@@ -534,11 +534,12 @@ func validateRecoverGroup(input []RecoveryGroupModel) (bool, error) {
 			}
 		}
 
-		for _, act := range group.PreAction {
+		for _, act := range append(group.PreAction, group.PostAction...) {
 			if act.ActionDetailType == "ManualActionDetails" && act.FabricLocation != "" {
 				return false, fmt.Errorf("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type.")
 			}
 		}
+
 	}
 	if bootCount == 0 || shutdownCount == 0 || failoverCount == 0 {
 		return false, fmt.Errorf("every group type needs at least one recovery group")
