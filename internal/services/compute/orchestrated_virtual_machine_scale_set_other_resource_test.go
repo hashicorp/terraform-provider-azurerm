@@ -982,7 +982,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   automatic_instance_repair {
     enabled      = true
-    grace_period = "PT1H"
+    grace_period = "PT60M"
     action       = "Restart"
   }
 

@@ -1997,15 +1997,15 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "PT30M",
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT30M", "PT90M"),
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT10M", "PT90M"),
 				},
 				"action": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Default:  string(compute.RepairActionReplace),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.RepairActionReimage),
-						string(compute.RepairActionRestart),
+						string(compute.RepairActionReimage), // Currently in preview
+						string(compute.RepairActionRestart), // Currently in preview
 						string(compute.RepairActionReplace),
 					}, false),
 				},

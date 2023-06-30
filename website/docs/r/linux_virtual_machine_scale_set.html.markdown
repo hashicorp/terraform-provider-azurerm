@@ -266,9 +266,11 @@ An `automatic_instance_repair` block supports the following:
 
 * `enabled` - (Required) Should the automatic instance repair be enabled on this Virtual Machine Scale Set?
 
-* `grace_period` - (Optional) Amount of time (in minutes, between 30 and 90, defaults to 30 minutes) for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. The time duration should be specified in ISO 8601 format. Defaults to `PT30M`.
+* `grace_period` - (Optional) Amount of time for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. Possible values are between `10` and `90` minutes. Defaults to `PT30M`. The time duration should be specified in `ISO 8601` format (e.g. `PT10M` to `PT90M`).
 
 * `action` - (Optional) The repair action that will be used for repairing unhealthy virtual machines in the scale set. Possible values include `Replace`, `Restart`, `Reimage`. Defaults to `Replace`.
+
+~> **NOTE:** The `action` attribute values `Restart` and `Reimage` are currently under preview and not suitable for production workloads. To use the `action` attribute values `Restart` and `Reimage` you will need to register your subscription with the Azure Feature Exposure Control (AFEC) feature flag `AutomaticRepairsWithConfigurableRepairActions`. For insturctions on how to register you subscription with AFEC feature flag please see the [product documentation](https://learn.microsoft.com/azure/azure-resource-manager/management/preview-features?tabs=azure-portal).
 
 ---
 
