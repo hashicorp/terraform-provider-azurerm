@@ -88,6 +88,7 @@ func TestAccGraphAccount_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r AccountTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := graphservicesprods.ParseAccountID(state.ID)
 	if err != nil {
@@ -101,6 +102,7 @@ func (r AccountTestResource) Exists(ctx context.Context, clients *clients.Client
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r AccountTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
