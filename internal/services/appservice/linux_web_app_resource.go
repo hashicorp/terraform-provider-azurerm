@@ -57,6 +57,7 @@ type LinuxWebAppModel struct {
 	OutboundIPAddressList         []string                   `tfschema:"outbound_ip_address_list"`
 	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess           bool                       `tfschema:"public_network_access_enabled"`
 	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
 }
 
@@ -156,6 +157,12 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"logs": helpers.LogsConfigSchema(),
@@ -347,6 +354,15 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					VnetRouteAllEnabled:   siteConfig.VnetRouteAllEnabled,
 				},
 			}
+
+			pna := helpers.PublicNetworkAccessEnabled
+			if !webApp.PublicNetworkAccess {
+				pna = helpers.PublicNetworkAccessDisabled
+			}
+
+			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+			siteEnvelope.PublicNetworkAccess = pointer.To(pna)
+			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
 
 			if webApp.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = pointer.To(webApp.VirtualNetworkSubnetID)
@@ -556,6 +572,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
 					PossibleOutboundIPAddresses:   pointer.From(props.PossibleOutboundIPAddresses),
 					PossibleOutboundIPAddressList: strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ","),
+					PublicNetworkAccess:           !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 					Tags:                          tags.ToTypedObject(webApp.Tags),
 				}
 
@@ -749,6 +766,17 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 					return err
 				}
 				existing.VnetRouteAllEnabled = existing.SiteConfig.VnetRouteAllEnabled
+			}
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pna := helpers.PublicNetworkAccessEnabled
+				if !state.PublicNetworkAccess {
+					pna = helpers.PublicNetworkAccessDisabled
+				}
+
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+				existing.PublicNetworkAccess = pointer.To(pna)
+				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {

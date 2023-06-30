@@ -47,6 +47,7 @@ type WindowsFunctionAppDataSourceModel struct {
 	FunctionExtensionsVersion string                                 `tfschema:"functions_extension_version"`
 	ForceDisableContentShare  bool                                   `tfschema:"content_share_force_disabled"`
 	HttpsOnly                 bool                                   `tfschema:"https_only"`
+	PublicNetworkAccess       bool                                   `tfschema:"public_network_access_enabled"`
 	SiteConfig                []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
 	StickySettings            []helpers.StickySettings               `tfschema:"sticky_settings"`
 	Tags                      map[string]string                      `tfschema:"tags"`
@@ -225,6 +226,11 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 			},
 		},
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppComputed(),
@@ -282,6 +288,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
 			functionApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
 			functionApp.VirtualNetworkSubnetId = utils.NormalizeNilableString(props.VirtualNetworkSubnetID)
+			functionApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 				functionApp.HostingEnvId = pointer.From(hostingEnv.ID)

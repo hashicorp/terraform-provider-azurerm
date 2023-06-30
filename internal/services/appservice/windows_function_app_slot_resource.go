@@ -50,6 +50,7 @@ type WindowsFunctionAppSlotModel struct {
 	ForceDisableContentShare      bool                                       `tfschema:"content_share_force_disabled"`
 	HttpsOnly                     bool                                       `tfschema:"https_only"`
 	KeyVaultReferenceIdentityID   string                                     `tfschema:"key_vault_reference_identity_id"`
+	PublicNetworkAccess           bool                                       `tfschema:"public_network_access_enabled"`
 	SiteConfig                    []helpers.SiteConfigWindowsFunctionAppSlot `tfschema:"site_config"`
 	Tags                          map[string]string                          `tfschema:"tags"`
 	CustomDomainVerificationId    string                                     `tfschema:"custom_domain_verification_id"`
@@ -241,6 +242,12 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Computed:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			Description:  "The User Assigned Identity to use for Key Vault access.",
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppSlot(),
@@ -495,6 +502,15 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			pna := helpers.PublicNetworkAccessEnabled
+			if !functionAppSlot.PublicNetworkAccess {
+				pna = helpers.PublicNetworkAccessDisabled
+			}
+
+			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+			siteEnvelope.PublicNetworkAccess = pointer.To(pna)
+			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
+
 			if functionAppSlot.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = pointer.To(functionAppSlot.VirtualNetworkSubnetID)
 			}
@@ -666,6 +682,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
 				DefaultHostname:             pointer.From(props.DefaultHostName),
+				PublicNetworkAccess:         !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
@@ -915,6 +932,17 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pna := helpers.PublicNetworkAccessEnabled
+				if !state.PublicNetworkAccess {
+					pna = helpers.PublicNetworkAccessDisabled
+				}
+
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+				existing.PublicNetworkAccess = pointer.To(pna)
+				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
+			}
 
 			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, existing, id.SlotName)
 			if err != nil {

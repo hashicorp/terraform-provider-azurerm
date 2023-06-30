@@ -1407,6 +1407,54 @@ func TestAccLinuxWebApp_vNetIntegrationUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_publicNetworkAccessDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccessDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebApp_publicNetworkAccessUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccessDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Exists func
 
 func (r LinuxWebAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -3093,6 +3141,27 @@ resource "azurerm_linux_web_app" "test" {
   }
 
   zip_deploy_file = "./testdata/msdocs-python-flask-webapp-quickstart-main.zip"
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) publicNetworkAccessDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  public_network_access_enabled = false
+
+  site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }

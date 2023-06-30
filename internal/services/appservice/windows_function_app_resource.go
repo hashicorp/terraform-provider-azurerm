@@ -54,6 +54,7 @@ type WindowsFunctionAppModel struct {
 	ForceDisableContentShare    bool                                   `tfschema:"content_share_force_disabled"`
 	HttpsOnly                   bool                                   `tfschema:"https_only"`
 	KeyVaultReferenceIdentityID string                                 `tfschema:"key_vault_reference_identity_id"`
+	PublicNetworkAccess         bool                                   `tfschema:"public_network_access_enabled"`
 	SiteConfig                  []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
 	StorageAccounts             []helpers.StorageAccount               `tfschema:"storage_account"`
 	Tags                        map[string]string                      `tfschema:"tags"`
@@ -250,6 +251,12 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			Description:  "The User Assigned Identity to use for Key Vault access.",
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionApp(),
@@ -492,6 +499,15 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			pna := helpers.PublicNetworkAccessEnabled
+			if !functionApp.PublicNetworkAccess {
+				pna = helpers.PublicNetworkAccessDisabled
+			}
+
+			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+			siteEnvelope.PublicNetworkAccess = pointer.To(pna)
+			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
+
 			if functionApp.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionApp.VirtualNetworkSubnetID)
 			}
@@ -686,6 +702,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
+				PublicNetworkAccess:         !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
@@ -972,6 +989,17 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pna := helpers.PublicNetworkAccessEnabled
+				if !state.PublicNetworkAccess {
+					pna = helpers.PublicNetworkAccessDisabled
+				}
+
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+				existing.PublicNetworkAccess = pointer.To(pna)
+				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
+			}
 
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, existing)
 			if err != nil {

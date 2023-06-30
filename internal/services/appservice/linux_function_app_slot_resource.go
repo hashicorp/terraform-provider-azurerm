@@ -61,6 +61,7 @@ type LinuxFunctionAppSlotModel struct {
 	OutboundIPAddressList         []string                                 `tfschema:"outbound_ip_address_list"`
 	PossibleOutboundIPAddresses   string                                   `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                                 `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess           bool                                     `tfschema:"public_network_access_enabled"`
 	SiteCredentials               []helpers.SiteCredential                 `tfschema:"site_credential"`
 	StorageAccounts               []helpers.StorageAccount                 `tfschema:"storage_account"`
 }
@@ -241,6 +242,12 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			Description:  "The User Assigned Identity to use for Key Vault access.",
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppSlot(),
@@ -484,9 +491,18 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
 					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
 					DailyMemoryTimeQuota: pointer.To(int32(functionAppSlot.DailyMemoryTimeQuota)),
-					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
+					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now?
 				},
 			}
+
+			pan := helpers.PublicNetworkAccessEnabled
+			if !functionAppSlot.PublicNetworkAccess {
+				pan = helpers.PublicNetworkAccessDisabled
+			}
+
+			// (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now?
+			siteEnvelope.PublicNetworkAccess = pointer.To(pan)
+			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
 
 			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = pointer.To(functionAppSlot.KeyVaultReferenceIdentityID)
@@ -658,6 +674,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
 				DefaultHostname:             pointer.From(props.DefaultHostName),
+				PublicNetworkAccess:         !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
@@ -910,6 +927,17 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pan := helpers.PublicNetworkAccessEnabled
+				if !state.PublicNetworkAccess {
+					pan = helpers.PublicNetworkAccessDisabled
+				}
+
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+				existing.PublicNetworkAccess = pointer.To(pan)
+				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
+			}
 
 			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, existing, id.SlotName)
 			if err != nil {

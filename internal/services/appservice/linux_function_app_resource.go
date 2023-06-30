@@ -502,14 +502,14 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if metadata.ResourceData.HasChange("public_network_access_enabled") {
-				pan := helpers.PublicNetworkAccessEnabled
-				if !functionApp.PublicNetworkAccess {
-					pan = helpers.PublicNetworkAccessDisabled
-				}
-
-				siteEnvelope.PublicNetworkAccess = pointer.To(pan)
+			pna := helpers.PublicNetworkAccessEnabled
+			if !functionApp.PublicNetworkAccess {
+				pna = helpers.PublicNetworkAccessDisabled
 			}
+
+			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+			siteEnvelope.PublicNetworkAccess = pointer.To(pna)
+			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
 
 			if functionApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionApp.KeyVaultReferenceIdentityID)
@@ -992,11 +992,14 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
-				pan := helpers.PublicNetworkAccessEnabled
+				pna := helpers.PublicNetworkAccessEnabled
 				if !state.PublicNetworkAccess {
-					pan = helpers.PublicNetworkAccessDisabled
+					pna = helpers.PublicNetworkAccessDisabled
 				}
-				existing.PublicNetworkAccess = pointer.To(pan)
+
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+				existing.PublicNetworkAccess = pointer.To(pna)
+				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
 			}
 
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, existing)

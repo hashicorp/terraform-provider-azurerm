@@ -1131,6 +1131,54 @@ func TestAccWindowsFunctionAppSlot_withStorageAccountBlocksUpdate(t *testing.T) 
 	})
 }
 
+func TestAccWindowsFunctionAppSlot_publicNetworkAccessDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccessDisabled(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_publicNetworkAccessUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccessDisabled(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Exists
 
 func (r WindowsFunctionAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -2547,6 +2595,27 @@ resource "azurerm_windows_function_app_slot" "test" {
   site_config {}
 }
 `, r.template(data, planSku), data.RandomInteger, SkuStandardPlan, SkuPremiumPlan)
+}
+
+func (r WindowsFunctionAppSlotResource) publicNetworkAccessDisabled(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  public_network_access_enabled = false
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
 
 // Config Templates
