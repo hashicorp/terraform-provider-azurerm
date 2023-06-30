@@ -3,6 +3,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"strings"
 	"time"
 
@@ -225,14 +226,14 @@ func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInter
 						return nil, fmt.Errorf("reading Public IP Address for VM Instance %q for Virtual Machine Scale Set %q (Resource Group %q): %+v", virtualmachineIndex, virtualMachineScaleSetName, resourceGroupName, err)
 					}
 
-					if *nic.Primary && *props.Primary {
+					if pointer.From(nic.Primary) && pointer.From(props.Primary) {
 						primaryPublicAddress = *publicIPAddress.IPAddress
 					}
 					publicIPAddresses = append(publicIPAddresses, *publicIPAddress.IPAddress)
 				}
 
 				if props.PrivateIPAddress != nil {
-					if *nic.Primary && *props.Primary {
+					if pointer.From(nic.Primary) && pointer.From(props.Primary) {
 						primaryPrivateAddress = *props.PrivateIPAddress
 					}
 					privateIPAddresses = append(privateIPAddresses, *props.PrivateIPAddress)
