@@ -1,0 +1,112 @@
+package {{.Package}}
+
+import (
+    "context"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+{{- /*gotype: github.com/hashicorp/terraform-provider-azurerm/internal/tools/typed/logic.MetaInfo*/ -}}
+{{range .ImportsExpr}}
+    {{.}}{{end}}
+)
+
+{{range .Models}}
+type {{.Name}} struct {
+    {{range .Fields}}
+    {{.Name}}     {{.Type}} `tfschema:"{{.Tag}}"`{{end}}
+}
+{{end}}
+
+type {{.Name}} struct{}
+
+{{if .HasUpdate}}var _ sdk.ResourceWithUpdate = (*{{.Name}})(nil)
+{{else}}var _ sdk.Resource = (*{{.Name}})(nil)
+{{end}}
+
+func ({{.Recv}} {{.Name}}) Arguments() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{ {{range .Arguments}}
+        "{{.Name}}": {{.Content}},
+    {{end}}
+    }
+}
+
+func ({{.Recv}} {{.Name}}) Attributes() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{ {{range .Attributes}}
+            "{{.Name}}": {{.Content}},
+        {{end}}
+    }
+}
+
+func ({{.Recv}} {{.Name}}) ModelObject() interface{} {
+return &{{.ModelName}}{}
+}
+
+func ({{.Recv}} {{.Name}}) ResourceType() string {
+return "{{.ResourceType}}"
+}
+
+func ({{.Recv}} {{.Name}}) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: {{.CreateFunc.GenTimeout}},
+        Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
+            var {{.CreateFunc.VarModel}} {{.ModelName}}
+            if err := meta.Decode(&{{.CreateFunc.VarModel}}); err != nil {
+                return err
+            }
+            {{.CreateFunc.BodyContent}}
+        },
+    }
+}
+
+func ({{.Recv}} {{.Name}}) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: {{.ReadFunc.GenTimeout}},
+        Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
+            var {{.ReadFunc.VarModel}} {{.ModelName}}
+            if err := meta.Decode(&{{.ReadFunc.VarModel}}); err != nil {
+                return err
+            }
+            {{.ReadFunc.BodyContent}}
+        },
+    }
+}
+
+{{if .HasUpdate}}
+func ({{.Recv}} {{.Name}}) Update() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: {{.UpdateFunc.GenTimeout}},
+        Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
+            var {{.UpdateFunc.VarModel}} {{.ModelName}}
+            if err := meta.Decode(&{{.UpdateFunc.VarModel}}); err != nil {
+                return err
+            }
+            {{.UpdateFunc.BodyContent}}
+        },
+    }
+}
+{{end}}
+
+func ({{.Recv}} {{.Name}}) Delete() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: {{.DeleteFunc.GenTimeout}},
+        Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
+            {{.DeleteFunc.BodyContent}}
+        },
+    }
+}
+
+func ({{.Recv}} {{.Name}}) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+    return {{.IDValidator}}
+}
+
+
+{{if .SchemaVersion}}
+func ({{.Recv}} {{.Name}}) StateUpgraders() sdk.StateUpgradeData {
+    return sdk.StateUpgradeData{
+        SchemaVersion: {{.SchemaVersion}},
+        Upgraders: {{.StateUpgrade}},
+    }
+}
+{{end}}
+
+{{range .Functions}}
+func ({{$.Recv}} {{$.Name}}) {{.Name}}{{.Signature}} { {{.BodyContent}} }
+{{end}}
