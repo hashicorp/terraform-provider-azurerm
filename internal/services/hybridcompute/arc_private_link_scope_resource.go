@@ -131,15 +131,11 @@ func (a ArcPrivateLinkScopeResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			var publicNetwork privatelinkscopes.PublicNetworkAccessType
-
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				publicNetwork := privatelinkscopes.PublicNetworkAccessTypeDisabled
 				if model.PublicNetworkAccessEnabled {
 					publicNetwork = privatelinkscopes.PublicNetworkAccessTypeEnabled
-				} else {
-					publicNetwork = privatelinkscopes.PublicNetworkAccessTypeDisabled
 				}
-
 				properties.Properties.PublicNetworkAccess = &publicNetwork
 			}
 
