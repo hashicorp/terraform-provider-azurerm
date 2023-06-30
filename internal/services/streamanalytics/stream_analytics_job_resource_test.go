@@ -149,6 +149,27 @@ func TestAccStreamAnalyticsJob_jobStorageAccount(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsJob_jobStorageAccount_Msi(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
+	r := StreamAnalyticsJobResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.jobStorageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.jobStorageAccount_Msi(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StreamAnalyticsJobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := streamingjobs.ParseStreamingJobID(state.ID)
 	if err != nil {
@@ -407,6 +428,50 @@ resource "azurerm_stream_analytics_job" "test" {
   job_storage_account {
     account_name = azurerm_storage_account.test.name
     account_key  = azurerm_storage_account.test.primary_access_key
+  }
+
+  tags = {
+    environment = "Test"
+  }
+
+  transformation_query = <<QUERY
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
+QUERY
+
+}
+`, data.RandomInteger, data.RandomString, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StreamAnalyticsJobResource) jobStorageAccount_Msi(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%[3]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_stream_analytics_job" "test" {
+  name                   = "acctestjob-%[4]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  streaming_units        = 3
+  content_storage_policy = "JobStorageAccount"
+  job_storage_account {
+	authentication_mode = "Msi"
+    account_name        = azurerm_storage_account.test.name
   }
 
   tags = {
