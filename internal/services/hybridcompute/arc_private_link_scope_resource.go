@@ -179,12 +179,13 @@ func (a ArcPrivateLinkScopeResource) Read() sdk.ResourceFunc {
 
 			if model := existing.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-				if model.Tags != nil {
-					state.Tags = *model.Tags
+				state.Tags = pointer.From(model.Tags)
+
+				publicNetworkAccess := false
+				if props := model.Properties; props != nil && props.PublicNetworkAccess != nil {
+					publicNetworkAccess = *model.Properties.PublicNetworkAccess == privatelinkscopes.PublicNetworkAccessTypeEnabled
 				}
-				if model.Properties != nil && model.Properties.PublicNetworkAccess != nil {
-					state.PublicNetworkAccessEnabled = *model.Properties.PublicNetworkAccess == privatelinkscopes.PublicNetworkAccessTypeEnabled
-				}
+				state.PublicNetworkAccessEnabled = publicNetworkAccess
 			}
 
 			return metadata.Encode(&state)
