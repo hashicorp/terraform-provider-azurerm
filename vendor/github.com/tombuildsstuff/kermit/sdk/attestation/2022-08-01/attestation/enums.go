@@ -66,13 +66,9 @@ const (
 	TypeSgxEnclave Type = "SgxEnclave"
 	// TypeTpm Edge TPM Virtualization Based Security
 	TypeTpm Type = "Tpm"
-	// TODO: Upstream and replace before merge, for testing purposes only
-	// TypeAzureVM is the AzureVM attestation type.
-	TypeAzureVM Type = "AzureGuest"
 )
 
 // PossibleTypeValues returns an array of possible values for the Type const type.
 func PossibleTypeValues() []Type {
-	// TODO: Upstream and replace before merge, for testing purposes only
-	return []Type{TypeOpenEnclave, TypeSevSnpVM, TypeSgxEnclave, TypeTpm, TypeAzureVM}
+	return []Type{TypeOpenEnclave, TypeSevSnpVM, TypeSgxEnclave, TypeTpm}
 }
