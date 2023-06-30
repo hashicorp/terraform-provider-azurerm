@@ -115,7 +115,7 @@ func (a ArcPrivateLinkScopeResource) Update() sdk.ResourceFunc {
 
 			id, err := privatelinkscopes.ParseProviderPrivateLinkScopeID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing id: %+v", err)
+				return err
 			}
 
 			var model PrivateLinkScopeModel
