@@ -55,7 +55,7 @@ func TestAccArcPrivateLinkScope_update(t *testing.T) {
 func (r ArcPrivateLinkScopeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := privatelinkscopes.ParseProviderPrivateLinkScopeID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("parsing id: %+v", err)
+		return nil, err
 	}
 
 	client := clients.HybridCompute.PrivateLinkScopesClient
