@@ -29,7 +29,7 @@ resource "azurerm_arc_private_link_scope" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Azure Arc PrivateLinkScope should exist. Changing this forces a new Hybrid Compute to be created.
+* `location` - (Required) The Azure Region where the Arc PrivateLinkScope should exist. Changing this forces a new Arc Private Link Scope to be created.
 
 * `name` - (Required) The name which should be used for the Azure Arc PrivateLinkScope. Changing this forces a new Hybrid Compute to be created.
 
