@@ -3,7 +3,7 @@ subcategory: "Hybrid Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_arc_private_link_scope"
 description: |-
-  Manages an Azure Arc PrivateLinkScope.
+  Manages an Azure Arc Private Link Scope.
 ---
 
 # azurerm_arc_private_link_scope
