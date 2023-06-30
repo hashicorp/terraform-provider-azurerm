@@ -301,7 +301,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Attestation, err = attestation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Attestation: %+v", err)
 	}
-	client.Authorization = authorization.NewClient(o)
+	if client.Authorization, err = authorization.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Authorization: %+v", err)
+	}
 	client.Automanage = automanage.NewClient(o)
 	client.Automation = automation.NewClient(o)
 	client.AzureStackHCI = azureStackHCI.NewClient(o)
