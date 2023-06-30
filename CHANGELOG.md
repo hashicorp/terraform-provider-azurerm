@@ -1,3 +1,13 @@
+## 3.64.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_stream_analytics_output_blob` - increase `batch_min_rows` to 1000000 [GH-22331]
+
+BUG FIXES:
+
+* `azurerm_network_security_rule` - improve validation of the `name` property and prevent creation of resources that are broken [GH-22336]
+
 ## 3.63.0 (June 29, 2023)
 
 FEATURES:
