@@ -23,7 +23,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_graph_account" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  app_id              = azuread_application.example.application_id 
+  app_id              = azuread_application.example.application_id
   tags = {
     environment = "Production"
   }
