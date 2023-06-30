@@ -161,7 +161,7 @@ func (a ArcPrivateLinkScopeResource) Read() sdk.ResourceFunc {
 
 			id, err := privatelinkscopes.ParseProviderPrivateLinkScopeID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing id: %+v", err)
+				return err
 			}
 
 			existing, err := client.PrivateLinkScopesGet(ctx, *id)
