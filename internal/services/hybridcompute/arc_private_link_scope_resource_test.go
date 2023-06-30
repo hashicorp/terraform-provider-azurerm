@@ -30,7 +30,48 @@ func TestAccArcPrivateLinkScope_basic(t *testing.T) {
 	})
 }
 
+func TestAccArcPrivateLinkScope_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_private_link_scope", "test")
+	r := ArcPrivateLinkScopeResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("Production"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccArcPrivateLinkScope_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_private_link_scope", "test")
+	r := ArcPrivateLinkScopeResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("Production"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("Staging"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccArcPrivateLinkScope_requireImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_private_link_scope", "test")
 	r := ArcPrivateLinkScopeResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -40,15 +81,10 @@ func TestAccArcPrivateLinkScope_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
-			),
+			Config:      r.requireImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_arc_private_link_scope"),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -112,4 +148,34 @@ resource "azurerm_arc_private_link_scope" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ArcPrivateLinkScopeResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_arc_private_link_scope" "test" {
+  name                = "acctestPLS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  public_network_access_enabled = false
+
+  tags = {
+    "Environment" = "Staging"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ArcPrivateLinkScopeResource) requireImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_arc_private_link_scope" "import" {
+  name                = azurerm_arc_private_link_scope.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, r.basic(data))
 }
