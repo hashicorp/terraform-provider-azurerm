@@ -160,6 +160,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 							Default:  string(streamingjobs.AuthenticationModeConnectionString),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(streamingjobs.AuthenticationModeConnectionString),
+								string(streamingjobs.AuthenticationModeMsi),
 							}, false),
 						},
 
@@ -171,7 +172,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 
 						"account_key": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -279,6 +280,10 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	if contentStoragePolicy == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
 		if v, ok := d.GetOk("job_storage_account"); ok {
 			props.Properties.JobStorageAccount = expandJobStorageAccount(v.([]interface{}))
+
+			if *props.Properties.JobStorageAccount.AuthenticationMode == streamingjobs.AuthenticationModeMsi && d.IsNewResource() {
+				return fmt.Errorf("`authenticationMode` must be set to `ConnectionString` when creating a new stream analytics job.\nSwitch to `Msi` in an update phase once the job and system managed identity exists and is authorized to access the storage account.")
+			}
 		} else {
 			return fmt.Errorf("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
 		}
@@ -542,10 +547,17 @@ func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccou
 	accountName := v["account_name"].(string)
 	accountKey := v["account_key"].(string)
 
-	return &streamingjobs.JobStorageAccount{
-		AuthenticationMode: utils.ToPtr(streamingjobs.AuthenticationMode(authenticationMode)),
-		AccountName:        utils.String(accountName),
-		AccountKey:         utils.String(accountKey),
+	if authenticationMode == string(streamingjobs.AuthenticationModeMsi) {
+		return &streamingjobs.JobStorageAccount{
+			AuthenticationMode: utils.ToPtr(streamingjobs.AuthenticationMode(authenticationMode)),
+			AccountName:        utils.String(accountName),
+		} 
+	} else {
+		return &streamingjobs.JobStorageAccount{
+			AuthenticationMode: utils.ToPtr(streamingjobs.AuthenticationMode(authenticationMode)),
+			AccountName:        utils.String(accountName),
+			AccountKey:         utils.String(accountKey),
+		}
 	}
 }
 
