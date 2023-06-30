@@ -615,6 +615,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		if v, ok := d.GetOk("automatic_instance_repair"); ok {
+			if !hasHealthExtension {
+				return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension defined")
+			}
+
 			props.VirtualMachineScaleSetProperties.AutomaticRepairsPolicy = ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(v.([]interface{}))
 		}
 
@@ -1008,6 +1012,23 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		if d.HasChange("automatic_instance_repair") {
 			automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 			automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+
+			if automaticRepairsPolicy != nil {
+				// we need to know if the VMSS has a health extension or not
+				hasHealthExtension := false
+
+				if v, ok := d.GetOk("extension"); ok {
+					var err error
+					_, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
+					if err != nil {
+						return err
+					}
+				}
+
+				if !hasHealthExtension {
+					return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension defined")
+				}
+			}
 			updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
 		}
 

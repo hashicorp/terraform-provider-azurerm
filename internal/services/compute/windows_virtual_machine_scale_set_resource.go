@@ -385,6 +385,10 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
+	if automaticRepairsPolicy != nil && healthProbeId == "" && !hasHealthExtension {
+		return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
+	}
+
 	props := compute.VirtualMachineScaleSet{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         utils.String(location),
@@ -744,6 +748,26 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	if d.HasChange("automatic_instance_repair") {
 		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 		automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+
+		if automaticRepairsPolicy != nil {
+			// we need to know if the VMSS has a health extension or not
+			hasHealthExtension := false
+
+			if v, ok := d.GetOk("extension"); ok {
+				var err error
+				_, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
+				if err != nil {
+					return err
+				}
+			}
+
+			healthProbeId := d.Get("health_probe_id").(string)
+
+			if healthProbeId == "" && !hasHealthExtension {
+				return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
+			}
+		}
+
 		updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
 	}
 
