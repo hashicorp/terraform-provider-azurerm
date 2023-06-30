@@ -348,17 +348,17 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
-
 	revision := d.Get("revision").(string)
 	path := d.Get("path").(string)
-	apiId := fmt.Sprintf("%s;rev=%s", id.Name, revision)
+	apiId := fmt.Sprintf("%s;rev=%s", d.Get("name").(string), revision)
 	version := d.Get("version").(string)
 	versionSetId := d.Get("version_set_id").(string)
 	displayName := d.Get("display_name").(string)
 	protocolsRaw := d.Get("protocols").(*pluginsdk.Set).List()
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
 	sourceApiId := d.Get("source_api_id").(string)
+
+	id := parse.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
 
 	if version != "" && versionSetId == "" {
 		return fmt.Errorf("setting `version` without the required `version_set_id`")
@@ -414,6 +414,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 				Format:      apimanagement.ContentFormat(contentFormat),
 				Value:       utils.String(contentValue),
 				Path:        utils.String(path),
+				APIRevision: utils.String(revision),
 				APIVersion:  utils.String(version),
 			},
 		}
@@ -481,6 +482,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			Protocols:                     protocols,
 			ServiceURL:                    utils.String(serviceUrl),
 			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
+			APIRevision:                   utils.String(revision),
 			APIVersion:                    utils.String(version),
 			SubscriptionRequired:          &subscriptionRequired,
 			AuthenticationSettings:        authenticationSettings,
