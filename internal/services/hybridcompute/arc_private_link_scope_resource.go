@@ -87,12 +87,10 @@ func (a ArcPrivateLinkScopeResource) Create() sdk.ResourceFunc {
 				Properties: &privatelinkscopes.HybridComputePrivateLinkScopeProperties{},
 			}
 
-			var publicNetwork privatelinkscopes.PublicNetworkAccessType
+			publicNetwork := privatelinkscopes.PublicNetworkAccessTypeDisabled
 
 			if model.PublicNetworkAccessEnabled {
 				publicNetwork = privatelinkscopes.PublicNetworkAccessTypeEnabled
-			} else {
-				publicNetwork = privatelinkscopes.PublicNetworkAccessTypeDisabled
 			}
 
 			properties.Properties.PublicNetworkAccess = &publicNetwork
