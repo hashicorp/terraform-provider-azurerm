@@ -34,7 +34,7 @@ resource "azurerm_container_registry_task" "example" {
   }
   docker_step {
     dockerfile_path      = "Dockerfile"
-    context_path         = "https://github.com/<user name>/acr-build-helloworld-node#branch:folder"
+    context_path         = "https://github.com/<username>/<repository>#<branch>:<folder>"
     context_access_token = "<github personal access token>"
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
