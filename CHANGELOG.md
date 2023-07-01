@@ -67,7 +67,7 @@ BUG FIXES:
 
 BUG FIXES:
 
-dependencies: compute/marketplace_agreement - Downgrade API version to 2015-06-01 ([#22264](https://github.com/hashicorp/terraform-provider-azurerm/issues/22264))
+dependencies: `compute/marketplace_agreement` - Downgrade API version to 2015-06-01 ([#22264](https://github.com/hashicorp/terraform-provider-azurerm/issues/22264))
 
 ## 3.62.0 (June 22, 2023)
 
