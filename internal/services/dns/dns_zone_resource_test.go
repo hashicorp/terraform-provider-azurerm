@@ -206,7 +206,6 @@ resource "azurerm_dns_zone" "test" {
 
   soa_record {
     email     = "testemail.com"
-    host_name = "testhost.contoso.com"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

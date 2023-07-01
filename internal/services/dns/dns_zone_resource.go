@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -88,6 +89,7 @@ func resourceDnsZone() *pluginsdk.Resource {
 						"host_name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -145,6 +147,13 @@ func resourceDnsZone() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+		// CustomizeDiff: pluginsdk.CustomDiffWithAll(
+		// 	pluginsdk.ValueChangeConditionFunc()
+		// 	pluginsdk.ForceNewIfChange("host_name", func(ctx context.Context, old, new, meta interface{}) bool {
+		// 		return false
+		// 		//return (old != nil && old.(string) != "") && (new == nil || new.(string) == "")
+		// 	}),
+		// ),
 	}
 }
 
@@ -180,20 +189,18 @@ func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
-
 	if v, ok := d.GetOk("soa_record"); ok {
 		soaRecord := v.([]interface{})[0].(map[string]interface{})
 
 		inputSOARecord := expandArmDNSZoneSOARecord(soaRecord)
 
 		if *inputSOARecord.Host == "" {
-			resourceDnsZoneRead(d, meta)
-			if v1, ok := d.GetOk("soa_record"); ok {
-				readSoaRecord := v1.([]interface{})[0].(map[string]interface{})
-				readSOARecord := expandArmDNSZoneSOARecord(readSoaRecord)
-				inputSOARecord.Host = readSOARecord.Host
+			host, err := soaRecordHostName(ctx, d.Timeout(pluginsdk.TimeoutRead), recordSetsClient, id)
+			if err != nil {
+				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
+
+			inputSOARecord.Host = host
 		}
 
 		rsParameters := recordsets.RecordSet{
@@ -213,6 +220,8 @@ func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("creating/updating %s: %+v", soaRecordId, err)
 		}
 	}
+
+	d.SetId(id.ID())
 
 	return resourceDnsZoneRead(d, meta)
 }
@@ -373,4 +382,17 @@ func flattenArmDNSZoneSOARecord(input *recordsets.RecordSet) []interface{} {
 	}
 
 	return output
+}
+
+func soaRecordHostName(ctx context.Context, timeout time.Duration, recordSetsClient *recordsets.RecordSetsClient, id zones.DnsZoneId) (*string, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	soaRecord := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
+	soaRecordResp, err := recordSetsClient.Get(ctx, soaRecord)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	return soaRecordResp.Model.Properties.SOARecord.Host, nil
 }
