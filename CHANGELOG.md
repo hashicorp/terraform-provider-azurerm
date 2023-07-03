@@ -8,6 +8,7 @@ BUG FIXES:
 
 * `azurerm_linux_web_app` - fix panic in docker settings processing [GH-22347]
 * `azurerm_network_security_rule` - improve validation of the `name` property and prevent creation of resources that are broken [GH-22336]
+* Data Source `azurerm_virtual_machine_scale_set` - fix panic in read [GH-22335]
 
 
 DEPRECATION:
