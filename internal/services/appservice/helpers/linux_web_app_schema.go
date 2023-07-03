@@ -801,6 +801,9 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*web.S
 
 		if linuxAppStack.DockerImageName != "" {
 			expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
+			if appSettings == nil {
+				appSettings = map[string]string{}
+			}
 			appSettings["DOCKER_REGISTRY_SERVER_URL"] = linuxAppStack.DockerRegistryUrl
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
