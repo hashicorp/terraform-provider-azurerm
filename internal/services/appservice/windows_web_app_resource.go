@@ -368,7 +368,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				pna = helpers.PublicNetworkAccessDisabled
 			}
 
-			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 			siteEnvelope.PublicNetworkAccess = pointer.To(pna)
 			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
 
@@ -829,7 +829,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 					pna = helpers.PublicNetworkAccessDisabled
 				}
 
-				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				existing.PublicNetworkAccess = pointer.To(pna)
 				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
 			}

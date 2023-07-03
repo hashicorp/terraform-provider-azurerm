@@ -491,7 +491,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
 					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
 					DailyMemoryTimeQuota: pointer.To(int32(functionAppSlot.DailyMemoryTimeQuota)),
-					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now?
+					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				},
 			}
 
@@ -500,7 +500,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				pan = helpers.PublicNetworkAccessDisabled
 			}
 
-			// (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now?
+			// (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 			siteEnvelope.PublicNetworkAccess = pointer.To(pan)
 			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
 
@@ -934,7 +934,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					pan = helpers.PublicNetworkAccessDisabled
 				}
 
-				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now?
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				existing.PublicNetworkAccess = pointer.To(pan)
 				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
 			}
