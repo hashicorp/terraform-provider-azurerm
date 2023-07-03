@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -225,14 +226,14 @@ func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInter
 						return nil, fmt.Errorf("reading Public IP Address for VM Instance %q for Virtual Machine Scale Set %q (Resource Group %q): %+v", virtualmachineIndex, virtualMachineScaleSetName, resourceGroupName, err)
 					}
 
-					if *nic.Primary && *props.Primary {
+					if pointer.From(nic.Primary) && pointer.From(props.Primary) {
 						primaryPublicAddress = *publicIPAddress.IPAddress
 					}
 					publicIPAddresses = append(publicIPAddresses, *publicIPAddress.IPAddress)
 				}
 
 				if props.PrivateIPAddress != nil {
-					if *nic.Primary && *props.Primary {
+					if pointer.From(nic.Primary) && pointer.From(props.Primary) {
 						primaryPrivateAddress = *props.PrivateIPAddress
 					}
 					privateIPAddresses = append(privateIPAddresses, *props.PrivateIPAddress)
