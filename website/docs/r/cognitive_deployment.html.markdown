@@ -68,9 +68,9 @@ A `model` block supports the following:
 
 ---
 
-A `sku` block supports the following:
+A `scale` block supports the following:
 
-* `name` - (Required) The name of the SKU. Ex - `Standard` or `P3`. It is typically a letter+number code. Changing this forces a new resource to be created.
+* `type` - (Required) The name of the SKU. Ex - `Standard` or `P3`. It is typically a letter+number code. Changing this forces a new resource to be created.
 
 * `tier` - (Optional) Possible values are `Free`, `Basic`, `Standard`, `Premium`, `Enterprise`. Changing this forces a new resource to be created.
 
@@ -78,7 +78,7 @@ A `sku` block supports the following:
 
 * `family` - (Optional) If the service has different generations of hardware, for the same SKU, then that can be captured here. Changing this forces a new resource to be created.
 
-* `capacity` - (Optional) If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted. Changing this forces a new resource to be created.
+* `capacity` - (Optional) If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted. Possible values are between `1` and `10000` and the default value is `1`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

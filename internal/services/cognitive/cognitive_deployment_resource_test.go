@@ -111,7 +111,6 @@ resource "azurerm_cognitive_account" "test" {
 
 func (r CognitiveDeploymentTestResource) basic(data acceptance.TestData) string {
 	template := r.template(data, "OpenAI")
-
 	return fmt.Sprintf(`
 
 %s
@@ -124,8 +123,8 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-curie-001"
     version = "1"
   }
-  sku {
-    name = "Standard"
+  scale {
+	type = "Standard"
   }
 }
 `, template, data.RandomInteger)
@@ -144,8 +143,8 @@ resource "azurerm_cognitive_deployment" "import" {
     name    = "text-curie-001"
     version = "1"
   }
-  sku {
-    name = "Standard"
+  scale {
+	type = "Standard"
   }
 }
 `, config)
@@ -165,8 +164,8 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-davinci-002"
     version = "1"
   }
-  sku {
-    name = "Standard"
+  scale {
+	type = "Standard"
   }
   rai_policy_name = "RAI policy"
 }
