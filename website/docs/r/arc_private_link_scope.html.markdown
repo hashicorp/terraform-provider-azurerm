@@ -31,9 +31,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Arc Private Link Scope should exist. Changing this forces a new Arc Private Link Scope to be created.
 
-* `name` - (Required) The name which should be used for the Azure Arc Private Link Scope. Changing this forces a new Hybrid Compute to be created.
+* `name` - (Required) The name which should be used for the Azure Arc Private Link Scope. Changing this forces a new Azure Arc Private Link Scope to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Azure Arc Private Link Scope should exist. Changing this forces a new Hybrid Compute to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Azure Arc Private Link Scope should exist. Changing this forces a new Azure Arc Private Link Scope to be created.
 
 ---
 
@@ -51,10 +51,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Hybrid Compute.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Hybrid Compute.
-* `update` - (Defaults to 30 minutes) Used when updating the Hybrid Compute.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Hybrid Compute.
+* `create` - (Defaults to 30 minutes) Used when creating the Azure Arc Private Link Scope.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Arc Private Link Scope.
+* `update` - (Defaults to 30 minutes) Used when updating the Azure Arc Private Link Scope.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Azure Arc Private Link Scope.
 
 ## Import
 
