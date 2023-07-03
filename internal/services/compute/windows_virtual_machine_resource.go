@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -128,6 +129,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
+
+			"bypass_platform_safety_checks_on_user_schedule_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
 			"capacity_reservation_group_id": {
 				Type:     pluginsdk.TypeString,
@@ -297,6 +304,16 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ConflictsWith: []string{
 					"capacity_reservation_group_id",
 				},
+			},
+
+			"reboot_setting": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.WindowsVMGuestPatchAutomaticByPlatformRebootSettingAlways),
+					string(compute.WindowsVMGuestPatchAutomaticByPlatformRebootSettingIfRequired),
+					string(compute.WindowsVMGuestPatchAutomaticByPlatformRebootSettingNever),
+				}, false),
 			},
 
 			"secret": windowsSecretSchema(),
@@ -583,6 +600,30 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		PatchMode:         compute.WindowsVMGuestPatchMode(patchMode),
 		EnableHotpatching: utils.Bool(hotPatch),
 		AssessmentMode:    compute.WindowsPatchAssessmentMode(assessmentMode),
+	}
+
+	if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
+		if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
+			return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
+		}
+
+		if params.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+			params.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.WindowsVMGuestPatchAutomaticByPlatformSettings{}
+		}
+
+		params.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule = pointer.To(true)
+	}
+
+	if v, ok := d.GetOk("reboot_setting"); ok {
+		if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
+			return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
+		}
+
+		if params.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+			params.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.WindowsVMGuestPatchAutomaticByPlatformSettings{}
+		}
+
+		params.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = compute.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(v.(string))
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
@@ -877,16 +918,28 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
 
 			assessmentMode := string(compute.WindowsPatchAssessmentModeImageDefault)
+			bypassPlatformSafetyChecksOnUserScheduleEnabled := false
+			rebootSetting := ""
 			if patchSettings := config.PatchSettings; patchSettings != nil {
 				d.Set("patch_mode", patchSettings.PatchMode)
 				d.Set("hotpatching_enabled", patchSettings.EnableHotpatching)
 
+				if patchSettings.AutomaticByPlatformSettings != nil {
+					if v := patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule; v != nil {
+						bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(v)
+					}
+					if v := patchSettings.AutomaticByPlatformSettings.RebootSetting; v != "" {
+						rebootSetting = string(v)
+					}
+				}
 				if patchSettings.AssessmentMode != "" {
 					assessmentMode = string(patchSettings.AssessmentMode)
 				}
 			}
 
 			d.Set("patch_assessment_mode", assessmentMode)
+			d.Set("bypass_platform_safety_checks_on_user_schedule_enabled", bypassPlatformSafetyChecksOnUserScheduleEnabled)
+			d.Set("reboot_setting", rebootSetting)
 
 			d.Set("timezone", config.TimeZone)
 
@@ -1110,6 +1163,63 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		update.OsProfile.WindowsConfiguration.PatchSettings.AssessmentMode = compute.WindowsPatchAssessmentMode(assessmentMode)
+	}
+
+	isPatchModeAutomaticByPlatform := d.Get("patch_mode") == string(compute.WindowsVMGuestPatchModeAutomaticByPlatform)
+	bypassPlatformSafetyChecksOnUserScheduleEnabled := d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool)
+	if bypassPlatformSafetyChecksOnUserScheduleEnabled && !isPatchModeAutomaticByPlatform {
+		return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
+	}
+	if d.HasChange("bypass_platform_safety_checks_on_user_schedule_enabled") {
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		if update.OsProfile.WindowsConfiguration.PatchSettings == nil {
+			update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{}
+		}
+
+		if isPatchModeAutomaticByPlatform {
+			if update.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+				update.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.WindowsVMGuestPatchAutomaticByPlatformSettings{}
+			}
+
+			update.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule = pointer.To(bypassPlatformSafetyChecksOnUserScheduleEnabled)
+		}
+	}
+
+	rebootSetting := d.Get("reboot_setting").(string)
+	if rebootSetting != "" && !isPatchModeAutomaticByPlatform {
+		return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
+	}
+	if d.HasChange("reboot_setting") {
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		if update.OsProfile.WindowsConfiguration.PatchSettings == nil {
+			update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{}
+		}
+
+		if isPatchModeAutomaticByPlatform {
+			if update.VirtualMachineProperties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
+				update.VirtualMachineProperties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.WindowsVMGuestPatchAutomaticByPlatformSettings{}
+			}
+
+			update.VirtualMachineProperties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = compute.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(rebootSetting)
+		}
 	}
 
 	if d.HasChange("hotpatching_enabled") {
