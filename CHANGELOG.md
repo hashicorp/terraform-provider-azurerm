@@ -1,5 +1,10 @@
 ## 3.64.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_automation_variables` [GH-22216]
+* **New Resource:** `azurerm_arc_private_link_scope` [GH-22314]
+
 ENHANCEMENTS:
 
 * `azurerm_stream_analytics_output_blob` - increase `batch_min_rows` to 1000000 [GH-22331]
