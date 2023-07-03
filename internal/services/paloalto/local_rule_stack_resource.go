@@ -3,18 +3,17 @@ package paloalto
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type LocalRuleStack struct{}
@@ -25,7 +24,6 @@ type LocalRuleStackModel struct {
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	Location          string `tfschema:"location"`
-	DefaultMode       string `tfschema:"default_mode"`
 	Description       string `tfschema:"description"`
 }
 
@@ -49,13 +47,6 @@ func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
-
-		"default_mode": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(localrulestacks.DefaultModeFIREWALL),
-			ValidateFunc: validation.StringInSlice(localrulestacks.PossibleValuesForDefaultMode(), false),
-		},
 
 		"description": {
 			Type:     pluginsdk.TypeString,
@@ -99,7 +90,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 			localRuleSet := localrulestacks.LocalRulestackResource{
 				Location: model.Location,
 				Properties: localrulestacks.RulestackProperties{
-					DefaultMode: pointer.To(localrulestacks.DefaultMode(model.DefaultMode)),
+					DefaultMode: pointer.To(localrulestacks.DefaultModeNONE),
 					Description: pointer.To(model.Description),
 					Scope:       pointer.To(localrulestacks.ScopeTypeLOCAL),
 				},
@@ -141,7 +132,6 @@ func (r LocalRuleStack) Read() sdk.ResourceFunc {
 
 			state.Name = id.LocalRuleStackName
 			state.ResourceGroupName = id.ResourceGroupName
-			state.DefaultMode = string(pointer.From(props.DefaultMode))
 			state.Description = pointer.From(props.Description)
 			state.Location = location.Normalize(existing.Model.Location)
 
