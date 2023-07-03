@@ -113,6 +113,7 @@ func (r CognitiveDeploymentTestResource) basic(data acceptance.TestData) string 
 	template := r.template(data, "OpenAI")
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_cognitive_deployment" "test" {
@@ -124,7 +125,7 @@ resource "azurerm_cognitive_deployment" "test" {
     version = "1"
   }
   scale {
-	type = "Standard"
+    type = "Standard"
   }
 }
 `, template, data.RandomInteger)
@@ -144,7 +145,7 @@ resource "azurerm_cognitive_deployment" "import" {
     version = "1"
   }
   scale {
-	type = "Standard"
+    type = "Standard"
   }
 }
 `, config)
@@ -165,7 +166,7 @@ resource "azurerm_cognitive_deployment" "test" {
     version = "1"
   }
   scale {
-	type = "Standard"
+    type = "Standard"
   }
   rai_policy_name = "RAI policy"
 }
