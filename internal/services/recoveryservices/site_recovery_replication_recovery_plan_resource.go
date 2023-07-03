@@ -101,7 +101,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 		},
 
 		"recovery_group": {
-			Type:     pluginsdk.TypeSet,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MinItems: 3,
 			Elem: &pluginsdk.Resource{
@@ -439,7 +439,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Delete() sdk.ResourceFunc {
 
 func expandRecoverGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans.RecoveryPlanGroup, error) {
 	output := make([]replicationrecoveryplans.RecoveryPlanGroup, 0)
-	if pass, err := validateRecoverGroup(input); !pass {
+	if pass, err := validateRecoveryGroup(input); !pass {
 		return output, err
 	}
 
@@ -516,7 +516,7 @@ func expandA2ASettings(input ReplicationRecoveryPlanA2ASpecificInputModel) *[]re
 	}
 }
 
-func validateRecoverGroup(input []RecoveryGroupModel) (bool, error) {
+func validateRecoveryGroup(input []RecoveryGroupModel) (bool, error) {
 	bootCount := 0
 	shutdownCount := 0
 	failoverCount := 0
@@ -524,13 +524,21 @@ func validateRecoverGroup(input []RecoveryGroupModel) (bool, error) {
 		if group.GroupType == string(replicationrecoveryplans.RecoveryPlanGroupTypeBoot) {
 			bootCount += 1
 		}
+
 		if group.GroupType == string(replicationrecoveryplans.RecoveryPlanGroupTypeFailover) {
 			failoverCount += 1
+			if bootCount > 0 || shutdownCount == 0 {
+				return false, fmt.Errorf("`Failover` type `recovery_group` must be after `Shutdown` type and before `Boot` type.")
+			}
 		}
+
 		if group.GroupType == string(replicationrecoveryplans.RecoveryPlanGroupTypeShutdown) {
 			shutdownCount += 1
 			if len(group.ReplicatedProtectedItems) > 0 {
 				return false, fmt.Errorf("`replicated_protected_items` must not be specified for `recovery_group` with `Shutdown` type.")
+			}
+			if failoverCount > 0 || bootCount > 0 {
+				return false, fmt.Errorf("`Shutdown` type `recovery_group` must before other type `recovery_group`.")
 			}
 		}
 
@@ -541,6 +549,7 @@ func validateRecoverGroup(input []RecoveryGroupModel) (bool, error) {
 		}
 
 	}
+
 	if bootCount == 0 || shutdownCount == 0 || failoverCount == 0 {
 		return false, fmt.Errorf("every group type needs at least one recovery group")
 	}

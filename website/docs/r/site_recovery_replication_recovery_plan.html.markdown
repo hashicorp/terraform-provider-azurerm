@@ -224,15 +224,18 @@ resource "azurerm_site_recovery_replication_recovery_plan" "example" {
   target_recovery_fabric_id = azurerm_site_recovery_fabric.secondary.id
 
   recovery_group {
-    type                       = "Boot"
-    replicated_protected_items = [azurerm_site_recovery_replicated_vm.vm-replication.id]
+    type = "Shutdown"
   }
+
   recovery_group {
     type = "Failover"
   }
+
   recovery_group {
-    type = "Shutdown"
+    type                       = "Boot"
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.vm-replication.id]
   }
+
 }
 ```
 
@@ -257,6 +260,8 @@ The following arguments are supported:
 A `recovery_group` block supports the following:
 
 * `type` - (Required) The Recovery Plan Group Type. Possible values are `Boot`, `Failover` and `Shutdown`.
+
+**Note:** The List of `recovery_group` must be in the order of `Shutdown`-`Failover`-`Boot`.
 
 * `replicated_protected_items` - (Optional) One or more protected VM IDs. It must not be specified when `type` is `Shutdown`.
 
