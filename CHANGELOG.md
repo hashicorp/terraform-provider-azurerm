@@ -8,6 +8,10 @@ BUG FIXES:
 
 * `azurerm_network_security_rule` - improve validation of the `name` property and prevent creation of resources that are broken [GH-22336]
 
+DEPRECATION:
+
+* `media` - all resources and data sources are deprecated ahead of service being retired [GH-22350]
+
 ## 3.63.0 (June 29, 2023)
 
 FEATURES:
