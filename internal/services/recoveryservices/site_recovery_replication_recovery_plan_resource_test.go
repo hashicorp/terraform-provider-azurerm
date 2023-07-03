@@ -541,17 +541,16 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
   recovery_group {
-    type                       = "Boot"
-    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
-  }
-
-  recovery_group {
     type = "Shutdown"
   }
 
-
   recovery_group {
     type = "Failover"
+  }
+
+  recovery_group {
+    type                       = "Boot"
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
   azure_to_azure_settings {
@@ -580,8 +579,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
   recovery_group {
-    type                       = "Boot"
-    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
+    type = "Shutdown"
   }
 
   recovery_group {
@@ -589,7 +587,8 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   }
 
   recovery_group {
-    type = "Shutdown"
+    type                       = "Boot"
+    replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
   azure_to_azure_settings {
