@@ -143,7 +143,7 @@ func (r CustomIpPrefixResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 6 * time.Hour,
+		Timeout: 9 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			r.client = metadata.Client.Network.CustomIPPrefixesClient
@@ -265,7 +265,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if err := r.updateCommissionedState(ctx, id, desiredState); err != nil {
+			if _, err = r.updateCommissionedState(ctx, id, desiredState); err != nil {
 				return err
 			}
 
@@ -303,7 +303,7 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if err := r.updateCommissionedState(ctx, *id, desiredState); err != nil {
+			if _, err = r.updateCommissionedState(ctx, *id, desiredState); err != nil {
 				return err
 			}
 
@@ -384,7 +384,7 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Must be de-provisioned before deleting
-			if err := r.updateCommissionedState(ctx, *id, network.CommissionedStateDeprovisioned); err != nil {
+			if _, err = r.updateCommissionedState(ctx, *id, network.CommissionedStateDeprovisioned); err != nil {
 				return err
 			}
 
@@ -420,16 +420,16 @@ func (t commissionedStates) strings() (out []string) {
 	return
 }
 
-func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, desiredState network.CommissionedState) error {
+func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, desiredState network.CommissionedState) (*network.CommissionedState, error) {
 	existing, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving existing %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving existing %s: %+v", id, err)
 	}
 	if existing.CustomIPPrefixPropertiesFormat == nil {
-		return fmt.Errorf("retrieving existing %s: `properties` was nil", id)
+		return nil, fmt.Errorf("retrieving existing %s: `properties` was nil", id)
 	}
 
-	currentState := existing.CustomIPPrefixPropertiesFormat.CommissionedState
+	initialState := existing.CustomIPPrefixPropertiesFormat.CommissionedState
 
 	// stateTree is a map of desired state, to a map of current state, to the list of transition states needed to get there
 	stateTree := map[network.CommissionedState]map[network.CommissionedState][]network.CommissionedState{
@@ -497,40 +497,55 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 	}
 
 	if plan, ok := stateTree[desiredState]; ok {
-		if transitioningStatesFor(desiredState).contains(currentState) {
-			if err := r.waitForCommissionedState(ctx, id, transitioningStatesFor(desiredState).strings(), []string{string(desiredState)}); err != nil {
-				return err
+		lastKnownState := pointer.To(initialState)
+
+		if transitioningStatesFor(desiredState).contains(initialState) {
+			if lastKnownState, err = r.waitForCommissionedState(ctx, id, transitioningStatesFor(desiredState), commissionedStates{desiredState}); err != nil {
+				return lastKnownState, err
 			}
 		}
 
-		if currentState == desiredState {
-			return nil
+		if initialState == desiredState {
+			return lastKnownState, nil
 		}
 
 		for startingState, path := range plan {
-			if currentState == startingState || transitioningStatesFor(startingState).contains(currentState) {
-				if err := r.waitForCommissionedState(ctx, id, transitioningStatesFor(startingState).strings(), []string{string(startingState)}); err != nil {
-					return err
+			if initialState == startingState || transitioningStatesFor(startingState).contains(initialState) {
+				if lastKnownState, err = r.waitForCommissionedState(ctx, id, transitioningStatesFor(startingState), commissionedStates{startingState}); err != nil {
+					return lastKnownState, err
 				}
 
-				for _, steppingState := range path {
-					if err := r.setCommissionedState(ctx, id, steppingState, shouldNotAdvertise(steppingState)); err != nil {
-						return err
+				retries := 0
+				for i := 0; i < len(path); i++ {
+					steppingState := path[i]
+
+					if err = r.setCommissionedState(ctx, id, steppingState, shouldNotAdvertise(steppingState)); err != nil {
+						return lastKnownState, err
 					}
 
-					if err := r.waitForCommissionedState(ctx, id, []string{string(steppingState)}, finalStatesFor(steppingState).strings()); err != nil {
-						return err
+					latestState, err := r.waitForCommissionedState(ctx, id, commissionedStates{steppingState}, finalStatesFor(steppingState))
+					if err != nil {
+						// Known issue where the previous commissioningState was reported prematurely by the API, so we reattempt up to 2 times
+						if lastKnownState != nil && latestState != nil && *latestState == *lastKnownState && retries < 2 {
+							retries++
+							i--
+							continue
+						}
+
+						return lastKnownState, err
 					}
+
+					lastKnownState = latestState
 				}
 
-				return r.waitForCommissionedState(ctx, id, transitioningStatesFor(desiredState).strings(), []string{string(desiredState)})
+				return r.waitForCommissionedState(ctx, id, transitioningStatesFor(desiredState), commissionedStates{desiredState})
 			}
 		}
 	} else {
-		return fmt.Errorf("unsupported state %q", desiredState)
+		return nil, fmt.Errorf("unsupported state %q", desiredState)
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, desiredState network.CommissionedState, noInternetAdvertise *bool) error {
@@ -558,26 +573,36 @@ func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id par
 	return nil
 }
 
-func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, pendingStates, targetStates []string) error {
+func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, pendingStates, targetStates commissionedStates) (*network.CommissionedState, error) {
 	log.Printf("[DEBUG] Polling for the CommissionedState field for %s..", id)
 	timeout, _ := ctx.Deadline()
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:      pendingStates,
-		Target:       targetStates,
+		Pending:      pendingStates.strings(),
+		Target:       targetStates.strings(),
 		Refresh:      r.commissionedStateRefreshFunc(ctx, id),
 		PollInterval: 5 * time.Minute,
 		Timeout:      time.Until(timeout),
 
-		// Decommissioning -> Provisioned is known to flip-flop
-		ContinuousTargetOccurence: 4,
+		// Provisioned is known to flip-flop
+		ContinuousTargetOccurence: 3,
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for commissioned state of %s: %+v", id, err)
+	result, err := stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("waiting for commissioned state of %s: %+v", id, err)
 	}
 
-	return nil
+	prefix, ok := result.(network.CustomIPPrefix)
+	if !ok {
+		return nil, fmt.Errorf("retrieving %s: response was not a valid Custom IP Prefix", id)
+	}
+
+	if prefix.CustomIPPrefixPropertiesFormat == nil {
+		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	return &prefix.CustomIPPrefixPropertiesFormat.CommissionedState, nil
 }
 
 func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context, id parse.CustomIpPrefixId) pluginsdk.StateRefreshFunc {
