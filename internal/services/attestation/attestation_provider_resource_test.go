@@ -203,7 +203,7 @@ func testGenerateTestCertificate(organization string) (string, error) {
 
 func (AttestationProviderResource) template(data acceptance.TestData) string {
 	// currently only supported in "East US 2", "West Central US" & "UK South"
-	data.Locations.Primary = "uksouth"
+	data.Locations.Primary = "westus"
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-attestation-%d"
@@ -336,8 +336,8 @@ resource "azurerm_attestation_provider" "test" {
 
   open_enclave_policy_base64 = %[3]q
   sgx_enclave_policy_base64  = %[3]q
-  tpm_policy_base64  = %[3]q
-  sev_snp_policy_base64 = %[3]q
+  tpm_policy_base64          = %[3]q
+  sev_snp_policy_base64      = %[3]q
 
   lifecycle {
     ignore_changes = [
