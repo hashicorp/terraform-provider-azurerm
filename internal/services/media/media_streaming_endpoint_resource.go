@@ -29,6 +29,8 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 		Update: resourceMediaStreamingEndpointUpdate,
 		Delete: resourceMediaStreamingEndpointDelete,
 
+		DeprecationMessage: azureMediaRetirementMessage,
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),

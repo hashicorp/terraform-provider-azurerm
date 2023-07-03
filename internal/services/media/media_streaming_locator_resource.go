@@ -26,6 +26,8 @@ func resourceMediaStreamingLocator() *pluginsdk.Resource {
 		Read:   resourceMediaStreamingLocatorRead,
 		Delete: resourceMediaStreamingLocatorDelete,
 
+		DeprecationMessage: azureMediaRetirementMessage,
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
