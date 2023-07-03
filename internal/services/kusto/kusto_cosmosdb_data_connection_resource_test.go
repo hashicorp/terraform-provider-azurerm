@@ -98,13 +98,13 @@ func (k KustoCosmosDBDataConnectionResource) basic(data acceptance.TestData) str
 %s
 
 resource "azurerm_kusto_cosmosdb_data_connection" "test" {
-  name                = "acctestkcd%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cosmosdb_container_id  = azurerm_cosmosdb_sql_container.test.id
-  kusto_database_id       = azurerm_kusto_database.test.id
-  managed_identity_id = azurerm_kusto_cluster.test.id
-  table_name          = "TestTable"
+  name                  = "acctestkcd%s"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  cosmosdb_container_id = azurerm_cosmosdb_sql_container.test.id
+  kusto_database_id     = azurerm_kusto_database.test.id
+  managed_identity_id   = azurerm_kusto_cluster.test.id
+  table_name            = "TestTable"
   lifecycle {
     ignore_changes = [retrieval_start_date]
   }
@@ -117,15 +117,15 @@ func (k KustoCosmosDBDataConnectionResource) complete(data acceptance.TestData) 
 %s
 
 resource "azurerm_kusto_cosmosdb_data_connection" "test" {
-  name                 = "acctestkcd%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  cosmosdb_container_id  = azurerm_cosmosdb_sql_container.test.id
-  kusto_database_id       = azurerm_kusto_database.test.id
-  managed_identity_id  = azurerm_kusto_cluster.test.id
-  table_name           = "TestTable"
-  mapping_rule_name    = "TestMapping"
-  retrieval_start_date = "2023-06-26T12:00:00.6554616Z"
+  name                  = "acctestkcd%s"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  cosmosdb_container_id = azurerm_cosmosdb_sql_container.test.id
+  kusto_database_id     = azurerm_kusto_database.test.id
+  managed_identity_id   = azurerm_kusto_cluster.test.id
+  table_name            = "TestTable"
+  mapping_rule_name     = "TestMapping"
+  retrieval_start_date  = "2023-06-26T12:00:00.6554616Z"
 }`, template, data.RandomString)
 }
 
@@ -135,13 +135,13 @@ func (k KustoCosmosDBDataConnectionResource) requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_kusto_cosmosdb_data_connection" "import" {
-  name                = azurerm_kusto_cosmosdb_data_connection.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cosmosdb_container_id  = azurerm_cosmosdb_sql_container.test.id
-  kusto_database_id       = azurerm_kusto_database.test.id
-  managed_identity_id = azurerm_kusto_cluster.test.id
-  table_name          = "TestTable"
+  name                  = azurerm_kusto_cosmosdb_data_connection.test.name
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  cosmosdb_container_id = azurerm_cosmosdb_sql_container.test.id
+  kusto_database_id     = azurerm_kusto_database.test.id
+  managed_identity_id   = azurerm_kusto_cluster.test.id
+  table_name            = "TestTable"
   lifecycle {
     ignore_changes = [retrieval_start_date]
   }

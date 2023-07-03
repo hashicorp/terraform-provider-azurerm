@@ -116,19 +116,16 @@ resource "azurerm_kusto_script" "example" {
 SCRIPT
 }
 
-resource "azurerm_kusto_cosmosdb_data_connection" "test" {
-  name                 = "acctestkcd%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  cosmosdb_account_id  = azurerm_cosmosdb_account.test.id
-  cosmosdb_database    = azurerm_cosmosdb_sql_database.test.name
-  cosmosdb_container   = azurerm_cosmosdb_sql_container.test.name
-  cluster_name         = azurerm_kusto_cluster.test.name
-  database_name        = azurerm_kusto_database.test.name
-  managed_identity_id  = azurerm_kusto_cluster.test.id
-  table_name           = "TestTable"
-  mapping_rule_name    = "TestMapping"
-  retrieval_start_date = "2023-06-26T12:00:00.6554616Z"
+resource "azurerm_kusto_cosmosdb_data_connection" "example" {
+  name                  = "examplekcdcd"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
+  cosmosdb_container_id = azurerm_cosmosdb_sql_container.example.id
+  kusto_database_id     = azurerm_kusto_database.example.id
+  managed_identity_id   = azurerm_kusto_cluster.example.id
+  table_name            = "TestTable"
+  mapping_rule_name     = "TestMapping"
+  retrieval_start_date  = "2023-06-26T12:00:00.6554616Z"
 }
 ```
 
@@ -136,15 +133,9 @@ resource "azurerm_kusto_cosmosdb_data_connection" "test" {
 
 The following arguments are supported:
 
-* `cluster_name` - (Required) The name of the Kusto cluster. Changing this forces a new Kusto Cosmos DB Connection to be created.
+* `cosmosdb_container_id` - (Required) The name of an existing container in the Cosmos DB database. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
-* `cosmosdb_account_id` - (Required) The resource ID of the Cosmos DB account used to create the data connection. Changing this forces a new Kusto Cosmos DB Connection to be created.
-
-* `cosmosdb_container` - (Required) The name of an existing container in the Cosmos DB database. Changing this forces a new Kusto Cosmos DB Connection to be created.
-
-* `cosmosdb_database` - (Required) The name of an existing database in the Cosmos DB account. Changing this forces a new Kusto Cosmos DB Connection to be created.
-
-* `database_name` - (Required) The name of the database in the Kusto cluster. Changing this forces a new Kusto Cosmos DB Connection to be created.
+* `kusto_database_id` - (Required) The name of the database in the Kusto cluster. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
 * `location` - (Required) The Azure Region where the Data Explorer should exist. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
@@ -172,9 +163,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Data Explorer.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Data Explorer.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Data Explorer.
+* `create` - (Defaults to 30 minutes) Used when creating the Kusto / Cosmos Database Data Connection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kusto / Cosmos Database Data Connection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Kusto / Cosmos Database Data Connection.
 
 ## Import
 
