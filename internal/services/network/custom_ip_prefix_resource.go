@@ -265,12 +265,13 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err = r.updateCommissionedState(ctx, id, desiredState); err != nil {
+			commissionedState, err := r.updateCommissionedState(ctx, id, desiredState)
+			if err != nil {
 				return err
 			}
 
+			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)
 			metadata.SetID(id)
-
 			return nil
 		},
 	}
@@ -303,10 +304,12 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err = r.updateCommissionedState(ctx, *id, desiredState); err != nil {
+			commissionedState, err := r.updateCommissionedState(ctx, *id, desiredState)
+			if err != nil {
 				return err
 			}
 
+			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)
 			return nil
 		},
 	}
@@ -431,7 +434,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 
 	initialState := existing.CustomIPPrefixPropertiesFormat.CommissionedState
 
-	log.Printf("[DEBUG] Updating CommissionedState for %s from current value %q to desired value %s..", id, initialState, desiredState)
+	log.Printf("[DEBUG] Updating CommissionedState for %s from current value %q to desired value %q..", id, initialState, desiredState)
 
 	// stateTree is a map of desired state, to a map of current state, to the list of transition states needed to get there
 	stateTree := map[network.CommissionedState]map[network.CommissionedState][]network.CommissionedState{
@@ -547,7 +550,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 			}
 		}
 	} else {
-		return nil, fmt.Errorf("unsupported state %q", desiredState)
+		return nil, fmt.Errorf("internal-error: unsupported state %q", desiredState)
 	}
 
 	return nil, nil
@@ -580,7 +583,10 @@ func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id par
 
 func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, pendingStates, targetStates commissionedStates) (*network.CommissionedState, error) {
 	log.Printf("[DEBUG] Polling for the CommissionedState field for %s..", id)
-	timeout, _ := ctx.Deadline()
+	timeout, ok := ctx.Deadline()
+	if !ok {
+		return nil, fmt.Errorf("internal-error: context has no deadline")
+	}
 
 	stateConf := &pluginsdk.StateChangeConf{
 		Delay:        5 * time.Minute,
