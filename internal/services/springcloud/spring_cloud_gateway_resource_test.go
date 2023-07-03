@@ -184,12 +184,6 @@ resource "azurerm_spring_cloud_gateway" "test" {
   instance_count                           = 2
   application_performance_monitoring_types = ["ApplicationInsights", "NewRelic"]
 
-  addon_json = jsonencode({
-    api = {
-      groupId = "test1"
-    }
-  })
-
   api_metadata {
     description       = "test description"
     documentation_url = "https://www.test.com/docs"

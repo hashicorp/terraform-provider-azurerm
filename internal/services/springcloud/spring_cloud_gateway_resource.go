@@ -1,7 +1,6 @@
 package springcloud
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -57,13 +56,6 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudServiceID,
-			},
-
-			"addon_json": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"api_metadata": {
@@ -353,14 +345,8 @@ func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", springId.SpringName, springId.ResourceGroup)
 	}
 
-	addonConfig, err := expandSpringCloudGatewayAddon(d.Get("addon_json").(string))
-	if err != nil {
-		return err
-	}
-
 	gatewayResource := appplatform.GatewayResource{
 		Properties: &appplatform.GatewayProperties{
-			AddonConfigs:          addonConfig,
 			ClientAuth:            expandGatewayClientAuth(d.Get("client_authorization").([]interface{})),
 			APIMetadataProperties: expandGatewayGatewayAPIMetadataProperties(d.Get("api_metadata").([]interface{})),
 			ApmTypes:              expandGatewayGatewayApmTypes(d.Get("application_performance_monitoring_types").([]interface{})),
@@ -416,9 +402,6 @@ func resourceSpringCloudGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
 	if props := resp.Properties; props != nil {
-		if err := d.Set("addon_json", flattenSpringCloudGatewayAddon(props.AddonConfigs)); err != nil {
-			return fmt.Errorf("setting `addon_json`: %s", err)
-		}
 		if err := d.Set("api_metadata", flattenGatewayGatewayAPIMetadataProperties(props.APIMetadataProperties)); err != nil {
 			return fmt.Errorf("setting `api_metadata`: %+v", err)
 		}
@@ -559,17 +542,6 @@ func expandGatewayClientAuth(input []interface{}) *appplatform.GatewayProperties
 		Certificates:            utils.ExpandStringSlice(v["certificate_ids"].([]interface{})),
 		CertificateVerification: verificationEnabled,
 	}
-}
-
-func expandSpringCloudGatewayAddon(input string) (map[string]interface{}, error) {
-	var addonConfig map[string]interface{}
-	if len(input) != 0 {
-		err := json.Unmarshal([]byte(input), &addonConfig)
-		if err != nil {
-			return nil, fmt.Errorf("unable to unmarshal `addon_json`: %+v", err)
-		}
-	}
-	return addonConfig, nil
 }
 
 func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayAPIMetadataProperties) []interface{} {
@@ -722,12 +694,4 @@ func flattenGatewayClientAuth(input *appplatform.GatewayPropertiesClientAuth) []
 			"verification_enabled": input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled,
 		},
 	}
-}
-
-func flattenSpringCloudGatewayAddon(configs map[string]interface{}) *string {
-	if len(configs) == 0 {
-		return nil
-	}
-	addonConfig, _ := json.Marshal(configs)
-	return utils.String(string(addonConfig))
 }
