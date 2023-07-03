@@ -147,13 +147,6 @@ func resourceDnsZone() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
-		// CustomizeDiff: pluginsdk.CustomDiffWithAll(
-		// 	pluginsdk.ValueChangeConditionFunc()
-		// 	pluginsdk.ForceNewIfChange("host_name", func(ctx context.Context, old, new, meta interface{}) bool {
-		// 		return false
-		// 		//return (old != nil && old.(string) != "") && (new == nil || new.(string) == "")
-		// 	}),
-		// ),
 	}
 }
 
@@ -385,13 +378,14 @@ func flattenArmDNSZoneSOARecord(input *recordsets.RecordSet) []interface{} {
 }
 
 func soaRecordHostName(ctx context.Context, timeout time.Duration, recordSetsClient *recordsets.RecordSetsClient, id zones.DnsZoneId) (*string, error) {
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-
 	soaRecord := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
 	soaRecordResp, err := recordSetsClient.Get(ctx, soaRecord)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if soaRecordResp.Model.Properties.SOARecord.Host == nil {
+		return nil, fmt.Errorf("retrieved nil host for %s", id)
 	}
 
 	return soaRecordResp.Model.Properties.SOARecord.Host, nil
