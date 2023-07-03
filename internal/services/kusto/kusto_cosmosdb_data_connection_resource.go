@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/dataconnections"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -18,18 +21,15 @@ import (
 )
 
 type CosmosDBDataConnectionModel struct {
-	Name               string `tfschema:"name"`
-	ResourceGroupName  string `tfschema:"resource_group_name"`
-	Location           string `tfschema:"location"`
-	CosmosDbAccountId  string `tfschema:"cosmosdb_account_id"`
-	CosmosDbContainer  string `tfschema:"cosmosdb_container"`
-	CosmosDbDatabase   string `tfschema:"cosmosdb_database"`
-	ClusterName        string `tfschema:"cluster_name"`
-	DatabaseName       string `tfschema:"database_name"`
-	ManagedIdentityId  string `tfschema:"managed_identity_id"`
-	MappingRuleName    string `tfschema:"mapping_rule_name"`
-	RetrievalStartDate string `tfschema:"retrieval_start_date"`
-	TableName          string `tfschema:"table_name"`
+	Name                string `tfschema:"name"`
+	ResourceGroupName   string `tfschema:"resource_group_name"`
+	Location            string `tfschema:"location"`
+	CosmosDbContainerId string `tfschema:"cosmosdb_container_id"`
+	DatabaseId          string `tfschema:"kusto_database_id"`
+	ManagedIdentityId   string `tfschema:"managed_identity_id"`
+	MappingRuleName     string `tfschema:"mapping_rule_name"`
+	RetrievalStartDate  string `tfschema:"retrieval_start_date"`
+	TableName           string `tfschema:"table_name"`
 }
 
 var _ sdk.Resource = CosmosDBDataConnectionResource{}
@@ -46,33 +46,17 @@ func (r CosmosDBDataConnectionResource) Arguments() map[string]*schema.Schema {
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"location":            commonschema.Location(),
-		"cosmosdb_account_id": {
+		"cosmosdb_container_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: cosmosdb.ValidateContainerID,
 		},
-		"cosmosdb_container": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-		"cosmosdb_database": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-		"cluster_name": {
+		"kusto_database_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ClusterName,
-		},
-		"database_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.DatabaseName,
+			ValidateFunc: validate.DatabaseID,
 		},
 		"managed_identity_id": {
 			Type:         pluginsdk.TypeString,
@@ -126,7 +110,20 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Kusto.DataConnectionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := dataconnections.NewDataConnectionID(subscriptionId, model.ResourceGroupName, model.ClusterName, model.DatabaseName, model.Name)
+
+			cosmosDbContainerId, err := cosmosdb.ParseContainerID(model.CosmosDbContainerId)
+			if err != nil {
+				return fmt.Errorf("parsing CosmosDB Container ID: %+v", err)
+			}
+
+			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(subscriptionId, model.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
+
+			kustoDatabaseId, err := databases.ParseDatabaseID(model.DatabaseId)
+			if err != nil {
+				return fmt.Errorf("parsing Kusto Database ID: %+v", err)
+			}
+
+			id := dataconnections.NewDataConnectionID(subscriptionId, model.ResourceGroupName, kustoDatabaseId.ClusterName, kustoDatabaseId.DatabaseName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -137,9 +134,9 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 			}
 
 			properties := dataconnections.CosmosDbDataConnectionProperties{
-				CosmosDbAccountResourceId: model.CosmosDbAccountId,
-				CosmosDbContainer:         model.CosmosDbContainer,
-				CosmosDbDatabase:          model.CosmosDbDatabase,
+				CosmosDbAccountResourceId: cosmosDbAccountResourceId.ID(),
+				CosmosDbContainer:         cosmosDbContainerId.ContainerName,
+				CosmosDbDatabase:          cosmosDbContainerId.SqlDatabaseName,
 				TableName:                 model.TableName,
 				ManagedIdentityResourceId: model.ManagedIdentityId,
 			}
@@ -188,11 +185,12 @@ func (r CosmosDBDataConnectionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			kustoDatabaseId := databases.NewDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.DatabaseName)
+
 			state := CosmosDBDataConnectionModel{
 				Name:              id.DataConnectionName,
 				ResourceGroupName: id.ResourceGroupName,
-				ClusterName:       id.ClusterName,
-				DatabaseName:      id.DatabaseName,
+				DatabaseId:        kustoDatabaseId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -200,9 +198,12 @@ func (r CosmosDBDataConnectionResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(*cosmosDbModel.Location)
 
 				if properties := cosmosDbModel.Properties; properties != nil {
-					state.CosmosDbAccountId = properties.CosmosDbAccountResourceId
-					state.CosmosDbContainer = properties.CosmosDbContainer
-					state.CosmosDbDatabase = properties.CosmosDbDatabase
+					cosmosdbAccountId, err := cosmosdb.ParseDatabaseAccountID(properties.CosmosDbAccountResourceId)
+					if err != nil {
+						return fmt.Errorf("parsing CosmosDB Account ID: %+v", err)
+					}
+					cosmosDbContainerId := cosmosdb.NewContainerID(id.SubscriptionId, id.ResourceGroupName, cosmosdbAccountId.DatabaseAccountName, properties.CosmosDbDatabase, properties.CosmosDbContainer)
+					state.CosmosDbContainerId = cosmosDbContainerId.ID()
 					state.TableName = properties.TableName
 					state.ManagedIdentityId = properties.ManagedIdentityResourceId
 

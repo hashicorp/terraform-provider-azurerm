@@ -46,11 +46,8 @@ func TestAccKustoCosmosDBDataConnection_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cosmosdb_account_id").Exists(),
-				check.That(data.ResourceName).Key("cosmosdb_database").Exists(),
-				check.That(data.ResourceName).Key("cosmosdb_container").Exists(),
-				check.That(data.ResourceName).Key("cluster_name").Exists(),
-				check.That(data.ResourceName).Key("database_name").Exists(),
+				check.That(data.ResourceName).Key("cosmosdb_container_id").Exists(),
+				check.That(data.ResourceName).Key("kusto_database_id").Exists(),
 				check.That(data.ResourceName).Key("table_name").Exists(),
 				check.That(data.ResourceName).Key("managed_identity_id").Exists(),
 				check.That(data.ResourceName).Key("table_name").HasValue("TestTable"),
@@ -68,11 +65,8 @@ func TestAccKustoCosmosDBDataConnection_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cosmosdb_account_id").Exists(),
-				check.That(data.ResourceName).Key("cosmosdb_database").Exists(),
-				check.That(data.ResourceName).Key("cosmosdb_container").Exists(),
-				check.That(data.ResourceName).Key("cluster_name").Exists(),
-				check.That(data.ResourceName).Key("database_name").Exists(),
+				check.That(data.ResourceName).Key("cosmosdb_container_id").Exists(),
+				check.That(data.ResourceName).Key("kusto_database_id").Exists(),
 				check.That(data.ResourceName).Key("table_name").Exists(),
 				check.That(data.ResourceName).Key("managed_identity_id").Exists(),
 				check.That(data.ResourceName).Key("table_name").HasValue("TestTable"),
@@ -107,11 +101,8 @@ resource "azurerm_kusto_cosmosdb_data_connection" "test" {
   name                = "acctestkcd%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cosmosdb_account_id = azurerm_cosmosdb_account.test.id
-  cosmosdb_database   = azurerm_cosmosdb_sql_database.test.name
-  cosmosdb_container  = azurerm_cosmosdb_sql_container.test.name
-  cluster_name        = azurerm_kusto_cluster.test.name
-  database_name       = azurerm_kusto_database.test.name
+  cosmosdb_container_id  = azurerm_cosmosdb_sql_container.test.id
+  kusto_database_id       = azurerm_kusto_database.test.id
   managed_identity_id = azurerm_kusto_cluster.test.id
   table_name          = "TestTable"
   lifecycle {
@@ -129,11 +120,8 @@ resource "azurerm_kusto_cosmosdb_data_connection" "test" {
   name                 = "acctestkcd%s"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
-  cosmosdb_account_id  = azurerm_cosmosdb_account.test.id
-  cosmosdb_database    = azurerm_cosmosdb_sql_database.test.name
-  cosmosdb_container   = azurerm_cosmosdb_sql_container.test.name
-  cluster_name         = azurerm_kusto_cluster.test.name
-  database_name        = azurerm_kusto_database.test.name
+  cosmosdb_container_id  = azurerm_cosmosdb_sql_container.test.id
+  kusto_database_id       = azurerm_kusto_database.test.id
   managed_identity_id  = azurerm_kusto_cluster.test.id
   table_name           = "TestTable"
   mapping_rule_name    = "TestMapping"
@@ -150,11 +138,8 @@ resource "azurerm_kusto_cosmosdb_data_connection" "import" {
   name                = azurerm_kusto_cosmosdb_data_connection.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cosmosdb_account_id = azurerm_cosmosdb_account.test.id
-  cosmosdb_database   = azurerm_cosmosdb_sql_database.test.name
-  cosmosdb_container  = azurerm_cosmosdb_sql_container.test.name
-  cluster_name        = azurerm_kusto_cluster.test.name
-  database_name       = azurerm_kusto_database.test.name
+  cosmosdb_container_id  = azurerm_cosmosdb_sql_container.test.id
+  kusto_database_id       = azurerm_kusto_database.test.id
   managed_identity_id = azurerm_kusto_cluster.test.id
   table_name          = "TestTable"
   lifecycle {
