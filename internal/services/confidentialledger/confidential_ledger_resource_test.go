@@ -144,7 +144,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_confidential_ledger" "test" {
-  name                = "tf-ci-%[2]d"
+  name                = "acctest-tfci-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ledger_type         = "Public"
@@ -168,7 +168,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_confidential_ledger" "test" {
-  name                = "tf-ci-%[2]d"
+  name                = "acctest-tfci-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ledger_type         = "Public"
@@ -208,7 +208,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_confidential_ledger" "test" {
-  name                = "tf-ci-%[2]d"
+  name                = "acctest-tfci-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ledger_type         = "Private"
@@ -232,7 +232,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_confidential_ledger" "test" {
-  name                = "tf-ci-%[2]d"
+  name                = "acctest-tfci-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   ledger_type         = "Private"
@@ -272,7 +272,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_confidential_ledger" "test" {
-  name                = "tf-ci-%[2]d"
+  name                = "acctest-tfci-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ledger_type         = "Private"
@@ -301,7 +301,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_confidential_ledger" "test" {
-  name                = "tf-ci-%[2]d"
+  name                = "acctest-tfci-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ledger_type         = "Public"
