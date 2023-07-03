@@ -113,14 +113,14 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 
 			cosmosDbContainerId, err := cosmosdb.ParseContainerID(model.CosmosDbContainerId)
 			if err != nil {
-				return fmt.Errorf("parsing CosmosDB Container ID: %+v", err)
+				return err
 			}
 
 			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(subscriptionId, model.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
 
 			kustoDatabaseId, err := databases.ParseDatabaseID(model.DatabaseId)
 			if err != nil {
-				return fmt.Errorf("parsing Kusto Database ID: %+v", err)
+				return err
 			}
 
 			id := dataconnections.NewDataConnectionID(subscriptionId, model.ResourceGroupName, kustoDatabaseId.ClusterName, kustoDatabaseId.DatabaseName, model.Name)
@@ -206,14 +206,8 @@ func (r CosmosDBDataConnectionResource) Read() sdk.ResourceFunc {
 					state.CosmosDbContainerId = cosmosDbContainerId.ID()
 					state.TableName = properties.TableName
 					state.ManagedIdentityId = properties.ManagedIdentityResourceId
-
-					if properties.MappingRuleName != nil {
-						state.MappingRuleName = *properties.MappingRuleName
-					}
-
-					if properties.RetrievalStartDate != nil {
-						state.RetrievalStartDate = *properties.RetrievalStartDate
-					}
+					state.MappingRuleName = pointer.From(properties.MappingRuleName)
+					state.RetrievalStartDate = pointer.From(properties.RetrievalStartDate)
 				}
 			}
 
