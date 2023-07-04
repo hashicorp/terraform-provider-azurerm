@@ -19,7 +19,7 @@ func testAccSecurityCenterAssessment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,7 +34,7 @@ func testAccSecurityCenterAssessment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -49,7 +49,7 @@ func testAccSecurityCenterAssessment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -64,7 +64,7 @@ func testAccSecurityCenterAssessment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

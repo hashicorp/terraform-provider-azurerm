@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_network_interface" "primary" {
   name                    = "${var.prefix}-dc-primary"
   location                = "${var.location}"

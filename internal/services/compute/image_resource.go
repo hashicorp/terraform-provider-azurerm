@@ -130,6 +130,7 @@ func resourceImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Computed:     true,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.NoZeroValues,
 						},
 					},

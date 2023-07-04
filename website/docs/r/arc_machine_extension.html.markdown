@@ -86,5 +86,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Hybrid Compute Machine Extensions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_arc_machine_extension.example C:/Program Files/Git/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HybridCompute/machines/hcmachine1/extensions/ext1
+terraform import azurerm_arc_machine_extension.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HybridCompute/machines/hcmachine1/extensions/ext1
 ```

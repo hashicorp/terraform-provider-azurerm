@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 ## This code demonstrate how to setup Azure Redis Cache monitors
 
 provider "azurerm" {

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 output "managed_instance_id" {
   value = azurerm_sql_managed_instance.mi.id
 }

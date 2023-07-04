@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type StopOperationResponse struct {
 }
 
 // Stop ...
-func (c ManagedClustersClient) Stop(ctx context.Context, id ManagedClusterId) (result StopOperationResponse, err error) {
+func (c ManagedClustersClient) Stop(ctx context.Context, id commonids.KubernetesClusterId) (result StopOperationResponse, err error) {
 	req, err := c.preparerForStop(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedclusters.ManagedClustersClient", "Stop", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ManagedClustersClient) Stop(ctx context.Context, id ManagedClusterId) (r
 }
 
 // StopThenPoll performs Stop then polls until it's completed
-func (c ManagedClustersClient) StopThenPoll(ctx context.Context, id ManagedClusterId) error {
+func (c ManagedClustersClient) StopThenPoll(ctx context.Context, id commonids.KubernetesClusterId) error {
 	result, err := c.Stop(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Stop: %+v", err)
@@ -50,7 +51,7 @@ func (c ManagedClustersClient) StopThenPoll(ctx context.Context, id ManagedClust
 }
 
 // preparerForStop prepares the Stop request.
-func (c ManagedClustersClient) preparerForStop(ctx context.Context, id ManagedClusterId) (*http.Request, error) {
+func (c ManagedClustersClient) preparerForStop(ctx context.Context, id commonids.KubernetesClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

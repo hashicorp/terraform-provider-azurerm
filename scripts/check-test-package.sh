@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 files=$(find . | egrep "/internal/services/[a-z]+/[a-z_]+(resource|data_source)[a-z_]+\.go$" | egrep "test.go")
 error=false

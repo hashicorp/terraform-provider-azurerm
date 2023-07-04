@@ -11,6 +11,9 @@ type Client struct {
 	ManagedHsmClient *managedhsms.ManagedHsmsClient
 	ManagementClient *dataplane.BaseClient
 	VaultsClient     *vaults.VaultsClient
+
+	MHSMSDClient   *dataplane.HSMSecurityDomainClient
+	MHSMRoleClient *dataplane.RoleDefinitionsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -21,11 +24,20 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
 
 	vaultsClient := vaults.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint)
+
+	sdClient := dataplane.NewHSMSecurityDomainClient()
+	o.ConfigureClient(&sdClient.Client, o.ManagedHSMAuthorizer)
+
+	mhsmRoleDefineClient := dataplane.NewRoleDefinitionsClient()
+	o.ConfigureClient(&mhsmRoleDefineClient.Client, o.ManagedHSMAuthorizer)
+
 	o.ConfigureClient(&vaultsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		ManagedHsmClient: &managedHsmClient,
 		ManagementClient: &managementClient,
 		VaultsClient:     &vaultsClient,
+		MHSMSDClient:     &sdClient,
+		MHSMRoleClient:   &mhsmRoleDefineClient,
 	}
 }

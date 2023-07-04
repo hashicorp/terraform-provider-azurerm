@@ -7,18 +7,18 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type HPCCacheResource struct{}
 
 type HPCCacheDirectoryADInfo struct {
-	SubnetID networkParse.SubnetId
+	SubnetID commonids.SubnetId
 
 	PrimaryDNS        string
 	DomainName        string
@@ -233,7 +233,7 @@ func TestAccHPCCache_directoryAD(t *testing.T) {
 		}
 	}
 
-	subnetId, err := networkParse.SubnetID(os.Getenv(adSubnetIDEnv))
+	subnetId, err := commonids.ParseSubnetID(os.Getenv(adSubnetIDEnv))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -610,7 +610,7 @@ resource "azurerm_hpc_cache" "test" {
   subnet_id           = data.azurerm_subnet.test.id
   sku_name            = "Standard_2G"
 }
-`, info.SubnetID.ResourceGroup, info.SubnetID.ResourceGroup, info.SubnetID.VirtualNetworkName, info.SubnetID.Name,
+`, info.SubnetID.ResourceGroupName, info.SubnetID.ResourceGroupName, info.SubnetID.VirtualNetworkName, info.SubnetID.SubnetName,
 		data.RandomInteger)
 }
 
@@ -646,7 +646,7 @@ resource "azurerm_hpc_cache" "test" {
     password            = "%s"
   }
 }
-`, info.SubnetID.ResourceGroup, info.SubnetID.ResourceGroup, info.SubnetID.VirtualNetworkName, info.SubnetID.Name,
+`, info.SubnetID.ResourceGroupName, info.SubnetID.ResourceGroupName, info.SubnetID.VirtualNetworkName, info.SubnetID.SubnetName,
 		data.RandomInteger, info.PrimaryDNS, info.DomainName, info.CacheNetBiosName, info.DomainNetBiosName, info.Username, info.Password)
 }
 
