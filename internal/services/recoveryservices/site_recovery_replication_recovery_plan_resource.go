@@ -417,10 +417,13 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 			if len(model.RecoveryGroup) > 0 {
 				groupValue, err = expandRecoveryGroup(model.RecoveryGroup)
 				if err != nil {
-					return fmt.Errorf("when expanding recovery group: %s", err)
+					return fmt.Errorf("expanding recovery group: %+v", err)
 				}
 			} else {
-				groupValue = expandRecoveryGroupNew(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
+				groupValue, err = expandRecoveryGroupNew(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
+				if err != nil {
+					return fmt.Errorf("expanding recovery group: %+v", err)
+				}
 			}
 
 			parameters := replicationrecoveryplans.CreateRecoveryPlanInput{
@@ -572,24 +575,43 @@ func expandRecoveryGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans
 			})
 		}
 
+		preActions, err := expandAction(group.PreAction)
+		if err != nil {
+			return output, err
+		}
+		postActions, err := expandAction(group.PostAction)
+		if err != nil {
+			return output, err
+		}
+
 		output = append(output, replicationrecoveryplans.RecoveryPlanGroup{
 			GroupType:                 replicationrecoveryplans.RecoveryPlanGroupType(group.GroupType),
 			ReplicationProtectedItems: &protectedItems,
-			StartGroupActions:         pointer.To(expandAction(group.PreAction)),
-			EndGroupActions:           pointer.To(expandAction(group.PostAction)),
+			StartGroupActions:         &preActions,
+			EndGroupActions:           &postActions,
 		})
 
 	}
 	return output, nil
 }
 
-func expandRecoveryGroupNew(shutdown []ShutdownRecoveryGroupModel, failover []GenericRecoveryGroupModel, boot []GenericRecoveryGroupModel) []replicationrecoveryplans.RecoveryPlanGroup {
+func expandRecoveryGroupNew(shutdown []ShutdownRecoveryGroupModel, failover []GenericRecoveryGroupModel, boot []GenericRecoveryGroupModel) ([]replicationrecoveryplans.RecoveryPlanGroup, error) {
 	output := make([]replicationrecoveryplans.RecoveryPlanGroup, 0)
+
 	for _, group := range shutdown {
+		preActions, err := expandAction(group.PreAction)
+		if err != nil {
+			return output, err
+		}
+		postActions, err := expandAction(group.PostAction)
+		if err != nil {
+			return output, err
+		}
+
 		output = append(output, replicationrecoveryplans.RecoveryPlanGroup{
 			GroupType:         replicationrecoveryplans.RecoveryPlanGroupTypeShutdown,
-			StartGroupActions: pointer.To(expandAction(group.PreAction)),
-			EndGroupActions:   pointer.To(expandAction(group.PostAction)),
+			StartGroupActions: &preActions,
+			EndGroupActions:   &postActions,
 		})
 	}
 
@@ -601,11 +623,20 @@ func expandRecoveryGroupNew(shutdown []ShutdownRecoveryGroupModel, failover []Ge
 			})
 		}
 
+		preActions, err := expandAction(group.PreAction)
+		if err != nil {
+			return output, err
+		}
+		postActions, err := expandAction(group.PostAction)
+		if err != nil {
+			return output, err
+		}
+
 		output = append(output, replicationrecoveryplans.RecoveryPlanGroup{
 			GroupType:                 replicationrecoveryplans.RecoveryPlanGroupTypeFailover,
 			ReplicationProtectedItems: &protectedItems,
-			StartGroupActions:         pointer.To(expandAction(group.PreAction)),
-			EndGroupActions:           pointer.To(expandAction(group.PostAction)),
+			StartGroupActions:         &preActions,
+			EndGroupActions:           &postActions,
 		})
 	}
 
@@ -617,18 +648,27 @@ func expandRecoveryGroupNew(shutdown []ShutdownRecoveryGroupModel, failover []Ge
 			})
 		}
 
+		preActions, err := expandAction(group.PreAction)
+		if err != nil {
+			return output, err
+		}
+		postActions, err := expandAction(group.PostAction)
+		if err != nil {
+			return output, err
+		}
+
 		output = append(output, replicationrecoveryplans.RecoveryPlanGroup{
 			GroupType:                 replicationrecoveryplans.RecoveryPlanGroupTypeBoot,
 			ReplicationProtectedItems: &protectedItems,
-			StartGroupActions:         pointer.To(expandAction(group.PreAction)),
-			EndGroupActions:           pointer.To(expandAction(group.PostAction)),
+			StartGroupActions:         &preActions,
+			EndGroupActions:           &postActions,
 		})
 	}
 
-	return output
+	return output, nil
 }
 
-func expandAction(input []ActionModel) []replicationrecoveryplans.RecoveryPlanAction {
+func expandAction(input []ActionModel) ([]replicationrecoveryplans.RecoveryPlanAction, error) {
 	output := make([]replicationrecoveryplans.RecoveryPlanAction, 0)
 	for _, action := range input {
 		failoverDirections := make([]replicationrecoveryplans.PossibleOperationsDirections, 0)
@@ -641,6 +681,10 @@ func expandAction(input []ActionModel) []replicationrecoveryplans.RecoveryPlanAc
 			failoverTypes = append(failoverTypes, replicationrecoveryplans.ReplicationProtectedItemOperation(failoverType))
 		}
 
+		if action.ActionDetailType == "ManualActionDetails" && action.FabricLocation != "" {
+			return nil, fmt.Errorf("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type.")
+		}
+
 		output = append(output, replicationrecoveryplans.RecoveryPlanAction{
 			ActionName:         action.Name,
 			FailoverDirections: failoverDirections,
@@ -649,7 +693,7 @@ func expandAction(input []ActionModel) []replicationrecoveryplans.RecoveryPlanAc
 		})
 	}
 
-	return output
+	return output, nil
 }
 
 func expandA2ASettings(input ReplicationRecoveryPlanA2ASpecificInputModel) *[]replicationrecoveryplans.RecoveryPlanProviderSpecificInput {
@@ -733,9 +777,7 @@ func flattenRecoveryGroupsNew(input []replicationrecoveryplans.RecoveryPlanGroup
 			shutdown = append(shutdown, o)
 		case replicationrecoveryplans.RecoveryPlanGroupTypeFailover:
 			o := GenericRecoveryGroupModel{}
-			if groupItem.ReplicationProtectedItems != nil {
-				o.ReplicatedProtectedItems = flattenRecoveryPlanProtectedItems(groupItem.ReplicationProtectedItems)
-			}
+			o.ReplicatedProtectedItems = flattenRecoveryPlanProtectedItems(groupItem.ReplicationProtectedItems)
 			if groupItem.StartGroupActions != nil {
 				o.PreAction = flattenRecoveryPlanActions(groupItem.StartGroupActions)
 			}
@@ -745,9 +787,7 @@ func flattenRecoveryGroupsNew(input []replicationrecoveryplans.RecoveryPlanGroup
 			failover = append(failover, o)
 		case replicationrecoveryplans.RecoveryPlanGroupTypeBoot:
 			o := GenericRecoveryGroupModel{}
-			if groupItem.ReplicationProtectedItems != nil {
-				o.ReplicatedProtectedItems = flattenRecoveryPlanProtectedItems(groupItem.ReplicationProtectedItems)
-			}
+			o.ReplicatedProtectedItems = flattenRecoveryPlanProtectedItems(groupItem.ReplicationProtectedItems)
 			if groupItem.StartGroupActions != nil {
 				o.PreAction = flattenRecoveryPlanActions(groupItem.StartGroupActions)
 			}
@@ -783,8 +823,10 @@ func expandActionDetail(input ActionModel) (output replicationrecoveryplans.Reco
 
 func flattenRecoveryPlanProtectedItems(input *[]replicationrecoveryplans.RecoveryPlanProtectedItem) []string {
 	protectedItemOutputs := make([]string, 0)
-	for _, protectedItem := range *input {
-		protectedItemOutputs = append(protectedItemOutputs, handleAzureSdkForGoBug2824(*protectedItem.Id))
+	if input != nil {
+		for _, protectedItem := range *input {
+			protectedItemOutputs = append(protectedItemOutputs, handleAzureSdkForGoBug2824(*protectedItem.Id))
+		}
 	}
 	return protectedItemOutputs
 }

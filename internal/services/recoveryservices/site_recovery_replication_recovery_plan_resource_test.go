@@ -122,7 +122,7 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiBootGroup(t *testing.T)
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("boot_recovery_group.0.replicated_protected_items.#").HasValue("1"),
-				check.That(data.ResourceName).Key("boot_recovery_group.1.type").HasValue("Boot"),
+				check.That(data.ResourceName).Key("boot_recovery_group.1.pre_action.0.name").HasValue("testPreAction"),
 			),
 		},
 		data.ImportStep(),
@@ -525,7 +525,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   failover_recovery_group {}
 
   boot_recovery_group {
-    type                       = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
@@ -588,7 +587,15 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
-  boot_recovery_group {}
+  boot_recovery_group {
+    pre_action {
+      name                      = "testPreAction"
+      type                      = "ManualActionDetails"
+      fail_over_directions      = ["PrimaryToRecovery"]
+      fail_over_types           = ["TestFailover"]
+      manual_action_instruction = "test instruction"
+    }
+  }
 
 }
 `, r.template(data), data.RandomInteger)
@@ -634,7 +641,7 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 
   shutdown_recovery_group {}
 
-  recovery_group {}
+  failover_recovery_group {}
 
   boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
