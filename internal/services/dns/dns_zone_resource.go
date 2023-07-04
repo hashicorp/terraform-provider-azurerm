@@ -188,7 +188,7 @@ func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		inputSOARecord := expandArmDNSZoneSOARecord(soaRecord)
 
 		if *inputSOARecord.Host == "" {
-			host, err := soaRecordHostName(ctx, d.Timeout(pluginsdk.TimeoutRead), recordSetsClient, id)
+			host, err := soaRecordHostName(ctx, recordSetsClient, id)
 			if err != nil {
 				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
@@ -377,16 +377,36 @@ func flattenArmDNSZoneSOARecord(input *recordsets.RecordSet) []interface{} {
 	return output
 }
 
-func soaRecordHostName(ctx context.Context, timeout time.Duration, recordSetsClient *recordsets.RecordSetsClient, id zones.DnsZoneId) (*string, error) {
+func soaRecordHostName(ctx context.Context, recordSetsClient *recordsets.RecordSetsClient, id zones.DnsZoneId) (*string, error) {
 	soaRecord := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
 	soaRecordResp, err := recordSetsClient.Get(ctx, soaRecord)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if soaRecordResp.Model.Properties.SOARecord.Host == nil {
-		return nil, fmt.Errorf("retrieved nil host for %s", id)
+	if err := checkSoaRecordResponseForNil(soaRecordResp); err != nil {
+		return nil, fmt.Errorf("soa record response for %s has error: %+v", id, err)
 	}
 
 	return soaRecordResp.Model.Properties.SOARecord.Host, nil
+}
+
+func checkSoaRecordResponseForNil(soaRecordResp recordsets.GetOperationResponse) error {
+	if soaRecordResp.Model == nil {
+		return fmt.Errorf("model is nil")
+	}
+
+	if soaRecordResp.Model.Properties == nil {
+		return fmt.Errorf("properties is nil")
+	}
+
+	if soaRecordResp.Model.Properties.SOARecord == nil {
+		return fmt.Errorf("soa record is nil")
+	}
+
+	if soaRecordResp.Model.Properties.SOARecord.Host == nil {
+		return fmt.Errorf("host is nil")
+	}
+
+	return nil
 }
