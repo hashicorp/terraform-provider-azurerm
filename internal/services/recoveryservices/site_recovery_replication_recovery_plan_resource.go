@@ -420,10 +420,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("when expanding recovery group: %s", err)
 				}
 			} else {
-				groupValue, err = expandRecoveryGroupNew(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
-				if err != nil {
-					return fmt.Errorf("when expanding recovery group: %+v", err)
-				}
+				groupValue = expandRecoveryGroupNew(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
 			}
 
 			parameters := replicationrecoveryplans.CreateRecoveryPlanInput{
@@ -586,7 +583,7 @@ func expandRecoveryGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans
 	return output, nil
 }
 
-func expandRecoveryGroupNew(shutdown []ShutdownRecoveryGroupModel, failover []GenericRecoveryGroupModel, boot []GenericRecoveryGroupModel) ([]replicationrecoveryplans.RecoveryPlanGroup, error) {
+func expandRecoveryGroupNew(shutdown []ShutdownRecoveryGroupModel, failover []GenericRecoveryGroupModel, boot []GenericRecoveryGroupModel) []replicationrecoveryplans.RecoveryPlanGroup {
 	output := make([]replicationrecoveryplans.RecoveryPlanGroup, 0)
 	for _, group := range shutdown {
 		output = append(output, replicationrecoveryplans.RecoveryPlanGroup{
@@ -628,7 +625,7 @@ func expandRecoveryGroupNew(shutdown []ShutdownRecoveryGroupModel, failover []Ge
 		})
 	}
 
-	return output, nil
+	return output
 }
 
 func expandAction(input []ActionModel) []replicationrecoveryplans.RecoveryPlanAction {
@@ -760,7 +757,8 @@ func flattenRecoveryGroupsNew(input []replicationrecoveryplans.RecoveryPlanGroup
 			boot = append(boot, o)
 		}
 	}
-	return
+
+	return shutdown, failover, boot
 }
 
 func expandActionDetail(input ActionModel) (output replicationrecoveryplans.RecoveryPlanActionDetails) {
