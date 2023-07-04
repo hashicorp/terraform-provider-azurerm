@@ -23,7 +23,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_graph_account" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  app_id              = azuread_application.example.application_id 
+  application_id      = azuread_application.example.application_id
   tags = {
     environment = "Production"
   }
@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Account should exist. Changing this forces a new Account to be created.
  
-* `app_id` - (Required) Customer owned application ID. Changing this forces a new Account to be created.
+* `application_id` - (Required) Customer owned application ID. Changing this forces a new Account to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Account.
 

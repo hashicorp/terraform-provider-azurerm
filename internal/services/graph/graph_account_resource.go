@@ -26,7 +26,7 @@ func (r AccountResource) ModelObject() interface{} {
 }
 
 type AccountResourceSchema struct {
-	AppId             string                 `tfschema:"app_id"`
+	ApplicationId     string                 `tfschema:"application_id"`
 	BillingPlanId     string                 `tfschema:"billing_plan_id"`
 	Name              string                 `tfschema:"name"`
 	ResourceGroupName string                 `tfschema:"resource_group_name"`
@@ -49,7 +49,7 @@ func (r AccountResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"app_id": {
+		"application_id": {
 			ForceNew:     true,
 			Required:     true,
 			Type:         pluginsdk.TypeString,
@@ -95,7 +95,7 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 			payload := graphservicesprods.AccountResource{
 				Location: pointer.To(location.Normalize("global")),
 				Properties: graphservicesprods.AccountResourceProperties{
-					AppId: config.AppId,
+					AppId: config.ApplicationId,
 				},
 				Tags: tags.Expand(config.Tags),
 			}
@@ -135,8 +135,8 @@ func (r AccountResource) Read() sdk.ResourceFunc {
 			}
 
 			schema := AccountResourceSchema{
-				AppId: model.Properties.AppId,
-				Name:  id.AccountName, ResourceGroupName: id.ResourceGroupName,
+				ApplicationId: model.Properties.AppId,
+				Name:          id.AccountName, ResourceGroupName: id.ResourceGroupName,
 				Tags: tags.Flatten(model.Tags),
 			}
 			if model.Properties.BillingPlanId != nil {

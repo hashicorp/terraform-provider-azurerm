@@ -3,6 +3,7 @@ package graph_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13/graphservicesprods"
@@ -13,13 +14,26 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+func TestAccGraphAccount(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// the account need a pre-existing AD application, here we use the service principal.
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"account": {
+			"basic":          testAccGraphAccount_basic,
+			"update":         testAccGraphAccount_update,
+			"complete":       testAccGraphAccount_complete,
+			"requiresImport": testAccGraphAccount_requiresImport,
+		},
+	})
+}
+
 type AccountTestResource struct{}
 
-func TestAccGraphAccount_basic(t *testing.T) {
+func testAccGraphAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
 	r := AccountTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -30,11 +44,12 @@ func TestAccGraphAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccGraphAccount_requiresImport(t *testing.T) {
+func testAccGraphAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+
 	r := AccountTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -45,11 +60,11 @@ func TestAccGraphAccount_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccGraphAccount_complete(t *testing.T) {
+func testAccGraphAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
 	r := AccountTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -60,11 +75,11 @@ func TestAccGraphAccount_complete(t *testing.T) {
 	})
 }
 
-func TestAccGraphAccount_update(t *testing.T) {
+func testAccGraphAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
 	r := AccountTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -107,10 +122,10 @@ func (r AccountTestResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_graph_account" "test" {
   name                = "acctesta-%[2]d"
-  app_id              = azuread_application.test.application_id
+  application_id      = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"))
 }
 
 func (r AccountTestResource) requiresImport(data acceptance.TestData) string {
@@ -118,7 +133,7 @@ func (r AccountTestResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_graph_account" "import" {
-  app_id              = azurerm_graph_account.test.app_id
+  application_id      = azurerm_graph_account.test.application_id
   name                = azurerm_graph_account.test.name
   resource_group_name = azurerm_graph_account.test.resource_group_name
 }
@@ -132,13 +147,13 @@ func (r AccountTestResource) complete(data acceptance.TestData) string {
 resource "azurerm_graph_account" "test" {
   name                = "acctesta-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  app_id              = azuread_application.test.application_id
+  application_id      = "%[3]s"
   tags = {
     environment = "terraform-acctests"
     some_key    = "some-value"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"))
 }
 
 func (r AccountTestResource) template(data acceptance.TestData) string {
