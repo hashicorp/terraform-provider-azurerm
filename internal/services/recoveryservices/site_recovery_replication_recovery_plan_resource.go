@@ -118,6 +118,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 		"shutdown_recovery_group": {
 			Type:     pluginsdk.TypeList,
 			Required: features.FourPointOhBeta(),
+			Optional: !features.FourPointOhBeta(),
 			Computed: !features.FourPointOhBeta(),
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -140,6 +141,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 		"failover_recovery_group": {
 			Type:     pluginsdk.TypeList,
 			Required: features.FourPointOhBeta(),
+			Optional: !features.FourPointOhBeta(),
 			Computed: !features.FourPointOhBeta(),
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -171,6 +173,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 		"boot_recovery_group": {
 			Type:     pluginsdk.TypeList,
 			Required: features.FourPointOhBeta(),
+			Optional: !features.FourPointOhBeta(),
 			Computed: !features.FourPointOhBeta(),
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
