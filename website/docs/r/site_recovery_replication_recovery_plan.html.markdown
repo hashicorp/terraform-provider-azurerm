@@ -223,16 +223,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "example" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.primary.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.secondary.id
 
-  recovery_group {
-    type = "Shutdown"
-  }
+  shutdown_recovery_group {}
 
-  recovery_group {
-    type = "Failover"
-  }
+  failover_recovery_group {}
 
-  recovery_group {
-    type                       = "Boot"
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.vm-replication.id]
   }
 
@@ -253,6 +248,20 @@ The following arguments are supported:
 
 * `recovery_group` - (Optional) Three or more `recovery_group` block defined as below.
 
+**Note:** The `recovery_group` is deprecated in favor of `shutdown_recovery_group`, `failover_recovery_group` and `boot_recovery_group`. It will be removed in v4.0 of the Azure Provider.
+
+* `shutdown_recovery_group` - (Optional) One or more `shutdown_recovery_group` block defined as below.
+
+-> **NOTE:** `shutdown_recovery_group` will be required in the next major version of the AzureRM Provider.
+
+* `failover_recovery_group` - (Optional) One or more `failover_recovery_group` block defined as below.
+
+-> **NOTE:** `failover_recovery_group` will be required in the next major version of the AzureRM Provider.
+
+* `boot_recovery_group` - (Optional) One or more `boot_recovery_group` block defined as below.
+
+-> **NOTE:** `boot_recovery_group` will be required in the next major version of the AzureRM Provider.
+
 * `azure_to_azure_settings` - (Optional) An `azure_to_azure_settings` block defined as block.
 
 ---
@@ -261,7 +270,33 @@ A `recovery_group` block supports the following:
 
 * `type` - (Required) The Recovery Plan Group Type. Possible values are `Boot`, `Failover` and `Shutdown`.
 
-**Note:** The List of `recovery_group` must be in the order of `Shutdown`-`Failover`-`Boot`.
+* `replicated_protected_items` - (Optional) One or more protected VM IDs. It must not be specified when `type` is `Shutdown`.
+
+* `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
+
+* `post_action` - (Optional) one or more `action` block as defined below. which will be executed after the group recovery.
+
+---
+
+A `shutdown_recovery_group` block supports the following:
+
+* `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
+
+* `post_action` - (Optional) one or more `action` block as defined below. which will be executed after the group recovery.
+
+---
+
+A `failover_recovery_group` block supports the following:
+
+* `replicated_protected_items` - (Optional) One or more protected VM IDs. 
+
+* `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
+
+* `post_action` - (Optional) one or more `action` block as defined below. which will be executed after the group recovery.
+
+---
+
+A `boot_recovery_group` block supports the following:
 
 * `replicated_protected_items` - (Optional) One or more protected VM IDs. It must not be specified when `type` is `Shutdown`.
 

@@ -75,6 +75,7 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) Read() sdk.ResourceFunc {
 
 				if group := prop.Groups; group != nil {
 					state.RecoveryGroup = flattenRecoveryGroups(*group)
+					state.ShutdownRecoveryGroup, state.FailoverRecoveryGroup, state.BootRecoveryGroup = flattenRecoveryGroupsNew(*group)
 				}
 
 				if details := prop.ProviderSpecificDetails; details != nil && len(*details) > 0 {

@@ -72,10 +72,10 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiActions(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// to check the actions are in the correct order
-				check.That(data.ResourceName).Key("recovery_group.2.pre_action.0.name").HasValue("testPreAction1"),
-				check.That(data.ResourceName).Key("recovery_group.2.pre_action.1.name").HasValue("testPreAction2"),
-				check.That(data.ResourceName).Key("recovery_group.2.post_action.0.name").HasValue("testPostAction1"),
-				check.That(data.ResourceName).Key("recovery_group.2.post_action.1.name").HasValue("testPostAction2"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.pre_action.0.name").HasValue("testPreAction1"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.pre_action.1.name").HasValue("testPreAction2"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.post_action.0.name").HasValue("testPostAction1"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.post_action.1.name").HasValue("testPostAction2"),
 			),
 		},
 		data.ImportStep(),
@@ -121,8 +121,8 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_withMultiBootGroup(t *testing.T)
 			Config: r.withMultiBootGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("recovery_group.2.replicated_protected_items.#").HasValue("1"),
-				check.That(data.ResourceName).Key("recovery_group.3.type").HasValue("Boot"),
+				check.That(data.ResourceName).Key("boot_recovery_group.0.replicated_protected_items.#").HasValue("1"),
+				check.That(data.ResourceName).Key("boot_recovery_group.1.type").HasValue("Boot"),
 			),
 		},
 		data.ImportStep(),
@@ -135,7 +135,7 @@ func TestAccSiteRecoveryReplicationRecoveryPlan_wrongSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.wrongSettings(data),
+			Config:      r.wrongSettingsWithDeprecatedGroup(data),
 			ExpectError: regexp.MustCompile("`replicated_protected_items` must not be specified for `recovery_group` with `Shutdown` type."),
 		},
 	})
@@ -386,16 +386,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type = "Shutdown"
-  }
+  shutdown_recovery_group {}
 
-  recovery_group {
-    type = "Failover"
-  }
+  failover_recovery_group {}
 
-  recovery_group {
-    type                       = "Boot"
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
@@ -413,16 +408,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type = "Shutdown"
-  }
+  shutdown_recovery_group {}
 
-  recovery_group {
-    type = "Failover"
-  }
+  failover_recovery_group {}
 
-  recovery_group {
-    type                       = "Boot"
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
     pre_action {
       name                      = "testPreAction"
@@ -447,16 +437,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type = "Shutdown"
-  }
+  shutdown_recovery_group {}
 
-  recovery_group {
-    type = "Failover"
-  }
+  failover_recovery_group {}
 
-  recovery_group {
-    type                       = "Boot"
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
     post_action {
       name                      = "testPreAction"
@@ -482,16 +467,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type = "Shutdown"
-  }
+  shutdown_recovery_group {}
 
-  recovery_group {
-    type = "Failover"
-  }
+  failover_recovery_group {}
 
-  recovery_group {
-    type                       = "Boot"
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
     pre_action {
       name                      = "testPreAction1"
@@ -540,15 +520,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type = "Shutdown"
-  }
+  shutdown_recovery_group {}
 
-  recovery_group {
-    type = "Failover"
-  }
+  failover_recovery_group {}
 
-  recovery_group {
+  boot_recovery_group {
     type                       = "Boot"
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
@@ -578,16 +554,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type = "Shutdown"
-  }
+  shutdown_recovery_group {}
 
-  recovery_group {
-    type = "Failover"
-  }
+  failover_recovery_group {}
 
-  recovery_group {
-    type                       = "Boot"
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
@@ -609,28 +580,21 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type = "Shutdown"
-  }
+  shutdown_recovery_group {}
 
-  recovery_group {
-    type = "Failover"
-  }
+  failover_recovery_group {}
 
-  recovery_group {
-    type                       = "Boot"
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
   }
 
-  recovery_group {
-    type = "Boot"
-  }
+  boot_recovery_group {}
 
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicationRecoveryPlan) wrongSettings(data acceptance.TestData) string {
+func (r SiteRecoveryReplicationRecoveryPlan) wrongSettingsWithDeprecatedGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -668,8 +632,11 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.test1.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.test2.id
 
-  recovery_group {
-    type                       = "Boot"
+  shutdown_recovery_group {}
+
+  recovery_group {}
+
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.test.id]
 
     post_action {
@@ -680,14 +647,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
       manual_action_instruction = "test instruction"
       fabric_location           = "Primary"
     }
-  }
-
-  recovery_group {
-    type = "Shutdown"
-  }
-
-  recovery_group {
-    type = "Failover"
   }
 
 }
