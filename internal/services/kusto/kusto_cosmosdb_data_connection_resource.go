@@ -197,7 +197,7 @@ func (r CosmosDBDataConnectionResource) Read() sdk.ResourceFunc {
 				if properties := cosmosDbModel.Properties; properties != nil {
 					cosmosdbAccountId, err := cosmosdb.ParseDatabaseAccountID(properties.CosmosDbAccountResourceId)
 					if err != nil {
-						return fmt.Errorf("parsing CosmosDB Account ID: %+v", err)
+						return err
 					}
 					cosmosDbContainerId := cosmosdb.NewContainerID(id.SubscriptionId, id.ResourceGroupName, cosmosdbAccountId.DatabaseAccountName, properties.CosmosDbDatabase, properties.CosmosDbContainer)
 					state.CosmosDbContainerId = cosmosDbContainerId.ID()
