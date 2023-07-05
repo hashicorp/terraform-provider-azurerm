@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_automation_variables` [GH-22216]
 * **New Resource:** `azurerm_arc_private_link_scope` [GH-22314]
+* **New Resource:** `azurerm_kusto_cosmosdb_data_connection` [GH-22295]
 
 ENHANCEMENTS:
 
