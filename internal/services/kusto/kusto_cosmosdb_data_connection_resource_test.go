@@ -99,7 +99,6 @@ func (k KustoCosmosDBDataConnectionResource) basic(data acceptance.TestData) str
 
 resource "azurerm_kusto_cosmosdb_data_connection" "test" {
   name                  = "acctestkcd%s"
-  resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
   cosmosdb_container_id = azurerm_cosmosdb_sql_container.test.id
   kusto_database_id     = azurerm_kusto_database.test.id
@@ -118,7 +117,6 @@ func (k KustoCosmosDBDataConnectionResource) complete(data acceptance.TestData) 
 
 resource "azurerm_kusto_cosmosdb_data_connection" "test" {
   name                  = "acctestkcd%s"
-  resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
   cosmosdb_container_id = azurerm_cosmosdb_sql_container.test.id
   kusto_database_id     = azurerm_kusto_database.test.id
@@ -136,7 +134,6 @@ func (k KustoCosmosDBDataConnectionResource) requiresImport(data acceptance.Test
 
 resource "azurerm_kusto_cosmosdb_data_connection" "import" {
   name                  = azurerm_kusto_cosmosdb_data_connection.test.name
-  resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
   cosmosdb_container_id = azurerm_cosmosdb_sql_container.test.id
   kusto_database_id     = azurerm_kusto_database.test.id

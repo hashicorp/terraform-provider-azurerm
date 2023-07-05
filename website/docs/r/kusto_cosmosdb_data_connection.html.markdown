@@ -118,7 +118,6 @@ SCRIPT
 
 resource "azurerm_kusto_cosmosdb_data_connection" "example" {
   name                  = "examplekcdcd"
-  resource_group_name   = azurerm_resource_group.example.name
   location              = azurerm_resource_group.example.location
   cosmosdb_container_id = azurerm_cosmosdb_sql_container.example.id
   kusto_database_id     = azurerm_kusto_database.example.id
@@ -142,8 +141,6 @@ The following arguments are supported:
 * `managed_identity_id` - (Required) The resource ID of a managed system or user-assigned identity. The identity is used to authenticate with Cosmos DB. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
 * `name` - (Required) The name of the data connection. Changing this forces a new Kusto Cosmos DB Connection to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Data Explorer should exist. Changing this forces a new Kusto Cosmos DB Connection to be created.
 
 * `table_name` - (Required) The case-sensitive name of the existing target table in your cluster. Retrieved data is ingested into this table. Changing this forces a new Kusto Cosmos DB Connection to be created.
 

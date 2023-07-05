@@ -22,7 +22,6 @@ import (
 
 type CosmosDBDataConnectionModel struct {
 	Name                string `tfschema:"name"`
-	ResourceGroupName   string `tfschema:"resource_group_name"`
 	Location            string `tfschema:"location"`
 	CosmosDbContainerId string `tfschema:"cosmosdb_container_id"`
 	DatabaseId          string `tfschema:"kusto_database_id"`
@@ -44,8 +43,7 @@ func (r CosmosDBDataConnectionResource) Arguments() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.DataConnectionName,
 		},
-		"resource_group_name": commonschema.ResourceGroupName(),
-		"location":            commonschema.Location(),
+		"location": commonschema.Location(),
 		"cosmosdb_container_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -116,14 +114,14 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(subscriptionId, model.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
-
 			kustoDatabaseId, err := databases.ParseDatabaseID(model.DatabaseId)
 			if err != nil {
 				return err
 			}
 
-			id := dataconnections.NewDataConnectionID(subscriptionId, model.ResourceGroupName, kustoDatabaseId.ClusterName, kustoDatabaseId.DatabaseName, model.Name)
+			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(subscriptionId, kustoDatabaseId.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
+
+			id := dataconnections.NewDataConnectionID(subscriptionId, kustoDatabaseId.ResourceGroupName, kustoDatabaseId.ClusterName, kustoDatabaseId.DatabaseName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -188,9 +186,8 @@ func (r CosmosDBDataConnectionResource) Read() sdk.ResourceFunc {
 			kustoDatabaseId := databases.NewDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.DatabaseName)
 
 			state := CosmosDBDataConnectionModel{
-				Name:              id.DataConnectionName,
-				ResourceGroupName: id.ResourceGroupName,
-				DatabaseId:        kustoDatabaseId.ID(),
+				Name:       id.DataConnectionName,
+				DatabaseId: kustoDatabaseId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
