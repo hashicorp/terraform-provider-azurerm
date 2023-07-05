@@ -181,11 +181,20 @@ provider "azurerm" {
 
 %[1]s
 
+
+resource "azurerm_application_insights" "test2" {
+  name                = "updateaccappinsights%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
 resource "azurerm_container_app_environment" "test" {
   name                       = "accTest-CAEnv%[2]d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  dapr_ai_connection_string  = azurerm_application_insights.test2.connection_string
 
   infrastructure_subnet_id = azurerm_subnet.control.id
 

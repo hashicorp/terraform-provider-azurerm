@@ -27,7 +27,7 @@ type ContainerAppEnvironmentModel struct {
 	LogAnalyticsWorkspaceId     string                 `tfschema:"log_analytics_workspace_id"`
 	InfrastructureSubnetId      string                 `tfschema:"infrastructure_subnet_id"`
 	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
-	DaprAIConnectionString      string                 `tfschema:"dapr_ai_connection_string"`
+	DaprAIConnectionString      string                 `tfschema:"dapr_application_insights_connection_string"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
@@ -89,10 +89,10 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Description: "Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.",
 		},
 
-		"dapr_ai_connection_string": {
+		"dapr_application_insights_connection_string": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Description: "Application Insights connection string used by Dapr to export Service to Service communication telemetry",
+			Description: "The Application Insights connection string to be used by Dapr to export Service to Service communication telemetry",
 		},
 
 		"tags": commonschema.Tags(),
@@ -198,8 +198,7 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 							SharedKey:  keys.Model.PrimarySharedKey,
 						},
 					},
-					DaprAIConnectionString: pointer.To(containerAppEnvironment.DaprAIConnectionString),
-					VnetConfiguration:      &managedenvironments.VnetConfiguration{},
+					VnetConfiguration: &managedenvironments.VnetConfiguration{},
 				},
 				Tags: tags.Expand(containerAppEnvironment.Tags),
 			}
@@ -207,6 +206,10 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 			if containerAppEnvironment.InfrastructureSubnetId != "" {
 				managedEnvironment.Properties.VnetConfiguration.InfrastructureSubnetId = pointer.To(containerAppEnvironment.InfrastructureSubnetId)
 				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
+			}
+
+			if containerAppEnvironment.DaprAIConnectionString != "" {
+				managedEnvironment.Properties.DaprAIConnectionString = pointer.To(containerAppEnvironment.DaprAIConnectionString)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, managedEnvironment); err != nil {
