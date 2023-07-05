@@ -6,10 +6,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
@@ -33,13 +35,13 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Arguments() 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.PrivateEndpointID,
+			ValidateFunc: privateendpoints.ValidatePrivateEndpointID,
 		},
 		"application_security_group_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ApplicationSecurityGroupID,
+			ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
 		},
 	}
 }
@@ -65,52 +67,61 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			}
 
 			privateEndpointClient := metadata.Client.Network.PrivateEndpointClient
-			privateEndpointId, err := parse.PrivateEndpointID(state.PrivateEndpointId)
+			privateEndpointId, err := privateendpoints.ParsePrivateEndpointID(state.PrivateEndpointId)
 			if err != nil {
 				return err
 			}
 
-			locks.ByName(privateEndpointId.Name, "azurerm_private_endpoint")
-			defer locks.UnlockByName(privateEndpointId.Name, "azurerm_private_endpoint")
+			locks.ByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
+			defer locks.UnlockByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 
 			ASGClient := metadata.Client.Network.ApplicationSecurityGroupsClient
-			ASGId, err := parse.ApplicationSecurityGroupID(state.ApplicationSecurityGroupId)
+			ASGId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(state.ApplicationSecurityGroupId)
 			if err != nil {
 				return err
 			}
 
-			locks.ByName(ASGId.Name, "azurerm_application_security_group")
-			defer locks.UnlockByName(ASGId.Name, "azurerm_application_security_group")
+			locks.ByName(ASGId.ApplicationSecurityGroupName, "azurerm_application_security_group")
+			defer locks.UnlockByName(ASGId.ApplicationSecurityGroupName, "azurerm_application_security_group")
 
-			existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, privateEndpointId.ResourceGroup, privateEndpointId.Name, "")
-			if err != nil && !utils.ResponseWasNotFound(existingPrivateEndpoint.Response) {
+			existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, *privateEndpointId, privateendpoints.DefaultGetOperationOptions())
+			if err != nil && !response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
 				return fmt.Errorf("checking for the presence of existing PrivateEndpoint %q: %+v", privateEndpointId, err)
 			}
 
-			if utils.ResponseWasNotFound(existingPrivateEndpoint.Response) {
+			if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
 				return fmt.Errorf("PrivateEndpoint %q does not exsits", privateEndpointId)
 			}
 
-			existingASG, err := ASGClient.Get(ctx, ASGId.ResourceGroup, ASGId.Name)
-			if err != nil && !utils.ResponseWasNotFound(existingASG.Response) {
+			if existingPrivateEndpoint.Model == nil || existingPrivateEndpoint.Model.Properties == nil {
+				return fmt.Errorf("model/properites for %s was nil", privateEndpointId)
+			}
+
+			existingASG, err := ASGClient.Get(ctx, *ASGId)
+			if err != nil && !response.WasNotFound(existingASG.HttpResponse) {
 				return fmt.Errorf("checking for the presence of existingPrivateEndpoint %q: %+v", ASGId, err)
 			}
 
-			if utils.ResponseWasNotFound(existingASG.Response) {
+			if response.WasNotFound(existingASG.HttpResponse) {
 				return fmt.Errorf("ApplicationSecurityGroup %q does not exsits", ASGId)
+			}
+
+			if existingASG.Model == nil || existingASG.Model.Properties == nil {
+				return fmt.Errorf("model/properites for %s was nil", ASGId)
 			}
 
 			resourceId := parse.NewPrivateEndpointApplicationSecurityGroupAssociationId(*privateEndpointId, *ASGId)
 
 			input := existingPrivateEndpoint
-			ASGList := existingPrivateEndpoint.ApplicationSecurityGroups
+
+			ASGList := existingPrivateEndpoint.Model.Properties.ApplicationSecurityGroups
 
 			// flag: application security group exists in private endpoint configuration
 			ASGInPE := false
 
-			if input.PrivateEndpointProperties != nil && input.PrivateEndpointProperties.ApplicationSecurityGroups != nil {
+			if input.Model.Properties.ApplicationSecurityGroups != nil {
 				for _, value := range *ASGList {
-					if value.ID != nil && *value.ID == ASGId.ID() {
+					if value.Id != nil && *value.Id == ASGId.ID() {
 						ASGInPE = true
 						break
 					}
@@ -122,7 +133,8 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			}
 
 			if ASGList != nil {
-				*ASGList = append(*ASGList, existingASG)
+				asgModel := *existingASG.Model
+				*ASGList = append(*ASGList, privateendpoints.ApplicationSecurityGroup(asgModel))
 				input.ApplicationSecurityGroups = ASGList
 			} else {
 				input.ApplicationSecurityGroups = &[]network.ApplicationSecurityGroup{
