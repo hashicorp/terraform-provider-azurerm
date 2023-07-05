@@ -415,7 +415,6 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 				Value:       utils.String(contentValue),
 				Path:        utils.String(path),
 				APIRevision: utils.String(revision),
-				APIVersion:  utils.String(version),
 			},
 		}
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
@@ -434,6 +433,10 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 				WsdlServiceName:  utils.String(wSvcName),
 				WsdlEndpointName: utils.String(wEndpName),
 			}
+		}
+
+		if version != "" {
+			apiParams.APICreateOrUpdateProperties.APIVersion = utils.String(version)
 		}
 
 		if versionSetId != "" {
@@ -483,7 +486,6 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			ServiceURL:                    utils.String(serviceUrl),
 			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
 			APIRevision:                   utils.String(revision),
-			APIVersion:                    utils.String(version),
 			SubscriptionRequired:          &subscriptionRequired,
 			AuthenticationSettings:        authenticationSettings,
 			APIRevisionDescription:        utils.String(d.Get("revision_description").(string)),
@@ -499,6 +501,10 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 
 	if displayName != "" {
 		params.APICreateOrUpdateProperties.DisplayName = &displayName
+	}
+
+	if version != "" {
+		params.APICreateOrUpdateProperties.APIVersion = utils.String(version)
 	}
 
 	if versionSetId != "" {
