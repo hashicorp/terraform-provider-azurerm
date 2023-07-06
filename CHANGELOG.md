@@ -32,6 +32,7 @@ BUG FIXES:
 * `azurerm_linux_web_app` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
 * `azurerm_linux_web_app` - fix panic in docker settings processing [GH-22347]
 * `azurerm_linux_web_app_slot`  - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
+* `azurerm_private_dns_resolver_forwarding_rule_resource` - changing the `domain_name` property now creates a new resource [GH-22375]
 * `azurerm_windows_function_app` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
 * `azurerm_windows_function_app_slot` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
 * `azurerm_windows_web_app` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
