@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/applicationsecuritygroups"
@@ -69,7 +70,6 @@ func TestAccPrivateEndpointApplicationSecurityGroupAssociationResource_deleted(t
 
 func (r PrivateEndpointApplicationSecurityGroupAssociationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	splitId := strings.Split(state.ID, "|")
-
 	exists := false
 
 	if len(splitId) != 2 {
@@ -238,6 +238,9 @@ resource "azurerm_private_endpoint_application_security_group_association" "impo
 }
 
 func (r PrivateEndpointApplicationSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
+
 	endpointId, err := privateendpoints.ParsePrivateEndpointID(state.Attributes["private_endpoint_id"])
 	if err != nil {
 		return err
