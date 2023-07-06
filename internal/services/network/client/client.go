@@ -98,7 +98,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	ApplicationSecurityGroupsClient, err := applicationsecuritygroups.NewApplicationSecurityGroupsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building application secruity groups client: %+v", err)
+		return nil, fmt.Errorf("building application security groups client: %+v", err)
 	}
 	o.Configure(ApplicationSecurityGroupsClient.Client, o.Authorizers.ResourceManager)
 

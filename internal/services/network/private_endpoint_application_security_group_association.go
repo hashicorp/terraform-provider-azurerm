@@ -92,7 +92,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			}
 
 			if existingPrivateEndpoint.Model == nil || existingPrivateEndpoint.Model.Properties == nil {
-				return fmt.Errorf("model/properites for %s was nil", privateEndpointId)
+				return fmt.Errorf("model/properties for %s was nil", privateEndpointId)
 			}
 
 			existingASG, err := ASGClient.Get(ctx, *ASGId)
@@ -105,7 +105,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			}
 
 			if existingASG.Model == nil || existingASG.Model.Properties == nil {
-				return fmt.Errorf("model/properites for %s was nil", ASGId)
+				return fmt.Errorf("model/properties for %s was nil", ASGId)
 			}
 
 			resourceId := parse.NewPrivateEndpointApplicationSecurityGroupAssociationId(*privateEndpointId, *ASGId)
@@ -268,7 +268,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 			}
 
 			if existingPrivateEndpoint.Model == nil || existingPrivateEndpoint.Model.Properties == nil {
-				return fmt.Errorf("model/properites for %s was nil", privateEndpointId)
+				return fmt.Errorf("model/properties for %s was nil", privateEndpointId)
 			}
 
 			existingASG, err := ASGClient.Get(ctx, *ASGId)
