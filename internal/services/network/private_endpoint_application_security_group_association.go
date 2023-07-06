@@ -130,7 +130,6 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 				return fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.", resourceId.ID(), "azurerm_private_endpoint_application_security_group_association")
 			}
 
-			// todo confirm that this just needs the id and not a whole block copy
 			if ASGList != nil {
 				*ASGList = append(*ASGList, privateendpoints.ApplicationSecurityGroup{
 					Id: existingASG.Model.Id,
