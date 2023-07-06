@@ -388,7 +388,7 @@ A `queue_properties` block supports the following:
 
 A `sas_policy` block supports the following:
 
-* `expiration_period` - (Required) The SAS expiration period in format of `DD.HH:MM:SS`.
+* `expiration_period` - (Required) The SAS expiration period in format of `DD.HH\:MM\:SS`.
 
 * `expiration_action` - (Optional) The SAS expiration action. The only possible value is `Log` at this moment. Defaults to `Log`.
 
