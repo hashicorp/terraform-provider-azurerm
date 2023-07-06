@@ -22,8 +22,8 @@ ENHANCEMENTS:
 * `azurerm_windows_function_app_slot` - added support for `public_network_access_enabled` property
 * `azurerm_windows_web_app` - added support for `public_network_access_enabled` property [GH-22352]
 * `azurerm_windows_web_app_slot` - added support for `public_network_access_enabled` property [GH-22352]
-* `azurerm_stream_analytics_output_blob` - increase `batch_min_rows` to 1000000 [GH-22331]
-  
+* `azurerm_stream_analytics_output_blob` - increase `batch_min_rows` to `1000000` [GH-22331]
+* `azurerm_spring_cloud_gateway` - support for the `allowed_origin_patterns` property [GH-22317]
 
 BUG FIXES:
 
