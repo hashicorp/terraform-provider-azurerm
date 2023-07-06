@@ -271,9 +271,8 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 
 		v, ok := service.(sdk.TypedServiceRegistrationWithAGitHubLabel)
 		// keep a record of resources/datasources that don't have labels so they can be used to check that prefixes generated later don't match resources from those services
-		if !ok {
-			label = "None"
-		} else {
+		label = ""
+		if ok {
 			label = v.AssociatedGitHubLabel()
 		}
 
@@ -294,9 +293,8 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 		service.SupportedResources()
 
 		// keep a record of resources/datasources that don't have labels so they can be used to check that prefixes generated later don't match resources from those services
-		if !ok {
-			label = "None"
-		} else {
+		label = ""
+		if ok {
 			label = v.AssociatedGitHubLabel()
 		}
 
@@ -355,7 +353,7 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 	// loop though again, this time compiling prefixes into a regex for each label and separating out duplicates
 	for _, labelName := range sortedLabels {
 
-		if labelName == "None" {
+		if labelName == "" {
 			continue
 		}
 
