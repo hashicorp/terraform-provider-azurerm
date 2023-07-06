@@ -1305,6 +1305,32 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								string(managedclusters.ServiceMeshModeIstio),
 							}, false),
 						},
+						"ingress_gateway_internal": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Required: true,
+									},
+								},
+							},
+						},
+						"ingress_gateway_external": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Required: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -4335,10 +4361,44 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 	}
 
 	raw := input[0].(map[string]interface{})
+
+	mode := raw["mode"].(string)
+
 	profile := managedclusters.ServiceMeshProfile{}
-	if managedclusters.ServiceMeshMode(raw["mode"].(string)) == managedclusters.ServiceMeshModeIstio {
-		profile.Mode = managedclusters.ServiceMeshMode(raw["mode"].(string))
+
+	if managedclusters.ServiceMeshMode(mode) == managedclusters.ServiceMeshModeIstio {
+		profile.Mode = managedclusters.ServiceMeshMode(mode)
 		profile.Istio = &managedclusters.IstioServiceMesh{}
+
+		profile.Istio.Components = &managedclusters.IstioComponents{}
+
+		istioIngressGatewaysList := make([]managedclusters.IstioIngressGateway, 0)
+
+		if raw["ingress_gateway_internal"] != nil {
+
+			ingressInternal := raw["ingress_gateway_internal"].([]interface{})[0].(map[string]interface{})
+
+			ingressGatewayElementInternal := managedclusters.IstioIngressGateway{
+				Enabled: ingressInternal["enabled"].(bool),
+				Mode:    managedclusters.IstioIngressGatewayModeInternal,
+			}
+
+			istioIngressGatewaysList = append(istioIngressGatewaysList, ingressGatewayElementInternal)
+		}
+
+		if raw["ingress_gateway_external"] != nil {
+
+			ingressExternal := raw["ingress_gateway_external"].([]interface{})[0].(map[string]interface{})
+
+			ingressGatewayElementExternal := managedclusters.IstioIngressGateway{
+				Enabled: ingressExternal["enabled"].(bool),
+				Mode:    managedclusters.IstioIngressGatewayModeExternal,
+			}
+
+			istioIngressGatewaysList = append(istioIngressGatewaysList, ingressGatewayElementExternal)
+		}
+
+		profile.Istio.Components.IngressGateways = &istioIngressGatewaysList
 	}
 
 	return &profile
@@ -4419,11 +4479,35 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 		return nil
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"mode": string(managedclusters.ServiceMeshModeIstio),
-		},
+	returnMap := map[string]interface{}{
+		"mode": string(managedclusters.ServiceMeshModeIstio),
 	}
+
+	if (input.Istio.Components.IngressGateways != nil) && len(*input.Istio.Components.IngressGateways) > 0 {
+
+		for _, value := range *input.Istio.Components.IngressGateways {
+
+			mode := value.Mode
+			enabled := value.Enabled
+
+			var currentIngressKey string
+
+			if mode == managedclusters.IstioIngressGatewayModeExternal {
+				currentIngressKey = "ingress_gateway_external"
+			} else {
+				currentIngressKey = "ingress_gateway_internal"
+			}
+
+			returnMap[currentIngressKey] = []interface{}{
+				map[string]interface{}{
+					"enabled": enabled,
+				},
+			}
+
+		}
+	}
+
+	return []interface{}{returnMap}
 }
 
 func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {

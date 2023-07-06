@@ -572,6 +572,22 @@ func TestAccDataSourceKubernetesCluster_customCaTrustCerts(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_serviceMesh(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.serviceMesh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_internal.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_external.0.enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -897,4 +913,14 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.customCATrustCertificates(data, fakeCertsList))
+}
+
+func (KubernetesClusterDataSource) serviceMesh(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.serviceMeshProfile(data, true, true))
 }
