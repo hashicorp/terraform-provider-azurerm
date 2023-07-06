@@ -250,11 +250,11 @@ The following arguments are supported:
 
 **Note:** The `recovery_group` is deprecated in favor of `shutdown_recovery_group`, `failover_recovery_group` and `boot_recovery_group`. It will be removed in v4.0 of the Azure Provider.
 
-* `shutdown_recovery_group` - (Optional) One or more `shutdown_recovery_group` block defined as below.
+* `shutdown_recovery_group` - (Optional) One `shutdown_recovery_group` block defined as below.
 
 -> **NOTE:** `shutdown_recovery_group` will be required in the next major version of the AzureRM Provider.
 
-* `failover_recovery_group` - (Optional) One or more `failover_recovery_group` block defined as below.
+* `failover_recovery_group` - (Optional) One `failover_recovery_group` block defined as below.
 
 -> **NOTE:** `failover_recovery_group` will be required in the next major version of the AzureRM Provider.
 

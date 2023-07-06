@@ -121,6 +121,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 			Optional: !features.FourPointOhBeta(),
 			Computed: !features.FourPointOhBeta(),
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"pre_action": {
@@ -144,6 +145,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 			Optional: !features.FourPointOhBeta(),
 			Computed: !features.FourPointOhBeta(),
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"replicated_protected_items": {
