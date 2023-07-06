@@ -9,6 +9,47 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AbusePenaltyAction string
+
+const (
+	AbusePenaltyActionBlock    AbusePenaltyAction = "Block"
+	AbusePenaltyActionThrottle AbusePenaltyAction = "Throttle"
+)
+
+func PossibleValuesForAbusePenaltyAction() []string {
+	return []string{
+		string(AbusePenaltyActionBlock),
+		string(AbusePenaltyActionThrottle),
+	}
+}
+
+func (s *AbusePenaltyAction) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAbusePenaltyAction(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAbusePenaltyAction(input string) (*AbusePenaltyAction, error) {
+	vals := map[string]AbusePenaltyAction{
+		"block":    AbusePenaltyActionBlock,
+		"throttle": AbusePenaltyActionThrottle,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AbusePenaltyAction(input)
+	return &out, nil
+}
+
 type KeyName string
 
 const (
@@ -88,6 +129,47 @@ func parseKeySource(input string) (*KeySource, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := KeySource(input)
+	return &out, nil
+}
+
+type ModelLifecycleStatus string
+
+const (
+	ModelLifecycleStatusGenerallyAvailable ModelLifecycleStatus = "GenerallyAvailable"
+	ModelLifecycleStatusPreview            ModelLifecycleStatus = "Preview"
+)
+
+func PossibleValuesForModelLifecycleStatus() []string {
+	return []string{
+		string(ModelLifecycleStatusGenerallyAvailable),
+		string(ModelLifecycleStatusPreview),
+	}
+}
+
+func (s *ModelLifecycleStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseModelLifecycleStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseModelLifecycleStatus(input string) (*ModelLifecycleStatus, error) {
+	vals := map[string]ModelLifecycleStatus{
+		"generallyavailable": ModelLifecycleStatusGenerallyAvailable,
+		"preview":            ModelLifecycleStatusPreview,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ModelLifecycleStatus(input)
 	return &out, nil
 }
 
@@ -446,6 +528,50 @@ func parseResourceSkuRestrictionsType(input string) (*ResourceSkuRestrictionsTyp
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ResourceSkuRestrictionsType(input)
+	return &out, nil
+}
+
+type RoutingMethods string
+
+const (
+	RoutingMethodsPerformance RoutingMethods = "Performance"
+	RoutingMethodsPriority    RoutingMethods = "Priority"
+	RoutingMethodsWeighted    RoutingMethods = "Weighted"
+)
+
+func PossibleValuesForRoutingMethods() []string {
+	return []string{
+		string(RoutingMethodsPerformance),
+		string(RoutingMethodsPriority),
+		string(RoutingMethodsWeighted),
+	}
+}
+
+func (s *RoutingMethods) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRoutingMethods(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseRoutingMethods(input string) (*RoutingMethods, error) {
+	vals := map[string]RoutingMethods{
+		"performance": RoutingMethodsPerformance,
+		"priority":    RoutingMethodsPriority,
+		"weighted":    RoutingMethodsWeighted,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := RoutingMethods(input)
 	return &out, nil
 }
 

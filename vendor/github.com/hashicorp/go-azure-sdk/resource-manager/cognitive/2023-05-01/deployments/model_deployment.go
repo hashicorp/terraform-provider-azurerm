@@ -12,6 +12,7 @@ type Deployment struct {
 	Id         *string                `json:"id,omitempty"`
 	Name       *string                `json:"name,omitempty"`
 	Properties *DeploymentProperties  `json:"properties,omitempty"`
+	Sku        *Sku                   `json:"sku,omitempty"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
 }

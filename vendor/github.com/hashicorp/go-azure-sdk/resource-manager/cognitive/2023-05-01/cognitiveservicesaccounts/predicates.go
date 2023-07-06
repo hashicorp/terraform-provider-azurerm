@@ -42,10 +42,12 @@ func (p AccountOperationPredicate) Matches(input Account) bool {
 }
 
 type AccountModelOperationPredicate struct {
-	Format      *string
-	MaxCapacity *int64
-	Name        *string
-	Version     *string
+	Format           *string
+	IsDefaultVersion *bool
+	MaxCapacity      *int64
+	Name             *string
+	Source           *string
+	Version          *string
 }
 
 func (p AccountModelOperationPredicate) Matches(input AccountModel) bool {
@@ -54,11 +56,19 @@ func (p AccountModelOperationPredicate) Matches(input AccountModel) bool {
 		return false
 	}
 
+	if p.IsDefaultVersion != nil && (input.IsDefaultVersion == nil && *p.IsDefaultVersion != *input.IsDefaultVersion) {
+		return false
+	}
+
 	if p.MaxCapacity != nil && (input.MaxCapacity == nil && *p.MaxCapacity != *input.MaxCapacity) {
 		return false
 	}
 
 	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+		return false
+	}
+
+	if p.Source != nil && (input.Source == nil && *p.Source != *input.Source) {
 		return false
 	}
 
