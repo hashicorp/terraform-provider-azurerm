@@ -1168,7 +1168,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
     ingress_gateway_external {
       enabled = %[4]t
-    }    
+    }
 
   }
 
