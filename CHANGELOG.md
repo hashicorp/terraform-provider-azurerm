@@ -10,8 +10,10 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: update App Service to API version `2022-09-01`
+* dependencies: `web`: updating to API Version `2022-09-01` [GH-22352]
+* dependencies: `cognitive`: updating to API Version `2023-05-01` [GH-22223]
 * dependencies: updating to `v1.53.0` of `google.golang.org/grpc` [GH-22383]
+* `azurerm_cognitive_deployment` - suppot for the `scale` block propeties `tier`, `size`, `family`, and `capacity` [GH-22223]
 * `azurerm_linux_function_app` - added support for `public_network_access_enabled` property [GH-22352]
 * `azurerm_linux_function_app_slot` - added support for `public_network_access_enabled` property [GH-22352]
 * `azurerm_linux_web_app` - added support for `public_network_access_enabled` property [GH-22352]
