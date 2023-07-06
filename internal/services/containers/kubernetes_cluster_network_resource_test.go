@@ -1160,7 +1160,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   service_mesh_profile {
-    mode = "Istio"
+    mode                             = "Istio"
     internal_ingress_gateway_enabled = %[3]t
     external_ingress_gateway_enabled = %[4]t
   }
