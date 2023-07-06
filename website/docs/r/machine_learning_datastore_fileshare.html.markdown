@@ -117,5 +117,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Machine Learning DataStores can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_machine_learning_datastore_fileshare.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/mlw1/datastores/datastore1
+terraform import azurerm_machine_learning_datastore_fileshare.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/mlw1/dataStores/datastore1
 ```

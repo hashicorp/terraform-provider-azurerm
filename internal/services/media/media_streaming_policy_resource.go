@@ -26,6 +26,8 @@ func resourceMediaStreamingPolicy() *pluginsdk.Resource {
 		Read:   resourceMediaStreamingPolicyRead,
 		Delete: resourceMediaStreamingPolicyDelete,
 
+		DeprecationMessage: azureMediaRetirementMessage,
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),

@@ -26,6 +26,8 @@ func resourceMediaAsset() *pluginsdk.Resource {
 		Update: resourceMediaAssetCreateUpdate,
 		Delete: resourceMediaAssetDelete,
 
+		DeprecationMessage: azureMediaRetirementMessage,
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),

@@ -8,7 +8,7 @@ import (
 
 func NewClient(o *common.ClientOptions) *azurestackhci_v2022_12_01.Client {
 	client := azurestackhci_v2022_12_01.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
-		c.Authorizer = o.ResourceManagerAuthorizer
+		o.ConfigureClient(c, o.ResourceManagerAuthorizer)
 	})
 
 	return &client

@@ -204,7 +204,7 @@ func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	d.Set("workspace_id", id.ID())
 
 	if keyVaultURI != "" {
-		key, err := keyVaultParse.NewNestedItemID(keyVaultURI, "keys", keyName, keyVersion)
+		key, err := keyVaultParse.NewNestedItemID(keyVaultURI, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
 		if err == nil {
 			d.Set("key_vault_key_id", key.ID())
 		}

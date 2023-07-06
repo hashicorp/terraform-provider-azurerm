@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 // the `exit_code_hack` is to keep the VM Extension resource happy
 locals {
   import_command       = "Import-Module ADDSDeployment"

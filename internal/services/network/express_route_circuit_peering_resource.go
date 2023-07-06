@@ -9,11 +9,11 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -200,7 +200,7 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 						"route_filter_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.RouteFilterID,
+							ValidateFunc: routefilters.ValidateRouteFilterID,
 						},
 					},
 				},
@@ -224,7 +224,7 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 			"route_filter_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.RouteFilterID,
+				ValidateFunc: routefilters.ValidateRouteFilterID,
 			},
 
 			"gateway_manager_etag": {
@@ -486,7 +486,7 @@ func expandExpressRouteCircuitIpv6PeeringConfig(input []interface{}) (*network.I
 
 	routeFilterId := v["route_filter_id"].(string)
 	if routeFilterId != "" {
-		if _, err := parse.RouteFilterID(routeFilterId); err != nil {
+		if _, err := routefilters.ParseRouteFilterID(routeFilterId); err != nil {
 			return nil, err
 		}
 		peeringConfig.RouteFilter = &network.SubResource{

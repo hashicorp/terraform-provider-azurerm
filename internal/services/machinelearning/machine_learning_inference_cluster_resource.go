@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
@@ -164,7 +165,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// Get AKS Compute Properties
-	aksID, err := managedclusters.ParseManagedClusterID(d.Get("kubernetes_cluster_id").(string))
+	aksID, err := commonids.ParseKubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
 	if err != nil {
 		return err
 	}
@@ -236,7 +237,7 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	aksComputeProperties := computeResource.Model.Properties.(machinelearningcomputes.AKS)
 
 	// Retrieve AKS Cluster ID
-	aksId, err := managedclusters.ParseManagedClusterIDInsensitively(*aksComputeProperties.ResourceId)
+	aksId, err := commonids.ParseKubernetesClusterIDInsensitively(*aksComputeProperties.ResourceId)
 	if err != nil {
 		return err
 	}

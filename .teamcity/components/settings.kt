@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) HashiCorp, Inc.
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 // specifies the default hour (UTC) at which tests should be triggered, if enabled
 var defaultStartHour = 0
 
@@ -5,7 +10,7 @@ var defaultStartHour = 0
 var defaultParallelism = 20
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.1.5"
+var defaultTerraformCoreVersion = "1.5.1"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -29,7 +34,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "northeurope", "eastus2", false), useDevTestSubscription = true),
+        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "northeurope", "eastus2", true), useDevTestSubscription = true),
 
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
@@ -50,7 +55,7 @@ var serviceTestConfigurationOverrides = mapOf(
         // Cosmos is only available in certain locations
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
 
-        //Confidential Ledger
+        // Confidential Ledger
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
@@ -70,9 +75,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // data factory uses NC class VMs which are not available in eastus2
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false), useDevTestSubscription = true),
-
-        // Data Lake has a low quota
-        "datalake" to testConfiguration(parallelism = 2, useDevTestSubscription = true),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
@@ -160,7 +162,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "voiceservices" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westcentralus", "westcentralus", "westcentralus", false), useDevTestSubscription = true),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
+        "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true), useDevTestSubscription = true),
 
         // moved to alt subscription
         "appconfiguration" to testConfiguration(useDevTestSubscription = true),

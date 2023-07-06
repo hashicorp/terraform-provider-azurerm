@@ -28,6 +28,8 @@ func resourceMediaTransform() *pluginsdk.Resource {
 		Update: resourceMediaTransformCreateUpdate,
 		Delete: resourceMediaTransformDelete,
 
+		DeprecationMessage: azureMediaRetirementMessage,
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),

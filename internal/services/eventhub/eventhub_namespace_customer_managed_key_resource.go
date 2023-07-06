@@ -218,7 +218,7 @@ func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]int
 			keyVersion = *item.KeyVersion
 		}
 
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, "keys", keyName, keyVersion)
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
 		if err != nil {
 			return nil, err
 		}

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 locals {
   scm_username = azurerm_linux_web_app.example.site_credential.0.name
   scm_password = azurerm_linux_web_app.example.site_credential.0.password

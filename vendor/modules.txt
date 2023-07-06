@@ -36,7 +36,6 @@ github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage
 github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync
 github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web
-github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest v14.2.0+incompatible
 ## explicit
@@ -110,13 +109,13 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/uuid v1.1.2
+# github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.56.0
+# github.com/hashicorp/go-azure-helpers v0.57.0
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/lang/dates
@@ -135,7 +134,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20230614.1151152
+# github.com/hashicorp/go-azure-sdk v0.20230623.1103505
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -216,7 +215,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/cont
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/daprcomponents
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironments
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironmentsstorages
-github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance
+github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/agentpools
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/registries
@@ -248,7 +247,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-p
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/resolveprivatelinkserviceid
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/trustedaccess
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/maintenanceconfigurations
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters
@@ -352,6 +350,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/wor
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machineextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privateendpointconnections
+github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privatelinkscopes
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts
@@ -425,7 +424,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/virtualnetworkrules
-github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements
+github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accountfilters
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accounts
@@ -477,6 +476,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routes
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routetables
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/scopeconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityadminconfigurations
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityrules
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/staticmembers
 github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01
@@ -548,12 +548,12 @@ github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryplans
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryservicesproviders
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationvaultsetting
-github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01
-github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/firewallrules
-github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/patchschedules
-github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/privateendpointconnections
-github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/privatelinkresources
-github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01/redis
+github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01
+github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/firewallrules
+github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/patchschedules
+github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/privateendpointconnections
+github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/privatelinkresources
+github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/redis
 github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections
@@ -860,6 +860,7 @@ github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securit
 github.com/tombuildsstuff/kermit/sdk/synapse/2019-06-01-preview/synapse
 github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse
 github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse
+github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web
 github.com/tombuildsstuff/kermit/version
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
@@ -972,10 +973,10 @@ google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20210629200056-84d6f6074151
-## explicit; go 1.11
+# google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f
+## explicit; go 1.19
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.51.0
+# google.golang.org/grpc v1.53.0
 ## explicit; go 1.17
 google.golang.org/grpc
 google.golang.org/grpc/attributes

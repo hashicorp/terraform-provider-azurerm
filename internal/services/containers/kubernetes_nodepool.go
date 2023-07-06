@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -215,7 +216,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"vnet_subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: networkValidate.SubnetID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"orchestrator_version": {
 						Type:         pluginsdk.TypeString,
@@ -226,7 +227,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"pod_subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: networkValidate.SubnetID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"proximity_placement_group_id": {
 						Type:         pluginsdk.TypeString,

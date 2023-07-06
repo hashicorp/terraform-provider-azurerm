@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package provider
 
 import (
@@ -155,6 +158,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		iothub.Registration{},
 		iotcentral.Registration{},
 		keyvault.Registration{},
+		kusto.Registration{},
 		labservice.Registration{},
 		loadbalancer.Registration{},
 		loganalytics.Registration{},

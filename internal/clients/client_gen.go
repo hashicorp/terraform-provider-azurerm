@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package clients
 
 // NOTE: this file is generated - manual changes will be overwritten.

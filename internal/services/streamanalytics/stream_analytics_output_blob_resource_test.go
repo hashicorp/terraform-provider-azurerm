@@ -240,7 +240,7 @@ resource "azurerm_stream_analytics_output_blob" "test" {
   date_format               = "yyyy-MM-dd"
   time_format               = "HH"
   batch_max_wait_time       = "00:02:00"
-  batch_min_rows            = 5000
+  batch_min_rows            = 1000000
 
   serialization {
     type = "Parquet"
