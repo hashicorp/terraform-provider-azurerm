@@ -62,6 +62,7 @@ func (r PrivateDNSResolverForwardingRuleResource) Arguments() map[string]*plugin
 		"domain_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
