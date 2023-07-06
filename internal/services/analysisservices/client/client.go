@@ -8,7 +8,7 @@ import (
 
 func NewClient(o *common.ClientOptions) *analysisservices_v2017_08_01.Client {
 	client := analysisservices_v2017_08_01.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
-		c.Authorizer = o.ResourceManagerAuthorizer
+		o.ConfigureClient(c, o.ResourceManagerAuthorizer)
 	})
 	return &client
 }
