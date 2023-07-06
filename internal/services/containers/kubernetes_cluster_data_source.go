@@ -687,29 +687,13 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-						"ingress_gateway_internal": {
-							Type:     pluginsdk.TypeList,
+						"internal_ingress_gateway_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-								},
-							},
 						},
-						"ingress_gateway_external": {
-							Type:     pluginsdk.TypeList,
+						"external_ingress_gateway_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-								},
-							},
 						},
 					},
 				},

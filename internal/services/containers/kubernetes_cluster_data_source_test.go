@@ -581,8 +581,8 @@ func TestAccDataSourceKubernetesCluster_serviceMesh(t *testing.T) {
 			Config: r.serviceMesh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_internal.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_external.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
 			),
 		},
 	})

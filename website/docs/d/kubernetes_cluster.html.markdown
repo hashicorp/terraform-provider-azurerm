@@ -377,11 +377,9 @@ A `service_mesh_profile` block exports the following:
 
 * `mode` - The mode of the service mesh.
 
-* `ingress_gateway_internal` - Istio Internal Ingress Gateway block
-* `enabled` - Is `ingress_gateway_internal` enabled - either `true` or `false`
+* `internal_ingress_gateway_enabled` - Is Istio Internal Ingress Gateway enabled?
 
-* `ingress_gateway_external` - Istio External Ingress Gateway block
-* `enabled` - Is `ingress_gateway_external` enabled - either `true` or `false`
+* `external_ingress_gateway_enabled` - Is Istio External Ingress Gateway enabled?
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureServiceMeshPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-addon#register-the-azureservicemeshpreview-feature-flag) for more information.
 

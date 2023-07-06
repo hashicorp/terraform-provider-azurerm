@@ -37,8 +37,8 @@ func TestAccKubernetesCluster_serviceMeshProfile(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_internal.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_external.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -47,8 +47,8 @@ func TestAccKubernetesCluster_serviceMeshProfile(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_internal.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_external.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -65,8 +65,8 @@ func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").DoesNotExist(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_internal").DoesNotExist(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_external").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -75,8 +75,8 @@ func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_internal.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_external.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -85,8 +85,8 @@ func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").DoesNotExist(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_internal").DoesNotExist(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.ingress_gateway_external").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -1161,15 +1161,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   service_mesh_profile {
     mode = "Istio"
-
-    ingress_gateway_internal {
-      enabled = %[3]t
-    }
-
-    ingress_gateway_external {
-      enabled = %[4]t
-    }
-
+    internal_ingress_gateway_enabled = %[3]t
+    external_ingress_gateway_enabled = %[4]t
   }
 
 }
