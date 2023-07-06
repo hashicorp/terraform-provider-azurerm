@@ -159,6 +159,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		iothub.Registration{},
 		iotcentral.Registration{},
 		keyvault.Registration{},
+		kusto.Registration{},
 		labservice.Registration{},
 		loadbalancer.Registration{},
 		loganalytics.Registration{},

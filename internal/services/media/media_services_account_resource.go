@@ -33,6 +33,8 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 		Update: resourceMediaServicesAccountCreateUpdate,
 		Delete: resourceMediaServicesAccountDelete,
 
+		DeprecationMessage: azureMediaRetirementMessage,
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),

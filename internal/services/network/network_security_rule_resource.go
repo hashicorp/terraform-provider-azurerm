@@ -37,9 +37,10 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringDoesNotContainAny("/\\?%"),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
