@@ -23,6 +23,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source `azurerm_virtual_machine_scale_set` - fix panic in read [GH-22335]
+  
+* `azurerm_application_insights_api_key` - prevent a nil pointer panic [GH-22388]
 * `azurerm_linux_function_app` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
 * `azurerm_linux_function_app_slot` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
 * `azurerm_linux_web_app` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
@@ -33,8 +36,6 @@ BUG FIXES:
 * `azurerm_windows_web_app` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
 * `azurerm_windows_web_app_slot` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
 * `azurerm_network_security_rule` - improve validation of the `name` property and prevent creation of resources that are broken [GH-22336]
-* Data Source `azurerm_virtual_machine_scale_set` - fix panic in read [GH-22335]
-
 
 DEPRECATION:
 
