@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/applicationsecuritygroups"
 	"log"
 	"strings"
 	"time"
@@ -27,7 +28,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Re
 			if _, err := parse.NetworkInterfaceID(splitId[0]); err != nil {
 				return err
 			}
-			if _, err := parse.ApplicationSecurityGroupID(splitId[1]); err != nil {
+			if _, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(splitId[1]); err != nil {
 				return err
 			}
 			return nil
@@ -57,7 +58,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Re
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ApplicationSecurityGroupID,
+				ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
 			},
 		},
 	}
