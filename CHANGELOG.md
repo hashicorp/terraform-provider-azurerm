@@ -5,6 +5,8 @@ FEATURES:
 * **New Data Source:** `azurerm_automation_variables` [GH-22216]
 * **New Resource:** `azurerm_arc_private_link_scope` [GH-22314]
 * **New Resource:** `azurerm_kusto_cosmosdb_data_connection` [GH-22295]
+* **New Resource:** `azurerm_pim_active_role_assignment` [GH-20731]
+* **New Resource:** `azurerm_pim_eligible_role_assignment` [GH-20731]
 
 ENHANCEMENTS:
 
@@ -24,7 +26,6 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source `azurerm_virtual_machine_scale_set` - fix panic in read [GH-22335]
-  
 * `azurerm_application_insights_api_key` - prevent a nil pointer panic [GH-22388]
 * `azurerm_linux_function_app` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
 * `azurerm_linux_function_app_slot` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
