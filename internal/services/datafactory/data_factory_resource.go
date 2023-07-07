@@ -392,7 +392,7 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if err != nil {
 				return fmt.Errorf("flattening `global_parameter`: %+v", err)
 			}
-			if err := d.Set("global_parameter", *globalParameters); err != nil {
+			if err := d.Set("global_parameter", globalParameters); err != nil {
 				return fmt.Errorf("setting `global_parameter`: %+v", err)
 			}
 
