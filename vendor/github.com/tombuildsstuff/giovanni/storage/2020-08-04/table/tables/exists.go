@@ -47,15 +47,21 @@ func (client Client) ExistsPreparer(ctx context.Context, accountName, tableName 
 		"tableName": autorest.Encode("path", tableName),
 	}
 
+	headers := map[string]interface{}{
+		"x-ms-version": APIVersion,
+		"Accept":       "application/json;odata=nometadata",
+	}
+
 	// NOTE: whilst the API documentation says that API Version is Optional
 	// apparently specifying it causes an "invalid content type" to always be returned
 	// as such we omit it here :shrug:
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.AsContentType("application/xml"),
+		autorest.AsContentType("application/json"),
 		autorest.WithBaseURL(endpoints.GetTableEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/Tables('{tableName}')", pathParameters))
+		autorest.WithPathParameters("/Tables('{tableName}')", pathParameters),
+		autorest.WithHeaders(headers))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 

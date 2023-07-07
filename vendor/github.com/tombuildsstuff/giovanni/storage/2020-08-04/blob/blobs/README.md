@@ -1,4 +1,4 @@
-## Blob Storage Blobs SDK for API version 2019-12-12
+## Blob Storage Blobs SDK for API version 2020-08-04
 
 This package allows you to interact with the Blobs Blob Storage API
 
@@ -18,7 +18,7 @@ import (
 	"time"
 	
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
 )
 
 func Example() error {
