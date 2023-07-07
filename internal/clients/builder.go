@@ -109,9 +109,14 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("building account: %+v", err)
 	}
 
-	managedHSMAuth, err := auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.ManagedHSM)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build authorizer for Managed HSM API: %+v", err)
+	var managedHSMAuth auth.Authorizer
+	if _, ok := builder.AuthConfig.Environment.ManagedHSM.ResourceIdentifier(); ok {
+		managedHSMAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.ManagedHSM)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build authorizer for Managed HSM API: %+v", err)
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping building the Managed HSM Authorizer since this is not supported in the current Azure Environment")
 	}
 
 	client := Client{
