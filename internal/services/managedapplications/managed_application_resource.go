@@ -339,13 +339,14 @@ func flattenManagedApplicationPlan(input *applications.Plan) []interface{} {
 	return results
 }
 
-func flattenManagedApplicationParametersOrOutputs(input interface{}) (map[string]interface{}, error) {
+func flattenManagedApplicationParametersOrOutputs(input *interface{}) (map[string]interface{}, error) {
 	results := make(map[string]interface{})
 	if input == nil {
 		return results, nil
 	}
 
-	for k, val := range input.(map[string]interface{}) {
+	attrs := *input
+	for k, val := range attrs.(map[string]interface{}) {
 		mapVal, ok := val.(map[string]interface{})
 		if !ok {
 			return nil, fmt.Errorf("unexpected managed application parameter or output type: %+v", mapVal)
@@ -377,14 +378,15 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) (map[string
 	return results, nil
 }
 
-func flattenManagedApplicationParameterValuesValueToString(input *map[string]interface{}) (string, error) {
+func flattenManagedApplicationParameterValuesValueToString(input *interface{}) (string, error) {
 	if input == nil {
 		return "", nil
 	}
 
-	for k, v := range *input {
+	attrs := *input
+	for k, v := range attrs.(map[string]interface{}) {
 		if v != nil {
-			delete((*input)[k].(map[string]interface{}), "type")
+			delete(attrs.(map[string]interface{})[k].(map[string]interface{}), "type")
 		}
 	}
 

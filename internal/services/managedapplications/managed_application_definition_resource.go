@@ -276,8 +276,8 @@ func flattenManagedApplicationDefinitionAuthorization(input *[]applicationdefini
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"role_definition_id":   item.PrincipalId,
-			"service_principal_id": item.RoleDefinitionId,
+			"role_definition_id":   item.RoleDefinitionId,
+			"service_principal_id": item.PrincipalId,
 		})
 	}
 
