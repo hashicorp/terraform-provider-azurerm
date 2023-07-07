@@ -3,6 +3,11 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230704.1182735` of `github.com/hashicorp/go-azure-sdk` [GH-22404]
+* dependencies: `automation/dscconfiguration` - updating to API Version `2022-08-08` [GH-22403]
+
+BUG FIXES:
+
+* `azurerm_automation_dsc_configuration` - fixing an issue where `content_embedded` couldn't be deserialized [GH-22403]
 
 ## 3.64.0 (July 06, 2023)
 
