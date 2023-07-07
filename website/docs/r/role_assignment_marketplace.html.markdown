@@ -19,7 +19,7 @@ data "azurerm_client_config" "example" {
 resource "azurerm_role_assignment_marketplace" "example" {
   role_definition_name = "Marketplace Admin"
   principal_id         = data.azurerm_client_config.example.object_id
-  
+
   lifecycle {
     ignore_changes = [
       name,
