@@ -229,9 +229,7 @@ func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta in
 			d.Set("package_file_uri", v.(string))
 		}
 
-		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
-			return fmt.Errorf("setting `tags`: %+v", err)
-		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"time"
 
@@ -166,9 +167,9 @@ func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("managed_resource_group_name"); ok {
-		targetResourceGroupId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", meta.(*clients.Client).Account.SubscriptionId, v)
+		targetResourceGroupId := commonids.NewResourceGroupID(meta.(*clients.Client).Account.SubscriptionId, v.(string))
 		parameters.Properties = applications.ApplicationProperties{
-			ManagedResourceGroupId: pointer.To(targetResourceGroupId),
+			ManagedResourceGroupId: pointer.To(targetResourceGroupId.ID()),
 		}
 	}
 
