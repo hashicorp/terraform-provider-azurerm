@@ -331,6 +331,14 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"custom_ca_trust_certificates_base64": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"oms_agent": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -750,6 +758,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
 			if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
+			}
+
+			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile.CustomCATrustCertificates)
+			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
+				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
 			}
 
 			kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
@@ -1430,4 +1443,18 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 			"max_surge": maxSurge,
 		},
 	}
+}
+
+func flattenCustomCaTrustCerts(input *[]string) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	customCaTrustCertInterface := make([]interface{}, len(*input))
+
+	for index, value := range *input {
+		customCaTrustCertInterface[index] = value
+	}
+
+	return customCaTrustCertInterface
 }

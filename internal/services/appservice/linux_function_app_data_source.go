@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type LinuxFunctionAppDataSource struct{}
@@ -48,6 +48,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	FunctionExtensionsVersion string                               `tfschema:"functions_extension_version"`
 	ForceDisableContentShare  bool                                 `tfschema:"content_share_force_disabled"`
 	HttpsOnly                 bool                                 `tfschema:"https_only"`
+	PublicNetworkAccess       bool                                 `tfschema:"public_network_access_enabled"`
 	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	StickySettings            []helpers.StickySettings             `tfschema:"sticky_settings"`
 	Tags                      map[string]string                    `tfschema:"tags"`
@@ -241,6 +242,11 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"usage": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -350,6 +356,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				CustomDomainVerificationId: utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:            utils.NormalizeNilableString(functionApp.DefaultHostName),
 				Usage:                      string(props.UsageState),
+				PublicNetworkAccess:        !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {

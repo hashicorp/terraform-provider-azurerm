@@ -12,6 +12,10 @@ var (
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
 
+const (
+	azureMediaRetirementMessage = "Azure Media Services will be retired June 30th, 2024. Please see https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement"
+)
+
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/media"
 }

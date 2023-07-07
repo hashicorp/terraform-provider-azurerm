@@ -28,6 +28,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 		Update: resourceMediaLiveEventUpdate,
 		Delete: resourceMediaLiveEventDelete,
 
+		DeprecationMessage: azureMediaRetirementMessage,
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),

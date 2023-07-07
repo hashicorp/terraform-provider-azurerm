@@ -108,7 +108,7 @@ func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
 			"batch_min_rows": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 10000),
+				ValidateFunc: validation.IntBetween(0, 1000000),
 			},
 
 			"storage_account_key": {

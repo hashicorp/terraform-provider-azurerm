@@ -8,7 +8,7 @@ import (
 
 func NewClient(o *common.ClientOptions) *fluidrelay_2022_05_26.Client {
 	client := fluidrelay_2022_05_26.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
-		c.Authorizer = o.ResourceManagerAuthorizer
+		o.ConfigureClient(c, o.ResourceManagerAuthorizer)
 	})
 	return &client
 }

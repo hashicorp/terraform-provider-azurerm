@@ -72,6 +72,22 @@ func TestAccResourceGroup_withTags(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroup_withManagedBy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	testResource := ResourceGroupResource{}
+	assert := check.That(data.ResourceName)
+	data.ResourceTest(t, testResource, []acceptance.TestStep{
+		{
+			Config: testResource.withManagedByConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				assert.ExistsInAzure(testResource),
+				assert.Key("managed_by").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccResourceGroup_withNestedItemsAndFeatureFlag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	r := ResourceGroupResource{}
@@ -229,6 +245,21 @@ resource "azurerm_resource_group" "test" {
   tags = {
     environment = "staging"
   }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (t ResourceGroupResource) withManagedByConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+
+  managed_by = "test"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
