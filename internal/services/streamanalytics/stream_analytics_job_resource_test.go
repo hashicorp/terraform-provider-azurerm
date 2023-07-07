@@ -469,9 +469,14 @@ resource "azurerm_stream_analytics_job" "test" {
   location               = azurerm_resource_group.test.location
   streaming_units        = 3
   content_storage_policy = "JobStorageAccount"
+
   job_storage_account {
     authentication_mode = "Msi"
     account_name        = azurerm_storage_account.test.name
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 
   tags = {

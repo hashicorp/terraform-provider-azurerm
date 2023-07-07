@@ -551,7 +551,7 @@ func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccou
 		return &streamingjobs.JobStorageAccount{
 			AuthenticationMode: utils.ToPtr(streamingjobs.AuthenticationMode(authenticationMode)),
 			AccountName:        utils.String(accountName),
-		} 
+		}
 	} else {
 		return &streamingjobs.JobStorageAccount{
 			AuthenticationMode: utils.ToPtr(streamingjobs.AuthenticationMode(authenticationMode)),
