@@ -288,8 +288,6 @@ A `shutdown_recovery_group` block supports the following:
 
 A `failover_recovery_group` block supports the following:
 
-* `replicated_protected_items` - (Optional) One or more protected VM IDs. 
-
 * `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
 
 * `post_action` - (Optional) one or more `action` block as defined below. which will be executed after the group recovery.
