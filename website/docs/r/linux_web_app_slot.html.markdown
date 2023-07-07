@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Should the Linux Web App require HTTPS connections.
 
-* `public_network_access_enabled` - (Optional) Whether or not public network access is enabled for the Linux Web App. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Should public network access be enabled for the Web App. Defaults to `true`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 

@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
-* `public_network_access_enabled` - (Optional) Whether or not public network access is enabled for the Function App. Defaults to `true`.
+* `public_network_access_enabled` - Should public network access be enabled for the Function App. Defaults to `true`.
 
 * `identity` - (Optional) A `identity` block as defined below.
 

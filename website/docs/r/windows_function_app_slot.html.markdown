@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?
 
-* `public_network_access_enabled` - (Optional) Whether or not public network access is enabled for the Function App. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
 * `identity` - (Optional) an `identity` block as detailed below.
 
