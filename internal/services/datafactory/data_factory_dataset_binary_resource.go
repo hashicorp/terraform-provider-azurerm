@@ -294,7 +294,7 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		binaryTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		binaryTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -357,7 +357,7 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("description", binaryTable.Description)
 	}
 
-	if err := d.Set("parameters", flattenDataFactoryParameters(binaryTable.Parameters)); err != nil {
+	if err := d.Set("parameters", flattenDataSetParameters(binaryTable.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

@@ -227,7 +227,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		snowflakeTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		snowflakeTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	annotations := d.Get("annotations").([]interface{})
@@ -292,7 +292,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		d.Set("description", snowflakeTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(snowflakeTable.Parameters)
+	parameters := flattenDataSetParameters(snowflakeTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

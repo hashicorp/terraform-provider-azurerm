@@ -409,7 +409,7 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		delimited_textTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		delimited_textTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -476,7 +476,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 		d.Set("description", delimited_textTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(delimited_textTable.Parameters)
+	parameters := flattenDataSetParameters(delimited_textTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

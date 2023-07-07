@@ -190,7 +190,7 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		props["parameters"] = expandDataFactoryParameters(v.(map[string]interface{}))
+		props["parameters"] = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("schema_json"); ok {
@@ -302,7 +302,7 @@ func resourceDataFactoryCustomDatasetRead(d *pluginsdk.ResourceData, meta interf
 		}
 		delete(m, "parameters")
 	}
-	if err := d.Set("parameters", flattenDataFactoryParameters(parameters)); err != nil {
+	if err := d.Set("parameters", flattenDataSetParameters(parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

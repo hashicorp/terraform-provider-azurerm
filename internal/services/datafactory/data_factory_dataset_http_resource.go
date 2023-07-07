@@ -214,7 +214,7 @@ func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		httpTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		httpTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -281,7 +281,7 @@ func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("description", httpTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(httpTable.Parameters)
+	parameters := flattenDataSetParameters(httpTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

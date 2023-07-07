@@ -197,7 +197,7 @@ func resourceDataFactoryDatasetPostgreSQLCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		postgresqlTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		postgresqlTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -264,7 +264,7 @@ func resourceDataFactoryDatasetPostgreSQLRead(d *pluginsdk.ResourceData, meta in
 		d.Set("description", postgresqlTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(postgresqlTable.Parameters)
+	parameters := flattenDataSetParameters(postgresqlTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

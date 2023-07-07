@@ -197,7 +197,7 @@ func resourceDataFactoryDatasetMySQLCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		mysqlTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		mysqlTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -264,7 +264,7 @@ func resourceDataFactoryDatasetMySQLRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("description", mysqlTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(mysqlTable.Parameters)
+	parameters := flattenDataSetParameters(mysqlTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

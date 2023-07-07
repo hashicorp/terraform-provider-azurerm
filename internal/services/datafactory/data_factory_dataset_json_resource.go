@@ -283,7 +283,7 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		jsonTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		jsonTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -350,7 +350,7 @@ func resourceDataFactoryDatasetJSONRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("description", jsonTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(jsonTable.Parameters)
+	parameters := flattenDataSetParameters(jsonTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

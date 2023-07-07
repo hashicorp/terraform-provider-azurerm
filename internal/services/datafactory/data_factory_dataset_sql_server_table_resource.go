@@ -197,7 +197,7 @@ func resourceDataFactoryDatasetSQLServerTableCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		sqlServerTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		sqlServerTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -264,7 +264,7 @@ func resourceDataFactoryDatasetSQLServerTableRead(d *pluginsdk.ResourceData, met
 		d.Set("description", sqlServerTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(sqlServerTable.Parameters)
+	parameters := flattenDataSetParameters(sqlServerTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

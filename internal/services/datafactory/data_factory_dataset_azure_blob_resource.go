@@ -214,7 +214,7 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		azureBlobTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		azureBlobTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -281,7 +281,7 @@ func resourceDataFactoryDatasetAzureBlobRead(d *pluginsdk.ResourceData, meta int
 		d.Set("description", azureBlobTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(azureBlobTable.Parameters)
+	parameters := flattenDataSetParameters(azureBlobTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

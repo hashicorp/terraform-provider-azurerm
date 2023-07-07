@@ -198,7 +198,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		cosmosDbTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		cosmosDbTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -265,7 +265,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *pluginsdk.ResourceData, met
 		d.Set("description", cosmosDbTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(cosmosDbTable.Parameters)
+	parameters := flattenDataSetParameters(cosmosDbTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

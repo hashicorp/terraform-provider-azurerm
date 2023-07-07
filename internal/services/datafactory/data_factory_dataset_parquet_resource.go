@@ -300,7 +300,7 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		parquetTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		parquetTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -367,7 +367,7 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("description", parquetTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(parquetTable.Parameters)
+	parameters := flattenDataSetParameters(parquetTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
