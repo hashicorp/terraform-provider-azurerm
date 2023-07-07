@@ -754,8 +754,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_resource_group_id", recoveryGroupId)
 
 			availabilitySetId := ""
-			if id := pointer.From(a2aDetails.RecoveryAvailabilitySet); id != "" {
-				parsedAvailabilitySetId, err := availabilitysets.ParseAvailabilitySetIDInsensitively(availabilitySetId)
+			if respAvailabilitySetId := pointer.From(a2aDetails.RecoveryAvailabilitySet); respAvailabilitySetId != "" {
+				parsedAvailabilitySetId, err := availabilitysets.ParseAvailabilitySetIDInsensitively(respAvailabilitySetId)
 				if err != nil {
 					return err
 				}
@@ -764,8 +764,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_availability_set_id", availabilitySetId)
 
 			targetNetworkId := ""
-			if id := pointer.From(a2aDetails.SelectedRecoveryAzureNetworkId); id != "" {
-				parsedTargetNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(id)
+			if respTargetNetworkId := pointer.From(a2aDetails.SelectedRecoveryAzureNetworkId); respTargetNetworkId != "" {
+				parsedTargetNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(respTargetNetworkId)
 				if err != nil {
 					return err
 				}
@@ -774,8 +774,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_network_id", targetNetworkId)
 
 			testNetworkId := ""
-			if tfoNetworkId := pointer.From(a2aDetails.SelectedTfoAzureNetworkId); tfoNetworkId != "" {
-				parsedTfoNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(tfoNetworkId)
+			if respTfoNetworkId := pointer.From(a2aDetails.SelectedTfoAzureNetworkId); respTfoNetworkId != "" {
+				parsedTfoNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(respTfoNetworkId)
 				if err != nil {
 					return err
 				}
@@ -784,8 +784,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("test_network_id", testNetworkId)
 
 			proximityPlacementGroupId := ""
-			if id := pointer.From(a2aDetails.RecoveryProximityPlacementGroupId); id != "" {
-				parsedProximityPlacementGroupId, err := proximityplacementgroups.ParseProximityPlacementGroupIDInsensitively(id)
+			if respProximityPlacementGroupId := pointer.From(a2aDetails.RecoveryProximityPlacementGroupId); respProximityPlacementGroupId != "" {
+				parsedProximityPlacementGroupId, err := proximityplacementgroups.ParseProximityPlacementGroupIDInsensitively(respProximityPlacementGroupId)
 				if err != nil {
 					return err
 				}
@@ -794,8 +794,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_proximity_placement_group_id", proximityPlacementGroupId)
 
 			recoveryBootDiagStorageAccount := ""
-			if id := pointer.From(a2aDetails.RecoveryBootDiagStorageAccountId); id != "" {
-				parsedRecoveryBootDiagStorageAccount, err := storageaccounts.ParseStorageAccountIDInsensitively(id)
+			if respBootDiagStorageAccountId := pointer.From(a2aDetails.RecoveryBootDiagStorageAccountId); respBootDiagStorageAccountId != "" {
+				parsedRecoveryBootDiagStorageAccount, err := storageaccounts.ParseStorageAccountIDInsensitively(respBootDiagStorageAccountId)
 				if err != nil {
 					return err
 				}
@@ -804,8 +804,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_boot_diagnostic_storage_account_id", recoveryBootDiagStorageAccount)
 
 			capReservationGroupId := ""
-			if id := pointer.From(a2aDetails.RecoveryCapacityReservationGroupId); id != "" {
-				parsedCapReservaGroupId, err := capacityreservationgroups.ParseCapacityReservationGroupIDInsensitively(id)
+			if respCapacityGroupId := pointer.From(a2aDetails.RecoveryCapacityReservationGroupId); respCapacityGroupId != "" {
+				parsedCapReservaGroupId, err := capacityreservationgroups.ParseCapacityReservationGroupIDInsensitively(respCapacityGroupId)
 				if err != nil {
 					return err
 				}
@@ -814,8 +814,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("target_capacity_reservation_group_id", capReservationGroupId)
 
 			vmssId := ""
-			if id := pointer.From(a2aDetails.RecoveryVirtualMachineScaleSetId); id != "" {
-				parsedVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(id)
+			if respVmssId := pointer.From(a2aDetails.RecoveryVirtualMachineScaleSetId); respVmssId != "" {
+				parsedVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(respVmssId)
 				if err != nil {
 					return err
 				}

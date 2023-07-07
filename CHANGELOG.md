@@ -1,44 +1,49 @@
-## 3.64.0 (Unreleased)
+## 3.64.0 (July 06, 2023)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_automation_variables` [GH-22216]
-* **New Resource:** `azurerm_arc_private_link_scope` [GH-22314]
-* **New Resource:** `azurerm_kusto_cosmosdb_data_connection` [GH-22295]
+* **New Data Source:** `azurerm_automation_variables` ([#22216](https://github.com/hashicorp/terraform-provider-azurerm/issues/22216))
+* **New Resource:** `azurerm_arc_private_link_scope` ([#22314](https://github.com/hashicorp/terraform-provider-azurerm/issues/22314))
+* **New Resource:** `azurerm_kusto_cosmosdb_data_connection` ([#22295](https://github.com/hashicorp/terraform-provider-azurerm/issues/22295))
+* **New Resource:** `azurerm_pim_active_role_assignment` ([#20731](https://github.com/hashicorp/terraform-provider-azurerm/issues/20731))
+* **New Resource:** `azurerm_pim_eligible_role_assignment` ([#20731](https://github.com/hashicorp/terraform-provider-azurerm/issues/20731))
 
 ENHANCEMENTS:
 
-* dependencies: update App Service to API version `2022-09-01`
-* dependencies: updating to `v1.53.0` of `google.golang.org/grpc` [GH-22383]
-* `azurerm_linux_function_app` - added support for `public_network_access_enabled` property [GH-22352]
-* `azurerm_linux_function_app_slot` - added support for `public_network_access_enabled` property [GH-22352]
-* `azurerm_linux_web_app` - added support for `public_network_access_enabled` property [GH-22352]
-* `azurerm_linux_web_app_slot`  - added support for `public_network_access_enabled` property [GH-22352]
-* `azurerm_windows_function_app` - added support for `public_network_access_enabled` property [GH-22352]
-* `azurerm_windows_function_app_slot` - added support for `public_network_access_enabled` property
-* `azurerm_windows_web_app` - added support for `public_network_access_enabled` property [GH-22352]
-* `azurerm_windows_web_app_slot` - added support for `public_network_access_enabled` property [GH-22352]
-* `azurerm_stream_analytics_output_blob` - increase `batch_min_rows` to 1000000 [GH-22331]
-  
+* dependencies: `web`: updating to API Version `2022-09-01` ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* dependencies: `cognitive`: updating to API Version `2023-05-01` ([#22223](https://github.com/hashicorp/terraform-provider-azurerm/issues/22223))
+* dependencies: updating to `v1.53.0` of `google.golang.org/grpc` ([#22383](https://github.com/hashicorp/terraform-provider-azurerm/issues/22383))
+* `azurerm_cognitive_deployment` - suppot for the `scale` block propeties `tier`, `size`, `family`, and `capacity` ([#22223](https://github.com/hashicorp/terraform-provider-azurerm/issues/22223))
+* `azurerm_linux_function_app` - added support for the `public_network_access_enabled` property ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_linux_function_app_slot` - added support for the `public_network_access_enabled` property ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_linux_web_app` - added support for the `public_network_access_enabled` property ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_linux_web_app_slot`  - added support for the `public_network_access_enabled` property ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_windows_function_app` - added support for the `public_network_access_enabled` property ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_windows_function_app_slot` - added support for the `public_network_access_enabled` property
+* `azurerm_windows_web_app` - added support for the `public_network_access_enabled` property ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_windows_web_app_slot` - added support for the `public_network_access_enabled` property ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_stream_analytics_output_blob` - increase the `batch_min_rows` property allowed values to `1000000` ([#22331](https://github.com/hashicorp/terraform-provider-azurerm/issues/22331))
+* `azurerm_spring_cloud_gateway` - support for the the `allowed_origin_patterns` property ([#22317](https://github.com/hashicorp/terraform-provider-azurerm/issues/22317))
 
 BUG FIXES:
 
-* `azurerm_linux_function_app` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
-* `azurerm_linux_function_app_slot` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
-* `azurerm_linux_web_app` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
-* `azurerm_linux_web_app` - fix panic in docker settings processing [GH-22347]
-* `azurerm_linux_web_app_slot`  - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
-* `azurerm_windows_function_app` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
-* `azurerm_windows_function_app_slot` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
-* `azurerm_windows_web_app` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
-* `azurerm_windows_web_app_slot` - `allowed_origins` in the `cors` block now has a minimum entry count of `1` [GH-22352]
-* `azurerm_network_security_rule` - improve validation of the `name` property and prevent creation of resources that are broken [GH-22336]
-* Data Source `azurerm_virtual_machine_scale_set` - fix panic in read [GH-22335]
-
+* Data Source `azurerm_virtual_machine_scale_set` - prevent a nil pointer panic during reads ([#22335](https://github.com/hashicorp/terraform-provider-azurerm/issues/22335))
+* `azurerm_application_insights_api_key` - prevent a nil pointer panic ([#22388](https://github.com/hashicorp/terraform-provider-azurerm/issues/22388))
+* `azurerm_linux_function_app` - the `allowed_origins` property in the `cors` block now has a minimum entry count of `1` ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_linux_function_app_slot` - the `allowed_origins` property in the `cors` block now has a minimum entry count of `1` ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_linux_web_app` - the `allowed_origins` property in the `cors` block now has a minimum entry count of `1` ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_linux_web_app` - prevent a nil pointer panic in docker settings processing ([#22347](https://github.com/hashicorp/terraform-provider-azurerm/issues/22347))
+* `azurerm_linux_web_app_slot`  - the `allowed_origins` property in the `cors` block now has a minimum entry count of `1` ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_private_dns_resolver_forwarding_rule_resource` - changing the `domain_name` property now creates a new resource ([#22375](https://github.com/hashicorp/terraform-provider-azurerm/issues/22375))
+* `azurerm_windows_function_app` - the `allowed_origins` property in the `cors` block now has a minimum entry count of `1` ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_windows_function_app_slot` - the `allowed_origins` property in the `cors` block now has a minimum entry count of `1` ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_windows_web_app` - the `allowed_origins` property in the `cors` block now has a minimum entry count of `1` ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_windows_web_app_slot` - the `allowed_origins` property in the `cors` block now has a minimum entry count of `1` ([#22352](https://github.com/hashicorp/terraform-provider-azurerm/issues/22352))
+* `azurerm_network_security_rule` - improve validation of the `name` property and prevent creation of resources that are broken ([#22336](https://github.com/hashicorp/terraform-provider-azurerm/issues/22336))
 
 DEPRECATION:
 
-* `media` - all resources and data sources are deprecated ahead of service being retired [GH-22350]
+* `media` - all resources and data sources are deprecated ahead of service being retired ([#22350](https://github.com/hashicorp/terraform-provider-azurerm/issues/22350))
 
 ## 3.63.0 (June 29, 2023)
 

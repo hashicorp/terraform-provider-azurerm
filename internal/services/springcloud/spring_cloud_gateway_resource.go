@@ -181,6 +181,15 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							},
 						},
 
+						"allowed_origin_patterns": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
 						"exposed_headers": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -464,12 +473,13 @@ func expandGatewayGatewayCorsProperties(input []interface{}) *appplatform.Gatewa
 	}
 	v := input[0].(map[string]interface{})
 	return &appplatform.GatewayCorsProperties{
-		AllowedOrigins:   utils.ExpandStringSlice(v["allowed_origins"].(*pluginsdk.Set).List()),
-		AllowedMethods:   utils.ExpandStringSlice(v["allowed_methods"].(*pluginsdk.Set).List()),
-		AllowedHeaders:   utils.ExpandStringSlice(v["allowed_headers"].(*pluginsdk.Set).List()),
-		MaxAge:           utils.Int32(int32(v["max_age_seconds"].(int))),
-		AllowCredentials: utils.Bool(v["credentials_allowed"].(bool)),
-		ExposedHeaders:   utils.ExpandStringSlice(v["exposed_headers"].(*pluginsdk.Set).List()),
+		AllowedOrigins:        utils.ExpandStringSlice(v["allowed_origins"].(*pluginsdk.Set).List()),
+		AllowedOriginPatterns: utils.ExpandStringSlice(v["allowed_origin_patterns"].(*pluginsdk.Set).List()),
+		AllowedMethods:        utils.ExpandStringSlice(v["allowed_methods"].(*pluginsdk.Set).List()),
+		AllowedHeaders:        utils.ExpandStringSlice(v["allowed_headers"].(*pluginsdk.Set).List()),
+		MaxAge:                utils.Int32(int32(v["max_age_seconds"].(int))),
+		AllowCredentials:      utils.Bool(v["credentials_allowed"].(bool)),
+		ExposedHeaders:        utils.ExpandStringSlice(v["exposed_headers"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -585,12 +595,13 @@ func flattenGatewayGatewayCorsProperties(input *appplatform.GatewayCorsPropertie
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"credentials_allowed": allowCredentials,
-			"allowed_headers":     utils.FlattenStringSlice(input.AllowedHeaders),
-			"allowed_methods":     utils.FlattenStringSlice(input.AllowedMethods),
-			"allowed_origins":     utils.FlattenStringSlice(input.AllowedOrigins),
-			"exposed_headers":     utils.FlattenStringSlice(input.ExposedHeaders),
-			"max_age_seconds":     maxAge,
+			"credentials_allowed":     allowCredentials,
+			"allowed_headers":         utils.FlattenStringSlice(input.AllowedHeaders),
+			"allowed_methods":         utils.FlattenStringSlice(input.AllowedMethods),
+			"allowed_origins":         utils.FlattenStringSlice(input.AllowedOrigins),
+			"allowed_origin_patterns": utils.FlattenStringSlice(input.AllowedOriginPatterns),
+			"exposed_headers":         utils.FlattenStringSlice(input.ExposedHeaders),
+			"max_age_seconds":         maxAge,
 		},
 	}
 }

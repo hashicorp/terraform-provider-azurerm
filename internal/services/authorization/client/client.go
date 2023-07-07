@@ -2,17 +2,22 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentscheduleinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedulerequests"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityscheduleinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedulerequests"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	RoleAssignmentsClient    *authorization.RoleAssignmentsClient
-	RoleDefinitionsClient    *authorization.RoleDefinitionsClient
-	NewRoleAssignmentsClient *roleassignments.RoleAssignmentsClient
-	NewRoleDefinitionsClient *roledefinitions.RoleDefinitionsClient
+	RoleAssignmentsClient                  *authorization.RoleAssignmentsClient
+	RoleDefinitionsClient                  *authorization.RoleDefinitionsClient
+	RoleAssignmentScheduleRequestClient    *roleassignmentschedulerequests.RoleAssignmentScheduleRequestsClient
+	RoleAssignmentScheduleInstancesClient  *roleassignmentscheduleinstances.RoleAssignmentScheduleInstancesClient
+	RoleEligibilityScheduleRequestClient   *roleeligibilityschedulerequests.RoleEligibilityScheduleRequestsClient
+	RoleEligibilityScheduleInstancesClient *roleeligibilityscheduleinstances.RoleEligibilityScheduleInstancesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -22,22 +27,37 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	roleDefinitionsClient := authorization.NewRoleDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&roleDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	newRoleAssignmentsClient, err := roleassignments.NewRoleAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	roleAssignmentScheduleRequestsClient, err := roleassignmentschedulerequests.NewRoleAssignmentScheduleRequestsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Role Assignment Client:  %+v", err)
+		return nil, fmt.Errorf("creating roleAssignmentScheduleRequestsClient: %+v", err)
 	}
-	o.Configure(newRoleAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
-	newRoleDefinitionsClient, err := roledefinitions.NewRoleDefinitionsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(roleAssignmentScheduleRequestsClient.Client, o.Authorizers.ResourceManager)
+
+	roleAssignmentScheduleInstancesClient, err := roleassignmentscheduleinstances.NewRoleAssignmentScheduleInstancesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Role Definition Client:  %+v", err)
+		return nil, fmt.Errorf("creating roleAssignmentScheduleInstancesClient: %+v", err)
 	}
-	o.Configure(newRoleDefinitionsClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(roleAssignmentScheduleInstancesClient.Client, o.Authorizers.ResourceManager)
+
+	roleEligibilityScheduleRequestClient, err := roleeligibilityschedulerequests.NewRoleEligibilityScheduleRequestsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("creating roleEligibilityScheduleRequestClient: %+v", err)
+	}
+	o.Configure(roleEligibilityScheduleRequestClient.Client, o.Authorizers.ResourceManager)
+
+	roleEligibilityScheduleInstancesClient, err := roleeligibilityscheduleinstances.NewRoleEligibilityScheduleInstancesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("creating roleEligibilityScheduleInstancesClient: %+v", err)
+	}
+	o.Configure(roleEligibilityScheduleInstancesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		RoleAssignmentsClient:    &roleAssignmentsClient,
-		RoleDefinitionsClient:    &roleDefinitionsClient,
-		NewRoleAssignmentsClient: newRoleAssignmentsClient,
-		NewRoleDefinitionsClient: newRoleDefinitionsClient,
+		RoleAssignmentsClient:                  &roleAssignmentsClient,
+		RoleDefinitionsClient:                  &roleDefinitionsClient,
+		RoleAssignmentScheduleRequestClient:    roleAssignmentScheduleRequestsClient,
+		RoleAssignmentScheduleInstancesClient:  roleAssignmentScheduleInstancesClient,
+		RoleEligibilityScheduleRequestClient:   roleEligibilityScheduleRequestClient,
+		RoleEligibilityScheduleInstancesClient: roleEligibilityScheduleInstancesClient,
 	}, nil
 }

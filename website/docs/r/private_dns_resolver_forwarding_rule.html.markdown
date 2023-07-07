@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `dns_forwarding_ruleset_id` - (Required) Specifies the ID of the Private DNS Resolver Forwarding Ruleset. Changing this forces a new Private DNS Resolver Forwarding Rule to be created.
 
-* `domain_name` - (Required) Specifies the domain name for the Private DNS Resolver Forwarding Rule.
+* `domain_name` - (Required) Specifies the domain name for the Private DNS Resolver Forwarding Rule. Changing this forces a new Private DNS Resolver Forwarding Rule to be created.
 
 * `target_dns_servers` - (Required) Can be specified multiple times to define multiple target DNS servers. Each `target_dns_servers` block as defined below.
 

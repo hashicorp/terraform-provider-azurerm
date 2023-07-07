@@ -146,7 +146,9 @@ func (teamCityServicesListGenerator) outputPath(rootDirectory string) string {
 }
 
 func (teamCityServicesListGenerator) run(outputFileName string, packagesToSkip map[string]struct{}) error {
-	template := `// NOTE: this is Generated from the Service Definitions - manual changes will be lost
+	template := `// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+// NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
 var services = mapOf(
 %s
