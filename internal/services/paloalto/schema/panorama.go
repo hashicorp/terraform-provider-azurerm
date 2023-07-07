@@ -28,6 +28,7 @@ func PanoramaSchema() *pluginsdk.Schema {
 			"panorama",
 			"rule_stack_id",
 		},
+		RequiredWith: []string{"location"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"base64_config": {

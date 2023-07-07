@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -41,7 +40,7 @@ func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.LocalRuleStackName, // TODO - Need validation rules either 30 or 128 alphanumeric, no `-` at beginning or end.
+			ValidateFunc: validate.LocalRuleStackName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -151,12 +150,6 @@ func (r LocalRuleStack) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			// The API won't delete the RuleStack if the default rule it creates exists, so to continue development, we'll hack around that for now.
-			// This must not ship.
-			if err = hackForCheckForDefaultRuleAndRemoveIt(ctx, metadata, *id); err != nil {
-				return err
-			}
-
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -174,29 +167,4 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func hackForCheckForDefaultRuleAndRemoveIt(ctx context.Context, metadata sdk.ResourceMetaData, localRuleStackID localrulestacks.LocalRuleStackId) error {
-	client := metadata.Client.PaloAlto.LocalRulesClient
-
-	id := localrules.NewLocalRuleStackID(localRuleStackID.SubscriptionId, localRuleStackID.ResourceGroupName, localRuleStackID.LocalRuleStackName)
-
-	resp, err := client.ListByLocalRulestacksComplete(ctx, id)
-	if err != nil {
-		return fmt.Errorf("listing rules for %s: %+v", id, err)
-	}
-
-	if len(resp.Items) > 0 {
-		if len(resp.Items) == 1 && resp.Items[0].Properties.Priority != nil && *resp.Items[0].Properties.Priority == 1000000 {
-			ruleId := localrules.NewLocalRuleID(id.SubscriptionId, id.ResourceGroupName, id.LocalRuleStackName, "1000000")
-			if err != nil {
-				return err
-			}
-			if err := client.DeleteThenPoll(ctx, ruleId); err != nil {
-				return fmt.Errorf("deleting default rule for %s: %+v", id, err)
-			}
-		}
-	}
-
-	return nil
 }

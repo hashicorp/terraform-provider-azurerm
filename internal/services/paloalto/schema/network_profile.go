@@ -76,14 +76,20 @@ func NetworkProfileSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandNetworkProfile(input NetworkProfile) firewalls.NetworkProfile {
+func ExpandNetworkProfile(input []NetworkProfile) firewalls.NetworkProfile {
 	result := firewalls.NetworkProfile{
 		EnableEgressNat: firewalls.EgressNatDISABLED,
+		EgressNatIP:     &[]firewalls.IPAddress{},
+	}
+	if len(input) == 0 {
+		return result
 	}
 
-	if len(input.PublicIPIDs) > 0 {
+	profile := input[0]
+
+	if len(profile.PublicIPIDs) > 0 {
 		ipIDs := make([]firewalls.IPAddress, 0)
-		for _, v := range input.PublicIPIDs {
+		for _, v := range profile.PublicIPIDs {
 			ipIDs = append(ipIDs, firewalls.IPAddress{
 				ResourceId: pointer.To(v),
 			})
@@ -91,19 +97,19 @@ func ExpandNetworkProfile(input NetworkProfile) firewalls.NetworkProfile {
 		result.PublicIPs = ipIDs
 	}
 
-	if len(input.EgressNatIPIDs) > 0 {
+	if len(profile.EgressNatIPIDs) > 0 {
 		result.EnableEgressNat = firewalls.EgressNatENABLED
 		egressNatIPs := make([]firewalls.IPAddress, 0)
-		for _, v := range input.EgressNatIP {
+		for _, v := range profile.EgressNatIP {
 			egressNatIPs = append(egressNatIPs, firewalls.IPAddress{
 				ResourceId: pointer.To(v),
 			})
 		}
 	}
 
-	if len(input.VWanConfiguration) > 0 {
+	if len(profile.VWanConfiguration) > 0 {
 		result.NetworkType = firewalls.NetworkTypeVWAN
-		vhub := input.VWanConfiguration[0]
+		vhub := profile.VWanConfiguration[0]
 		result.VwanConfiguration = &firewalls.VwanConfiguration{
 			IPOfTrustSubnetForUdr:     nil,
 			NetworkVirtualApplianceId: nil, // TODO Needs support for networkVirtualAPpliances adding to the provider
@@ -115,9 +121,9 @@ func ExpandNetworkProfile(input NetworkProfile) firewalls.NetworkProfile {
 		}
 	}
 
-	if len(input.VnetConfiguration) > 0 {
+	if len(profile.VnetConfiguration) > 0 {
 		result.NetworkType = firewalls.NetworkTypeVNET
-		vnet := input.VnetConfiguration[0]
+		vnet := profile.VnetConfiguration[0]
 		result.VnetConfiguration = &firewalls.VnetConfiguration{
 			IPOfTrustSubnetForUdr: nil, // TODO - What is this?
 			TrustSubnet: firewalls.IPAddressSpace{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"time"
@@ -53,12 +54,21 @@ func (r NextGenerationFirewall) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NextGenerationFirewallName, // TODO 1-30 chars, alphanumeric or `-`, cannot start/stop with a `-`
+			ValidateFunc: validate.NextGenerationFirewallName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": commonschema.Location(),
+		"location": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ForceNew:         true,
+			ValidateFunc:     location.EnhancedValidate,
+			StateFunc:        location.StateFunc,
+			DiffSuppressFunc: location.DiffSuppressFunc,
+			ConflictsWith:    []string{"rule_stack_id"},
+			//RequiredWith:     []string{"panorama"},
+		},
 
 		"network_profile": schema.NetworkProfileSchema(),
 
@@ -68,7 +78,7 @@ func (r NextGenerationFirewall) Arguments() map[string]*pluginsdk.Schema {
 		"rule_stack_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: localrulestacks.ValidateLocalRuleStackID, // TODO - Add in validators for rule stack types?
+			ValidateFunc: localrulestacks.ValidateLocalRuleStackID,
 			ExactlyOneOf: []string{
 				"panorama",
 				"rule_stack_id",
@@ -117,6 +127,7 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallClient
+			localRuleStackClient := metadata.Client.PaloAlto.LocalRuleStacksClient
 
 			var model NextGenerationFirewallModel
 
@@ -137,21 +148,24 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 			}
 
 			firewall := firewalls.FirewallResource{
-				Location: model.Location,
 				Properties: firewalls.FirewallDeploymentProperties{
-					IsPanoramaManaged: pointer.To(firewalls.BooleanEnumFALSE),
 					DnsSettings: firewalls.DNSSettings{
 						EnableDnsProxy: pointer.To(firewalls.DNSProxyDISABLED),
+						EnabledDnsType: pointer.To(firewalls.EnabledDNSTypeCUSTOM),
 					},
 					MarketplaceDetails: firewalls.MarketplaceDetails{
 						OfferId:     "pan_swfw_cloud_ngfw", // TODO - Will just supplying the offer ID `panw-cloud-ngfw-payg` work?
 						PublisherId: "paloaltonetworks",
+						//MarketplaceSubscriptionStatus: pointer.To(firewalls.MarketplaceSubscriptionStatusSubscribed),
 					},
-					NetworkProfile: schema.ExpandNetworkProfile(model.NetworkProfile[0]),
+					//NetworkProfile: firewalls.NetworkProfile{},
+					NetworkProfile: schema.ExpandNetworkProfile(model.NetworkProfile),
 					PlanData: firewalls.PlanData{
-						BillingCycle: "MONTHLY",
-						PlanId:       "panw-cloud-ngfw-payg",
-					}, // Required, but needs to be empty on send?
+						BillingCycle:  firewalls.BillingCycleMONTHLY,
+						PlanId:        "panw-cloud-ngfw-payg",
+						EffectiveDate: pointer.To("0001-01-01T00:00:00Z"),
+						//UsageType:    pointer.To(firewalls.UsageTypePAYG),
+					},
 				},
 				Tags: tags.Expand(model.Tags),
 			}
@@ -179,12 +193,26 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 			}
 
 			if model.RuleStackId != "" {
+				ruleStackID, err := localrulestacks.ParseLocalRuleStackID(model.RuleStackId)
+				if err != nil {
+					return err
+				}
+
+				ruleStack, err := localRuleStackClient.Get(ctx, *ruleStackID)
+				if err != nil {
+					return fmt.Errorf("reading %s for %s: %+v", ruleStackID, id, err)
+				}
+
+				firewall.Location = location.Normalize(ruleStack.Model.Location)
+
 				firewall.Properties.AssociatedRulestack = &firewalls.RulestackDetails{
-					RulestackId: pointer.To(model.RuleStackId),
+					ResourceId: pointer.To(ruleStackID.ID()),
+					//Location:   pointer.To(location.Normalize(ruleStack.Model.Location)),
 				}
 			}
 
 			if len(model.PanoramaConfig) > 0 {
+				firewall.Location = location.Normalize(model.Location)
 				firewall.Properties.IsPanoramaManaged = pointer.To(firewalls.BooleanEnumTRUE)
 				firewall.Properties.PanoramaConfig = &firewalls.PanoramaConfig{ConfigString: model.PanoramaConfig[0].B64Config}
 			}
@@ -237,6 +265,7 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

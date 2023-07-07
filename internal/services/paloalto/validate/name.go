@@ -15,7 +15,11 @@ func LocalRuleStackName(input interface{}, k string) (warnings []string, errors 
 }
 
 func paloAltoNameValidation(input interface{}, k string) (warnings []string, errors []error) {
-	value := input.(string)
+	value, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %s to be of type string", k))
+		return
+	}
 
 	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{1,128}$`).Match([]byte(value)); !matched {
 		// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
