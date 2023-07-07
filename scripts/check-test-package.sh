@@ -9,9 +9,16 @@ error=false
 echo "==> Checking that acceptance test packages are used..."
 
 for f in $files; do
-  line=$(head -n 1 $f)
-  if [ "$line" = "${line%%_test}" ]; then
-    echo $f
+  lines=$(head -n 5 "$f")
+  local_error=true
+  for line in $lines; do
+    if [ "$line" = "${line%%_test}" ]; then
+      local_error=false
+    fi
+  done
+
+  if [ "local_error" = true ]; then
+    echo "$f"
     error=true
   fi
 done
