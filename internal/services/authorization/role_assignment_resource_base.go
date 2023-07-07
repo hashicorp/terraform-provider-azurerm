@@ -250,11 +250,14 @@ func (br roleAssignmentBaseResource) readFunc(scope string, isTenantLevel bool) 
 				if props := model.Properties; props != nil {
 					metadata.ResourceData.Set("role_definition_id", props.RoleDefinitionId)
 					metadata.ResourceData.Set("principal_id", props.PrincipalId)
-					metadata.ResourceData.Set("principal_type", props.PrincipalType)
 					metadata.ResourceData.Set("delegated_managed_identity_resource_id", props.DelegatedManagedIdentityResourceId)
 					metadata.ResourceData.Set("description", props.Description)
 					metadata.ResourceData.Set("condition", props.Condition)
 					metadata.ResourceData.Set("condition_version", props.ConditionVersion)
+
+					if props.PrincipalType != nil {
+						metadata.ResourceData.Set("principal_type", *props.PrincipalType)
+					}
 
 					// allows for import when role name is used (also if the role name changes a plan will show a diff)
 					roleId := props.RoleDefinitionId

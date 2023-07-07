@@ -49,7 +49,7 @@ func (id ScopedRoleAssignmentId) ID() string {
 
 func (id ScopedRoleAssignmentId) String() string {
 	components := []string{
-		id.String(),
+		id.ScopedId.String(),
 	}
 
 	if id.TenantId != "" {
