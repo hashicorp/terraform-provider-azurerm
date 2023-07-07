@@ -138,7 +138,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		authorization.Registration{},
 		automanage.Registration{},
 		automation.Registration{},
-		authorization.Registration{},
 		batch.Registration{},
 		bot.Registration{},
 		cognitive.Registration{},
