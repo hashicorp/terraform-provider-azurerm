@@ -146,7 +146,7 @@ func resourceDataFactoryLinkedServiceAzureSearchCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		searchLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		searchLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -225,7 +225,7 @@ func resourceDataFactoryLinkedServiceAzureSearchRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	if err := d.Set("parameters", flattenDataFactoryParameters(linkedService.Parameters)); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(linkedService.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

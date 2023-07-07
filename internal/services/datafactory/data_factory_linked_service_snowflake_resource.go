@@ -162,7 +162,7 @@ func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		snowflakeLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		snowflakeLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -229,7 +229,7 @@ func resourceDataFactoryLinkedServiceSnowflakeRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(snowflake.Parameters)
+	parameters := flattenLinkedServiceParameters(snowflake.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

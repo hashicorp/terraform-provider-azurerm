@@ -201,7 +201,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsd
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		datalakeStorageGen2LinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		datalakeStorageGen2LinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -285,7 +285,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *pluginsdk.Resour
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(dataLakeStorageGen2.Parameters)
+	parameters := flattenLinkedServiceParameters(dataLakeStorageGen2.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

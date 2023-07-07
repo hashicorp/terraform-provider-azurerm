@@ -200,7 +200,7 @@ func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		sqlServerLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		sqlServerLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -267,7 +267,7 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(sqlServer.Parameters)
+	parameters := flattenLinkedServiceParameters(sqlServer.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

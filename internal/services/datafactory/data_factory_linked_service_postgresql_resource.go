@@ -144,7 +144,7 @@ func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		postgresqlLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		postgresqlLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -211,7 +211,7 @@ func resourceDataFactoryLinkedServicePostgreSQLRead(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(postgresql.Parameters)
+	parameters := flattenLinkedServiceParameters(postgresql.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

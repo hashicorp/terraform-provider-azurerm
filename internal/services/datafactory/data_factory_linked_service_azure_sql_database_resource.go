@@ -243,7 +243,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		azureSQLDatabaseLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		azureSQLDatabaseLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -341,7 +341,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(sql.Parameters)
+	parameters := flattenLinkedServiceParameters(sql.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

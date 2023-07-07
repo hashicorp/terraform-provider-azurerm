@@ -178,7 +178,7 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		webLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		webLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -264,7 +264,7 @@ func resourceDataFactoryLinkedServiceWebRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(web.Parameters)
+	parameters := flattenLinkedServiceParameters(web.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

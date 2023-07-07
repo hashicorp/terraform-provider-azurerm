@@ -137,7 +137,7 @@ func resourceDataFactoryLinkedServiceTableStorageCreateUpdate(d *pluginsdk.Resou
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		tableStorageLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		tableStorageLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -204,7 +204,7 @@ func resourceDataFactoryLinkedServiceTableStorageRead(d *pluginsdk.ResourceData,
 		return fmt.Errorf("setting `annotations` for Data Factory Azure Table Storage %s: %+v", *id, err)
 	}
 
-	parameters := flattenDataFactoryParameters(tableStorage.Parameters)
+	parameters := flattenLinkedServiceParameters(tableStorage.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

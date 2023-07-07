@@ -162,7 +162,7 @@ func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		props["parameters"] = expandDataFactoryParameters(v.(map[string]interface{}))
+		props["parameters"] = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -263,7 +263,7 @@ func resourceDataFactoryLinkedCustomServiceRead(d *pluginsdk.ResourceData, meta 
 		}
 		delete(m, "parameters")
 	}
-	if err := d.Set("parameters", flattenDataFactoryParameters(parameters)); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

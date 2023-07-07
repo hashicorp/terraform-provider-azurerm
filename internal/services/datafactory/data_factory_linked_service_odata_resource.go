@@ -174,7 +174,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		odataLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		odataLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -253,7 +253,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(odata.Parameters)
+	parameters := flattenLinkedServiceParameters(odata.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

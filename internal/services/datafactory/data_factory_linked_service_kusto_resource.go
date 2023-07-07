@@ -188,7 +188,7 @@ func resourceDataFactoryLinkedServiceKustoCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		kustoLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		kustoLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -250,7 +250,7 @@ func resourceDataFactoryLinkedServiceKustoRead(d *pluginsdk.ResourceData, meta i
 	if err := d.Set("annotations", flattenDataFactoryAnnotations(linkedService.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
-	if err := d.Set("parameters", flattenDataFactoryParameters(linkedService.Parameters)); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(linkedService.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

@@ -171,7 +171,7 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.Reso
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		azureFunctionLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		azureFunctionLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -248,7 +248,7 @@ func resourceDataFactoryLinkedServiceAzureFunctionRead(d *pluginsdk.ResourceData
 		return fmt.Errorf("setting `annotations` for Data Factory Linked Service Azure Function %q (Data Factory %q) / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
-	parameters := flattenDataFactoryParameters(azureFunction.Parameters)
+	parameters := flattenLinkedServiceParameters(azureFunction.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
