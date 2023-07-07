@@ -8,11 +8,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedvirtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	Factories *factories.FactoriesClient
+	Factories              *factories.FactoriesClient
+	ManagedVirtualNetworks *managedvirtualnetworks.ManagedVirtualNetworksClient
 
 	// TODO: convert to using hashicorp/go-azure-sdk
 	DataFlowClient                *datafactory.DataFlowsClient
@@ -20,7 +22,6 @@ type Client struct {
 	IntegrationRuntimesClient     *datafactory.IntegrationRuntimesClient
 	LinkedServiceClient           *datafactory.LinkedServicesClient
 	ManagedPrivateEndpointsClient *datafactory.ManagedPrivateEndpointsClient
-	ManagedVirtualNetworksClient  *datafactory.ManagedVirtualNetworksClient
 	PipelinesClient               *datafactory.PipelinesClient
 	TriggersClient                *datafactory.TriggersClient
 }
@@ -47,8 +48,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ManagedPrivateEndpointsClient := datafactory.NewManagedPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagedPrivateEndpointsClient.Client, o.ResourceManagerAuthorizer)
 
-	ManagedVirtualNetworksClient := datafactory.NewManagedVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ManagedVirtualNetworksClient.Client, o.ResourceManagerAuthorizer)
+	managedVirtualNetworksClient, err := managedvirtualnetworks.NewManagedVirtualNetworksClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ManagedVirtualNetworks client: %+v", err)
+	}
+	o.Configure(managedVirtualNetworksClient.Client, o.Authorizers.ResourceManager)
 
 	PipelinesClient := datafactory.NewPipelinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PipelinesClient.Client, o.ResourceManagerAuthorizer)
@@ -57,13 +61,15 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&TriggersClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		Factories:              factoriesClient,
+		ManagedVirtualNetworks: managedVirtualNetworksClient,
+
+		// TODO: port to `hashicorp/go-azure-sdk`
 		DataFlowClient:                &dataFlowClient,
 		DatasetClient:                 &DatasetClient,
-		Factories:                     factoriesClient,
 		IntegrationRuntimesClient:     &IntegrationRuntimesClient,
 		LinkedServiceClient:           &LinkedServiceClient,
 		ManagedPrivateEndpointsClient: &ManagedPrivateEndpointsClient,
-		ManagedVirtualNetworksClient:  &ManagedVirtualNetworksClient,
 		PipelinesClient:               &PipelinesClient,
 		TriggersClient:                &TriggersClient,
 	}, nil
