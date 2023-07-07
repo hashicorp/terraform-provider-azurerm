@@ -346,31 +346,33 @@ func flattenManagedApplicationParametersOrOutputs(input *interface{}) (map[strin
 	}
 
 	attrs := *input
-	for k, val := range attrs.(map[string]interface{}) {
-		mapVal, ok := val.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("unexpected managed application parameter or output type: %+v", mapVal)
-		}
-		if mapVal != nil {
-			v, ok := mapVal["value"]
+	if _, ok := attrs.(map[string]interface{}); ok {
+		for k, val := range attrs.(map[string]interface{}) {
+			mapVal, ok := val.(map[string]interface{})
 			if !ok {
-				return nil, fmt.Errorf("missing key 'value' in parameters or output map %+v", mapVal)
+				return nil, fmt.Errorf("unexpected managed application parameter or output type: %+v", mapVal)
 			}
-			switch t := v.(type) {
-			case float64:
-				results[k] = v.(float64)
-			case string:
-				results[k] = v.(string)
-			case map[string]interface{}:
-				// Azure NVA managed applications read call returns empty map[string]interface{} parameter 'tags'
-				// Do not return an error if the parameter is unsupported type, but is empty
-				if len(v.(map[string]interface{})) == 0 {
-					log.Printf("parameter '%s' is unexpected type %T, but we're ignoring it because of the empty value", k, t)
-				} else {
+			if mapVal != nil {
+				v, ok := mapVal["value"]
+				if !ok {
+					return nil, fmt.Errorf("missing key 'value' in parameters or output map %+v", mapVal)
+				}
+				switch t := v.(type) {
+				case float64:
+					results[k] = v.(float64)
+				case string:
+					results[k] = v.(string)
+				case map[string]interface{}:
+					// Azure NVA managed applications read call returns empty map[string]interface{} parameter 'tags'
+					// Do not return an error if the parameter is unsupported type, but is empty
+					if len(v.(map[string]interface{})) == 0 {
+						log.Printf("parameter '%s' is unexpected type %T, but we're ignoring it because of the empty value", k, t)
+					} else {
+						return nil, fmt.Errorf("unexpected parameter type %T", t)
+					}
+				default:
 					return nil, fmt.Errorf("unexpected parameter type %T", t)
 				}
-			default:
-				return nil, fmt.Errorf("unexpected parameter type %T", t)
 			}
 		}
 	}
@@ -384,21 +386,25 @@ func flattenManagedApplicationParameterValuesValueToString(input *interface{}) (
 	}
 
 	attrs := *input
-	for k, v := range attrs.(map[string]interface{}) {
-		if v != nil {
-			delete(attrs.(map[string]interface{})[k].(map[string]interface{}), "type")
+	if _, ok := attrs.(map[string]interface{}); ok {
+		for k, v := range attrs.(map[string]interface{}) {
+			if v != nil {
+				delete(attrs.(map[string]interface{})[k].(map[string]interface{}), "type")
+			}
 		}
+
+		result, err := json.Marshal(input)
+		if err != nil {
+			return "", err
+		}
+
+		compactJson := bytes.Buffer{}
+		if err := json.Compact(&compactJson, result); err != nil {
+			return "", err
+		}
+
+		return compactJson.String(), nil
 	}
 
-	result, err := json.Marshal(input)
-	if err != nil {
-		return "", err
-	}
-
-	compactJson := bytes.Buffer{}
-	if err := json.Compact(&compactJson, result); err != nil {
-		return "", err
-	}
-
-	return compactJson.String(), nil
+	return "", nil
 }
