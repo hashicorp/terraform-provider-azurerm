@@ -61,6 +61,7 @@ func TestAccAutomationDscConfiguration_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
