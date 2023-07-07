@@ -5,6 +5,7 @@ package pool
 
 type VmExtension struct {
 	AutoUpgradeMinorVersion  *bool        `json:"autoUpgradeMinorVersion,omitempty"`
+	EnableAutomaticUpgrade   *bool        `json:"enableAutomaticUpgrade,omitempty"`
 	Name                     string       `json:"name"`
 	ProtectedSettings        *interface{} `json:"protectedSettings,omitempty"`
 	ProvisionAfterExtensions *[]string    `json:"provisionAfterExtensions,omitempty"`
