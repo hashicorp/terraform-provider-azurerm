@@ -4,14 +4,19 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
+	Factories *factories.FactoriesClient
+
+	// TODO: convert to using hashicorp/go-azure-sdk
 	DataFlowClient                *datafactory.DataFlowsClient
 	DatasetClient                 *datafactory.DatasetsClient
-	FactoriesClient               *datafactory.FactoriesClient
 	IntegrationRuntimesClient     *datafactory.IntegrationRuntimesClient
 	LinkedServiceClient           *datafactory.LinkedServicesClient
 	ManagedPrivateEndpointsClient *datafactory.ManagedPrivateEndpointsClient
@@ -20,15 +25,18 @@ type Client struct {
 	TriggersClient                *datafactory.TriggersClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	dataFlowClient := datafactory.NewDataFlowsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&dataFlowClient.Client, o.ResourceManagerAuthorizer)
 
 	DatasetClient := datafactory.NewDatasetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DatasetClient.Client, o.ResourceManagerAuthorizer)
 
-	FactoriesClient := datafactory.NewFactoriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&FactoriesClient.Client, o.ResourceManagerAuthorizer)
+	factoriesClient, err := factories.NewFactoriesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Factories client: %+v", err)
+	}
+	o.Configure(factoriesClient.Client, o.Authorizers.ResourceManager)
 
 	IntegrationRuntimesClient := datafactory.NewIntegrationRuntimesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&IntegrationRuntimesClient.Client, o.ResourceManagerAuthorizer)
@@ -51,12 +59,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		DataFlowClient:                &dataFlowClient,
 		DatasetClient:                 &DatasetClient,
-		FactoriesClient:               &FactoriesClient,
+		Factories:                     factoriesClient,
 		IntegrationRuntimesClient:     &IntegrationRuntimesClient,
 		LinkedServiceClient:           &LinkedServiceClient,
 		ManagedPrivateEndpointsClient: &ManagedPrivateEndpointsClient,
 		ManagedVirtualNetworksClient:  &ManagedVirtualNetworksClient,
 		PipelinesClient:               &PipelinesClient,
 		TriggersClient:                &TriggersClient,
-	}
+	}, nil
 }

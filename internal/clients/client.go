@@ -355,7 +355,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Datadog, err = datadog.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Datadog: %+v", err)
 	}
-	client.DataFactory = datafactory.NewClient(o)
+	if client.DataFactory, err = datafactory.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataFactory: %+v", err)
+	}
 	if client.DataProtection, err = dataprotection.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DataProtection: %+v", err)
 	}
