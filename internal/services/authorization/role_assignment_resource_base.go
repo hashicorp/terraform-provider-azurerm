@@ -109,8 +109,8 @@ func (br roleAssignmentBaseResource) attributes() map[string]*pluginsdk.Schema {
 func (br roleAssignmentBaseResource) createFunc(resourceName, scope string) sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			roleAssignmentsClient := metadata.Client.Authorization.NewRoleAssignmentsClient
-			roleDefinitionsClient := metadata.Client.Authorization.NewRoleDefinitionsClient
+			roleAssignmentsClient := metadata.Client.Authorization.ScopedRoleAssignmentsClient
+			roleDefinitionsClient := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 			subscriptionClient := metadata.Client.Subscription.Client
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			name := metadata.ResourceData.Get("name").(string)
@@ -221,8 +221,8 @@ func (br roleAssignmentBaseResource) createFunc(resourceName, scope string) sdk.
 func (br roleAssignmentBaseResource) readFunc(scope string, isTenantLevel bool) sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.NewRoleAssignmentsClient
-			roleDefinitionsClient := metadata.Client.Authorization.NewRoleDefinitionsClient
+			client := metadata.Client.Authorization.ScopedRoleAssignmentsClient
+			roleDefinitionsClient := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			id, err := parse.ScopedRoleAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -290,7 +290,7 @@ func (br roleAssignmentBaseResource) readFunc(scope string, isTenantLevel bool) 
 func (br roleAssignmentBaseResource) deleteFunc() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.NewRoleAssignmentsClient
+			client := metadata.Client.Authorization.ScopedRoleAssignmentsClient
 
 			id, err := parse.ScopedRoleAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -318,7 +318,7 @@ func (br roleAssignmentBaseResource) deleteFunc() sdk.ResourceFunc {
 
 func (br roleAssignmentBaseResource) retryRoleAssignmentsClient(ctx context.Context, metadata sdk.ResourceMetaData, id parse.ScopedRoleAssignmentId, properties *roleassignments.RoleAssignmentCreateParameters) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
-		roleAssignmentsClient := metadata.Client.Authorization.NewRoleAssignmentsClient
+		roleAssignmentsClient := metadata.Client.Authorization.ScopedRoleAssignmentsClient
 		resp, err := roleAssignmentsClient.Create(ctx, id.ScopedId, *properties)
 		if err != nil {
 			if utils.ResponseErrorIsRetryable(err) {

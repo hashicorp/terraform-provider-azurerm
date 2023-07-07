@@ -156,7 +156,7 @@ func (r RoleAssignmentMarketplaceResource) Exists(ctx context.Context, client *c
 		options.TenantId = &id.TenantId
 	}
 
-	resp, err := client.Authorization.NewRoleAssignmentsClient.GetById(ctx, commonids.NewScopeID(id.ID()), options)
+	resp, err := client.Authorization.ScopedRoleAssignmentsClient.GetById(ctx, commonids.NewScopeID(id.ID()), options)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedulerequests"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityscheduleinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedulerequests"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -18,6 +20,8 @@ type Client struct {
 	RoleAssignmentScheduleInstancesClient  *roleassignmentscheduleinstances.RoleAssignmentScheduleInstancesClient
 	RoleEligibilityScheduleRequestClient   *roleeligibilityschedulerequests.RoleEligibilityScheduleRequestsClient
 	RoleEligibilityScheduleInstancesClient *roleeligibilityscheduleinstances.RoleEligibilityScheduleInstancesClient
+	ScopedRoleAssignmentsClient            *roleassignments.RoleAssignmentsClient
+	ScopedRoleDefinitionsClient            *roledefinitions.RoleDefinitionsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -52,6 +56,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(roleEligibilityScheduleInstancesClient.Client, o.Authorizers.ResourceManager)
 
+	scopedRoleAssignmentsClient, err := roleassignments.NewRoleAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Role Assignment Client:  %+v", err)
+	}
+	o.Configure(scopedRoleAssignmentsClient.Client, o.Authorizers.ResourceManager)
+
+	scopedRoleDefinitionsClient, err := roledefinitions.NewRoleDefinitionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Role Definition Client:  %+v", err)
+	}
+	o.Configure(scopedRoleDefinitionsClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		RoleAssignmentsClient:                  &roleAssignmentsClient,
 		RoleDefinitionsClient:                  &roleDefinitionsClient,
@@ -59,5 +75,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		RoleAssignmentScheduleInstancesClient:  roleAssignmentScheduleInstancesClient,
 		RoleEligibilityScheduleRequestClient:   roleEligibilityScheduleRequestClient,
 		RoleEligibilityScheduleInstancesClient: roleEligibilityScheduleInstancesClient,
+		ScopedRoleAssignmentsClient:            scopedRoleAssignmentsClient,
+		ScopedRoleDefinitionsClient:            scopedRoleDefinitionsClient,
 	}, nil
 }
