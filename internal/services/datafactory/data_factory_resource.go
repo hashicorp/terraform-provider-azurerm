@@ -9,7 +9,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedvirtualnetworks"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -216,7 +217,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 
 func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.Factories
-	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworksClient
+	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -313,10 +314,11 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.Get("managed_virtual_network_enabled").(bool) {
-		resource := datafactory.ManagedVirtualNetworkResource{
-			Properties: &datafactory.ManagedVirtualNetwork{},
+		networkPayload := managedvirtualnetworks.ManagedVirtualNetworkResource{
+			Properties: managedvirtualnetworks.ManagedVirtualNetwork{},
 		}
-		if _, err := managedVirtualNetworksClient.CreateOrUpdate(ctx, id.ResourceGroupName, id.FactoryName, "default", resource, ""); err != nil {
+		managedNetworkId := managedvirtualnetworks.NewManagedVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName, "default")
+		if _, err := managedVirtualNetworksClient.CreateOrUpdate(ctx, managedNetworkId, networkPayload, managedvirtualnetworks.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("creating virtual network for %s: %+v", id, err)
 		}
 	}
@@ -326,7 +328,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.Factories
-	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworksClient
+	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -423,7 +425,7 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	managedVirtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, id.ResourceGroupName, id.FactoryName)
+	managedVirtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, id.SubscriptionId, id.ResourceGroupName, id.FactoryName)
 	if err != nil {
 		return err
 	}
@@ -501,16 +503,24 @@ func flattenDataFactoryGlobalParameters(input *map[string]factories.GlobalParame
 	return &output, nil
 }
 
-func getManagedVirtualNetworkName(ctx context.Context, client *datafactory.ManagedVirtualNetworksClient, resourceGroup, factoryName string) (*string, error) {
-	resp, err := client.ListByFactory(ctx, resourceGroup, factoryName)
+func getManagedVirtualNetworkName(ctx context.Context, client *managedvirtualnetworks.ManagedVirtualNetworksClient, subscriptionId, resourceGroup, factoryName string) (*string, error) {
+	factoryId := managedvirtualnetworks.NewFactoryID(subscriptionId, resourceGroup, factoryName)
+	resp, err := client.ListByFactory(ctx, factoryId)
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.Values()) == 0 {
-		return nil, nil
+
+	if model := resp.Model; model != nil {
+		for _, v := range *model {
+			if v.Name == nil {
+				continue
+			}
+
+			return v.Name, nil
+		}
 	}
-	managedVirtualNetwork := resp.Values()[0]
-	return managedVirtualNetwork.Name, nil
+
+	return nil, nil
 }
 
 func expandGitHubRepoConfiguration(input []interface{}) *factories.FactoryGitHubConfiguration {
