@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: `azurestackhcl`: updating to API Version `2023-03-01` [GH-22411]
+* dependencies: `storage`: updating Data Plane to API Version `2020-08-04` [GH-22405]
 * dependencies: updating to `v0.20230704.1182735` of `github.com/hashicorp/go-azure-sdk` [GH-22404]
 * dependencies: updating to `v0.20230703.1101016` of `github.com/tombuildsstuff/kermit` [GH-22390]
 * dependencies: `automation/dscconfiguration` - updating to API Version `2022-08-08` [GH-22403]
