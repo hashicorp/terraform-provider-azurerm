@@ -256,7 +256,7 @@ func (br roleAssignmentBaseResource) readFunc(scope string, isTenantLevel bool) 
 					metadata.ResourceData.Set("condition_version", props.ConditionVersion)
 
 					if props.PrincipalType != nil {
-						metadata.ResourceData.Set("principal_type", *props.PrincipalType)
+						metadata.ResourceData.Set("principal_type", string(*props.PrincipalType))
 					}
 
 					// allows for import when role name is used (also if the role name changes a plan will show a diff)
