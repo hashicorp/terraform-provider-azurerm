@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package managedidentity
 
 // NOTE: this file is generated - manual changes will be overwritten.
