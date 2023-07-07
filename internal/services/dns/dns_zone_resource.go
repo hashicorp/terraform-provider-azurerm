@@ -1,11 +1,11 @@
 package dns
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -77,7 +78,7 @@ func resourceDnsZone() *pluginsdk.Resource {
 				MaxItems: 1,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
+				//ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"email": {
@@ -87,10 +88,9 @@ func resourceDnsZone() *pluginsdk.Resource {
 						},
 
 						"host_name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Optional: !features.FourPointOhBeta(), // (@jackofallops) - This should not be set or updatable to meet API design, see https://learn.microsoft.com/en-us/azure/dns/dns-zones-records#soa-records
+							Computed: true,
 						},
 
 						"expire_time": {
@@ -185,16 +185,20 @@ func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if v, ok := d.GetOk("soa_record"); ok {
 		soaRecord := v.([]interface{})[0].(map[string]interface{})
 
+		soaRecordID := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
+		soaRecordResp, err := recordSetsClient.Get(ctx, soaRecordID)
+		if err != nil {
+			return fmt.Errorf("retrieving %s to update SOA: %+v", id, err)
+		}
+
+		props := soaRecordResp.Model.Properties
+		if props == nil || props.SOARecord == nil {
+			return fmt.Errorf("could not read SOA properties for %s", id)
+		}
+
 		inputSOARecord := expandArmDNSZoneSOARecord(soaRecord)
 
-		if *inputSOARecord.Host == "" {
-			host, err := soaRecordHostName(ctx, recordSetsClient, id)
-			if err != nil {
-				return fmt.Errorf("creating/updating %s: %+v", id, err)
-			}
-
-			inputSOARecord.Host = host
-		}
+		inputSOARecord.Host = props.SOARecord.Host
 
 		rsParameters := recordsets.RecordSet{
 			Properties: &recordsets.RecordSetProperties{
@@ -292,15 +296,20 @@ func resourceDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func expandArmDNSZoneSOARecord(input map[string]interface{}) *recordsets.SoaRecord {
-	return &recordsets.SoaRecord{
+	result := &recordsets.SoaRecord{
 		Email:        utils.String(input["email"].(string)),
-		Host:         utils.String(input["host_name"].(string)),
 		ExpireTime:   utils.Int64(int64(input["expire_time"].(int))),
 		MinimumTTL:   utils.Int64(int64(input["minimum_ttl"].(int))),
 		RefreshTime:  utils.Int64(int64(input["refresh_time"].(int))),
 		RetryTime:    utils.Int64(int64(input["retry_time"].(int))),
 		SerialNumber: utils.Int64(int64(input["serial_number"].(int))),
 	}
+
+	if !features.FourPointOhBeta() && input["host_name"].(string) != "" {
+		result.Host = pointer.To(input["host_name"].(string))
+	}
+
+	return result
 }
 
 func flattenArmDNSZoneSOARecord(input *recordsets.RecordSet) []interface{} {
@@ -375,38 +384,4 @@ func flattenArmDNSZoneSOARecord(input *recordsets.RecordSet) []interface{} {
 	}
 
 	return output
-}
-
-func soaRecordHostName(ctx context.Context, recordSetsClient *recordsets.RecordSetsClient, id zones.DnsZoneId) (*string, error) {
-	soaRecord := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
-	soaRecordResp, err := recordSetsClient.Get(ctx, soaRecord)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	if err := checkSoaRecordResponseForNil(soaRecordResp); err != nil {
-		return nil, fmt.Errorf("soa record response for %s has error: %+v", id, err)
-	}
-
-	return soaRecordResp.Model.Properties.SOARecord.Host, nil
-}
-
-func checkSoaRecordResponseForNil(soaRecordResp recordsets.GetOperationResponse) error {
-	if soaRecordResp.Model == nil {
-		return fmt.Errorf("model is nil")
-	}
-
-	if soaRecordResp.Model.Properties == nil {
-		return fmt.Errorf("properties is nil")
-	}
-
-	if soaRecordResp.Model.Properties.SOARecord == nil {
-		return fmt.Errorf("soa record is nil")
-	}
-
-	if soaRecordResp.Model.Properties.SOARecord.Host == nil {
-		return fmt.Errorf("host is nil")
-	}
-
-	return nil
 }
