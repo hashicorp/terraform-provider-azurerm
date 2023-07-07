@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20230704.1182735` of `github.com/hashicorp/go-azure-sdk` [GH-22404]
 * dependencies: updating to `v0.20230703.1101016` of `github.com/tombuildsstuff/kermit` [GH-22390]
 * dependencies: `automation/dscconfiguration` - updating to API Version `2022-08-08` [GH-22403]
+* `azurerm_dns_zone` - can now use `host_name` with `dns_zone` for `soa_record` creation [GH-22312]
 
 BUG FIXES:
 
