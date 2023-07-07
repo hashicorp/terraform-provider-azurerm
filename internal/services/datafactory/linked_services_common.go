@@ -3,7 +3,7 @@ package datafactory
 import (
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func expandLinkedServiceParameters(input map[string]interface{}) map[string]*datafactory.ParameterSpecification {
