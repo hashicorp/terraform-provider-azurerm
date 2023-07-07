@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -44,5 +45,5 @@ func (r RoleAssignmentMarketplaceResource) ModelObject() interface{} {
 }
 
 func (r RoleAssignmentMarketplaceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return r.base.validateRoleAssignmentID
+	return parse.ValidateScopedRoleAssignmentID
 }

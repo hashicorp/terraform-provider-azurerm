@@ -157,13 +157,13 @@ func (br roleAssignmentBaseResource) createFunc(resourceName, scope string) sdk.
 				}
 			}
 
-			id := roleassignments.NewScopedRoleAssignmentID(scope, name)
+			id := parse.NewScopedRoleAssignmentID(scope, name, tenantId)
 			options := roleassignments.DefaultGetOperationOptions()
 			if tenantId != "" {
 				options.TenantId = &tenantId
 			}
 
-			existing, err := roleAssignmentsClient.Get(ctx, id, options)
+			existing, err := roleAssignmentsClient.Get(ctx, id.ScopedId, options)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
@@ -206,21 +206,11 @@ func (br roleAssignmentBaseResource) createFunc(resourceName, scope string) sdk.
 				return fmt.Errorf("could not retrieve context deadline for %s", id)
 			}
 
-			if err = pluginsdk.Retry(time.Until(deadline), br.retryRoleAssignmentsClient(ctx, metadata, id, &properties, tenantId)); err != nil {
+			if err = pluginsdk.Retry(time.Until(deadline), br.retryRoleAssignmentsClient(ctx, metadata, id, &properties)); err != nil {
 				return err
 			}
 
-			read, err := roleAssignmentsClient.Get(ctx, id, options)
-			if err != nil {
-				return err
-			}
-
-			if read.Model != nil && read.Model.Id != nil {
-				metadata.ResourceData.SetId(parse.ConstructRoleAssignmentId(*read.Model.Id, tenantId))
-			} else {
-				return fmt.Errorf("retrieving %s: %s", id, err)
-			}
-
+			metadata.SetID(id)
 			return nil
 		},
 
@@ -234,14 +224,17 @@ func (br roleAssignmentBaseResource) readFunc(scope string, isTenantLevel bool) 
 			client := metadata.Client.Authorization.NewRoleAssignmentsClient
 			roleDefinitionsClient := metadata.Client.Authorization.NewRoleDefinitionsClient
 
-			azureResourceId, tenantId := parse.DestructRoleAssignmentId(metadata.ResourceData.Id())
-			id := commonids.NewScopeID(azureResourceId)
-			options := roleassignments.DefaultGetByIdOperationOptions()
-			if tenantId != "" {
-				options.TenantId = &tenantId
+			id, err := parse.ScopedRoleAssignmentID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
 			}
 
-			resp, err := client.GetById(ctx, id, options)
+			options := roleassignments.DefaultGetByIdOperationOptions()
+			if id.TenantId != "" {
+				options.TenantId = &id.TenantId
+			}
+
+			resp, err := client.GetById(ctx, commonids.NewScopeID(id.ScopedId.ID()), options)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					log.Printf("[DEBUG] Role Assignment ID %s was not found - removing from state", id)
@@ -265,7 +258,7 @@ func (br roleAssignmentBaseResource) readFunc(scope string, isTenantLevel bool) 
 
 					// allows for import when role name is used (also if the role name changes a plan will show a diff)
 					roleId := props.RoleDefinitionId
-					// The tenant level role definitions do not have a scope in URL
+					// The tenant level role definitions do not have a scope
 					if isTenantLevel {
 						roleId = fmt.Sprintf("%s%s", scope, props.RoleDefinitionId)
 					}
@@ -299,17 +292,17 @@ func (br roleAssignmentBaseResource) deleteFunc() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Authorization.NewRoleAssignmentsClient
 
-			azureResourceId, tenantId := parse.DestructRoleAssignmentId(metadata.ResourceData.Id())
-			id, err := roleassignments.ParseScopedRoleAssignmentID(azureResourceId)
+			id, err := parse.ScopedRoleAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			options := roleassignments.DefaultDeleteOperationOptions()
-			if tenantId != "" {
-				options.TenantId = &tenantId
+			if id.TenantId != "" {
+				options.TenantId = &id.TenantId
 			}
-			resp, err := client.Delete(ctx, *id, options)
+
+			resp, err := client.Delete(ctx, id.ScopedId, options)
 			if err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return err
@@ -323,10 +316,10 @@ func (br roleAssignmentBaseResource) deleteFunc() sdk.ResourceFunc {
 	}
 }
 
-func (br roleAssignmentBaseResource) retryRoleAssignmentsClient(ctx context.Context, metadata sdk.ResourceMetaData, id roleassignments.ScopedRoleAssignmentId, properties *roleassignments.RoleAssignmentCreateParameters, tenantId string) func() *pluginsdk.RetryError {
+func (br roleAssignmentBaseResource) retryRoleAssignmentsClient(ctx context.Context, metadata sdk.ResourceMetaData, id parse.ScopedRoleAssignmentId, properties *roleassignments.RoleAssignmentCreateParameters) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
 		roleAssignmentsClient := metadata.Client.Authorization.NewRoleAssignmentsClient
-		resp, err := roleAssignmentsClient.Create(ctx, id, *properties)
+		resp, err := roleAssignmentsClient.Create(ctx, id.ScopedId, *properties)
 		if err != nil {
 			if utils.ResponseErrorIsRetryable(err) {
 				return pluginsdk.RetryableError(err)
@@ -354,7 +347,7 @@ func (br roleAssignmentBaseResource) retryRoleAssignmentsClient(ctx context.Cont
 			Target: []string{
 				"ready",
 			},
-			Refresh:                   br.roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, id.ID(), tenantId),
+			Refresh:                   br.roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, id),
 			MinTimeout:                5 * time.Second,
 			ContinuousTargetOccurence: 5,
 			Timeout:                   time.Until(deadline),
@@ -368,14 +361,14 @@ func (br roleAssignmentBaseResource) retryRoleAssignmentsClient(ctx context.Cont
 	}
 }
 
-func (br roleAssignmentBaseResource) roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *roleassignments.RoleAssignmentsClient, id string, tenantId string) pluginsdk.StateRefreshFunc {
+func (br roleAssignmentBaseResource) roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *roleassignments.RoleAssignmentsClient, id parse.ScopedRoleAssignmentId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		options := roleassignments.DefaultGetByIdOperationOptions()
-		if tenantId != "" {
-			options.TenantId = &tenantId
+		if id.TenantId != "" {
+			options.TenantId = &id.TenantId
 		}
 
-		resp, err := client.GetById(ctx, commonids.NewScopeID(id), options)
+		resp, err := client.GetById(ctx, commonids.NewScopeID(id.ScopedId.ID()), options)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return resp, "pending", nil
@@ -384,15 +377,4 @@ func (br roleAssignmentBaseResource) roleAssignmentCreateStateRefreshFunc(ctx co
 		}
 		return resp, "ready", nil
 	}
-}
-
-func (br roleAssignmentBaseResource) validateRoleAssignmentID(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
-	azureResourceId, _ := parse.DestructRoleAssignmentId(v)
-	return roleassignments.ValidateScopedRoleAssignmentID(azureResourceId, key)
 }

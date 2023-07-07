@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
-
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -14,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -147,14 +146,17 @@ func TestAccRoleAssignmentMarketplace_ServicePrincipalGroup(t *testing.T) {
 }
 
 func (r RoleAssignmentMarketplaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	azureResourceId, tenantId := parse.DestructRoleAssignmentId(state.ID)
-	id := commonids.NewScopeID(azureResourceId)
-	options := roleassignments.DefaultGetByIdOperationOptions()
-	if tenantId != "" {
-		options.TenantId = &tenantId
+	id, err := parse.ScopedRoleAssignmentID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	resp, err := client.Authorization.NewRoleAssignmentsClient.GetById(ctx, id, options)
+	options := roleassignments.DefaultGetByIdOperationOptions()
+	if id.TenantId != "" {
+		options.TenantId = &id.TenantId
+	}
+
+	resp, err := client.Authorization.NewRoleAssignmentsClient.GetById(ctx, commonids.NewScopeID(id.ID()), options)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
