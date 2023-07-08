@@ -40,12 +40,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_iotcentral_application" "test" {
-	name                = "iotctroletest-%s"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	sub_domain          = "iotctroletest-%s"
-  
-	sku = "ST0"
+  name                = "iotctroletest-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sub_domain          = "iotctroletest-%s"
+
+  sku = "ST0"
 }
 
 data "azurerm_iotcentral_role" "test" {
