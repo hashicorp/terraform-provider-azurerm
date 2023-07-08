@@ -19,6 +19,7 @@ type Client struct {
 	AppsClient          *apps.AppsClient
 	authorizerFunc      common.ApiAuthorizerFunc
 	configureClientFunc func(c *autorest.Client, authorizer autorest.Authorizer)
+	endpoint            string
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -32,15 +33,28 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		AppsClient:          appsClient,
 		authorizerFunc:      o.Authorizers.AuthorizerFunc,
 		configureClientFunc: o.ConfigureClient,
+		endpoint:            "https://apps.azureiotcentral.com",
 	}, nil
 }
 
-func (c *Client) RolesClient(ctx context.Context, subdomain string) (*iotcentralDataplane.RolesClient, error) {
-	endpoint := "https://apps.azureiotcentral.com"
-	api := environments.NewApiEndpoint("IotCentral", endpoint, nil)
+func (c *Client) OrganizationsClient(ctx context.Context, subdomain string) (*iotcentralDataplane.OrganizationsClient, error) {
+	api := environments.NewApiEndpoint("IotCentral", c.endpoint, nil)
 	iotCentralAuth, err := c.authorizerFunc(api)
 	if err != nil {
-		return nil, fmt.Errorf("obtaining auth token for %q: %+v", endpoint, err)
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", c.endpoint, err)
+	}
+
+	client := iotcentralDataplane.NewOrganizationsClient(subdomain)
+	c.configureClientFunc(&client.Client, authWrapper.AutorestAuthorizer(iotCentralAuth))
+
+	return &client, nil
+}
+
+func (c *Client) RolesClient(ctx context.Context, subdomain string) (*iotcentralDataplane.RolesClient, error) {
+	api := environments.NewApiEndpoint("IotCentral", c.endpoint, nil)
+	iotCentralAuth, err := c.authorizerFunc(api)
+	if err != nil {
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", c.endpoint, err)
 	}
 
 	client := iotcentralDataplane.NewRolesClient(subdomain)
