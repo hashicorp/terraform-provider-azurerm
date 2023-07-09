@@ -155,13 +155,13 @@ func TestAccStreamAnalyticsJob_jobStorageAccount_Msi(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.jobStorageAccount(data),
+			Config: r.jobStorageAccount_Msi_Create(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.jobStorageAccount_Msi(data),
+			Config: r.jobStorageAccount_Msi_Update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -425,6 +425,7 @@ resource "azurerm_stream_analytics_job" "test" {
   location               = azurerm_resource_group.test.location
   streaming_units        = 3
   content_storage_policy = "JobStorageAccount"
+
   job_storage_account {
     account_name = azurerm_storage_account.test.name
     account_key  = azurerm_storage_account.test.primary_access_key
@@ -444,7 +445,7 @@ QUERY
 `, data.RandomInteger, data.RandomString, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r StreamAnalyticsJobResource) jobStorageAccount_Msi(data acceptance.TestData) string {
+func (r StreamAnalyticsJobResource) jobStorageAccount_Msi_Create(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -461,6 +462,67 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_stream_analytics_job.test.identity[0].principal_id
+}
+
+resource "azurerm_stream_analytics_job" "test" {
+  name                   = "acctestjob-%[4]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  streaming_units        = 3
+  content_storage_policy = "JobStorageAccount"
+
+  job_storage_account {
+    account_name = azurerm_storage_account.test.name
+    account_key  = azurerm_storage_account.test.primary_access_key
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "Test"
+  }
+
+  transformation_query = <<QUERY
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
+QUERY
+
+}
+`, data.RandomInteger, data.RandomString, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StreamAnalyticsJobResource) jobStorageAccount_Msi_Update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%[3]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_stream_analytics_job.test.identity[0].principal_id
 }
 
 resource "azurerm_stream_analytics_job" "test" {
