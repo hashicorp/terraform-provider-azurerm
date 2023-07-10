@@ -262,7 +262,7 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		if sku := model.Sku; sku != nil {
-			d.Set("sku", sku.Name)
+			d.Set("sku", string(*sku.Name))
 		}
 
 		if props := model.Properties; props != nil {
