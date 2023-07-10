@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package helpers
 
 import (
@@ -5,12 +8,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type SiteConfigLinux struct {
@@ -578,7 +582,7 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 							},
 
 							"win32_status": {
-								Type:         pluginsdk.TypeString,
+								Type:         pluginsdk.TypeInt,
 								Optional:     true,
 								ValidateFunc: nil, // TODO - no docs on this, needs investigation
 							},
@@ -679,7 +683,7 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 							},
 
 							"win32_status": {
-								Type:     pluginsdk.TypeString,
+								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},
 
@@ -723,48 +727,175 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfig, metadata sdk.ResourceMetaData, servicePlan web.AppServicePlan) (*web.SiteConfig, error) {
-	if len(siteConfig) == 0 {
-		return nil, nil
-	}
+func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*web.SiteConfig, error) {
 	expanded := &web.SiteConfig{}
-	if existing != nil {
-		expanded = existing
-	}
 
-	linuxSiteConfig := siteConfig[0]
+	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
+	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
+	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
+	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
+	expanded.LocalMySQLEnabled = pointer.To(s.LocalMysql)
+	expanded.LoadBalancing = web.SiteLoadBalancing(s.LoadBalancing)
+	expanded.ManagedPipelineMode = web.ManagedPipelineMode(s.ManagedPipelineMode)
+	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
+	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
+	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
+	expanded.FtpsState = web.FtpsState(s.FtpsState)
+	expanded.MinTLSVersion = web.SupportedTLSVersions(s.MinTlsVersion)
+	expanded.ScmMinTLSVersion = web.SupportedTLSVersions(s.ScmMinTlsVersion)
+	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
+	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 
-	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
-		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
-			if linuxSiteConfig.AlwaysOn {
-				return nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
-			}
-			if expanded.AlwaysOn != nil && *expanded.AlwaysOn {
-				return nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
-			}
+	if s.ApiManagementConfigId != "" {
+		expanded.APIManagementConfig = &web.APIManagementConfig{
+			ID: pointer.To(s.ApiManagementConfigId),
 		}
 	}
-	expanded.AlwaysOn = pointer.To(linuxSiteConfig.AlwaysOn)
+
+	if s.ApiDefinition != "" {
+		expanded.APIDefinition = &web.APIDefinitionInfo{
+			URL: pointer.To(s.ApiDefinition),
+		}
+	}
+
+	if s.AppCommandLine != "" {
+		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
+	}
+
+	if len(s.ApplicationStack) == 1 {
+		linuxAppStack := s.ApplicationStack[0]
+		if linuxAppStack.NetFrameworkVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixDotNetCore, linuxAppStack.NetFrameworkVersion))
+		}
+
+		if linuxAppStack.GoVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixGo, linuxAppStack.GoVersion))
+		}
+
+		if linuxAppStack.PhpVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixPhp, linuxAppStack.PhpVersion))
+		}
+
+		if linuxAppStack.NodeVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixNode, linuxAppStack.NodeVersion))
+		}
+
+		if linuxAppStack.RubyVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixRuby, linuxAppStack.RubyVersion))
+		}
+
+		if linuxAppStack.PythonVersion != "" {
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixPython, linuxAppStack.PythonVersion))
+		}
+
+		if linuxAppStack.JavaServer != "" {
+			javaString, err := JavaLinuxFxStringBuilder(linuxAppStack.JavaVersion, linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion)
+			if err != nil {
+				return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
+			}
+			expanded.LinuxFxVersion = javaString
+		}
+
+		if !features.FourPointOhBeta() {
+			if linuxAppStack.DockerImage != "" {
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			}
+		}
+
+		if linuxAppStack.DockerImageName != "" {
+			expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
+			if appSettings == nil {
+				appSettings = map[string]string{}
+			}
+			appSettings["DOCKER_REGISTRY_SERVER_URL"] = linuxAppStack.DockerRegistryUrl
+			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
+			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
+		}
+	}
+
+	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
+
+	if s.ContainerRegistryMSI != "" {
+		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryMSI)
+	}
+
+	if len(s.DefaultDocuments) != 0 {
+		expanded.DefaultDocuments = pointer.To(s.DefaultDocuments)
+	}
+
+	if len(s.IpRestriction) != 0 {
+		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
+		if err != nil {
+			return nil, err
+		}
+
+		expanded.IPSecurityRestrictions = ipRestrictions
+	}
+
+	if len(s.ScmIpRestriction) != 0 {
+		ipRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
+		if err != nil {
+			return nil, err
+		}
+
+		expanded.ScmIPSecurityRestrictions = ipRestrictions
+	}
+
+	if s.RemoteDebuggingVersion != "" {
+		expanded.RemoteDebuggingVersion = pointer.To(s.RemoteDebuggingVersion)
+	}
+
+	if s.HealthCheckPath != "" {
+		expanded.HealthCheckPath = pointer.To(s.HealthCheckPath)
+	}
+
+	if s.NumberOfWorkers != 0 {
+		expanded.NumberOfWorkers = pointer.To(int32(s.NumberOfWorkers))
+	}
+
+	if len(s.Cors) != 0 {
+		expanded.Cors = ExpandCorsSettings(s.Cors)
+	}
+
+	if len(s.AutoHealSettings) == 1 {
+		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
+	}
+
+	return expanded, nil
+}
+
+func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *web.SiteConfig, appSettings map[string]string) (*web.SiteConfig, error) {
+	expanded := *existing
+
+	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
+	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
+	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
+	expanded.LocalMySQLEnabled = pointer.To(s.LocalMysql)
+	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
+	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
+	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
+	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
+	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.APIManagementConfig = &web.APIManagementConfig{
-			ID: pointer.To(linuxSiteConfig.ApiManagementConfigId),
+			ID: pointer.To(s.ApiManagementConfigId),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
 		expanded.APIDefinition = &web.APIDefinitionInfo{
-			URL: pointer.To(linuxSiteConfig.ApiDefinition),
+			URL: pointer.To(s.ApiDefinition),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
-		expanded.AppCommandLine = pointer.To(linuxSiteConfig.AppCommandLine)
+		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-		if len(linuxSiteConfig.ApplicationStack) == 1 {
-			linuxAppStack := linuxSiteConfig.ApplicationStack[0]
+		if len(s.ApplicationStack) == 1 {
+			linuxAppStack := s.ApplicationStack[0]
 			if linuxAppStack.NetFrameworkVersion != "" {
 				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
 			}
@@ -797,86 +928,81 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 				expanded.LinuxFxVersion = javaString
 			}
 
-			if linuxAppStack.DockerImage != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			if !features.FourPointOhBeta() {
+				if linuxAppStack.DockerImage != "" {
+					expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+				}
+			}
+
+			if linuxAppStack.DockerImageName != "" {
+				expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
+				appSettings["DOCKER_REGISTRY_SERVER_URL"] = linuxAppStack.DockerRegistryUrl
+				appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
+				appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
 			}
 		} else {
 			expanded.LinuxFxVersion = pointer.To("")
 		}
 	}
 
-	expanded.AcrUseManagedIdentityCreds = pointer.To(linuxSiteConfig.UseManagedIdentityACR)
-
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
-		expanded.AcrUserManagedIdentityID = pointer.To(linuxSiteConfig.ContainerRegistryMSI)
+		expanded.AcrUserManagedIdentityID = pointer.To(s.ContainerRegistryMSI)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
-		expanded.DefaultDocuments = &linuxSiteConfig.DefaultDocuments
+		expanded.DefaultDocuments = &s.DefaultDocuments
 	}
 
-	expanded.HTTP20Enabled = pointer.To(linuxSiteConfig.Http2Enabled)
-
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
-		ipRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.IpRestriction)
+		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
 		if err != nil {
 			return nil, err
 		}
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(linuxSiteConfig.ScmUseMainIpRestriction)
-
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
-		scmIpRestrictions, err := ExpandIpRestrictions(linuxSiteConfig.ScmIpRestriction)
+		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
 		if err != nil {
 			return nil, err
 		}
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	expanded.LocalMySQLEnabled = pointer.To(linuxSiteConfig.LocalMysql)
-
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = web.SiteLoadBalancing(linuxSiteConfig.LoadBalancing)
+		expanded.LoadBalancing = web.SiteLoadBalancing(s.LoadBalancing)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSiteConfig.ManagedPipelineMode)
+		expanded.ManagedPipelineMode = web.ManagedPipelineMode(s.ManagedPipelineMode)
 	}
-
-	expanded.RemoteDebuggingEnabled = pointer.To(linuxSiteConfig.RemoteDebugging)
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
-		expanded.RemoteDebuggingVersion = pointer.To(linuxSiteConfig.RemoteDebuggingVersion)
+		expanded.RemoteDebuggingVersion = pointer.To(s.RemoteDebuggingVersion)
 	}
 
-	expanded.Use32BitWorkerProcess = pointer.To(linuxSiteConfig.Use32BitWorker)
-
-	expanded.WebSocketsEnabled = pointer.To(linuxSiteConfig.WebSockets)
-
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = web.FtpsState(linuxSiteConfig.FtpsState)
+		expanded.FtpsState = web.FtpsState(s.FtpsState)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		expanded.HealthCheckPath = pointer.To(linuxSiteConfig.HealthCheckPath)
+		expanded.HealthCheckPath = pointer.To(s.HealthCheckPath)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
-		expanded.NumberOfWorkers = pointer.To(int32(linuxSiteConfig.NumberOfWorkers))
+		expanded.NumberOfWorkers = pointer.To(int32(s.NumberOfWorkers))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTLSVersion = web.SupportedTLSVersions(linuxSiteConfig.MinTlsVersion)
+		expanded.MinTLSVersion = web.SupportedTLSVersions(s.MinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(linuxSiteConfig.ScmMinTlsVersion)
+		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(s.ScmMinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		cors := ExpandCorsSettings(linuxSiteConfig.Cors)
+		cors := ExpandCorsSettings(s.Cors)
 		if cors == nil {
 			cors = &web.CorsSettings{
 				AllowedOrigins: &[]string{},
@@ -885,75 +1011,123 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.Cors = cors
 	}
 
-	expanded.AutoHealEnabled = pointer.To(linuxSiteConfig.AutoHeal)
-
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
-		expanded.AutoHealRules = expandAutoHealSettingsLinux(linuxSiteConfig.AutoHealSettings)
+		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = pointer.To(linuxSiteConfig.VnetRouteAllEnabled)
-	}
-
-	return expanded, nil
+	return &expanded, nil
 }
 
-func FlattenSiteConfigLinux(appSiteConfig *web.SiteConfig, healthCheckCount *int) []SiteConfigLinux {
-	if appSiteConfig == nil {
-		return []SiteConfigLinux{}
+func (s *SiteConfigLinux) Flatten(appSiteConfig *web.SiteConfig) {
+	if appSiteConfig != nil {
+		s.AlwaysOn = pointer.From(appSiteConfig.AlwaysOn)
+		s.AppCommandLine = pointer.From(appSiteConfig.AppCommandLine)
+		s.AutoHeal = pointer.From(appSiteConfig.AutoHealEnabled)
+		s.AutoHealSettings = flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules)
+		s.ContainerRegistryMSI = pointer.From(appSiteConfig.AcrUserManagedIdentityID)
+		s.DetailedErrorLogging = pointer.From(appSiteConfig.DetailedErrorLoggingEnabled)
+		s.DefaultDocuments = pointer.From(appSiteConfig.DefaultDocuments)
+		s.Http2Enabled = pointer.From(appSiteConfig.HTTP20Enabled)
+		s.IpRestriction = FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
+		s.ManagedPipelineMode = string(appSiteConfig.ManagedPipelineMode)
+		s.ScmType = string(appSiteConfig.ScmType)
+		s.FtpsState = string(appSiteConfig.FtpsState)
+		s.HealthCheckPath = pointer.From(appSiteConfig.HealthCheckPath)
+		s.LoadBalancing = string(appSiteConfig.LoadBalancing)
+		s.LocalMysql = pointer.From(appSiteConfig.LocalMySQLEnabled)
+		s.MinTlsVersion = string(appSiteConfig.MinTLSVersion)
+		s.NumberOfWorkers = int(pointer.From(appSiteConfig.NumberOfWorkers))
+		s.RemoteDebugging = pointer.From(appSiteConfig.RemoteDebuggingEnabled)
+		s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion))
+		s.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
+		s.ScmMinTlsVersion = string(appSiteConfig.ScmMinTLSVersion)
+		s.ScmUseMainIpRestriction = pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain)
+		s.Use32BitWorker = pointer.From(appSiteConfig.Use32BitWorkerProcess)
+		s.UseManagedIdentityACR = pointer.From(appSiteConfig.AcrUseManagedIdentityCreds)
+		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
+		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
+		s.Cors = FlattenCorsSettings(appSiteConfig.Cors)
+
+		if appSiteConfig.APIManagementConfig != nil {
+			s.ApiManagementConfigId = pointer.From(appSiteConfig.APIManagementConfig.ID)
+		}
+
+		if appSiteConfig.APIDefinition != nil {
+			s.ApiDefinition = pointer.From(appSiteConfig.APIDefinition.URL)
+		}
+
+		if appSiteConfig.LinuxFxVersion != nil {
+			var linuxAppStack ApplicationStackLinux
+			s.LinuxFxVersion = pointer.From(appSiteConfig.LinuxFxVersion)
+
+			linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
+			s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
+		}
+	}
+}
+
+func (s *SiteConfigLinux) SetHealthCheckEvictionTime(input map[string]string) {
+	if v, ok := input["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"]; ok && v != "" {
+		// Discarding the error here as an invalid value should result in `0`
+		s.HealthCheckEvictionTime, _ = strconv.Atoi(v)
+	}
+}
+
+func (s *SiteConfigLinux) DecodeDockerAppStack(input map[string]string) {
+	applicationStack := ApplicationStackLinux{}
+	if len(s.ApplicationStack) == 1 {
+		applicationStack = s.ApplicationStack[0]
 	}
 
-	siteConfig := SiteConfigLinux{
-		AlwaysOn:                pointer.From(appSiteConfig.AlwaysOn),
-		AppCommandLine:          pointer.From(appSiteConfig.AppCommandLine),
-		AutoHeal:                pointer.From(appSiteConfig.AutoHealEnabled),
-		AutoHealSettings:        flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules),
-		ContainerRegistryMSI:    pointer.From(appSiteConfig.AcrUserManagedIdentityID),
-		DetailedErrorLogging:    pointer.From(appSiteConfig.DetailedErrorLoggingEnabled),
-		Http2Enabled:            pointer.From(appSiteConfig.HTTP20Enabled),
-		IpRestriction:           FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions),
-		ManagedPipelineMode:     string(appSiteConfig.ManagedPipelineMode),
-		ScmType:                 string(appSiteConfig.ScmType),
-		FtpsState:               string(appSiteConfig.FtpsState),
-		HealthCheckPath:         pointer.From(appSiteConfig.HealthCheckPath),
-		HealthCheckEvictionTime: pointer.From(healthCheckCount),
-		LoadBalancing:           string(appSiteConfig.LoadBalancing),
-		LocalMysql:              pointer.From(appSiteConfig.LocalMySQLEnabled),
-		MinTlsVersion:           string(appSiteConfig.MinTLSVersion),
-		NumberOfWorkers:         int(pointer.From(appSiteConfig.NumberOfWorkers)),
-		RemoteDebugging:         pointer.From(appSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:  strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion)),
-		ScmIpRestriction:        FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions),
-		ScmMinTlsVersion:        string(appSiteConfig.ScmMinTLSVersion),
-		ScmUseMainIpRestriction: pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		Use32BitWorker:          pointer.From(appSiteConfig.Use32BitWorkerProcess),
-		UseManagedIdentityACR:   pointer.From(appSiteConfig.AcrUseManagedIdentityCreds),
-		WebSockets:              pointer.From(appSiteConfig.WebSocketsEnabled),
-		VnetRouteAllEnabled:     pointer.From(appSiteConfig.VnetRouteAllEnabled),
-		Cors:                    FlattenCorsSettings(appSiteConfig.Cors),
+	if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
+		applicationStack.DockerRegistryUrl = v
 	}
 
-	if appSiteConfig.APIManagementConfig != nil && appSiteConfig.APIManagementConfig.ID != nil {
-		siteConfig.ApiManagementConfigId = *appSiteConfig.APIManagementConfig.ID
+	if v, ok := input["DOCKER_REGISTRY_SERVER_USERNAME"]; ok {
+		applicationStack.DockerRegistryUsername = v
 	}
 
-	if appSiteConfig.APIDefinition != nil && appSiteConfig.APIDefinition.URL != nil {
-		siteConfig.ApiDefinition = *appSiteConfig.APIDefinition.URL
+	if v, ok := input["DOCKER_REGISTRY_SERVER_PASSWORD"]; ok {
+		applicationStack.DockerRegistryPassword = v
 	}
 
-	if appSiteConfig.DefaultDocuments != nil {
-		siteConfig.DefaultDocuments = *appSiteConfig.DefaultDocuments
+	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+	dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
+	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
+
+	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
+}
+
+func (s *SiteConfigLinux) DecodeDockerDeprecatedAppStack(input map[string]string, usesDeprecated bool) {
+	applicationStack := ApplicationStackLinux{}
+	if len(s.ApplicationStack) == 1 {
+		applicationStack = s.ApplicationStack[0]
+	}
+	if !usesDeprecated {
+		if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
+			applicationStack.DockerRegistryUrl = v
+		}
+
+		if v, ok := input["DOCKER_REGISTRY_SERVER_USERNAME"]; ok {
+			applicationStack.DockerRegistryUsername = v
+		}
+
+		if v, ok := input["DOCKER_REGISTRY_SERVER_PASSWORD"]; ok {
+			applicationStack.DockerRegistryPassword = v
+		}
+
+		registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+		dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
+		applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
+	} else {
+		parts := strings.Split(s.LinuxFxVersion, "|")
+		if dockerParts := strings.Split(parts[1], ":"); len(dockerParts) == 2 {
+			applicationStack.DockerImage = dockerParts[0]
+			applicationStack.DockerImageTag = dockerParts[1]
+		}
 	}
 
-	if appSiteConfig.LinuxFxVersion != nil {
-		var linuxAppStack ApplicationStackLinux
-		siteConfig.LinuxFxVersion = *appSiteConfig.LinuxFxVersion
-		// Decode the string to docker values
-		linuxAppStack = decodeApplicationStackLinux(siteConfig.LinuxFxVersion)
-		siteConfig.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
-	}
-
-	return []SiteConfigLinux{siteConfig}
+	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
 }
 
 func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.AutoHealRules {

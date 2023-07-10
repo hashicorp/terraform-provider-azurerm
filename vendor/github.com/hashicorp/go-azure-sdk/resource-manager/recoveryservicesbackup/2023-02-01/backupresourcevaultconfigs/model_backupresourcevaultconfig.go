@@ -8,6 +8,7 @@ type BackupResourceVaultConfig struct {
 	IsSoftDeleteFeatureStateEditable *bool                   `json:"isSoftDeleteFeatureStateEditable,omitempty"`
 	ResourceGuardOperationRequests   *[]string               `json:"resourceGuardOperationRequests,omitempty"`
 	SoftDeleteFeatureState           *SoftDeleteFeatureState `json:"softDeleteFeatureState,omitempty"`
+	SoftDeleteRetentionPeriodInDays  *int64                  `json:"softDeleteRetentionPeriodInDays,omitempty"`
 	StorageModelType                 *StorageType            `json:"storageModelType,omitempty"`
 	StorageType                      *StorageType            `json:"storageType,omitempty"`
 	StorageTypeState                 *StorageTypeState       `json:"storageTypeState,omitempty"`

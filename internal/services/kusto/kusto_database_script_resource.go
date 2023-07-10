@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package kusto
 
 import (
@@ -6,9 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-12-29/scripts" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/scripts"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

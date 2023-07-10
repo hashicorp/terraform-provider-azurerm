@@ -1,3 +1,8 @@
+<!--
+ Copyright (c) HashiCorp, Inc.
+ SPDX-License-Identifier: MPL-2.0
+-->
+
 <!-- source: https://svn.apache.org/repos/asf/airavata/sandbox/xbaya-web/test/Calculator.wsdl -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns="http://c.b.a"
                   xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"

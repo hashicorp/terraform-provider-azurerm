@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -8,7 +11,7 @@ import (
 
 func NewClient(o *common.ClientOptions) *timeseriesinsights_v2020_05_15.Client {
 	client := timeseriesinsights_v2020_05_15.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
-		c.Authorizer = o.ResourceManagerAuthorizer
+		o.ConfigureClient(c, o.ResourceManagerAuthorizer)
 	})
 	return &client
 }
