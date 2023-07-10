@@ -252,7 +252,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *pluginsdk.ResourceData, met
 
 	cosmosDbTable, ok := resp.Properties.AsCosmosDbSQLAPICollectionDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset CosmosDB SQL API %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeRelationalTable, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset CosmosDB SQL API %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeCosmosDbSQLAPICollection, *resp.Type)
 	}
 
 	d.Set("additional_properties", cosmosDbTable.AdditionalProperties)
