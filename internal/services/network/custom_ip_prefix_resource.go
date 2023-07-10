@@ -595,7 +595,7 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Delay:        5 * time.Minute,
+		Delay:        10 * time.Minute,
 		Pending:      pendingStates.strings(),
 		Target:       targetStates.strings(),
 		Refresh:      r.commissionedStateRefreshFunc(ctx, id),
