@@ -269,6 +269,9 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+			if commissionedState == nil {
+				return fmt.Errorf("waiting for CommissionedState: final commissionedState was nil")
+			}
 
 			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)
 			metadata.SetID(id)
@@ -307,6 +310,9 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 			commissionedState, err := r.updateCommissionedState(ctx, *id, desiredState)
 			if err != nil {
 				return err
+			}
+			if commissionedState == nil {
+				return fmt.Errorf("waiting for CommissionedState: final commissionedState was nil")
 			}
 
 			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)
