@@ -591,7 +591,7 @@ func expandRecoveryGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans
 func expandRecoveryGroupNew(shutdown []GenericRecoveryGroupModel, failover []GenericRecoveryGroupModel, boot []BootRecoveryGroupModel) ([]replicationrecoveryplans.RecoveryPlanGroup, error) {
 	output := make([]replicationrecoveryplans.RecoveryPlanGroup, 0)
 
-	for _, group := range append(shutdown) {
+	for _, group := range shutdown {
 		preActions, err := expandAction(group.PreAction)
 		if err != nil {
 			return output, err
