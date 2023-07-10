@@ -176,7 +176,7 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 			},
 
 			"cdn_frontdoor_rule_set_ids": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 
 				Elem: &pluginsdk.Schema{
@@ -230,7 +230,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
 	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
-	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
+	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").([]interface{})
 	originsRaw := d.Get("cdn_frontdoor_origin_ids").([]interface{})
 	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").(*pluginsdk.Set).List()
 	httpsRedirect := d.Get("https_redirect_enabled").(bool)
@@ -421,7 +421,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
 	customDomainsRaw := d.Get("cdn_frontdoor_custom_domain_ids").(*pluginsdk.Set).List()
 	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
-	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
+	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").([]interface{})
 	linkToDefaultDomain := d.Get("link_to_default_domain").(bool)
 
 	// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
