@@ -14,6 +14,14 @@ func LocalRuleStackName(input interface{}, k string) (warnings []string, errors 
 	return paloAltoNameValidation(input, k)
 }
 
+func LocalRuleStackCertificateName(input interface{}, k string) (warnings []string, errors []error) {
+	return paloAltoNameValidation(input, k)
+}
+
+func LocalRuleStackRuleName(input interface{}, k string) (warnings []string, errors []error) {
+	return paloAltoNameValidation(input, k)
+}
+
 func paloAltoNameValidation(input interface{}, k string) (warnings []string, errors []error) {
 	value, ok := input.(string)
 	if !ok {

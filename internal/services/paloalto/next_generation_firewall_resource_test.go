@@ -58,7 +58,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall" "test" {
-	name                = "acctest-ngfw-stedev"
+	name                = "acctest-ngfw-%[2]d"
 	resource_group_name = azurerm_resource_group.test.name
 	rule_stack_id       = azurerm_palo_alto_local_rule_stack.test.id
 

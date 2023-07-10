@@ -67,7 +67,6 @@ func (r NextGenerationFirewall) Arguments() map[string]*pluginsdk.Schema {
 			StateFunc:        location.StateFunc,
 			DiffSuppressFunc: location.DiffSuppressFunc,
 			ConflictsWith:    []string{"rule_stack_id"},
-			//RequiredWith:     []string{"panorama"},
 		},
 
 		"network_profile": schema.NetworkProfileSchema(),
@@ -207,7 +206,7 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 
 				firewall.Properties.AssociatedRulestack = &firewalls.RulestackDetails{
 					ResourceId: pointer.To(ruleStackID.ID()),
-					//Location:   pointer.To(location.Normalize(ruleStack.Model.Location)),
+					Location:   pointer.To(location.Normalize(ruleStack.Model.Location)),
 				}
 			}
 

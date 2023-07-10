@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type LocalRule struct{}
+type LocalRuleStackRule struct{}
 
-var _ sdk.ResourceWithUpdate = LocalRule{}
+var _ sdk.ResourceWithUpdate = LocalRuleStackRule{}
 
 var protocolApplicationDefault = "application-default"
 
@@ -52,20 +52,20 @@ type LocalRuleModel struct {
 	Etag string `tfschema:"etag"` // TODO - Expose this here?
 }
 
-func (r LocalRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r LocalRuleStackRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return localrules.ValidateLocalRuleID
 }
 
-func (r LocalRule) ResourceType() string {
+func (r LocalRuleStackRule) ResourceType() string {
 	return "azurerm_palo_alto_local_rule"
 }
 
-func (r LocalRule) Arguments() map[string]*pluginsdk.Schema {
+func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.LocalRuleStackName, // TODO - Check this
+			ValidateFunc: validate.LocalRuleStackRuleName, // TODO - Check this
 		},
 
 		"rule_stack_id": {
@@ -178,7 +178,7 @@ func (r LocalRule) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LocalRule) Attributes() map[string]*pluginsdk.Schema {
+func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"etag": {
 			Type:     pluginsdk.TypeString,
@@ -187,11 +187,11 @@ func (r LocalRule) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LocalRule) ModelObject() interface{} {
+func (r LocalRuleStackRule) ModelObject() interface{} {
 	return &LocalRuleModel{}
 }
 
-func (r LocalRule) Create() sdk.ResourceFunc {
+func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -226,8 +226,8 @@ func (r LocalRule) Create() sdk.ResourceFunc {
 				Category:          schema.ExpandCategory(model.Category),
 				Destination:       schema.ExpandDestination(model.Destination),
 				EnableLogging:     boolAsStateEnum(model.LoggingEnabled),
-				NegateDestination: boolAsBooleanEnum(model.NegateDestination),
-				NegateSource:      boolAsBooleanEnum(model.NegateSource),
+				NegateDestination: boolAsBooleanEnumRule(model.NegateDestination),
+				NegateSource:      boolAsBooleanEnumRule(model.NegateSource),
 				RuleName:          model.Name,
 				RuleState:         boolAsStateEnum(model.RuleEnabled),
 				Source:            schema.ExpandSource(model.Source),
@@ -285,7 +285,7 @@ func (r LocalRule) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRule) Read() sdk.ResourceFunc {
+func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -324,8 +324,8 @@ func (r LocalRule) Read() sdk.ResourceFunc {
 			state.Destination = schema.FlattenDestination(props.Destination)
 			state.LoggingEnabled = stateEnumAsBool(props.EnableLogging)
 			state.InspectionCertificateID = pointer.From(props.InboundInspectionCertificate)
-			state.NegateDestination = boolEnumAsBool(props.NegateDestination)
-			state.NegateSource = boolEnumAsBool(props.NegateSource)
+			state.NegateDestination = boolEnumAsBoolRule(props.NegateDestination)
+			state.NegateSource = boolEnumAsBoolRule(props.NegateSource)
 			if v := pointer.From(props.Protocol); !strings.EqualFold(v, protocolApplicationDefault) {
 				state.Protocol = pointer.From(props.Protocol)
 			} else {
@@ -341,7 +341,7 @@ func (r LocalRule) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRule) Delete() sdk.ResourceFunc {
+func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -361,7 +361,7 @@ func (r LocalRule) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRule) Update() sdk.ResourceFunc {
+func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -426,11 +426,11 @@ func (r LocalRule) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("negate_destination") {
-				ruleEntry.Properties.NegateDestination = boolAsBooleanEnum(model.NegateDestination)
+				ruleEntry.Properties.NegateDestination = boolAsBooleanEnumRule(model.NegateDestination)
 			}
 
 			if metadata.ResourceData.HasChange("negate_source") {
-				ruleEntry.Properties.NegateSource = boolAsBooleanEnum(model.NegateSource)
+				ruleEntry.Properties.NegateSource = boolAsBooleanEnumRule(model.NegateSource)
 			}
 
 			if metadata.ResourceData.HasChange("protocol") {
@@ -478,7 +478,7 @@ func stateEnumAsBool(input *localrules.StateEnum) bool {
 	return pointer.From(input) == localrules.StateEnumENABLED
 }
 
-func boolAsBooleanEnum(input bool) *localrules.BooleanEnum {
+func boolAsBooleanEnumRule(input bool) *localrules.BooleanEnum {
 	var result localrules.BooleanEnum
 
 	if input {
@@ -490,7 +490,7 @@ func boolAsBooleanEnum(input bool) *localrules.BooleanEnum {
 	return pointer.To(result)
 }
 
-func boolEnumAsBool(input *localrules.BooleanEnum) bool {
+func boolEnumAsBoolRule(input *localrules.BooleanEnum) bool {
 	return pointer.From(input) == localrules.BooleanEnumTRUE
 }
 
