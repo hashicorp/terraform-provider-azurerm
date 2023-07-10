@@ -48,6 +48,36 @@ func TestAccPaloAltoLocalRuleStackCertificate_completeSelfSigned(t *testing.T) {
 	})
 }
 
+func TestAccPaloAltoLocalRuleStackCertificate_selfSignedUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_certificate", "test")
+
+	r := LocalRuleStackCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeSelfSigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeSelfSignedUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LocalRuleStackCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := certificateobjectlocalrulestack.ParseLocalRuleStackCertificateID(state.ID)
 	if err != nil {
@@ -102,7 +132,27 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleStackCertificateResource) complete(data acceptance.TestData) string {
+func (r LocalRuleStackCertificateResource) completeSelfSignedUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s 
+
+resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
+  name          = "testacc-palc-%[2]d"
+  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  self_signed   = true
+
+  audit_comment = "Updated acceptance test audit comment - %[2]d"
+  description   = "Updated acceptance test Desc - %[2]d"
+}
+
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LocalRuleStackCertificateResource) completeAuthoritySigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

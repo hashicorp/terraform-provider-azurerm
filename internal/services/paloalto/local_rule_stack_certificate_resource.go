@@ -204,7 +204,43 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO -
+			client := metadata.Client.PaloAlto.CertificatesClient
+
+			model := LocalRuleStackCertificateModel{}
+
+			if err := metadata.Decode(&model); err != nil {
+				return err
+			}
+
+			id, err := certificateobjectlocalrulestack.ParseLocalRuleStackCertificateID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retreiving %s: %+v", *id, err)
+			}
+
+			cert := *existing.Model
+
+			if metadata.ResourceData.HasChange("description") {
+				cert.Properties.Description = pointer.To(model.Description)
+			}
+
+			if metadata.ResourceData.HasChange("audit_comment") {
+				cert.Properties.AuditComment = pointer.To(model.AuditComment)
+			}
+
+			if metadata.ResourceData.HasChanges("certificate_signer_id", "self_signed") {
+				cert.Properties.CertificateSelfSigned = boolAsBooleanEnumCert(model.SelfSigned)
+				cert.Properties.CertificateSignerResourceId = pointer.To(model.CertificateSignerID)
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, *id, cert); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
 			return nil
 		},
 	}
