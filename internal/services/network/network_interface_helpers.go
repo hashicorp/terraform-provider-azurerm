@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import "github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"

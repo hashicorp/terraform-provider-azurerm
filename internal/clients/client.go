@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
-	azurestackhci_v2022_12_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-12-01"
+	azurestackhci_v2023_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01"
 	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
@@ -160,7 +160,7 @@ type Client struct {
 	Authorization         *authorization.Client
 	Automanage            *automanage.Client
 	Automation            *automation.Client
-	AzureStackHCI         *azurestackhci_v2022_12_01.Client
+	AzureStackHCI         *azurestackhci_v2023_03_01.Client
 	Batch                 *batch.Client
 	Blueprints            *blueprints.Client
 	Bot                   *bot.Client
@@ -305,7 +305,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Authorization: %+v", err)
 	}
 	client.Automanage = automanage.NewClient(o)
-	client.Automation = automation.NewClient(o)
+	if client.Automation, err = automation.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Automation: %+v", err)
+	}
 	client.AzureStackHCI = azureStackHCI.NewClient(o)
 	if client.Batch, err = batch.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Batch: %+v", err)
@@ -403,7 +405,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Logz = logz.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)
 	client.Maintenance = maintenance.NewClient(o)
-	client.ManagedApplication = managedapplication.NewClient(o)
+	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed Applications: %+v", err)
+	}
 	client.ManagementGroups = managementgroup.NewClient(o)
 	if client.Maps, err = maps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Maps: %+v", err)

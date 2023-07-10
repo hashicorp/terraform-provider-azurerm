@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package managedapplications
 
 import (
@@ -5,15 +8,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applicationdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,7 +31,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 		Delete: resourceManagedApplicationDefinitionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ApplicationDefinitionID(id)
+			_, err := applicationdefinitions.ParseApplicationDefinitionID(id)
 			return err
 		}),
 
@@ -62,9 +65,9 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(managedapplications.CanNotDelete),
-					string(managedapplications.None),
-					string(managedapplications.ReadOnly),
+					string(applicationdefinitions.ApplicationLockLevelCanNotDelete),
+					string(applicationdefinitions.ApplicationLockLevelNone),
+					string(applicationdefinitions.ApplicationLockLevelReadOnly),
 				}, false),
 			},
 
@@ -94,6 +97,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				ConflictsWith:    []string{"package_file_uri"},
+				RequiredWith:     []string{"main_template"},
 			},
 
 			"description": {
@@ -108,6 +112,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				ConflictsWith:    []string{"package_file_uri"},
+				RequiredWith:     []string{"create_ui_definition"},
 			},
 
 			"package_enabled": {
@@ -122,7 +127,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -133,54 +138,46 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewApplicationDefinitionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := applicationdefinitions.NewApplicationDefinitionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("failed to check for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_managed_application_definition", id.ID())
 		}
 	}
 
-	parameters := managedapplications.ApplicationDefinition{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
-		ApplicationDefinitionProperties: &managedapplications.ApplicationDefinitionProperties{
+	parameters := applicationdefinitions.ApplicationDefinition{
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Properties: applicationdefinitions.ApplicationDefinitionProperties{
 			Authorizations: expandManagedApplicationDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List()),
-			Description:    utils.String(d.Get("description").(string)),
-			DisplayName:    utils.String(d.Get("display_name").(string)),
+			Description:    pointer.To(d.Get("description").(string)),
+			DisplayName:    pointer.To(d.Get("display_name").(string)),
 			IsEnabled:      utils.Bool(d.Get("package_enabled").(bool)),
-			LockLevel:      managedapplications.ApplicationLockLevel(d.Get("lock_level").(string)),
+			LockLevel:      applicationdefinitions.ApplicationLockLevel(d.Get("lock_level").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("create_ui_definition"); ok {
-		parameters.CreateUIDefinition = utils.String(v.(string))
+		parameters.Properties.CreateUiDefinition = &v
 	}
 
 	if v, ok := d.GetOk("main_template"); ok {
-		parameters.MainTemplate = utils.String(v.(string))
-	}
-
-	if (parameters.CreateUIDefinition != nil && parameters.MainTemplate == nil) || (parameters.CreateUIDefinition == nil && parameters.MainTemplate != nil) {
-		return fmt.Errorf("if either `create_ui_definition` or `main_template` is set the other one must be too")
+		parameters.Properties.MainTemplate = &v
 	}
 
 	if v, ok := d.GetOk("package_file_uri"); ok {
-		parameters.PackageFileURI = utils.String(v.(string))
+		parameters.Properties.PackageFileUri = pointer.To(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("failed to create %s: %+v", id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed to wait for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -193,47 +190,52 @@ func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationDefinitionID(d.Id())
+	id, err := applicationdefinitions.ParseApplicationDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Managed Application Definition %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to read Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.ApplicationDefinitionName)
+	d.Set("resource_group_name", id.ResourceGroupName) // missing from response?
 
-	if props := resp.ApplicationDefinitionProperties; props != nil {
-		if err := d.Set("authorization", flattenManagedApplicationDefinitionAuthorization(props.Authorizations)); err != nil {
+	if model := resp.Model; model != nil {
+		p := model.Properties
+
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		if err := d.Set("authorization", flattenManagedApplicationDefinitionAuthorization(p.Authorizations)); err != nil {
 			return fmt.Errorf("setting `authorization`: %+v", err)
 		}
-		d.Set("description", props.Description)
-		d.Set("display_name", props.DisplayName)
-		d.Set("package_enabled", props.IsEnabled)
-		d.Set("lock_level", string(props.LockLevel))
+		d.Set("description", p.Description)
+		d.Set("display_name", p.DisplayName)
+		d.Set("package_enabled", p.IsEnabled)
+		d.Set("lock_level", string(p.LockLevel))
+
+		// the following are not returned from the API so lets pull it from state
+		if v, ok := d.GetOk("create_ui_definition"); ok {
+			d.Set("create_ui_definition", v.(string))
+		}
+		if v, ok := d.GetOk("main_template"); ok {
+			d.Set("main_template", v.(string))
+		}
+		if v, ok := d.GetOk("package_file_uri"); ok {
+			d.Set("package_file_uri", v.(string))
+		}
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	// the following are not returned from the API so lets pull it from state
-	if v, ok := d.GetOk("create_ui_definition"); ok {
-		d.Set("create_ui_definition", v.(string))
-	}
-	if v, ok := d.GetOk("main_template"); ok {
-		d.Set("main_template", v.(string))
-	}
-	if v, ok := d.GetOk("package_file_uri"); ok {
-		d.Set("package_file_uri", v.(string))
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceManagedApplicationDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -241,30 +243,25 @@ func resourceManagedApplicationDefinitionDelete(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationDefinitionID(d.Id())
+	id, err := applicationdefinitions.ParseApplicationDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("failed to delete Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed to wait for deleting Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err = client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("issuing AzureRM delete request for '%s': %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandManagedApplicationDefinitionAuthorization(input []interface{}) *[]managedapplications.ApplicationAuthorization {
-	results := make([]managedapplications.ApplicationAuthorization, 0)
+func expandManagedApplicationDefinitionAuthorization(input []interface{}) *[]applicationdefinitions.ApplicationAuthorization {
+	results := make([]applicationdefinitions.ApplicationAuthorization, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		result := managedapplications.ApplicationAuthorization{
-			RoleDefinitionID: utils.String(v["role_definition_id"].(string)),
-			PrincipalID:      utils.String(v["service_principal_id"].(string)),
+		result := applicationdefinitions.ApplicationAuthorization{
+			RoleDefinitionId: v["role_definition_id"].(string),
+			PrincipalId:      v["service_principal_id"].(string),
 		}
 
 		results = append(results, result)
@@ -272,26 +269,16 @@ func expandManagedApplicationDefinitionAuthorization(input []interface{}) *[]man
 	return &results
 }
 
-func flattenManagedApplicationDefinitionAuthorization(input *[]managedapplications.ApplicationAuthorization) []interface{} {
+func flattenManagedApplicationDefinitionAuthorization(input *[]applicationdefinitions.ApplicationAuthorization) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		servicePrincipalId := ""
-		if item.PrincipalID != nil {
-			servicePrincipalId = *item.PrincipalID
-		}
-
-		roleDefinitionId := ""
-		if item.RoleDefinitionID != nil {
-			roleDefinitionId = *item.RoleDefinitionID
-		}
-
 		results = append(results, map[string]interface{}{
-			"role_definition_id":   roleDefinitionId,
-			"service_principal_id": servicePrincipalId,
+			"role_definition_id":   item.RoleDefinitionId,
+			"service_principal_id": item.PrincipalId,
 		})
 	}
 

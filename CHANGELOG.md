@@ -1,3 +1,21 @@
+## 3.65.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20230704.1182735` of `github.com/hashicorp/go-azure-sdk` [GH-22404]
+* dependencies: updating to `v0.20230703.1101016` of `github.com/tombuildsstuff/kermit` [GH-22390]
+* dependencies: `azurestackhcl`: updating to API Version `2023-03-01` [GH-22411]
+* dependencies: `kusto`: updating Data Plane to API Version `2023-05-02` [GH-22410]
+* dependencies: `managed applications`: migrate to `hashicorp/go-azure-sdk` [GH-21571]
+* dependencies: `network private endpoint` and `application security group`: migrate to `hashicorp/go-azure-sdk` [GH-22396]
+* dependencies: `storage`: updating Data Plane to API Version `2020-08-04` [GH-22405]
+* dependencies: `automation/dscconfiguration` - updating to API Version `2022-08-08` [GH-22403]
+* `azurerm_dns_zone` - can now use `host_name` with `dns_zone` for `soa_record` creation [GH-22312]
+
+BUG FIXES:
+
+* `azurerm_automation_dsc_configuration` - fixing an issue where `content_embedded` couldn't be deserialized [GH-22403]
+
 ## 3.64.0 (July 06, 2023)
 
 FEATURES:
