@@ -821,14 +821,6 @@ func flattenVpnServerConfigurationRadius(input *network.VpnServerConfigurationPr
 		"server_root_certificate": serverRootCertificates,
 	}
 
-	if input.RadiusServerAddress != nil && *input.RadiusServerAddress != "" {
-		schema["address"] = *input.RadiusServerAddress
-	}
-
-	if input.RadiusServerSecret != nil && *input.RadiusServerSecret != "" {
-		schema["secret"] = *input.RadiusServerSecret
-	}
-
 	if input.RadiusServers != nil && len(*input.RadiusServers) > 0 {
 		servers := make([]interface{}, 0)
 
