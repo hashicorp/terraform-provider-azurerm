@@ -113,7 +113,7 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "test" {
   recovery_vault_id                          = "%[1]s"
   source_vm_name                             = "%[5]s"
   appliance_name                             = "%[6]s"
-  recovery_replication_policy_id             = azurerm_site_recovery_vmware_replication_policy.test.id
+  recovery_replication_policy_id             = azurerm_site_recovery_vmware_replication_policy_association.test.policy_id
   credential_type                            = "lincreds"
   license_type                               = "NotSpecified"
   target_boot_diagnostics_storage_account_id = azurerm_storage_account.target.id
