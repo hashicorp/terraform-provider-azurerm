@@ -61,7 +61,7 @@ func (r LocalRuleStackPrefixList) Arguments() map[string]*schema.Schema {
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.IsCIDR,
 			},
 		},
 
