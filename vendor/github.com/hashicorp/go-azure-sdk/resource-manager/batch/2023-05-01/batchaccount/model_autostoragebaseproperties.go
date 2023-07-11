@@ -6,5 +6,5 @@ package batchaccount
 type AutoStorageBaseProperties struct {
 	AuthenticationMode    *AutoStorageAuthenticationMode `json:"authenticationMode,omitempty"`
 	NodeIdentityReference *ComputeNodeIdentityReference  `json:"nodeIdentityReference,omitempty"`
-	StorageAccountId      string                         `json:"storageAccountId"`
+	StorageAccountId      *string                        `json:"storageAccountId,omitempty"`
 }
