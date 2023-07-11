@@ -18,6 +18,10 @@ func LocalRuleStackCertificateName(input interface{}, k string) (warnings []stri
 	return paloAltoNameValidation(input, k)
 }
 
+func LocalRuleStackFQDNListName(input interface{}, k string) (warnings []string, errors []error) {
+	return paloAltoNameValidation(input, k)
+}
+
 func LocalRuleStackRuleName(input interface{}, k string) (warnings []string, errors []error) {
 	return paloAltoNameValidation(input, k)
 }

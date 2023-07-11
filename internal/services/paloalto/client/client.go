@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectlocalrulestack"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistlocalrulestack"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -13,6 +14,7 @@ import (
 type Client struct {
 	CertificatesClient    *certificateobjectlocalrulestack.CertificateObjectLocalRulestackClient
 	FirewallClient        *firewalls.FirewallsClient
+	FQDNListsClient       *fqdnlistlocalrulestack.FqdnListLocalRulestackClient
 	LocalRulesClient      *localrules.LocalRulesClient
 	LocalRuleStacksClient *localrulestacks.LocalRuleStacksClient
 }
@@ -30,6 +32,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(firewallClient.Client, o.Authorizers.ResourceManager)
 
+	fqdnListsClient, err := fqdnlistlocalrulestack.NewFqdnListLocalRulestackClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Firewall client: %+v", err)
+	}
+	o.Configure(fqdnListsClient.Client, o.Authorizers.ResourceManager)
+
 	localRuleStackClient, err := localrulestacks.NewLocalRuleStacksClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building LocalRuleStacks client: %+v", err)
@@ -45,6 +53,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		CertificatesClient:    certificatesClient,
 		FirewallClient:        firewallClient,
+		FQDNListsClient:       fqdnListsClient,
 		LocalRulesClient:      localRuleClient,
 		LocalRuleStacksClient: localRuleStackClient,
 	}, nil

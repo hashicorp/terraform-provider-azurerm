@@ -32,6 +32,25 @@ func TestAccPaloAltoLocalRuleStackCertificate_basic(t *testing.T) {
 	})
 }
 
+func TestAccPaloAltoLocalRuleStackCertificate_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_certificate", "test")
+
+	r := LocalRuleStackCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError(data.ResourceName),
+		},
+	})
+}
+
 func TestAccPaloAltoLocalRuleStackCertificate_completeSelfSigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_certificate", "test")
 
@@ -110,6 +129,20 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
 }
 
 `, r.template(data), data.RandomInteger)
+}
+
+func (r LocalRuleStackCertificateResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%s 
+
+resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
+  name          = azurerm_palo_alto_local_rule_stack_certificate.test.name
+  rule_stack_id = azurerm_palo_alto_local_rule_stack_certificate.test.rule_stack_id
+  self_signed   = azurerm_palo_alto_local_rule_stack_certificate.test.self_signed
+}
+
+`, r.basic(data))
 }
 
 func (r LocalRuleStackCertificateResource) completeSelfSigned(data acceptance.TestData) string {

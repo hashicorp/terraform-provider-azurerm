@@ -18,6 +18,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		LocalRuleStack{},
 		LocalRuleStackCertificate{},
+		LocalRuleStackFQDNList{},
 		LocalRuleStackRule{},
 		NextGenerationFirewall{},
 	}

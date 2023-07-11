@@ -1,1 +1,237 @@
 package paloalto
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistlocalrulestack"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+type LocalRuleStackFQDNList struct{}
+
+var _ sdk.ResourceWithUpdate = LocalRuleStackFQDNList{}
+
+type LocalRuleStackFQDNListModel struct {
+	Name         string   `tfschema:"name"`
+	RuleStackID  string   `tfschema:"rule_stack_id"`
+	FQDNList     []string `tfschema:"fully_qualified_domain_names"`
+	AuditComment string   `tfschema:"audit_comment"`
+	Description  string   `tfschema:"description"`
+}
+
+func (r LocalRuleStackFQDNList) ModelObject() interface{} {
+	return &LocalRuleStackFQDNListModel{}
+}
+
+func (r LocalRuleStackFQDNList) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return fqdnlistlocalrulestack.ValidateLocalRuleStackFqdnListID
+}
+
+func (r LocalRuleStackFQDNList) ResourceType() string {
+	return "azurerm_palo_alto_local_rule_stack_fqdn_list"
+}
+
+func (r LocalRuleStackFQDNList) Arguments() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.LocalRuleStackFQDNListName, // TODO - Check this
+		},
+
+		"rule_stack_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: fqdnlistlocalrulestack.ValidateLocalRuleStackID,
+		},
+
+		"fully_qualified_domain_names": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
+
+		"audit_comment": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+	}
+}
+
+func (r LocalRuleStackFQDNList) Attributes() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
+
+func (r LocalRuleStackFQDNList) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.PaloAlto.FQDNListsClient
+
+			model := LocalRuleStackFQDNListModel{}
+
+			if err := metadata.Decode(&model); err != nil {
+				return err
+			}
+
+			ruleStackId, err := fqdnlistlocalrulestack.ParseLocalRuleStackID(model.RuleStackID)
+			if err != nil {
+				return err
+			}
+
+			id := fqdnlistlocalrulestack.NewLocalRuleStackFqdnListID(ruleStackId.SubscriptionId, ruleStackId.ResourceGroupName, ruleStackId.LocalRuleStackName, model.Name)
+
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			props := fqdnlistlocalrulestack.FqdnObject{
+				FqdnList: model.FQDNList,
+			}
+
+			if model.AuditComment != "" {
+				props.AuditComment = pointer.To(model.AuditComment)
+			}
+			if model.Description != "" {
+				props.Description = pointer.To(model.Description)
+			}
+
+			fqdnList := fqdnlistlocalrulestack.FqdnListLocalRulestackResource{
+				Properties: props,
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, id, fqdnList); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+
+			return nil
+		},
+	}
+}
+
+func (r LocalRuleStackFQDNList) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.PaloAlto.FQDNListsClient
+
+			id, err := fqdnlistlocalrulestack.ParseLocalRuleStackFqdnListID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var state LocalRuleStackFQDNListModel
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+
+			state.Name = id.FqdnListName
+			state.RuleStackID = fqdnlistlocalrulestack.NewLocalRuleStackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRuleStackName).ID()
+
+			props := existing.Model.Properties
+
+			state.FQDNList = props.FqdnList
+			state.AuditComment = pointer.From(props.AuditComment)
+			state.Description = pointer.From(props.Description)
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (r LocalRuleStackFQDNList) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.PaloAlto.FQDNListsClient
+
+			id, err := fqdnlistlocalrulestack.ParseLocalRuleStackFqdnListID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r LocalRuleStackFQDNList) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.PaloAlto.FQDNListsClient
+
+			model := LocalRuleStackFQDNListModel{}
+
+			if err := metadata.Decode(&model); err != nil {
+				return err
+			}
+
+			id, err := fqdnlistlocalrulestack.ParseLocalRuleStackFqdnListID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retreiving %s: %+v", *id, err)
+			}
+
+			fqdnList := *existing.Model
+
+			if metadata.ResourceData.HasChange("fully_qualified_domain_names") {
+				fqdnList.Properties.FqdnList = model.FQDNList
+			}
+
+			if metadata.ResourceData.HasChange("audit_comment") {
+				fqdnList.Properties.AuditComment = pointer.To(model.AuditComment)
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				fqdnList.Properties.Description = pointer.To(model.Description)
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, *id, fqdnList); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}

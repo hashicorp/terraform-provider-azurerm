@@ -670,6 +670,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/groundstat
 github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/spacecraft
 github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectlocalrulestack
 github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistlocalrulestack
 github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules
 github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks
 github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations

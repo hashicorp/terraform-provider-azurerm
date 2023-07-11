@@ -230,7 +230,7 @@ resource "azurerm_palo_alto_local_rule" "test" {
 func (r LocalRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-CAE-%[1]d"
+  name     = "acctestRG-PAN-%[1]d"
   location = "%[2]s"
 }
 
