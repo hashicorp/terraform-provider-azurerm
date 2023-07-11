@@ -184,9 +184,9 @@ resource "azurerm_spring_cloud_connection" "test" {
   spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   authentication {
-    type = "secret"
- 	name = "foo"
-	secret = "bar"
+    type   = "secret"
+    name   = "foo"
+    secret = "bar"
   }
 }
 `, template, data.RandomInteger)
@@ -208,10 +208,10 @@ resource "azurerm_spring_cloud_connection" "test" {
   spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   authentication {
-    type = "servicePrincipalSecret"
-	client_id = "someclientid"
-	principal_id = azurerm_user_assigned_identity.test.principal_id
-	secret = "somesecret"
+    type         = "servicePrincipalSecret"
+    client_id    = "someclientid"
+    principal_id = azurerm_user_assigned_identity.test.principal_id
+    secret       = "somesecret"
   }
 }
 `, template, data.RandomString, data.RandomInteger)
@@ -282,7 +282,7 @@ resource "azurerm_spring_cloud_app" "test2" {
   service_name        = azurerm_spring_cloud_service.test.name
 
   identity {
-    type = "UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
@@ -293,13 +293,13 @@ resource "azurerm_spring_cloud_java_deployment" "test2" {
 }
 
 resource "azurerm_spring_cloud_connection" "test" {
-  name = "acctestserviceconnector%[2]d"
+  name               = "acctestserviceconnector%[2]d"
   spring_cloud_id    = azurerm_spring_cloud_java_deployment.test2.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   authentication {
-    type = "userAssignedIdentity"
-	subscription_id = data.azurerm_subscription.test.subscription_id
-	client_id = azurerm_user_assigned_identity.test.client_id
+    type            = "userAssignedIdentity"
+    subscription_id = data.azurerm_subscription.test.subscription_id
+    client_id       = azurerm_user_assigned_identity.test.client_id
   }
 }
 `, data.RandomString, data.RandomInteger, data.Locations.Primary)

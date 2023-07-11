@@ -238,9 +238,9 @@ resource "azurerm_app_service_connection" "test" {
   app_service_id     = azurerm_linux_web_app.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   authentication {
-    type = "secret"
- 	name = "foo"
-	secret = "bar"
+    type   = "secret"
+    name   = "foo"
+    secret = "bar"
   }
 }
 `, template, data.RandomInteger)
@@ -262,10 +262,10 @@ resource "azurerm_app_service_connection" "test" {
   app_service_id     = azurerm_linux_web_app.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   authentication {
-    type = "servicePrincipalSecret"
-	client_id = "someclientid"
-	principal_id = azurerm_user_assigned_identity.test.principal_id
-	secret = "somesecret"
+    type         = "servicePrincipalSecret"
+    client_id    = "someclientid"
+    principal_id = azurerm_user_assigned_identity.test.principal_id
+    secret       = "somesecret"
   }
 }
 `, template, data.RandomString, data.RandomInteger)
@@ -285,13 +285,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_app_service_connection" "test" {
-  name = "acctestserviceconnector%[3]d"
-  app_service_id = azurerm_linux_web_app.test.id
+  name               = "acctestserviceconnector%[3]d"
+  app_service_id     = azurerm_linux_web_app.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   authentication {
-    type = "userAssignedIdentity"
-	subscription_id = data.azurerm_subscription.test.subscription_id
-	client_id = azurerm_user_assigned_identity.test.client_id
+    type            = "userAssignedIdentity"
+    subscription_id = data.azurerm_subscription.test.subscription_id
+    client_id       = azurerm_user_assigned_identity.test.client_id
   }
 }
 `, template, data.RandomString, data.RandomInteger)
