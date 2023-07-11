@@ -6,8 +6,8 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2020-07-01/monitorsresource"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2020-07-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/monitorsresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
