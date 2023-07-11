@@ -239,10 +239,6 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
   tags = {
     ENV = "Test"
   }
-
-lifecycle {
-    ignore_changes = [tags]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
