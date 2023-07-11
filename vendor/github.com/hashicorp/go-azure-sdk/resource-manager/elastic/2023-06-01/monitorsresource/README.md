@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2020-07-01/monitorsresource` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/monitorsresource` Documentation
 
-The `monitorsresource` SDK allows for interaction with the Azure Resource Manager Service `elastic` (API Version `2020-07-01`).
+The `monitorsresource` SDK allows for interaction with the Azure Resource Manager Service `elastic` (API Version `2023-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2020-07-01/monitorsresource"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/monitorsresource"
 ```
 
 
