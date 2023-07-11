@@ -59,7 +59,7 @@ resource "azurerm_management_group" "example" {
 
 resource "time_static" "example" {}
 
-resource "azurerm_pim_eligible_role_assignment" "example" {
+resource "azurerm_pim_active_role_assignment" "example" {
   scope              = azurerm_management_group.example.id
   role_definition_id = data.azurerm_role_definition.example.id
   principal_id       = data.azurerm_client_config.example.object_id
