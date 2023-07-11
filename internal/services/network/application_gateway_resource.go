@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -543,7 +544,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"firewall_policy_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
+							ValidateFunc: webapplicationfirewallpolicies.ValidateApplicationGatewayWebApplicationFirewallPolicyID,
 						},
 
 						"ssl_profile_name": {
@@ -1355,7 +1356,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									"firewall_policy_id": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
+										ValidateFunc: webapplicationfirewallpolicies.ValidateApplicationGatewayWebApplicationFirewallPolicyID,
 									},
 								},
 							},
@@ -1507,7 +1508,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			"firewall_policy_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: networkValidate.ApplicationGatewayWebApplicationFirewallPolicyID,
+				ValidateFunc: webapplicationfirewallpolicies.ValidateApplicationGatewayWebApplicationFirewallPolicyID,
 			},
 
 			"custom_error_configuration": {
@@ -2184,7 +2185,7 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		firewallPolicyId := ""
 		if props.FirewallPolicy != nil && props.FirewallPolicy.ID != nil {
 			firewallPolicyId = *props.FirewallPolicy.ID
-			policyId, err := parse.ApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(firewallPolicyId)
+			policyId, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(firewallPolicyId)
 			if err == nil {
 				firewallPolicyId = policyId.ID()
 			}
@@ -2920,7 +2921,11 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 			}
 
 			if fwp := props.FirewallPolicy; fwp != nil && fwp.ID != nil {
-				output["firewall_policy_id"] = *fwp.ID
+				policyId, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(*fwp.ID)
+				if err != nil {
+					return nil, err
+				}
+				output["firewall_policy_id"] = policyId.ID()
 			}
 
 			if sslp := props.SslProfile; sslp != nil {
@@ -4537,7 +4542,11 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						}
 
 						if fwp := ruleProps.FirewallPolicy; fwp != nil && fwp.ID != nil {
-							ruleOutput["firewall_policy_id"] = *fwp.ID
+							policyId, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(*fwp.ID)
+							if err != nil {
+								return nil, err
+							}
+							output["firewall_policy_id"] = policyId.ID()
 						}
 
 						pathOutputs := make([]interface{}, 0)
