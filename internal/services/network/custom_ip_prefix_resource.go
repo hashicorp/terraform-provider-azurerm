@@ -510,18 +510,23 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 	if plan, ok := stateTree[desiredState]; ok {
 		lastKnownState := pointer.To(initialState)
 
+		// If we're already transitioning to the desiredState, wait for this to complete
 		if transitioningStatesFor(desiredState).contains(initialState) {
 			if lastKnownState, err = r.waitForCommissionedState(ctx, id, transitioningStatesFor(desiredState), commissionedStates{desiredState}); err != nil {
 				return lastKnownState, err
 			}
 		}
 
-		if initialState == desiredState {
+		// Return early if the desiredState was already reached
+		if *lastKnownState == desiredState {
 			return lastKnownState, nil
 		}
 
 		for startingState, path := range plan {
-			if initialState == startingState || transitioningStatesFor(startingState).contains(initialState) {
+			// Look for a plan that works from our lastKnownState
+			if *lastKnownState == startingState || transitioningStatesFor(startingState).contains(*lastKnownState) {
+
+				// If we're currently transitioning to the startingState for this plan, wait for this to complete before proceeding
 				if lastKnownState, err = r.waitForCommissionedState(ctx, id, transitioningStatesFor(startingState), commissionedStates{startingState}); err != nil {
 					return lastKnownState, err
 				}
@@ -529,16 +534,19 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 				retries := 0
 				const maxRetries = 2
 
+				// Iterate the plan
 				for i := 0; i < len(path); i++ {
 					steppingState := path[i]
 
+					// Instruct the resource to transition to the next CommissionedState according to the plan
 					if err = r.setCommissionedState(ctx, id, steppingState, shouldNotAdvertise(steppingState)); err != nil {
 						return lastKnownState, err
 					}
 
+					// Wait for the CommissionedState to be reached
 					latestState, err := r.waitForCommissionedState(ctx, id, commissionedStates{steppingState}, finalStatesFor(steppingState))
 					if err != nil {
-						// Known issue where the previous commissioningState was reported prematurely by the API, so we reattempt up to maxRetries times
+						// Known issue where the previous CommissioningState was reported prematurely by the API, so we reattempt up to maxRetries times
 						if lastKnownState != nil && latestState != nil && *latestState == *lastKnownState && retries < maxRetries {
 							retries++
 							i--
@@ -549,6 +557,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 						return lastKnownState, err
 					}
 
+					// Update the lastKnownState so we can monitor for retries on the next iteration
 					lastKnownState = latestState
 				}
 
@@ -559,9 +568,11 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 		return nil, fmt.Errorf("internal-error: unsupported state %q", desiredState)
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("internal-error: could not transition CommissionedState to %q", desiredState)
 }
 
+// setCommissionedState sends a PUT request to effect a transition to a different CommissionedState. The provided
+// desiredState should always be a contextual transition state rather than the desired end state (i.e. procedural).
 func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, desiredState network.CommissionedState, noInternetAdvertise *bool) error {
 	existing, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
@@ -587,6 +598,10 @@ func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id par
 	return nil
 }
 
+// waitForCommissionedState polls the resource and returns when one of the targetStates is reached and seen for 3
+// consecutive polls, also returning an error if a state is reached that isn't in pendingStates or targetStates. Waits
+// for 10 minutes before polling to account for delays in the service reporting the actual latest state, since this
+// method is usually called soon after setting a new CommissionedState (known service bug).
 func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, pendingStates, targetStates commissionedStates) (*network.CommissionedState, error) {
 	log.Printf("[DEBUG] Polling for the CommissionedState field for %s..", id)
 	timeout, ok := ctx.Deadline()
@@ -602,7 +617,7 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 		PollInterval: 5 * time.Minute,
 		Timeout:      time.Until(timeout),
 
-		// Provisioned is known to flip-flop
+		// `Provisioned` is known to flip-flop
 		ContinuousTargetOccurence: 3,
 	}
 
