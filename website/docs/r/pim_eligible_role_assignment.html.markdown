@@ -54,7 +54,7 @@ data "azurerm_role_definition" "example" {
 }
 
 resource "azurerm_management_group" "example" {
-  name         = "Example-Management-Group"
+  name = "Example-Management-Group"
 }
 
 resource "time_static" "example" {}
