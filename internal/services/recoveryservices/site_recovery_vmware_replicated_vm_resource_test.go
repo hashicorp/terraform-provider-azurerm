@@ -38,9 +38,10 @@ func TestAccSiteVMWareRecoveryReplicatedVM_basic(t *testing.T) {
 	sourceVMName := os.Getenv("ARM_TEST_VMWARE_SOURCE_VM_NAME")
 	applianceName := os.Getenv("ARM_TEST_VMWARE_APPLIANCE_NAME")
 	location := os.Getenv("ARM_TEST_VMWARE_VAULT_LOCATION")
+	credential := os.Getenv("ARM_TEST_VMWARE_CREDENTIAL_NAME")
 
-	if vaultId == "" || sourceVMName == "" || applianceName == "" || location == "" {
-		t.Skip("Skipping since ARM_TEST_VMWARE_VAULT_ID, ARM_TEST_VMWARE_SOURCE_VM_NAME, ARM_TEST_VMWARE_LOCATION and ARM_TEST_VMWARE_APPLIANCE_NAME are not specified")
+	if vaultId == "" || sourceVMName == "" || applianceName == "" || location == "" || credential == "" {
+		t.Skip("Skipping since ARM_TEST_VMWARE_VAULT_ID, ARM_TEST_VMWARE_SOURCE_VM_NAME, ARM_TEST_VMWARE_LOCATION, ARM_TEST_VMWARE_CREDENTIAL_NAME and ARM_TEST_VMWARE_APPLIANCE_NAME are not specified")
 		return
 	}
 
@@ -48,7 +49,7 @@ func TestAccSiteVMWareRecoveryReplicatedVM_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, vaultId, sourceVMName, applianceName),
+			Config: r.basic(data, vaultId, sourceVMName, applianceName, credential),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -57,7 +58,7 @@ func TestAccSiteVMWareRecoveryReplicatedVM_basic(t *testing.T) {
 	})
 }
 
-func (SiteRecoveryVMWareReplicatedVmResource) basic(data acceptance.TestData, vaultId, sourceVMName, applianceName string) string {
+func (SiteRecoveryVMWareReplicatedVmResource) basic(data acceptance.TestData, vaultId, sourceVMName, applianceName, credential string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -114,7 +115,7 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "test" {
   source_vm_name                             = "%[5]s"
   appliance_name                             = "%[6]s"
   recovery_replication_policy_id             = azurerm_site_recovery_vmware_replication_policy_association.test.policy_id
-  credential_type                            = "lincreds"
+  physical_server_credential_name            = "%[7]s"
   license_type                               = "NotSpecified"
   target_boot_diagnostics_storage_account_id = azurerm_storage_account.target.id
   target_vm_name                             = "%[5]s"
@@ -135,7 +136,6 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "test" {
   lifecycle {
     ignore_changes = [
       target_vm_size,
-      credential_type,
       default_log_storage_account_id,
       default_recovery_disk_type,
       managed_disk,
@@ -143,5 +143,5 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "test" {
     ]
   }
 }
-`, vaultId, data.RandomInteger, data.RandomString, data.Locations.Primary, sourceVMName, applianceName)
+`, vaultId, data.RandomInteger, data.RandomString, data.Locations.Primary, sourceVMName, applianceName, credential)
 }

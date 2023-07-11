@@ -36,12 +36,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type installAccountType string
-
-const lincreds installAccountType = "lincreds"
-const v2arcmlab installAccountType = "v2arcmlab"
-const wincreds installAccountType = "wincreds"
-
 type IncludedDiskModel struct {
 	DiskId                    string `tfschema:"disk_id"`
 	LogStorageAccountId       string `tfschema:"log_storage_account_id"`
@@ -63,6 +57,7 @@ type SiteRecoveryReplicatedVmVMwareModel struct {
 	SourceVmName                          string                  `tfschema:"source_vm_name"`
 	ApplianceName                         string                  `tfschema:"appliance_name"`
 	RecoveryReplicationPolicyId           string                  `tfschema:"recovery_replication_policy_id"`
+	PhysicalServerCredentialName          string                  `tfschema:"physical_server_credential_name"`
 	LicenseType                           string                  `tfschema:"license_type"`
 	TargetResourceGroupId                 string                  `tfschema:"target_resource_group_id"`
 	TargetVmName                          string                  `tfschema:"target_vm_name"`
@@ -76,7 +71,6 @@ type SiteRecoveryReplicatedVmVMwareModel struct {
 	TargetBootDiagnosticsStorageAccountId string                  `tfschema:"target_boot_diagnostics_storage_account_id"`
 	DiskToInclude                         []IncludedDiskModel     `tfschema:"managed_disk"`
 	NetworkInterface                      []NetworkInterfaceModel `tfschema:"network_interface"`
-	CredentialType                        string                  `tfschema:"credential_type"`
 	DefaultLogStorageAccountId            string                  `tfschema:"default_log_storage_account_id"`
 	DefaultRecoveryDiskType               string                  `tfschema:"default_recovery_disk_type"`
 	DefaultTargetDiskEncryptionSetId      string                  `tfschema:"default_target_disk_encryption_set_id"`
@@ -137,14 +131,11 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
-		"credential_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(lincreds),
-				string(v2arcmlab),
-				string(wincreds),
-			}, false),
+		"physical_server_credential_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"license_type": {
@@ -382,8 +373,7 @@ func (k VMWareReplicatedVmResource) CustomizeDiff() sdk.ResourceFunc {
 
 func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		// waiting for fully protected cost very long time.
-		Timeout: 300 * time.Minute,
+		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.RecoveryServices.ReplicationProtectedItemsClient
 			fabricClient := metadata.Client.RecoveryServices.FabricClient
@@ -395,10 +385,6 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 			err := metadata.Decode(&model)
 			if err != nil {
 				return fmt.Errorf("decoding %+v", err)
-			}
-
-			if model.CredentialType == "" {
-				return fmt.Errorf("`credential_type` must be specified in creation")
 			}
 
 			vaultId, err := replicationprotecteditems.ParseVaultID(model.RecoveryVaultId)
@@ -434,9 +420,9 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("fetch discovery machine id %s: %+v", model.SourceVmName, err)
 			}
 
-			runAsAccountId, err := fetchRunAsAccountsIdBySite(ctx, runAsAccountsClient, siteID, model.CredentialType, model.ApplianceName)
+			runAsAccountId, err := fetchRunAsAccountsIdBySite(ctx, runAsAccountsClient, siteID, model.PhysicalServerCredentialName, model.ApplianceName)
 			if err != nil {
-				return fmt.Errorf("fetch run as account id %s: %+v", model.CredentialType, err)
+				return fmt.Errorf("fetch run as account id %s: %+v", model.PhysicalServerCredentialName, err)
 			}
 
 			existing, err := client.Get(ctx, id)
@@ -578,6 +564,7 @@ func (s VMWareReplicatedVmResource) Read() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.RecoveryServices.ReplicationProtectedItemsClient
+			runAsAccountId := metadata.Client.RecoveryServices.VMWareRunAsAccountsClient
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -633,6 +620,15 @@ func (s VMWareReplicatedVmResource) Read() sdk.ResourceFunc {
 					state.TestNetworkId = pointer.From(inMageRcm.TestNetworkId)
 
 					state.TargetBootDiagnosticsStorageAccountId = pointer.From(inMageRcm.TargetBootDiagnosticsStorageAccountId)
+
+					credential := ""
+					if inMageRcm.RunAsAccountId != nil && *inMageRcm.RunAsAccountId != "" {
+						credential, err = fetchCredentialByRunAsAccountId(ctx, runAsAccountId, *inMageRcm.RunAsAccountId)
+						if err != nil {
+							return fmt.Errorf("retireving credential by run as account id %q: %+v", *inMageRcm.RunAsAccountId, err)
+						}
+					}
+					state.PhysicalServerCredentialName = credential
 
 					if inMageRcm.ProtectedDisks != nil {
 						diskOutputs := make([]IncludedDiskModel, 0)
@@ -1011,13 +1007,14 @@ func fetchSiteRecoveryReplicatedVmVMWareContainerId(ctx context.Context, contain
 	return parsedID.ID(), nil
 }
 
-func fetchRunAsAccountsIdBySite(ctx context.Context, runAsAccountClient *vmwarerunasaccounts.RunAsAccountsClient, siteId string, accountType string, applianceName string) (string, error) {
+func fetchRunAsAccountsIdBySite(ctx context.Context, runAsAccountClient *vmwarerunasaccounts.RunAsAccountsClient, siteId string, displayName string, applianceName string) (string, error) {
 	parsedSiteId, err := vmwarerunasaccounts.ParseVMwareSiteIDInsensitively(siteId)
 	if err != nil {
 		return "", fmt.Errorf("parse %s: %+v", siteId, err)
 	}
 
 	hackedClinet := azuresdkhacks.RunAsAccountsClient{Client: runAsAccountClient.Client}
+	// GET on Site is not working, tracked on https://github.com/Azure/azure-rest-api-specs/issues/24711
 	resp, err := hackedClinet.GetAllRunAsAccountsInSiteComplete(ctx, *parsedSiteId)
 	if err != nil {
 		return "", err
@@ -1037,12 +1034,12 @@ func fetchRunAsAccountsIdBySite(ctx context.Context, runAsAccountClient *vmwarer
 		if account.Properties.ApplianceName == nil {
 			continue
 		}
-		if strings.EqualFold(*account.Properties.DisplayName, accountType) && strings.EqualFold(*account.Properties.ApplianceName, applianceName) {
+		if strings.EqualFold(*account.Properties.DisplayName, displayName) && strings.EqualFold(*account.Properties.ApplianceName, applianceName) {
 			return *account.Id, nil
 		}
 	}
 
-	return "", fmt.Errorf("retiring %q: run as account %s not found", siteId, accountType)
+	return "", fmt.Errorf("retiring %q: run as account %s not found", siteId, displayName)
 }
 
 func fetchProcessServerIdByName(ctx context.Context, fabricClient *replicationfabrics.ReplicationFabricsClient, fabricId replicationfabrics.ReplicationFabricId, processServerName string) (string, error) {
@@ -1103,6 +1100,32 @@ func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *vmwarema
 	}
 
 	return "", fmt.Errorf("retiring %q: machine %s not found", siteId, machineName)
+}
+
+func fetchCredentialByRunAsAccountId(ctx context.Context, client *vmwarerunasaccounts.RunAsAccountsClient, id string) (string, error) {
+	parsedRunAsAccountId, err := commonids.ParseVMwareSiteRunAsAccountIDInsensitively(id)
+	if err != nil {
+		return "", fmt.Errorf("parse %s: %+v", id, err)
+	}
+
+	resp, err := client.GetRunAsAccount(ctx, *parsedRunAsAccountId)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.Model == nil {
+		return "", fmt.Errorf("retiring %q: Model was nil", id)
+	}
+
+	if resp.Model.Properties == nil {
+		return "", fmt.Errorf("retiring %q: Properties was nil", id)
+	}
+
+	if resp.Model.Properties.DisplayName == nil {
+		return "", fmt.Errorf("retiring %q: DisplayName was nil", id)
+	}
+
+	return *resp.Model.Properties.DisplayName, nil
 }
 
 // workaround for https://github.com/hashicorp/go-azure-sdk/issues/492

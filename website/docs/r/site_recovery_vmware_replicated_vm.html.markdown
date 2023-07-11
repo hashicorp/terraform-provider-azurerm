@@ -74,8 +74,8 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "example" {
   recovery_vault_id                          = azurerm_recovery_services_vault.example.id
   source_vm_name                             = "example-vm"
   appliance_name                             = "example-appliance"
-  recovery_replication_policy_id             = azurerm_site_recovery_hyperv_replication_policy.example.id
-  credential_type                            = "lincreds"
+  recovery_replication_policy_id             = azurerm_site_recovery_vmware_replication_policy_association.example.policy_id
+  physical_server_credential_name            = "example-creds"
   license_type                               = "NotSpecified"
   target_boot_diagnostics_storage_account_id = azurerm_storage_account.example.id
   target_vm_name                             = "example_replicated_vm"
@@ -85,6 +85,7 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "example" {
   target_network_id                          = azurerm_virtual_network.example.id
 
   network_interface {
+    source_mac_address = "00:00:00:00:00:00"
     target_subnet_name = azurerm_subnet.example.name
     is_primary         = true
   }
@@ -107,9 +108,7 @@ The following arguments are supported:
 
 * `recovery_replication_policy_id` - (Required) The ID of the policy to use for this replicated VM. Changing this forces a new resource to be created.
 
-* `credential_type` - (Optional) The credentials to access source VM. Possible values are `lincreds`, `v2arcmlab` and `wincreds`. Changing this forces a new resource to be created.
-
-**Note:** `credential_type` is required in creation.
+* `physical_server_credential_name` - (Required) The name of credential to access source VM. Changing this forces a new resource to be created. More information about the credentials could be found [here](https://learn.microsoft.com/en-us/azure/site-recovery/deploy-vmware-azure-replication-appliance-modernized).
 
 * `license_type` - (Optional) The license type of the VM. Possible values are `NoLicenseType`, `NotSpecified` and `WindowsServer`. Defaults to `NotSpecified`.
 
@@ -117,17 +116,17 @@ The following arguments are supported:
 
 * `target_vm_name` - (Required) Name of the VM that should be created when a failover is done. Changing this forces a new resource to be created.
 
-* `default_log_storage_account_id` - (Optional) The ID of the stroage account that should be used for logging during replication. Changing this forces a new resource to be created.
+* `default_log_storage_account_id` - (Optional) The ID of the stroage account that should be used for logging during replication. 
 
 **Note:** Only standard types of stroage accounts are allowed.
 
-**Note:** At least one of `default_log_storage_account_id` and `managed_disk` must be specified.
+**Note:** At least one of `default_log_storage_account_id` or `managed_disk` must be specified.
 
 **Note:** Changing `default_log_storage_account_id` forces a new resource to be created. But removing it does not.
 
 * `default_recovery_disk_type` - (Optional) The type of storage account that should be used for recovery disks when a failover is done. Possible values are `Standard_LRS`, `Standard_LRS` and `StandardSSD_LRS`. 
 
-**Note:** At least one of `default_recovery_disk_type` and `managed_disk` must be specified.
+**Note:** At least one of `default_recovery_disk_type` or `managed_disk` must be specified.
 
 **Note:** Changing `default_recovery_disk_type` forces a new resource to be created. But removing it does not.
 
@@ -151,9 +150,9 @@ The following arguments are supported:
 
 * `target_zone` - (Optional) Specifies the Availability Zone where the Failover VM should exist. 
 
-* `default_target_disk_encryption_set_id` - (Optional) The ID of the default Disk Encryption Set that should be used for the disks when a failover is done. Changing this forces a new resource to be created.
+* `default_target_disk_encryption_set_id` - (Optional) The ID of the default Disk Encryption Set that should be used for the disks when a failover is done. 
 
-**Note:** Only one `default_target_disk_encryption_set_id` or `managed_disk` can be specified.
+**Note:** Only one of `default_target_disk_encryption_set_id` or `managed_disk` can be specified.
 
 **Note:** Changing `default_target_disk_encryption_set_id` forces a new resource to be created. But removing it does not.
 
@@ -203,7 +202,7 @@ In addition to the arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 5 hours) Used when creating the Site Recovery HyperV Replicated VM.
+* `create` - (Defaults to 2 hours) Used when creating the Site Recovery HyperV Replicated VM.
 * `update` - (Defaults to 90 minutes) Used when updating the Site Recovery HyperV Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery HyperV Replicated VM.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Site Recovery HyperV Replicated VM.
