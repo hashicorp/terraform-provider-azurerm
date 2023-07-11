@@ -53,6 +53,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `purge_protection_enabled` - Whether Purge Protection is enabled.
 
+* `replica` - One or more `replica` blocks as defined below.
+
 * `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
 
 * `secondary_write_key` - A `secondary_write_key` block as defined below containing the secondary write access key.
@@ -82,6 +84,19 @@ A `primary_write_key` block exports the following:
 * `id` - The ID of the Access Key.
 
 * `secret` - The Secret of the Access Key.
+
+---
+
+A `replica` block exports the following:
+
+* `id` - The replica ID.
+
+* `endpoint` - The URL of the replica.
+
+* `location` - The supported Azure location where the replica exists.
+
+* `name` - (Optional) The name of the replica.
+
 
 ---
 
