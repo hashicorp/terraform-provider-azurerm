@@ -71,18 +71,33 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&webhookClient.Client, o.ResourceManagerAuthorizer)
 
 	accountClient, err := automationaccount.NewAutomationAccountClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build %s: %+v", err)
+	}
 	o.Configure(accountClient.Client, o.Authorizers.ResourceManager)
 
 	certificateClient, err := certificate.NewCertificateClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build certificateClient: %+v", err)
+	}
 	o.Configure(certificateClient.Client, o.Authorizers.ResourceManager)
 
 	connectionClient, err := connection.NewConnectionClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build connectionClient: %+v", err)
+	}
 	o.Configure(connectionClient.Client, o.Authorizers.ResourceManager)
 
 	connectionTypeClient, err := connectiontype.NewConnectionTypeClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build connectionTypeClient: %+v", err)
+	}
 	o.Configure(connectionTypeClient.Client, o.Authorizers.ResourceManager)
 
 	credentialClient, err := credential.NewCredentialClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build credentialClient: %+v", err)
+	}
 	o.Configure(credentialClient.Client, o.Authorizers.ResourceManager)
 
 	dscConfigurationClient, err := dscconfiguration.NewDscConfigurationClientWithBaseURI(o.Environment.ResourceManager)
@@ -92,33 +107,60 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(dscConfigurationClient.Client, o.Authorizers.ResourceManager)
 
 	dscNodeConfigurationClient, err := dscnodeconfiguration.NewDscNodeConfigurationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build dscNodeConfigurationClient: %+v", err)
+	}
 	o.Configure(dscNodeConfigurationClient.Client, o.Authorizers.ResourceManager)
 
 	jobScheduleClient, err := jobschedule.NewJobScheduleClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build jobScheduleClient: %+v", err)
+	}
 	o.Configure(jobScheduleClient.Client, o.Authorizers.ResourceManager)
 
 	moduleClient, err := module.NewModuleClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build moduleClient: %+v", err)
+	}
 	o.Configure(moduleClient.Client, o.Authorizers.ResourceManager)
 
 	// runbookClient2 := automation.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	// o.ConfigureClient(&runbookClient2.Client, o.ResourceManagerAuthorizer)
 
 	runbookClient, err := runbook.NewRunbookClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build runbookClient: %+v", err)
+	}
 	o.Configure(runbookClient.Client, o.Authorizers.ResourceManager)
 
 	runbookDraftClient, err := runbookdraft.NewRunbookDraftClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build runbookDraftClient: %+v", err)
+	}
 	o.Configure(runbookDraftClient.Client, o.Authorizers.ResourceManager)
 
 	runbookWorkerClient, err := hybridrunbookworker.NewHybridRunbookWorkerClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build runbookWorkerClient: %+v", err)
+	}
 	o.Configure(runbookWorkerClient.Client, o.Authorizers.ResourceManager)
 
 	sourceCtlClient, err := sourcecontrol.NewSourceControlClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build sourceCtlClient: %+v", err)
+	}
 	o.Configure(sourceCtlClient.Client, o.Authorizers.ResourceManager)
 
 	scheduleClient, err := schedule.NewScheduleClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build scheduleClient: %+v", err)
+	}
 	o.Configure(scheduleClient.Client, o.Authorizers.ResourceManager)
 
 	variableClient, err := variable.NewVariableClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build variableClient: %+v", err)
+	}
 	o.Configure(variableClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
