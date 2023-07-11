@@ -20,10 +20,68 @@ func TestAccPaloAltoLocalRuleStack_basic(t *testing.T) {
 
 	r := LocalRuleStackResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{{
-		Config: r.basic(data),
-		Check:  acceptance.ComposeTestCheckFunc(),
-	}})
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPaloAltoLocalRuleStack_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
+
+	r := LocalRuleStackResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError(data.ResourceName),
+		},
+	})
+}
+
+func TestAccPaloAltoLocalRuleStack_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
+
+	r := LocalRuleStackResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPaloAltoLocalRuleStack_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
+
+	r := LocalRuleStackResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+	})
 }
 
 func (r LocalRuleStackResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -58,6 +116,38 @@ resource "azurerm_palo_alto_local_rule_stack" "test" {
 }
 
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LocalRuleStackResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_local_rule_stack" "test" {
+  name                = "testAcc-palrs-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  description         = "Acceptance Test Desc - %[2]d"
+}
+
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LocalRuleStackResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%s
+
+resource "azurerm_palo_alto_local_rule_stack" "test" {
+  name                = azurerm_palo_alto_local_rule_stack.test.name
+  resource_group_name = azurerm_palo_alto_local_rule_stack.test.resource_group_name
+  location            = azurerm_palo_alto_local_rule_stack.test.location
+}
+
+`, r.basic(data))
 }
 
 func (r LocalRuleStackResource) template(data acceptance.TestData) string {
