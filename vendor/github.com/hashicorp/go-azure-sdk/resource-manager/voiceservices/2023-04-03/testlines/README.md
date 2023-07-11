@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-01-31/testlines` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/testlines` Documentation
 
-The `testlines` SDK allows for interaction with the Azure Resource Manager Service `voiceservices` (API Version `2023-01-31`).
+The `testlines` SDK allows for interaction with the Azure Resource Manager Service `voiceservices` (API Version `2023-04-03`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-01-31/testlines"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/testlines"
 ```
 
 
