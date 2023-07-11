@@ -86,7 +86,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			localRuleSet := localrulestacks.LocalRulestackResource{
+			localRuleStack := localrulestacks.LocalRulestackResource{
 				Location: model.Location,
 				Properties: localrulestacks.RulestackProperties{
 					DefaultMode: pointer.To(localrulestacks.DefaultModeNONE),
@@ -95,7 +95,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, localRuleSet); err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, id, localRuleStack); err != nil {
 				return err
 			}
 
@@ -163,6 +163,36 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.PaloAlto.LocalRuleStacksClient
+
+			id, err := localrulestacks.ParseLocalRuleStackID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			model := LocalRuleStackModel{}
+
+			if err = metadata.Decode(&model); err != nil {
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+
+			localRuleStack := *existing.Model
+
+			if metadata.ResourceData.HasChange("description") {
+				localRuleStack.Properties.Description = pointer.To(model.Description)
+			}
+
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, localRuleStack); err != nil {
+				return err
+			}
 
 			return nil
 		},

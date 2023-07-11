@@ -189,7 +189,7 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   //  // custom_urls = ["https://microsoft.com"] // TODO - This is another resource type in PAN?
   //}
 
-  // decryption_rule_type = "SSLOutboundInspection" // TODO - Needs Certs to be available on the RuleStack
+  decryption_rule_type = "SSLOutboundInspection" // TODO - Needs Certs to be available on the RuleStack
   description = "Acceptance Test Rule - dated %[2]d"
 
   destination {
@@ -205,12 +205,6 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   
   protocol = "TCP:8080"
   
-  //protocol_ports = [
-  //  "80",
-  //  "443", 
-  //  "8080",
-  //]
-
   enabled = false
 
   source {

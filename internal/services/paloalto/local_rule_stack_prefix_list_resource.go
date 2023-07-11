@@ -206,7 +206,7 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 
 			model := LocalRuleStackPrefixListModel{}
 
-			if err := metadata.Decode(&model); err != nil {
+			if err = metadata.Decode(&model); err != nil {
 				return err
 			}
 
