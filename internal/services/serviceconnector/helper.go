@@ -276,7 +276,7 @@ func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase, pwd strin
 		authType = string(servicelinker.AuthTypeServicePrincipalSecret)
 		clientId = value.ClientId
 		principalId = value.PrincipalId
-		secret = value.Secret
+		secret = pwd
 	}
 
 	if value, ok := input.(servicelinker.ServicePrincipalCertificateAuthInfo); ok {
