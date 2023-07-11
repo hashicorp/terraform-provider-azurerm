@@ -249,9 +249,9 @@ func resourceDataFactoryDatasetPostgreSQLRead(d *pluginsdk.ResourceData, meta in
 	d.Set("name", id.Name)
 	d.Set("data_factory_id", dataFactoryId.ID())
 
-	postgresqlTable, ok := resp.Properties.AsPostgreSQLTableDataset()
+	postgresqlTable, ok := resp.Properties.AsRelationalTableDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset PostgreSQL %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypePostgreSQLTable, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset PostgreSQL %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeRelationalTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", postgresqlTable.AdditionalProperties)
@@ -276,7 +276,7 @@ func resourceDataFactoryDatasetPostgreSQLRead(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	if properties := postgresqlTable.PostgreSQLTableDatasetTypeProperties; properties != nil {
+	if properties := postgresqlTable.RelationalTableDatasetTypeProperties; properties != nil {
 		val, ok := properties.TableName.(string)
 		if !ok {
 			log.Printf("[DEBUG] Skipping `table_name` since it's not a string")
