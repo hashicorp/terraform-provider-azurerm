@@ -4,7 +4,6 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230710.1102917` of `github.com/hashicorp/go-azure-sdk` [GH-22442]
 * dependencies: updating to `v0.20230703.1101016` of `github.com/tombuildsstuff/kermit` [GH-22390]
-
 * `automation/dscconfiguration` - updating to API Version `2022-08-08` [GH-22403]
 * `azurestackhcl` - updating to API Version `2023-03-01` [GH-22411]
 * `elastic` - updating to API Version `2023-06-01` [GH-22451]
