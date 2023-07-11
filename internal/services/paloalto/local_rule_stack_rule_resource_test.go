@@ -17,7 +17,7 @@ import (
 type LocalRuleResource struct{}
 
 func TestAccPaloAltoLocalRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_rule", "test")
 
 	r := LocalRuleResource{}
 
@@ -33,7 +33,7 @@ func TestAccPaloAltoLocalRule_basic(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRule_withDestination(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_rule", "test")
 
 	r := LocalRuleResource{}
 
@@ -49,7 +49,7 @@ func TestAccPaloAltoLocalRule_withDestination(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRule_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_rule", "test")
 
 	r := LocalRuleResource{}
 
@@ -65,7 +65,7 @@ func TestAccPaloAltoLocalRule_complete(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRule_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_rule", "test")
 
 	r := LocalRuleResource{}
 
@@ -119,7 +119,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule" "test" {
+resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   name          = "testacc-palr-%[2]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
   priority      = 100
@@ -147,7 +147,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule" "test" {
+resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   name          = "testacc-palr-%[2]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
   priority      = 100
@@ -175,7 +175,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule" "test" {
+resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   name          = "testacc-palr-%[2]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
   priority      = 100

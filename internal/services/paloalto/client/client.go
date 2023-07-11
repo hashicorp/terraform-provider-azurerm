@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistlocalrulestack"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/prefixlistlocalrulestack"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -17,6 +18,7 @@ type Client struct {
 	FQDNListsClient       *fqdnlistlocalrulestack.FqdnListLocalRulestackClient
 	LocalRulesClient      *localrules.LocalRulesClient
 	LocalRuleStacksClient *localrulestacks.LocalRuleStacksClient
+	PrefixListClient      *prefixlistlocalrulestack.PrefixListLocalRulestackClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -50,11 +52,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(localRuleClient.Client, o.Authorizers.ResourceManager)
 
+	prefixListClient, err := prefixlistlocalrulestack.NewPrefixListLocalRulestackClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building LocalRules client: %+v", err)
+	}
+	o.Configure(prefixListClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		CertificatesClient:    certificatesClient,
 		FirewallClient:        firewallClient,
 		FQDNListsClient:       fqdnListsClient,
 		LocalRulesClient:      localRuleClient,
 		LocalRuleStacksClient: localRuleStackClient,
+		PrefixListClient:      prefixListClient,
 	}, nil
 }

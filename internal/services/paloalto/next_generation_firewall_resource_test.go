@@ -163,7 +163,7 @@ resource "azurerm_palo_alto_local_rule_stack" "test" {
   location            = "%[2]s"
 }
 
-resource "azurerm_palo_alto_local_rule" "test" {
+resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   name          = "testacc-palr-%[1]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
   priority      = 1001
