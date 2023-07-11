@@ -268,7 +268,7 @@ func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta interfac
 
 	httpTable, ok := resp.Properties.AsHTTPDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset HTTP %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeHTTPFile, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset HTTP %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeHTTPFile, resp.Properties)
 	}
 
 	d.Set("additional_properties", httpTable.AdditionalProperties)

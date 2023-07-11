@@ -463,7 +463,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 
 	delimited_textTable, ok := resp.Properties.AsDelimitedTextDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeDelimitedText, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset DelimitedText %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeDelimitedText, resp.Properties)
 	}
 
 	d.Set("additional_properties", delimited_textTable.AdditionalProperties)

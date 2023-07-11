@@ -344,7 +344,7 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 
 	binaryTable, ok := resp.Properties.AsBinaryDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset Binary %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicDatasetTypeBinary, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset Binary %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeBinary, resp.Properties)
 	}
 
 	d.Set("additional_properties", binaryTable.AdditionalProperties)
