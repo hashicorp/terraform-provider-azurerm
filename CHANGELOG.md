@@ -4,12 +4,14 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230710.1102917` of `github.com/hashicorp/go-azure-sdk` [GH-22442]
 * dependencies: updating to `v0.20230703.1101016` of `github.com/tombuildsstuff/kermit` [GH-22390]
-* dependencies: `azurestackhcl`: updating to API Version `2023-03-01` [GH-22411]
-* dependencies: `kusto`: updating Data Plane to API Version `2023-05-02` [GH-22410]
-* dependencies: `managed applications`: migrate to `hashicorp/go-azure-sdk` [GH-21571]
-* dependencies: `network private endpoint` and `application security group`: migrate to `hashicorp/go-azure-sdk` [GH-22396]
-* dependencies: `storage`: updating Data Plane to API Version `2020-08-04` [GH-22405]
-* dependencies: `automation/dscconfiguration` - updating to API Version `2022-08-08` [GH-22403]
+
+* `automation/dscconfiguration` - updating to API Version `2022-08-08` [GH-22403]
+* `azurestackhcl` - updating to API Version `2023-03-01` [GH-22411]
+* `elastic` - updating to API Version `2023-06-01` [GH-22451]
+* `kusto` - updating to API Version `2023-05-02` [GH-22410]
+* `managedapplications` - migrate to `hashicorp/go-azure-sdk` [GH-21571]
+* `storage` - updating to Data Plane API Version `2020-08-04` [GH-22405]
+* `network` - `application_security_group` and `private_endpoint` now use `hashicorp/go-azure-sdk` [GH-22396]
 * `azurerm_dns_zone` - can now use `host_name` with `dns_zone` for `soa_record` creation [GH-22312]
 
 BUG FIXES:
