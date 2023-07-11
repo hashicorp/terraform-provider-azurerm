@@ -1054,6 +1054,9 @@ func (AccountV2ToV3) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			rawState["allow_nested_items_to_be_public"] = x
 			delete(rawState, "allow_blob_public_access")
 		}
+
+		rawState["cross_tenant_replication_enabled"] = true
+
 		return rawState, nil
 	}
 }
