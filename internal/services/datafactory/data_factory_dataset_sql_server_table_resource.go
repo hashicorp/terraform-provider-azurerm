@@ -254,7 +254,7 @@ func resourceDataFactoryDatasetSQLServerTableRead(d *pluginsdk.ResourceData, met
 
 	sqlServerTable, ok := resp.Properties.AsSQLServerTableDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset SQL Server Table %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeSQLServerTable, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset SQL Server Table %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeSQLServerTable, resp.Properties)
 	}
 
 	d.Set("additional_properties", sqlServerTable.AdditionalProperties)

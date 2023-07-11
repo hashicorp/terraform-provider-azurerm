@@ -357,7 +357,7 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 
 	parquetTable, ok := resp.Properties.AsParquetDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset Parquet %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeParquet, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset Parquet %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeParquet, resp.Properties)
 	}
 
 	d.Set("additional_properties", parquetTable.AdditionalProperties)
