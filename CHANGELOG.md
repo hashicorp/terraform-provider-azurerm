@@ -16,6 +16,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_automation_dsc_configuration` - fixing an issue where `content_embedded` couldn't be deserialized [GH-22403]
+* `azurerm_data_factory_dataset_{cosmosdb_sqlapi|mysql|postgresql}` - Fix incorrect type/error message during read [GH-22438]
 
 ## 3.64.0 (July 06, 2023)
 
