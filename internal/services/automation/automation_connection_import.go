@@ -20,7 +20,7 @@ func importAutomationConnection(connectionType string) pluginsdk.ImporterFunc {
 			return []*pluginsdk.ResourceData{}, err
 		}
 
-		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+		ctx, cancel := timeouts.ForRead(ctx, d)
 		defer cancel()
 
 		client := meta.(*clients.Client).Automation.ConnectionClient

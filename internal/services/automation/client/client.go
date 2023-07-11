@@ -72,7 +72,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	accountClient, err := automationaccount.NewAutomationAccountClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build %s: %+v", err)
+		return nil, fmt.Errorf("build accountClient: %+v", err)
 	}
 	o.Configure(accountClient.Client, o.Authorizers.ResourceManager)
 
