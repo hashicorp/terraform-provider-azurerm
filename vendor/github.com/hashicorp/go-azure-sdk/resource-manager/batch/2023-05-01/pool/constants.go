@@ -314,11 +314,13 @@ func parseComputeNodeFillType(input string) (*ComputeNodeFillType, error) {
 type ContainerType string
 
 const (
+	ContainerTypeCriCompatible    ContainerType = "CriCompatible"
 	ContainerTypeDockerCompatible ContainerType = "DockerCompatible"
 )
 
 func PossibleValuesForContainerType() []string {
 	return []string{
+		string(ContainerTypeCriCompatible),
 		string(ContainerTypeDockerCompatible),
 	}
 }
@@ -338,6 +340,7 @@ func (s *ContainerType) UnmarshalJSON(bytes []byte) error {
 
 func parseContainerType(input string) (*ContainerType, error) {
 	vals := map[string]ContainerType{
+		"cricompatible":    ContainerTypeCriCompatible,
 		"dockercompatible": ContainerTypeDockerCompatible,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {

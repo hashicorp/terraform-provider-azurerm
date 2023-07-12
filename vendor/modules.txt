@@ -185,10 +185,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01/updateruns
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01/updates
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01/updatesummaries
-github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/application
-github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/batchaccount
-github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/certificate
-github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-10-01/pool
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/application
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/certificate
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices
