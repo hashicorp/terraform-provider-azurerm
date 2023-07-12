@@ -548,9 +548,7 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 func (s VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			return resourceSiteRecoveryReplicatedVmVMWareClassicUpdateInternal(ctx, metadata)
-		},
+		Func:    resourceSiteRecoveryReplicatedVmVMWareClassicUpdateInternal,
 	}
 }
 
@@ -836,10 +834,8 @@ func resourceSiteRecoveryReplicatedVmVMWareClassicUpdateInternal(ctx context.Con
 
 	if metadata.ResourceData.HasChange("license_type") {
 		updateInput.LicenseType = pointer.To(replicationprotecteditems.LicenseType(model.LicenseType))
-	} else {
-		if existingDetails.LicenseType != nil {
-			updateInput.LicenseType = pointer.To(replicationprotecteditems.LicenseType(*existingDetails.LicenseType))
-		}
+	} else if existingDetails.LicenseType != nil {
+		updateInput.LicenseType = pointer.To(replicationprotecteditems.LicenseType(*existingDetails.LicenseType))
 	}
 
 	if metadata.ResourceData.HasChange("target_vm_name") {

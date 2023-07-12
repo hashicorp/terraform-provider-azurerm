@@ -76,9 +76,7 @@ func (c RunAsAccountsClient) GetAllRunAsAccountsInSiteComplete(ctx context.Conte
 		return GetAllRunAsAccountsInSiteCompleteResult{}, err
 	}
 	if resp.Model != nil {
-		for _, v := range *resp.Model {
-			items = append(items, v)
-		}
+		items = append(items, *resp.Model...)
 	}
 
 	return GetAllRunAsAccountsInSiteCompleteResult{Items: items}, nil
