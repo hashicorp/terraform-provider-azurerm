@@ -4,6 +4,7 @@ package privatezones
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PrivateZoneProperties struct {
+	InternalId                                     *string            `json:"internalId,omitempty"`
 	MaxNumberOfRecordSets                          *int64             `json:"maxNumberOfRecordSets,omitempty"`
 	MaxNumberOfVirtualNetworkLinks                 *int64             `json:"maxNumberOfVirtualNetworkLinks,omitempty"`
 	MaxNumberOfVirtualNetworkLinksWithRegistration *int64             `json:"maxNumberOfVirtualNetworkLinksWithRegistration,omitempty"`
