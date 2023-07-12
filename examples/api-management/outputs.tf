@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 output "service_id" {
   description = "The ID of the API Management Service created"
   value       = azurerm_api_management.apim_service.id

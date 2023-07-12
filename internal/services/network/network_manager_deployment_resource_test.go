@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -117,7 +120,7 @@ func (r ManagerDeploymentResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	client := clients.Network.ManagerDeploymentsClient
+	client := clients.Network.ManagersClient
 	listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
 		Regions:         &[]string{azure.NormalizeLocation(id.Location)},
 		DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(id.ScopeAccess)},

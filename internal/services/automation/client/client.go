@@ -1,9 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/dscconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/certificate"
@@ -20,6 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworker"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworkergroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/dscconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -47,7 +52,7 @@ type Client struct {
 	WebhookClient               *webhook.WebhookClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	accountClient := automationaccount.NewAutomationAccountClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
 
@@ -66,8 +71,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	credentialClient := credential.NewCredentialClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&credentialClient.Client, o.ResourceManagerAuthorizer)
 
-	dscConfigurationClient := dscconfiguration.NewDscConfigurationClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&dscConfigurationClient.Client, o.ResourceManagerAuthorizer)
+	dscConfigurationClient, err := dscconfiguration.NewDscConfigurationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("build dscConfigurationClient: %+v", err)
+	}
+	o.Configure(dscConfigurationClient.Client, o.Authorizers.ResourceManager)
 
 	dscNodeConfigurationClient := dscnodeconfiguration.NewDscNodeConfigurationClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&dscNodeConfigurationClient.Client, o.ResourceManagerAuthorizer)
@@ -118,7 +126,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ConnectionClient:            &connectionClient,
 		ConnectionTypeClient:        &connectionTypeClient,
 		CredentialClient:            &credentialClient,
-		DscConfigurationClient:      &dscConfigurationClient,
+		DscConfigurationClient:      dscConfigurationClient,
 		DscNodeConfigurationClient:  &dscNodeConfigurationClient,
 		JobScheduleClient:           &jobScheduleClient,
 		ModuleClient:                &moduleClient,
@@ -133,5 +141,5 @@ func NewClient(o *common.ClientOptions) *Client {
 		VariableClient:              &variableClient,
 		WatcherClient:               &watcherClient,
 		WebhookClient:               &webhookClient,
-	}
+	}, nil
 }

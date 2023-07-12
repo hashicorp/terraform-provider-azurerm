@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -10,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -227,6 +231,10 @@ func resourceArmExpressRoutePortCreateUpdate(d *pluginsdk.ResourceData, meta int
 		param.ExpressRoutePortPropertiesFormat.BillingType = network.ExpressRoutePortsBillingType(v.(string))
 	}
 
+	// a lock is needed here for subresource express_route_port_authorization needs a lock.
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	// The link properties can't be specified in first creation. It will result into either error (e.g. setting `adminState`) or being ignored (e.g. setting MACSec)
 	// Hence, if this is a new creation we will do a create-then-update here.
 	if d.IsNewResource() {
@@ -319,6 +327,10 @@ func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
+
+	// a lock is needed here for subresource express_route_port_authorization needs a lock.
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {

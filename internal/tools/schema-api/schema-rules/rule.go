@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package schema_rules
 
 import "github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"

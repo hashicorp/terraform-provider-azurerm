@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package applicationinsights
 
 import (
@@ -203,7 +206,7 @@ func (r ApplicationInsightsWorkbookResource) Update() sdk.ResourceFunc {
 			}
 
 			properties := resp.Model
-			if properties == nil {
+			if properties == nil || properties.Properties == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
@@ -217,6 +220,9 @@ func (r ApplicationInsightsWorkbookResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("display_name") {
 				properties.Properties.DisplayName = model.DisplayName
+				if properties.Tags != nil {
+					delete(*properties.Tags, "hidden-title")
+				}
 			}
 
 			if metadata.ResourceData.HasChange("data_json") {

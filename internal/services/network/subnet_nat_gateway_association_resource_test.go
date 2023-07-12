@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -92,13 +95,13 @@ func TestAccAzureRMSubnetNatGatewayAssociation_updateSubnet(t *testing.T) {
 }
 
 func (t SubnetNatGatewayAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SubnetID(state.ID)
+	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroupName
 	virtualNetworkName := id.VirtualNetworkName
-	subnetName := id.Name
+	subnetName := id.SubnetName
 
 	resp, err := clients.Network.SubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -114,14 +117,14 @@ func (t SubnetNatGatewayAssociationResource) Exists(ctx context.Context, clients
 }
 
 func (SubnetNatGatewayAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	parsedSubnetId, err := parse.SubnetID(state.Attributes["subnet_id"])
+	parsedSubnetId, err := commonids.ParseSubnetID(state.Attributes["subnet_id"])
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedSubnetId.ResourceGroup
+	resourceGroup := parsedSubnetId.ResourceGroupName
 	virtualNetworkName := parsedSubnetId.VirtualNetworkName
-	subnetName := parsedSubnetId.Name
+	subnetName := parsedSubnetId.SubnetName
 
 	subnet, err := client.Network.SubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {

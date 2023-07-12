@@ -26,11 +26,21 @@ data "azurerm_key_vault_key" "example" {
 data "azurerm_key_vault_encrypted_value" "encrypted" {
   key_vault_key_id = azurerm_key_vault_key.test.id
   algorithm        = "RSA1_5"
-  plain_text_value = "some-encrypted-value"
+  plain_text_value = base64encode("some-encrypted-value")
+}
+
+data "azurerm_key_vault_encrypted_value" "decrypted" {
+  key_vault_key_id = azurerm_key_vault_key.test.id
+  algorithm        = "RSA1_5"
+  encrypted_data   = data.azurerm_key_vault_encrypted_value.encrypted.encrypted_data
 }
 
 output "id" {
   value = data.azurerm_key_vault_encrypted_value.example.encrypted_data
+}
+
+output "decrypted_text" {
+  value = nonsensitive(data.azurerm_key_vault_encrypted_value.decrypted.decoded_plain_text_value)
 }
 ```
 
@@ -55,6 +65,8 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of this Encrypted Value
+
+* `decoded_plain_text_value` - The Base64URL decoded string of `plain_text_value`. Because the API would remove padding characters of `plain_text_value` when encrypting, this attribute is useful to get the original value.
 
 ## Timeouts
 

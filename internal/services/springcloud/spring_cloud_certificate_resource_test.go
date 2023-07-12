@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud_test
 
 import (
@@ -85,6 +88,7 @@ resource "azurerm_spring_cloud_certificate" "test" {
   resource_group_name      = azurerm_spring_cloud_service.test.resource_group_name
   service_name             = azurerm_spring_cloud_service.test.name
   key_vault_certificate_id = azurerm_key_vault_certificate.test.id
+  exclude_private_key      = true
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -145,7 +149,7 @@ data "azurerm_client_config" "current" {
 }
 
 data "azuread_service_principal" "test" {
-  display_name = "Azure Spring Cloud Domain-Management"
+  display_name = "Azure Spring Cloud Resource Provider"
 }
 
 resource "azurerm_key_vault" "test" {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -337,7 +340,7 @@ func resourceDataFactoryDatasetJSONRead(d *pluginsdk.ResourceData, meta interfac
 
 	jsonTable, ok := resp.Properties.AsJSONDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset JSON %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeJSON, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset JSON %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeJSON, resp.Properties)
 	}
 
 	d.Set("additional_properties", jsonTable.AdditionalProperties)

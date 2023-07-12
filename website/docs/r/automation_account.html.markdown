@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `local_authentication_enabled` - (Optional) Whether requests using non-AAD authentication are blocked. Defaults to `true`.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the automation account. Defaults to `true`.
 
 ---
 

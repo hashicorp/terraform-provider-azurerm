@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 output "app_name" {
   value = azurerm_linux_web_app.example.name
 }

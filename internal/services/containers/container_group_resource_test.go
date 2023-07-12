@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-10-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -2388,6 +2391,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "List",
     "Purge",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -2425,7 +2429,8 @@ resource "azurerm_key_vault_access_policy" "test" {
   key_permissions = [
     "Get",
     "UnwrapKey",
-    "WrapKey"
+    "WrapKey",
+    "GetRotationPolicy",
   ]
 
   tenant_id  = data.azurerm_client_config.current.tenant_id

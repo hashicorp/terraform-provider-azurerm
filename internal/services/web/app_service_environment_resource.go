@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package web
 
 import (
@@ -9,13 +12,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -69,7 +71,7 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	subnetId := d.Get("subnet_id").(string)
-	subnet, err := networkParse.SubnetID(subnetId)
+	subnet, err := commonids.ParseSubnetID(subnetId)
 	if err != nil {
 		return err
 	}
@@ -79,15 +81,15 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	// compatibility, we still allow user to use the resource group of Subnet to be the one for
 	// ASE implicitly. While allow user to explicitly specify the resource group, which takes higher
 	// precedence.
-	resourceGroup := subnet.ResourceGroup
+	resourceGroup := subnet.ResourceGroupName
 	if v, ok := d.GetOk("resource_group_name"); ok {
 		resourceGroup = v.(string)
 	}
 	id := parse.NewAppServiceEnvironmentID(subscriptionId, resourceGroup, d.Get("name").(string))
 
-	vnet, err := networksClient.Get(ctx, subnet.ResourceGroup, subnet.VirtualNetworkName, "")
+	vnet, err := networksClient.Get(ctx, subnet.ResourceGroupName, subnet.VirtualNetworkName, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Virtual Network %q (Resource Group %q): %+v", subnet.VirtualNetworkName, subnet.ResourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Network %q (Resource Group %q): %+v", subnet.VirtualNetworkName, subnet.ResourceGroupName, err)
 	}
 
 	// the App Service Environment has to be in the same location as the Virtual Network
@@ -95,7 +97,7 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	if loc := vnet.Location; loc != nil {
 		location = azure.NormalizeLocation(*loc)
 	} else {
-		return fmt.Errorf("determining Location from Virtual Network %q (Resource Group %q): `location` was nil", subnet.VirtualNetworkName, subnet.ResourceGroup)
+		return fmt.Errorf("determining Location from Virtual Network %q (Resource Group %q): `location` was nil", subnet.VirtualNetworkName, subnet.ResourceGroupName)
 	}
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
@@ -121,7 +123,7 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 			MultiSize:                 utils.String(convertFromIsolatedSKU(pricingTier)),
 			VirtualNetwork: &web.VirtualNetworkProfile{
 				ID:     utils.String(subnetId),
-				Subnet: utils.String(subnet.Name),
+				Subnet: utils.String(subnet.SubnetName),
 			},
 			UserWhitelistedIPRanges: utils.ExpandStringSlice(userWhitelistedIPRangesRaw),
 		},
@@ -425,7 +427,7 @@ func resourceAppServiceEnvironmentSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: networkValidate.SubnetID,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
 		"cluster_setting": {

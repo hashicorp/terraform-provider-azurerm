@@ -1,10 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleryapplications"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/galleryapplicationversions"
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
@@ -19,8 +20,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 type Client struct {
@@ -38,7 +43,7 @@ type Client struct {
 	GalleryImagesClient              *compute.GalleryImagesClient
 	GalleryImageVersionsClient       *compute.GalleryImageVersionsClient
 	ImagesClient                     *images.ImagesClient
-	MarketplaceAgreementsClient      *marketplaceordering.MarketplaceAgreementsClient
+	MarketplaceAgreementsClient      *agreements.AgreementsClient
 	ProximityPlacementGroupsClient   *proximityplacementgroups.ProximityPlacementGroupsClient
 	SkusClient                       *skus.SkusClient
 	SSHPublicKeysClient              *sshpublickeys.SshPublicKeysClient
@@ -54,7 +59,7 @@ type Client struct {
 	VMImageClient                    *compute.VirtualMachineImagesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	availabilitySetsClient := availabilitysets.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -97,8 +102,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	imagesClient := images.NewImagesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&imagesClient.Client, o.ResourceManagerAuthorizer)
 
-	marketplaceAgreementsClient := marketplaceordering.NewMarketplaceAgreementsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&marketplaceAgreementsClient.Client, o.ResourceManagerAuthorizer)
+	marketplaceAgreementsClient, err := agreements.NewAgreementsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building MarketplaceAgreementsClient client: %+v", err)
+	}
+	o.Configure(marketplaceAgreementsClient.Client, o.Authorizers.ResourceManager)
 
 	proximityPlacementGroupsClient := proximityplacementgroups.NewProximityPlacementGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&proximityPlacementGroupsClient.Client, o.ResourceManagerAuthorizer)
@@ -157,7 +165,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		GalleryImagesClient:              &galleryImagesClient,
 		GalleryImageVersionsClient:       &galleryImageVersionsClient,
 		ImagesClient:                     &imagesClient,
-		MarketplaceAgreementsClient:      &marketplaceAgreementsClient,
+		MarketplaceAgreementsClient:      marketplaceAgreementsClient,
 		ProximityPlacementGroupsClient:   &proximityPlacementGroupsClient,
 		SkusClient:                       &skusClient,
 		SSHPublicKeysClient:              &sshPublicKeysClient,
@@ -173,5 +181,5 @@ func NewClient(o *common.ClientOptions) *Client {
 
 		// NOTE: use `VirtualMachinesClient` instead
 		VMClient: &vmClient,
-	}
+	}, nil
 }

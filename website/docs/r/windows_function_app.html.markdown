@@ -101,6 +101,8 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
+* `public_network_access_enabled` - Should public network access be enabled for the Function App. Defaults to `true`.
+
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package shim
 
 import (
@@ -8,7 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers"
 )
 
 type DataPlaneStorageContainerWrapper struct {

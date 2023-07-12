@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -279,7 +282,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 
 	snowflakeTable, ok := resp.Properties.AsSnowflakeDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset Snowflake %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeSnowflakeTable, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset Snowflake %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeSnowflakeTable, resp.Properties)
 	}
 
 	d.Set("additional_properties", snowflakeTable.AdditionalProperties)

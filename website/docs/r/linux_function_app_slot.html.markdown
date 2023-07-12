@@ -98,6 +98,9 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?
 
+* `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
+* ```
+
 * `identity` - (Optional) An `identity` block as detailed below.
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
@@ -628,7 +631,7 @@ An `application_stack` block supports the following:
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to use. Possibles values are `7` , and `7.2`.
 
-* `python_version` - (Optional) The version of Python to use. Possible values are `3.10`, `3.9`, `3.8` and `3.7`.
+* `python_version` - (Optional) The version of Python to use. Possible values are `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
 * `use_custom_runtime` - (Optional) Should the Linux Function App use a custom runtime?
 

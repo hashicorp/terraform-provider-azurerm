@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package resource
 
 import (
@@ -9,7 +12,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -455,33 +457,6 @@ func expandEnvironmentVariableModelArray(inputList []EnvironmentVariableModel) *
 	return &outputList
 }
 
-func expandManagedServiceIdentityModel(inputList []interface{}) (*deploymentscripts.ManagedServiceIdentity, error) {
-	if len(inputList) == 0 {
-		return nil, nil
-	}
-
-	identityValue, err := identity.ExpandUserAssignedMap(inputList)
-	if err != nil {
-		return nil, fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	userAssignedIdentities := make(map[string]deploymentscripts.UserAssignedIdentity)
-	for k, v := range identityValue.IdentityIds {
-		userAssignedIdentities[k] = deploymentscripts.UserAssignedIdentity{
-			ClientId:    v.ClientId,
-			PrincipalId: v.PrincipalId,
-		}
-	}
-
-	identityType := deploymentscripts.ManagedServiceIdentityType(identityValue.Type)
-	output := deploymentscripts.ManagedServiceIdentity{
-		Type:                   &identityType,
-		UserAssignedIdentities: &userAssignedIdentities,
-	}
-
-	return &output, nil
-}
-
 func expandStorageAccountConfigurationModel(inputList []StorageAccountConfigurationModel) *deploymentscripts.StorageAccountConfiguration {
 	if len(inputList) == 0 {
 		return nil
@@ -549,32 +524,6 @@ func flattenEnvironmentVariableModelArray(inputList *[]deploymentscripts.Environ
 	}
 
 	return outputList
-}
-
-func flattenManagedServiceIdentityModel(input *deploymentscripts.ManagedServiceIdentity) (*[]interface{}, error) {
-	var transform *identity.UserAssignedMap
-
-	if input != nil {
-		transform = &identity.UserAssignedMap{
-			Type:        identity.TypeNone,
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-
-		if input.Type != nil {
-			transform.Type = identity.Type(*input.Type)
-		}
-
-		if input.UserAssignedIdentities != nil {
-			for k, v := range *input.UserAssignedIdentities {
-				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-					ClientId:    v.ClientId,
-					PrincipalId: v.PrincipalId,
-				}
-			}
-		}
-	}
-
-	return identity.FlattenUserAssignedMap(transform)
 }
 
 func flattenStorageAccountConfigurationModel(input *deploymentscripts.StorageAccountConfiguration, originalList []StorageAccountConfigurationModel) []StorageAccountConfigurationModel {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql_test
 
 import (
@@ -243,6 +246,21 @@ func TestAccMsSqlElasticPool_licenseType(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlElasticPool_hyperScale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MsSqlElasticPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hyperScale(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+	})
+}
+
 func (MsSqlElasticPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ElasticPoolID(state.ID)
 	if err != nil {
@@ -465,6 +483,47 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
 }
 
+func (MsSqlElasticPoolResource) templateHyperScale(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-vcore-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_mssql_server.test.name
+
+  sku {
+    name     = "%[3]s"
+    tier     = "%[4]s"
+    capacity = %[5]d
+    family   = "%[6]s"
+  }
+
+  per_database_settings {
+    min_capacity = %.2[7]f
+    max_capacity = %.2[8]f
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
+}
+
 func (MsSqlElasticPoolResource) licenseType(data acceptance.TestData, licenseType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -508,4 +567,8 @@ resource "azurerm_mssql_elasticpool" "test" {
 
 }
 `, data.RandomInteger, data.Locations.Primary, licenseType)
+}
+
+func (r MsSqlElasticPoolResource) hyperScale(data acceptance.TestData) string {
+	return r.templateHyperScale(data, "HS_Gen5", "Hyperscale", 4, "Gen5", 0.25, 4)
 }

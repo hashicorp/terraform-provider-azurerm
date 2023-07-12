@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -26,8 +29,10 @@ import (
 )
 
 type Client struct {
-	ProtectableItemsClient                    *backupprotectableitems.BackupProtectableItemsClient
-	ProtectedItemsClient                      *protecteditems.ProtectedItemsClient
+	ProtectableItemsClient *backupprotectableitems.BackupProtectableItemsClient
+	ProtectedItemsClient   *protecteditems.ProtectedItemsClient
+	// the Swagger lack of LRO mark, so we are using track-1 sdk to get the LRO client. tracked on https://github.com/Azure/azure-rest-api-specs/issues/22758
+	ProtectedItemOperationResultsClient       *backup.ProtectedItemOperationResultsClient
 	ProtectedItemsGroupClient                 *backupprotecteditems.BackupProtectedItemsClient
 	ProtectionPoliciesClient                  *protectionpolicies.ProtectionPoliciesClient
 	ProtectionContainerOperationResultsClient *backup.ProtectionContainerOperationResultsClient
@@ -72,6 +77,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	protectedItemsClient := protecteditems.NewProtectedItemsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&protectedItemsClient.Client, o.ResourceManagerAuthorizer)
+
+	protectedItemOperationResultClient := backup.NewProtectedItemOperationResultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&protectedItemOperationResultClient.Client, o.ResourceManagerAuthorizer)
 
 	protectedItemsGroupClient := backupprotecteditems.NewBackupProtectedItemsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&protectedItemsGroupClient.Client, o.ResourceManagerAuthorizer)
@@ -125,6 +133,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ProtectionPoliciesClient:                  &protectionPoliciesClient,
 		ProtectionContainerOperationResultsClient: &backupProtectionContainerOperationResultsClient,
 		BackupProtectionContainersClient:          &backupProtectionContainersClient,
+		ProtectedItemOperationResultsClient:       &protectedItemOperationResultClient,
 		BackupOperationStatusesClient:             &backupOperationStatusesClient,
 		BackupOperationResultsClient:              &backupOperationResultClient,
 		VaultsClient:                              &vaultsClient,

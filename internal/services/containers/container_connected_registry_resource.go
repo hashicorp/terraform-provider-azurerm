@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -408,7 +411,8 @@ func (r ContainerConnectedRegistryResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if props := existing.Model.Properties; props != nil {
+			if existing.Model != nil && existing.Model.Properties != nil {
+				props := existing.Model.Properties
 				if metadata.ResourceData.HasChange("mode") {
 					props.Mode = connectedregistries.ConnectedRegistryMode(state.Mode)
 				}
