@@ -1,6 +1,10 @@
 package volumes
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForAvsDataStore() []string {
 		string(AvsDataStoreDisabled),
 		string(AvsDataStoreEnabled),
 	}
+}
+
+func (s *AvsDataStore) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAvsDataStore(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAvsDataStore(input string) (*AvsDataStore, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForChownMode() []string {
 	}
 }
 
+func (s *ChownMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseChownMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseChownMode(input string) (*ChownMode, error) {
 	vals := map[string]ChownMode{
 		"restricted":   ChownModeRestricted,
@@ -73,6 +103,19 @@ func PossibleValuesForEnableSubvolumes() []string {
 		string(EnableSubvolumesDisabled),
 		string(EnableSubvolumesEnabled),
 	}
+}
+
+func (s *EnableSubvolumes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEnableSubvolumes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEnableSubvolumes(input string) (*EnableSubvolumes, error) {
@@ -103,6 +146,19 @@ func PossibleValuesForEncryptionKeySource() []string {
 	}
 }
 
+func (s *EncryptionKeySource) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEncryptionKeySource(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEncryptionKeySource(input string) (*EncryptionKeySource, error) {
 	vals := map[string]EncryptionKeySource{
 		"microsoft.keyvault": EncryptionKeySourceMicrosoftPointKeyVault,
@@ -131,6 +187,19 @@ func PossibleValuesForEndpointType() []string {
 	}
 }
 
+func (s *EndpointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEndpointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEndpointType(input string) (*EndpointType, error) {
 	vals := map[string]EndpointType{
 		"dst": EndpointTypeDst,
@@ -157,6 +226,19 @@ func PossibleValuesForNetworkFeatures() []string {
 		string(NetworkFeaturesBasic),
 		string(NetworkFeaturesStandard),
 	}
+}
+
+func (s *NetworkFeatures) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNetworkFeatures(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseNetworkFeatures(input string) (*NetworkFeatures, error) {
@@ -189,6 +271,19 @@ func PossibleValuesForReplicationSchedule() []string {
 	}
 }
 
+func (s *ReplicationSchedule) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReplicationSchedule(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseReplicationSchedule(input string) (*ReplicationSchedule, error) {
 	vals := map[string]ReplicationSchedule{
 		"daily":       ReplicationScheduleDaily,
@@ -216,6 +311,19 @@ func PossibleValuesForSecurityStyle() []string {
 		string(SecurityStyleNtfs),
 		string(SecurityStyleUnix),
 	}
+}
+
+func (s *SecurityStyle) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSecurityStyle(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSecurityStyle(input string) (*SecurityStyle, error) {
@@ -250,6 +358,19 @@ func PossibleValuesForServiceLevel() []string {
 	}
 }
 
+func (s *ServiceLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseServiceLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseServiceLevel(input string) (*ServiceLevel, error) {
 	vals := map[string]ServiceLevel{
 		"premium":     ServiceLevelPremium,
@@ -280,6 +401,19 @@ func PossibleValuesForSmbAccessBasedEnumeration() []string {
 	}
 }
 
+func (s *SmbAccessBasedEnumeration) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSmbAccessBasedEnumeration(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSmbAccessBasedEnumeration(input string) (*SmbAccessBasedEnumeration, error) {
 	vals := map[string]SmbAccessBasedEnumeration{
 		"disabled": SmbAccessBasedEnumerationDisabled,
@@ -306,6 +440,19 @@ func PossibleValuesForSmbNonBrowsable() []string {
 		string(SmbNonBrowsableDisabled),
 		string(SmbNonBrowsableEnabled),
 	}
+}
+
+func (s *SmbNonBrowsable) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSmbNonBrowsable(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSmbNonBrowsable(input string) (*SmbNonBrowsable, error) {
@@ -336,6 +483,19 @@ func PossibleValuesForVolumeStorageToNetworkProximity() []string {
 		string(VolumeStorageToNetworkProximityTOne),
 		string(VolumeStorageToNetworkProximityTTwo),
 	}
+}
+
+func (s *VolumeStorageToNetworkProximity) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVolumeStorageToNetworkProximity(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseVolumeStorageToNetworkProximity(input string) (*VolumeStorageToNetworkProximity, error) {

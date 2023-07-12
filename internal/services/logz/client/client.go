@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/monitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/subaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/tagrules"
@@ -16,19 +18,28 @@ type Client struct {
 	SubAccountClient *subaccount.SubAccountClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	monitorClient := monitors.NewMonitorsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&monitorClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	monitorClient, err := monitors.NewMonitorsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(monitorClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building TagRuleClient client: %+v", err)
+	}
 
-	tagRuleClient := tagrules.NewTagRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&tagRuleClient.Client, o.ResourceManagerAuthorizer)
+	tagRuleClient, err := tagrules.NewTagRulesClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(tagRuleClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building TagRuleClient client: %+v", err)
+	}
 
-	subAccountClient := subaccount.NewSubAccountClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&subAccountClient.Client, o.ResourceManagerAuthorizer)
+	subAccountClient, err := subaccount.NewSubAccountClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(subAccountClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SubAccountClient client: %+v", err)
+	}
 
 	return &Client{
-		MonitorClient:    &monitorClient,
-		TagRuleClient:    &tagRuleClient,
-		SubAccountClient: &subAccountClient,
-	}
+		MonitorClient:    monitorClient,
+		TagRuleClient:    tagRuleClient,
+		SubAccountClient: subAccountClient,
+	}, nil
 }
