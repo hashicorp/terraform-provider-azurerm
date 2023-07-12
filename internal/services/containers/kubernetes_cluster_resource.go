@@ -1276,10 +1276,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-				ForceNew: true,
+				Type:       pluginsdk.TypeBool,
+				Optional:   true,
+				Default:    true,
+				Deprecated: "`public_network_access_enabled` is not functional, will not be passed to the API",
 			},
 
 			"role_based_access_control_enabled": {
@@ -1628,11 +1628,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
 	}
 
-	publicNetworkAccess := managedclusters.PublicNetworkAccessEnabled
-	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = managedclusters.PublicNetworkAccessDisabled
-	}
-
 	storageProfileRaw := d.Get("storage_profile").([]interface{})
 	storageProfile := expandStorageProfile(storageProfileRaw)
 
@@ -1713,7 +1708,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			WindowsProfile:            windowsProfile,
 			NetworkProfile:            networkProfile,
 			NodeResourceGroup:         utils.String(nodeResourceGroup),
-			PublicNetworkAccess:       &publicNetworkAccess,
 			DisableLocalAccounts:      utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:           httpProxyConfig,
 			OidcIssuerProfile:         oidcIssuerProfile,
@@ -2553,12 +2547,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
 			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
-
-			publicNetworkAccess := managedclusters.PublicNetworkAccessEnabled
-			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = *props.PublicNetworkAccess
-			}
-			d.Set("public_network_access_enabled", publicNetworkAccess != managedclusters.PublicNetworkAccessDisabled)
 
 			upgradeChannel := ""
 			nodeOSUpgradeChannel := ""

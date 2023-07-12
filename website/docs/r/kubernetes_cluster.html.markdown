@@ -229,9 +229,9 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 -> **Note:** Enabling this option will allocate Workload Identity resources to the `kube-system` namespace in Kubernetes. If you wish to customize the deployment of Workload Identity, you can refer to [the documentation on Azure AD Workload Identity.](https://azure.github.io/azure-workload-identity/docs/installation/mutating-admission-webhook.html) The documentation provides guidance on how to install the mutating admission webhook, which allows for the customization of Workload Identity deployment.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. 
 
--> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `authorized_ip_ranges` in the `api_server_access_profile` block.
+!> **Note:** `public_network_access_enabled` is not functional and will not be passed to the Azure API.
 
 * `role_based_access_control_enabled` - (Optional) Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
 
