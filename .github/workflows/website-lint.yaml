@@ -3,7 +3,7 @@ name: Website Linting
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 
 on:
   pull_request:
@@ -23,14 +23,6 @@ jobs:
       - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make website-lint
-      - name: Add waiting-response on fail
-        if: failure()
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
-        with:
-          script: |
-            github.rest.issues.addLabels({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              labels: ["waiting-response"]
-            })
+  save-artifacts-on-fail:
+    if: ${{ needs.website-lint.result }} == 'failure'
+    uses: ./.github/workflows/save-artifacts.yaml

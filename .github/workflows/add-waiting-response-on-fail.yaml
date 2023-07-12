@@ -1,0 +1,39 @@
+---
+name: Add waiting-response on failures
+
+on:
+  workflow_run:
+    workflows: ['Check for new usages of deprecated functionality', 'GoLang Linting', 'Website Linting', 'Generation Check', 'Validate Examples', 'Unit Tests', 'Terraform Schema Linting', '32 Bit Build', 'Provider Tests', 'Vendor Dependencies Check']
+    types: [completed]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  add-waiting-response-on-fail:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Get Artifact
+        id: get_artifact
+        uses: dawidd6/action-download-artifact@246dbf436b23d7c49e21a7ab8204ca9ecd1fe615 # v2.27.0
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          run_id: ${{ github.event.workflow_run.id }}
+
+      - name: env_vars
+        id: env_vars
+        run: |
+          echo "ghrepo=$(cat artifact/ghrepo.txt)" >>${GITHUB_OUTPUT}
+          echo "ghowner=$(cat artifact/ghowner.txt)" >>${GITHUB_OUTPUT}
+          echo "prnumber=$(cat artifact/prnumber.txt)" >>${GITHUB_OUTPUT}
+      - name: Add waiting-response on fail
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: ${{ steps.env_vars.outputs.prnumber }},
+              owner: "${{ steps.env_vars.outputs.ghowner }}",
+              repo: "${{ steps.env_vars.outputs.ghrepo }}",
+              labels: ["waiting-response"]
+            })
