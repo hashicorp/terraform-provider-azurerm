@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package resource
 
 import (
@@ -79,7 +82,9 @@ func (r ResourceDeploymentScriptAzureCliResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			properties.Identity = identityValue
+			if identityValue != nil && identityValue.Type != identity.TypeNone {
+				properties.Identity = identityValue
+			}
 
 			if model.Arguments != "" {
 				properties.Properties.Arguments = &model.Arguments

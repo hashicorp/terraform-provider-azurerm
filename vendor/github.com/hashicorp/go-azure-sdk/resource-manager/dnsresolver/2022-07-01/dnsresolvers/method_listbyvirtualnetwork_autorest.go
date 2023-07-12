@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -62,7 +63,7 @@ func (o ListByVirtualNetworkOperationOptions) toQueryString() map[string]interfa
 }
 
 // ListByVirtualNetwork ...
-func (c DnsResolversClient) ListByVirtualNetwork(ctx context.Context, id VirtualNetworkId, options ListByVirtualNetworkOperationOptions) (resp ListByVirtualNetworkOperationResponse, err error) {
+func (c DnsResolversClient) ListByVirtualNetwork(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions) (resp ListByVirtualNetworkOperationResponse, err error) {
 	req, err := c.preparerForListByVirtualNetwork(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dnsresolvers.DnsResolversClient", "ListByVirtualNetwork", nil, "Failure preparing request")
@@ -84,7 +85,7 @@ func (c DnsResolversClient) ListByVirtualNetwork(ctx context.Context, id Virtual
 }
 
 // preparerForListByVirtualNetwork prepares the ListByVirtualNetwork request.
-func (c DnsResolversClient) preparerForListByVirtualNetwork(ctx context.Context, id VirtualNetworkId, options ListByVirtualNetworkOperationOptions) (*http.Request, error) {
+func (c DnsResolversClient) preparerForListByVirtualNetwork(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -171,12 +172,12 @@ func (c DnsResolversClient) responderForListByVirtualNetwork(resp *http.Response
 }
 
 // ListByVirtualNetworkComplete retrieves all of the results into a single object
-func (c DnsResolversClient) ListByVirtualNetworkComplete(ctx context.Context, id VirtualNetworkId, options ListByVirtualNetworkOperationOptions) (ListByVirtualNetworkCompleteResult, error) {
+func (c DnsResolversClient) ListByVirtualNetworkComplete(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions) (ListByVirtualNetworkCompleteResult, error) {
 	return c.ListByVirtualNetworkCompleteMatchingPredicate(ctx, id, options, SubResourceOperationPredicate{})
 }
 
 // ListByVirtualNetworkCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DnsResolversClient) ListByVirtualNetworkCompleteMatchingPredicate(ctx context.Context, id VirtualNetworkId, options ListByVirtualNetworkOperationOptions, predicate SubResourceOperationPredicate) (resp ListByVirtualNetworkCompleteResult, err error) {
+func (c DnsResolversClient) ListByVirtualNetworkCompleteMatchingPredicate(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions, predicate SubResourceOperationPredicate) (resp ListByVirtualNetworkCompleteResult, err error) {
 	items := make([]SubResource, 0)
 
 	page, err := c.ListByVirtualNetwork(ctx, id, options)

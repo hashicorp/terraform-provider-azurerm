@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package batch
 
 import (
@@ -13,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -709,6 +712,13 @@ func resourceBatchPool() *pluginsdk.Resource {
 					string(pool.InterNodeCommunicationStateDisabled),
 				}, false),
 			},
+
+			"target_node_communication_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(pool.PossibleValuesForNodeCommunicationMode(), false),
+			},
+
 			"task_scheduling_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -912,6 +922,10 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("expanding `network_configuration`: %+v", err)
 	}
 
+	if v, ok := d.GetOk("target_node_communication_mode"); ok {
+		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(v.(string)))
+	}
+
 	_, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -1039,6 +1053,10 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		log.Printf(`[DEBUG] expanding "mount": %v`, err)
 	}
 	parameters.Properties.MountConfiguration = mountConfiguration
+
+	if d.HasChange("target_node_communication_mode") {
+		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(d.Get("target_node_communication_mode").(string)))
+	}
 
 	result, err := client.Update(ctx, *id, parameters, pool.UpdateOperationOptions{})
 	if err != nil {
@@ -1236,6 +1254,12 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				}
 				d.Set("mount", mountConfigs)
 			}
+
+			targetNodeCommunicationMode := ""
+			if props.TargetNodeCommunicationMode != nil {
+				targetNodeCommunicationMode = string(*props.TargetNodeCommunicationMode)
+			}
+			d.Set("target_node_communication_mode", targetNodeCommunicationMode)
 
 			if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
 				return fmt.Errorf("setting `network_configuration`: %v", err)

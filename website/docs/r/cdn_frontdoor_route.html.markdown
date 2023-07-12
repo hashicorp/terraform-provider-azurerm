@@ -48,7 +48,7 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
   weight             = 1
 }
 
-resource "azurerm_frontdoor_endpoint" "example" {
+resource "azurerm_cdn_frontdoor_endpoint" "example" {
   name                     = "example-endpoint"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 }

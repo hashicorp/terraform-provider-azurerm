@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package firewall
 
 import (
@@ -6,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -17,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -105,7 +108,7 @@ func resourceFirewall() *pluginsdk.Resource {
 						},
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 						"private_ip_address": {
@@ -478,13 +481,13 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 					continue
 				}
 
-				parsedSubnetID, err2 := networkParse.SubnetID(*config.Subnet.ID)
+				parsedSubnetID, err2 := commonids.ParseSubnetID(*config.Subnet.ID)
 				if err2 != nil {
 					return err2
 				}
 
-				if !utils.SliceContainsValue(subnetNamesToLock, parsedSubnetID.Name) {
-					subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.Name)
+				if !utils.SliceContainsValue(subnetNamesToLock, parsedSubnetID.SubnetName) {
+					subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.SubnetName)
 				}
 
 				if !utils.SliceContainsValue(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
@@ -495,13 +498,13 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		if mconfig := props.ManagementIPConfiguration; mconfig != nil {
 			if mconfig.Subnet != nil && mconfig.Subnet.ID != nil {
-				parsedSubnetID, err2 := networkParse.SubnetID(*mconfig.Subnet.ID)
+				parsedSubnetID, err2 := commonids.ParseSubnetID(*mconfig.Subnet.ID)
 				if err2 != nil {
 					return err2
 				}
 
-				if !utils.SliceContainsValue(subnetNamesToLock, parsedSubnetID.Name) {
-					subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.Name)
+				if !utils.SliceContainsValue(subnetNamesToLock, parsedSubnetID.SubnetName) {
+					subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.SubnetName)
 				}
 
 				if !utils.SliceContainsValue(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
@@ -552,21 +555,23 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]network.AzureFire
 
 		ipConfig := network.AzureFirewallIPConfiguration{
 			Name: utils.String(name),
-			AzureFirewallIPConfigurationPropertiesFormat: &network.AzureFirewallIPConfigurationPropertiesFormat{
-				PublicIPAddress: &network.SubResource{
-					ID: utils.String(pubID),
-				},
-			},
+			AzureFirewallIPConfigurationPropertiesFormat: &network.AzureFirewallIPConfigurationPropertiesFormat{},
+		}
+
+		if pubID != "" {
+			ipConfig.AzureFirewallIPConfigurationPropertiesFormat.PublicIPAddress = &network.SubResource{
+				ID: utils.String(pubID),
+			}
 		}
 
 		if subnetId != "" {
-			subnetID, err := networkParse.SubnetID(subnetId)
+			subnetID, err := commonids.ParseSubnetID(subnetId)
 			if err != nil {
 				return nil, nil, nil, err
 			}
 
-			if !utils.SliceContainsValue(subnetNamesToLock, subnetID.Name) {
-				subnetNamesToLock = append(subnetNamesToLock, subnetID.Name)
+			if !utils.SliceContainsValue(subnetNamesToLock, subnetID.SubnetName) {
+				subnetNamesToLock = append(subnetNamesToLock, subnetID.SubnetName)
 			}
 
 			if !utils.SliceContainsValue(virtualNetworkNamesToLock, subnetID.VirtualNetworkName) {

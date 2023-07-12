@@ -1,15 +1,15 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package arckubernetes_test
 
 import (
 	"context"
 	"fmt"
-	"math/rand"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,19 +20,9 @@ import (
 type ArcKubernetesClusterExtensionResource struct{}
 
 func TestAccArcKubernetesClusterExtension_basic(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
 	r := ArcKubernetesClusterExtensionResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, credential, privateKey, publicKey),
@@ -45,19 +35,9 @@ func TestAccArcKubernetesClusterExtension_basic(t *testing.T) {
 }
 
 func TestAccArcKubernetesClusterExtension_requiresImport(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
 	r := ArcKubernetesClusterExtensionResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, credential, privateKey, publicKey),
@@ -73,19 +53,9 @@ func TestAccArcKubernetesClusterExtension_requiresImport(t *testing.T) {
 }
 
 func TestAccArcKubernetesClusterExtension_complete(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
 	r := ArcKubernetesClusterExtensionResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, credential, privateKey, publicKey),
@@ -98,19 +68,9 @@ func TestAccArcKubernetesClusterExtension_complete(t *testing.T) {
 }
 
 func TestAccArcKubernetesClusterExtension_update(t *testing.T) {
-	// generateKey() is a time-consuming operation, we only run this test if an env var is set.
-	if os.Getenv(resource.EnvTfAcc) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
-	}
-
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster_extension", "test")
 	r := ArcKubernetesClusterExtensionResource{}
-	credential := fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
-	privateKey, publicKey, err := ArcKubernetesClusterResource{}.generateKey()
-	if err != nil {
-		t.Fatalf("failed to generate key: %+v", err)
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, credential, privateKey, publicKey),

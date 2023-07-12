@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor_test
 
 import (
@@ -71,6 +74,34 @@ func TestMonitorWorkspace_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestMonitorWorkspace_publicNetworkAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
+	r := WorkspaceTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccessDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -171,6 +202,25 @@ resource "azurerm_monitor_workspace" "test" {
   tags = {
     key2 = "value2"
   }
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r WorkspaceTestResource) publicNetworkAccessDisabled(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_monitor_workspace" "test" {
+  name                = "acctest-mamw-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+
+  public_network_access_enabled = false
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }

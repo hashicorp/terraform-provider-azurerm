@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package nginx
 
 import (
@@ -25,7 +28,7 @@ type CertificateModel struct {
 
 type CertificateResource struct{}
 
-var _ sdk.Resource = (*CertificateResource)(nil)
+var _ sdk.ResourceWithUpdate = (*CertificateResource)(nil)
 
 func (m CertificateResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -46,21 +49,18 @@ func (m CertificateResource) Arguments() map[string]*pluginsdk.Schema {
 		"key_virtual_path": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"certificate_virtual_path": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
 		},
 	}
@@ -115,6 +115,54 @@ func (m CertificateResource) Create() sdk.ResourceFunc {
 			}
 
 			meta.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (m CertificateResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
+
+			client := meta.Client.Nginx.NginxCertificate
+			id, err := nginxcertificate.ParseCertificateID(meta.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model CertificateModel
+			if err = meta.Decode(&model); err != nil {
+				return fmt.Errorf("decoding err: %+v", err)
+			}
+
+			// retrieve from GET
+			existing, err := client.CertificatesGet(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving exists when updating: +%v", *id)
+			}
+			if existing.Model == nil && existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving as nil when updating for %v", *id)
+			}
+
+			// have to pass all existing properties to update
+			upd := existing.Model
+			if meta.ResourceData.HasChange("key_virtual_path") {
+				upd.Properties.KeyVirtualPath = pointer.FromString(model.KeyVirtualPath)
+			}
+
+			if meta.ResourceData.HasChange("certificate_virtual_path") {
+				upd.Properties.CertificateVirtualPath = pointer.To(model.CertificateVirtualPath)
+			}
+
+			if meta.ResourceData.HasChange("key_vault_secret_id") {
+				upd.Properties.KeyVaultSecretId = pointer.To(model.KeyVaultSecretId)
+			}
+
+			err = client.CertificatesCreateOrUpdateThenPoll(ctx, *id, *upd)
+			if err != nil {
+				return fmt.Errorf("updating %s: %v", id, err)
+			}
 			return nil
 		},
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -251,7 +254,7 @@ func resourceDataFactoryDatasetMySQLRead(d *pluginsdk.ResourceData, meta interfa
 
 	mysqlTable, ok := resp.Properties.AsRelationalTableDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset MySQL %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeMySQLTable, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset MySQL %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeRelationalTable, resp.Properties)
 	}
 
 	d.Set("additional_properties", mysqlTable.AdditionalProperties)

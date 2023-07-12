@@ -84,6 +84,8 @@ The following arguments are supported:
 
 * `application_performance_monitoring_types` - (Optional) Specifies a list of application performance monitoring types used in the Spring Cloud Gateway. The allowed values are `AppDynamics`, `ApplicationInsights`, `Dynatrace`, `ElasticAPM` and `NewRelic`.
 
+* `client_authorization` - (Optional) A `client_authorization` block as defined below.
+
 * `cors` - (Optional) A `cors` block as defined below.
 
 * `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
@@ -116,6 +118,14 @@ A `api_metadata` block supports the following:
 
 ---
 
+A `client_authorization` block supports the following:
+
+* `certificate_ids` - (Optional) Specifies the Spring Cloud Certificate IDs of the Spring Cloud Gateway.
+
+* `verification_enabled` - (Optional) Specifies whether the client certificate verification is enabled.
+
+---
+
 A `cors` block supports the following:
 
 * `credentials_allowed` - (Optional) is user credentials are supported on cross-site requests?
@@ -125,6 +135,8 @@ A `cors` block supports the following:
 * `allowed_methods` - (Optional) Allowed HTTP methods on cross-site requests. The special value `*` allows all methods. If not set, `GET` and `HEAD` are allowed by default. Possible values are `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` and `PUT`.
 
 * `allowed_origins` - (Optional) Allowed origins to make cross-site requests. The special value `*` allows all domains.
+
+* `allowed_origin_patterns` - (Optional)  Allowed origin patterns to make cross-site requests.
 
 * `exposed_headers` - (Optional) HTTP response headers to expose for cross-site requests.
 

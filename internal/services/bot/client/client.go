@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -25,7 +28,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&channelClient.Client, o.ResourceManagerAuthorizer)
 
 	healthBotsClient := healthbot_2022_08_08.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
-		c.Authorizer = o.ResourceManagerAuthorizer
+		o.ConfigureClient(c, o.ResourceManagerAuthorizer)
 	})
 
 	return &Client{
