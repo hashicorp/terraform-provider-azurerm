@@ -52,8 +52,6 @@ type ContainerAppModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppResource{}
 
-var _ sdk.ResourceWithCustomizeDiff = ContainerAppResource{}
-
 func (r ContainerAppResource) ModelObject() interface{} {
 	return &ContainerAppModel{}
 }
