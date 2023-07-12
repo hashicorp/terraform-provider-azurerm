@@ -158,7 +158,7 @@ The following arguments are supported:
 
 * `target_boot_diagnostics_storage_account_id` - (Optional) The ID of the storage account that should be used for boot diagnostics when a failover is done.
 
-* `managed_disk` - (Optional) One or more `managed_disk` block as defined below. It's avaiable only if mobility service is already installed on the source VM.
+* `managed_disk` - (Optional) One or more `managed_disk` block as defined below. It's available only if mobility service is already installed on the source VM.
 
 **Note:** a replicated VM could be created without `managed_disk` block, once it has been specified, changing it forces a new resource to be created.
 
