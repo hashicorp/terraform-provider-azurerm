@@ -34,7 +34,7 @@ service/attestation:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_attestation_provider((.|\n)*)###'
 
 service/authorization:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(client_config|federated_identity_credential|role_|user_assigned_identity)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(client_config|federated_identity_credential|pim_|role_|user_assigned_identity)((.|\n)*)###'
 
 service/automanage:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automanage_configuration((.|\n)*)###'
@@ -142,7 +142,7 @@ service/hsm:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dedicated_hardware_security_module((.|\n)*)###'
 
 service/hybrid-compute:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine|hybrid_compute_machine)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine\W+|arc_machine_extension\W+|arc_private_link_scope\W+|hybrid_compute_machine)((.|\n)*)###'
 
 service/iot-central:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iotcentral_application((.|\n)*)###'
