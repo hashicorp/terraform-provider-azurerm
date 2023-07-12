@@ -10,19 +10,19 @@ func NextGenerationFirewallName(input interface{}, k string) (warnings []string,
 	return paloAltoNameValidation(input, k)
 }
 
-func LocalRuleStackName(input interface{}, k string) (warnings []string, errors []error) {
+func LocalRulestackName(input interface{}, k string) (warnings []string, errors []error) {
 	return paloAltoNameValidation(input, k)
 }
 
-func LocalRuleStackCertificateName(input interface{}, k string) (warnings []string, errors []error) {
+func LocalRulestackCertificateName(input interface{}, k string) (warnings []string, errors []error) {
 	return paloAltoNameValidation(input, k)
 }
 
-func LocalRuleStackFQDNListName(input interface{}, k string) (warnings []string, errors []error) {
+func LocalRulestackFQDNListName(input interface{}, k string) (warnings []string, errors []error) {
 	return paloAltoNameValidation(input, k)
 }
 
-func LocalRuleStackRuleName(input interface{}, k string) (warnings []string, errors []error) {
+func LocalRulestackRuleName(input interface{}, k string) (warnings []string, errors []error) {
 	return paloAltoNameValidation(input, k)
 }
 

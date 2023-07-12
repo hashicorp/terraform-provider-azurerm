@@ -15,32 +15,32 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LocalRuleStack struct{}
+type LocalRulestack struct{}
 
-var _ sdk.ResourceWithUpdate = LocalRuleStack{}
+var _ sdk.ResourceWithUpdate = LocalRulestack{}
 
-type LocalRuleStackModel struct {
+type LocalRulestackModel struct {
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	Location          string `tfschema:"location"`
 	Description       string `tfschema:"description"`
 }
 
-func (r LocalRuleStack) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return localrulestacks.ValidateLocalRuleStackID
+func (r LocalRulestack) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return localrulestacks.ValidateLocalRulestackID
 }
 
-func (r LocalRuleStack) ResourceType() string {
+func (r LocalRulestack) ResourceType() string {
 	return "azurerm_palo_alto_local_rule_stack"
 }
 
-func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
+func (r LocalRulestack) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.LocalRuleStackName,
+			ValidateFunc: validate.LocalRulestackName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -54,27 +54,27 @@ func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LocalRuleStack) Attributes() map[string]*pluginsdk.Schema {
+func (r LocalRulestack) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRuleStack) ModelObject() interface{} {
-	return &LocalRuleStackModel{}
+func (r LocalRulestack) ModelObject() interface{} {
+	return &LocalRulestackModel{}
 }
 
-func (r LocalRuleStack) Create() sdk.ResourceFunc {
+func (r LocalRulestack) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRuleStacksClient
+			client := metadata.Client.PaloAlto.LocalRulestacksClient
 
-			model := LocalRuleStackModel{}
+			model := LocalRulestackModel{}
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			id := localrulestacks.NewLocalRuleStackID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+			id := localrulestacks.NewLocalRulestackID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -86,7 +86,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			localRuleStack := localrulestacks.LocalRulestackResource{
+			localRulestack := localrulestacks.LocalRulestackResource{
 				Location: model.Location,
 				Properties: localrulestacks.RulestackProperties{
 					DefaultMode: pointer.To(localrulestacks.DefaultModeNONE),
@@ -95,7 +95,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, localRuleStack); err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, id, localRulestack); err != nil {
 				return err
 			}
 
@@ -106,18 +106,18 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStack) Read() sdk.ResourceFunc {
+func (r LocalRulestack) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRuleStacksClient
+			client := metadata.Client.PaloAlto.LocalRulestacksClient
 
-			id, err := localrulestacks.ParseLocalRuleStackID(metadata.ResourceData.Id())
+			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var state LocalRuleStackModel
+			var state LocalRulestackModel
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -129,7 +129,7 @@ func (r LocalRuleStack) Read() sdk.ResourceFunc {
 
 			props := existing.Model.Properties
 
-			state.Name = id.LocalRuleStackName
+			state.Name = id.LocalRulestackName
 			state.ResourceGroupName = id.ResourceGroupName
 			state.Description = pointer.From(props.Description)
 			state.Location = location.Normalize(existing.Model.Location)
@@ -139,13 +139,13 @@ func (r LocalRuleStack) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStack) Delete() sdk.ResourceFunc {
+func (r LocalRulestack) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRuleStacksClient
+			client := metadata.Client.PaloAlto.LocalRulestacksClient
 
-			id, err := localrulestacks.ParseLocalRuleStackID(metadata.ResourceData.Id())
+			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -159,18 +159,18 @@ func (r LocalRuleStack) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStack) Update() sdk.ResourceFunc {
+func (r LocalRulestack) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRuleStacksClient
+			client := metadata.Client.PaloAlto.LocalRulestacksClient
 
-			id, err := localrulestacks.ParseLocalRuleStackID(metadata.ResourceData.Id())
+			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			model := LocalRuleStackModel{}
+			model := LocalRulestackModel{}
 
 			if err = metadata.Decode(&model); err != nil {
 				return err
@@ -184,13 +184,13 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			localRuleStack := *existing.Model
+			localRulestack := *existing.Model
 
 			if metadata.ResourceData.HasChange("description") {
-				localRuleStack.Properties.Description = pointer.To(model.Description)
+				localRulestack.Properties.Description = pointer.To(model.Description)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *id, localRuleStack); err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, localRulestack); err != nil {
 				return err
 			}
 

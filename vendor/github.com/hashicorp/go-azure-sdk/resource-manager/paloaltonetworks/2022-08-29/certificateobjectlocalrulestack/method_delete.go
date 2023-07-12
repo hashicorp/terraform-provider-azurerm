@@ -21,7 +21,7 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c CertificateObjectLocalRulestackClient) Delete(ctx context.Context, id LocalRuleStackCertificateId) (result DeleteOperationResponse, err error) {
+func (c CertificateObjectLocalRulestackClient) Delete(ctx context.Context, id LocalRulestackCertificateId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
@@ -57,7 +57,7 @@ func (c CertificateObjectLocalRulestackClient) Delete(ctx context.Context, id Lo
 }
 
 // DeleteThenPoll performs Delete then polls until it's completed
-func (c CertificateObjectLocalRulestackClient) DeleteThenPoll(ctx context.Context, id LocalRuleStackCertificateId) error {
+func (c CertificateObjectLocalRulestackClient) DeleteThenPoll(ctx context.Context, id LocalRulestackCertificateId) error {
 	result, err := c.Delete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Delete: %+v", err)

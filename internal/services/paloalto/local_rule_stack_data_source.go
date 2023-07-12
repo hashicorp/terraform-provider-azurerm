@@ -1,0 +1,90 @@
+package paloalto
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+type LocalRulestackDataSource struct{}
+
+var _ sdk.DataSource = LocalRulestackDataSource{}
+
+type LocalRulestackDataSourceModel struct {
+	Name              string `tfschema:"name"`
+	ResourceGroupName string `tfschema:"resource_group_name"`
+	Location          string `tfschema:"location"`
+	Description       string `tfschema:"description"`
+}
+
+func (l LocalRulestackDataSource) ResourceType() string {
+	return "azurerm_palo_alto_local_rule_stack"
+}
+
+func (l LocalRulestackDataSource) ModelObject() interface{} {
+	return &LocalRulestackDataSourceModel{}
+}
+
+func (l LocalRulestackDataSource) Arguments() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.LocalRulestackName,
+		},
+
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+		"location": commonschema.LocationWithoutForceNew(),
+	}
+}
+
+func (l LocalRulestackDataSource) Attributes() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
+}
+
+func (l LocalRulestackDataSource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.PaloAlto.LocalRulestacksClient
+
+			var model LocalRulestackDataSourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return err
+			}
+
+			id := localrulestacks.NewLocalRulestackID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("%s was not found", id)
+				}
+				return fmt.Errorf("reading %s: %+v", id, err)
+			}
+
+			props := existing.Model.Properties
+
+			model.Description = pointer.From(props.Description)
+
+			metadata.SetID(id)
+
+			return metadata.Encode(&model)
+		},
+	}
+}

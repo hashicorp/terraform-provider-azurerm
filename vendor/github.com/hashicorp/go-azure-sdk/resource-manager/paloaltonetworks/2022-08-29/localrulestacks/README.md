@@ -15,16 +15,16 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022
 ### Client Initialization
 
 ```go
-client := localrulestacks.NewLocalRuleStacksClientWithBaseURI("https://management.azure.com")
+client := localrulestacks.NewLocalRulestacksClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.Commit`
+### Example Usage: `LocalRulestacksClient.Commit`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 if err := client.CommitThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -32,11 +32,11 @@ if err := client.CommitThenPoll(ctx, id); err != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.CreateOrUpdate`
+### Example Usage: `LocalRulestacksClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 payload := localrulestacks.LocalRulestackResource{
 	// ...
@@ -49,11 +49,11 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.Delete`
+### Example Usage: `LocalRulestacksClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -61,11 +61,11 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.Get`
+### Example Usage: `LocalRulestacksClient.Get`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,11 +77,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.GetChangeLog`
+### Example Usage: `LocalRulestacksClient.GetChangeLog`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 read, err := client.GetChangeLog(ctx, id)
 if err != nil {
@@ -93,11 +93,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.GetSupportInfo`
+### Example Usage: `LocalRulestacksClient.GetSupportInfo`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 read, err := client.GetSupportInfo(ctx, id, localrulestacks.DefaultGetSupportInfoOperationOptions())
 if err != nil {
@@ -109,11 +109,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.ListAdvancedSecurityObjects`
+### Example Usage: `LocalRulestacksClient.ListAdvancedSecurityObjects`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 read, err := client.ListAdvancedSecurityObjects(ctx, id, localrulestacks.DefaultListAdvancedSecurityObjectsOperationOptions())
 if err != nil {
@@ -125,11 +125,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.ListAppIds`
+### Example Usage: `LocalRulestacksClient.ListAppIds`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 read, err := client.ListAppIds(ctx, id, localrulestacks.DefaultListAppIdsOperationOptions())
 if err != nil {
@@ -141,7 +141,7 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.ListByResourceGroup`
+### Example Usage: `LocalRulestacksClient.ListByResourceGroup`
 
 ```go
 ctx := context.TODO()
@@ -158,7 +158,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.ListBySubscription`
+### Example Usage: `LocalRulestacksClient.ListBySubscription`
 
 ```go
 ctx := context.TODO()
@@ -175,11 +175,11 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.ListCountries`
+### Example Usage: `LocalRulestacksClient.ListCountries`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 read, err := client.ListCountries(ctx, id, localrulestacks.DefaultListCountriesOperationOptions())
 if err != nil {
@@ -191,11 +191,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.ListFirewalls`
+### Example Usage: `LocalRulestacksClient.ListFirewalls`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 read, err := client.ListFirewalls(ctx, id)
 if err != nil {
@@ -207,11 +207,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.ListPredefinedUrlCategories`
+### Example Usage: `LocalRulestacksClient.ListPredefinedUrlCategories`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 read, err := client.ListPredefinedUrlCategories(ctx, id, localrulestacks.DefaultListPredefinedUrlCategoriesOperationOptions())
 if err != nil {
@@ -223,11 +223,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.ListSecurityServices`
+### Example Usage: `LocalRulestacksClient.ListSecurityServices`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 read, err := client.ListSecurityServices(ctx, id, localrulestacks.DefaultListSecurityServicesOperationOptions())
 if err != nil {
@@ -239,11 +239,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.Revert`
+### Example Usage: `LocalRulestacksClient.Revert`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 read, err := client.Revert(ctx, id)
 if err != nil {
@@ -255,11 +255,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `LocalRuleStacksClient.Update`
+### Example Usage: `LocalRulestacksClient.Update`
 
 ```go
 ctx := context.TODO()
-id := localrulestacks.NewLocalRuleStackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRuleStackValue")
+id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
 payload := localrulestacks.LocalRulestackResourceUpdate{
 	// ...

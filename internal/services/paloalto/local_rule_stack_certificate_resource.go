@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type LocalRuleStackCertificate struct{}
+type LocalRulestackCertificate struct{}
 
-var _ sdk.ResourceWithUpdate = LocalRuleStackCertificate{}
+var _ sdk.ResourceWithUpdate = LocalRulestackCertificate{}
 
-type LocalRuleStackCertificateModel struct {
+type LocalRulestackCertificateModel struct {
 	Name                string `tfschema:"name"`
 	RuleStackID         string `tfschema:"rule_stack_id"`
 	AuditComment        string `tfschema:"audit_comment"`
@@ -29,27 +29,27 @@ type LocalRuleStackCertificateModel struct {
 	SelfSigned          bool   `tfschema:"self_signed"`
 }
 
-func (r LocalRuleStackCertificate) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return certificateobjectlocalrulestack.ValidateLocalRuleStackCertificateID
+func (r LocalRulestackCertificate) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return certificateobjectlocalrulestack.ValidateLocalRulestackCertificateID
 }
 
-func (r LocalRuleStackCertificate) ResourceType() string {
+func (r LocalRulestackCertificate) ResourceType() string {
 	return "azurerm_palo_alto_local_rule_stack_certificate"
 }
 
-func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
+func (r LocalRulestackCertificate) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.LocalRuleStackCertificateName,
+			ValidateFunc: validate.LocalRulestackCertificateName,
 		},
 
 		"rule_stack_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: certificateobjectlocalrulestack.ValidateLocalRuleStackID,
+			ValidateFunc: certificateobjectlocalrulestack.ValidateLocalRulestackID,
 		},
 
 		"audit_comment": {
@@ -78,31 +78,31 @@ func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (r LocalRuleStackCertificate) Attributes() map[string]*schema.Schema {
+func (r LocalRulestackCertificate) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRuleStackCertificate) ModelObject() interface{} {
-	return &LocalRuleStackCertificateModel{}
+func (r LocalRulestackCertificate) ModelObject() interface{} {
+	return &LocalRulestackCertificateModel{}
 }
 
-func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
+func (r LocalRulestackCertificate) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.CertificatesClient
 
-			model := LocalRuleStackCertificateModel{}
+			model := LocalRulestackCertificateModel{}
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			ruleStackId, err := localrulestacks.ParseLocalRuleStackID(model.RuleStackID)
+			ruleStackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
 			if err != nil {
 				return err
 			}
 
-			id := certificateobjectlocalrulestack.NewLocalRuleStackCertificateID(ruleStackId.SubscriptionId, ruleStackId.ResourceGroupName, ruleStackId.LocalRuleStackName, model.Name)
+			id := certificateobjectlocalrulestack.NewLocalRulestackCertificateID(ruleStackId.SubscriptionId, ruleStackId.ResourceGroupName, ruleStackId.LocalRulestackName, model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -144,18 +144,18 @@ func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStackCertificate) Read() sdk.ResourceFunc {
+func (r LocalRulestackCertificate) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.CertificatesClient
 
-			id, err := certificateobjectlocalrulestack.ParseLocalRuleStackCertificateID(metadata.ResourceData.Id())
+			id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var state LocalRuleStackCertificateModel
+			var state LocalRulestackCertificateModel
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -166,7 +166,7 @@ func (r LocalRuleStackCertificate) Read() sdk.ResourceFunc {
 			}
 
 			state.Name = id.CertificateName
-			state.RuleStackID = certificateobjectlocalrulestack.NewLocalRuleStackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRuleStackName).ID()
+			state.RuleStackID = certificateobjectlocalrulestack.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
 
 			props := existing.Model.Properties
 
@@ -180,13 +180,13 @@ func (r LocalRuleStackCertificate) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStackCertificate) Delete() sdk.ResourceFunc {
+func (r LocalRulestackCertificate) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.CertificatesClient
 
-			id, err := certificateobjectlocalrulestack.ParseLocalRuleStackCertificateID(metadata.ResourceData.Id())
+			id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -200,19 +200,19 @@ func (r LocalRuleStackCertificate) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
+func (r LocalRulestackCertificate) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.CertificatesClient
 
-			model := LocalRuleStackCertificateModel{}
+			model := LocalRulestackCertificateModel{}
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			id, err := certificateobjectlocalrulestack.ParseLocalRuleStackCertificateID(metadata.ResourceData.Id())
+			id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

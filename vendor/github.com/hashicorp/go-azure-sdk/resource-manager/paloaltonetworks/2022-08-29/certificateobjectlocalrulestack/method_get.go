@@ -18,7 +18,7 @@ type GetOperationResponse struct {
 }
 
 // Get ...
-func (c CertificateObjectLocalRulestackClient) Get(ctx context.Context, id LocalRuleStackCertificateId) (result GetOperationResponse, err error) {
+func (c CertificateObjectLocalRulestackClient) Get(ctx context.Context, id LocalRulestackCertificateId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

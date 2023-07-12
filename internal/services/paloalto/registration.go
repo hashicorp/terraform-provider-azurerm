@@ -11,16 +11,18 @@ func (r Registration) Name() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		LocalRulestackDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		LocalRuleStack{},
-		LocalRuleStackCertificate{},
-		LocalRuleStackFQDNList{},
-		LocalRuleStackPrefixList{},
-		LocalRuleStackRule{},
+		LocalRulestack{},
+		LocalRulestackCertificate{},
+		LocalRulestackFQDNList{},
+		LocalRulestackPrefixList{},
+		LocalRulestackRule{},
 		NextGenerationFirewall{},
 	}
 }

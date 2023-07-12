@@ -21,7 +21,7 @@ type CommitOperationResponse struct {
 }
 
 // Commit ...
-func (c LocalRuleStacksClient) Commit(ctx context.Context, id LocalRuleStackId) (result CommitOperationResponse, err error) {
+func (c LocalRulestacksClient) Commit(ctx context.Context, id LocalRulestackId) (result CommitOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
@@ -55,7 +55,7 @@ func (c LocalRuleStacksClient) Commit(ctx context.Context, id LocalRuleStackId) 
 }
 
 // CommitThenPoll performs Commit then polls until it's completed
-func (c LocalRuleStacksClient) CommitThenPoll(ctx context.Context, id LocalRuleStackId) error {
+func (c LocalRulestacksClient) CommitThenPoll(ctx context.Context, id LocalRulestackId) error {
 	result, err := c.Commit(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Commit: %+v", err)

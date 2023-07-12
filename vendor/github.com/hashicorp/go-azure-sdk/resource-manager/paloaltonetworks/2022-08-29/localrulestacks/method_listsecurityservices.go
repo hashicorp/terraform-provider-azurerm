@@ -54,7 +54,7 @@ func (o ListSecurityServicesOperationOptions) ToQuery() *client.QueryParams {
 }
 
 // ListSecurityServices ...
-func (c LocalRuleStacksClient) ListSecurityServices(ctx context.Context, id LocalRuleStackId, options ListSecurityServicesOperationOptions) (result ListSecurityServicesOperationResponse, err error) {
+func (c LocalRulestacksClient) ListSecurityServices(ctx context.Context, id LocalRulestackId, options ListSecurityServicesOperationOptions) (result ListSecurityServicesOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

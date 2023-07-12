@@ -50,7 +50,7 @@ func (o ListPredefinedUrlCategoriesOperationOptions) ToQuery() *client.QueryPara
 }
 
 // ListPredefinedUrlCategories ...
-func (c LocalRuleStacksClient) ListPredefinedUrlCategories(ctx context.Context, id LocalRuleStackId, options ListPredefinedUrlCategoriesOperationOptions) (result ListPredefinedUrlCategoriesOperationResponse, err error) {
+func (c LocalRulestacksClient) ListPredefinedUrlCategories(ctx context.Context, id LocalRulestackId, options ListPredefinedUrlCategoriesOperationOptions) (result ListPredefinedUrlCategoriesOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

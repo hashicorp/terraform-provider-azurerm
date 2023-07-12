@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type LocalRuleStackPrefixList struct{}
+type LocalRulestackPrefixList struct{}
 
-var _ sdk.ResourceWithUpdate = LocalRuleStackPrefixList{}
+var _ sdk.ResourceWithUpdate = LocalRulestackPrefixList{}
 
-type LocalRuleStackPrefixListModel struct {
+type LocalRulestackPrefixListModel struct {
 	Name         string   `tfschema:"name"`
 	RuleStackID  string   `tfschema:"rule_stack_id"`
 	PrefixList   []string `tfschema:"prefix_list"`
@@ -28,31 +28,31 @@ type LocalRuleStackPrefixListModel struct {
 	Description  string   `tfschema:"description"`
 }
 
-func (r LocalRuleStackPrefixList) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return prefixlistlocalrulestack.ValidateLocalRuleStackPrefixListID
+func (r LocalRulestackPrefixList) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return prefixlistlocalrulestack.ValidateLocalRulestackPrefixListID
 }
 
-func (r LocalRuleStackPrefixList) ResourceType() string {
+func (r LocalRulestackPrefixList) ResourceType() string {
 	return "azurerm_palo_alto_local_rule_stack_prefix_list"
 }
 
-func (r LocalRuleStackPrefixList) ModelObject() interface{} {
-	return &LocalRuleStackPrefixListModel{}
+func (r LocalRulestackPrefixList) ModelObject() interface{} {
+	return &LocalRulestackPrefixListModel{}
 }
 
-func (r LocalRuleStackPrefixList) Arguments() map[string]*schema.Schema {
+func (r LocalRulestackPrefixList) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.LocalRuleStackRuleName, // TODO - Check this
+			ValidateFunc: validate.LocalRulestackRuleName, // TODO - Check this
 		},
 
 		"rule_stack_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: prefixlistlocalrulestack.ValidateLocalRuleStackID,
+			ValidateFunc: prefixlistlocalrulestack.ValidateLocalRulestackID,
 		},
 
 		"prefix_list": {
@@ -77,28 +77,28 @@ func (r LocalRuleStackPrefixList) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (r LocalRuleStackPrefixList) Attributes() map[string]*schema.Schema {
+func (r LocalRulestackPrefixList) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
+func (r LocalRulestackPrefixList) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PrefixListClient
 
-			model := LocalRuleStackPrefixListModel{}
+			model := LocalRulestackPrefixListModel{}
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			ruleStackId, err := localrulestacks.ParseLocalRuleStackID(model.RuleStackID)
+			ruleStackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
 			if err != nil {
 				return err
 			}
 
-			id := prefixlistlocalrulestack.NewLocalRuleStackPrefixListID(ruleStackId.SubscriptionId, ruleStackId.ResourceGroupName, ruleStackId.LocalRuleStackName, model.Name)
+			id := prefixlistlocalrulestack.NewLocalRulestackPrefixListID(ruleStackId.SubscriptionId, ruleStackId.ResourceGroupName, ruleStackId.LocalRulestackName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -138,18 +138,18 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
+func (r LocalRulestackPrefixList) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PrefixListClient
 
-			id, err := prefixlistlocalrulestack.ParseLocalRuleStackPrefixListID(metadata.ResourceData.Id())
+			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var state LocalRuleStackPrefixListModel
+			var state LocalRulestackPrefixListModel
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -160,7 +160,7 @@ func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
 			}
 
 			state.Name = id.PrefixListName
-			state.RuleStackID = prefixlistlocalrulestack.NewLocalRuleStackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRuleStackName).ID()
+			state.RuleStackID = prefixlistlocalrulestack.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
 
 			props := existing.Model.Properties
 
@@ -173,13 +173,13 @@ func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStackPrefixList) Delete() sdk.ResourceFunc {
+func (r LocalRulestackPrefixList) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PrefixListClient
 
-			id, err := prefixlistlocalrulestack.ParseLocalRuleStackPrefixListID(metadata.ResourceData.Id())
+			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -193,18 +193,18 @@ func (r LocalRuleStackPrefixList) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
+func (r LocalRulestackPrefixList) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PrefixListClient
 
-			id, err := prefixlistlocalrulestack.ParseLocalRuleStackPrefixListID(metadata.ResourceData.Id())
+			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			model := LocalRuleStackPrefixListModel{}
+			model := LocalRulestackPrefixListModel{}
 
 			if err = metadata.Decode(&model); err != nil {
 				return err

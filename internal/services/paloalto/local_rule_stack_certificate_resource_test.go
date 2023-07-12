@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LocalRuleStackCertificateResource struct{}
+type LocalRulestackCertificateResource struct{}
 
-func TestAccPaloAltoLocalRuleStackCertificate_basic(t *testing.T) {
+func TestAccPaloAltoLocalRulestackCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_certificate", "test")
 
-	r := LocalRuleStackCertificateResource{}
+	r := LocalRulestackCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,10 +32,10 @@ func TestAccPaloAltoLocalRuleStackCertificate_basic(t *testing.T) {
 	})
 }
 
-func TestAccPaloAltoLocalRuleStackCertificate_requiresImport(t *testing.T) {
+func TestAccPaloAltoLocalRulestackCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_certificate", "test")
 
-	r := LocalRuleStackCertificateResource{}
+	r := LocalRulestackCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,10 +51,10 @@ func TestAccPaloAltoLocalRuleStackCertificate_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPaloAltoLocalRuleStackCertificate_completeSelfSigned(t *testing.T) {
+func TestAccPaloAltoLocalRulestackCertificate_completeSelfSigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_certificate", "test")
 
-	r := LocalRuleStackCertificateResource{}
+	r := LocalRulestackCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,10 +67,10 @@ func TestAccPaloAltoLocalRuleStackCertificate_completeSelfSigned(t *testing.T) {
 	})
 }
 
-func TestAccPaloAltoLocalRuleStackCertificate_selfSignedUpdate(t *testing.T) {
+func TestAccPaloAltoLocalRulestackCertificate_selfSignedUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_certificate", "test")
 
-	r := LocalRuleStackCertificateResource{}
+	r := LocalRulestackCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,8 +97,8 @@ func TestAccPaloAltoLocalRuleStackCertificate_selfSignedUpdate(t *testing.T) {
 	})
 }
 
-func (r LocalRuleStackCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := certificateobjectlocalrulestack.ParseLocalRuleStackCertificateID(state.ID)
+func (r LocalRulestackCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (r LocalRuleStackCertificateResource) Exists(ctx context.Context, client *c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LocalRuleStackCertificateResource) basic(data acceptance.TestData) string {
+func (r LocalRulestackCertificateResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -131,7 +131,7 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleStackCertificateResource) requiresImport(data acceptance.TestData) string {
+func (r LocalRulestackCertificateResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s 
@@ -145,7 +145,7 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
 `, r.basic(data))
 }
 
-func (r LocalRuleStackCertificateResource) completeSelfSigned(data acceptance.TestData) string {
+func (r LocalRulestackCertificateResource) completeSelfSigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -165,7 +165,7 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleStackCertificateResource) completeSelfSignedUpdate(data acceptance.TestData) string {
+func (r LocalRulestackCertificateResource) completeSelfSignedUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -185,7 +185,7 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleStackCertificateResource) completeAuthoritySigned(data acceptance.TestData) string {
+func (r LocalRulestackCertificateResource) completeAuthoritySigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -206,7 +206,7 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleStackCertificateResource) template(data acceptance.TestData) string {
+func (r LocalRulestackCertificateResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PAN-%[1]d"

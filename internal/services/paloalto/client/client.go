@@ -17,7 +17,7 @@ type Client struct {
 	FirewallClient        *firewalls.FirewallsClient
 	FQDNListsClient       *fqdnlistlocalrulestack.FqdnListLocalRulestackClient
 	LocalRulesClient      *localrules.LocalRulesClient
-	LocalRuleStacksClient *localrulestacks.LocalRulestacksClient
+	LocalRulestacksClient *localrulestacks.LocalRulestacksClient
 	PrefixListClient      *prefixlistlocalrulestack.PrefixListLocalRulestackClient
 }
 
@@ -40,11 +40,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(fqdnListsClient.Client, o.Authorizers.ResourceManager)
 
-	localRuleStackClient, err := localrulestacks.NewLocalRulestacksClientWithBaseURI(o.Environment.ResourceManager)
+	localRulestackClient, err := localrulestacks.NewLocalRulestacksClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building LocalRuleStacks client: %+v", err)
+		return nil, fmt.Errorf("building LocalRulestacks client: %+v", err)
 	}
-	o.Configure(localRuleStackClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(localRulestackClient.Client, o.Authorizers.ResourceManager)
 
 	localRuleClient, err := localrules.NewLocalRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -63,7 +63,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		FirewallClient:        firewallClient,
 		FQDNListsClient:       fqdnListsClient,
 		LocalRulesClient:      localRuleClient,
-		LocalRuleStacksClient: localRuleStackClient,
+		LocalRulestacksClient: localRulestackClient,
 		PrefixListClient:      prefixListClient,
 	}, nil
 }

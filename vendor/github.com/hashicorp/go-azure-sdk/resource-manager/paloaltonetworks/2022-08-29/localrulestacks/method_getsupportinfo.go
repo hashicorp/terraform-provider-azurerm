@@ -46,7 +46,7 @@ func (o GetSupportInfoOperationOptions) ToQuery() *client.QueryParams {
 }
 
 // GetSupportInfo ...
-func (c LocalRuleStacksClient) GetSupportInfo(ctx context.Context, id LocalRuleStackId, options GetSupportInfoOperationOptions) (result GetSupportInfoOperationResponse, err error) {
+func (c LocalRulestacksClient) GetSupportInfo(ctx context.Context, id LocalRulestackId, options GetSupportInfoOperationOptions) (result GetSupportInfoOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

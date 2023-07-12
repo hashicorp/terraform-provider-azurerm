@@ -10,17 +10,17 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type LocalRuleStacksClient struct {
+type LocalRulestacksClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewLocalRuleStacksClientWithBaseURI(api environments.Api) (*LocalRuleStacksClient, error) {
+func NewLocalRulestacksClientWithBaseURI(api environments.Api) (*LocalRulestacksClient, error) {
 	client, err := resourcemanager.NewResourceManagerClient(api, "localrulestacks", defaultApiVersion)
 	if err != nil {
-		return nil, fmt.Errorf("instantiating LocalRuleStacksClient: %+v", err)
+		return nil, fmt.Errorf("instantiating LocalRulestacksClient: %+v", err)
 	}
 
-	return &LocalRuleStacksClient{
+	return &LocalRulestacksClient{
 		Client: client,
 	}, nil
 }

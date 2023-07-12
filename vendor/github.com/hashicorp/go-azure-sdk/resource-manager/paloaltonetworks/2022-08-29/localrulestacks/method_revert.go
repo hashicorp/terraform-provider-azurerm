@@ -18,7 +18,7 @@ type RevertOperationResponse struct {
 }
 
 // Revert ...
-func (c LocalRuleStacksClient) Revert(ctx context.Context, id LocalRuleStackId) (result RevertOperationResponse, err error) {
+func (c LocalRulestacksClient) Revert(ctx context.Context, id LocalRulestackId) (result RevertOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

@@ -185,7 +185,7 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   audit_comment = "test audit comment"
 
   //category {
-  //  // feeds = ["foo", "bar"] // Needs feeds defined on the LocalRuleStack
+  //  // feeds = ["foo", "bar"] // Needs feeds defined on the LocalRulestack
   //  // custom_urls = ["https://microsoft.com"] // TODO - This is another resource type in PAN?
   //}
 

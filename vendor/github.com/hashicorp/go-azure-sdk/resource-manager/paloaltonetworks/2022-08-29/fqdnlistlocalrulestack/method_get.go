@@ -18,7 +18,7 @@ type GetOperationResponse struct {
 }
 
 // Get ...
-func (c FqdnListLocalRulestackClient) Get(ctx context.Context, id LocalRuleStackFqdnListId) (result GetOperationResponse, err error) {
+func (c FqdnListLocalRulestackClient) Get(ctx context.Context, id LocalRulestackFqdnListId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

@@ -23,7 +23,7 @@ type ListByLocalRulestacksCompleteResult struct {
 }
 
 // ListByLocalRulestacks ...
-func (c PrefixListLocalRulestackClient) ListByLocalRulestacks(ctx context.Context, id LocalRuleStackId) (result ListByLocalRulestacksOperationResponse, err error) {
+func (c PrefixListLocalRulestackClient) ListByLocalRulestacks(ctx context.Context, id LocalRulestackId) (result ListByLocalRulestacksOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
@@ -61,12 +61,12 @@ func (c PrefixListLocalRulestackClient) ListByLocalRulestacks(ctx context.Contex
 }
 
 // ListByLocalRulestacksComplete retrieves all the results into a single object
-func (c PrefixListLocalRulestackClient) ListByLocalRulestacksComplete(ctx context.Context, id LocalRuleStackId) (ListByLocalRulestacksCompleteResult, error) {
+func (c PrefixListLocalRulestackClient) ListByLocalRulestacksComplete(ctx context.Context, id LocalRulestackId) (ListByLocalRulestacksCompleteResult, error) {
 	return c.ListByLocalRulestacksCompleteMatchingPredicate(ctx, id, PrefixListResourceOperationPredicate{})
 }
 
 // ListByLocalRulestacksCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c PrefixListLocalRulestackClient) ListByLocalRulestacksCompleteMatchingPredicate(ctx context.Context, id LocalRuleStackId, predicate PrefixListResourceOperationPredicate) (result ListByLocalRulestacksCompleteResult, err error) {
+func (c PrefixListLocalRulestackClient) ListByLocalRulestacksCompleteMatchingPredicate(ctx context.Context, id LocalRulestackId, predicate PrefixListResourceOperationPredicate) (result ListByLocalRulestacksCompleteResult, err error) {
 	items := make([]PrefixListResource, 0)
 
 	resp, err := c.ListByLocalRulestacks(ctx, id)

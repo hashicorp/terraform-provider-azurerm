@@ -19,7 +19,7 @@ type ListFirewallsOperationResponse struct {
 }
 
 // ListFirewalls ...
-func (c LocalRuleStacksClient) ListFirewalls(ctx context.Context, id LocalRuleStackId) (result ListFirewallsOperationResponse, err error) {
+func (c LocalRulestacksClient) ListFirewalls(ctx context.Context, id LocalRulestackId) (result ListFirewallsOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

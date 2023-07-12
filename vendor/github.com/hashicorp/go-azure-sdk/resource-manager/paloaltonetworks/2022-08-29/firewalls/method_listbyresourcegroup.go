@@ -31,7 +31,7 @@ func (c FirewallsClient) ListByResourceGroup(ctx context.Context, id commonids.R
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/providers/PaloAltoNetworks.CloudNGFW/firewalls", id.ID()),
+		Path:       fmt.Sprintf("%s/providers/PaloAltoNetworks.Cloudngfw/firewalls", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

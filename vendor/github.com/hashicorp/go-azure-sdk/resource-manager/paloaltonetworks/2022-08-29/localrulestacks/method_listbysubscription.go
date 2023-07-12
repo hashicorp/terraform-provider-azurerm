@@ -24,14 +24,14 @@ type ListBySubscriptionCompleteResult struct {
 }
 
 // ListBySubscription ...
-func (c LocalRuleStacksClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionOperationResponse, err error) {
+func (c LocalRulestacksClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/providers/PaloAltoNetworks.CloudNGFW/localRuleStacks", id.ID()),
+		Path:       fmt.Sprintf("%s/providers/PaloAltoNetworks.Cloudngfw/localRulestacks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -62,12 +62,12 @@ func (c LocalRuleStacksClient) ListBySubscription(ctx context.Context, id common
 }
 
 // ListBySubscriptionComplete retrieves all the results into a single object
-func (c LocalRuleStacksClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ListBySubscriptionCompleteResult, error) {
+func (c LocalRulestacksClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ListBySubscriptionCompleteResult, error) {
 	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, LocalRulestackResourceOperationPredicate{})
 }
 
 // ListBySubscriptionCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c LocalRuleStacksClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate LocalRulestackResourceOperationPredicate) (result ListBySubscriptionCompleteResult, err error) {
+func (c LocalRulestacksClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate LocalRulestackResourceOperationPredicate) (result ListBySubscriptionCompleteResult, err error) {
 	items := make([]LocalRulestackResource, 0)
 
 	resp, err := c.ListBySubscription(ctx, id)

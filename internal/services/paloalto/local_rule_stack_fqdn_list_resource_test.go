@@ -13,12 +13,12 @@ import (
 	"testing"
 )
 
-type LocalRuleStackFQDNList struct{}
+type LocalRulestackFQDNList struct{}
 
 func TestAccPaloAltoLocalRuleFQDNList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
 
-	r := LocalRuleStackFQDNList{}
+	r := LocalRulestackFQDNList{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccPaloAltoLocalRuleFQDNList_basic(t *testing.T) {
 func TestAccPaloAltoLocalRuleFQDNList_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
 
-	r := LocalRuleStackFQDNList{}
+	r := LocalRulestackFQDNList{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccPaloAltoLocalRuleFQDNList_complete(t *testing.T) {
 func TestAccPaloAltoLocalRuleFQDNList_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
 
-	r := LocalRuleStackFQDNList{}
+	r := LocalRulestackFQDNList{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -73,7 +73,7 @@ func TestAccPaloAltoLocalRuleFQDNList_update(t *testing.T) {
 func TestAccPaloAltoLocalRuleFQDNList_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
 
-	r := LocalRuleStackFQDNList{}
+	r := LocalRulestackFQDNList{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,8 +89,8 @@ func TestAccPaloAltoLocalRuleFQDNList_requiresImport(t *testing.T) {
 	})
 }
 
-func (r LocalRuleStackFQDNList) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := fqdnlistlocalrulestack.ParseLocalRuleStackFqdnListID(state.ID)
+func (r LocalRulestackFQDNList) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := fqdnlistlocalrulestack.ParseLocalRulestackFqdnListID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (r LocalRuleStackFQDNList) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LocalRuleStackFQDNList) basic(data acceptance.TestData) string {
+func (r LocalRulestackFQDNList) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -124,7 +124,7 @@ resource "azurerm_palo_alto_local_rule_stack_fqdn_list" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleStackFQDNList) complete(data acceptance.TestData) string {
+func (r LocalRulestackFQDNList) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -145,7 +145,7 @@ resource "azurerm_palo_alto_local_rule_stack_fqdn_list" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LocalRuleStackFQDNList) requiresImport(data acceptance.TestData) string {
+func (r LocalRulestackFQDNList) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
@@ -160,7 +160,7 @@ resource "azurerm_palo_alto_local_rule_stack_fqdn_list" "import" {
 `, r.basic(data))
 }
 
-func (r LocalRuleStackFQDNList) template(data acceptance.TestData) string {
+func (r LocalRulestackFQDNList) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PAN-%[1]d"

@@ -21,7 +21,7 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c PrefixListLocalRulestackClient) Delete(ctx context.Context, id LocalRuleStackPrefixListId) (result DeleteOperationResponse, err error) {
+func (c PrefixListLocalRulestackClient) Delete(ctx context.Context, id LocalRulestackPrefixListId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
@@ -57,7 +57,7 @@ func (c PrefixListLocalRulestackClient) Delete(ctx context.Context, id LocalRule
 }
 
 // DeleteThenPoll performs Delete then polls until it's completed
-func (c PrefixListLocalRulestackClient) DeleteThenPoll(ctx context.Context, id LocalRuleStackPrefixListId) error {
+func (c PrefixListLocalRulestackClient) DeleteThenPoll(ctx context.Context, id LocalRulestackPrefixListId) error {
 	result, err := c.Delete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Delete: %+v", err)

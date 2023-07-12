@@ -21,7 +21,7 @@ type CreateOrUpdateOperationResponse struct {
 }
 
 // CreateOrUpdate ...
-func (c PrefixListLocalRulestackClient) CreateOrUpdate(ctx context.Context, id LocalRuleStackPrefixListId, input PrefixListResource) (result CreateOrUpdateOperationResponse, err error) {
+func (c PrefixListLocalRulestackClient) CreateOrUpdate(ctx context.Context, id LocalRulestackPrefixListId, input PrefixListResource) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
@@ -60,7 +60,7 @@ func (c PrefixListLocalRulestackClient) CreateOrUpdate(ctx context.Context, id L
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c PrefixListLocalRulestackClient) CreateOrUpdateThenPoll(ctx context.Context, id LocalRuleStackPrefixListId, input PrefixListResource) error {
+func (c PrefixListLocalRulestackClient) CreateOrUpdateThenPoll(ctx context.Context, id LocalRulestackPrefixListId, input PrefixListResource) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)

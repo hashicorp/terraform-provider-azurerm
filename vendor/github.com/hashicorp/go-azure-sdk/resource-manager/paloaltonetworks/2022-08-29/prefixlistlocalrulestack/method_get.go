@@ -18,7 +18,7 @@ type GetOperationResponse struct {
 }
 
 // Get ...
-func (c PrefixListLocalRulestackClient) Get(ctx context.Context, id LocalRuleStackPrefixListId) (result GetOperationResponse, err error) {
+func (c PrefixListLocalRulestackClient) Get(ctx context.Context, id LocalRulestackPrefixListId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

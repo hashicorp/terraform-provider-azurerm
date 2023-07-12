@@ -77,7 +77,7 @@ func (r NextGenerationFirewall) Arguments() map[string]*pluginsdk.Schema {
 		"rule_stack_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: localrulestacks.ValidateLocalRuleStackID,
+			ValidateFunc: localrulestacks.ValidateLocalRulestackID,
 			ExactlyOneOf: []string{
 				"panorama",
 				"rule_stack_id",
@@ -86,7 +86,7 @@ func (r NextGenerationFirewall) Arguments() map[string]*pluginsdk.Schema {
 
 		"panorama": schema.PanoramaSchema(),
 
-		"frontend": schema.FrontEndSchema(),
+		"front_end": schema.FrontEndSchema(),
 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
@@ -111,7 +111,7 @@ func (r NextGenerationFirewall) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			// TODO - ForceNewIf config changes from Vnet to VHub or vice versa
 
-			// TODO - ForceNewIf Config changes from LocalRuleStack to Panorama
+			// TODO - ForceNewIf Config changes from LocalRulestack to Panorama
 			return nil
 		},
 	}
@@ -126,7 +126,7 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallClient
-			localRuleStackClient := metadata.Client.PaloAlto.LocalRuleStacksClient
+			localRulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
 
 			var model NextGenerationFirewallModel
 
@@ -192,12 +192,12 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 			}
 
 			if model.RuleStackId != "" {
-				ruleStackID, err := localrulestacks.ParseLocalRuleStackID(model.RuleStackId)
+				ruleStackID, err := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
 				if err != nil {
 					return err
 				}
 
-				ruleStack, err := localRuleStackClient.Get(ctx, *ruleStackID)
+				ruleStack, err := localRulestackClient.Get(ctx, *ruleStackID)
 				if err != nil {
 					return fmt.Errorf("reading %s for %s: %+v", ruleStackID, id, err)
 				}
@@ -341,7 +341,7 @@ func (r NextGenerationFirewall) Read() sdk.ResourceFunc {
 				}}
 			}
 
-			state.RuleStackId = pointer.From(props.AssociatedRulestack.RulestackId)
+			state.RuleStackId = pointer.From(props.AssociatedRulestack.ResourceId)
 
 			if existing.Model.Identity != nil {
 				ident, err := identity.FlattenLegacySystemAndUserAssignedMap(existing.Model.Identity)

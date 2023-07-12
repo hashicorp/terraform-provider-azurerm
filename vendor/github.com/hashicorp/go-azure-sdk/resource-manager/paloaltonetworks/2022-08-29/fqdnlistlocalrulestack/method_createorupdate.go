@@ -21,7 +21,7 @@ type CreateOrUpdateOperationResponse struct {
 }
 
 // CreateOrUpdate ...
-func (c FqdnListLocalRulestackClient) CreateOrUpdate(ctx context.Context, id LocalRuleStackFqdnListId, input FqdnListLocalRulestackResource) (result CreateOrUpdateOperationResponse, err error) {
+func (c FqdnListLocalRulestackClient) CreateOrUpdate(ctx context.Context, id LocalRulestackFqdnListId, input FqdnListLocalRulestackResource) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
@@ -60,7 +60,7 @@ func (c FqdnListLocalRulestackClient) CreateOrUpdate(ctx context.Context, id Loc
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c FqdnListLocalRulestackClient) CreateOrUpdateThenPoll(ctx context.Context, id LocalRuleStackFqdnListId, input FqdnListLocalRulestackResource) error {
+func (c FqdnListLocalRulestackClient) CreateOrUpdateThenPoll(ctx context.Context, id LocalRulestackFqdnListId, input FqdnListLocalRulestackResource) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)

@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type LocalRuleStackRule struct{}
+type LocalRulestackRule struct{}
 
-var _ sdk.ResourceWithUpdate = LocalRuleStackRule{}
+var _ sdk.ResourceWithUpdate = LocalRulestackRule{}
 
 var protocolApplicationDefault = "application-default"
 
@@ -39,7 +39,7 @@ type LocalRuleModel struct {
 	Description             string                 `tfschema:"description"`
 	Destination             []schema.Destination   `tfschema:"destination"`
 	LoggingEnabled          bool                   `tfschema:"logging_enabled"`
-	InspectionCertificateID string                 `tfschema:"inspection_certificate_id"` // This is the name of a Certificate resource belonging to the SAME LocalRuleStack as this rule
+	InspectionCertificateID string                 `tfschema:"inspection_certificate_id"` // This is the name of a Certificate resource belonging to the SAME LocalRulestack as this rule
 	NegateDestination       bool                   `tfschema:"negate_destination"`
 	NegateSource            bool                   `tfschema:"negate_source"`
 	Protocol                string                 `tfschema:"protocol"`
@@ -52,27 +52,27 @@ type LocalRuleModel struct {
 	Etag string `tfschema:"etag"` // TODO - Expose this here?
 }
 
-func (r LocalRuleStackRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r LocalRulestackRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return localrules.ValidateLocalRuleID
 }
 
-func (r LocalRuleStackRule) ResourceType() string {
+func (r LocalRulestackRule) ResourceType() string {
 	return "azurerm_palo_alto_local_rule_stack_rule"
 }
 
-func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
+func (r LocalRulestackRule) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.LocalRuleStackRuleName, // TODO - Check this
+			ValidateFunc: validate.LocalRulestackRuleName, // TODO - Check this
 		},
 
 		"rule_stack_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: localrules.ValidateLocalRuleStackID,
+			ValidateFunc: localrules.ValidateLocalRulestackID,
 		},
 
 		"priority": {
@@ -132,7 +132,7 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			ValidateFunc: certificates.ValidateLocalRuleStackCertificateID,
+			ValidateFunc: certificates.ValidateLocalRulestackCertificateID,
 		},
 
 		"negate_destination": {
@@ -178,7 +178,7 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {
+func (r LocalRulestackRule) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"etag": {
 			Type:     pluginsdk.TypeString,
@@ -187,11 +187,11 @@ func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LocalRuleStackRule) ModelObject() interface{} {
+func (r LocalRulestackRule) ModelObject() interface{} {
 	return &LocalRuleModel{}
 }
 
-func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
+func (r LocalRulestackRule) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -203,13 +203,13 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			ruleStackId, err := localrulestacks.ParseLocalRuleStackID(model.RuleStackID)
+			ruleStackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
 			if err != nil {
 				return err
 			}
 
 			// API uses Priority not Name for ID, despite swagger defining `ruleName` as required, not Priority - https://github.com/Azure/azure-rest-api-specs/issues/24697
-			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, ruleStackId.ResourceGroupName, ruleStackId.LocalRuleStackName, strconv.Itoa(model.Priority))
+			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, ruleStackId.ResourceGroupName, ruleStackId.LocalRulestackName, strconv.Itoa(model.Priority))
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -255,7 +255,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			}
 
 			if model.InspectionCertificateID != "" {
-				certID, err := certificates.ParseLocalRuleStackCertificateID(model.InspectionCertificateID)
+				certID, err := certificates.ParseLocalRulestackCertificateID(model.InspectionCertificateID)
 				if err != nil {
 					return err
 				}
@@ -285,7 +285,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
+func (r LocalRulestackRule) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -306,7 +306,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			state.RuleStackID = localrulestacks.NewLocalRuleStackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRuleStackName).ID()
+			state.RuleStackID = localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
 			p, err := strconv.Atoi(id.LocalRuleName)
 			if err != nil {
 				return fmt.Errorf("parsing Rule Priortiy for %s: %+v", *id, err)
@@ -341,7 +341,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
+func (r LocalRulestackRule) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -361,7 +361,7 @@ func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
+func (r LocalRulestackRule) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -418,7 +418,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("inspection_certificate_id") {
-				certID, err := certificates.ParseLocalRuleStackCertificateID(model.InspectionCertificateID)
+				certID, err := certificates.ParseLocalRulestackCertificateID(model.InspectionCertificateID)
 				if err != nil {
 					return err
 				}

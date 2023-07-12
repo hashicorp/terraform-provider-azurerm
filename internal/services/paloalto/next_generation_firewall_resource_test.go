@@ -120,7 +120,6 @@ resource "azurerm_subnet" "test1" {
       name = "PaloAltoNetworks.Cloudngfw/firewalls"
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action", 
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
       ]
     }
   }
@@ -144,7 +143,6 @@ resource "azurerm_subnet" "test2" {
       name = "PaloAltoNetworks.Cloudngfw/firewalls"
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action", 
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
       ]
     }
   }

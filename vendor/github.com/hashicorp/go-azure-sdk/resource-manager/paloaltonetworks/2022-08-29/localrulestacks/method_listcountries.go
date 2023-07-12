@@ -50,7 +50,7 @@ func (o ListCountriesOperationOptions) ToQuery() *client.QueryParams {
 }
 
 // ListCountries ...
-func (c LocalRuleStacksClient) ListCountries(ctx context.Context, id LocalRuleStackId, options ListCountriesOperationOptions) (result ListCountriesOperationResponse, err error) {
+func (c LocalRulestacksClient) ListCountries(ctx context.Context, id LocalRulestackId, options ListCountriesOperationOptions) (result ListCountriesOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

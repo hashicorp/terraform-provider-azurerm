@@ -18,7 +18,7 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c LocalRuleStacksClient) Update(ctx context.Context, id LocalRuleStackId, input LocalRulestackResourceUpdate) (result UpdateOperationResponse, err error) {
+func (c LocalRulestacksClient) Update(ctx context.Context, id LocalRulestackId, input LocalRulestackResourceUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

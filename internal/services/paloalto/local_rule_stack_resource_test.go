@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LocalRuleStackResource struct{}
+type LocalRulestackResource struct{}
 
-func TestAccPaloAltoLocalRuleStack_basic(t *testing.T) {
+func TestAccPaloAltoLocalRulestack_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
 
-	r := LocalRuleStackResource{}
+	r := LocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -29,10 +29,10 @@ func TestAccPaloAltoLocalRuleStack_basic(t *testing.T) {
 	})
 }
 
-func TestAccPaloAltoLocalRuleStack_requiresImport(t *testing.T) {
+func TestAccPaloAltoLocalRulestack_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
 
-	r := LocalRuleStackResource{}
+	r := LocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,10 +46,10 @@ func TestAccPaloAltoLocalRuleStack_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPaloAltoLocalRuleStack_complete(t *testing.T) {
+func TestAccPaloAltoLocalRulestack_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
 
-	r := LocalRuleStackResource{}
+	r := LocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,10 +60,10 @@ func TestAccPaloAltoLocalRuleStack_complete(t *testing.T) {
 	})
 }
 
-func TestAccPaloAltoLocalRuleStack_update(t *testing.T) {
+func TestAccPaloAltoLocalRulestack_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
 
-	r := LocalRuleStackResource{}
+	r := LocalRulestackResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,13 +84,13 @@ func TestAccPaloAltoLocalRuleStack_update(t *testing.T) {
 	})
 }
 
-func (r LocalRuleStackResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := localrulestacks.ParseLocalRuleStackID(state.ID)
+func (r LocalRulestackResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := localrulestacks.ParseLocalRulestackID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.PaloAlto.LocalRuleStacksClient.Get(ctx, *id)
+	resp, err := client.PaloAlto.LocalRulestacksClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
@@ -101,7 +101,7 @@ func (r LocalRuleStackResource) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LocalRuleStackResource) basic(data acceptance.TestData) string {
+func (r LocalRulestackResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -118,7 +118,7 @@ resource "azurerm_palo_alto_local_rule_stack" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LocalRuleStackResource) complete(data acceptance.TestData) string {
+func (r LocalRulestackResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -136,7 +136,7 @@ resource "azurerm_palo_alto_local_rule_stack" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LocalRuleStackResource) requiresImport(data acceptance.TestData) string {
+func (r LocalRulestackResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
@@ -150,7 +150,7 @@ resource "azurerm_palo_alto_local_rule_stack" "test" {
 `, r.basic(data))
 }
 
-func (r LocalRuleStackResource) template(data acceptance.TestData) string {
+func (r LocalRulestackResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-CAE-%[1]d"

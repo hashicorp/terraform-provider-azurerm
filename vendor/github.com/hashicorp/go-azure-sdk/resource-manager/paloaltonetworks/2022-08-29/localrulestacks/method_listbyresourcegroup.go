@@ -24,14 +24,14 @@ type ListByResourceGroupCompleteResult struct {
 }
 
 // ListByResourceGroup ...
-func (c LocalRuleStacksClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
+func (c LocalRulestacksClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/providers/PaloAltoNetworks.CloudNGFW/localRuleStacks", id.ID()),
+		Path:       fmt.Sprintf("%s/providers/PaloAltoNetworks.Cloudngfw/localRulestacks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -62,12 +62,12 @@ func (c LocalRuleStacksClient) ListByResourceGroup(ctx context.Context, id commo
 }
 
 // ListByResourceGroupComplete retrieves all the results into a single object
-func (c LocalRuleStacksClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
+func (c LocalRulestacksClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
 	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, LocalRulestackResourceOperationPredicate{})
 }
 
 // ListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c LocalRuleStacksClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate LocalRulestackResourceOperationPredicate) (result ListByResourceGroupCompleteResult, err error) {
+func (c LocalRulestacksClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate LocalRulestackResourceOperationPredicate) (result ListByResourceGroupCompleteResult, err error) {
 	items := make([]LocalRulestackResource, 0)
 
 	resp, err := c.ListByResourceGroup(ctx, id)

@@ -16,16 +16,16 @@ var _ resourceids.ResourceId = LocalRuleId{}
 type LocalRuleId struct {
 	SubscriptionId     string
 	ResourceGroupName  string
-	LocalRuleStackName string
+	LocalRulestackName string
 	LocalRuleName      string
 }
 
 // NewLocalRuleID returns a new LocalRuleId struct
-func NewLocalRuleID(subscriptionId string, resourceGroupName string, localRuleStackName string, localRuleName string) LocalRuleId {
+func NewLocalRuleID(subscriptionId string, resourceGroupName string, localRulestackName string, localRuleName string) LocalRuleId {
 	return LocalRuleId{
 		SubscriptionId:     subscriptionId,
 		ResourceGroupName:  resourceGroupName,
-		LocalRuleStackName: localRuleStackName,
+		LocalRulestackName: localRulestackName,
 		LocalRuleName:      localRuleName,
 	}
 }
@@ -49,8 +49,8 @@ func ParseLocalRuleID(input string) (*LocalRuleId, error) {
 		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
-	if id.LocalRuleStackName, ok = parsed.Parsed["localRuleStackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localRuleStackName", *parsed)
+	if id.LocalRulestackName, ok = parsed.Parsed["localRulestackName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localRulestackName", *parsed)
 	}
 
 	if id.LocalRuleName, ok = parsed.Parsed["localRuleName"]; !ok {
@@ -80,8 +80,8 @@ func ParseLocalRuleIDInsensitively(input string) (*LocalRuleId, error) {
 		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
-	if id.LocalRuleStackName, ok = parsed.Parsed["localRuleStackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localRuleStackName", *parsed)
+	if id.LocalRulestackName, ok = parsed.Parsed["localRulestackName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localRulestackName", *parsed)
 	}
 
 	if id.LocalRuleName, ok = parsed.Parsed["localRuleName"]; !ok {
@@ -108,8 +108,8 @@ func ValidateLocalRuleID(input interface{}, key string) (warnings []string, erro
 
 // ID returns the formatted Local Rule ID
 func (id LocalRuleId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/PaloAltoNetworks.CloudNGFW/localRuleStacks/%s/localRules/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LocalRuleStackName, id.LocalRuleName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/PaloAltoNetworks.Cloudngfw/localRulestacks/%s/localRules/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName, id.LocalRuleName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Local Rule ID
@@ -120,9 +120,9 @@ func (id LocalRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudNGFW", "PaloAltoNetworks.CloudNGFW", "PaloAltoNetworks.CloudNGFW"),
-		resourceids.StaticSegment("staticLocalRuleStacks", "localRuleStacks", "localRuleStacks"),
-		resourceids.UserSpecifiedSegment("localRuleStackName", "localRuleStackValue"),
+		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudngfw", "PaloAltoNetworks.Cloudngfw", "PaloAltoNetworks.Cloudngfw"),
+		resourceids.StaticSegment("staticLocalRulestacks", "localRulestacks", "localRulestacks"),
+		resourceids.UserSpecifiedSegment("localRulestackName", "localRulestackValue"),
 		resourceids.StaticSegment("staticLocalRules", "localRules", "localRules"),
 		resourceids.UserSpecifiedSegment("localRuleName", "localRuleValue"),
 	}
@@ -133,7 +133,7 @@ func (id LocalRuleId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Local Rule Stack Name: %q", id.LocalRuleStackName),
+		fmt.Sprintf("Local Rulestack Name: %q", id.LocalRulestackName),
 		fmt.Sprintf("Local Rule Name: %q", id.LocalRuleName),
 	}
 	return fmt.Sprintf("Local Rule (%s)", strings.Join(components, "\n"))

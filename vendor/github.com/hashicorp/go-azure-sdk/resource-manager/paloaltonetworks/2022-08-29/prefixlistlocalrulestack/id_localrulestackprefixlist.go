@@ -10,36 +10,36 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LocalRuleStackPrefixListId{}
+var _ resourceids.ResourceId = LocalRulestackPrefixListId{}
 
-// LocalRuleStackPrefixListId is a struct representing the Resource ID for a Local Rule Stack Prefix List
-type LocalRuleStackPrefixListId struct {
+// LocalRulestackPrefixListId is a struct representing the Resource ID for a Local Rulestack Prefix List
+type LocalRulestackPrefixListId struct {
 	SubscriptionId     string
 	ResourceGroupName  string
-	LocalRuleStackName string
+	LocalRulestackName string
 	PrefixListName     string
 }
 
-// NewLocalRuleStackPrefixListID returns a new LocalRuleStackPrefixListId struct
-func NewLocalRuleStackPrefixListID(subscriptionId string, resourceGroupName string, localRuleStackName string, prefixListName string) LocalRuleStackPrefixListId {
-	return LocalRuleStackPrefixListId{
+// NewLocalRulestackPrefixListID returns a new LocalRulestackPrefixListId struct
+func NewLocalRulestackPrefixListID(subscriptionId string, resourceGroupName string, localRulestackName string, prefixListName string) LocalRulestackPrefixListId {
+	return LocalRulestackPrefixListId{
 		SubscriptionId:     subscriptionId,
 		ResourceGroupName:  resourceGroupName,
-		LocalRuleStackName: localRuleStackName,
+		LocalRulestackName: localRulestackName,
 		PrefixListName:     prefixListName,
 	}
 }
 
-// ParseLocalRuleStackPrefixListID parses 'input' into a LocalRuleStackPrefixListId
-func ParseLocalRuleStackPrefixListID(input string) (*LocalRuleStackPrefixListId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocalRuleStackPrefixListId{})
+// ParseLocalRulestackPrefixListID parses 'input' into a LocalRulestackPrefixListId
+func ParseLocalRulestackPrefixListID(input string) (*LocalRulestackPrefixListId, error) {
+	parser := resourceids.NewParserFromResourceIdType(LocalRulestackPrefixListId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := LocalRuleStackPrefixListId{}
+	id := LocalRulestackPrefixListId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
@@ -49,8 +49,8 @@ func ParseLocalRuleStackPrefixListID(input string) (*LocalRuleStackPrefixListId,
 		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
-	if id.LocalRuleStackName, ok = parsed.Parsed["localRuleStackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localRuleStackName", *parsed)
+	if id.LocalRulestackName, ok = parsed.Parsed["localRulestackName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localRulestackName", *parsed)
 	}
 
 	if id.PrefixListName, ok = parsed.Parsed["prefixListName"]; !ok {
@@ -60,17 +60,17 @@ func ParseLocalRuleStackPrefixListID(input string) (*LocalRuleStackPrefixListId,
 	return &id, nil
 }
 
-// ParseLocalRuleStackPrefixListIDInsensitively parses 'input' case-insensitively into a LocalRuleStackPrefixListId
+// ParseLocalRulestackPrefixListIDInsensitively parses 'input' case-insensitively into a LocalRulestackPrefixListId
 // note: this method should only be used for API response data and not user input
-func ParseLocalRuleStackPrefixListIDInsensitively(input string) (*LocalRuleStackPrefixListId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocalRuleStackPrefixListId{})
+func ParseLocalRulestackPrefixListIDInsensitively(input string) (*LocalRulestackPrefixListId, error) {
+	parser := resourceids.NewParserFromResourceIdType(LocalRulestackPrefixListId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := LocalRuleStackPrefixListId{}
+	id := LocalRulestackPrefixListId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
@@ -80,8 +80,8 @@ func ParseLocalRuleStackPrefixListIDInsensitively(input string) (*LocalRuleStack
 		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
-	if id.LocalRuleStackName, ok = parsed.Parsed["localRuleStackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localRuleStackName", *parsed)
+	if id.LocalRulestackName, ok = parsed.Parsed["localRulestackName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localRulestackName", *parsed)
 	}
 
 	if id.PrefixListName, ok = parsed.Parsed["prefixListName"]; !ok {
@@ -91,50 +91,50 @@ func ParseLocalRuleStackPrefixListIDInsensitively(input string) (*LocalRuleStack
 	return &id, nil
 }
 
-// ValidateLocalRuleStackPrefixListID checks that 'input' can be parsed as a Local Rule Stack Prefix List ID
-func ValidateLocalRuleStackPrefixListID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateLocalRulestackPrefixListID checks that 'input' can be parsed as a Local Rulestack Prefix List ID
+func ValidateLocalRulestackPrefixListID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseLocalRuleStackPrefixListID(v); err != nil {
+	if _, err := ParseLocalRulestackPrefixListID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Local Rule Stack Prefix List ID
-func (id LocalRuleStackPrefixListId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/PaloAltoNetworks.CloudNGFW/localRuleStacks/%s/prefixLists/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LocalRuleStackName, id.PrefixListName)
+// ID returns the formatted Local Rulestack Prefix List ID
+func (id LocalRulestackPrefixListId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/PaloAltoNetworks.Cloudngfw/localRulestacks/%s/prefixLists/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName, id.PrefixListName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Local Rule Stack Prefix List ID
-func (id LocalRuleStackPrefixListId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Local Rulestack Prefix List ID
+func (id LocalRulestackPrefixListId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudNGFW", "PaloAltoNetworks.CloudNGFW", "PaloAltoNetworks.CloudNGFW"),
-		resourceids.StaticSegment("staticLocalRuleStacks", "localRuleStacks", "localRuleStacks"),
-		resourceids.UserSpecifiedSegment("localRuleStackName", "localRuleStackValue"),
+		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudngfw", "PaloAltoNetworks.Cloudngfw", "PaloAltoNetworks.Cloudngfw"),
+		resourceids.StaticSegment("staticLocalRulestacks", "localRulestacks", "localRulestacks"),
+		resourceids.UserSpecifiedSegment("localRulestackName", "localRulestackValue"),
 		resourceids.StaticSegment("staticPrefixLists", "prefixLists", "prefixLists"),
 		resourceids.UserSpecifiedSegment("prefixListName", "prefixListValue"),
 	}
 }
 
-// String returns a human-readable description of this Local Rule Stack Prefix List ID
-func (id LocalRuleStackPrefixListId) String() string {
+// String returns a human-readable description of this Local Rulestack Prefix List ID
+func (id LocalRulestackPrefixListId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Local Rule Stack Name: %q", id.LocalRuleStackName),
+		fmt.Sprintf("Local Rulestack Name: %q", id.LocalRulestackName),
 		fmt.Sprintf("Prefix List Name: %q", id.PrefixListName),
 	}
-	return fmt.Sprintf("Local Rule Stack Prefix List (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Local Rulestack Prefix List (%s)", strings.Join(components, "\n"))
 }
