@@ -165,6 +165,12 @@ func TestApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(t *testin
 
 		{
 			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/applicationGatewayWebApplicationFirewallPolicy1",
+			Error: true,
+		},
+
+		{
+			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/applicationGatewayWebApplicationFirewallPolicy1",
 			Expected: &ApplicationGatewayWebApplicationFirewallPolicyId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
