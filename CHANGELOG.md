@@ -1,17 +1,24 @@
 ## 3.65.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_communication_service` [GH-22426]
+
 ENHANCEMENTS:
 
-* dependencies: added `Kubernetes` and `KubernetesConfiguration` resource providers to auto provider registration [GH-22463]
-* dependencies: updating to `v0.20230710.1102917` of `github.com/hashicorp/go-azure-sdk` [GH-22442]
+* dependencies: updating to `v0.20230712.1084117` of `github.com/hashicorp/go-azure-sdk` [GH-22491]
 * dependencies: updating to `v0.20230703.1101016` of `github.com/tombuildsstuff/kermit` [GH-22390]
+* provider: the Resource Providers `Microsoft.Kubernetes` and `Microsoft.KubernetesConfiguration` are now automatically registered [GH-22463]
 * `automation/dscconfiguration` - updating to API Version `2022-08-08` [GH-22403]
 * `azurestackhcl` - updating to API Version `2023-03-01` [GH-22411]
+* `batch`: updating to use API Version `2023-05-01` [GH-22412]
 * `elastic` - updating to API Version `2023-06-01` [GH-22451]
-* `kusto` - updating to API Version `2023-05-02` [GH-22410]
+* `kusto` - updating to API Version `2023-05-02` [GH-22410
 * `managedapplications` - migrate to `hashicorp/go-azure-sdk` [GH-21571]
+* `privatedns`: updating to API Version `2020-06-01` [GH-22470]
 * `storage` - updating to Data Plane API Version `2020-08-04` [GH-22405]
 * `network` - `application_security_group` and `private_endpoint` now use `hashicorp/go-azure-sdk` [GH-22396]
+* `voiceservices`: updating to use API Version `2023-04-03` [GH-22469]
 * `azurerm_dns_zone` - can now use `host_name` with `dns_zone` for `soa_record` creation [GH-22312]
 * `azurerm_site_recovery_vmware_replication_policy_association`: update validate func and handling casing. [GH-22443]
 
@@ -19,6 +26,7 @@ BUG FIXES:
 
 * `azurerm_automation_dsc_configuration` - fixing an issue where `content_embedded` couldn't be deserialized [GH-22403]
 * `azurerm_data_factory_dataset_{cosmosdb_sqlapi|mysql|postgresql}` - Fix incorrect type/error message during read [GH-22438]
+* `azurerm_vpn_server_configuration`: fix a potential panic when setting deprecated variables [GH-22437]
 
 ## 3.64.0 (July 06, 2023)
 
