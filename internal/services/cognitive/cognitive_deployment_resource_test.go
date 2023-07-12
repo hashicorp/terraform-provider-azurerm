@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cognitive_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -111,8 +114,8 @@ resource "azurerm_cognitive_account" "test" {
 
 func (r CognitiveDeploymentTestResource) basic(data acceptance.TestData) string {
 	template := r.template(data, "OpenAI")
-
 	return fmt.Sprintf(`
+
 
 %s
 
@@ -124,7 +127,6 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-curie-001"
     version = "1"
   }
-
   scale {
     type = "Standard"
   }
@@ -166,11 +168,9 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-davinci-002"
     version = "1"
   }
-
   scale {
     type = "Standard"
   }
-
   rai_policy_name = "RAI policy"
 }
 `, template, data.RandomInteger)

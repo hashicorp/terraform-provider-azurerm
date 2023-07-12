@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud
 
 import (
@@ -15,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 const (
@@ -166,8 +169,8 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 	mongoDatabaseName := d.Get("cosmosdb_mongo_database_name")
 	sqlDatabaseName := d.Get("cosmosdb_sql_database_name")
 
-	bindingParameters := map[string]interface{}{
-		springCloudAppCosmosDbAssociationKeyAPIType: apiType,
+	bindingParameters := map[string]*string{
+		springCloudAppCosmosDbAssociationKeyAPIType: utils.String(apiType),
 	}
 
 	switch apiType {
@@ -175,23 +178,23 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 		if cassandraKeyspaceName == "" {
 			return fmt.Errorf("`cosmosdb_cassandra_keyspace_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyKeySpace] = cassandraKeyspaceName
+		bindingParameters[springCloudAppCosmosDbAssociationKeyKeySpace] = utils.String(cassandraKeyspaceName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeGremlin:
 		if gremlinDatabaseName == "" || gremlinGraphName == "" {
 			return fmt.Errorf("`cosmosdb_gremlin_database_name` and `cosmosdb_gremlin_graph_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = gremlinDatabaseName
-		bindingParameters[springCloudAppCosmosDbAssociationKeyCollectionName] = gremlinGraphName
+		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = utils.String(gremlinDatabaseName.(string))
+		bindingParameters[springCloudAppCosmosDbAssociationKeyCollectionName] = utils.String(gremlinGraphName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeMongo:
 		if mongoDatabaseName == "" {
 			return fmt.Errorf("`cosmosdb_mongo_database_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = mongoDatabaseName
+		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = utils.String(mongoDatabaseName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeSql:
 		if sqlDatabaseName == "" {
 			return fmt.Errorf("`cosmosdb_sql_database_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = sqlDatabaseName
+		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = utils.String(sqlDatabaseName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeTable:
 		if cassandraKeyspaceName != "" || gremlinDatabaseName != "" || gremlinGraphName != "" || mongoDatabaseName != "" || sqlDatabaseName != "" {
 			return fmt.Errorf("`cosmosdb_cassandra_keyspace_name`, `cosmosdb_gremlin_database_name`, `cosmosdb_gremlin_graph_name`, `cosmosdb_mongo_database_name`, `cosmosdb_sql_database_name` should not be set if `api_type` is `%s`", apiType)
@@ -244,28 +247,28 @@ func resourceSpringCloudAppCosmosDBAssociationRead(d *pluginsdk.ResourceData, me
 		d.Set("cosmosdb_account_id", props.ResourceID)
 
 		apiType := ""
-		if v, ok := props.BindingParameters[springCloudAppCosmosDbAssociationKeyAPIType]; ok {
-			apiType = v.(string)
+		if v, ok := props.BindingParameters[springCloudAppCosmosDbAssociationKeyAPIType]; ok && v != nil {
+			apiType = *v
 		}
 		d.Set("api_type", apiType)
 
 		cassandraKeyspaceName := ""
-		if v, ok := props.BindingParameters[springCloudAppCosmosDbAssociationKeyKeySpace]; ok {
-			cassandraKeyspaceName = v.(string)
+		if v, ok := props.BindingParameters[springCloudAppCosmosDbAssociationKeyKeySpace]; ok && v != nil {
+			cassandraKeyspaceName = *v
 		}
 		d.Set("cosmosdb_cassandra_keyspace_name", cassandraKeyspaceName)
 
 		mongoDatabaseName := ""
 		sqlDatabaseName := ""
 		gremlinDatabaseName := ""
-		if v, ok := props.BindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName]; ok {
+		if v, ok := props.BindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName]; ok && v != nil {
 			switch apiType {
 			case springCloudAppCosmosDbAssociationAPITypeMongo:
-				mongoDatabaseName = v.(string)
+				mongoDatabaseName = *v
 			case springCloudAppCosmosDbAssociationAPITypeSql:
-				sqlDatabaseName = v.(string)
+				sqlDatabaseName = *v
 			case springCloudAppCosmosDbAssociationAPITypeGremlin:
-				gremlinDatabaseName = v.(string)
+				gremlinDatabaseName = *v
 			}
 		}
 		d.Set("cosmosdb_gremlin_database_name", gremlinDatabaseName)
@@ -273,8 +276,8 @@ func resourceSpringCloudAppCosmosDBAssociationRead(d *pluginsdk.ResourceData, me
 		d.Set("cosmosdb_sql_database_name", sqlDatabaseName)
 
 		gremlinGraphName := ""
-		if v, ok := props.BindingParameters[springCloudAppCosmosDbAssociationKeyCollectionName]; ok {
-			gremlinGraphName = v.(string)
+		if v, ok := props.BindingParameters[springCloudAppCosmosDbAssociationKeyCollectionName]; ok && v != nil {
+			gremlinGraphName = *v
 		}
 		d.Set("cosmosdb_gremlin_graph_name", gremlinGraphName)
 	}

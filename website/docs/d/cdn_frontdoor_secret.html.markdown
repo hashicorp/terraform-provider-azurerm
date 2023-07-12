@@ -50,6 +50,9 @@ A `secret` block exports the following:
 
 A `customer_certificate` block exports the following:
 
+
+* `expiration_date` - The key vault certificate expiration date.
+ 
 * `key_vault_certificate_id` - The key vault certificate ID.
 
 * `subject_alternative_names` - One or more `subject alternative names` contained within the key vault certificate.

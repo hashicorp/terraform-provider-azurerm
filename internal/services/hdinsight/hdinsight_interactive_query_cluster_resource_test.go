@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package hdinsight_test
 
 import (
@@ -568,21 +571,6 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_autoscale(t *testing.T) {
 	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.autoscale_capacity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("https_endpoint").Exists(),
-				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
-			),
-		},
-		data.ImportStep("roles.0.head_node.0.password",
-			"roles.0.head_node.0.vm_size",
-			"roles.0.worker_node.0.password",
-			"roles.0.worker_node.0.vm_size",
-			"roles.0.zookeeper_node.0.password",
-			"roles.0.zookeeper_node.0.vm_size",
-			"storage_account"),
-		{
 			Config: r.autoscale_schedule(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -968,11 +956,9 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
       dynamic "head_node" {
         for_each = lookup(roles.value, "head_node", [])
         content {
-          password           = lookup(head_node.value, "password", null)
-          subnet_id          = lookup(head_node.value, "subnet_id", null)
-          username           = head_node.value.username
-          virtual_network_id = lookup(head_node.value, "virtual_network_id", null)
-          vm_size            = head_node.value.vm_size
+          password = lookup(head_node.value, "password", null)
+          username = head_node.value.username
+          vm_size  = head_node.value.vm_size
         }
       }
 
@@ -980,10 +966,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
         for_each = lookup(roles.value, "worker_node", [])
         content {
           password              = lookup(worker_node.value, "password", null)
-          subnet_id             = lookup(worker_node.value, "subnet_id", null)
           target_instance_count = worker_node.value.target_instance_count
           username              = worker_node.value.username
-          virtual_network_id    = lookup(worker_node.value, "virtual_network_id", null)
           vm_size               = worker_node.value.vm_size
         }
       }
@@ -991,11 +975,9 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
       dynamic "zookeeper_node" {
         for_each = lookup(roles.value, "zookeeper_node", [])
         content {
-          password           = lookup(zookeeper_node.value, "password", null)
-          subnet_id          = lookup(zookeeper_node.value, "subnet_id", null)
-          username           = zookeeper_node.value.username
-          virtual_network_id = lookup(zookeeper_node.value, "virtual_network_id", null)
-          vm_size            = zookeeper_node.value.vm_size
+          password = lookup(zookeeper_node.value, "password", null)
+          username = zookeeper_node.value.username
+          vm_size  = zookeeper_node.value.vm_size
         }
       }
     }
@@ -2004,55 +1986,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 }
 `, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
-}
-
-func (r HDInsightInteractiveQueryClusterResource) autoscale_capacity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-resource "azurerm_hdinsight_interactive_query_cluster" "test" {
-  name                = "acctesthdi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
-  tier                = "Standard"
-  component_version {
-    interactive_hive = "3.1"
-  }
-  gateway {
-    username = "acctestusrgw"
-    password = "TerrAform123!"
-  }
-  storage_account {
-    storage_container_id = azurerm_storage_container.test.id
-    storage_account_key  = azurerm_storage_account.test.primary_access_key
-    is_default           = true
-  }
-  roles {
-    head_node {
-      vm_size  = "Standard_D13_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-    worker_node {
-      vm_size               = "Standard_D14_V2"
-      username              = "acctestusrvm"
-      password              = "AccTestvdSC4daf986!"
-      target_instance_count = 2
-      autoscale {
-        capacity {
-          min_instance_count = 2
-          max_instance_count = 3
-        }
-      }
-    }
-    zookeeper_node {
-      vm_size  = "Standard_A4_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-  }
-}
-`, r.template(data), data.RandomInteger)
 }
 
 func (r HDInsightInteractiveQueryClusterResource) autoscale_schedule(data acceptance.TestData) string {

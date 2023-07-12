@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks_test
 
 import (
@@ -251,6 +254,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -272,6 +276,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
     "Delete",

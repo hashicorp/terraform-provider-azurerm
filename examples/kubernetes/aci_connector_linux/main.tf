@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -70,5 +73,5 @@ resource "azurerm_kubernetes_cluster" "example" {
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_subnet.example-aci.id
   role_definition_name = "Network Contributor"
-  principal_id         = azurerm_kubernetes_cluster.example.identity.0.principal_id
+  principal_id         = azurerm_kubernetes_cluster.example.aci_connector_linux[0].connector_identity[0].object_id
 }

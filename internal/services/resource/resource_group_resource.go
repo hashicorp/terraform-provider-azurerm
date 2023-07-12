@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package resource
 
 import (
@@ -8,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -15,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -43,6 +48,12 @@ func resourceResourceGroup() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"tags": tags.Schema(),
+
+			"managed_by": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
@@ -72,6 +83,10 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	parameters := resources.Group{
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
+	}
+
+	if v := d.Get("managed_by").(string); v != "" {
+		parameters.ManagedBy = pointer.To(v)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
@@ -114,6 +129,7 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	d.Set("name", resp.Name)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("managed_by", pointer.From(resp.ManagedBy))
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 

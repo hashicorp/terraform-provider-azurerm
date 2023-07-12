@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -92,12 +95,12 @@ func TestAccSubnetNetworkSecurityGroupAssociation_deleted(t *testing.T) {
 }
 
 func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SubnetID(state.ID)
+	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.SubnetsClient.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
+	resp, err := clients.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -112,26 +115,26 @@ func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context,
 
 func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	subnetId := state.Attributes["subnet_id"]
-	id, err := parse.SubnetID(subnetId)
+	id, err := commonids.ParseSubnetID(subnetId)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Network.SubnetsClient.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
+	read, err := client.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("retrieving Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 	}
 
 	read.SubnetPropertiesFormat.NetworkSecurityGroup = nil
 
-	future, err := client.Network.SubnetsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, read)
+	future, err := client.Network.SubnetsClient.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, read)
 	if err != nil {
-		return fmt.Errorf("updating Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
 	return nil

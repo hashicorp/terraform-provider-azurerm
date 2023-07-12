@@ -3,12 +3,12 @@ subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_site_recovery_replication_recovery_plan"
 description: |-
-    Manages an Azure Site Recovery Plan within a Recovery Services vault.
+    Manages a Site Recovery Replication Recovery Plan within a Recovery Services vault.
 ---
 
 # azurerm_site_recovery_replication_recovery_plan
 
-Manages an Azure Site Recovery Plan within a Recovery Services vault. A recovery plan gathers machines into recovery groups for the purpose of failover.
+Manages a Site Recovery Replication Recovery Plan within a Recovery Services vault. A recovery plan gathers machines into recovery groups for the purpose of failover.
 
 ## Example Usage
 
@@ -248,15 +248,17 @@ The following arguments are supported:
 
 * `target_recovery_fabric_id` - (Required) ID of target fabric to recover. Changing this forces a new Replication Plan to be created.
 
-* `recovery_group` - (Optional) Three or more `recovery_group` block.
+* `recovery_group` - (Optional) Three or more `recovery_group` block defined as below.
+
+* `azure_to_azure_settings` - (Optional) An `azure_to_azure_settings` block defined as block.
 
 ---
 
 A `recovery_group` block supports the following:
 
-*  `type` - (Required) The Recovery Plan Group Type. Possible values are `Boot`, `Failover` and `Shutdown`.
+* `type` - (Required) The Recovery Plan Group Type. Possible values are `Boot`, `Failover` and `Shutdown`.
 
-* `replicated_protected_items` - (Optional) (required) one or more id of protected VM.
+* `replicated_protected_items` - (Optional) One or more protected VM IDs. It must not be specified when `type` is `Shutdown`.
 
 * `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
 
@@ -274,7 +276,7 @@ An `action` block supports the following:
 
 * `fail_over_types` - (Required) Types of fail over. Possible values are `TestFailover`, `PlannedFailover` and `UnplannedFailover`
 
-* `fabric_location` - (Optional) The fabric location of runbook or script. Possible values are `Primary` and `Recovery`.
+* `fabric_location` - (Optional) The fabric location of runbook or script. Possible values are `Primary` and `Recovery`. It must not be specified when `type` is `ManualActionDetails`.
 
 -> **NOTE:** This is required when `type` is set to `AutomationRunbookActionDetails` or `ScriptActionDetails`.
 
@@ -290,6 +292,21 @@ An `action` block supports the following:
 
 -> **NOTE:** This property is required when `type` is set to `ScriptActionDetails`.
 
+---
+
+An `azure_to_azure_settings` block supports the following:
+
+* `primary_zone` - (Optional) The Availability Zone in which the VM is located. Changing this forces a new Site Recovery Replication Recovery Plan to be created.
+
+* `recovery_zone` - (Optional) The Availability Zone in which the VM is recovered. Changing this forces a new Site Recovery Replication Recovery Plan to be created.
+
+-> **Note:** `primary_zone` and `recovery_zone` must be specified together.
+
+* `primary_edge_zone` - (Optional) The Edge Zone within the Azure Region where the VM exists. Changing this forces a new Site Recovery Replication Recovery Plan to be created.
+
+* `recovery_edge_zone` - (Optional) The Edge Zone within the Azure Region where the VM is recovered. Changing this forces a new Site Recovery Replication Recovery Plan to be created.
+
+-> **Note:** `primary_edge_zone` and `recovery_edge_zone` must be specified together.
 
 ## Attributes Reference
 

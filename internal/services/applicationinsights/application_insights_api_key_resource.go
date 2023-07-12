@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package applicationinsights
 
 import (
@@ -111,16 +114,18 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	for _, existingAPIKey := range *existingAPIKeyList.Value {
-		existingAPIKeyId, err = parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
-		if err != nil {
-			return err
-		}
+	if existingAPIKeyList.Value != nil {
+		for _, existingAPIKey := range *existingAPIKeyList.Value {
+			existingAPIKeyId, err = parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
+			if err != nil {
+				return err
+			}
 
-		existingAppInsightsName := existingAPIKeyId.ComponentName
-		if appInsightsId.Name == existingAppInsightsName {
-			keyId = existingAPIKeyId.Name
-			break
+			existingAppInsightsName := existingAPIKeyId.ComponentName
+			if appInsightsId.Name == existingAppInsightsName {
+				keyId = existingAPIKeyId.Name
+				break
+			}
 		}
 	}
 

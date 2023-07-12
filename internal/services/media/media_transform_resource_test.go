@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package media_test
 
 import (
@@ -493,6 +496,10 @@ resource "azurerm_media_transform" "test" {
             labels = ["prod"]
           }
         }
+      }
+
+      experimental_options = {
+        env = "prod"
       }
 
       filter {

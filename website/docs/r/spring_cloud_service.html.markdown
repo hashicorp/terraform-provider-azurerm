@@ -62,9 +62,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `container_registry` - (Optional) One or more `container_registry` block as defined below. This field is applicable only for Spring Cloud Service with enterprise tier.
+
 * `log_stream_public_endpoint_enabled` - (Optional) Should the log stream in vnet injection instance could be accessed from Internet?
 
 * `build_agent_pool_size` - (Optional) Specifies the size for this Spring Cloud Service's default build agent pool. Possible values are `S1`, `S2`, `S3`, `S4` and `S5`. This field is applicable only for Spring Cloud Service with enterprise tier.
+
+* `default_build_service` - (Optional) A `default_build_service` block as defined below. This field is applicable only for Spring Cloud Service with enterprise tier.
 
 * `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`. Changing this forces a new resource to be created.
 
@@ -111,6 +115,24 @@ The `config_server_git_setting` block supports the following:
 * `ssh_auth` - (Optional) A `ssh_auth` block as defined below.
 
 * `repository` - (Optional) One or more `repository` blocks as defined below.
+
+---
+
+The `container_registry` block supports the following:
+
+* `name` - (Required) Specifies the name of the container registry.
+
+* `username` - (Required) Specifies the username of the container registry.
+
+* `password` - (Required) Specifies the password of the container registry.
+
+* `server` - (Required) Specifies the login server of the container registry.
+
+---
+
+The `default_build_service` block supports the following:
+
+* `container_registry_name` - (Optional) Specifies the name of the container registry used in the default build service.
 
 ---
 

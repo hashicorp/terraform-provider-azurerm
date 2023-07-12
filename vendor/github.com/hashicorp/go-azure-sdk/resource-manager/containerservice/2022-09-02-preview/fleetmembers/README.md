@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `FleetMembersClient.CreateOrUpdate`
+### Example Usage: `FleetMembersClient.Create`
 
 ```go
 ctx := context.TODO()
@@ -31,7 +31,7 @@ payload := fleetmembers.FleetMember{
 }
 
 
-if err := client.CreateOrUpdateThenPoll(ctx, id, payload, fleetmembers.DefaultCreateOrUpdateOperationOptions()); err != nil {
+if err := client.CreateThenPoll(ctx, id, payload, fleetmembers.DefaultCreateOperationOptions()); err != nil {
 	// handle the error
 }
 ```

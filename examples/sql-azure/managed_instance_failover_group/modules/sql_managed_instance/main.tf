@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_network_security_group" "nsg" {
   name                = "${var.prefix}-mi-security-group"
   location            = var.location

@@ -19,7 +19,7 @@ type ListKeysOperationResponse struct {
 }
 
 // ListKeys ...
-func (c DisasterRecoveryConfigsClient) ListKeys(ctx context.Context, id AuthorizationRuleId) (result ListKeysOperationResponse, err error) {
+func (c DisasterRecoveryConfigsClient) ListKeys(ctx context.Context, id DisasterRecoveryConfigAuthorizationRuleId) (result ListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

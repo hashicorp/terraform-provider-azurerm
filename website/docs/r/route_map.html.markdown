@@ -24,7 +24,7 @@ resource "azurerm_virtual_wan" "example" {
   location            = azurerm_resource_group.example.location
 }
 
-resource "azurerm_virtual_hub" "test" {
+resource "azurerm_virtual_hub" "example" {
   name                = "example-vhub"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location

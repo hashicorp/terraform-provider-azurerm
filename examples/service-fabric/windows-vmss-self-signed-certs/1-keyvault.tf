@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_key_vault" "example" {
   name                = "${var.prefix}examplekv"
   location            = azurerm_resource_group.example.location

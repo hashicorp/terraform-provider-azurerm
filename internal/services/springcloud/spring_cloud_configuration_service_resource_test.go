@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud_test
 
 import (
@@ -91,6 +94,26 @@ func TestAccSpringCloudConfigurationService_update(t *testing.T) {
 		data.ImportStep("repository.0.password", "repository.0.username"),
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSpringCloudConfigurationService_generation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_configuration_service", "test")
+	r := SpringCloudConfigurationServiceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.generation(data, "Gen1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(), {
+			Config: r.generation(data, "Gen2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -201,4 +224,17 @@ resource "azurerm_spring_cloud_configuration_service" "test" {
   }
 }
 `, template)
+}
+
+func (r SpringCloudConfigurationServiceResource) generation(data acceptance.TestData, generation string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_configuration_service" "test" {
+  name                    = "default"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  generation              = "%s"
+}
+`, template, generation)
 }

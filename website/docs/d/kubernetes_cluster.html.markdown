@@ -112,6 +112,8 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to this resource.
 
+* `custom_ca_trust_certificates_base64` - A list of custom base64 encoded CAs used by this Managed Kubernetes Cluster.
+
 ---
 
 An `aci_connector_linux` block exports the following:

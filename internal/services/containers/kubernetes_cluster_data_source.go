@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -13,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -328,6 +331,14 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Computed: true,
 						},
 					},
+				},
+			},
+
+			"custom_ca_trust_certificates_base64": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -683,7 +694,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := managedclusters.NewManagedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewKubernetesClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -750,6 +761,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
 			if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
+			}
+
+			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile.CustomCATrustCertificates)
+			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
+				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
 			}
 
 			kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
@@ -886,27 +902,27 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 
 	if input != nil {
 		blobEnabled := false
-		if input.BlobCSIDriver != nil {
+		if input.BlobCSIDriver != nil && input.BlobCSIDriver.Enabled != nil {
 			blobEnabled = *input.BlobCSIDriver.Enabled
 		}
 
 		diskEnabled := true
-		if input.DiskCSIDriver != nil {
+		if input.DiskCSIDriver != nil && input.DiskCSIDriver.Enabled != nil {
 			diskEnabled = *input.DiskCSIDriver.Enabled
 		}
 
 		diskVersion := ""
-		if input.FileCSIDriver != nil {
+		if input.DiskCSIDriver != nil && input.DiskCSIDriver.Version != nil {
 			diskVersion = *input.DiskCSIDriver.Version
 		}
 
 		fileEnabled := true
-		if input.DiskCSIDriver != nil {
+		if input.FileCSIDriver != nil && input.FileCSIDriver.Enabled != nil {
 			fileEnabled = *input.FileCSIDriver.Enabled
 		}
 
 		snapshotController := true
-		if input.SnapshotController != nil {
+		if input.SnapshotController != nil && input.SnapshotController.Enabled != nil {
 			snapshotController = *input.SnapshotController.Enabled
 		}
 
@@ -1334,10 +1350,6 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.C
 		values["dns_service_ip"] = *profile.DnsServiceIP
 	}
 
-	if profile.DockerBridgeCidr != nil {
-		values["docker_bridge_cidr"] = *profile.DockerBridgeCidr
-	}
-
 	if profile.PodCidr != nil {
 		values["pod_cidr"] = *profile.PodCidr
 	}
@@ -1434,4 +1446,18 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 			"max_surge": maxSurge,
 		},
 	}
+}
+
+func flattenCustomCaTrustCerts(input *[]string) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	customCaTrustCertInterface := make([]interface{}, len(*input))
+
+	for index, value := range *input {
+		customCaTrustCertInterface[index] = value
+	}
+
+	return customCaTrustCertInterface
 }
