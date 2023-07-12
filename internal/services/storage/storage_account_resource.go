@@ -81,8 +81,9 @@ func resourceStorageAccount() *pluginsdk.Resource {
 		0: migration.AccountV0ToV1{},
 		1: migration.AccountV1ToV2{},
 		2: migration.AccountV2ToV3{},
+		3: migration.AccountV3ToV4{},
 	}
-	schemaVersion := 3
+	schemaVersion := 4
 
 	return &pluginsdk.Resource{
 		Create: resourceStorageAccountCreate,

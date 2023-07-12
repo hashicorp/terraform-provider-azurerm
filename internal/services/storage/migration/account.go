@@ -1055,8 +1055,6 @@ func (AccountV2ToV3) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			delete(rawState, "allow_blob_public_access")
 		}
 
-		rawState["cross_tenant_replication_enabled"] = true
-
 		return rawState, nil
 	}
 }
