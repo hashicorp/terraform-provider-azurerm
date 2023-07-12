@@ -390,6 +390,22 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
+			if siteConfigAppSetting := siteConfig.AppSettings; siteConfigAppSetting != nil && len(*siteConfigAppSetting) > 0 {
+				if webApp.AppSettings == nil {
+					webApp.AppSettings = make(map[string]string)
+				}
+				for _, pair := range *siteConfigAppSetting {
+					if pair.Name == nil || pair.Value == nil {
+						continue
+					}
+					if *pair.Name == "DOCKER_REGISTRY_SERVER_URL" ||
+						*pair.Name == "DOCKER_REGISTRY_SERVER_USERNAME" ||
+						*pair.Name == "DOCKER_REGISTRY_SERVER_PASSWORD" {
+						webApp.AppSettings[*pair.Name] = *pair.Value
+					}
+				}
+			}
+
 			appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
@@ -804,7 +820,22 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") || metadata.ResourceData.HasChanges("site_config.0.application_stack") {
+				if siteConfigAppSetting := existing.SiteConfig.AppSettings; siteConfigAppSetting != nil && len(*siteConfigAppSetting) > 0 {
+					if state.AppSettings == nil {
+						state.AppSettings = make(map[string]string)
+					}
+					for _, pair := range *siteConfigAppSetting {
+						if pair.Name == nil || pair.Value == nil {
+							continue
+						}
+						if *pair.Name == "DOCKER_REGISTRY_SERVER_URL" ||
+							*pair.Name == "DOCKER_REGISTRY_SERVER_USERNAME" ||
+							*pair.Name == "DOCKER_REGISTRY_SERVER_PASSWORD" {
+							state.AppSettings[*pair.Name] = *pair.Value
+						}
+					}
+				}
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
 				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
 

@@ -385,6 +385,22 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if siteConfigAppSetting := siteConfig.AppSettings; siteConfigAppSetting != nil && len(*siteConfigAppSetting) > 0 {
+				if webAppSlot.AppSettings == nil {
+					webAppSlot.AppSettings = make(map[string]string)
+				}
+				for _, pair := range *siteConfigAppSetting {
+					if pair.Name == nil || pair.Value == nil {
+						continue
+					}
+					if *pair.Name == "DOCKER_REGISTRY_SERVER_URL" ||
+						*pair.Name == "DOCKER_REGISTRY_SERVER_USERNAME" ||
+						*pair.Name == "DOCKER_REGISTRY_SERVER_PASSWORD" {
+						webAppSlot.AppSettings[*pair.Name] = *pair.Value
+					}
+				}
+			}
+
 			appSettings := helpers.ExpandAppSettingsForUpdate(webAppSlot.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
@@ -815,10 +831,27 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") || metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
+			if metadata.ResourceData.HasChange("app_settings") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") || metadata.ResourceData.HasChange("site_config.0.application_stack") {
+				if siteConfigAppSetting := existing.SiteConfig.AppSettings; siteConfigAppSetting != nil && len(*siteConfigAppSetting) > 0 {
+					if state.AppSettings == nil {
+						state.AppSettings = make(map[string]string)
+					}
+					for _, pair := range *siteConfigAppSetting {
+						if pair.Name == nil || pair.Value == nil {
+							continue
+						}
+						if *pair.Name == "DOCKER_REGISTRY_SERVER_URL" ||
+							*pair.Name == "DOCKER_REGISTRY_SERVER_USERNAME" ||
+							*pair.Name == "DOCKER_REGISTRY_SERVER_PASSWORD" {
+							state.AppSettings[*pair.Name] = *pair.Value
+						}
+					}
+				}
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
 				appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = pointer.To(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
-				appSettingsUpdate.Properties["WEBSITE_NODE_DEFAULT_VERSION"] = pointer.To(state.SiteConfig[0].ApplicationStack[0].NodeVersion)
+				if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
+					appSettingsUpdate.Properties["WEBSITE_NODE_DEFAULT_VERSION"] = pointer.To(state.SiteConfig[0].ApplicationStack[0].NodeVersion)
+				}
 				if _, err := client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating App Settings for Windows %s: %+v", id, err)
 				}
