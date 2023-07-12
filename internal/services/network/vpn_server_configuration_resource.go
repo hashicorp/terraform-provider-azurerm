@@ -757,9 +757,6 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 				RadiusServerScore:   utils.Int64(int64(v["score"].(int))),
 			})
 		}
-	} else {
-		address = val["address"].(string)
-		secret = val["secret"].(string)
 	}
 
 	return &vpnServerConfigurationRadius{
