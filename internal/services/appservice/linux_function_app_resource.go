@@ -291,7 +291,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "whether to run the function app from a package",
+			Description: "should the function app run from a package",
 		},
 	}
 }
@@ -495,7 +495,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 			if functionApp.WebsiteRunFromPackage && functionApp.AppSettings["WEBSITE_RUN_FROM_PACKAGE"] == "" {
 				if helpers.PlanIsConsumption(planSKU) {
-					return fmt.Errorf("for linux function app running in a consumption plan, please sets a URL that is the remote location of the specific package file you want to run for WEBSITE_RUN_FROM_PACKAGE in app_setting")
+					return fmt.Errorf("for linux function app running in a consumption plan, please configure a URL for the remote location of the package file you want to run for WEBSITE_RUN_FROM_PACKAGE in app_setting")
 				} else {
 					functionApp.AppSettings["WEBSITE_RUN_FROM_PACKAGE"] = "1"
 				}
@@ -987,7 +987,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if appSettingsResp.Properties != nil && appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"] != nil {
+			if appSettingsResp.Properties != nil && pointer.From(appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"]) != "" {
 				if state.AppSettings == nil {
 					state.AppSettings = make(map[string]string)
 				}

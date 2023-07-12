@@ -101,7 +101,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_uses_managed_identity` - Is the Function App using a Managed Identity to access the storage account?
 
-* `website_run_from_package` - Does the Function App deployed via a package file?
+* `website_run_from_package` - Is the Windows Function App deployed via a package file?
 
 * `tags` - A mapping of tags assigned to the Windows Function App.
 

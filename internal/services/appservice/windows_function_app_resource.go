@@ -291,7 +291,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "whether to run the function app from a package",
+			Description: "should the function app run from a package",
 		},
 	}
 }
@@ -754,7 +754,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
 
-			if appSettingsResp.Properties != nil && appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"] != nil {
+			if appSettingsResp.Properties != nil && pointer.From(appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"]) != "" {
 				state.WebsiteRunFromPackage = true
 			}
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
@@ -986,7 +986,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if appSettingsResp.Properties != nil && appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"] != nil {
+			if appSettingsResp.Properties != nil && pointer.From(appSettingsResp.Properties["WEBSITE_RUN_FROM_PACKAGE"]) != "" {
 				if state.AppSettings == nil {
 					state.AppSettings = make(map[string]string)
 				}
@@ -1329,7 +1329,7 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input web.Str
 		case "WEBSITE_RUN_FROM_PACKAGE":
 			// Keep if user explicitly set, otherwise filter out as will have been added by ADO et al
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_RUN_FROM_PACKAGE"); ok {
-				appSettings[k] = utils.NormalizeNilableString(v)
+				appSettings[k] = pointer.From(v)
 			}
 
 		default:
