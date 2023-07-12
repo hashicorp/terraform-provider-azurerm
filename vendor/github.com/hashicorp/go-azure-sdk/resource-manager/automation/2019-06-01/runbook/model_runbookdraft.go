@@ -1,4 +1,4 @@
-package runbookdraft
+package runbook
 
 import (
 	"time"

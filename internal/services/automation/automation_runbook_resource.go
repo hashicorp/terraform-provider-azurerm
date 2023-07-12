@@ -4,7 +4,9 @@
 package automation
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"time"
 
@@ -12,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	runbook2 "github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/jobschedule"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbook"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbookdraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -308,7 +310,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
-		_, err := autoCli.RunbookDraftClient.ReplaceContent(ctx, runbookdraft.RunbookId(id), []byte(content))
+		_, err := autoCli.RunbookDraftClient.ReplaceContent(ctx, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName, io.NopCloser(bytes.NewBufferString(content)))
 		if err != nil {
 			return fmt.Errorf("setting the draft for %s: %+v", id, err)
 		}
@@ -317,12 +319,9 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		// 	return fmt.Errorf("waiting for set the draft for %s: %+v", id, err)
 		// }
 
-		f2, err := client.Publish(ctx, id)
-		if err != nil {
+		id2 := runbook2.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
+		if err := autoCli.RunbookClientHack.PublishThenPoll(ctx, id2); err != nil {
 			return fmt.Errorf("publishing the updated %s: %+v", id, err)
-		}
-		if err := f2.Poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for publish the updated %s: %+v", id, err)
 		}
 	}
 
