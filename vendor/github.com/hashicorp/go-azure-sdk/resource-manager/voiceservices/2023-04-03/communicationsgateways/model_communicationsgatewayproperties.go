@@ -11,6 +11,7 @@ type CommunicationsGatewayProperties struct {
 	Connectivity                      Connectivity                       `json:"connectivity"`
 	E911Type                          E911Type                           `json:"e911Type"`
 	EmergencyDialStrings              *[]string                          `json:"emergencyDialStrings,omitempty"`
+	IntegratedMcpEnabled              *bool                              `json:"integratedMcpEnabled,omitempty"`
 	OnPremMcpEnabled                  *bool                              `json:"onPremMcpEnabled,omitempty"`
 	Platforms                         []CommunicationsPlatform           `json:"platforms"`
 	ProvisioningState                 *ProvisioningState                 `json:"provisioningState,omitempty"`
