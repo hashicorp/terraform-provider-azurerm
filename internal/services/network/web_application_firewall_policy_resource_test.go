@@ -297,7 +297,7 @@ func (t WebApplicationFirewallResource) Exists(ctx context.Context, clients *cli
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model.Id != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (WebApplicationFirewallResource) basic(data acceptance.TestData) string {

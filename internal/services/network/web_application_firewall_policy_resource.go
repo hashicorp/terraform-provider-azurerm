@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -490,9 +491,7 @@ func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 	d.Set("name", id.ApplicationGatewayWebApplicationFirewallPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
-		}
+		d.Set("location", location.NormalizeNilable(model.Location))
 		if prop := model.Properties; prop != nil {
 			if err := d.Set("custom_rules", flattenWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(prop.CustomRules)); err != nil {
 				return fmt.Errorf("setting `custom_rules`: %+v", err)
@@ -526,13 +525,8 @@ func resourceWebApplicationFirewallPolicyDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	future, err := client.Delete(ctx, *id)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -602,7 +596,7 @@ func expandWebApplicationFirewallPolicyManagedRulesDefinition(input []interface{
 
 	return &webapplicationfirewallpolicies.ManagedRulesDefinition{
 		Exclusions:      expandWebApplicationFirewallPolicyExclusions(exclusions),
-		ManagedRuleSets: expandedManagedRuleSets,
+		ManagedRuleSets: *expandedManagedRuleSets,
 	}, nil
 }
 
@@ -684,7 +678,7 @@ func expandWebApplicationFirewallPolicyExclusions(input []interface{}) *[]webapp
 	return &results
 }
 
-func expandWebApplicationFirewallPolicyManagedRuleSet(input []interface{}, d *pluginsdk.ResourceData) ([]webapplicationfirewallpolicies.ManagedRuleSet, error) {
+func expandWebApplicationFirewallPolicyManagedRuleSet(input []interface{}, d *pluginsdk.ResourceData) (*[]webapplicationfirewallpolicies.ManagedRuleSet, error) {
 	results := make([]webapplicationfirewallpolicies.ManagedRuleSet, 0)
 
 	for i, item := range input {
@@ -709,7 +703,7 @@ func expandWebApplicationFirewallPolicyManagedRuleSet(input []interface{}, d *pl
 
 		results = append(results, result)
 	}
-	return results, nil
+	return &results, nil
 }
 
 func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}, d *pluginsdk.ResourceData, managedRuleSetIndex int) (*[]webapplicationfirewallpolicies.ManagedRuleGroupOverride, error) {

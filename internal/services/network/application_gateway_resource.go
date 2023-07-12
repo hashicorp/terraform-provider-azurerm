@@ -4546,7 +4546,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 							if err != nil {
 								return nil, err
 							}
-							output["firewall_policy_id"] = policyId.ID()
+							ruleOutput["firewall_policy_id"] = policyId.ID()
 						}
 
 						pathOutputs := make([]interface{}, 0)
