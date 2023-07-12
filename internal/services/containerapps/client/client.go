@@ -4,12 +4,12 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-10-01/certificates"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-10-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-10-01/containerappsrevisions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-10-01/daprcomponents"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-10-01/managedenvironments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-10-01/managedenvironmentsstorages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-11-01-preview/certificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-11-01-preview/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-11-01-preview/containerappsrevisions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-11-01-preview/daprcomponents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-11-01-preview/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-11-01-preview/managedenvironmentsstorages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
