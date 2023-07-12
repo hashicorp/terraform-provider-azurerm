@@ -118,19 +118,23 @@ func (br roleAssignmentBaseResource) createFunc(resourceName, scope string) sdk.
 			var roleDefinitionId string
 			if v, ok := metadata.ResourceData.GetOk("role_definition_id"); ok {
 				roleDefinitionId = v.(string)
-			} else if v, ok := metadata.ResourceData.GetOk("role_definition_name"); ok {
+			}
+
+			if v, ok := metadata.ResourceData.GetOk("role_definition_name"); ok {
 				roleName := v.(string)
 				roleDefinitions, err := roleDefinitionsClient.List(ctx, commonids.NewScopeID(scope), roledefinitions.ListOperationOptions{Filter: pointer.To(fmt.Sprintf("roleName eq '%s'", roleName))})
 				if err != nil {
 					return fmt.Errorf("loading Role Definition List: %+v", err)
 				}
 
-				if roleDefinitions.Model != nil && len(*roleDefinitions.Model) == 1 && (*roleDefinitions.Model)[0].Id != nil {
-					roleDefinitionId = *(*roleDefinitions.Model)[0].Id
-				} else {
+				if roleDefinitions.Model == nil || len(*roleDefinitions.Model) != 1 || (*roleDefinitions.Model)[0].Id == nil {
 					return fmt.Errorf("loading Role Definition List: failed to find role '%s'", roleName)
 				}
-			} else {
+
+				roleDefinitionId = *(*roleDefinitions.Model)[0].Id
+			}
+
+			if roleDefinitionId == "" {
 				return fmt.Errorf("either 'role_definition_id' or 'role_definition_name' needs to be set")
 			}
 
@@ -138,19 +142,17 @@ func (br roleAssignmentBaseResource) createFunc(resourceName, scope string) sdk.
 
 			principalId := metadata.ResourceData.Get("principal_id").(string)
 
+			var err error
 			if name == "" {
-				uuid, err := uuid.GenerateUUID()
+				name, err = uuid.GenerateUUID()
 				if err != nil {
 					return fmt.Errorf("generating UUID for Role Assignment: %+v", err)
 				}
-
-				name = uuid
 			}
 
 			tenantId := ""
 			delegatedManagedIdentityResourceID := metadata.ResourceData.Get("delegated_managed_identity_resource_id").(string)
 			if len(delegatedManagedIdentityResourceID) > 0 {
-				var err error
 				tenantId, err = getTenantIdBySubscriptionId(ctx, subscriptionClient, subscriptionId)
 				if err != nil {
 					return err
@@ -189,11 +191,9 @@ func (br roleAssignmentBaseResource) createFunc(resourceName, scope string) sdk.
 			condition := metadata.ResourceData.Get("condition").(string)
 			conditionVersion := metadata.ResourceData.Get("condition_version").(string)
 
-			if condition != "" && conditionVersion != "" {
+			if condition != "" {
 				properties.Properties.Condition = &condition
 				properties.Properties.ConditionVersion = &conditionVersion
-			} else if condition != "" || conditionVersion != "" {
-				return fmt.Errorf("`condition` and `conditionVersion` should be both set or unset")
 			}
 
 			skipPrincipalCheck := metadata.ResourceData.Get("skip_service_principal_aad_check").(bool)
@@ -237,7 +237,7 @@ func (br roleAssignmentBaseResource) readFunc(scope string, isTenantLevel bool) 
 			resp, err := client.GetById(ctx, commonids.NewScopeID(id.ScopedId.ID()), options)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					log.Printf("[DEBUG] Role Assignment ID %s was not found - removing from state", id)
+					log.Printf("[DEBUG] %s was not found - removing from state", id)
 					metadata.ResourceData.SetId("")
 					return nil
 				}
@@ -256,7 +256,7 @@ func (br roleAssignmentBaseResource) readFunc(scope string, isTenantLevel bool) 
 					metadata.ResourceData.Set("condition_version", props.ConditionVersion)
 
 					if props.PrincipalType != nil {
-						metadata.ResourceData.Set("principal_type", string(*props.PrincipalType))
+						metadata.ResourceData.Set("principal_type", pointer.From(props.PrincipalType))
 					}
 
 					// allows for import when role name is used (also if the role name changes a plan will show a diff)

@@ -3,12 +3,12 @@ subcategory: "Authorization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_role_assignment_marketplace"
 description: |-
-  Assigns a given Principal (User or Group) to a given Role in Private Azure Marketplace.
+  Assigns a given Principal (User or Group) to a given Role in a Private Azure Marketplace.
 ---
 
 # azurerm_role_assignment_marketplace
 
-Assigns a given Principal (User or Group) to a given Role in Private Azure Marketplace.
+Assigns a given Principal (User or Group) to a given Role in a Private Azure Marketplace.
 
 ## Example Usage (using a role definition name)
 
@@ -73,13 +73,13 @@ The following arguments are supported:
 
 * `delegated_managed_identity_resource_id` - (Optional) The delegated Azure Resource ID which contains a Managed Identity. Changing this forces a new resource to be created.
 
-~> **NOTE:** this field is only used in cross tenant scenario.
+~> **NOTE:** This field is only used in cross tenant scenarios.
 
 * `description` - (Optional) The description for this Role Assignment. Changing this forces a new resource to be created.
 
 * `skip_service_principal_aad_check` - (Optional) If the `principal_id` is a newly provisioned `Service Principal` set this value to `true` to skip the `Azure Active Directory` check which may fail due to replication lag. This argument is only valid if the `principal_id` is a `Service Principal` identity. Defaults to `false`. Changing this forces a new resource to be created.
 
-~> **NOTE:** If it is not a `Service Principal` identity it will cause the role assignment to fail.
+~> **NOTE:** This field takes effect only when `principal_id` is a `Service Principal` identity.
 
 ## Attributes Reference
 
@@ -106,7 +106,7 @@ Role Assignments can be imported using the `resource id`, e.g.
 terraform import azurerm_role_assignment_marketplace.example /providers/Microsoft.Marketplace/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000
 ```
 
-~> **NOTE:** for cross tenant scenario, the format of `resource id` is composed of Azure resource ID and tenantId. for example:
+~> **NOTE:** For cross tenant scenarios, the format of the `resource id` consists of the Azure resource ID and the tenant ID, for example:
 
 ```text
 /providers/Microsoft.Marketplace/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000
