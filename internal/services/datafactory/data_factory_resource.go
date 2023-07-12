@@ -241,7 +241,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAccess = factories.PublicNetworkAccessDisabled
 	}
 
-	expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -352,7 +352,7 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
-		identity, err := flattenIdentity(model.Identity)
+		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
@@ -592,68 +592,4 @@ func flattenVSTSRepoConfiguration(input factories.FactoryRepoConfiguration) []in
 	}
 
 	return output
-}
-
-// TODO: remove once `go-azure-sdk` is updated
-func expandIdentity(input []interface{}) (*factories.FactoryIdentity, error) {
-	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	if expanded.Type == identity.TypeNone {
-		return nil, nil
-	}
-
-	out := factories.FactoryIdentity{
-		Type: factories.FactoryIdentityType(string(expanded.Type)),
-	}
-
-	// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
-	if expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.Type = factories.FactoryIdentityTypeSystemAssignedUserAssigned
-	}
-	if len(expanded.IdentityIds) > 0 {
-		userAssignedIdentities := make(map[string]interface{})
-		for id := range expanded.IdentityIds {
-			userAssignedIdentities[id] = make(map[string]interface{})
-		}
-		out.UserAssignedIdentities = &userAssignedIdentities
-	}
-
-	return &out, nil
-}
-func flattenIdentity(input *factories.FactoryIdentity) (interface{}, error) {
-	var transform *identity.SystemAndUserAssignedMap
-
-	if input != nil {
-		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: nil,
-		}
-
-		// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
-		if input.Type == factories.FactoryIdentityTypeSystemAssignedUserAssigned {
-			transform.Type = identity.TypeSystemAssignedUserAssigned
-		}
-
-		if input.PrincipalId != nil {
-			transform.PrincipalId = *input.PrincipalId
-		}
-		if input.TenantId != nil {
-			transform.TenantId = *input.TenantId
-		}
-		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
-		if input.UserAssignedIdentities != nil {
-			for k := range *input.UserAssignedIdentities {
-				identityIds[k] = identity.UserAssignedIdentityDetails{
-					// since v is an `interface{}` there's no guarantee this is returned
-				}
-			}
-		}
-
-		transform.IdentityIds = identityIds
-	}
-
-	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
