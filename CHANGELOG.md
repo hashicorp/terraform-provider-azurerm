@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * `elastic` - updating to API Version `2023-06-01` [GH-22451]
 * `kusto` - updating to API Version `2023-05-02` [GH-22410
 * `managedapplications` - migrate to `hashicorp/go-azure-sdk` [GH-21571]
+* `privatedns`: updating to API Version `2020-06-01` [GH-22470]
 * `storage` - updating to Data Plane API Version `2020-08-04` [GH-22405]
 * `network` - `application_security_group` and `private_endpoint` now use `hashicorp/go-azure-sdk` [GH-22396]
 * `voiceservices`: updating to use API Version `2023-04-03` [GH-22469]
