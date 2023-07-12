@@ -1,5 +1,9 @@
 ## 3.65.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_communication_service` [GH-22426]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230710.1102917` of `github.com/hashicorp/go-azure-sdk` [GH-22442]
