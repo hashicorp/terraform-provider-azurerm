@@ -1,0 +1,25 @@
+{{- /*gotype: github.com/hashicorp/terraform-provider-azurerm/internal/tools/generator-migration.Model*/ -}}
+
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+package migration
+
+import (
+    "context"
+
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+var _ pluginsdk.StateUpgrade = {{.MigratorType}}{}
+
+type {{.MigratorType}} struct{}
+
+func ({{.MigratorType}}) Schema() map[string]*pluginsdk.Schema {
+    return {{.Schema}}
+}
+
+func ({{.MigratorType}}) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+    return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+        return rawState, nil
+    }
+}
