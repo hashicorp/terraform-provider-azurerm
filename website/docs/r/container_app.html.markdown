@@ -85,8 +85,6 @@ A `secret` block supports the following:
 
 * `value` - (Required) The value for this secret.
 
-!> **Note:** Secrets cannot be removed from the service once added, attempting to do so will result in an error. Their values may be zeroed, i.e. set to `""`, but the named secret must persist. This is due to a technical limitation on the service which causes the service to become unmanageable. See [this issue](https://github.com/microsoft/azure-container-apps/issues/395) for more details.
-
 ---
 
 A `template` block supports the following:
