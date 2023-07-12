@@ -1,6 +1,10 @@
 package volumesreplication
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForEndpointType() []string {
 		string(EndpointTypeDst),
 		string(EndpointTypeSrc),
 	}
+}
+
+func (s *EndpointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEndpointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEndpointType(input string) (*EndpointType, error) {
@@ -49,6 +66,19 @@ func PossibleValuesForMirrorState() []string {
 	}
 }
 
+func (s *MirrorState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMirrorState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseMirrorState(input string) (*MirrorState, error) {
 	vals := map[string]MirrorState{
 		"broken":        MirrorStateBroken,
@@ -76,6 +106,19 @@ func PossibleValuesForRelationshipStatus() []string {
 		string(RelationshipStatusIdle),
 		string(RelationshipStatusTransferring),
 	}
+}
+
+func (s *RelationshipStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRelationshipStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRelationshipStatus(input string) (*RelationshipStatus, error) {
@@ -106,6 +149,19 @@ func PossibleValuesForReplicationSchedule() []string {
 		string(ReplicationScheduleHourly),
 		string(ReplicationScheduleOneZerominutely),
 	}
+}
+
+func (s *ReplicationSchedule) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReplicationSchedule(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseReplicationSchedule(input string) (*ReplicationSchedule, error) {

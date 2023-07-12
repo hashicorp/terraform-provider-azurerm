@@ -1,18 +1,26 @@
 package capacitypools
 
-import "github.com/Azure/go-autorest/autorest"
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CapacityPoolsClient struct {
-	Client  autorest.Client
-	baseUri string
+	Client *resourcemanager.Client
 }
 
-func NewCapacityPoolsClientWithBaseURI(endpoint string) CapacityPoolsClient {
-	return CapacityPoolsClient{
-		Client:  autorest.NewClientWithUserAgent(userAgent()),
-		baseUri: endpoint,
+func NewCapacityPoolsClientWithBaseURI(api environments.Api) (*CapacityPoolsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(api, "capacitypools", defaultApiVersion)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating CapacityPoolsClient: %+v", err)
 	}
+
+	return &CapacityPoolsClient{
+		Client: client,
+	}, nil
 }
