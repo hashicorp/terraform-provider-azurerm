@@ -19,7 +19,9 @@ ENHANCEMENTS:
 * `storage` - updating to Data Plane API Version `2020-08-04` [GH-22405]
 * `network` - `application_security_group` and `private_endpoint` now use `hashicorp/go-azure-sdk` [GH-22396]
 * `voiceservices`: updating to use API Version `2023-04-03` [GH-22469]
+* Data Source: `azurerm_kubernetes_cluster` - add support for the `internal_ingress_gateway_enabled` and `external_ingress_gateway_enabled` properties [GH-22393]
 * `azurerm_dns_zone` - can now use `host_name` with `dns_zone` for `soa_record` creation [GH-22312]
+* `azurerm_kubernetes_cluster` - add support for the `internal_ingress_gateway_enabled` and `external_ingress_gateway_enabled` properties [GH-22393]
 * `azurerm_site_recovery_vmware_replication_policy_association`: update validate func and handling casing. [GH-22443]
 
 BUG FIXES:
