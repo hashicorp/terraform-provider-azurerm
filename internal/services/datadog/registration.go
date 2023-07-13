@@ -7,6 +7,10 @@ import "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 
 type Registration struct{}
 
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/datadog"
+}
+
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "Datadog"
