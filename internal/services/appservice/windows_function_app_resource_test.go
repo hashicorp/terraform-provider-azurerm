@@ -1952,7 +1952,7 @@ resource "azurerm_windows_function_app" "test" {
   connection_string {
     name  = "MS_NotificationHubConnectionString"
     value = azurerm_notification_hub.test.default_primary_connection_string
-    type = "NotificationHub"
+    type  = "NotificationHub"
   }
 }
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger, data.RandomInteger)
