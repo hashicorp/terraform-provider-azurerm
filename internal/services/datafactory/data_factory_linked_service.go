@@ -49,10 +49,6 @@ func importDataFactoryLinkedService(expectType datafactory.TypeBasicLinkedServic
 			return nil, fmt.Errorf("data factory linked service has mismatched type, expected: %q, got %q", expectType, t)
 		}
 
-		if datafactory.TypeBasicLinkedService(t) != expectType {
-			return nil, fmt.Errorf("data factory linked service has mismatched type, expected: %q, got %q", expectType, t)
-		}
-
 		return []*pluginsdk.ResourceData{d}, nil
 	}
 }

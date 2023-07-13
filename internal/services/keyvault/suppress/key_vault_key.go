@@ -9,6 +9,7 @@ import (
 )
 
 func DiffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, d *pluginsdk.ResourceData) bool {
+	// TODO: deprecate this method in the future, `ignore_changes` should be used instead
 	oldKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(old)
 	if err != nil {
 		return false
