@@ -66,8 +66,14 @@ service/cognitive-services:
 service/communication:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service)((.|\n)*)###'
 
+service/connections:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(api_connection|managed_api)((.|\n)*)###'
+
 service/consumption:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_consumption_budget_((.|\n)*)###'
+
+service/container-apps:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_container_app((.|\n)*)###'
 
 service/cosmosdb:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cosmosdb_((.|\n)*)###'
@@ -99,6 +105,9 @@ service/databox-edge:
 service/databricks:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_databricks_((.|\n)*)###'
 
+service/datadog:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_datadog_monitor((.|\n)*)###'
+
 service/devtestlabs:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dev_test_((.|\n)*)###'
 
@@ -125,6 +134,9 @@ service/event-hubs:
 
 service/firewall:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_firewall((.|\n)*)###'
+
+service/fluid-relay:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_fluid_relay_server((.|\n)*)###'
 
 service/frontdoor:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_frontdoor((.|\n)*)###'
@@ -231,6 +243,9 @@ service/nginx:
 service/notifications:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_notification_hub((.|\n)*)###'
 
+service/orbital:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_orbital_((.|\n)*)###'
+
 service/policy:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(management_group_policy_|policy_|resource_group_policy_assignment\W+|resource_group_policy_exemption\W+|resource_group_policy_remediation\W+|resource_policy_assignment\W+|resource_policy_exemption\W+|resource_policy_remediation\W+|subscription_policy_)((.|\n)*)###'
 
@@ -270,6 +285,9 @@ service/sentinel:
 service/service-bus:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_servicebus_((.|\n)*)###'
 
+service/service-connector:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(app_service_connection|spring_cloud_connection)((.|\n)*)###'
+
 service/service-fabric:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_service_fabric_cluster((.|\n)*)###'
 
@@ -287,6 +305,9 @@ service/sql:
 
 service/storage:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(storage_account\W+|storage_account_blob_container_sas\W+|storage_account_customer_managed_key\W+|storage_account_local_user\W+|storage_account_network_rules\W+|storage_account_sas\W+|storage_blob\W+|storage_blob_inventory_policy\W+|storage_container\W+|storage_data_lake_gen2_filesystem\W+|storage_data_lake_gen2_path\W+|storage_encryption_scope\W+|storage_management_policy\W+|storage_object_replication\W+|storage_queue\W+|storage_share\W+|storage_share_directory\W+|storage_share_file\W+|storage_sync\W+|storage_sync_cloud_endpoint\W+|storage_sync_group\W+|storage_table\W+|storage_table_entity\W+)((.|\n)*)###'
+
+service/storagemover:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_storage_mover((.|\n)*)###'
 
 service/stream-analytics:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stream_analytics_((.|\n)*)###'
