@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )

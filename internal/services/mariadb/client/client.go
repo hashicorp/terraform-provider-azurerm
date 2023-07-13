@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/configurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/firewallrules"
