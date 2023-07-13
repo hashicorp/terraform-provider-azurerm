@@ -44,9 +44,10 @@ func (r AccountResource) ResourceType() string {
 func (r AccountResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
+			ForceNew:     true,
+			Required:     true,
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"application_id": {
@@ -94,10 +95,10 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 
 			payload := graphservicesprods.AccountResource{
 				Location: pointer.To(location.Normalize("global")),
+				Tags:     tags.Expand(config.Tags),
 				Properties: graphservicesprods.AccountResourceProperties{
 					AppId: config.ApplicationId,
 				},
-				Tags: tags.Expand(config.Tags),
 			}
 
 			if err := client.AccountsCreateAndUpdateThenPoll(ctx, id, payload); err != nil {
@@ -135,9 +136,10 @@ func (r AccountResource) Read() sdk.ResourceFunc {
 			}
 
 			schema := AccountResourceSchema{
-				ApplicationId: model.Properties.AppId,
-				Name:          id.AccountName, ResourceGroupName: id.ResourceGroupName,
-				Tags: tags.Flatten(model.Tags),
+				ApplicationId:     model.Properties.AppId,
+				Name:              id.AccountName,
+				ResourceGroupName: id.ResourceGroupName,
+				Tags:              tags.Flatten(model.Tags),
 			}
 			if model.Properties.BillingPlanId != nil {
 				schema.BillingPlanId = pointer.From(model.Properties.BillingPlanId)
