@@ -234,7 +234,20 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
   elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
-  monitoring_enabled          = false
+
+  company_info {
+    business         = "Technology"
+    country          = "US"
+    domain           = "microsoft.com"
+    employees_number = "100"
+    state            = "WA"
+  }
+
+  company_name       = "Microsoft"
+  generate_api_key   = true
+  monitoring_enabled = false
+  user_first_name    = "Alice"
+  user_last_name     = "Bob"
 
   tags = {
     ENV = "Test"

@@ -39,6 +39,16 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Elasticsearch resource should exist. Changing this forces a new Elasticsearch to be created.
 
+* `company_info` - (Optional) A `company_info` block as defined below.
+
+* `company_name` - (Optional) The company name of the user used by the Elasticsearch. Changing this forces a new Elasticsearch to be created.
+
+* `generate_api_key` - (Optional) The company name of the user used by the Elasticsearch. Changing this forces a new Elasticsearch to be created.
+
+* `user_first_name` - (Optional) The first name of the user used by the Elasticsearch. Changing this forces a new Elasticsearch to be created.
+
+* `user_last_name` - (Optional) The last name of the user used by the Elasticsearch. Changing this forces a new Elasticsearch to be created.
+
 * `sku_name` - (Required) Specifies the name of the SKU for this Elasticsearch. Changing this forces a new Elasticsearch to be created.
 
 ---
@@ -48,6 +58,20 @@ The following arguments are supported:
 * `monitoring_enabled` - (Optional) Specifies if the Elasticsearch should have monitoring configured? Defaults to `true`. Changing this forces a new Elasticsearch to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Elasticsearch resource.
+
+---
+
+The `company_info` block supports the following:
+
+* `business` - (Optional) Specifies the business of the company. Changing this forces a new Elasticsearch to be created.
+
+* `country` - (Optional) Specifies the country of the company location. Changing this forces a new Elasticsearch to be created.
+
+* `domain` - (Optional) Specifies the domain of the company. Changing this forces a new Elasticsearch to be created.
+
+* `employees_number` - (Optional) Specifies the number of employees in the company. Changing this forces a new Elasticsearch to be created.
+
+* `state` - (Optional) Specifies the state of the company location. Changing this forces a new Elasticsearch to be created.
 
 ---
 

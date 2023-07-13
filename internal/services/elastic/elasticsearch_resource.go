@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -69,11 +70,83 @@ func resourceElasticsearch() *pluginsdk.Resource {
 			},
 
 			// Optional
+			"company_info": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"business": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"country": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"domain": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"employees_number": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"state": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"company_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"generate_api_key": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"monitoring_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
+			},
+
+			"user_first_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"user_last_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"logs": {
@@ -189,8 +262,13 @@ func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Properties: &monitorsresource.MonitorProperties{
 			MonitoringStatus: &monitoringStatus,
 			UserInfo: &monitorsresource.UserInfo{
+				CompanyInfo:  expandCompanyInfo(d.Get("company_info").([]interface{})),
+				CompanyName:  pointer.To(d.Get("company_name").(string)),
 				EmailAddress: utils.String(d.Get("elastic_cloud_email_address").(string)),
+				FirstName:    pointer.To(d.Get("user_first_name").(string)),
+				LastName:     pointer.To(d.Get("user_last_name").(string)),
 			},
+			GenerateApiKey: pointer.To(d.Get("generate_api_key").(bool)),
 		},
 		Sku: &monitorsresource.ResourceSku{
 			Name: d.Get("sku_name").(string),
@@ -257,6 +335,7 @@ func resourceElasticsearchRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
+			d.Set("generate_api_key", pointer.From(props.GenerateApiKey))
 			monitoringEnabled := false
 			if props.MonitoringStatus != nil {
 				monitoringEnabled = *props.MonitoringStatus == monitorsresource.MonitoringStatusEnabled
@@ -277,6 +356,12 @@ func resourceElasticsearchRead(d *pluginsdk.ResourceData, meta interface{}) erro
 					d.Set("elastic_cloud_email_address", elastic.ElasticCloudUser.EmailAddress)
 					d.Set("elastic_cloud_sso_default_url", elastic.ElasticCloudUser.ElasticCloudSsoDefaultUrl)
 				}
+			}
+			if userInfo := props.UserInfo; userInfo != nil {
+				d.Set("company_info", flattenCompanyInfo(userInfo.CompanyInfo))
+				d.Set("company_name", pointer.From(userInfo.CompanyName))
+				d.Set("user_first_name", pointer.From(userInfo.FirstName))
+				d.Set("user_last_name", pointer.From(userInfo.LastName))
 			}
 		}
 
@@ -433,4 +518,35 @@ func flattenTagRule(input *rules.MonitoringTagRules) []interface{} {
 			"send_subscription_logs": sendSubscriptionLogs,
 		},
 	}
+}
+
+func expandCompanyInfo(input []interface{}) *monitorsresource.CompanyInfo {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &monitorsresource.CompanyInfo{
+		Business:        pointer.To(v["business"].(string)),
+		Country:         pointer.To(v["country"].(string)),
+		Domain:          pointer.To(v["domain"].(string)),
+		EmployeesNumber: pointer.To(v["employees_number"].(string)),
+		State:           pointer.To(v["state"].(string)),
+	}
+}
+
+func flattenCompanyInfo(info *monitorsresource.CompanyInfo) []interface{} {
+	if info == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["business"] = pointer.From(info.Business)
+	result["country"] = pointer.From(info.Country)
+	result["domain"] = pointer.From(info.Domain)
+	result["employees_number"] = pointer.From(info.EmployeesNumber)
+	result["state"] = pointer.From(info.State)
+
+	return []interface{}{result}
 }
