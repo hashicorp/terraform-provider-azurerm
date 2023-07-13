@@ -1315,11 +1315,8 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 				if err == nil {
 					statusCodeTrigger.Status = pointer.To(int32(statusCode))
 				}
-				if s.Win32Status != "" {
-					win32Code, err := strconv.Atoi(s.Win32Status)
-					if err == nil {
-						statusCodeTrigger.Win32Status = pointer.To(int32(win32Code))
-					}
+				if s.Win32Status != 0 {
+					statusCodeTrigger.Win32Status = pointer.To(int32(s.Win32Status))
 				}
 				statusCodeTrigger.Count = pointer.To(int32(s.Count))
 				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
@@ -1383,7 +1380,7 @@ func flattenAutoHealSettingsLinux(autoHealRules *web.AutoHealRules) []AutoHealSe
 				}
 
 				if s.Win32Status != nil {
-					t.Win32Status = strconv.Itoa(int(*s.Win32Status))
+					t.Win32Status = int(pointer.From(s.Win32Status))
 				}
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}
