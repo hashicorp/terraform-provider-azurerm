@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package authorization
 
 import (
@@ -340,7 +343,7 @@ func resourceArmRoleDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Refresh:                   roleDefinitionDeleteStateRefreshFunc(ctx, client, id.ResourceID),
 		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
+		ContinuousTargetOccurence: 20,
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 	}
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package media
 
 import (
@@ -6,7 +9,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -26,6 +28,8 @@ func resourceMediaStreamingLocator() *pluginsdk.Resource {
 		Create: resourceMediaStreamingLocatorCreate,
 		Read:   resourceMediaStreamingLocatorRead,
 		Delete: resourceMediaStreamingLocatorDelete,
+
+		DeprecationMessage: azureMediaRetirementMessage,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -220,7 +224,7 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if endTimeRaw, ok := d.GetOk("end_time"); ok {
 		if endTimeRaw.(string) != "" {
-			endTime, err := date.ParseTime(time.RFC3339, endTimeRaw.(string))
+			endTime, err := time.Parse(time.RFC3339, endTimeRaw.(string))
 			if err != nil {
 				return err
 			}
@@ -234,7 +238,7 @@ func resourceMediaStreamingLocatorCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if startTimeRaw, ok := d.GetOk("start_time"); ok {
 		if startTimeRaw.(string) != "" {
-			startTime, err := date.ParseTime(time.RFC3339, startTimeRaw.(string))
+			startTime, err := time.Parse(time.RFC3339, startTimeRaw.(string))
 			if err != nil {
 				return err
 			}

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 variable "resource_group" {
   description = "Resource group name into which your Spark and Cassandra deployment will go."
 }

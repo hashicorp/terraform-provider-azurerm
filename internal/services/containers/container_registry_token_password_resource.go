@@ -1,12 +1,19 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	containterregistry_v2021_08_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
@@ -39,7 +46,7 @@ func (r ContainerRegistryTokenPasswordResource) Arguments() map[string]*pluginsd
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ContainerRegistryTokenID,
+			ValidateFunc: tokens.ValidateTokenID,
 		},
 
 		"password1": {
@@ -112,18 +119,18 @@ func (r ContainerRegistryTokenPasswordResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.TokensClient
+			client := metadata.Client.Containers.ContainerRegistryClient_v2021_08_01_preview
 			var plan ContainerRegistryTokenPasswordModel
 			if err := metadata.Decode(&plan); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			tokenId, err := parse.ContainerRegistryTokenID(plan.TokenId)
+			tokenId, err := tokens.ParseTokenID(plan.TokenId)
 			if err != nil {
-				return fmt.Errorf("parsing container registry token id %q: %+v", plan.TokenId, err)
+				return err
 			}
 
-			id := parse.NewContainerRegistryTokenPasswordID(tokenId.SubscriptionId, tokenId.ResourceGroup, tokenId.RegistryName, tokenId.TokenName, "password")
+			id := parse.NewContainerRegistryTokenPasswordID(tokenId.SubscriptionId, tokenId.ResourceGroupName, tokenId.RegistryName, tokenId.TokenName, "password")
 
 			pwds, err := r.readPassword(ctx, client, *tokenId)
 			if err != nil {
@@ -166,13 +173,13 @@ func (r ContainerRegistryTokenPasswordResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.TokensClient
+			client := metadata.Client.Containers.ContainerRegistryClient_v2021_08_01_preview
 			id, err := parse.ContainerRegistryTokenPasswordID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			tokenId := parse.NewContainerRegistryTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName)
+			tokenId := tokens.NewTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName)
 
 			pwds, err := r.readPassword(ctx, client, tokenId)
 			if err != nil {
@@ -192,17 +199,17 @@ func (r ContainerRegistryTokenPasswordResource) Read() sdk.ResourceFunc {
 				existingPasswords["password1"] = state.Password1[0]
 			}
 			if len(state.Password2) == 1 {
-				existingPasswords[string(containerregistry.TokenPasswordNamePassword2)] = state.Password2[0]
+				existingPasswords[string(tokens.TokenPasswordNamePasswordTwo)] = state.Password2[0]
 			}
 
 			model := ContainerRegistryTokenPasswordModel{
-				TokenId: parse.NewContainerRegistryTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName).ID(),
+				TokenId: tokens.NewTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName).ID(),
 			}
 			for _, pwd := range pwds {
-				name := string(pwd.Name)
+				name := string(*pwd.Name)
 				v := ContainerRegistryTokenPassword{}
 				if pwd.Expiry != nil {
-					v.Expiry = pwd.Expiry.String()
+					v.Expiry = *pwd.Expiry
 				}
 				// The value is not returned from the API, hence setting it based on state.
 				if e, ok := existingPasswords[name]; ok {
@@ -211,7 +218,7 @@ func (r ContainerRegistryTokenPasswordResource) Read() sdk.ResourceFunc {
 				switch name {
 				case "password1":
 					model.Password1 = []ContainerRegistryTokenPassword{v}
-				case string(containerregistry.TokenPasswordNamePassword2):
+				case string(tokens.TokenPasswordNamePasswordTwo):
 					model.Password2 = []ContainerRegistryTokenPassword{v}
 				}
 			}
@@ -225,31 +232,28 @@ func (r ContainerRegistryTokenPasswordResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.TokensClient
+			client := metadata.Client.Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 
 			id, err := parse.ContainerRegistryTokenPasswordID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			tokenId := parse.NewContainerRegistryTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName)
+			tokenId := tokens.NewTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName)
 
 			locks.ByID(tokenId.ID())
 			defer locks.UnlockByID(tokenId.ID())
 
-			param := containerregistry.TokenUpdateParameters{
-				TokenUpdateProperties: &containerregistry.TokenUpdateProperties{
-					Credentials: &containerregistry.TokenCredentialsProperties{
-						Passwords: &[]containerregistry.TokenPassword{},
+			param := tokens.TokenUpdateParameters{
+				Properties: &tokens.TokenUpdateProperties{
+					Credentials: &tokens.TokenCredentialsProperties{
+						Passwords: &[]tokens.TokenPassword{},
 					},
 				},
 			}
-			future, err := client.Update(ctx, id.ResourceGroup, id.RegistryName, id.TokenName, param)
-			if err != nil {
+
+			if err := client.UpdateThenPoll(ctx, tokenId, param); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for removal of %s: %+v", id, err)
 			}
 
 			return nil
@@ -266,7 +270,7 @@ func (r ContainerRegistryTokenPasswordResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			tokenId := parse.NewContainerRegistryTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName)
+			tokenId := tokens.NewTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName)
 
 			var plan ContainerRegistryTokenPasswordModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -299,14 +303,14 @@ func (r ContainerRegistryTokenPasswordResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPassword(plan ContainerRegistryTokenPasswordModel) (*[]containerregistry.TokenPassword, error) {
-	result := make([]containerregistry.TokenPassword, 0)
+func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPassword(plan ContainerRegistryTokenPasswordModel) (*[]tokens.TokenPassword, error) {
+	result := make([]tokens.TokenPassword, 0)
 
-	expandPassword := func(name string, password []ContainerRegistryTokenPassword) (*containerregistry.TokenPassword, error) {
+	expandPassword := func(name string, password []ContainerRegistryTokenPassword) (*tokens.TokenPassword, error) {
 		if len(password) == 1 {
 			password := password[0]
-			ret := &containerregistry.TokenPassword{
-				Name:  containerregistry.TokenPasswordName(name),
+			ret := &tokens.TokenPassword{
+				Name:  pointer.To(tokens.TokenPasswordName(name)),
 				Value: utils.String(password.Value),
 			}
 			if v := password.Expiry; v != "" {
@@ -314,14 +318,14 @@ func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPass
 				if err != nil {
 					return nil, err
 				}
-				ret.Expiry = &date.Time{Time: t}
+				ret.Expiry = pointer.To(date.Time{Time: t}.String())
 			}
 			return ret, nil
 		}
 		return nil, nil
 	}
 	// TODO: Use below SDK enum once the following issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/18339
-	// containerregistry.PasswordNamePassword
+	// tokens.PasswordNamePassword
 	v, err := expandPassword("password1", plan.Password1)
 	if err != nil {
 		return nil, err
@@ -330,7 +334,7 @@ func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPass
 		result = append(result, *v)
 	}
 
-	v, err = expandPassword(string(containerregistry.PasswordNamePassword2), plan.Password2)
+	v, err = expandPassword(string(tokens.TokenPasswordNamePasswordTwo), plan.Password2)
 	if err != nil {
 		return nil, err
 	}
@@ -340,7 +344,7 @@ func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPass
 	return &result, nil
 }
 
-func (r ContainerRegistryTokenPasswordResource) flattenContainerRegistryTokenPassword(input *[]containerregistry.TokenPassword) (password1, password2 []ContainerRegistryTokenPassword) {
+func (r ContainerRegistryTokenPasswordResource) flattenContainerRegistryTokenPassword(input *[]tokens.TokenPassword) (password1, password2 []ContainerRegistryTokenPassword) {
 	if input == nil {
 		return nil, nil
 	}
@@ -348,45 +352,52 @@ func (r ContainerRegistryTokenPasswordResource) flattenContainerRegistryTokenPas
 	for _, e := range *input {
 		password := ContainerRegistryTokenPassword{}
 		if e.Expiry != nil {
-			password.Expiry = e.Expiry.String()
+			password.Expiry = *e.Expiry
 		}
 		if e.Value != nil {
 			password.Value = *e.Value
 		}
-		switch e.Name {
-		case "password1":
-			password1 = []ContainerRegistryTokenPassword{password}
-		case containerregistry.TokenPasswordNamePassword2:
-			password2 = []ContainerRegistryTokenPassword{password}
+		if e.Name != nil {
+			switch *e.Name {
+			case "password1":
+				password1 = []ContainerRegistryTokenPassword{password}
+			case tokens.TokenPasswordNamePasswordTwo:
+				password2 = []ContainerRegistryTokenPassword{password}
+			}
 		}
 	}
 	return
 }
 
-func (r ContainerRegistryTokenPasswordResource) readPassword(ctx context.Context, client *containerregistry.TokensClient, id parse.ContainerRegistryTokenId) ([]containerregistry.TokenPassword, error) {
-	existing, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
+func (r ContainerRegistryTokenPasswordResource) readPassword(ctx context.Context, client *containterregistry_v2021_08_01_preview.Client, id tokens.TokenId) ([]tokens.TokenPassword, error) {
+	existing, err := client.Tokens.Get(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	props := existing.TokenProperties
-	if props == nil {
-		return nil, fmt.Errorf("checking for presence of existing %s: unexpected nil tokenProperties", id)
+	if existing.Model == nil {
+		return nil, fmt.Errorf("checking for presence of existing %s: model is nil", id)
 	}
-	cred := props.Credentials
-	if cred == nil {
-		return nil, fmt.Errorf("checking for presence of existing %s: unexpected nil tokenProperties.credentials", id)
+
+	if existing.Model.Properties == nil {
+		return nil, fmt.Errorf("checking for presence of existing %s: properties is nil", id)
 	}
-	pwds := cred.Passwords
-	if pwds == nil {
-		return nil, fmt.Errorf("checking for presence of existing %s: unexpected nil tokenProperties.credentials.passwords", id)
+
+	if existing.Model.Properties.Credentials == nil {
+		return nil, fmt.Errorf("checking for presence of existing %s: credentials is nil", id)
 	}
-	return *pwds, nil
+
+	passwords := existing.Model.Properties.Credentials.Passwords
+	if passwords == nil {
+		return nil, fmt.Errorf("checking for presence of existing %s: passwords is nil", id)
+	}
+
+	return *passwords, nil
 }
 
-func (r ContainerRegistryTokenPasswordResource) generatePassword(ctx context.Context, clients client.Client, id parse.ContainerRegistryTokenId, passwords []containerregistry.TokenPassword) ([]containerregistry.TokenPassword, error) {
-	var genPasswords []containerregistry.TokenPassword
+func (r ContainerRegistryTokenPasswordResource) generatePassword(ctx context.Context, clients client.Client, id tokens.TokenId, passwords []tokens.TokenPassword) ([]tokens.TokenPassword, error) {
+	var genPasswords []tokens.TokenPassword
 
-	existingPasswords, err := r.readPassword(ctx, clients.TokensClient, id)
+	existingPasswords, err := r.readPassword(ctx, clients.ContainerRegistryClient_v2021_08_01_preview, id)
 	if err != nil {
 		return nil, fmt.Errorf("reading existing passwords: %+v", err)
 	}
@@ -396,19 +407,15 @@ func (r ContainerRegistryTokenPasswordResource) generatePassword(ctx context.Con
 	// - To add password, one uses the POST of the ACR's generate credential endpoint
 	// Hence we'd have to check whether there is any password to clean up before we try to update/create passwords.
 	if len(existingPasswords) > len(passwords) {
-		param := containerregistry.TokenUpdateParameters{
-			TokenUpdateProperties: &containerregistry.TokenUpdateProperties{
-				Credentials: &containerregistry.TokenCredentialsProperties{
+		param := tokens.TokenUpdateParameters{
+			Properties: &tokens.TokenUpdateProperties{
+				Credentials: &tokens.TokenCredentialsProperties{
 					Passwords: &passwords,
 				},
 			},
 		}
-		future, err := clients.TokensClient.Update(ctx, id.ResourceGroup, id.RegistryName, id.TokenName, param)
-		if err != nil {
+		if err := clients.ContainerRegistryClient_v2021_08_01_preview.Tokens.UpdateThenPoll(ctx, id, param); err != nil {
 			return nil, fmt.Errorf("deleting %s: %+v", id, err)
-		}
-		if err := future.WaitForCompletionRef(ctx, clients.TokensClient.Client); err != nil {
-			return nil, fmt.Errorf("waiting for removal of %s: %+v", id, err)
 		}
 	}
 
@@ -422,7 +429,16 @@ PasswordGenLoop:
 				if (pwd.Expiry == nil) != (password.Expiry == nil) {
 					break
 				}
-				if pwd.Expiry == nil || pwd.Expiry.Time.Equal(password.Expiry.Time) {
+
+				pwdExpiryTime, err := pwd.GetExpiryAsTime()
+				if err != nil {
+					return nil, fmt.Errorf("unable to get expiry time for %s: %+v", string(*pwd.Name), err)
+				}
+				passwordExpiryTime, err := password.GetExpiryAsTime()
+				if err != nil {
+					return nil, fmt.Errorf("unable to get expiry time for %s: %+v", string(*password.Name), err)
+				}
+				if pwd.Expiry == nil || pwdExpiryTime.Equal(*passwordExpiryTime) {
 					genPasswords = append(genPasswords, password)
 					continue PasswordGenLoop
 				}
@@ -430,28 +446,37 @@ PasswordGenLoop:
 			}
 		}
 
-		param := containerregistry.GenerateCredentialsParameters{
-			TokenID: utils.String(id.ID()),
+		param := registries.GenerateCredentialsParameters{
+			TokenId: utils.String(id.ID()),
 			Expiry:  password.Expiry,
-			Name:    password.Name,
-		}
-		future, err := clients.RegistriesClient.GenerateCredentials(ctx, id.ResourceGroup, id.RegistryName, param)
-		if err != nil {
-			return nil, fmt.Errorf("generating password credential %s: %v", password.Name, err)
-		}
-		if err := future.WaitForCompletionRef(ctx, clients.RegistriesClient.Client); err != nil {
-			return nil, fmt.Errorf("waiting for password credential generation for %s: %v", password.Name, err)
+			Name:    (*registries.TokenPasswordName)(password.Name),
 		}
 
-		result, err := future.Result(*clients.RegistriesClient)
+		registryId := registries.NewRegistryID(id.SubscriptionId, id.ResourceGroupName, id.RegistryName)
+
+		result, err := clients.ContainerRegistryClient_v2021_08_01_preview.Registries.GenerateCredentials(ctx, registryId, param)
 		if err != nil {
-			return nil, fmt.Errorf("getting password credential after creation for %s: %v", password.Name, err)
+			return nil, fmt.Errorf("generating password credential %s: %v", string(*password.Name), err)
 		}
 
-		genPasswords = append(genPasswords, containerregistry.TokenPassword{
+		if err := result.Poller.PollUntilDone(ctx); err != nil {
+			return nil, fmt.Errorf("polling generation of password credential %s: %v", string(*password.Name), err)
+		}
+
+		var res registries.GenerateCredentialsResult
+		if err := json.NewDecoder(result.HttpResponse.Body).Decode(&res); err != nil {
+			return nil, fmt.Errorf("decoding generated password credentials: %v", err)
+		}
+
+		value := ""
+		if res.Passwords != nil && len(*res.Passwords) > idx && (*res.Passwords)[idx].Value != nil {
+			value = *(*res.Passwords)[idx].Value
+		}
+
+		genPasswords = append(genPasswords, tokens.TokenPassword{
 			Expiry: password.Expiry,
 			Name:   password.Name,
-			Value:  (*result.Passwords)[idx].Value,
+			Value:  &value,
 		})
 	}
 	return genPasswords, nil

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package iothub
 
 import (
@@ -197,6 +200,10 @@ func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
+		if utils.ResponseWasNotFound(iothub.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
 	}
 
@@ -205,13 +212,17 @@ func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil {
+		d.SetId("")
 		return nil
 	}
+
+	exist := false
 
 	if routes := iothub.Properties.Routing.Routes; routes != nil {
 		for _, route := range *routes {
 			if route.Name != nil {
 				if strings.EqualFold(*route.Name, id.Name) {
+					exist = true
 					d.Set("source", route.Source)
 					d.Set("condition", route.Condition)
 					d.Set("enabled", route.IsEnabled)
@@ -219,6 +230,10 @@ func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				}
 			}
 		}
+	}
+
+	if !exist {
+		d.SetId("")
 	}
 
 	return nil

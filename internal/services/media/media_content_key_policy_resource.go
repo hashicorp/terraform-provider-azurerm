@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package media
 
 import (
@@ -8,7 +11,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/contentkeypolicies"
@@ -28,6 +30,8 @@ func resourceMediaContentKeyPolicy() *pluginsdk.Resource {
 		Read:   resourceMediaContentKeyPolicyRead,
 		Update: resourceMediaContentKeyPolicyCreateUpdate,
 		Delete: resourceMediaContentKeyPolicyDelete,
+
+		DeprecationMessage: azureMediaRetirementMessage,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -1118,7 +1122,7 @@ func expandPlayReadyLicenses(input []interface{}) (*[]contentkeypolicies.Content
 		}
 
 		if v := license["begin_date"]; v != nil && v != "" {
-			beginDate, err := date.ParseTime(time.RFC3339, v.(string))
+			beginDate, err := time.Parse(time.RFC3339, v.(string))
 			if err != nil {
 				return nil, err
 			}
@@ -1146,7 +1150,7 @@ func expandPlayReadyLicenses(input []interface{}) (*[]contentkeypolicies.Content
 		}
 
 		if v := license["expiration_date"]; v != nil && v != "" {
-			expirationDate, err := date.ParseTime(time.RFC3339, v.(string))
+			expirationDate, err := time.Parse(time.RFC3339, v.(string))
 			if err != nil {
 				return nil, err
 			}

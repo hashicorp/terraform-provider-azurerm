@@ -3,6 +3,7 @@ name: Generation Check
 
 permissions:
   contents: read
+  pull-requests: write
 
 on:
   pull_request:
@@ -19,9 +20,20 @@ jobs:
   gencheck:
     runs-on: [custom, linux, large]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: make gencheck
+      - name: Add waiting-response on fail
+        if: failure()
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["waiting-response"]
+            })

@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this forces a new resource to be created.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values include: `Ubuntu`, `CBLMariner`, `Mariner`, `Windows2019`, `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this forces a new resource to be created.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values include: `AzureLinux`, `Ubuntu`, `Windows2019`, `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this forces a new resource to be created.
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 
@@ -137,6 +137,8 @@ The following arguments are supported:
 * `spot_max_price` - (Optional) The maximum price you're willing to pay in USD per Virtual Machine. Valid values are `-1` (the current on-demand price for a Virtual Machine) or a positive value with up to five decimal places. Changing this forces a new resource to be created.
 
 ~> **Note:** This field can only be configured when `priority` is set to `Spot`.
+
+* `snapshot_id` - (Optional) The ID of the Snapshot which should be used to create this Node Pool. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -154,9 +156,11 @@ The following arguments are supported:
 
 * `windows_profile` - (Optional) A `windows_profile` block as documented below. Changing this forces a new resource to be created.
 
-* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer` and `WasmWasi`.
+* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer`, `WasmWasi` and `KataMshvVmIsolation`.
 
 ~> **Note:** WebAssembly System Interface node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-wasi-node-pools)
+
+~> **Note:** Pod Sandboxing / KataVM Isolation node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster Node Pool should be located. Changing this forces a new Kubernetes Cluster Node Pool to be created.
 
@@ -218,7 +222,8 @@ A `node_network_profile` block supports the following:
 
 * `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered.
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/azure/aks/use-node-public-ips#use-public-ip-tags-on-node-public-ips-preview) for more information.
+
 ---
 
 A `sysctl_config` block supports the following:
@@ -299,7 +304,7 @@ A `windows_profile` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Cluster Node Pool.
 

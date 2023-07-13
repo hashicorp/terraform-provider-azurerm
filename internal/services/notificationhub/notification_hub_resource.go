@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package notificationhub
 
 import (
@@ -215,7 +218,7 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	log.Printf("[DEBUG] Waiting for %s to become available..", id)
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("context had no deadline")
+		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"404"},
@@ -236,15 +239,20 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhubs.NotificationHubsClient, id notificationhubs.NotificationHubId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {
-				return nil, "404", nil
+				return nil, statusCode, nil
 			}
 
 			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		return res, statusCode, nil
 	}
 }
 

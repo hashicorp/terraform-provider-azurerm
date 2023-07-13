@@ -15,6 +15,10 @@ Manages a User Assigned Identity.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
 resource "azurerm_user_assigned_identity" "example" {
   location            = azurerm_resource_group.example.location
   name                = "example"
@@ -36,7 +40,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the User Assigned Identity.
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice
 
 import (
@@ -7,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -18,12 +20,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type LinuxFunctionAppSlotResource struct{}
@@ -38,6 +40,7 @@ type LinuxFunctionAppSlotModel struct {
 	StorageKeyVaultSecretID       string                                   `tfschema:"storage_key_vault_secret_id"`
 	AppSettings                   map[string]string                        `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings                   `tfschema:"auth_settings"`
+	AuthV2Settings                []helpers.AuthV2Settings                 `tfschema:"auth_settings_v2"`
 	Backup                        []helpers.Backup                         `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging                bool                                     `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled             bool                                     `tfschema:"client_certificate_enabled"`
@@ -54,12 +57,14 @@ type LinuxFunctionAppSlotModel struct {
 	Tags                          map[string]string                        `tfschema:"tags"`
 	VirtualNetworkSubnetID        string                                   `tfschema:"virtual_network_subnet_id"`
 	CustomDomainVerificationId    string                                   `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                  string                                   `tfschema:"hosting_environment_id"`
 	DefaultHostname               string                                   `tfschema:"default_hostname"`
 	Kind                          string                                   `tfschema:"kind"`
 	OutboundIPAddresses           string                                   `tfschema:"outbound_ip_addresses"`
 	OutboundIPAddressList         []string                                 `tfschema:"outbound_ip_address_list"`
 	PossibleOutboundIPAddresses   string                                   `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                                 `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess           bool                                     `tfschema:"public_network_access_enabled"`
 	SiteCredentials               []helpers.SiteCredential                 `tfschema:"site_credential"`
 	StorageAccounts               []helpers.StorageAccount                 `tfschema:"storage_account"`
 }
@@ -158,6 +163,8 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"auth_settings": helpers.AuthSettingsSchema(),
 
+		"auth_settings_v2": helpers.AuthV2SettingsSchema(),
+
 		"backup": helpers.BackupSchema(),
 
 		"builtin_logging_enabled": {
@@ -240,6 +247,12 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The User Assigned Identity to use for Key Vault access.",
 		},
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppSlot(),
 
 		"storage_account": helpers.StorageAccountSchema(),
@@ -249,7 +262,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: networkValidate.SubnetID,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 	}
 }
@@ -263,6 +276,11 @@ func (r LinuxFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schema 
 		},
 
 		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -476,8 +494,18 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
 					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
 					DailyMemoryTimeQuota: pointer.To(int32(functionAppSlot.DailyMemoryTimeQuota)),
+					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				},
 			}
+
+			pan := helpers.PublicNetworkAccessEnabled
+			if !functionAppSlot.PublicNetworkAccess {
+				pan = helpers.PublicNetworkAccessDisabled
+			}
+
+			// (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+			siteEnvelope.PublicNetworkAccess = pointer.To(pan)
+			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
 
 			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = pointer.To(functionAppSlot.KeyVaultReferenceIdentityID)
@@ -523,6 +551,13 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			if auth.SiteAuthSettingsProperties != nil {
 				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *auth, id.SlotName); err != nil {
 					return fmt.Errorf("setting Authorisation Settings for Linux %s: %+v", id, err)
+				}
+			}
+
+			authv2 := helpers.ExpandAuthV2Settings(functionAppSlot.AuthV2Settings)
+			if authv2.SiteAuthSettingsV2Properties != nil {
+				if _, err = client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authv2, id.SlotName); err != nil {
+					return fmt.Errorf("updating AuthV2 settings for Linux %s: %+v", id, err)
 				}
 			}
 
@@ -605,6 +640,14 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
 			}
 
+			var authV2 web.SiteAuthSettingsV2
+			if strings.EqualFold(pointer.From(auth.ConfigVersion), "v2") {
+				authV2, err = client.GetAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+				if err != nil {
+					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
+				}
+			}
+
 			backup, err := client.GetBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(backup.Response) {
@@ -634,6 +677,11 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
 				DefaultHostname:             pointer.From(props.DefaultHostName),
+				PublicNetworkAccess:         !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
+			}
+
+			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+				state.HostingEnvId = pointer.From(hostingEnv.ID)
 			}
 
 			functionApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
@@ -670,6 +718,8 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
+
+			state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
@@ -872,6 +922,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 				}
 				existing.SiteConfig = siteConfig
+				existing.VnetRouteAllEnabled = existing.SiteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
@@ -879,6 +930,17 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pan := helpers.PublicNetworkAccessEnabled
+				if !state.PublicNetworkAccess {
+					pan = helpers.PublicNetworkAccessDisabled
+				}
+
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+				existing.PublicNetworkAccess = pointer.To(pan)
+				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
+			}
 
 			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, existing, id.SlotName)
 			if err != nil {
@@ -904,8 +966,29 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
+				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
+				if authUpdate.SiteAuthSettingsProperties == nil {
+					authUpdate.SiteAuthSettingsProperties = &web.SiteAuthSettingsProperties{
+						Enabled:                           pointer.To(false),
+						ClientSecret:                      pointer.To(""),
+						ClientSecretSettingName:           pointer.To(""),
+						ClientSecretCertificateThumbprint: pointer.To(""),
+						GoogleClientSecret:                pointer.To(""),
+						FacebookAppSecret:                 pointer.To(""),
+						GitHubClientSecret:                pointer.To(""),
+						TwitterConsumerSecret:             pointer.To(""),
+						MicrosoftAccountClientSecret:      pointer.To(""),
+					}
+				}
 				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *authUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("auth_settings_v2") {
+				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				if _, err := client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authV2Update, id.SlotName); err != nil {
+					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
 				}
 			}
 

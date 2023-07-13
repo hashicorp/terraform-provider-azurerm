@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning_test
 
 import (
@@ -477,6 +480,9 @@ provider "azurerm" {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
     }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
   }
 }
 
@@ -515,6 +521,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "Get",
     "Delete",
     "Purge",
+    "GetRotationPolicy",
   ]
 }
 

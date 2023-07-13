@@ -71,8 +71,8 @@ resource "azurerm_media_content_key_policy" "example" {
         compressed_digital_audio_opl                             = 250
         compressed_digital_video_opl                             = 400
         explicit_analog_television_output_restriction {
-          best_effort  = true
-          control_bits = 3
+          best_effort_enforced = true
+          control_bits         = 3
         }
       }
       license_type                             = "Persistent"

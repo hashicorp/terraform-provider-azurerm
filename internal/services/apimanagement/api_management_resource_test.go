@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -1249,6 +1252,7 @@ resource "azurerm_api_management" "test" {
 
   additional_location {
     zones    = []
+    capacity = 1
     location = azurerm_resource_group.test2.location
   }
 

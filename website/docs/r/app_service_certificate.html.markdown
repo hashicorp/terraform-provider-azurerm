@@ -52,17 +52,17 @@ The following arguments are supported:
 
 -> **NOTE:** If using `key_vault_secret_id`, the WebApp Service Resource Principal ID `abfa0a7c-a6b6-4736-8310-5855508787cd` must have 'Secret -> get' and 'Certificate -> get' permissions on the Key Vault containing the certificate. (Source: [App Service Blog](https://azure.github.io/AppService/2016/05/24/Deploying-Azure-Web-App-Certificate-through-Key-Vault.html)) If you use Terraform to create the access policy you have to specify the Object ID of this Principal. This Object ID can be retrieved via following data reference, since it is different in every AAD Tenant:
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
 ```hcl
 data "azuread_service_principal" "MicrosoftWebApp" {
   application_id = "abfa0a7c-a6b6-4736-8310-5855508787cd"
 }
 ```
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The App Service certificate ID.
 

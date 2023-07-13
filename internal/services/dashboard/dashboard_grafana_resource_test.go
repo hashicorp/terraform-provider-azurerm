@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package dashboard_test
 
 import (
@@ -139,6 +142,11 @@ func (r DashboardGrafanaResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%[1]s
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "a-uid-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
 
 resource "azurerm_dashboard_grafana" "test" {
   name                              = "a-dg-%[2]d"
@@ -149,7 +157,8 @@ resource "azurerm_dashboard_grafana" "test" {
   public_network_access_enabled     = false
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   azure_monitor_workspace_integrations {

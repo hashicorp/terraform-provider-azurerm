@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cdn
 
 import (
@@ -6,6 +9,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdnFrontDoorsecretparams "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorsecretparams"
@@ -164,7 +169,7 @@ func resourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if props := resp.SecretProperties; props != nil {
 		var customerCertificate []interface{}
-		if customerCertificate, err = flattenSecretParameters(ctx, props.Parameters, meta); err != nil {
+		if customerCertificate, err = flattenSecretParametersResource(ctx, props.Parameters, meta); err != nil {
 			return fmt.Errorf("flattening 'secret': %+v", err)
 		}
 
@@ -217,7 +222,7 @@ func expandCdnFrontDoorBasicSecretParameters(ctx context.Context, input []interf
 	return customerCertificate, nil
 }
 
-func flattenSecretParameters(ctx context.Context, input cdn.BasicSecretParameters, meta interface{}) ([]interface{}, error) {
+func flattenSecretParametersResource(ctx context.Context, input cdn.BasicSecretParameters, meta interface{}) ([]interface{}, error) {
 	client := meta.(*clients.Client).KeyVault
 
 	results := make([]interface{}, 0)
@@ -251,7 +256,71 @@ func flattenSecretParameters(ctx context.Context, input cdn.BasicSecretParameter
 			useLatest = *customerCertificate.UseLatestVersion
 		}
 
-		keyVaultId := keyVaultParse.NewVaultID(secretSourceId.SubscriptionId, secretSourceId.ResourceGroup, secretSourceId.VaultName)
+		keyVaultId := commonids.NewKeyVaultID(secretSourceId.SubscriptionId, secretSourceId.ResourceGroup, secretSourceId.VaultName)
+		keyVaultBaseUri, err := client.BaseUriForKeyVault(ctx, keyVaultId)
+		if err != nil {
+			return nil, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", secretSourceId.SecretName, keyVaultId, err)
+		}
+
+		keyVaultCertificateId, err := keyVaultParse.NewNestedItemID(*keyVaultBaseUri, keyVaultParse.NestedItemTypeCertificate, secretSourceId.SecretName, certificateVersion)
+		if err != nil {
+			return nil, err
+		}
+
+		if useLatest {
+			fields["key_vault_certificate_id"] = keyVaultCertificateId.VersionlessID()
+		} else {
+			fields["key_vault_certificate_id"] = keyVaultCertificateId.ID()
+		}
+	}
+
+	if customerCertificate.SubjectAlternativeNames != nil {
+		fields["subject_alternative_names"] = utils.FlattenStringSlice(customerCertificate.SubjectAlternativeNames)
+	} else {
+		fields["subject_alternative_names"] = make([]string, 0)
+	}
+
+	result["customer_certificate"] = []interface{}{fields}
+	results = append(results, result)
+
+	return results, nil
+}
+
+func flattenSecretParametersDataSource(ctx context.Context, input cdn.BasicSecretParameters, meta interface{}) ([]interface{}, error) {
+	client := meta.(*clients.Client).KeyVault
+
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	result := make(map[string]interface{})
+	fields := make(map[string]interface{})
+
+	customerCertificate, ok := input.AsCustomerCertificateParameters()
+	if !ok {
+		return nil, fmt.Errorf("expected a Customer Certificate Parameter")
+	}
+
+	secretSourceId, err := keyVaultParse.SecretVersionlessID(*customerCertificate.SecretSource.ID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse the 'Secret Source' field of the 'Customer Certificate', got %q", *customerCertificate.SecretSource.ID)
+	}
+
+	if customerCertificate.UseLatestVersion != nil {
+		// The API always sends back the version...
+		var certificateVersion string
+		var useLatest bool
+
+		if customerCertificate.SecretVersion != nil {
+			certificateVersion = *customerCertificate.SecretVersion
+		}
+
+		if customerCertificate.UseLatestVersion != nil {
+			useLatest = *customerCertificate.UseLatestVersion
+		}
+
+		keyVaultId := commonids.NewKeyVaultID(secretSourceId.SubscriptionId, secretSourceId.ResourceGroup, secretSourceId.VaultName)
 		keyVaultBaseUri, err := client.BaseUriForKeyVault(ctx, keyVaultId)
 		if err != nil {
 			return nil, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", secretSourceId.SecretName, keyVaultId, err)
@@ -275,6 +344,7 @@ func flattenSecretParameters(ctx context.Context, input cdn.BasicSecretParameter
 		fields["subject_alternative_names"] = make([]string, 0)
 	}
 
+	result["expiration_date"] = pointer.From(customerCertificate.ExpirationDate)
 	result["customer_certificate"] = []interface{}{fields}
 	results = append(results, result)
 

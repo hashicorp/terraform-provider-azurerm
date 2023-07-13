@@ -70,8 +70,8 @@ resource "azurerm_linux_virtual_machine" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 }
@@ -102,7 +102,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Maintenance Assignment.
 

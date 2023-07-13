@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -268,7 +271,7 @@ func resourceDataFactoryDatasetAzureBlobRead(d *pluginsdk.ResourceData, meta int
 
 	azureBlobTable, ok := resp.Properties.AsAzureBlobDataset()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Dataset Azure Blob %s: Expected: %q Received: %q", *id, datafactory.TypeBasicDatasetTypeAzureBlob, *resp.Type)
+		return fmt.Errorf("classifying Data Factory Dataset Azure Blob %s: Expected: %q Received: %T", *id, datafactory.TypeBasicDatasetTypeAzureBlob, resp.Properties)
 	}
 
 	d.Set("additional_properties", azureBlobTable.AdditionalProperties)

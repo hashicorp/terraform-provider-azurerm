@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `classic_vmware_replication_enabled` - (Optional) Whether to enable the Classic experience for VMware replication. If set to `false` VMware machines will be protected using the new stateless ASR replication appliance. Changing this forces a new resource to be created.
 
+* `monitoring` - (Optional) A `monitoring` block as defined below.
+
 ---
 
 An `identity` block supports the following:
@@ -90,9 +92,17 @@ An `encryption` block supports the following:
 
 ---
 
+A `monitoring` block supports the following:
+
+* `alerts_for_all_job_failures_enabled` - (Optional) Enabling/Disabling built-in Azure Monitor alerts for security scenarios and job failure scenarios. Defaults to `true`.
+
+* `alerts_for_critical_operation_failures_enabled` - (Optional) Enabling/Disabling alerts from the older (classic alerts) solution. Defaults to `true`. More details could be found [here](https://learn.microsoft.com/en-us/azure/backup/monitoring-and-alerts-overview).
+
+---
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Recovery Services Vault.
 

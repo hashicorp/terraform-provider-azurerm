@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = ScopedExportId{}
 
 // ScopedExportId is a struct representing the Resource ID for a Scoped Export
@@ -35,11 +38,11 @@ func ParseScopedExportID(input string) (*ScopedExportId, error) {
 	id := ScopedExportId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.ExportName, ok = parsed.Parsed["exportName"]; !ok {
-		return nil, fmt.Errorf("the segment 'exportName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "exportName", *parsed)
 	}
 
 	return &id, nil
@@ -58,11 +61,11 @@ func ParseScopedExportIDInsensitively(input string) (*ScopedExportId, error) {
 	id := ScopedExportId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.ExportName, ok = parsed.Parsed["exportName"]; !ok {
-		return nil, fmt.Errorf("the segment 'exportName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "exportName", *parsed)
 	}
 
 	return &id, nil

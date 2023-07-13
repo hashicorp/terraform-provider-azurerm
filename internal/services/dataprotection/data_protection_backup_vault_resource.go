@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package dataprotection
 
 import (
@@ -6,6 +9,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -161,8 +165,8 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("location", location.NormalizeNilable(&model.Location))
 		props := model.Properties
 		if props.StorageSettings != nil && len(props.StorageSettings) > 0 {
-			d.Set("datastore_type", (props.StorageSettings)[0].DatastoreType)
-			d.Set("redundancy", (props.StorageSettings)[0].Type)
+			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
+			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
 		}
 
 		if err = d.Set("identity", flattenBackupVaultDppIdentityDetails(model.Identity)); err != nil {

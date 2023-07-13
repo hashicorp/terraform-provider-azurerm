@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package netapp
 
 import (
@@ -288,14 +291,18 @@ func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *capacitypools
 			}
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
 	}
 }
 
 func waitForPoolCreateOrUpdate(ctx context.Context, client *capacitypools.CapacityPoolsClient, id capacitypools.CapacityPoolId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("context had no deadline")
+		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		ContinuousTargetOccurence: 5,
@@ -323,6 +330,10 @@ func netappPoolStateRefreshFunc(ctx context.Context, client *capacitypools.Capac
 			}
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
 	}
 }

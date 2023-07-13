@@ -2,13 +2,21 @@ package client
 
 import (
 	"github.com/Azure/go-autorest/autorest"
-	managedidentity_v2022_01_31_preview "github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2022-01-31-preview"
+	managedidentityV20230131 "github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-func NewClient(o *common.ClientOptions) *managedidentity_v2022_01_31_preview.Client {
-	client := managedidentity_v2022_01_31_preview.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
+type AutoClient struct {
+	V20230131 managedidentityV20230131.Client
+}
+
+func NewClient(o *common.ClientOptions) (*AutoClient, error) {
+
+	v20230131Client := managedidentityV20230131.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
 		c.Authorizer = o.ResourceManagerAuthorizer
 	})
-	return &client
+
+	return &AutoClient{
+		V20230131: v20230131Client,
+	}, nil
 }

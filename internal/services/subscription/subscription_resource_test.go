@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package subscription_test
 
 import (
@@ -6,10 +9,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -94,16 +98,16 @@ func TestAccSubscriptionResource_devTest(t *testing.T) {
 }
 
 func (SubscriptionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SubscriptionAliasID(state.ID)
+	id, err := subscriptions.ParseAliasID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Subscription.AliasClient.Get(ctx, id.Name)
+	resp, err := client.Subscription.AliasClient.AliasGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Subscription Alias %q: %+v", id.Name, err)
+		return nil, fmt.Errorf("retrieving Subscription Alias %q: %+v", id.AliasName, err)
 	}
 
 	return utils.Bool(true), nil
@@ -112,23 +116,25 @@ func (SubscriptionResource) Exists(ctx context.Context, client *clients.Client, 
 // TODO - Need Env vars in CI for Billing Account and Enrollment Account - Testing disabled for now
 func (SubscriptionResource) basicEnrollmentAccount(data acceptance.TestData) string {
 	billingAccount := os.Getenv("ARM_BILLING_ACCOUNT")
-	enrollmentAccount := os.Getenv("ARM_BILLING_ENROLLMENT_ACCOUNT")
+	billingProfile := os.Getenv("ARM_BILLING_PROFILE")
+	invoiceSection := os.Getenv("ARM_INVOICE_SECTION")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_billing_enrollment_account_scope" "test" {
-  billing_account    = "%s"
-  enrollment_account = "%s"
+data "azurerm_billing_mca_account_scope" "test" {
+  billing_account_name = "%[1]s"
+  billing_profile_name = "%[2]s"
+  invoice_section_name = "%[3]s"
 }
 
 resource "azurerm_subscription" "test" {
-  alias             = "testAcc-%[3]d"
-  subscription_name = "testAccSubscription %[3]d"
-  billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
+  alias             = "testAcc-%[4]d"
+  subscription_name = "testAccSubscription %[4]d"
+  billing_scope_id  = data.azurerm_billing_mca_account_scope.test.id
 }
-`, billingAccount, enrollmentAccount, data.RandomInteger)
+`, billingAccount, billingProfile, invoiceSection, data.RandomInteger)
 }
 
 func (SubscriptionResource) basicEnrollmentAccountUpdate(data acceptance.TestData) string {
@@ -148,6 +154,10 @@ resource "azurerm_subscription" "test" {
   alias             = "testAcc-%[3]d"
   subscription_name = "testAccSubscription Renamed %[3]d"
   billing_scope_id  = data.azurerm_billing_enrollment_account_scope.test.id
+
+  tags = {
+    key = "value"
+  }
 }
 `, billingAccount, enrollmentAccount, data.RandomInteger)
 }

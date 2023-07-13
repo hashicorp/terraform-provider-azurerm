@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation
 
 import (
@@ -7,6 +10,11 @@ import (
 	"strings"
 	"time"
 
+	// import time/tzdata to embed timezone information in the program
+	// add this to resolve https://github.com/hashicorp/terraform-provider-azurerm/issues/20690
+	_ "time/tzdata"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/schedule"
@@ -81,7 +89,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: suppress.RFC3339Time,
+				DiffSuppressFunc: suppress.RFC3339MinuteTime,
 				ValidateFunc:     validation.IsRFC3339Time,
 				// defaults to now + 7 minutes in create function if not set
 			},
@@ -90,7 +98,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				Computed:         true, // same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.RFC3339MinuteTime,
 				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
@@ -257,8 +265,7 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("expiry_time"); ok {
-		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
-		parameters.Properties.SetExpiryTimeAsTime(t.In(loc))
+		parameters.Properties.ExpiryTime = pointer.To(v.(string))
 	}
 
 	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
@@ -312,19 +319,14 @@ func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("frequency", props.Frequency)
+			d.Set("frequency", string(pointer.From(props.Frequency)))
 
 			startTime, err := props.GetStartTimeAsTime()
 			if err != nil {
 				return err
 			}
 			d.Set("start_time", startTime.Format(time.RFC3339))
-
-			expiryTime, err := props.GetExpiryTimeAsTime()
-			if err != nil {
-				return err
-			}
-			d.Set("expiry_time", expiryTime.Format(time.RFC3339))
+			d.Set("expiry_time", pointer.From(props.ExpiryTime))
 
 			if v := props.Interval; v != nil {
 				d.Set("interval", v)

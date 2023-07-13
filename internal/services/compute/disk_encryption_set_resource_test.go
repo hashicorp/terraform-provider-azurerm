@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -246,6 +249,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "Get",
     "Purge",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -288,6 +292,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "Get",
     "WrapKey",
     "UnwrapKey",
+    "GetRotationPolicy",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
@@ -424,6 +429,7 @@ resource "azurerm_key_vault_access_policy" "user-assigned" {
     "Get",
     "WrapKey",
     "UnwrapKey",
+    "GetRotationPolicy",
   ]
 
   depends_on = ["azurerm_key_vault_access_policy.service-principal"]
@@ -466,6 +472,7 @@ resource "azurerm_key_vault_access_policy" "user-assigned" {
     "Get",
     "WrapKey",
     "UnwrapKey",
+    "GetRotationPolicy",
   ]
 
   depends_on = ["azurerm_key_vault_access_policy.service-principal"]
@@ -513,6 +520,7 @@ resource "azurerm_key_vault_access_policy" "user-assigned" {
     "Get",
     "WrapKey",
     "UnwrapKey",
+    "GetRotationPolicy",
   ]
 
   depends_on = ["azurerm_key_vault_access_policy.service-principal"]
@@ -548,6 +556,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "Get",
     "WrapKey",
     "UnwrapKey",
+    "GetRotationPolicy",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id

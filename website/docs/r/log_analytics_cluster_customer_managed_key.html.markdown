@@ -50,6 +50,7 @@ resource "azurerm_key_vault" "example" {
     key_permissions = [
       "Create",
       "Get",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [

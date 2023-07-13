@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
@@ -6,8 +9,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var _ resourceids.ResourceId = CommunityGalleryImageVersionId{}
 
 type CommunityGalleryImageVersionId struct {
 	GalleryName string
@@ -38,88 +42,52 @@ func (id CommunityGalleryImageVersionId) ID() string {
 	return fmt.Sprintf(fmtString, id.GalleryName, id.ImageName, id.Version)
 }
 
+func (id CommunityGalleryImageVersionId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("communityGalleries", "communityGalleries", "communityGalleries"),
+		resourceids.UserSpecifiedSegment("galleryName", "myGalleryName"),
+		resourceids.StaticSegment("images", "images", "images"),
+		resourceids.UserSpecifiedSegment("imageName", "myImageName"),
+		resourceids.StaticSegment("versions", "versions", "versions"),
+		resourceids.UserSpecifiedSegment("version", "myImageVersion"),
+	}
+}
+
 // CommunityGalleryImageVersionID parses a CommunityGalleryImageVersion Unique ID into an CommunityGalleryImageVersionId struct
 func CommunityGalleryImageVersionID(input string) (*CommunityGalleryImageVersionId, error) {
-	segments := make([]resourceids.Segment, 0)
-
-	segments = append(segments, resourceids.Segment{
-		FixedValue: utils.String("communityGalleries"),
-		Name:       "communityGalleries",
-		Type:       resourceids.StaticSegmentType,
-	})
-
-	segments = append(segments, resourceids.Segment{
-		ExampleValue: "myGalleryName",
-		Name:         "galleryName",
-		Type:         resourceids.UserSpecifiedSegmentType,
-	})
-
-	segments = append(segments, resourceids.Segment{
-		FixedValue: utils.String("images"),
-		Name:       "images",
-		Type:       resourceids.StaticSegmentType,
-	})
-
-	segments = append(segments, resourceids.Segment{
-		ExampleValue: "myImageName",
-		Name:         "imageName",
-		Type:         resourceids.UserSpecifiedSegmentType,
-	})
-
-	segments = append(segments, resourceids.Segment{
-		FixedValue: utils.String("versions"),
-		Name:       "versions",
-		Type:       resourceids.StaticSegmentType,
-	})
-
-	segments = append(segments, resourceids.Segment{
-		ExampleValue: "myImageVersion",
-		Name:         "version",
-		Type:         resourceids.UserSpecifiedSegmentType,
-	})
-
-	newParser := resourceids.NewParser(segments)
-
-	id, err := newParser.Parse(input, false)
+	id := CommunityGalleryImageVersionId{}
+	parsed, err := resourceids.NewParserFromResourceIdType(id).Parse(input, false)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := CommunityGalleryImageVersionId{
-		GalleryName: id.Parsed["galleryName"],
-		ImageName:   id.Parsed["imageName"],
-		Version:     id.Parsed["version"],
+	var ok bool
+	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
 	}
-
-	if resourceId.GalleryName == "" {
-		return nil, fmt.Errorf("ID was missing the 'GalleryName' element")
+	if id.ImageName, ok = parsed.Parsed["imageName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "imageName", *parsed)
 	}
-
-	if resourceId.ImageName == "" {
-		return nil, fmt.Errorf("ID was missing the 'ImageName' element")
-	}
-
-	if resourceId.Version == "" {
-		return nil, fmt.Errorf("ID was missing the 'Version' element")
+	if id.Version, ok = parsed.Parsed["version"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "version", *parsed)
 	}
 
 	// Additional validation for version, it can be the word "latest" or
 	// a string in the format of Major.Minor.Patch, it must always be
 	// a semantic version...
-
-	if !strings.EqualFold(resourceId.Version, "latest") {
-		versionParts := strings.Split(resourceId.Version, ".")
+	if !strings.EqualFold(id.Version, "latest") {
+		versionParts := strings.Split(id.Version, ".")
 
 		if len(versionParts) != 3 {
-			return nil, fmt.Errorf("ID 'Version' element is invalid, 'Version' must either be 'latest' or the semantic version(Major.Minor.Patch) for the image, got %s", resourceId.Version)
+			return nil, fmt.Errorf("ID 'Version' element is invalid, 'Version' must either be 'latest' or the semantic version(Major.Minor.Patch) for the image, got %s", id.Version)
 		}
 
 		for _, v := range versionParts {
 			if _, err := strconv.Atoi(v); err != nil {
-				return nil, fmt.Errorf("ID 'Version' element is invalid, semantic version elements must all be valid integers, got %s", resourceId.Version)
+				return nil, fmt.Errorf("ID 'Version' element is invalid, semantic version elements must all be valid integers, got %s", id.Version)
 			}
 		}
 	}
 
-	return &resourceId, nil
+	return &id, nil
 }

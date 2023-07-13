@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package securitycenter
 
 import (
@@ -7,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -80,7 +84,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: commonids.ValidateScopeID,
 				},
 			},
 

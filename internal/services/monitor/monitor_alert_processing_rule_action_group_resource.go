@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -165,7 +168,6 @@ func (r AlertProcessingRuleActionGroupResource) Update() sdk.ResourceFunc {
 				model.Tags = &resourceModel.Tags
 			}
 
-			model.SystemData = nil
 			if _, err := client.AlertProcessingRulesCreateOrUpdate(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}

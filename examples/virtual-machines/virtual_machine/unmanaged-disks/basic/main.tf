@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 locals {
   storage_account_base_uri = "${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}"
 }

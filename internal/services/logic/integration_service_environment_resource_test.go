@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic_test
 
 import (
@@ -16,6 +19,8 @@ import (
 type IntegrationServiceEnvironmentResource struct{}
 
 func TestAccIntegrationServiceEnvironment_basic(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -42,6 +47,8 @@ func TestAccIntegrationServiceEnvironment_basic(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_complete(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -69,6 +76,8 @@ func TestAccIntegrationServiceEnvironment_complete(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_developer(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -96,6 +105,8 @@ func TestAccIntegrationServiceEnvironment_developer(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -158,6 +169,8 @@ func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_requiresImport(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

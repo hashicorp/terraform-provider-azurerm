@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_subnet" "gateway_snet_1" {
   name                 = "GatewaySubnet"
   resource_group_name  = var.resource_group_name_1

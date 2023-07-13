@@ -1,17 +1,20 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package healthcare
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceHealthcareService() *pluginsdk.Resource {
@@ -115,7 +118,7 @@ func dataSourceHealthcareService() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -126,10 +129,10 @@ func dataSourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := service.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.ServicesGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -138,36 +141,38 @@ func dataSourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.SetId(id.ID())
 
-	if kind := resp.Kind; string(kind) != "" {
-		d.Set("kind", kind)
+	if m := resp.Model; m != nil {
+		d.Set("kind", string(m.Kind))
+
+		if props := m.Properties; props != nil {
+			if err := d.Set("access_policy_object_ids", flattenAccessPolicies(props.AccessPolicies)); err != nil {
+				return fmt.Errorf("setting `access_policy_object_ids`: %+v", err)
+			}
+
+			cosmodDbKeyVaultKeyVersionlessId := ""
+			cosmosDbThroughput := 0
+			if cosmos := props.CosmosDbConfiguration; cosmos != nil {
+				if v := cosmos.OfferThroughput; v != nil {
+					cosmosDbThroughput = int(*v)
+				}
+				if v := cosmos.KeyVaultKeyUri; v != nil {
+					cosmodDbKeyVaultKeyVersionlessId = *v
+				}
+			}
+			d.Set("cosmosdb_key_vault_key_versionless_id", cosmodDbKeyVaultKeyVersionlessId)
+			d.Set("cosmosdb_throughput", cosmosDbThroughput)
+
+			if err := d.Set("authentication_configuration", flattenAuthentication(props.AuthenticationConfiguration)); err != nil {
+				return fmt.Errorf("setting `authentication_configuration`: %+v", err)
+			}
+
+			if err := d.Set("cors_configuration", flattenCorsConfig(props.CorsConfiguration)); err != nil {
+				return fmt.Errorf("setting `cors_configuration`: %+v", err)
+			}
+		}
+
+		return tags.FlattenAndSet(d, m.Tags)
 	}
 
-	if props := resp.Properties; props != nil {
-		if err := d.Set("access_policy_object_ids", flattenAccessPolicies(props.AccessPolicies)); err != nil {
-			return fmt.Errorf("setting `access_policy_object_ids`: %+v", err)
-		}
-
-		cosmodDbKeyVaultKeyVersionlessId := ""
-		cosmosDbThroughput := 0
-		if cosmos := props.CosmosDbConfiguration; cosmos != nil {
-			if v := cosmos.OfferThroughput; v != nil {
-				cosmosDbThroughput = int(*v)
-			}
-			if v := cosmos.KeyVaultKeyURI; v != nil {
-				cosmodDbKeyVaultKeyVersionlessId = *v
-			}
-		}
-		d.Set("cosmosdb_key_vault_key_versionless_id", cosmodDbKeyVaultKeyVersionlessId)
-		d.Set("cosmosdb_throughput", cosmosDbThroughput)
-
-		if err := d.Set("authentication_configuration", flattenAuthentication(props.AuthenticationConfiguration)); err != nil {
-			return fmt.Errorf("setting `authentication_configuration`: %+v", err)
-		}
-
-		if err := d.Set("cors_configuration", flattenCorsConfig(props.CorsConfiguration)); err != nil {
-			return fmt.Errorf("setting `cors_configuration`: %+v", err)
-		}
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

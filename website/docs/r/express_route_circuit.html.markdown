@@ -67,6 +67,8 @@ The following arguments are supported:
 
 ~> **NOTE:** The `express_route_port_id` and the `bandwidth_in_gbps` should be set together and they conflict with `service_provider_name`, `peering_location` and `bandwidth_in_mbps`.
 
+* `authorization_key` - (Optional) The authorization key. This can be used to set up an ExpressRoute Circuit with an ExpressRoute Port from another subscription.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -81,7 +83,7 @@ The `sku` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the ExpressRoute circuit.
 * `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. Possible values are `NotProvisioned`, `Provisioning`, `Provisioned`, and `Deprovisioning`.

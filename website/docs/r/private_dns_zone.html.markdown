@@ -58,7 +58,7 @@ The `soa_record` block supports:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Private DNS Zone ID.
 * `soa_record` - A `soa_record` block as defined below.

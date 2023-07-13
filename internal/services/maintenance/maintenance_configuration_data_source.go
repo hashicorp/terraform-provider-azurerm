@@ -1,9 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package maintenance
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -185,8 +189,8 @@ func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta i
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("scope", props.MaintenanceScope)
-			d.Set("visibility", props.Visibility)
+			d.Set("scope", string(pointer.From(props.MaintenanceScope)))
+			d.Set("visibility", string(pointer.From(props.Visibility)))
 
 			properties := flattenExtensionProperties(props.ExtensionProperties)
 			if properties["InGuestPatchMode"] != nil {

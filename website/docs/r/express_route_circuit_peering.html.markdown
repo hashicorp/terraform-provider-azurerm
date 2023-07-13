@@ -150,6 +150,8 @@ A `microsoft_peering_config` block contains:
 
 * `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example: `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
 
+* `advertised_communities` - (Optional) The communities of Bgp Peering specified for microsoft peering.
+
 ---
 
 A `ipv6` block contains:
@@ -176,9 +178,11 @@ A `microsoft_peering` block contains:
 
 * `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example: `ARIN`, `RIPE`, `AFRINIC` etc. Defaults to `NONE`.
 
+* `advertised_communities` - (Optional) The communities of Bgp Peering specified for microsoft peering.
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the ExpressRoute Circuit Peering.
 

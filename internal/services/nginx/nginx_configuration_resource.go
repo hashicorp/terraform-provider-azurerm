@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package nginx
 
 import (
@@ -200,13 +203,9 @@ func (m ConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			req := model.ToSDKModel()
-			future, err := client.ConfigurationsCreateOrUpdate(ctx, id, req)
-			if err != nil {
-				return fmt.Errorf("creating %s: %v", id, err)
-			}
 
-			if err := future.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %v", id, err)
+			if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, id, req); err != nil {
+				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
 			meta.SetID(id)
@@ -227,6 +226,9 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			client := meta.Client.Nginx.NginxConfiguration
 			result, err := client.ConfigurationsGet(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return err
 			}
 
@@ -318,13 +320,8 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			result, err := client.ConfigurationsCreateOrUpdate(ctx, *id, *upd)
-			if err != nil {
+			if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, *id, *upd); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
-			}
-
-			if err := result.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting update %s: %v", *id, err)
 			}
 
 			return nil
@@ -343,13 +340,11 @@ func (m ConfigurationResource) Delete() sdk.ResourceFunc {
 
 			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Nginx.NginxConfiguration
-			result, err := client.ConfigurationsDelete(ctx, *id)
-			if err != nil {
+
+			if err := client.ConfigurationsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
-			if err := result.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting deleting %s: %v", *id, err)
-			}
+
 			return nil
 		},
 	}

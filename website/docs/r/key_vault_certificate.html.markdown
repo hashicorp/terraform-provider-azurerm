@@ -323,7 +323,7 @@ The `subject_alternative_names` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Key Vault Certificate ID.
 * `secret_id` - The ID of the associated Key Vault Secret.
@@ -334,6 +334,10 @@ The following attributes are exported:
 * `certificate_data_base64` - The Base64 encoded Key Vault Certificate data.
 * `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
 * `certificate_attribute` - A `certificate_attribute` block as defined below.
+ 
+* `resource_manager_id` - The (Versioned) ID for this Key Vault Certificate. This property points to a specific version of a Key Vault Certificate, as such using this won't auto-rotate values if used in other Azure Services.
+
+* `resource_manager_versionless_id` - The Versionless ID of the Key Vault Certificate. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Certificate is updated.
 
 ---
 

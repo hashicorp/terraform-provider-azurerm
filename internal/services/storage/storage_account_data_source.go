@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -368,7 +371,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if e, ok := err.(azautorest.DetailedError); ok {
 			if status, ok := e.StatusCode.(int); ok {
 				hasWriteLock = status == http.StatusConflict
-				doesntHavePermissions = status == http.StatusUnauthorized
+				doesntHavePermissions = (status == http.StatusUnauthorized || status == http.StatusForbidden)
 			}
 		}
 

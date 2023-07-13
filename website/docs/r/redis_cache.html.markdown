@@ -11,6 +11,8 @@ description: |-
 
 Manages a Redis Cache.
 
+-> **Note:** Redis version 4 is being retired and no longer supports creating new instances. Version 4 will be removed in a future release. [Redis Version 4 Retirement](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-retired-features#important-upgrade-timelines)
+
 ## Example Usage
 
 This example provisions a Standard Redis Cache. Other examples of the `azurerm_redis_cache` resource can be found in [the `./examples/redis-cache` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/redis-cache)
@@ -105,7 +107,7 @@ An `identity` block supports the following:
 
 A `redis_configuration` block supports the following:
 
-* `aof_backup_enabled` - (Optional) Enable or disable AOF persistence for this Redis Cache.
+* `aof_backup_enabled` - (Optional) Enable or disable AOF persistence for this Redis Cache. Defaults to `false`.
 * `aof_storage_connection_string_0` - (Optional) First Storage Account connection string for AOF persistence.
 * `aof_storage_connection_string_1` - (Optional) Second Storage Account connection string for AOF persistence.
 
@@ -129,7 +131,7 @@ redis_configuration {
 
 * `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
 
-* `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKUs.
+* `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKUs. Defaults to `false`.
 
 -> **NOTE:** If `rdb_backup_enabled` set to `true`, `rdb_storage_connection_string` must also be set.
 
@@ -182,7 +184,7 @@ A `patch_schedule` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Route ID.
 

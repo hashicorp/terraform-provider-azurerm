@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -18,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	kustoParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -460,6 +464,10 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 	id, err := ParseMonitorDiagnosticId(d.Id())
 	if err != nil {
 		return err
+	}
+
+	if v, err := kustoParse.ClusterIDInsensitively(id.ResourceUri); err == nil {
+		id.ResourceUri = v.ID()
 	}
 
 	resp, err := client.Get(ctx, *id)

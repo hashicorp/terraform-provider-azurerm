@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package applicationinsights
 
 import (
@@ -6,11 +9,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -59,7 +62,7 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ComponentID,
 			},
 
 			"version": {
@@ -216,6 +219,10 @@ func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, met
 
 	result, err := client.Get(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
+		if utils.ResponseWasNotFound(result.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("getting Application Insights Analytics Item %s: %+v", id, err)
 	}
 

@@ -64,8 +64,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -136,6 +136,11 @@ resource "azurerm_monitor_autoscale_setting" "example" {
     }
   }
 
+  predictive {
+    scale_mode      = "Enabled"
+    look_ahead_time = "PT5M"
+  }
+
   notification {
     email {
       send_to_subscription_administrator    = true
@@ -200,8 +205,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -337,8 +342,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
@@ -437,6 +442,8 @@ The following arguments are supported:
 * `enabled` - (Optional) Specifies whether automatic scaling is enabled for the target resource. Defaults to `true`.
 
 * `notification` - (Optional) Specifies a `notification` block as defined below.
+
+* `predictive` - (Optional) A `predictive` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -572,9 +579,17 @@ A `dimensions` block supports the following:
 
 * `values` - (Required) A list of dimension values.
 
+---
+
+A `predictive` block supports the following:
+
+* `scale_mode` - (Required) Specifies the predictive scale mode. Possible values are `Enabled` or `ForecastOnly`.
+
+* `look_ahead_time` - (Optional) Specifies the amount of time by which instances are launched in advance. It must be between `PT1M` and `PT1H` in ISO 8601 format.
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the AutoScale Setting.
 

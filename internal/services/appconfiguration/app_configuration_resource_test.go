@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -255,13 +258,11 @@ func TestAccAppConfiguration_softDeleteRecoveryDisabled(t *testing.T) {
 		{
 			// attempting to re-create without recovery the soft-deleted
 			Config:      r.softDeleteRecoveryDisabled(data),
-			ExpectError: regexp.MustCompile("An existing soft-deleted App Configuration exists with the Name"),
+			ExpectError: regexp.MustCompile("creating Configuration Store"),
 		},
 	})
 }
 
-// This test may fail due to service API behaviour
-// TODO: retry checkNameAvailability to fix this test when SDK is ready, see https://github.com/Azure/AppConfiguration/issues/677
 func TestAccAppConfiguration_softDeletePurgeThenRecreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
@@ -480,7 +481,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 
@@ -652,7 +653,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 
@@ -760,7 +761,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 

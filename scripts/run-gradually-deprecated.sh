@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 function runGraduallyDeprecatedFunctions {
   echo "==> Checking for use of gradually deprecated functions..."

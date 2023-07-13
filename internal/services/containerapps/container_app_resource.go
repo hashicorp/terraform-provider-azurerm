@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containerapps
 
 import (
@@ -102,7 +105,7 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"dapr": helpers.ContainerDaprSchema(),
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -337,7 +340,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			// Delta-updates need the secrets back from the list API, or we'll end up removing them or erroring out.
 			secretsResp, err := client.ListSecrets(ctx, *id)
 			if err != nil || secretsResp.Model == nil {
-				if secretsResp.HttpResponse == nil || secretsResp.HttpResponse.StatusCode != http.StatusNoContent {
+				if !response.WasStatusCode(secretsResp.HttpResponse, http.StatusNoContent) {
 					return fmt.Errorf("retrieving secrets for update for %s: %+v", *id, err)
 				}
 			}

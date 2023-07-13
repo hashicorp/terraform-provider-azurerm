@@ -74,7 +74,9 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 
-* `ip_configuration` - (Optional) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
+~> **Note** Downgrading the SKU will force a new resource to be created.
+
+* `ip_configuration` - (Required) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `ip_connect_enabled` - (Optional) Is IP Connect feature enabled for the Bastion Host. Defaults to `false`.
 
@@ -108,7 +110,7 @@ A `ip_configuration` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Bastion Host.
 

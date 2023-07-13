@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice
 
 import (
@@ -7,20 +10,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type WindowsWebAppResource struct{}
@@ -43,11 +46,13 @@ type WindowsWebAppModel struct {
 	HttpsOnly                     bool                        `tfschema:"https_only"`
 	KeyVaultReferenceIdentityID   string                      `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
+	PublicNetworkAccess           bool                        `tfschema:"public_network_access_enabled"`
 	PushSetting                   []helpers.PushSetting       `tfschema:"push_settings"`
 	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
 	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString  `tfschema:"connection_string"`
 	CustomDomainVerificationId    string                      `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                  string                      `tfschema:"hosting_environment_id"`
 	DefaultHostname               string                      `tfschema:"default_hostname"`
 	Kind                          string                      `tfschema:"kind"`
 	OutboundIPAddresses           string                      `tfschema:"outbound_ip_addresses"`
@@ -89,6 +94,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+			ValidateFunc: validate.AppSettings,
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -151,6 +157,12 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"logs": helpers.LogsConfigSchema(),
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"push_settings": helpers.PushSettingSchema(),
 
 		"site_config": helpers.SiteConfigSchemaWindows(),
@@ -164,7 +176,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
 		"tags": tags.Schema(),
@@ -172,7 +184,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: networkValidate.SubnetID,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 	}
 }
@@ -189,6 +201,11 @@ func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -305,19 +322,31 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
 			}
 
-			siteConfig, currentStack, err := helpers.ExpandSiteConfigWindows(webApp.SiteConfig, nil, metadata, servicePlan)
+			sc := webApp.SiteConfig[0]
+
+			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+					if sc.AlwaysOn {
+						return fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
+					}
+				}
+			}
+
+			siteConfig, err := sc.ExpandForCreate(webApp.AppSettings)
 			if err != nil {
 				return err
 			}
 
-			if *currentStack == helpers.CurrentStackNode {
-				if webApp.AppSettings == nil {
-					webApp.AppSettings = make(map[string]string, 0)
+			currentStack := ""
+			if len(sc.ApplicationStack) == 1 {
+				currentStack = sc.ApplicationStack[0].CurrentStack
+				if currentStack == helpers.CurrentStackNode || sc.ApplicationStack[0].NodeVersion != "" {
+					if webApp.AppSettings == nil {
+						webApp.AppSettings = make(map[string]string, 0)
+					}
+					webApp.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = sc.ApplicationStack[0].NodeVersion
 				}
-				webApp.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"] = webApp.SiteConfig[0].ApplicationStack[0].NodeVersion
 			}
-
-			siteConfig.AppSettings = helpers.ExpandAppSettingsForCreate(webApp.AppSettings)
 
 			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
 			if err != nil {
@@ -336,8 +365,18 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
 					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
+					VnetRouteAllEnabled:   siteConfig.VnetRouteAllEnabled,
 				},
 			}
+
+			pna := helpers.PublicNetworkAccessEnabled
+			if !webApp.PublicNetworkAccess {
+				pna = helpers.PublicNetworkAccessDisabled
+			}
+
+			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+			siteEnvelope.PublicNetworkAccess = pointer.To(pna)
+			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
 
 			if webApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = pointer.To(webApp.KeyVaultReferenceIdentityID)
@@ -362,9 +401,9 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			if currentStack != nil && *currentStack != "" {
+			if currentStack != "" {
 				siteMetadata := web.StringDictionary{Properties: map[string]*string{}}
-				siteMetadata.Properties["CURRENT_STACK"] = currentStack
+				siteMetadata.Properties["CURRENT_STACK"] = pointer.To(currentStack)
 				if _, err := client.UpdateMetadata(ctx, id.ResourceGroup, id.SiteName, siteMetadata); err != nil {
 					return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
 				}
@@ -487,10 +526,6 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Windows %s: %+v", id, err)
 			}
 
-			if webApp.SiteProperties == nil {
-				return fmt.Errorf("reading properties of Windows %s", id)
-			}
-
 			// Despite being part of the defined `Get` response model, site_config is always nil so we get it explicitly
 			webAppSiteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
@@ -565,59 +600,69 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
-			props := webApp.SiteProperties
+			state := WindowsWebAppModel{}
+			if props := webApp.SiteProperties; props != nil {
+				state = WindowsWebAppModel{
+					Name:                          id.SiteName,
+					ResourceGroup:                 id.ResourceGroup,
+					Location:                      location.NormalizeNilable(webApp.Location),
+					AuthSettings:                  helpers.FlattenAuthSettings(auth),
+					AuthV2Settings:                helpers.FlattenAuthV2Settings(authV2),
+					Backup:                        helpers.FlattenBackupConfig(backup),
+					ClientAffinityEnabled:         pointer.From(props.ClientAffinityEnabled),
+					ClientCertEnabled:             pointer.From(props.ClientCertEnabled),
+					ClientCertMode:                string(props.ClientCertMode),
+					ClientCertExclusionPaths:      pointer.From(props.ClientCertExclusionPaths),
+					ConnectionStrings:             helpers.FlattenConnectionStrings(connectionStrings),
+					CustomDomainVerificationId:    pointer.From(props.CustomDomainVerificationID),
+					DefaultHostname:               pointer.From(props.DefaultHostName),
+					Enabled:                       pointer.From(props.Enabled),
+					HttpsOnly:                     pointer.From(props.HTTPSOnly),
+					KeyVaultReferenceIdentityID:   pointer.From(props.KeyVaultReferenceIdentity),
+					Kind:                          pointer.From(webApp.Kind),
+					LogsConfig:                    helpers.FlattenLogsConfig(logsConfig),
+					SiteCredentials:               helpers.FlattenSiteCredentials(siteCredentials),
+					StorageAccounts:               helpers.FlattenStorageAccounts(storageAccounts),
+					StickySettings:                helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
+					OutboundIPAddresses:           pointer.From(props.OutboundIPAddresses),
+					OutboundIPAddressList:         strings.Split(pointer.From(props.OutboundIPAddresses), ","),
+					PossibleOutboundIPAddresses:   pointer.From(props.PossibleOutboundIPAddresses),
+					PossibleOutboundIPAddressList: strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ","),
+					PublicNetworkAccess:           !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
+					Tags:                          tags.ToTypedObject(webApp.Tags),
+				}
 
-			state := WindowsWebAppModel{
-				Name:                        id.SiteName,
-				ResourceGroup:               id.ResourceGroup,
-				ServicePlanId:               pointer.From(props.ServerFarmID),
-				Location:                    location.NormalizeNilable(webApp.Location),
-				AuthSettings:                helpers.FlattenAuthSettings(auth),
-				AuthV2Settings:              helpers.FlattenAuthV2Settings(authV2),
-				Backup:                      helpers.FlattenBackupConfig(backup),
-				ClientAffinityEnabled:       pointer.From(props.ClientAffinityEnabled),
-				ClientCertEnabled:           pointer.From(props.ClientCertEnabled),
-				ClientCertMode:              string(props.ClientCertMode),
-				ClientCertExclusionPaths:    pointer.From(props.ClientCertExclusionPaths),
-				ConnectionStrings:           helpers.FlattenConnectionStrings(connectionStrings),
-				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
-				DefaultHostname:             pointer.From(props.DefaultHostName),
-				Enabled:                     pointer.From(props.Enabled),
-				HttpsOnly:                   pointer.From(props.HTTPSOnly),
-				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
-				Kind:                        pointer.From(webApp.Kind),
-				LogsConfig:                  helpers.FlattenLogsConfig(logsConfig),
-				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
-				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
-				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
-				Tags:                        tags.ToTypedObject(webApp.Tags),
+				pushes, err := helpers.FlattenPushSetting(pushSetting, metadata)
+				if err != nil {
+					return fmt.Errorf("reading push setting error: %+v", err)
+				}
+				state.PushSetting = pushes
+
+				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
+					state.VirtualNetworkSubnetID = subnetId
+				}
+				serverFarmId, err := parse.ServicePlanID(pointer.From(props.ServerFarmID))
+				if err != nil {
+					return fmt.Errorf("parsing Service Plan ID for %s: %+v", id, err)
+				}
+
+				state.ServicePlanId = serverFarmId.ID()
+
+				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+					hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.ID)
+					if err != nil {
+						return err
+					}
+					state.HostingEnvId = hostingEnvId.ID()
+				}
+
+				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
+					state.VirtualNetworkSubnetID = subnetId
+				}
+
 			}
 
-			pushes, err := helpers.FlattenPushSetting(pushSetting, metadata)
-			if err != nil {
-				return fmt.Errorf("reading push setting error: %+v", err)
-			}
-			state.PushSetting = pushes
-
-			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
-				state.VirtualNetworkSubnetID = subnetId
-			}
-
-			var healthCheckCount *int
-			state.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
-			if err != nil {
-				return fmt.Errorf("flattening app settings for Windows %s: %+v", id, err)
-			}
-
-			if v := props.OutboundIPAddresses; v != nil {
-				state.OutboundIPAddresses = *v
-				state.OutboundIPAddressList = strings.Split(*v, ",")
-			}
-
-			if v := props.PossibleOutboundIPAddresses; v != nil {
-				state.PossibleOutboundIPAddresses = *v
-				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
-			}
+			state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
 
 			currentStack := ""
 			currentStackPtr, ok := siteMetadata.Properties["CURRENT_STACK"]
@@ -625,16 +670,31 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				currentStack = *currentStackPtr
 			}
 
-			state.SiteConfig, err = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
-			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
+			siteConfig := helpers.SiteConfigWindows{}
+			if err := siteConfig.Flatten(webAppSiteConfig.SiteConfig, currentStack); err != nil {
+				return err
 			}
-			if nodeVer, ok := state.AppSettings["WEBSITE_NODE_DEFAULT_VERSION"]; ok {
-				if state.SiteConfig[0].ApplicationStack == nil {
-					state.SiteConfig[0].ApplicationStack = make([]helpers.ApplicationStackWindows, 0)
+			siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
+			state.AppSettings = siteConfig.ParseNodeVersion(state.AppSettings)
+
+			// For non-import cases we check for use of the deprecated docker settings - remove in 4.0
+			_, usesDeprecatedDocker := metadata.ResourceData.GetOk("site_config.0.application_stack.0.docker_container_name")
+
+			if helpers.FxStringHasPrefix(siteConfig.WindowsFxVersion, helpers.FxStringPrefixDocker) {
+				if !features.FourPointOhBeta() {
+					siteConfig.DecodeDockerDeprecatedAppStack(state.AppSettings, usesDeprecatedDocker)
+				} else {
+					siteConfig.DecodeDockerAppStack(state.AppSettings)
 				}
-				state.SiteConfig[0].ApplicationStack[0].NodeVersion = nodeVer
-				delete(state.AppSettings, "WEBSITE_NODE_DEFAULT_VERSION")
+			}
+
+			state.SiteConfig = []helpers.SiteConfigWindows{siteConfig}
+
+			// Filter out all settings we've consumed above
+			if !features.FourPointOhBeta() && usesDeprecatedDocker {
+				state.AppSettings = helpers.FilterManagedAppSettingsDeprecated(state.AppSettings)
+			} else {
+				state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
 			}
 
 			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
@@ -696,8 +756,6 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			// TODO - Need locking here for the source control meta resource?
 
 			var state WindowsWebAppModel
 			if err := metadata.Decode(&state); err != nil {
@@ -778,18 +836,37 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			currentStack := ""
-			stateConfig := state.SiteConfig[0]
-			if len(stateConfig.ApplicationStack) == 1 {
-				currentStack = stateConfig.ApplicationStack[0].CurrentStack
+			sc := state.SiteConfig[0]
+
+			if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+				if helpers.IsFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+					if sc.AlwaysOn {
+						return fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+					}
+				}
+			}
+
+			if len(sc.ApplicationStack) == 1 {
+				currentStack = sc.ApplicationStack[0].CurrentStack
 			}
 
 			if metadata.ResourceData.HasChange("site_config") || servicePlanChange {
-				siteConfig, stack, err := helpers.ExpandSiteConfigWindows(state.SiteConfig, existing.SiteConfig, metadata, servicePlan)
+				existing.SiteConfig, err = sc.ExpandForUpdate(metadata, existing.SiteConfig, state.AppSettings)
 				if err != nil {
-					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
+					return err
 				}
-				currentStack = *stack
-				existing.SiteConfig = siteConfig
+				existing.VnetRouteAllEnabled = existing.SiteConfig.VnetRouteAllEnabled
+			}
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pna := helpers.PublicNetworkAccessEnabled
+				if !state.PublicNetworkAccess {
+					pna = helpers.PublicNetworkAccessDisabled
+				}
+
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+				existing.PublicNetworkAccess = pointer.To(pna)
+				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
 			}
 
 			updateFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, existing)

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package synapse_test
 
 import (
@@ -544,7 +547,8 @@ resource "azurerm_key_vault" "test" {
       "Create",
       "Get",
       "Delete",
-      "Purge"
+      "Purge",
+      "GetRotationPolicy",
     ]
   }
 }

@@ -1,9 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
 	"context"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

@@ -1,9 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package tags
 
 import "strings"
 
-func Filter(tagsMap map[string]*string, tagNames ...string) map[string]*string {
-	if len(tagNames) == 0 {
+func Filter(tagsMap *map[string]string, tagNames ...string) *map[string]string {
+	if len(tagNames) == 0 || tagsMap == nil {
 		return tagsMap
 	}
 
@@ -16,12 +19,12 @@ func Filter(tagsMap map[string]*string, tagNames ...string) map[string]*string {
 	}
 
 	// Filter out tag if it exists(case insensitive) in the dictionary.
-	tagsRet := make(map[string]*string)
-	for k, v := range tagsMap {
+	tagsRet := make(map[string]string)
+	for k, v := range *tagsMap {
 		if !filterDict[strings.ToLower(k)] {
 			tagsRet[k] = v
 		}
 	}
 
-	return tagsRet
+	return &tagsRet
 }

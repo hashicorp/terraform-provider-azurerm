@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic
 
 import (
@@ -6,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountcertificates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -66,11 +70,7 @@ func resourceLogicAppIntegrationAccountCertificate() *pluginsdk.Resource {
 							ValidateFunc: keyVaultValidate.NestedItemName,
 						},
 
-						"key_vault_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: keyVaultValidate.VaultID,
-						},
+						"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
 
 						"key_version": {
 							Type:         pluginsdk.TypeString,

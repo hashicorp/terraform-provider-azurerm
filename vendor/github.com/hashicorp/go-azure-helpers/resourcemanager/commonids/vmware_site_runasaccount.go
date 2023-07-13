@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package commonids
 
 import (
@@ -39,19 +42,19 @@ func ParseVMwareSiteRunAsAccountID(input string) (*VMwareSiteRunAsAccountId, err
 	id := VMwareSiteRunAsAccountId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.VMwareSiteName, ok = parsed.Parsed["vmwareSiteName"]; !ok {
-		return nil, fmt.Errorf("the segment 'vmwareSiteName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vmwareSiteName", *parsed)
 	}
 
 	if id.RunAsAccountName, ok = parsed.Parsed["runAsAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'runAsAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runAsAccountName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseVMwareSiteRunAsAccountIDInsensitively(input string) (*VMwareSiteRunAsA
 	id := VMwareSiteRunAsAccountId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.VMwareSiteName, ok = parsed.Parsed["vmwareSiteName"]; !ok {
-		return nil, fmt.Errorf("the segment 'vmwareSiteName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vmwareSiteName", *parsed)
 	}
 
 	if id.RunAsAccountName, ok = parsed.Parsed["runAsAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'runAsAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "runAsAccountName", *parsed)
 	}
 
 	return &id, nil

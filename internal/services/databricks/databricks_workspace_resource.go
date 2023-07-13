@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks
 
 import (
@@ -8,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -20,6 +24,8 @@ import (
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	loadBalancerParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
+	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
+	machineLearningValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -154,7 +160,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: loadBalancerValidate.LoadBalancerBackendAddressPoolID,
 			},
 
 			"custom_parameters": {
@@ -168,7 +174,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+							ValidateFunc: machineLearningValidate.WorkspaceID,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -227,7 +233,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+							ValidateFunc: commonids.ValidateVirtualNetworkID,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -240,6 +246,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
+						// Per Service Team: This field is actually changeable so the ForceNew is no longer required, however we agreed to not change the current behavior for consistency purposes
 						"storage_account_sku_name": {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
@@ -671,7 +678,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if encryptKeyVaultURI != "" {
-			key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, "keys", encryptKeyName, encryptKeyVersion)
+			key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, keyVaultParse.NestedItemTypeKey, encryptKeyName, encryptKeyVersion)
 			if err == nil {
 				d.Set("managed_services_cmk_key_vault_key_id", key.ID())
 			}
@@ -693,7 +700,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if encryptDiskKeyVaultURI != "" {
-			key, err := keyVaultParse.NewNestedItemID(encryptDiskKeyVaultURI, "keys", encryptDiskKeyName, encryptDiskKeyVersion)
+			key, err := keyVaultParse.NewNestedItemID(encryptDiskKeyVaultURI, keyVaultParse.NestedItemTypeKey, encryptDiskKeyName, encryptDiskKeyVersion)
 			if err == nil {
 				d.Set("managed_disk_cmk_key_vault_key_id", key.ID())
 			}

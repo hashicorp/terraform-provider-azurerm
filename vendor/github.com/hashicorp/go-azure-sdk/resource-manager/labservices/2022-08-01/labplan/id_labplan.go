@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = LabPlanId{}
 
 // LabPlanId is a struct representing the Resource ID for a Lab Plan
@@ -37,15 +40,15 @@ func ParseLabPlanID(input string) (*LabPlanId, error) {
 	id := LabPlanId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.LabPlanName, ok = parsed.Parsed["labPlanName"]; !ok {
-		return nil, fmt.Errorf("the segment 'labPlanName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "labPlanName", *parsed)
 	}
 
 	return &id, nil
@@ -64,15 +67,15 @@ func ParseLabPlanIDInsensitively(input string) (*LabPlanId, error) {
 	id := LabPlanId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.LabPlanName, ok = parsed.Parsed["labPlanName"]; !ok {
-		return nil, fmt.Errorf("the segment 'labPlanName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "labPlanName", *parsed)
 	}
 
 	return &id, nil

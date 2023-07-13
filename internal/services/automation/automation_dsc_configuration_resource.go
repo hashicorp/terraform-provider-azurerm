@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation
 
 import (
@@ -10,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/dscconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/dscconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -172,7 +175,7 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 		if props := model.Properties; props != nil {
 			d.Set("log_verbose", props.LogVerbose)
 			d.Set("description", props.Description)
-			d.Set("state", props.State)
+			d.Set("state", string(pointer.From(props.State)))
 		}
 
 		if model.Tags != nil {

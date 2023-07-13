@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy_test
 
 import (
@@ -5,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -241,14 +245,14 @@ func TestAccResourceGroupPolicyAssignment_basicWithCustomPolicyComplete(t *testi
 }
 
 func (r ResourceGroupAssignmentTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PolicyAssignmentID(state.ID)
+	id, err := assignments.ParseScopedPolicyAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	assignment, err := client.Policy.AssignmentsClient.Get(ctx, id.Scope, id.Name)
+	assignment, err := client.Policy.AssignmentsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(assignment.Response) {
+		if response.WasNotFound(assignment.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 
@@ -509,6 +513,35 @@ resource "azurerm_resource_group_policy_assignment" "test" {
 `, template, data.RandomInteger)
 }
 
+func TestAccResourceGroupPolicyAssignment_overridesAndResourceSelector(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_policy_assignment", "test")
+	r := ResourceGroupAssignmentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withOverrideAndSelectorsBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withOverrideAndSelectorsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withOverrideAndSelectorsBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ResourceGroupAssignmentTestResource) withCustomPolicyComplete(data acceptance.TestData) string {
 	template := r.templateWithCustomPolicy(data)
 	// NOTE: we could include parameters here but it's tested extensively elsewhere
@@ -660,6 +693,83 @@ resource "azurerm_resource_group_policy_assignment" "test" {
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r ResourceGroupAssignmentTestResource) withOverrideAndSelectorsBasic(data acceptance.TestData) string {
+	template := r.templateWithCustomPolicy(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_resource_group_policy_assignment" "test" {
+  name                 = "acctestpa-rg-%[2]d"
+  resource_group_id    = azurerm_resource_group.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  metadata = jsonencode({
+    "category" : "Testing"
+  })
+
+  overrides {
+    value = "Disabled"
+    selectors {
+      in = [data.azurerm_policy_set_definition.test.policy_definition_reference.0.reference_id]
+    }
+  }
+
+  resource_selectors {
+    selectors {
+      not_in = ["eastus", "westus"]
+      kind   = "resourceLocation"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r ResourceGroupAssignmentTestResource) withOverrideAndSelectorsUpdate(data acceptance.TestData) string {
+	template := r.templateWithCustomPolicy(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_resource_group_policy_assignment" "test" {
+  name                 = "acctestpa-rg-%[2]d"
+  resource_group_id    = azurerm_resource_group.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  metadata = jsonencode({
+    "category" : "Testing"
+  })
+
+  overrides {
+    value = "AuditIfNotExists"
+    selectors {
+      in = [data.azurerm_policy_set_definition.test.policy_definition_reference.0.reference_id]
+    }
+  }
+
+  resource_selectors {
+    name = "selected for policy"
+    selectors {
+      not_in = ["eastus"]
+      kind   = "resourceLocation"
+    }
   }
 }
 `, template, data.RandomInteger)

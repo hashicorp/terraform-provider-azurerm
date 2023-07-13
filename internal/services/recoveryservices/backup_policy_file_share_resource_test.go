@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package recoveryservices_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -26,6 +29,26 @@ func TestAccBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
 				check.That(data.ResourceName).Key("backup.0.time").HasValue("23:00"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_basicHourly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicHourly(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Hourly"),
+				check.That(data.ResourceName).Key("backup.0.hourly.0.interval").HasValue("4"),
+				check.That(data.ResourceName).Key("backup.0.hourly.0.start_time").HasValue("10:00"),
+				check.That(data.ResourceName).Key("backup.0.hourly.0.window_duration").HasValue("12"),
 				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
 			),
 		},
@@ -331,18 +354,48 @@ func TestAccBackupProtectionPolicyFileShare_updateDailyToPartial(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectionPolicyFileShare_basicDays(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.daysBasic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_completeDays(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.daysComplete(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t BackupProtectionPolicyFileShareResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BackupPolicyID(state.ID)
+	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.RecoveryServices.ProtectionPoliciesClient.Get(ctx, id.VaultName, id.ResourceGroup, id.Name)
+	resp, err := clients.RecoveryServices.ProtectionPoliciesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Recovery Service Protection Policy (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BackupProtectionPolicyFileShareResource) template(data acceptance.TestData) string {
@@ -379,6 +432,32 @@ resource "azurerm_backup_policy_file_share" "test" {
   backup {
     frequency = "Daily"
     time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyFileShareResource) basicHourly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Hourly"
+
+    hourly {
+      interval        = 4
+      start_time      = "10:00"
+      window_duration = 12
+    }
   }
 
   retention_daily {
@@ -652,6 +731,74 @@ resource "azurerm_backup_policy_file_share" "test" {
     weeks    = ["Last"]
     months   = ["January"]
   }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyFileShareResource) daysBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_monthly {
+    count = 10
+    days  = [1, 2, 3, 4, 5]
+  }
+
+  retention_yearly {
+    count  = 10
+    months = ["January", "July"]
+    days   = [1, 2, 3, 4, 5]
+  }
+
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyFileShareResource) daysComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  retention_monthly {
+    count             = 10
+    days              = [1, 2, 3, 4, 5]
+    include_last_days = true
+  }
+
+  retention_yearly {
+    count             = 10
+    months            = ["January", "July"]
+    days              = [1, 2, 3, 4, 5]
+    include_last_days = true
+  }
+
 }
 `, r.template(data), data.RandomInteger)
 }

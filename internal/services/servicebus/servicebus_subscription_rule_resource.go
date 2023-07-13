@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicebus
 
 import (
@@ -5,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
@@ -282,7 +286,7 @@ func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta inte
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("filter_type", props.FilterType)
+			d.Set("filter_type", string(pointer.From(props.FilterType)))
 
 			if props.Action != nil {
 				d.Set("action", props.Action.SqlExpression)

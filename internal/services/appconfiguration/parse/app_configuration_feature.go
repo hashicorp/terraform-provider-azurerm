@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
@@ -58,7 +61,7 @@ func FeatureId(input string) (*AppConfigurationFeatureId, error) {
 
 // a workaround to support "/" in id
 func handleSlashInIdForFeature(input string) string {
-	oldNames := regexp.MustCompile(`AppConfigurationFeature\/(.+)\/Label`).FindStringSubmatch(input)
+	oldNames := regexp.MustCompile(`AppConfigurationFeature\/(.+)\/Label\/`).FindStringSubmatch(input)
 	if len(oldNames) == 2 {
 		input = strings.Replace(input, oldNames[1], url.QueryEscape(oldNames[1]), 1)
 	}

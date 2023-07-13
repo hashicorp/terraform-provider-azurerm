@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice_test
 
 import (
@@ -714,11 +717,11 @@ func TestAccLinuxFunctionAppSlot_appStackPython(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackPython(data, SkuStandardPlan, "3.9"),
+			Config: r.appStackPython(data, SkuStandardPlan, "3.11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.9"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.11"),
 			),
 		},
 		data.ImportStep(),
@@ -740,11 +743,11 @@ func TestAccLinuxFunctionAppSlot_appStackPythonUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.appStackPython(data, SkuStandardPlan, "3.10"),
+			Config: r.appStackPython(data, SkuStandardPlan, "3.11"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.10"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.11"),
 			),
 		},
 		data.ImportStep(),
@@ -1203,6 +1206,54 @@ func TestAccLinuxFunctionAppSlot_withStorageAccountBlockUpdate(t *testing.T) {
 			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_publicNetworkAccessDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccessDisabled(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_publicNetworkAccessUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccessDisabled(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -3192,6 +3243,27 @@ resource "azurerm_linux_function_app_slot" "test" {
   site_config {}
 }
 `, r.templateWithStorageAccountExtras(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) publicNetworkAccessDisabled(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  public_network_access_enabled = false
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
 
 func (r LinuxFunctionAppSlotResource) templateWithStorageAccountExtras(data acceptance.TestData, planSKU string) string {

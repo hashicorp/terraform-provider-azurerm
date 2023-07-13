@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package bot
 
 import (
@@ -257,7 +260,7 @@ func resourceBotChannelDirectlineDelete(d *pluginsdk.ResourceData, meta interfac
 }
 
 func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
-	sites := make([]botservice.DirectLineSite, len(input))
+	sites := make([]botservice.DirectLineSite, 0)
 
 	for _, element := range input {
 		if element == nil {

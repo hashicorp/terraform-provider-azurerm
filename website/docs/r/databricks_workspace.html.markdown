@@ -8,8 +8,6 @@ description: |-
 
 # azurerm_databricks_workspace
 
-~> **NOTE:** Some Databricks Workspace features are in Private Preview(e.g. Private Link Endpoint, Customer Managed Keys for Managed Services, etc.) and potentially subject to breaking change without notice. If you would like to use these features please contact your Microsoft support representative on how to opt-in to the Databricks Workspace Private Preview feature program.
-
 Manages a Databricks Workspace
 
 ## Example Usage
@@ -115,7 +113,7 @@ A `custom_parameters` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Databricks Workspace in the Azure management plane.
 

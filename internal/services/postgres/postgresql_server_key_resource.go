@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package postgres
 
 import (
@@ -7,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -69,11 +73,11 @@ func getPostgreSQLServerKeyName(ctx context.Context, keyVaultsClient *client.Cli
 	if keyVaultIDRaw == nil {
 		return nil, fmt.Errorf("cannot get the keyvault ID from keyvault URL %q", keyVaultKeyID.KeyVaultBaseUrl)
 	}
-	keyVaultID, err := keyVaultParse.VaultID(*keyVaultIDRaw)
+	keyVaultID, err := commonids.ParseKeyVaultID(*keyVaultIDRaw)
 	if err != nil {
 		return nil, err
 	}
-	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.Name, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
+	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.VaultName, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
 }
 
 func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

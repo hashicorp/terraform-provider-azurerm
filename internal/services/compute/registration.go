@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -78,7 +81,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		OrchestratedVirtualMachineScaleSetDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {

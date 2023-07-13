@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos
 
 import (
@@ -6,7 +9,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -17,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -59,7 +63,7 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"default_admin_password": {
@@ -229,7 +233,7 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			if res := props; res != nil {
 				d.Set("delegated_management_subnet_id", props.DelegatedManagementSubnetId)
-				d.Set("authentication_method", props.AuthenticationMethod)
+				d.Set("authentication_method", string(pointer.From(props.AuthenticationMethod)))
 				d.Set("repair_enabled", props.RepairEnabled)
 				d.Set("version", props.CassandraVersion)
 				d.Set("hours_between_backups", props.HoursBetweenBackups)

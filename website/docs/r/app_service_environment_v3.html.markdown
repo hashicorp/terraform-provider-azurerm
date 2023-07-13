@@ -121,7 +121,7 @@ A `cluster_setting` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments above, the following Attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the App Service Environment.
 

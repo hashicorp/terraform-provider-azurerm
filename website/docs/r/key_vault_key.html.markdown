@@ -11,6 +11,10 @@ description: |-
 
 Manages a Key Vault Key.
 
+## Example Usage
+
+~> **Note:** To use this resource, your client should have RBAC roles with permissions like `Key Vault Crypto Officer` or `Key Vault Administrator` or an assigned Key Vault Access Policy with permissions `Create`,`Delete`,`Get`,`Purge`,`Recover`,`Update` and `GetRotationPolicy` for keys without Rotation Policy. Include `SetRotationPolicy` for keys with Rotation Policy.
+
 ~> **Note:** the Azure Provider includes a Feature Toggle which will purge a Key Vault Key resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_keys_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_keys_on_destroy) for more information.
 
 ## Example Usage
@@ -46,9 +50,13 @@ resource "azurerm_key_vault" "example" {
 
     key_permissions = [
       "Create",
+      "Delete",
       "Get",
       "Purge",
-      "Recover"
+      "Recover",
+      "Update",
+      "GetRotationPolicy",
+      "SetRotationPolicy"
     ]
 
     secret_permissions = [
@@ -71,6 +79,15 @@ resource "azurerm_key_vault_key" "generated" {
     "verify",
     "wrapKey",
   ]
+
+  rotation_policy {
+    automatic {
+      time_before_expiry = "P30D"
+    }
+
+    expire_after         = "P90D"
+    notify_before_expiry = "P29D"
+  }
 }
 ```
 
@@ -96,9 +113,29 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `rotation_policy` - (Optional) A `rotation_policy` block as defined below.
+
+---
+
+A `rotation_policy` block supports the following:
+
+* `expire_after` - (Optional) Expire a Key Vault Key after given duration as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+
+* `automatic` - (Optional) An `automatic` block as defined below.
+
+* `notify_before_expiry` - (Optional) Notify at a given duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). Default is `P30D`.
+
+---
+
+An `automatic` block supports the following:
+
+* `time_after_creation` - (Optional) Rotate automatically at a duration after create as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+
+* `time_before_expiry` - (Optional) Rotate automatically at a duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Key Vault Key ID.
 * `resource_id` - The (Versioned) ID for this Key Vault Key. This property points to a specific version of a Key Vault Key, as such using this won't auto-rotate values if used in other Azure Services.

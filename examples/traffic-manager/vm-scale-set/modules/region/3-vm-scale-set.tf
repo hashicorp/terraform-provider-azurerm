@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "${var.prefix}-vmss"
   location            = "${azurerm_resource_group.example.location}"

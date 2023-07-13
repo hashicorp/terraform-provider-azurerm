@@ -25,23 +25,6 @@ func PossibleValuesForAlertSeverity() []int64 {
 	}
 }
 
-func parseAlertSeverity(input int64) (*AlertSeverity, error) {
-	vals := map[int64]AlertSeverity{
-		4: AlertSeverityFour,
-		1: AlertSeverityOne,
-		3: AlertSeverityThree,
-		2: AlertSeverityTwo,
-		0: AlertSeverityZero,
-	}
-	if v, ok := vals[input]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := AlertSeverity(input)
-	return &out, nil
-}
-
 type ConditionOperator string
 
 const (

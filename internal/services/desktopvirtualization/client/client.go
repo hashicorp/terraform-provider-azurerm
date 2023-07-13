@@ -1,6 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/application"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/desktop"
@@ -21,35 +26,56 @@ type Client struct {
 	WorkspacesClient        *workspace.WorkspaceClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	applicationGroupsClient := applicationgroup.NewApplicationGroupClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&applicationGroupsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	applicationGroupsClient, err := applicationgroup.NewApplicationGroupClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ApplicationGroups Client: %+v", err)
+	}
+	o.Configure(applicationGroupsClient.Client, o.Authorizers.ResourceManager)
 
-	applicationsClient := application.NewApplicationClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&applicationsClient.Client, o.ResourceManagerAuthorizer)
+	applicationsClient, err := application.NewApplicationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Applications Client: %+v", err)
+	}
+	o.Configure(applicationsClient.Client, o.Authorizers.ResourceManager)
 
-	desktopsClient := desktop.NewDesktopClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&desktopsClient.Client, o.ResourceManagerAuthorizer)
+	desktopsClient, err := desktop.NewDesktopClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Desktops Client: %+v", err)
+	}
+	o.Configure(desktopsClient.Client, o.Authorizers.ResourceManager)
 
-	hostPoolsClient := hostpool.NewHostPoolClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&hostPoolsClient.Client, o.ResourceManagerAuthorizer)
+	hostPoolsClient, err := hostpool.NewHostPoolClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building HostPools Client: %+v", err)
+	}
+	o.Configure(hostPoolsClient.Client, o.Authorizers.ResourceManager)
 
-	sessionHostsClient := sessionhost.NewSessionHostClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&sessionHostsClient.Client, o.ResourceManagerAuthorizer)
+	sessionHostsClient, err := sessionhost.NewSessionHostClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SessionHost Client: %+v", err)
+	}
+	o.Configure(sessionHostsClient.Client, o.Authorizers.ResourceManager)
 
-	scalingPlansClient := scalingplan.NewScalingPlanClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&scalingPlansClient.Client, o.ResourceManagerAuthorizer)
+	scalingPlansClient, err := scalingplan.NewScalingPlanClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ScalingPlan Client: %+v", err)
+	}
+	o.Configure(scalingPlansClient.Client, o.Authorizers.ResourceManager)
 
-	workspacesClient := workspace.NewWorkspaceClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&workspacesClient.Client, o.ResourceManagerAuthorizer)
+	workspacesClient, err := workspace.NewWorkspaceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Workspaces Client: %+v", err)
+	}
+	o.Configure(workspacesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ApplicationGroupsClient: &applicationGroupsClient,
-		ApplicationsClient:      &applicationsClient,
-		DesktopsClient:          &desktopsClient,
-		HostPoolsClient:         &hostPoolsClient,
-		SessionHostsClient:      &sessionHostsClient,
-		ScalingPlansClient:      &scalingPlansClient,
-		WorkspacesClient:        &workspacesClient,
-	}
+		ApplicationGroupsClient: applicationGroupsClient,
+		ApplicationsClient:      applicationsClient,
+		DesktopsClient:          desktopsClient,
+		HostPoolsClient:         hostPoolsClient,
+		SessionHostsClient:      sessionHostsClient,
+		ScalingPlansClient:      scalingPlansClient,
+		WorkspacesClient:        workspacesClient,
+	}, nil
 }

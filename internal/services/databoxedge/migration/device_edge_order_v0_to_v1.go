@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -6,7 +9,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/orders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/orders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

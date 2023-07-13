@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice
 
 import (
@@ -6,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -35,11 +39,13 @@ type WindowsWebAppDataSourceModel struct {
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
 	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
+	PublicNetworkAccess           bool                        `tfschema:"public_network_access_enabled"`
 	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
 	StickySettings                []helpers.StickySettings    `tfschema:"sticky_settings"`
 	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString  `tfschema:"connection_string"`
 	CustomDomainVerificationId    string                      `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                  string                      `tfschema:"hosting_environment_id"`
 	DefaultHostname               string                      `tfschema:"default_hostname"`
 	Kind                          string                      `tfschema:"kind"`
 	OutboundIPAddresses           string                      `tfschema:"outbound_ip_addresses"`
@@ -130,6 +136,11 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"hosting_environment_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -176,6 +187,11 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"site_credential": helpers.SiteCredentialSchema(),
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
 
 		"site_config": helpers.SiteConfigSchemaWindowsComputed(),
 
@@ -279,12 +295,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
-			var healthCheckCount *int
-			webApp.AppSettings, healthCheckCount, err = helpers.FlattenAppSettings(appSettings)
-			if err != nil {
-				return fmt.Errorf("flattening app settings for Windows %s: %+v", id, err)
-			}
-
+			webApp.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
 			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
@@ -314,6 +325,10 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
 					webApp.VirtualNetworkSubnetID = subnetId
 				}
+				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+					webApp.HostingEnvId = pointer.From(hostingEnv.ID)
+				}
+				webApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 			}
 
 			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)
@@ -329,10 +344,20 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			if ok {
 				currentStack = *currentStackPtr
 			}
-			webApp.SiteConfig, err = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+
+			siteConfig := helpers.SiteConfigWindows{}
+			err = siteConfig.Flatten(webAppSiteConfig.SiteConfig, currentStack)
 			if err != nil {
-				return fmt.Errorf("reading API Management ID for %s: %+v", id, err)
+				return err
 			}
+
+			webApp.AppSettings = siteConfig.ParseNodeVersion(webApp.AppSettings)
+
+			siteConfig.SetHealthCheckEvictionTime(webApp.AppSettings)
+			if helpers.FxStringHasPrefix(siteConfig.WindowsFxVersion, helpers.FxStringPrefixDocker) {
+				siteConfig.DecodeDockerAppStack(webApp.AppSettings)
+			}
+
 			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
 
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)

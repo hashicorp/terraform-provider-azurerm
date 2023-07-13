@@ -89,6 +89,8 @@ The following arguments are supported:
 
 * `shared_access_signature` - (Optional) The Shared Access Signature of the Storage Account. Conflicts with `account_key`.
 
+~> **Note:**  One of `account_key` or `shared_access_signature` must be specified.
+
 * `description` - (Optional) Text used to describe the asset. Changing this forces a new Machine Learning DataStore to be created.
 
 * `is_default` - (Optional) Specifies whether this Machines Learning DataStore is the default for the Workspace. Defaults to `false`.
@@ -119,5 +121,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Machine Learning DataStores can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_machine_learning_datastore_blobstorage.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/mlw1/datastores/datastore1
+terraform import azurerm_machine_learning_datastore_blobstorage.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/mlw1/dataStores/datastore1
 ```

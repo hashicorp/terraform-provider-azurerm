@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -286,6 +289,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 
   microsoft_peering_config {
     advertised_public_prefixes = ["123.1.0.0/24"]
+    advertised_communities     = ["regionalCommunity"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -340,6 +344,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 
     microsoft_peering {
       advertised_public_prefixes = ["2002:db01::/126"]
+      advertised_communities     = ["regionalCommunity"]
     }
   }
 }

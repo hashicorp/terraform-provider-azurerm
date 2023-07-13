@@ -113,7 +113,7 @@ A `criteria` block supports the following:
 * `metric_namespace` - (Required) One of the metric namespaces to be monitored.
 * `metric_name` - (Required) One of the metric names to be monitored.
 * `aggregation` - (Required) The statistic that runs over the metric values. Possible values are `Average`, `Count`, `Minimum`, `Maximum` and `Total`.
-* `operator` - (Required) The criteria operator. Possible values are `Equals`, `NotEquals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan` and `LessThanOrEqual`.
+* `operator` - (Required) The criteria operator. Possible values are `Equals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan` and `LessThanOrEqual`.
 * `threshold` - (Required) The criteria threshold value that activates the alert.
 * `dimension` - (Optional) One or more `dimension` blocks as defined below.
 * `skip_metric_validation` - (Optional) Skip the metric validation to allow creating an alert rule on a custom metric that isn't yet emitted? Defaults to `false`.
@@ -151,7 +151,7 @@ A `dimension` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the metric alert.
 

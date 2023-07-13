@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package provider
 
 import (
@@ -114,11 +117,6 @@ func TestExpandFeatures(t *testing.T) {
 					"managed_disk": []interface{}{
 						map[string]interface{}{
 							"expand_without_downtime": true,
-						},
-					},
-					"network": []interface{}{
-						map[string]interface{}{
-							"relaxed_locking": true,
 						},
 					},
 					"resource_group": []interface{}{
@@ -244,11 +242,6 @@ func TestExpandFeatures(t *testing.T) {
 					"managed_disk": []interface{}{
 						map[string]interface{}{
 							"expand_without_downtime": false,
-						},
-					},
-					"network_locking": []interface{}{
-						map[string]interface{}{
-							"relaxed_locking": false,
 						},
 					},
 					"resource_group": []interface{}{

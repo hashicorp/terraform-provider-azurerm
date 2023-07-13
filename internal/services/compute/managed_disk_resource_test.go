@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -712,6 +715,28 @@ func TestAccManagedDisk_onlineLiveResize(t *testing.T) {
 	})
 }
 
+func TestAccManagedDisk_detachFromVM(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.detachFromVm(data, 4000),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.detachFromVm(data, 5000),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccManagedDisk_premiumV2WithIOpsReadWriteAndMBpsReadWrite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}
@@ -1232,6 +1257,7 @@ resource "azurerm_key_vault" "test" {
       "Delete",
       "Get",
       "Purge",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -1320,6 +1346,7 @@ resource "azurerm_key_vault" "test2" {
       "Delete",
       "Get",
       "Purge",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -1500,6 +1527,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "Get",
     "Purge",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -1545,6 +1573,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "Get",
     "WrapKey",
     "UnwrapKey",
+    "GetRotationPolicy",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
@@ -2119,6 +2148,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "Get",
     "Purge",
     "Update",
+    "GetRotationPolicy",
   ]
   secret_permissions = [
     "Get",
@@ -2160,6 +2190,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "Get",
     "WrapKey",
     "UnwrapKey",
+    "GetRotationPolicy",
   ]
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
   object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
@@ -2479,6 +2510,95 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 `, data.RandomInteger, data.Locations.Primary, diskSizeGB)
 }
 
+func (ManagedDiskResource) detachFromVm(data acceptance.TestData, diskSizeGB int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+locals {
+  random_integer   = %[1]d
+  primary_location = %[2]q
+  first_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-${local.random_integer}"
+  location = local.primary_location
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-${local.random_integer}"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-${local.random_integer}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-${local.random_integer}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-${local.random_integer}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = %[3]d
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = azurerm_managed_disk.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  lun                = "10"
+  caching            = "None"
+}
+`, data.RandomInteger, data.Locations.Primary, diskSizeGB)
+}
+
 func (ManagedDiskResource) checkLinuxVirtualMachineWasNotRestarted(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	activityLogsClient := client.Monitor.ActivityLogsClient
 	filter := fmt.Sprintf("eventTimestamp ge '%s' and resourceUri eq '%s'", time.Now().Add(-1*time.Hour).Format(time.RFC3339), state.ID)
@@ -2490,12 +2610,11 @@ func (ManagedDiskResource) checkLinuxVirtualMachineWasNotRestarted(ctx context.C
 	wasShutDown := false
 	for logs.NotDone() {
 		val := logs.Value()
-		if val.Authorization == nil || val.Authorization.Action == nil {
-			return fmt.Errorf("parsing activity log for Virtual Machine %q: `model.Authorization` or `model.Authorization.Action` was nil", state.ID)
-		}
-		if strings.EqualFold(*val.Authorization.Action, "Microsoft.Compute/virtualMachines/stop/action") {
-			wasShutDown = true
-			break
+		if val.Authorization != nil && val.Authorization.Action != nil {
+			if strings.EqualFold(*val.Authorization.Action, "Microsoft.Compute/virtualMachines/powerOff/action") {
+				wasShutDown = true
+				break
+			}
 		}
 
 		if err := logs.NextWithContext(ctx); err != nil {

@@ -95,7 +95,7 @@ package resource
 
 In this case, you need to specify the `name` the Resource (in this case `ResourceGroupExample`) and the `id` which is an example of this Resource ID (in this case `/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1`).
 
-> The segments of the Resource ID should be camelCased (e.g. `resourceGroups` rather than `resourcegroups`) per the Azure API Specification - see [the Azure Resource ID reference](reference-azure-resource-ids.md) for more information.
+> The segments of the Resource ID should be camelCased (e.g. `resourceGroups` rather than `resourcegroups`) per the Azure API Specification - see [Azure Resource IDs in the Glossary](reference-glossary.md#azure-resource-ids) for more information.
 
 You can generate the Resource ID Struct, Parser and Validation functions by running `make generate` - which will output the following files:
 
@@ -103,7 +103,7 @@ You can generate the Resource ID Struct, Parser and Validation functions by runn
 * `./internal/service/resource/parse/resource_group_example_test.go` - contains tests for those ^.
 * `./internal/service/resource/validate/resource_group_example_id.go` - contains Terraform validation functions for the Resource ID.
 
-These types can then be used in the Resource we're creating below, but [see this link for more information on how Azure Resource ID's are used in Terraform](reference-azure-resource-ids.md).
+These types can then be used in the Resource we're creating below.
 
 ### Step 4: Scaffold an empty/new Resource
 
@@ -327,23 +327,39 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
             }
 			
 			// at this point we can set information about this Resource Group into the State
+			// identifier fields such as the name, resource group name to name a few need to be sourced
+			// from the Resource ID instead of the API response
 			metadata.ResourceData.Set("name", id.ResourceGroup)
 			
-			// the Location and Tags fields are a little different - and we have a couple of normalization
-			// functions for these.
-
-			// whilst this may seem like a weird thing to call out in an example, because these two fields
-			// are present on the majority of resources, we hope it explains why they're a little different
-
-			// in this case the Location can be returned in various different forms, for example
-			// "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
-			// lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
-			// for users
-			metadata.ResourceData.Set("location", location.NormalizeNilable(resp.Location))
-			
-			// (as above) Tags are a little different, so we have a dedicated helper function
-			// to flatten these consistently across the Provider
-			return tags.FlattenAndSet(metadata.ResourceData, resp.Tags)
+			// the SDK will return a Model as well as a nested Properties object for the resource
+			// for readability and consistency we assign the Model to a variable and nil check as shown below.
+			// since the SDK accounts for responses where the Model is nil we do not need to throw an error if
+			// the Model is nil since this will be caught earlier on. We still nil check to prevent the provider from
+			// crashing.
+			if model := resp.Model; model != nil {
+                            // the Location and Tags fields are a little different - and we have a couple of normalization
+                            // functions for these.
+                            
+                            // whilst this may seem like a weird thing to call out in an example, because these two fields
+                            // are present on the majority of resources, we hope it explains why they're a little different
+                            
+                            // in this case the Location can be returned in various different forms, for example
+                            // "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
+                            // lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
+                            // for users
+                            metadata.ResourceData.Set("location", location.NormalizeNilable(model.Location))
+							
+                            if props := model.Properties; props != nil {
+                                // if there are properties to set into state do that here
+                            }
+                            
+                            // (as above) Tags are a little different, so we have a dedicated helper function
+                            // to flatten these consistently across the Provider
+							if err := tags.FlattenAndSet(metadata.ResourceData, model.Tags); err != nil {
+                                return fmt.Errorf("setting `tags`: %+v", err)
+                            }
+                        }       
+			return nil
 		},
 	}
 }

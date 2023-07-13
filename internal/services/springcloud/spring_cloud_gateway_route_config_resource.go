@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud
 
 import (
@@ -15,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
@@ -71,6 +74,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				},
 			},
 
+			// lintignore:S013
 			"protocol": {
 				Type:     pluginsdk.TypeString,
 				Optional: !features.FourPointOh(),
@@ -214,14 +218,23 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	gatewayRouteConfigResource := appplatform.GatewayRouteConfigResource{
 		Properties: &appplatform.GatewayRouteConfigProperties{
 			AppResourceID: utils.String(d.Get("spring_cloud_app_id").(string)),
-			Filters:       utils.ExpandStringSlice(d.Get("filters").(*pluginsdk.Set).List()),
-			Predicates:    utils.ExpandStringSlice(d.Get("predicates").(*pluginsdk.Set).List()),
 			Protocol:      appplatform.GatewayRouteConfigProtocol(d.Get("protocol").(string)),
 			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("route").(*pluginsdk.Set).List()),
 			SsoEnabled:    utils.Bool(d.Get("sso_validation_enabled").(bool)),
 			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]interface{})),
 		},
 	}
+
+	filters := d.Get("filters").(*pluginsdk.Set).List()
+	if len(filters) > 0 {
+		gatewayRouteConfigResource.Properties.Filters = utils.ExpandStringSlice(filters)
+	}
+
+	predicates := d.Get("predicates").(*pluginsdk.Set).List()
+	if len(predicates) > 0 {
+		gatewayRouteConfigResource.Properties.Predicates = utils.ExpandStringSlice(predicates)
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName, gatewayRouteConfigResource)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -257,7 +270,16 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 	d.Set("name", id.RouteConfigName)
 	d.Set("spring_cloud_gateway_id", parse.NewSpringCloudGatewayID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.GatewayName).ID())
 	if props := resp.Properties; props != nil {
-		d.Set("spring_cloud_app_id", props.AppResourceID)
+		// The returned value has inconsistent casing
+		// TODO: Remove the normalization codes once the following issue is fixed.
+		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22845
+		if props.AppResourceID != nil {
+			appId, err := parse.SpringCloudAppIDInsensitively(*props.AppResourceID)
+			if err != nil {
+				return fmt.Errorf("parsing `spring_cloud_app_id`: %+v", err)
+			}
+			d.Set("spring_cloud_app_id", appId.ID())
+		}
 		d.Set("protocol", props.Protocol)
 		if err := d.Set("route", flattenGatewayRouteConfigGatewayAPIRouteArray(props.Routes)); err != nil {
 			return fmt.Errorf("setting `route`: %+v", err)

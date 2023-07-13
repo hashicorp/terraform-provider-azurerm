@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -33,6 +36,9 @@ func (s SmartDetectorAlertRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"scope_resource_ids": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 
 		"severity": {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -40,7 +43,7 @@ func (s SpringCloudGatewayRouteConfigV0ToV1) Schema() map[string]*pluginsdk.Sche
 
 		"protocol": {
 			Type:     pluginsdk.TypeString,
-			Required: false,
+			Optional: true,
 		},
 
 		"spring_cloud_app_id": {

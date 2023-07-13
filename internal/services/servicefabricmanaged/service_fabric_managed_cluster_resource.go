@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicefabricmanaged
 
 import (
@@ -64,7 +67,7 @@ type VaultCertificates struct {
 
 type VmSecrets struct {
 	SourceVault  string              `tfschema:"vault_id"`
-	Certificates []VaultCertificates `tfschema:"certificate"`
+	Certificates []VaultCertificates `tfschema:"certificates"`
 }
 
 type NodeType struct {

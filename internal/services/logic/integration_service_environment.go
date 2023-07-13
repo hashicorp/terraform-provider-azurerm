@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic
 
 import (
@@ -8,7 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -17,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -96,7 +99,7 @@ func resourceIntegrationServiceEnvironment() *pluginsdk.Resource {
 				ForceNew: true, // The network configuration subnets cannot be updated after integration service environment is created.
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: networkValidate.SubnetID,
+					ValidateFunc: commonids.ValidateSubnetID,
 				},
 				MinItems: 4,
 				MaxItems: 4,
@@ -229,7 +232,7 @@ func resourceIntegrationServiceEnvironmentRead(d *pluginsdk.ResourceData, meta i
 		if props := model.Properties; props != nil {
 			if netCfg := props.NetworkConfiguration; netCfg != nil {
 				if accessEndpoint := netCfg.AccessEndpoint; accessEndpoint != nil {
-					d.Set("access_endpoint_type", accessEndpoint.Type)
+					d.Set("access_endpoint_type", string(pointer.From(accessEndpoint.Type)))
 				}
 
 				d.Set("virtual_network_subnet_ids", flattenSubnetResourceID(netCfg.Subnets))
@@ -444,17 +447,17 @@ func linkExists(ctx context.Context, client *clients.Client, iseID string, subne
 }
 
 func serviceAssociationLinkExists(ctx context.Context, client *network.ServiceAssociationLinksClient, iseID string, subnetID string) (bool, error) {
-	id, err := networkParse.SubnetID(subnetID)
+	id, err := commonids.ParseSubnetID(subnetID)
 	if err != nil {
 		return false, err
 	}
 
-	resp, err := client.List(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
+	resp, err := client.List(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
 		}
-		return false, fmt.Errorf("retrieving Service Association Links from Virtual Network %q, subnet %q (Resource Group %q): %+v", id.VirtualNetworkName, id.Name, id.ResourceGroup, err)
+		return false, fmt.Errorf("retrieving Service Association Links from Virtual Network %q, subnet %q (Resource Group %q): %+v", id.VirtualNetworkName, id.SubscriptionId, id.ResourceGroupName, err)
 	}
 
 	if resp.Value != nil {
@@ -472,17 +475,17 @@ func serviceAssociationLinkExists(ctx context.Context, client *network.ServiceAs
 }
 
 func resourceNavigationLinkExists(ctx context.Context, client *network.ResourceNavigationLinksClient, subnetID string) (bool, error) {
-	id, err := networkParse.SubnetID(subnetID)
+	id, err := commonids.ParseSubnetID(subnetID)
 	if err != nil {
 		return false, err
 	}
 
-	resp, err := client.List(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
+	resp, err := client.List(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
 		}
-		return false, fmt.Errorf("retrieving Resource Navigation Links from Virtual Network %q, subnet %q (Resource Group %q): %+v", id.VirtualNetworkName, id.Name, id.ResourceGroup, err)
+		return false, fmt.Errorf("retrieving Resource Navigation Links from Virtual Network %q, subnet %q (Resource Group %q): %+v", id.VirtualNetworkName, id.SubnetName, id.ResourceGroupName, err)
 	}
 
 	if resp.Value != nil {

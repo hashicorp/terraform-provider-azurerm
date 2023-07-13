@@ -1,10 +1,15 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
@@ -98,6 +103,11 @@ func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						},
 
 						"zone": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"power_state": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -219,14 +229,14 @@ func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInter
 						return nil, fmt.Errorf("reading Public IP Address for VM Instance %q for Virtual Machine Scale Set %q (Resource Group %q): %+v", virtualmachineIndex, virtualMachineScaleSetName, resourceGroupName, err)
 					}
 
-					if *nic.Primary && *props.Primary {
+					if pointer.From(nic.Primary) && pointer.From(props.Primary) {
 						primaryPublicAddress = *publicIPAddress.IPAddress
 					}
 					publicIPAddresses = append(publicIPAddresses, *publicIPAddress.IPAddress)
 				}
 
 				if props.PrivateIPAddress != nil {
-					if *nic.Primary && *props.Primary {
+					if pointer.From(nic.Primary) && pointer.From(props.Primary) {
 						primaryPrivateAddress = *props.PrivateIPAddress
 					}
 					privateIPAddresses = append(privateIPAddresses, *props.PrivateIPAddress)
@@ -276,6 +286,16 @@ func flattenVirtualMachineScaleSetVM(input compute.VirtualMachineScaleSetVM, con
 		output["private_ip_addresses"] = connectionInfo.privateAddresses
 		output["public_ip_address"] = connectionInfo.primaryPublicAddress
 		output["public_ip_addresses"] = connectionInfo.publicAddresses
+	}
+
+	if instance := input.InstanceView; instance != nil {
+		if statues := instance.Statuses; statues != nil {
+			for _, status := range *statues {
+				if status.Code != nil && strings.HasPrefix(strings.ToLower(*status.Code), "powerstate/") {
+					output["power_state"] = strings.SplitN(*status.Code, "/", 2)[1]
+				}
+			}
+		}
 	}
 
 	return output

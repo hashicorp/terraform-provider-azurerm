@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -27,7 +30,6 @@ import (
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	vnetParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -38,8 +40,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/queue/queues"
 )
 
 var (
@@ -1179,7 +1181,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// BlobStorage does not support ZRS
 	if accountKind == string(storage.KindBlobStorage) {
 		if string(parameters.Sku.Name) == string(storage.SkuNameStandardZRS) {
-			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
+			return fmt.Errorf("a `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 		}
 	}
 
@@ -1210,7 +1212,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// AccountTier must be Premium for FileStorage
 	if accountKind == string(storage.KindFileStorage) {
 		if string(parameters.Sku.Tier) == string(storage.SkuNameStandardLRS) {
-			return fmt.Errorf("A `account_tier` of `Standard` is not supported for FileStorage accounts.")
+			return fmt.Errorf("a `account_tier` of `Standard` is not supported for FileStorage accounts")
 		}
 	}
 
@@ -1327,18 +1329,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return err
 		}
 
-		// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
-		// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
-		if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
-			blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-				Enable: utils.Bool(v),
-			}
-		}
-
-		if v, ok := d.GetOk("blob_properties.0.container_delete_retention_policy"); ok {
-			blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}))
-		}
-
 		// See: https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#:~:text=Storage%20accounts%20with%20a%20hierarchical%20namespace%20enabled%20for%20use%20with%20Azure%20Data%20Lake%20Storage%20Gen2%20are%20not%20currently%20supported.
 		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && isHnsEnabled {
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
@@ -1364,7 +1354,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
 		}
 		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
+			return fmt.Errorf("unable to locate Storage Account %q", id.Name)
 		}
 
 		queueClient, err := storageClient.QueuesClient(ctx, *account)
@@ -1421,7 +1411,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
 		}
 		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
+			return fmt.Errorf("unable to locate Storage Account %q", id.Name)
 		}
 
 		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
@@ -1463,7 +1453,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorage) {
 		if storageType == string(storage.SkuNameStandardZRS) {
-			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
+			return fmt.Errorf("a `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 		}
 	}
 
@@ -1809,22 +1799,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return err
 		}
 
-		// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
-		// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
-		if d.HasChange("blob_properties.0.last_access_time_enabled") {
-			lastAccessTimeTracking := false
-			if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
-				lastAccessTimeTracking = true
-			}
-			blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-				Enable: utils.Bool(lastAccessTimeTracking),
-			}
-		}
-
-		if d.HasChange("blob_properties.0.container_delete_retention_policy") {
-			blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}))
-		}
-
 		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && d.Get("is_hns_enabled").(bool) {
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
 		}
@@ -1845,7 +1819,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
 		}
 		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
+			return fmt.Errorf("unable to locate Storage Account %q", id.Name)
 		}
 
 		queueClient, err := storageClient.QueuesClient(ctx, *account)
@@ -1900,7 +1874,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
 		}
 		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
+			return fmt.Errorf("unable to locate Storage Account %q", id.Name)
 		}
 
 		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
@@ -2162,7 +2136,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
+		return fmt.Errorf("unable to locate Storage Account %q", id.Name)
 	}
 
 	var tier storage.SkuTier
@@ -2269,7 +2243,7 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 						continue
 					}
 
-					id, err2 := vnetParse.SubnetID(*v.VirtualNetworkResourceID)
+					id, err2 := commonids.ParseSubnetID(*v.VirtualNetworkResourceID)
 					if err2 != nil {
 						return err2
 					}
@@ -2349,28 +2323,24 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 	if keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("unexpected nil Key Vault ID retrieved at URL %s", keyId.KeyVaultBaseUrl)
 	}
-	keyVaultId, err := keyVaultParse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return nil, err
 	}
 
 	vaultsClient := keyVaultClient.VaultsClient
-	if keyVaultId.SubscriptionId != vaultsClient.SubscriptionID {
-		vaultsClient = keyVaultClient.KeyVaultClientForSubscription(keyVaultId.SubscriptionId)
-	}
-
-	keyVault, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
+	keyVault, err := vaultsClient.Get(ctx, *keyVaultId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
 	}
 
 	softDeleteEnabled := false
 	purgeProtectionEnabled := false
-	if props := keyVault.Properties; props != nil {
-		if esd := props.EnableSoftDelete; esd != nil {
+	if model := keyVault.Model; model != nil {
+		if esd := model.Properties.EnableSoftDelete; esd != nil {
 			softDeleteEnabled = *esd
 		}
-		if epp := props.EnablePurgeProtection; epp != nil {
+		if epp := model.Properties.EnablePurgeProtection; epp != nil {
 			purgeProtectionEnabled = *epp
 		}
 	}
@@ -2468,7 +2438,7 @@ func flattenStorageAccountCustomerManagedKey(storageAccountId *parse.StorageAcco
 		return nil, fmt.Errorf("retrieving %s: `properties.encryption.keyVaultProperties.keyVaultURI` was nil", *storageAccountId)
 	}
 
-	keyId, err := keyVaultParse.NewNestedItemID(keyVaultURI, "keys", keyName, keyVersion)
+	keyId, err := keyVaultParse.NewNestedItemID(keyVaultURI, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -2625,6 +2595,9 @@ func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, 
 			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
 				Enabled: utils.Bool(false),
 			},
+			LastAccessTimeTrackingPolicy: &storage.LastAccessTimeTrackingPolicy{
+				Enable: utils.Bool(false),
+			},
 		},
 	}
 
@@ -2636,6 +2609,9 @@ func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, 
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
+
+	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
+	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(containerDeletePolicyRaw)
 
 	restorePolicyRaw := v["restore_policy"].([]interface{})
 	props.BlobServicePropertiesProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(restorePolicyRaw)
@@ -2655,6 +2631,10 @@ func expandBlobProperties(input []interface{}) (*storage.BlobServiceProperties, 
 
 	if version, ok := v["default_service_version"].(string); ok && version != "" {
 		props.DefaultServiceVersion = utils.String(version)
+	}
+
+	props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+		Enable: utils.Bool(v["last_access_time_enabled"].(bool)),
 	}
 
 	// Sanity check for the prerequisites of restore_policy

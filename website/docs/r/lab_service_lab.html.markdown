@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_lab_services_lab" "example" {
+resource "azurerm_lab_service_lab" "example" {
   name                = "example-lab"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location

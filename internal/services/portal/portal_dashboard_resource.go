@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package portal
 
 import (
@@ -54,10 +57,10 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 
 			"dashboard_properties": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
-				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.DashboardProperties,
+				StateFunc:    utils.NormalizeJson,
 			},
 		},
 	}

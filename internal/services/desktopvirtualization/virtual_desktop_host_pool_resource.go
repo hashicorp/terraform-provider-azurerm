@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package desktopvirtualization
 
 import (
@@ -71,7 +74,6 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			"load_balancer_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(hostpool.LoadBalancerTypeBreadthFirst),
 					string(hostpool.LoadBalancerTypeDepthFirst),
@@ -263,7 +265,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
+	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
 		payload.Properties = &hostpool.HostPoolPatchProperties{}
 
 		if d.HasChange("custom_rdp_properties") {
@@ -276,6 +278,11 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 
 		if d.HasChange("friendly_name") {
 			payload.Properties.FriendlyName = utils.String(d.Get("friendly_name").(string))
+		}
+
+		if d.HasChange("load_balancer_type") {
+			loadBalancerType := hostpool.LoadBalancerType(d.Get("load_balancer_type").(string))
+			payload.Properties.LoadBalancerType = &loadBalancerType
 		}
 
 		if d.HasChange("maximum_sessions_allowed") {

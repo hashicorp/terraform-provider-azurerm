@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package recoveryservices
 
 import (
@@ -9,18 +12,32 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
+	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -62,34 +79,36 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.RecoveryServicesVaultName,
 			},
+
 			"source_recovery_fabric_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"source_vm_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     azure.ValidateResourceID,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+				// user-specified segments are lower cased too.
+				// tracked on https://github.com/Azure/azure-rest-api-specs/issues/24393
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"target_recovery_fabric_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     azure.ValidateResourceID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: replicationfabrics.ValidateReplicationFabricID,
 			},
 
 			"recovery_replication_policy_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     azure.ValidateResourceID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: replicationpolicies.ValidateReplicationPolicyID,
 			},
 
 			"source_recovery_protection_container_name": {
@@ -100,26 +119,23 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 
 			"target_recovery_protection_container_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     azure.ValidateResourceID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: replicationprotectioncontainers.ValidateReplicationProtectionContainerID,
 			},
 
 			"target_resource_group_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     azure.ValidateResourceID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateResourceGroupID,
 			},
 
 			"target_availability_set_id": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     azure.ValidateResourceID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
 				ConflictsWith: []string{
 					"target_zone",
 				},
@@ -131,14 +147,14 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Computed:     true,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
 
 			"test_network_id": {
 				Type:         pluginsdk.TypeString,
 				Computed:     true,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
 
 			"target_edge_zone": commonschema.EdgeZoneOptionalForceNew(),
@@ -156,17 +172,19 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+
 						"staging_storage_account_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
+
 						"target_storage_account_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: storageaccounts.ValidateStorageAccountID,
 						},
 					},
 				},
@@ -187,26 +205,26 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_id": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							ForceNew:         true,
-							ValidateFunc:     validation.StringIsNotEmpty,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
+
 						"staging_storage_account_id": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							ForceNew:         true,
-							ValidateFunc:     azure.ValidateResourceID,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: storageaccounts.ValidateStorageAccountID,
 						},
+
 						"target_resource_group_id": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							ForceNew:         true,
-							ValidateFunc:     azure.ValidateResourceID,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: commonids.ValidateResourceGroupID,
 						},
+
 						"target_disk_type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
@@ -218,6 +236,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 								string(disks.DiskStorageAccountTypesUltraSSDLRS),
 							}, false),
 						},
+
 						"target_replica_disk_type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
@@ -229,12 +248,12 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 								string(disks.DiskStorageAccountTypesUltraSSDLRS),
 							}, false),
 						},
+
 						"target_disk_encryption_set_id": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							ForceNew:         true,
-							ValidateFunc:     azure.ValidateResourceID,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: diskencryptionsets.ValidateDiskEncryptionSetID,
 						},
 
 						"target_disk_encryption": {
@@ -247,26 +266,31 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 					},
 				},
 			},
+
 			"target_proximity_placement_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
 			},
+
 			"target_boot_diagnostic_storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: storageaccounts.ValidateStorageAccountID,
 			},
+
 			"target_capacity_reservation_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 			},
+
 			"target_virtual_machine_scale_set_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
 			},
+
 			"network_interface": {
 				Type:       pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
 				Set:        resourceSiteRecoveryReplicatedVMNicHash,
@@ -296,6 +320,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"target_static_ip": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -310,6 +335,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"target_subnet_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -324,6 +350,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+
 			"recovery_public_ip_address_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -361,15 +388,11 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyVaultValidate.NestedItemId,
 						},
 
-						"vault_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: keyVaultValidate.VaultID,
-						},
+						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
 					},
 				},
 			},
+
 			"key_encryption_key": {
 				Type:       pluginsdk.TypeList,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -384,12 +407,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 							ValidateFunc: keyVaultValidate.NestedItemId,
 						},
 
-						"vault_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: keyVaultValidate.VaultID,
-						},
+						"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
 					},
 				},
 			},
@@ -555,9 +573,9 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		targetStaticIp := vmNicInput["target_static_ip"].(string)
 		targetSubnetName := vmNicInput["target_subnet_name"].(string)
 		recoveryPublicIPAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
-		testStaticIp := vmNicInput["target_static_ip"].(string)
-		testSubNetName := vmNicInput["target_subnet_name"].(string)
-		testPublicIpAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
+		testStaticIp := vmNicInput["failover_test_static_ip"].(string)
+		testSubNetName := vmNicInput["failover_test_subnet_name"].(string)
+		testPublicIpAddressID := vmNicInput["failover_test_public_ip_address_id"].(string)
 
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
@@ -687,24 +705,131 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("source_recovery_protection_container_name", id.ReplicationProtectionContainerName)
 
 	if prop := model.Properties; prop != nil {
-		d.Set("target_recovery_fabric_id", prop.RecoveryFabricId)
-		d.Set("recovery_replication_policy_id", prop.PolicyId)
-		d.Set("target_recovery_protection_container_id", prop.RecoveryContainerId)
+		recoveryFabricId := ""
+		if fabricId := pointer.From(prop.RecoveryFabricId); fabricId != "" {
+			parsedFabricId, err := replicationfabrics.ParseReplicationFabricIDInsensitively(fabricId)
+			if err != nil {
+				return err
+			}
+			recoveryFabricId = parsedFabricId.ID()
+		}
+		d.Set("target_recovery_fabric_id", recoveryFabricId)
+
+		recoveryPolicyId := ""
+		if policyId := pointer.From(prop.PolicyId); policyId != "" {
+			parsedPolicyId, err := replicationpolicies.ParseReplicationPolicyIDInsensitively(policyId)
+			if err != nil {
+				return err
+			}
+			recoveryPolicyId = parsedPolicyId.ID()
+		}
+		d.Set("recovery_replication_policy_id", recoveryPolicyId)
+
+		recoveryContainerId := ""
+		if containerId := pointer.From(prop.RecoveryContainerId); containerId != "" {
+			parsedContainerId, err := replicationprotecteditems.ParseReplicationProtectionContainerIDInsensitively(containerId)
+			if err != nil {
+				return err
+			}
+			recoveryContainerId = parsedContainerId.ID()
+		}
+		d.Set("target_recovery_protection_container_id", recoveryContainerId)
 
 		if a2aDetails, isA2a := prop.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
-			d.Set("source_vm_id", a2aDetails.FabricObjectId)
-			d.Set("target_resource_group_id", a2aDetails.RecoveryAzureResourceGroupId)
-			d.Set("target_availability_set_id", a2aDetails.RecoveryAvailabilitySet)
+			sourceVmId := ""
+			if objId := pointer.From(a2aDetails.FabricObjectId); objId != "" {
+				parsedVmID, err := virtualmachines.ParseVirtualMachineIDInsensitively(objId)
+				if err != nil {
+					return err
+				}
+				sourceVmId = parsedVmID.ID()
+			}
+			d.Set("source_vm_id", sourceVmId)
+
+			recoveryGroupId := ""
+			if groupId := pointer.From(a2aDetails.RecoveryAzureResourceGroupId); groupId != "" {
+				parsedGroupId, err := resourceParse.ResourceGroupIDInsensitively(groupId)
+				if err != nil {
+					return err
+				}
+				recoveryGroupId = parsedGroupId.ID()
+			}
+			d.Set("target_resource_group_id", recoveryGroupId)
+
+			availabilitySetId := ""
+			if respAvailabilitySetId := pointer.From(a2aDetails.RecoveryAvailabilitySet); respAvailabilitySetId != "" {
+				parsedAvailabilitySetId, err := availabilitysets.ParseAvailabilitySetIDInsensitively(respAvailabilitySetId)
+				if err != nil {
+					return err
+				}
+				availabilitySetId = parsedAvailabilitySetId.ID()
+			}
+			d.Set("target_availability_set_id", availabilitySetId)
+
+			targetNetworkId := ""
+			if respTargetNetworkId := pointer.From(a2aDetails.SelectedRecoveryAzureNetworkId); respTargetNetworkId != "" {
+				parsedTargetNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(respTargetNetworkId)
+				if err != nil {
+					return err
+				}
+				targetNetworkId = parsedTargetNetworkId.ID()
+			}
+			d.Set("target_network_id", targetNetworkId)
+
+			testNetworkId := ""
+			if respTfoNetworkId := pointer.From(a2aDetails.SelectedTfoAzureNetworkId); respTfoNetworkId != "" {
+				parsedTfoNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(respTfoNetworkId)
+				if err != nil {
+					return err
+				}
+				testNetworkId = parsedTfoNetworkId.ID()
+			}
+			d.Set("test_network_id", testNetworkId)
+
+			proximityPlacementGroupId := ""
+			if respProximityPlacementGroupId := pointer.From(a2aDetails.RecoveryProximityPlacementGroupId); respProximityPlacementGroupId != "" {
+				parsedProximityPlacementGroupId, err := proximityplacementgroups.ParseProximityPlacementGroupIDInsensitively(respProximityPlacementGroupId)
+				if err != nil {
+					return err
+				}
+				proximityPlacementGroupId = parsedProximityPlacementGroupId.ID()
+			}
+			d.Set("target_proximity_placement_group_id", proximityPlacementGroupId)
+
+			recoveryBootDiagStorageAccount := ""
+			if respBootDiagStorageAccountId := pointer.From(a2aDetails.RecoveryBootDiagStorageAccountId); respBootDiagStorageAccountId != "" {
+				parsedRecoveryBootDiagStorageAccount, err := storageaccounts.ParseStorageAccountIDInsensitively(respBootDiagStorageAccountId)
+				if err != nil {
+					return err
+				}
+				recoveryBootDiagStorageAccount = parsedRecoveryBootDiagStorageAccount.ID()
+			}
+			d.Set("target_boot_diagnostic_storage_account_id", recoveryBootDiagStorageAccount)
+
+			capReservationGroupId := ""
+			if respCapacityGroupId := pointer.From(a2aDetails.RecoveryCapacityReservationGroupId); respCapacityGroupId != "" {
+				parsedCapReservaGroupId, err := capacityreservationgroups.ParseCapacityReservationGroupIDInsensitively(respCapacityGroupId)
+				if err != nil {
+					return err
+				}
+				capReservationGroupId = parsedCapReservaGroupId.ID()
+			}
+			d.Set("target_capacity_reservation_group_id", capReservationGroupId)
+
+			vmssId := ""
+			if respVmssId := pointer.From(a2aDetails.RecoveryVirtualMachineScaleSetId); respVmssId != "" {
+				parsedVmssId, err := computeParse.VirtualMachineScaleSetIDInsensitively(respVmssId)
+				if err != nil {
+					return err
+				}
+				vmssId = parsedVmssId.ID()
+			}
+			d.Set("target_virtual_machine_scale_set_id", vmssId)
+
 			d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
-			d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkId)
-			d.Set("test_network_id", a2aDetails.SelectedTfoAzureNetworkId)
-			d.Set("target_proximity_placement_group_id", a2aDetails.RecoveryProximityPlacementGroupId)
-			d.Set("target_boot_diagnostic_storage_account_id", a2aDetails.RecoveryBootDiagStorageAccountId)
-			d.Set("target_capacity_reservation_group_id", a2aDetails.RecoveryCapacityReservationGroupId)
-			d.Set("target_virtual_machine_scale_set_id", a2aDetails.RecoveryVirtualMachineScaleSetId)
 			d.Set("target_edge_zone", flattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
 			d.Set("multi_vm_group_name", a2aDetails.MultiVMGroupName)
-
+			d.Set("test_network_id", a2aDetails.SelectedTfoAzureNetworkId)
 			if a2aDetails.ProtectedDisks != nil {
 				disksOutput := make([]interface{}, 0)
 				for _, disk := range *a2aDetails.ProtectedDisks {
@@ -722,20 +847,32 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				for _, disk := range *a2aDetails.ProtectedManagedDisks {
 					diskOutput := make(map[string]interface{})
 					diskId := ""
-					if disk.DiskId != nil {
-						diskId = *disk.DiskId
+					if respDiskId := pointer.From(disk.DiskId); respDiskId != "" {
+						parsedDiskId, err := disks.ParseDiskIDInsensitively(respDiskId)
+						if err != nil {
+							return err
+						}
+						diskId = parsedDiskId.ID()
 					}
 					diskOutput["disk_id"] = diskId
 
 					primaryStagingAzureStorageAccountID := ""
-					if disk.PrimaryStagingAzureStorageAccountId != nil {
-						primaryStagingAzureStorageAccountID = *disk.PrimaryStagingAzureStorageAccountId
+					if respStorageAccId := pointer.From(disk.PrimaryStagingAzureStorageAccountId); respStorageAccId != "" {
+						parsedStorageAccountId, err := storageaccounts.ParseStorageAccountIDInsensitively(respStorageAccId)
+						if err != nil {
+							return err
+						}
+						primaryStagingAzureStorageAccountID = parsedStorageAccountId.ID()
 					}
 					diskOutput["staging_storage_account_id"] = primaryStagingAzureStorageAccountID
 
 					recoveryResourceGroupID := ""
-					if disk.RecoveryResourceGroupId != nil {
-						recoveryResourceGroupID = *disk.RecoveryResourceGroupId
+					if respRGId := pointer.From(disk.RecoveryResourceGroupId); respRGId != "" {
+						parsedResourceGroupId, err := resourceParse.ResourceGroupIDInsensitively(respRGId)
+						if err != nil {
+							return err
+						}
+						recoveryResourceGroupID = parsedResourceGroupId.ID()
 					}
 					diskOutput["target_resource_group_id"] = recoveryResourceGroupID
 
@@ -752,8 +889,12 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					diskOutput["target_disk_type"] = recoveryTargetDiskAccountType
 
 					recoveryEncryptionSetId := ""
-					if disk.RecoveryDiskEncryptionSetId != nil {
-						recoveryEncryptionSetId = *disk.RecoveryDiskEncryptionSetId
+					if respDESId := pointer.From(disk.RecoveryDiskEncryptionSetId); respDESId != "" {
+						parsedEncryptionSetId, err := diskencryptionsets.ParseDiskEncryptionSetIDInsensitively(respDESId)
+						if err != nil {
+							return err
+						}
+						recoveryEncryptionSetId = parsedEncryptionSetId.ID()
 					}
 					diskOutput["target_disk_encryption_set_id"] = recoveryEncryptionSetId
 

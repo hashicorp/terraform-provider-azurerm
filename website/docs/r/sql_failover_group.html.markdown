@@ -105,7 +105,7 @@ The `readonly_endpoint_failover_policy` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The failover group ID.
 * `location` - the location of the failover group.

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package auth
 
 import (
@@ -57,7 +60,8 @@ func (s *SharedKeyAuthorizer) Token(ctx context.Context, req *http.Request) (*oa
 }
 
 func (s *SharedKeyAuthorizer) AuxiliaryTokens(_ context.Context, _ *http.Request) ([]*oauth2.Token, error) {
-	return nil, fmt.Errorf("auxiliary tokens are not supported with SharedKey authentication")
+	// Auxiliary tokens are not supported with SharedKey authentication
+	return []*oauth2.Token{}, nil
 }
 
 // ---
@@ -157,7 +161,7 @@ func buildCanonicalizedResource(accountName, uri string, keyType SharedKeyType) 
 		}
 	}
 
-	return string(cr.Bytes()), nil
+	return cr.String(), nil
 }
 
 func getCanonicalizedAccountName(accountName string) string {
@@ -242,7 +246,7 @@ func buildCanonicalizedHeader(headers http.Header) string {
 		ch.WriteRune('\n')
 	}
 
-	return strings.TrimSuffix(string(ch.Bytes()), "\n")
+	return strings.TrimSuffix(ch.String(), "\n")
 }
 
 func createAuthorizationHeader(accountName string, accountKey []byte, canonicalizedString string) string {

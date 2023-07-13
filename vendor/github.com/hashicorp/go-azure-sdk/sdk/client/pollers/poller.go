@@ -1,11 +1,15 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package pollers
 
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"sync"
 	"time"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 )
 
 const DefaultNumberOfDroppedConnectionsToAllow = 3

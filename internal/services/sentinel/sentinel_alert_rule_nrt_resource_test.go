@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel_test
 
 import (
@@ -5,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type SentinelAlertRuleNrtResource struct{}
@@ -128,22 +130,26 @@ func TestAccSentinelAlertRuleNrt_updateEventGroupingSetting(t *testing.T) {
 }
 
 func (t SentinelAlertRuleNrtResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AlertRuleID(state.ID)
+	id, err := alertrules.ParseAlertRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := clients.Sentinel.AlertRulesClient.AlertRulesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %v", id, err)
 	}
 
-	rule, ok := resp.Value.(securityinsight.NrtAlertRule)
-	if !ok {
-		return nil, fmt.Errorf("the Alert Rule %q is not a NRT Alert Rule", id)
+	if model := resp.Model; model != nil {
+		modelPtr := *model
+		rule, ok := modelPtr.(alertrules.NrtAlertRule)
+		if !ok {
+			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
+		}
+		return utils.Bool(rule.Id != nil), nil
 	}
 
-	return utils.Bool(rule.ID != nil), nil
+	return utils.Bool(false), nil
 }
 
 func (r SentinelAlertRuleNrtResource) basic(data acceptance.TestData) string {
@@ -152,7 +158,7 @@ func (r SentinelAlertRuleNrtResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Some Rule"
   severity                   = "High"
   query                      = <<QUERY
@@ -171,7 +177,7 @@ func (r SentinelAlertRuleNrtResource) complete(data acceptance.TestData) string 
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Complete Rule"
   description                = "Some Description"
   tactics                    = ["Collection", "CommandAndControl"]
@@ -224,6 +230,7 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
     OperatingSystemName = "OSName"
     OperatingSystemType = "OSType"
   }
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -234,7 +241,7 @@ func (r SentinelAlertRuleNrtResource) completeUpdate(data acceptance.TestData) s
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Updated Complete Rule"
   severity                   = "High"
   query                      = "Heartbeat"
@@ -242,6 +249,7 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
     OperatingSystemName = "OSName"
     OperatingSystemType = "OSType"
   }
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -265,13 +273,13 @@ func (r SentinelAlertRuleNrtResource) alertRuleTemplateGuid(data acceptance.Test
 %s
 
 data "azurerm_sentinel_alert_rule_template" "test" {
-  display_name               = "NRT Base64 encoded Windows process command-lines"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  display_name               = "NRT Base64 Encoded Windows Process Command-lines"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Some Rule"
   severity                   = "Low"
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
@@ -286,7 +294,7 @@ func (r SentinelAlertRuleNrtResource) eventGroupingSetting(data acceptance.TestD
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Some Rule"
   severity                   = "High"
   query                      = <<QUERY
@@ -309,7 +317,7 @@ func (r SentinelAlertRuleNrtResource) updateEventGroupingSetting(data acceptance
 
 resource "azurerm_sentinel_alert_rule_nrt" "test" {
   name                       = "acctest-SentinelAlertRule-NRT-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Some Rule"
   severity                   = "High"
   query                      = <<QUERY
@@ -344,17 +352,8 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

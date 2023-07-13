@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -33,10 +36,6 @@ func RuleActionUrlRedirectPath() pluginsdk.SchemaValidateFunc {
 func RuleActionUrlRedirectQueryString() pluginsdk.SchemaValidateFunc {
 	return func(i interface{}, s string) ([]string, []error) {
 		querystring := i.(string)
-
-		if len(querystring) > 100 {
-			return nil, []error{fmt.Errorf("the Url Query String's max length is 100")}
-		}
 
 		re := regexp.MustCompile("^[?&]")
 		if re.MatchString(querystring) {

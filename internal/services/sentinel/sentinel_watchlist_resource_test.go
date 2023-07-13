@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel_test
 
 import (
@@ -5,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlists"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -63,16 +67,17 @@ func TestAccWatchlist_requiresImport(t *testing.T) {
 func (r WatchlistResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Sentinel.WatchlistsClient
 
-	id, err := parse.WatchlistID(state.ID)
+	id, err := watchlists.ParseWatchlistID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -85,7 +90,7 @@ func (r WatchlistResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_watchlist" "test" {
   name                       = "accTestWL-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "test"
   item_search_key            = "Key"
 }
@@ -99,7 +104,7 @@ func (r WatchlistResource) complete(data acceptance.TestData) string {
 
 resource "azurerm_sentinel_watchlist" "test" {
   name                       = "accTestWL-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "test"
   description                = "description"
   labels                     = ["label1", "laebl2"]
@@ -141,17 +146,10 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "sentinel" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

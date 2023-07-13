@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic_test
 
 import (
@@ -118,6 +121,8 @@ func TestAccLogicAppWorkflow_integrationAccount(t *testing.T) {
 }
 
 func TestAccLogicAppWorkflow_integrationServiceEnvironment(t *testing.T) {
+	t.Skip("skip as Integration Service Environment is being deprecated")
+
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
 	r := LogicAppWorkflowResource{}
 

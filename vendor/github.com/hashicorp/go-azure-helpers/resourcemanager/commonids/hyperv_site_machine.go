@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package commonids
 
 import (
@@ -39,19 +42,19 @@ func ParseHyperVSiteMachineID(input string) (*HyperVSiteMachineId, error) {
 	id := HyperVSiteMachineId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.HyperVSiteName, ok = parsed.Parsed["hyperVSiteName"]; !ok {
-		return nil, fmt.Errorf("the segment 'hyperVSiteName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hyperVSiteName", *parsed)
 	}
 
 	if id.MachineName, ok = parsed.Parsed["machineName"]; !ok {
-		return nil, fmt.Errorf("the segment 'machineName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "machineName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseHyperVSiteMachineIDInsensitively(input string) (*HyperVSiteMachineId, 
 	id := HyperVSiteMachineId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.HyperVSiteName, ok = parsed.Parsed["hyperVSiteName"]; !ok {
-		return nil, fmt.Errorf("the segment 'hyperVSiteName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hyperVSiteName", *parsed)
 	}
 
 	if id.MachineName, ok = parsed.Parsed["machineName"]; !ok {
-		return nil, fmt.Errorf("the segment 'machineName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "machineName", *parsed)
 	}
 
 	return &id, nil

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package loganalytics_test
 
 import (
@@ -133,6 +136,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "List",
     "Purge",
     "Update",
+    "GetRotationPolicy",
   ]
 
   secret_permissions = [
@@ -169,7 +173,8 @@ resource "azurerm_key_vault_access_policy" "test" {
   key_permissions = [
     "Get",
     "UnwrapKey",
-    "WrapKey"
+    "WrapKey",
+    "GetRotationPolicy",
   ]
 
   tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id

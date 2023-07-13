@@ -1,15 +1,18 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicebus
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -41,7 +44,7 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			"namespace_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NamespaceName,
+				ValidateFunc: azValidate.NamespaceName,
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
 				Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
@@ -183,7 +186,7 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("max_delivery_count", props.MaxDeliveryCount)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("requires_session", props.RequiresSession)
-			d.Set("status", props.Status)
+			d.Set("status", string(pointer.From(props.Status)))
 
 			if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
 				maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)

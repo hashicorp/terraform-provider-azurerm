@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package healthcare_test
 
 import (
@@ -5,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HealthcareApiFhirServiceResource struct{}
@@ -58,7 +61,28 @@ func TestAccHealthcareApiFhirService_updateIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateIdentity(data),
+			Config: r.updateIdentitySystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateIdentityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateIdentitySystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -141,15 +165,15 @@ func TestAccHealthcareApiFhirService_requiresImport(t *testing.T) {
 }
 
 func (HealthcareApiFhirServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FhirServiceID(state.ID)
+	id, err := fhirservices.ParseFhirServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.HealthCare.HealthcareWorkspaceFhirServiceClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := clients.HealthCare.HealthcareWorkspaceFhirServiceClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Healthcare api fhir service %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.FhirServiceProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r HealthcareApiFhirServiceResource) basic(data acceptance.TestData) string {
@@ -171,7 +195,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthcareApiFhirServiceResource) updateIdentity(data acceptance.TestData) string {
+func (r HealthcareApiFhirServiceResource) updateIdentitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_healthcare_fhir_service" "test" {
@@ -191,6 +215,38 @@ resource "azurerm_healthcare_fhir_service" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r HealthcareApiFhirServiceResource) updateIdentityUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_healthcare_fhir_service" "test" {
+  name                = "fhir%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_healthcare_workspace.test.id
+  kind                = "fhir-R4"
+
+  authentication {
+    authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
+    audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
+  }
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r HealthcareApiFhirServiceResource) requiresImport(data acceptance.TestData) string {

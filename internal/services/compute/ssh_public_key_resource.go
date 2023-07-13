@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -45,8 +48,8 @@ func resourceSshPublicKey() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[-a-zA-Z0-9(_)]{1,128}$"),
-					"Public SSH Key name must be 1 - 128 characters long, can contain letters, numbers, underscores, and hyphens (but the first and last character must be a letter or number).",
+					regexp.MustCompile(`^[-a-zA-Z0-9(_).]{1,128}$`),
+					"Public SSH Key name must be 1 - 128 characters long, can contain letters, numbers, underscores, dots and hyphens (but the first and last character must be a letter or number).",
 				),
 			},
 
@@ -150,12 +153,8 @@ func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	existing, err := client.Get(ctx, *id)
+	_, err = client.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(existing.HttpResponse) {
-			return nil
-		}
-
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 

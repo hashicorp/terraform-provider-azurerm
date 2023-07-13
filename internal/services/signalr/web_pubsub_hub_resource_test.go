@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package signalr_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -117,7 +120,7 @@ func TestAccWebPubsubHub_withPropertyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWebPubsubHub_withMultipleEventhandlerSettingsUpdate(t *testing.T) {
+func TestAccWebPubsubHub_withMultipleEventHandlerSettingsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -129,7 +132,33 @@ func TestAccWebPubsubHub_withMultipleEventhandlerSettingsUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withMultipleEventhandlerSettings(data),
+			Config: r.withMultipleEventHandlerSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebPubsubHub_withMultipleEventListenerSettingsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withMultipleEventListenerSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withMultipleEventListenerSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r)),
 		},
@@ -234,7 +263,7 @@ resource "azurerm_web_pubsub_hub" "import" {
 `, r.basic(data))
 }
 
-func (r WebPubsubHubResource) withMultipleEventhandlerSettings(data acceptance.TestData) string {
+func (r WebPubsubHubResource) withMultipleEventHandlerSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -269,6 +298,54 @@ resource "azurerm_web_pubsub_hub" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r WebPubsubHubResource) withMultipleEventListenerSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteventhub-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 1
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub" "test1" {
+  name                = "acctesteventhub-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 1
+  message_retention   = 1
+}
+
+resource "azurerm_web_pubsub_hub" "test" {
+  name          = "acctestwpsh%d"
+  web_pubsub_id = azurerm_web_pubsub.test.id
+
+  event_listener {
+    system_event_name_filter = ["disconnected", "connected"]
+    user_event_name_filter   = ["event1"]
+    eventhub_namespace_name  = azurerm_eventhub_namespace.test.name
+    eventhub_name            = azurerm_eventhub.test.name
+  }
+
+  event_listener {
+    system_event_name_filter = ["connected"]
+    user_event_name_filter   = ["event1", "event2"]
+    eventhub_namespace_name  = azurerm_eventhub_namespace.test.name
+    eventhub_name            = azurerm_eventhub.test1.name
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r WebPubsubHubResource) withMultipleEventhandlerSettingsAndNoAuth(data acceptance.TestData) string {
@@ -342,6 +419,10 @@ resource "azurerm_web_pubsub" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard_S1"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

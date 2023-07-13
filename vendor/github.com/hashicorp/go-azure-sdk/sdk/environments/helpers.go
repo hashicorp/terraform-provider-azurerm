@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package environments
 
 import "github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,6 +21,16 @@ func ApiManagementAPI(domainSuffix string) Api {
 		endpoint:           nil,
 		appId:              pointer.To(apiManagementAppId),
 		name:               "ApiManagement",
+		resourceIdentifier: nil,
+	}
+}
+
+func AttestationAPI(endpoint string) Api {
+	return &ApiEndpoint{
+		domainSuffix:       nil,
+		endpoint:           pointer.To(endpoint),
+		appId:              pointer.To(attestationServiceAppId),
+		name:               "AttestationService",
 		resourceIdentifier: nil,
 	}
 }

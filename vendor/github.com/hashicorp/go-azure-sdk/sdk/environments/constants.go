@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package environments
 
 const analysisServicesAppId = "4ac7d521-0382-477b-b0f8-7e1d95f85ca2"

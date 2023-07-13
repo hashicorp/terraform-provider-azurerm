@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logz_test
 
 import (
@@ -6,12 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogzMonitorResource struct{}
@@ -28,7 +32,7 @@ func TestAccLogzMonitor_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user"),
+		data.ImportStep(),
 	})
 }
 
@@ -63,7 +67,7 @@ func TestAccLogzMonitor_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user"),
+		data.ImportStep(),
 	})
 }
 
@@ -79,37 +83,37 @@ func TestAccLogzMonitor_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user"),
+		data.ImportStep(),
 		{
 			Config: r.update(data, effectiveDate, email),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user"),
+		data.ImportStep(),
 		{
 			Config: r.basic(data, effectiveDate, email),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user"),
+		data.ImportStep(),
 	})
 }
 
 func (r LogzMonitorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogzMonitorID(state.ID)
+	id, err := monitors.ParseMonitorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.Logz.MonitorClient.Get(ctx, id.ResourceGroup, id.MonitorName)
+	resp, err := clients.Logz.MonitorClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r LogzMonitorResource) template(data acceptance.TestData) string {

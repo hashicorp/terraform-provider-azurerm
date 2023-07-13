@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package keyvault_test
 
 import (
@@ -20,6 +23,8 @@ func TestAccDataSourceKeyVaultCertificate_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("certificate_data").Exists(),
 				check.That(data.ResourceName).Key("certificate_data_base64").Exists(),
+				check.That(data.ResourceName).Key("resource_manager_id").Exists(),
+				check.That(data.ResourceName).Key("resource_manager_versionless_id").Exists(),
 				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.key_size").HasValue("2048"),
 				check.That(data.ResourceName).Key("certificate_policy.0.key_properties.0.key_type").HasValue("RSA"),
 				check.That(data.ResourceName).Key("not_before").HasValue("2017-10-10T08:27:55Z"),

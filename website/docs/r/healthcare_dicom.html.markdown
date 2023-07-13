@@ -60,7 +60,7 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Healthcare DICOM Service.
 
@@ -80,8 +80,8 @@ An `authentication` block supports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Healthcare DICOM Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Healthcare DICOM Service.
+* `create` - (Defaults to 90 minutes) Used when creating the Healthcare DICOM Service.
+* `update` - (Defaults to 90 minutes) Used when updating the Healthcare DICOM Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare DICOM Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare DICOM Service.
 

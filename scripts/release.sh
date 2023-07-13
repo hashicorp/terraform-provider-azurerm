@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 REPO_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
 cd "${REPO_DIR}"
@@ -107,12 +110,19 @@ if [[ "${NOTAG}" == "1" ]]; then
   exit 0
 fi
 
-echo "Committing changelog..."
+echo "exporting Provider Schema JSON"
 (
   set -x
-  git commit CHANGELOG.md -m v"${RELEASE}"
+  go run internal/tools/schema-api/main.go -export .release/provider-schema.json
+)
+
+echo "Committing changelog and provider schema..."
+(
+  set -x
+  git commit CHANGELOG.md .release/provider-schema.json -m v"${RELEASE}"
   git push origin "${BRANCH}"
 )
+
 
 echo "Releasing v${RELEASE}..."
 

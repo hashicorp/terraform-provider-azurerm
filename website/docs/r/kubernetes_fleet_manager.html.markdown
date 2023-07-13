@@ -1,5 +1,5 @@
 ---
-subcategory: "Containers"
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_fleet_manager"
 description: |-
@@ -18,12 +18,11 @@ Manages a Kubernetes Fleet Manager
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
 resource "azurerm_kubernetes_fleet_manager" "example" {
-
-  hub_profile {
-    dns_prefix = "example"
-  }
-
   location            = azurerm_resource_group.example.location
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
@@ -46,7 +45,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Fleet Manager.
 
@@ -56,17 +55,16 @@ The following attributes are exported:
 
 ### `hub_profile` Block
 
+
 The `hub_profile` block supports the following arguments:
 
 * `dns_prefix` - (Required) 
 
-The `hub_profile` block exports the following arguments:
+
+In addition to the arguments defined above, the `hub_profile` block exports the following attributes:
 
 * `fqdn` - 
-
-* `kubernetes_version` - 
-
----
+* `kubernetes_version` -
 
 ## Timeouts
 

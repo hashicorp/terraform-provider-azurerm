@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = TrafficManagerProfileId{}
 
 // TrafficManagerProfileId is a struct representing the Resource ID for a Traffic Manager Profile
@@ -37,15 +40,15 @@ func ParseTrafficManagerProfileID(input string) (*TrafficManagerProfileId, error
 	id := TrafficManagerProfileId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.TrafficManagerProfileName, ok = parsed.Parsed["trafficManagerProfileName"]; !ok {
-		return nil, fmt.Errorf("the segment 'trafficManagerProfileName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trafficManagerProfileName", *parsed)
 	}
 
 	return &id, nil
@@ -64,15 +67,15 @@ func ParseTrafficManagerProfileIDInsensitively(input string) (*TrafficManagerPro
 	id := TrafficManagerProfileId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.TrafficManagerProfileName, ok = parsed.Parsed["trafficManagerProfileName"]; !ok {
-		return nil, fmt.Errorf("the segment 'trafficManagerProfileName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "trafficManagerProfileName", *parsed)
 	}
 
 	return &id, nil

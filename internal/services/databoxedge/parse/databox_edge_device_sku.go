@@ -1,10 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2020-12-01/devices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
 )
 
 // DataboxEdgeDeviceSku type

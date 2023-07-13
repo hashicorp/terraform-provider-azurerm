@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -6,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -119,7 +123,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: commonids.ValidateSubnetID,
 						},
 						"primary": {
 							Type:     pluginsdk.TypeBool,

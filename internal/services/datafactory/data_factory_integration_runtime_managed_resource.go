@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -6,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -129,10 +133,11 @@ func resourceDataFactoryIntegrationRuntimeManaged() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						// TODO: 4.0 - this should become `virtual_network_id` or `subnet_id` - are these ForceNew?!
 						"vnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: commonids.ValidateVirtualNetworkID,
 						},
 						"subnet_name": {
 							Type:         pluginsdk.TypeString,

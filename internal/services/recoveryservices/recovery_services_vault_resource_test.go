@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package recoveryservices_test
 
 import (
@@ -504,6 +507,21 @@ func TestAccRecoveryServicesVault_basicWithClassicVmwareReplicateEnabled(t *test
 	})
 }
 
+func TestAccRecoveryServicesVault_basicWithMonitorDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithMonitor(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (RecoveryServicesVaultResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -689,6 +707,33 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, immutability)
 }
 
+func (RecoveryServicesVaultResource) basicWithMonitor(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  monitoring {
+    alerts_for_all_job_failures_enabled            = false
+    alerts_for_critical_operation_failures_enabled = false
+  }
+
+  soft_delete_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (RecoveryServicesVaultResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -791,6 +836,7 @@ resource "azurerm_key_vault" "test" {
       "UnwrapKey",
       "WrapKey",
       "Verify",
+      "GetRotationPolicy"
     ]
     secret_permissions = [
       "Set",
@@ -888,6 +934,7 @@ resource "azurerm_key_vault" "test" {
       "UnwrapKey",
       "WrapKey",
       "Verify",
+      "GetRotationPolicy"
     ]
     secret_permissions = [
       "Set",
@@ -903,6 +950,7 @@ resource "azurerm_key_vault" "test" {
       "List",
       "WrapKey",
       "UnwrapKey",
+      "GetRotationPolicy"
     ]
   }
 }
@@ -1013,6 +1061,7 @@ resource "azurerm_key_vault" "test" {
       "UnwrapKey",
       "WrapKey",
       "Verify",
+      "GetRotationPolicy"
     ]
     secret_permissions = [
       "Set",
@@ -1246,6 +1295,7 @@ resource "azurerm_key_vault" "test" {
       "UnwrapKey",
       "WrapKey",
       "Verify",
+      "GetRotationPolicy"
     ]
     secret_permissions = [
       "Set",

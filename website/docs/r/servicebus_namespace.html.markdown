@@ -89,11 +89,13 @@ A `customer_managed_key` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ServiceBus Namespace ID.
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this ServiceBus Namespace.
+
+* `endpoint` - The URL to access the ServiceBus Namespace.
 
 ---
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package applicationinsights
 
 import (
@@ -7,11 +10,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -53,7 +56,7 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ComponentID,
 			},
 
 			"read_permissions": {
@@ -111,16 +114,18 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	for _, existingAPIKey := range *existingAPIKeyList.Value {
-		existingAPIKeyId, err = parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
-		if err != nil {
-			return err
-		}
+	if existingAPIKeyList.Value != nil {
+		for _, existingAPIKey := range *existingAPIKeyList.Value {
+			existingAPIKeyId, err = parse.ApiKeyID(camelCaseApiKeys(*existingAPIKey.ID))
+			if err != nil {
+				return err
+			}
 
-		existingAppInsightsName := existingAPIKeyId.ComponentName
-		if appInsightsId.Name == existingAppInsightsName {
-			keyId = existingAPIKeyId.Name
-			break
+			existingAppInsightsName := existingAPIKeyId.ComponentName
+			if appInsightsId.Name == existingAppInsightsName {
+				keyId = existingAPIKeyId.Name
+				break
+			}
 		}
 	}
 

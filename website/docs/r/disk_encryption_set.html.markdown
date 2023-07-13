@@ -76,7 +76,7 @@ resource "azurerm_key_vault_access_policy" "example-disk" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
   ]
 }
 
@@ -95,7 +95,8 @@ resource "azurerm_key_vault_access_policy" "example-user" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy",
   ]
 }
 
@@ -146,7 +147,7 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Disk Encryption Set.
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -75,7 +78,8 @@ func resourceStorageAccountNetworkRulesSchema() map[string]*pluginsdk.Schema {
 			Computed:   true,
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validate.StorageAccountIpRule,
 			},
 			Set: pluginsdk.HashString,
 		},

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package privatednsresolver
 
 import (
@@ -7,12 +10,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsresolvers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/outboundendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -61,7 +64,7 @@ func (r PrivateDNSResolverOutboundEndpointResource) Arguments() map[string]*plug
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: networkValidate.SubnetID,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
 		"location": commonschema.Location(),
@@ -145,8 +148,6 @@ func (r PrivateDNSResolverOutboundEndpointResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			properties.SystemData = nil
-
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
 			}
@@ -220,7 +221,7 @@ func (r PrivateDNSResolverOutboundEndpointResource) Delete() sdk.ResourceFunc {
 			log.Printf("[DEBUG] waiting for %s to be deleted", id)
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("context had no deadline")
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Pending"},

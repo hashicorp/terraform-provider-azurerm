@@ -1,4 +1,4 @@
-import jetbrains.buildServer.configs.kotlin.v2019_2.*
+import jetbrains.buildServer.configs.kotlin.*
 
 class pullRequest(displayName: String, environment: String) {
     val displayName = displayName

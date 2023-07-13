@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package azuresdkhacks
 
 import (
@@ -7,12 +10,16 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type DataPlaneClient struct {
 	client *appconfiguration.BaseClient
 }
+
+// NOTE: this workaround is needed since the `nextLink` returned from the API doesn't include
+// the HTTP Endpoint in all cases, so we need to ensure this is present
+// TODO: confirm if this is still needed with the new base layer
 
 func NewDataPlaneClient(client appconfiguration.BaseClient) DataPlaneClient {
 	return DataPlaneClient{
@@ -20,7 +27,7 @@ func NewDataPlaneClient(client appconfiguration.BaseClient) DataPlaneClient {
 	}
 }
 
-func (c DataPlaneClient) GetKeyValuesComplete(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (result KeyValueListResultIterator, err error) {
+func (c DataPlaneClient) GetKeyValuesComplete(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []appconfiguration.KeyValueFields) (result KeyValueListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeyValues")
 		defer func() {
@@ -35,7 +42,7 @@ func (c DataPlaneClient) GetKeyValuesComplete(ctx context.Context, key string, l
 	return
 }
 
-func (c DataPlaneClient) GetKeyValues(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []string) (result KeyValueListResultPage, err error) {
+func (c DataPlaneClient) GetKeyValues(ctx context.Context, key string, label string, after string, acceptDatetime string, selectParameter []appconfiguration.KeyValueFields) (result KeyValueListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetKeyValues")
 		defer func() {

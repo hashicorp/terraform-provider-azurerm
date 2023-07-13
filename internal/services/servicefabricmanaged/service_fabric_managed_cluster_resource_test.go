@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicefabricmanaged_test
 
 import (
@@ -126,20 +129,19 @@ func TestAccServiceFabricManagedCluster_authentication(t *testing.T) {
 }
 
 func (r ClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	resourceID, err := managedcluster.ParseManagedClusterID(state.ID)
+	id, err := managedcluster.ParseManagedClusterID(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
 	}
 
-	client := clients.ServiceFabricManaged.ManagedClusterClient
-	resp, err := client.Get(ctx, *resourceID)
+	resp, err := clients.ServiceFabricManaged.ManagedClusterClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("while checking for cluster's %q existence: %+v", resourceID.String(), err)
+		return nil, fmt.Errorf("while checking for cluster's %q existence: %+v", id.String(), err)
 	}
-	return utils.Bool(resp.HttpResponse.StatusCode == 200), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r ClusterResource) basic(data acceptance.TestData, nodeTypeData string) string {

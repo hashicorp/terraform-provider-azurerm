@@ -77,7 +77,7 @@ The following supported arguments are specific to Data Lake Storage Gen2 Linked 
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Data Lake Storage Gen2 Linked Service.
 

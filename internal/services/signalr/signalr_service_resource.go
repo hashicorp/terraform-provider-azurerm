@@ -1,6 +1,10 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package signalr
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -9,13 +13,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	signalrValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,6 +67,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	id := signalr.NewSignalRID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -80,6 +87,11 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	messagingLogsEnabled := false
 	if v, ok := d.GetOk("messaging_logs_enabled"); ok {
 		messagingLogsEnabled = v.(bool)
+	}
+
+	httpLogsEnabled := false
+	if v, ok := d.GetOk("http_request_logs_enabled"); ok {
+		httpLogsEnabled = v.(bool)
 	}
 	liveTraceEnabled := false
 	if v, ok := d.GetOk("live_trace_enabled"); ok {
@@ -104,13 +116,46 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("Upstream configurations are only allowed when the SignalR Service is in `Serverless` mode")
 	}
 
+	publicNetworkAcc := "Enabled"
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAcc = "Disabled"
+	}
+
+	tlsClientCertEnabled := d.Get("tls_client_cert_enabled").(bool)
+
+	if expandSignalRServiceSku(sku).Name == "Free_F1" {
+		if publicNetworkAcc == "Disabled" {
+			return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
+		}
+		if tlsClientCertEnabled {
+			return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
+		}
+	}
+
+	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	resourceLogsData := expandSignalRResourceLogConfig(connectivityLogsEnabled, messagingLogsEnabled, httpLogsEnabled)
 	resourceType := signalr.SignalRResource{
 		Location: utils.String(location),
+		Identity: identity,
 		Properties: &signalr.SignalRProperties{
-			Cors:                   expandSignalRCors(cors),
-			Features:               &expandedFeatures,
-			Upstream:               expandUpstreamSettings(upstreamSettings),
-			LiveTraceConfiguration: expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{})),
+			Cors:                     expandSignalRCors(cors),
+			Features:                 &expandedFeatures,
+			Upstream:                 expandUpstreamSettings(upstreamSettings),
+			LiveTraceConfiguration:   expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{})),
+			ResourceLogConfiguration: resourceLogsData,
+			PublicNetworkAccess:      utils.String(publicNetworkAcc),
+			DisableAadAuth:           utils.Bool(!d.Get("aad_auth_enabled").(bool)),
+			DisableLocalAuth:         utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			Tls: &signalr.SignalRTlsSettings{
+				ClientCertEnabled: utils.Bool(tlsClientCertEnabled),
+			},
+			Serverless: &signalr.ServerlessSettings{
+				ConnectionTimeoutInSeconds: utils.Int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int))),
+			},
 		},
 		Sku:  expandSignalRServiceSku(sku),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -168,15 +213,10 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			connectivityLogsEnabled := false
 			messagingLogsEnabled := false
+			httpLogsEnabled := false
 			liveTraceEnabled := false
 			serviceMode := "Default"
 			for _, feature := range *props.Features {
-				if feature.Flag == signalr.FeatureFlagsEnableConnectivityLogs {
-					connectivityLogsEnabled = strings.EqualFold(feature.Value, "True")
-				}
-				if feature.Flag == signalr.FeatureFlagsEnableMessagingLogs {
-					messagingLogsEnabled = strings.EqualFold(feature.Value, "True")
-				}
 				if feature.Flag == "EnableLiveTrace" {
 					liveTraceEnabled = strings.EqualFold(feature.Value, "True")
 				}
@@ -184,10 +224,37 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 					serviceMode = feature.Value
 				}
 			}
-			d.Set("connectivity_logs_enabled", connectivityLogsEnabled)
-			d.Set("messaging_logs_enabled", messagingLogsEnabled)
+
 			d.Set("live_trace_enabled", liveTraceEnabled)
 			d.Set("service_mode", serviceMode)
+
+			aadAuthEnabled := true
+			if props.DisableAadAuth != nil {
+				aadAuthEnabled = !(*props.DisableAadAuth)
+			}
+			d.Set("aad_auth_enabled", aadAuthEnabled)
+
+			localAuthEnabled := true
+			if props.DisableLocalAuth != nil {
+				localAuthEnabled = !(*props.DisableLocalAuth)
+			}
+			d.Set("local_auth_enabled", localAuthEnabled)
+
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccessEnabled = strings.EqualFold(*props.PublicNetworkAccess, "Enabled")
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
+			tlsClientCertEnabled := false
+			if props.Tls != nil && props.Tls.ClientCertEnabled != nil {
+				tlsClientCertEnabled = *props.Tls.ClientCertEnabled
+			}
+			d.Set("tls_client_cert_enabled", tlsClientCertEnabled)
+
+			if props.Serverless != nil && props.Serverless.ConnectionTimeoutInSeconds != nil {
+				d.Set("serverless_connection_timeout_in_seconds", int(*props.Serverless.ConnectionTimeoutInSeconds))
+			}
 
 			if err := d.Set("cors", flattenSignalRCors(props.Cors)); err != nil {
 				return fmt.Errorf("setting `cors`: %+v", err)
@@ -199,6 +266,41 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			if err := d.Set("live_trace", flattenSignalRLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
 				return fmt.Errorf("setting `live_trace`:%+v", err)
+			}
+
+			if props.ResourceLogConfiguration != nil && props.ResourceLogConfiguration.Categories != nil {
+				for _, item := range *props.ResourceLogConfiguration.Categories {
+					name := ""
+					if item.Name != nil {
+						name = *item.Name
+					}
+
+					var cateEnabled string
+					if item.Enabled != nil {
+						cateEnabled = *item.Enabled
+					}
+
+					switch name {
+					case "MessagingLogs":
+						messagingLogsEnabled = strings.EqualFold(cateEnabled, "true")
+					case "ConnectivityLogs":
+						connectivityLogsEnabled = strings.EqualFold(cateEnabled, "true")
+					case "HttpRequestLogs":
+						httpLogsEnabled = strings.EqualFold(cateEnabled, "true")
+					default:
+						continue
+					}
+				}
+				d.Set("connectivity_logs_enabled", connectivityLogsEnabled)
+				d.Set("messaging_logs_enabled", messagingLogsEnabled)
+				d.Set("http_request_logs_enabled", httpLogsEnabled)
+			}
+			identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := d.Set("identity", identity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
 			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -227,9 +329,30 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	resourceType := signalr.SignalRResource{}
 
-	if d.HasChanges("cors", "features", "upstream_endpoint", "connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled", "live_trace") {
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	currentSku := ""
+	if existing.Model != nil && existing.Model.Sku != nil {
+		currentSku = existing.Model.Sku.Name
+	}
+
+	if d.HasChange("sku") {
+		sku := d.Get("sku").([]interface{})
+		resourceType.Sku = expandSignalRServiceSku(sku)
+		currentSku = resourceType.Sku.Name
+	}
+
+	if d.HasChanges("cors", "upstream_endpoint", "serverless_connection_timeout_in_seconds", "identity",
+		"public_network_access_enabled", "local_auth_enabled", "aad_auth_enabled", "tls_client_cert_enabled",
+		"features", "connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "service_mode", "live_trace_enabled", "live_trace") {
 		resourceType.Properties = &signalr.SignalRProperties{}
 
 		if d.HasChange("cors") {
@@ -237,26 +360,66 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			resourceType.Properties.Cors = expandSignalRCors(corsRaw)
 		}
 
-		if d.HasChange("live_trace") {
-			resourceType.Properties.LiveTraceConfiguration = expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{}))
+		if d.HasChange("upstream_endpoint") {
+			featuresRaw := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
+			resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
 		}
 
-		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled") {
-			features := make([]signalr.SignalRFeature, 0)
-			if d.HasChange("connectivity_logs_enabled") {
-				connectivityLogsEnabled := false
-				if v, ok := d.GetOk("connectivity_logs_enabled"); ok {
-					connectivityLogsEnabled = v.(bool)
-				}
-				features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
+		if d.HasChange("serverless_connection_timeout_in_seconds") {
+			resourceType.Properties.Serverless = &signalr.ServerlessSettings{
+				ConnectionTimeoutInSeconds: utils.Int64(int64(d.Get("serverless_connection_timeout_in_seconds").(int))),
 			}
+		}
 
-			if d.HasChange("messaging_logs_enabled") {
-				messagingLogsEnabled := false
-				if v, ok := d.GetOk("messaging_logs_enabled"); ok {
-					messagingLogsEnabled = v.(bool)
-				}
-				features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
+		if d.HasChange("identity") {
+			identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			resourceType.Identity = identity
+		}
+
+		if d.HasChange("public_network_access_enabled") {
+			publicNetworkAcc := "Enabled"
+			if !d.Get("public_network_access_enabled").(bool) {
+				publicNetworkAcc = "Disabled"
+			}
+			if currentSku == "Free_F1" && publicNetworkAcc == "Disabled" {
+				return fmt.Errorf("SKU Free_F1 does not support disabling public network access")
+			}
+			resourceType.Properties.PublicNetworkAccess = utils.String(publicNetworkAcc)
+		}
+
+		if d.HasChange("local_auth_enabled") {
+			resourceType.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_auth_enabled").(bool))
+		}
+
+		if d.HasChange("aad_auth_enabled") {
+			resourceType.Properties.DisableAadAuth = utils.Bool(!d.Get("aad_auth_enabled").(bool))
+		}
+
+		if d.HasChange("tls_client_cert_enabled") {
+			tlsClientCertEnabled := d.Get("tls_client_cert_enabled").(bool)
+			resourceType.Properties.Tls = &signalr.SignalRTlsSettings{
+				ClientCertEnabled: utils.Bool(tlsClientCertEnabled),
+			}
+			if currentSku == "Free_F1" && tlsClientCertEnabled {
+				return fmt.Errorf("SKU Free_F1 does not support enabling tls client cert")
+			}
+		}
+
+		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "live_trace_enabled", "service_mode") {
+			features := make([]signalr.SignalRFeature, 0)
+			if d.HasChange("connectivity_logs_enabled") || d.HasChange("messaging_logs_enabled") || d.HasChange("http_request_logs_enabled") {
+				connectivityLogsNew := d.Get("connectivity_logs_enabled")
+				features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsNew.(bool))))
+
+				messagingLogsNew := d.Get("messaging_logs_enabled")
+				features = append(features, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsNew.(bool))))
+
+				httpLogsNew := d.Get("http_request_logs_enabled")
+
+				resourceType.Properties.ResourceLogConfiguration = expandSignalRResourceLogConfig(connectivityLogsNew.(bool), messagingLogsNew.(bool), httpLogsNew.(bool))
 			}
 
 			if d.HasChange("live_trace_enabled") {
@@ -274,18 +437,13 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 				}
 				features = append(features, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
 			}
+
 			resourceType.Properties.Features = &features
 		}
 
-		if d.HasChange("upstream_endpoint") {
-			featuresRaw := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
-			resourceType.Properties.Upstream = expandUpstreamSettings(featuresRaw)
+		if d.HasChange("live_trace") {
+			resourceType.Properties.LiveTraceConfiguration = expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{}))
 		}
-	}
-
-	if d.HasChange("sku") {
-		sku := d.Get("sku").([]interface{})
-		resourceType.Sku = expandSignalRServiceSku(sku)
 	}
 
 	if d.HasChange("tags") {
@@ -295,6 +453,28 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if err := client.UpdateThenPoll(ctx, *id, resourceType); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(signalr.ProvisioningStateUpdating),
+			string(signalr.ProvisioningStateCreating),
+			string(signalr.ProvisioningStateMoving),
+			string(signalr.ProvisioningStateRunning),
+		},
+		Target:                    []string{string(signalr.ProvisioningStateSucceeded)},
+		Refresh:                   signalrServiceProvisioningStateRefreshFunc(ctx, client, *id),
+		Timeout:                   time.Until(deadline),
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 20,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return err
 	}
 
 	return resourceArmSignalRServiceRead(d, meta)
@@ -310,14 +490,17 @@ func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	// @tombuildsstuff: we can't use DeleteThenPoll here since the API returns a 404 on the Future in time
 	future, err := client.Delete(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err := future.Poller.PollUntilDone(); err != nil {
-		if !response.WasNotFound(future.Poller.HttpResponse) {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
+		if r := future.Poller.LatestResponse(); r == nil || !response.WasNotFound(r.Response) {
 			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 		}
 	}
@@ -351,12 +534,26 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 
 	for _, upstreamSetting := range input {
 		setting := upstreamSetting.(map[string]interface{})
-
+		authTypeNone := signalr.UpstreamAuthTypeNone
+		authTypeManagedIdentity := signalr.UpstreamAuthTypeManagedIdentity
+		auth := signalr.UpstreamAuthSettings{
+			Type: &authTypeNone,
+		}
 		upstreamTemplate := signalr.UpstreamTemplate{
 			HubPattern:      utils.String(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
 			EventPattern:    utils.String(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
 			CategoryPattern: utils.String(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
 			UrlTemplate:     setting["url_template"].(string),
+			Auth:            &auth,
+		}
+
+		if setting["user_assigned_identity_id"].(string) != "" {
+			upstreamTemplate.Auth = &signalr.UpstreamAuthSettings{
+				Type: &authTypeManagedIdentity,
+				ManagedIdentity: &signalr.ManagedIdentitySettings{
+					Resource: utils.String(setting["user_assigned_identity_id"].(string)),
+				},
+			}
 		}
 
 		upstreamTemplates = append(upstreamTemplates, upstreamTemplate)
@@ -392,11 +589,19 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 			hubPattern = utils.FlattenStringSlice(&hubPatterns)
 		}
 
+		var managedIdentityId string
+		if upstreamAuth := settings.Auth; upstreamAuth != nil && upstreamAuth.Type != nil && *upstreamAuth.Type != signalr.UpstreamAuthTypeNone {
+			if upstreamAuth.ManagedIdentity != nil && upstreamAuth.ManagedIdentity.Resource != nil {
+				managedIdentityId = *upstreamAuth.ManagedIdentity.Resource
+			}
+		}
+
 		result = append(result, map[string]interface{}{
-			"url_template":     settings.UrlTemplate,
-			"hub_pattern":      hubPattern,
-			"event_pattern":    eventPattern,
-			"category_pattern": categoryPattern,
+			"url_template":              settings.UrlTemplate,
+			"hub_pattern":               hubPattern,
+			"event_pattern":             eventPattern,
+			"category_pattern":          categoryPattern,
+			"user_assigned_identity_id": managedIdentityId,
 		})
 	}
 	return result
@@ -562,6 +767,41 @@ func flattenSignalRLiveTraceConfig(input *signalr.LiveTraceConfiguration) []inte
 	}}
 }
 
+func expandSignalRResourceLogConfig(connectivityLogEnabled bool, messagingLogEnabled bool, httpLogEnabled bool) *signalr.ResourceLogConfiguration {
+	resourceLogCategories := make([]signalr.ResourceLogCategory, 0)
+
+	messagingLog := "false"
+	if messagingLogEnabled {
+		messagingLog = "true"
+	}
+	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
+		Name:    utils.String("MessagingLogs"),
+		Enabled: utils.String(messagingLog),
+	})
+
+	connectivityLog := "false"
+	if connectivityLogEnabled {
+		connectivityLog = "true"
+	}
+	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
+		Name:    utils.String("ConnectivityLogs"),
+		Enabled: utils.String(connectivityLog),
+	})
+
+	httpLog := "false"
+	if httpLogEnabled {
+		httpLog = "true"
+	}
+	resourceLogCategories = append(resourceLogCategories, signalr.ResourceLogCategory{
+		Name:    utils.String("HttpRequestLogs"),
+		Enabled: utils.String(httpLog),
+	})
+
+	return &signalr.ResourceLogConfiguration{
+		Categories: &resourceLogCategories,
+	}
+}
+
 func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -594,7 +834,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
+						ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100}),
 					},
 				},
 			},
@@ -607,6 +847,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"messaging_logs_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"http_request_logs_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -650,6 +896,36 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"local_auth_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"aad_auth_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"tls_client_cert_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"serverless_connection_timeout_in_seconds": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Default:  30,
 		},
 
 		"service_mode": {
@@ -700,6 +976,12 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: signalrValidate.UrlTemplate,
 					},
+
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsUUID,
+					},
 				},
 			},
 		},
@@ -720,6 +1002,8 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"hostname": {
 			Type:     pluginsdk.TypeString,
@@ -766,5 +1050,22 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
+	}
+}
+
+func signalrServiceProvisioningStateRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.SignalRId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
+		}
+
+		if model := res.Model; model != nil {
+			if model.Properties != nil && model.Properties.ProvisioningState != nil {
+				return res, string(*model.Properties.ProvisioningState), nil
+			}
+		}
+
+		return nil, "", fmt.Errorf("unable to read provisioning state")
 	}
 }

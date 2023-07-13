@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel
 
 import (
@@ -8,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
@@ -33,7 +37,7 @@ type DataConnectorMicrosoftThreatIntelligenceDataType struct {
 }
 
 func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+	res := map[string]*schema.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -56,22 +60,36 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 			ValidateFunc: validation.IsUUID,
 		},
 
-		"bing_safety_phishing_url_lookback_date": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsRFC3339Time,
-			AtLeastOneOf: []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"},
-		},
-
+		//lintignore: S013
 		"microsoft_emerging_threat_feed_lookback_date": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
-			Optional:     true,
+			Optional:     !features.FourPointOh(),
+			Required:     features.FourPointOh(),
 			ValidateFunc: validation.IsRFC3339Time,
-			AtLeastOneOf: []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"},
+			AtLeastOneOf: func() []string {
+				if !features.FourPointOh() {
+					return []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"}
+				}
+				return []string{}
+			}(),
 		},
 	}
+
+	if !features.FourPointOh() {
+		// this has been removed in newer API version, and it's actually not working in current API version
+		// TODO Remove in 4.0
+		res["bing_safety_phishing_url_lookback_date"] = &schema.Schema{
+			Deprecated:   "This field is deprecated and will be removed in version 4.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+			AtLeastOneOf: []string{"bing_safety_phishing_url_lookback_date", "microsoft_emerging_threat_feed_lookback_date"},
+		}
+	}
+
+	return res
 }
 
 func (s DataConnectorMicrosoftThreatIntelligenceResource) Attributes() map[string]*schema.Schema {

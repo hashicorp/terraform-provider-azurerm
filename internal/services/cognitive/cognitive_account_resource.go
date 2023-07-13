@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cognitive
 
 import (
@@ -7,12 +10,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2022-10-01/cognitiveservicesaccounts"
-	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
+	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -22,7 +26,6 @@ import (
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -268,6 +271,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				Sensitive:    true,
 			},
 
 			"storage": {
@@ -344,7 +348,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err := networkParse.SubnetIDInsensitively(v)
+		id, err := commonids.ParseSubnetIDInsensitively(v)
 		if err != nil {
 			return err
 		}
@@ -431,7 +435,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err := networkParse.SubnetIDInsensitively(v)
+		id, err := commonids.ParseSubnetIDInsensitively(v)
 		if err != nil {
 			return err
 		}
@@ -806,7 +810,7 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 	if input.VirtualNetworkRules != nil {
 		for _, v := range *input.VirtualNetworkRules {
 			id := v.Id
-			subnetId, err := networkParse.SubnetIDInsensitively(v.Id)
+			subnetId, err := commonids.ParseSubnetIDInsensitively(v.Id)
 			if err == nil {
 				id = subnetId.ID()
 			}
@@ -876,7 +880,7 @@ func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.
 	var keyId string
 	var identityClientId string
 	if props := input.KeyVaultProperties; props != nil {
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, "keys", *props.KeyName, *props.KeyVersion)
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, keyVaultParse.NestedItemTypeKey, *props.KeyName, *props.KeyVersion)
 		if err != nil {
 			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 		}

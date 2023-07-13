@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = SoftwareUpdateConfigurationId{}
 
 // SoftwareUpdateConfigurationId is a struct representing the Resource ID for a Software Update Configuration
@@ -39,19 +42,19 @@ func ParseSoftwareUpdateConfigurationID(input string) (*SoftwareUpdateConfigurat
 	id := SoftwareUpdateConfigurationId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'automationAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
 	}
 
 	if id.SoftwareUpdateConfigurationName, ok = parsed.Parsed["softwareUpdateConfigurationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'softwareUpdateConfigurationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "softwareUpdateConfigurationName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseSoftwareUpdateConfigurationIDInsensitively(input string) (*SoftwareUpd
 	id := SoftwareUpdateConfigurationId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'automationAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
 	}
 
 	if id.SoftwareUpdateConfigurationName, ok = parsed.Parsed["softwareUpdateConfigurationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'softwareUpdateConfigurationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "softwareUpdateConfigurationName", *parsed)
 	}
 
 	return &id, nil

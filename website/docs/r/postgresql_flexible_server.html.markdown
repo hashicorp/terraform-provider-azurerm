@@ -92,6 +92,8 @@ The following arguments are supported:
 
 -> **Note:** Once `administrator_login` is specified, changing this forces a new PostgreSQL Flexible Server to be created.
 
+-> **Note:** To create with `administrator_login` specified or update with it first specified , `authentication.password_auth_enabled` must be set to `true`.
+
 * `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
 
 * `authentication` - (Optional) An `authentication` block as defined below.
@@ -132,7 +134,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
-* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13` and `14`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14` and `15`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 -> **Note:** When `create_mode` is `Update`, upgrading version wouldn't force a new resource to be created.
 
@@ -150,8 +152,6 @@ An `authentication` block supports the following:
 
 * `password_auth_enabled` - (Optional) Whether or not password authentication is allowed to access the PostgreSQL Flexible Server. Defaults to `true`.
 
--> **NOTE:** When `password_auth_enabled` is set to `false`, `administrator_login` and `administrator_password` must not be specified.
-
 * `tenant_id` - (Optional) The Tenant ID of the Azure Active Directory which is used by the Active Directory authentication. `active_directory_auth_enabled` must be set to `true`.
 
 -> **Note:** Setting `active_directory_auth_enabled` to `true` requires a Service Principal for the Postgres Flexible Server. For more details see [this document](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-configure-sign-in-azure-ad-authentication).
@@ -166,17 +166,15 @@ A `customer_managed_key` block supports the following:
 
 * `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id for a Customer Managed Key. Should be added with `identity_ids`.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Should be set to `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this PostgreSQL Flexible Server. The only possible value is `UserAssigned`.
 
-* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service. Required if used together with `customer_managed_key` block.
-
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+* `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this PostgreSQL Flexible Server. Required if used together with `customer_managed_key` block.
 
 ---
 

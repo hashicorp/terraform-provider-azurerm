@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -111,11 +114,12 @@ func (r ExpressRouteGatewayResource) complete(data acceptance.TestData, scaleUni
 %s
 
 resource "azurerm_express_route_gateway" "test" {
-  name                = "acctestER-gateway-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  virtual_hub_id      = azurerm_virtual_hub.test.id
-  scale_units         = %d
+  name                          = "acctestER-gateway-%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  virtual_hub_id                = azurerm_virtual_hub.test.id
+  scale_units                   = %d
+  allow_non_virtual_wan_traffic = true
 
   tags = {
     Hello = "World"

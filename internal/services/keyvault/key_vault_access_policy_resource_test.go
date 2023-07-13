@@ -1,18 +1,21 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package keyvault_test
 
 import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KeyVaultAccessPolicyResource struct{}
@@ -133,12 +136,29 @@ func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.KeyVaultId().ResourceGroup, id.KeyVaultId().Name)
+	resp, err := clients.KeyVault.VaultsClient.Get(ctx, id.KeyVaultId())
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault (%s): %+v", id, err)
 	}
 
-	return utils.Bool(keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, id.ObjectID(), id.ApplicationId()) != nil), nil
+	found := false
+	if model := resp.Model; model != nil && model.Properties.AccessPolicies != nil {
+		for _, policy := range *model.Properties.AccessPolicies {
+			if strings.EqualFold(policy.ObjectId, id.ObjectID()) {
+				aid := ""
+				if policy.ApplicationId != nil {
+					aid = *policy.ApplicationId
+				}
+
+				if strings.EqualFold(aid, id.ApplicationId()) {
+					found = true
+					break
+				}
+			}
+		}
+	}
+
+	return pointer.To(found), nil
 }
 
 func (r KeyVaultAccessPolicyResource) basic(data acceptance.TestData) string {

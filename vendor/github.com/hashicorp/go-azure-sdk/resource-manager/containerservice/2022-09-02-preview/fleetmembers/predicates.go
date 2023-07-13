@@ -1,7 +1,10 @@
 package fleetmembers
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 type FleetMemberOperationPredicate struct {
-	Etag *string
+	ETag *string
 	Id   *string
 	Name *string
 	Type *string
@@ -9,7 +12,7 @@ type FleetMemberOperationPredicate struct {
 
 func (p FleetMemberOperationPredicate) Matches(input FleetMember) bool {
 
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
+	if p.ETag != nil && (input.ETag == nil && *p.ETag != *input.ETag) {
 		return false
 	}
 

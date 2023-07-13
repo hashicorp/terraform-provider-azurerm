@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,11 +8,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -30,7 +34,7 @@ func resourceSubnetNatGatewayAssociation() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SubnetID(id)
+			_, err := commonids.ParseSubnetID(id)
 			return err
 		}),
 
@@ -39,14 +43,14 @@ func resourceSubnetNatGatewayAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"nat_gateway_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.NatGatewayID,
 			},
 		},
 	}
@@ -60,7 +64,7 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 
 	log.Printf("[INFO] preparing arguments for Subnet <-> NAT Gateway Association creation.")
 	natGatewayId := d.Get("nat_gateway_id").(string)
-	parsedSubnetId, err := parse.SubnetID(d.Get("subnet_id").(string))
+	parsedSubnetId, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
 	if err != nil {
 		return err
 	}
@@ -74,10 +78,10 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 	defer locks.UnlockByName(parsedGatewayId.Name, natGatewayResourceName)
 	locks.ByName(parsedSubnetId.VirtualNetworkName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(parsedSubnetId.VirtualNetworkName, VirtualNetworkResourceName)
-	locks.ByName(parsedSubnetId.Name, SubnetResourceName)
-	defer locks.UnlockByName(parsedSubnetId.Name, SubnetResourceName)
+	locks.ByName(parsedSubnetId.SubnetName, SubnetResourceName)
+	defer locks.UnlockByName(parsedSubnetId.SubnetName, SubnetResourceName)
 
-	subnet, err := client.Get(ctx, parsedSubnetId.ResourceGroup, parsedSubnetId.VirtualNetworkName, parsedSubnetId.Name, "")
+	subnet, err := client.Get(ctx, parsedSubnetId.ResourceGroupName, parsedSubnetId.VirtualNetworkName, parsedSubnetId.SubnetName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(subnet.Response) {
 			return fmt.Errorf("%s was not found!", *parsedSubnetId)
@@ -97,7 +101,7 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, parsedSubnetId.ResourceGroup, parsedSubnetId.VirtualNetworkName, parsedSubnetId.Name, subnet)
+	future, err := client.CreateOrUpdate(ctx, parsedSubnetId.ResourceGroupName, parsedSubnetId.VirtualNetworkName, parsedSubnetId.SubnetName, subnet)
 	if err != nil {
 		return fmt.Errorf("updating NAT Gateway Association for %s: %+v", *parsedSubnetId, err)
 	}
@@ -119,7 +123,7 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("waiting for provisioning state of subnet for NAT Gateway Association for %s: %+v", *parsedSubnetId, err)
 	}
 
-	vnetId := parse.NewVirtualNetworkID(parsedSubnetId.SubscriptionId, parsedSubnetId.ResourceGroup, parsedSubnetId.VirtualNetworkName)
+	vnetId := commonids.NewVirtualNetworkID(parsedSubnetId.SubscriptionId, parsedSubnetId.ResourceGroupName, parsedSubnetId.VirtualNetworkName)
 	vnetStateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(network.ProvisioningStateUpdating)},
 		Target:     []string{string(network.ProvisioningStateSucceeded)},
@@ -141,12 +145,12 @@ func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubnetID(d.Id())
+	id, err := commonids.ParseSubnetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	subnet, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
+	subnet, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(subnet.Response) {
 			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
@@ -178,12 +182,12 @@ func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubnetID(d.Id())
+	id, err := commonids.ParseSubnetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	subnet, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
+	subnet, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(subnet.Response) {
 			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
@@ -211,7 +215,7 @@ func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta i
 	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
 	// ensure we get the latest state
-	subnet, err = client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
+	subnet, err = client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(subnet.Response) {
 			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
@@ -222,7 +226,7 @@ func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta i
 
 	subnet.SubnetPropertiesFormat.NatGateway = nil // remove the nat gateway from subnet
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, subnet)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, subnet)
 	if err != nil {
 		return fmt.Errorf("removing %s: %+v", *id, err)
 	}

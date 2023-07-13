@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -75,7 +79,7 @@ func resourceNetworkProfile() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
+										ValidateFunc: commonids.ValidateSubnetID,
 									},
 								},
 							},
@@ -296,13 +300,13 @@ func expandNetworkProfileVirtualNetworkSubnetNames(d *pluginsdk.ResourceData) (*
 			ipData := ipConfig.(map[string]interface{})
 			subnetID := ipData["subnet_id"].(string)
 
-			subnetResourceID, err := parse.SubnetID(subnetID)
+			subnetResourceID, err := commonids.ParseSubnetID(subnetID)
 			if err != nil {
 				return nil, nil, err
 			}
 
-			if !utils.SliceContainsValue(subnetNames, subnetResourceID.Name) {
-				subnetNames = append(subnetNames, subnetResourceID.Name)
+			if !utils.SliceContainsValue(subnetNames, subnetResourceID.SubnetName) {
+				subnetNames = append(subnetNames, subnetResourceID.SubnetName)
 			}
 
 			if !utils.SliceContainsValue(vnetNames, subnetResourceID.VirtualNetworkName) {

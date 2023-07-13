@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package firewall
 
 import (
@@ -129,6 +132,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
 												validation.IsIPAddress,
+												validation.IsIPv4Range,
 												validation.IsCIDR,
 												validation.StringInSlice([]string{`*`}, false),
 											),
@@ -149,6 +153,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
 												validation.IsIPAddress,
+												validation.IsIPv4Range,
 												validation.IsCIDR,
 												validation.StringInSlice([]string{`*`}, false),
 											),
@@ -252,6 +257,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
 												validation.IsIPAddress,
+												validation.IsIPv4Range,
 												validation.IsCIDR,
 												validation.StringInSlice([]string{`*`}, false),
 											),
@@ -362,6 +368,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
 												validation.IsIPAddress,
+												validation.IsIPv4Range,
 												validation.IsCIDR,
 												validation.StringInSlice([]string{`*`}, false),
 											),

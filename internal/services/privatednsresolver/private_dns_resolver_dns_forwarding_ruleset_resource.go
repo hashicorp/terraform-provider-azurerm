@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package privatednsresolver
 
 import (
@@ -145,8 +148,6 @@ func (r PrivateDNSResolverDnsForwardingRulesetResource) Update() sdk.ResourceFun
 					properties.Properties.DnsResolverOutboundEndpoints = *dnsResolverOutboundEndpointsValue
 				}
 			}
-
-			properties.SystemData = nil
 
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags

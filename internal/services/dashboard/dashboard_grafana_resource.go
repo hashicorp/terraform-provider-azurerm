@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package dashboard
 
 import (
@@ -105,7 +108,7 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"identity": commonschema.SystemAssignedIdentityOptionalForceNew(),
+		"identity": commonschema.SystemOrUserAssignedIdentityOptionalForceNew(),
 
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -287,8 +290,6 @@ func (r DashboardGrafanaResource) Update() sdk.ResourceFunc {
 				properties.Properties.PublicNetworkAccess = &publicNetworkAccess
 			}
 
-			properties.SystemData = nil
-
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
 			}
@@ -451,13 +452,16 @@ func expandAzureMonitorWorkspaceIntegrationModelArray(inputList []AzureMonitorWo
 }
 
 func expandLegacySystemAndUserAssignedMap(input []interface{}) *identity.LegacySystemAndUserAssignedMap {
-	identityValue, err := identity.ExpandSystemAssigned(input)
+	identityValue, err := identity.ExpandSystemOrUserAssignedMap(input)
 	if err != nil {
 		return nil
 	}
 
 	return &identity.LegacySystemAndUserAssignedMap{
-		Type: identityValue.Type,
+		Type:        identityValue.Type,
+		PrincipalId: identityValue.PrincipalId,
+		TenantId:    identityValue.TenantId,
+		IdentityIds: identityValue.IdentityIds,
 	}
 }
 
@@ -485,12 +489,16 @@ func flattenLegacySystemAndUserAssignedMap(input *identity.LegacySystemAndUserAs
 		return &[]interface{}{}
 	}
 
-	identityValue := &identity.SystemAssigned{
+	identityValue := &identity.SystemOrUserAssignedMap{
 		Type:        input.Type,
 		PrincipalId: input.PrincipalId,
 		TenantId:    input.TenantId,
+		IdentityIds: input.IdentityIds,
 	}
 
-	output := identity.FlattenSystemAssigned(identityValue)
-	return &output
+	output, err := identity.FlattenSystemOrUserAssignedMap(identityValue)
+	if err != nil {
+		return &[]interface{}{}
+	}
+	return output
 }

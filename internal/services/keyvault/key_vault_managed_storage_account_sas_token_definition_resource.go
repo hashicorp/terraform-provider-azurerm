@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package keyvault
 
 import (
@@ -5,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultManagedStorageAccountSasTokenDefinition() *pluginsdk.Resource {
@@ -98,7 +102,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID of the Key Vault at URL %q: %s", storageAccount.KeyVaultBaseUrl, err)
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
@@ -198,7 +202,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d *pluginsdk.Re
 		return fmt.Errorf("retrieving the Resource ID of the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
 
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
@@ -251,7 +255,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionDelete(d *pluginsdk.
 	if keyVaultIdRaw == nil {
 		return fmt.Errorf("unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return err
 	}

@@ -1,10 +1,14 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package pollers
 
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"time"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 )
 
 // PollerType allows custom pollers to be created to determine when a particular Operation has

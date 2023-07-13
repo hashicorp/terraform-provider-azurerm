@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package recoveryservices_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -201,18 +204,46 @@ func TestAccBackupProtectedVm_removeVM(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectedVm_protectionStopped(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
+	r := BackupProtectedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protectionStopped(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// vault cannot be deleted unless we unregister all backups
+			Config: r.base(data),
+		},
+	})
+}
+
 func (t BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ProtectedItemID(state.ID)
+	id, err := protecteditems.ParseProtectedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.RecoveryServices.ProtectedItemsClient.Get(ctx, id.VaultName, id.ResourceGroup, "Azure", id.ProtectionContainerName, id.Name, "")
+	resp, err := clients.RecoveryServices.ProtectedItemsClient.Get(ctx, *id, protecteditems.GetOperationOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("reading Recovery Service Protected VM (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BackupProtectedVmResource) base(data acceptance.TestData) string {
@@ -333,6 +364,7 @@ resource "azurerm_virtual_machine" "test" {
     enabled     = true
     storage_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
+
 }
 
 resource "azurerm_recovery_services_vault" "test" {
@@ -686,4 +718,19 @@ resource "azurerm_backup_protected_vm" "test" {
   source_vm_id        = azurerm_virtual_machine.test.id
 }
 `, r.additionalVault(data))
+}
+
+func (r BackupProtectedVmResource) protectionStopped(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_protected_vm" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  source_vm_id        = azurerm_virtual_machine.test.id
+
+  include_disk_luns = [0]
+  protection_state  = "ProtectionStopped"
+}
+`, r.base(data))
 }

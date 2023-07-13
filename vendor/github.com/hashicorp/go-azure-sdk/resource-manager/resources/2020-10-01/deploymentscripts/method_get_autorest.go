@@ -65,6 +65,9 @@ func (c DeploymentScriptsClient) responderForGet(resp *http.Response) (result Ge
 		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+	if err != nil {
+		return
+	}
 	model, err := unmarshalDeploymentScriptImplementation(respObj)
 	if err != nil {
 		return

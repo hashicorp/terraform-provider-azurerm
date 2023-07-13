@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) HashiCorp, Inc.
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 // specifies the default hour (UTC) at which tests should be triggered, if enabled
 var defaultStartHour = 0
 
@@ -5,7 +10,7 @@ var defaultStartHour = 0
 var defaultParallelism = 20
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.1.5"
+var defaultTerraformCoreVersion = "1.5.1"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -29,7 +34,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus", "eastus2", true)),
+        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "northeurope", "eastus2", true), useDevTestSubscription = true),
 
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
@@ -50,7 +55,7 @@ var serviceTestConfigurationOverrides = mapOf(
         // Cosmos is only available in certain locations
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
 
-        //Confidential Ledger
+        // Confidential Ledger
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
@@ -71,11 +76,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // data factory uses NC class VMs which are not available in eastus2
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false), useDevTestSubscription = true),
 
-        // Data Lake has a low quota
-        "datalake" to testConfiguration(parallelism = 2, useDevTestSubscription = true),
-
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
-        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false), useDevTestSubscription = true),
+        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
         // Elastic can't provision many in parallel
         "elastic" to testConfiguration(parallelism = 1, useDevTestSubscription = true),
@@ -107,11 +109,17 @@ var serviceTestConfigurationOverrides = mapOf(
         // MSSQl uses app service which is only available in certain locations
         "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
+        // MSSQL Managed Instance creation can impact the service so limit the frequency and number of tests
+        "mssqlmanagedinstance" to testConfiguration(parallelism = 4, daysOfWeek = "7", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
+
         // MySQL has quota available in certain locations
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
         // netapp has a max of 10 accounts and the max capacity of pool is 25 TiB per subscription so lets limit it to 1 to account for broken ones, run Monday, Wednesday, Friday
         "netapp" to testConfiguration(parallelism = 1, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false), useDevTestSubscription = true),
+
+        // New Relic is only available in East US region
+        "newrelic" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus", "eastus", false)),
 
         // Orbital is only available in certain locations
         "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),
@@ -138,6 +146,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // SQL has quota available in certain locations
         "sql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
+        "storagemover" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "westus3", false), useDevTestSubscription = true),
+
         // StreamAnalytics has quota available in certain locations
         "streamanalytics" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
 
@@ -147,10 +157,14 @@ var serviceTestConfigurationOverrides = mapOf(
         // Currently, we have insufficient quota to actually run these, but there are a few nodes in West Europe, so we'll pin it there for now
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false), useDevTestSubscription = true),
 
-        // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+        // In general, Azure Voice Service is available in several different regions, but each subscription will only be allowlisted for specific regions(`westcentralus`, `westcentralus`, `westcentralus`).
+        // Only the regions (`westcentralus`) is specified since the devtest subscription does not support creating resource group for the other two regions.
+        "voiceservices" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westcentralus", "westcentralus", "westcentralus", false), useDevTestSubscription = true),
 
-        // moved to alt subsription
+        // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
+        "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true), useDevTestSubscription = true),
+
+        // moved to alt subscription
         "appconfiguration" to testConfiguration(useDevTestSubscription = true),
         "dns" to testConfiguration(useDevTestSubscription = true),
         "eventgrid" to testConfiguration(useDevTestSubscription = true),

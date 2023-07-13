@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containerapps
 
 import (
@@ -20,6 +23,7 @@ func (r Registration) Name() string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		ContainerAppDataSource{},
 		ContainerAppEnvironmentDataSource{},
 		ContainerAppEnvironmentCertificateDataSource{},
 	}

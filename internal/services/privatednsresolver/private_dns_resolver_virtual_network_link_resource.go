@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package privatednsresolver
 
 import (
@@ -6,10 +9,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsforwardingrulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/virtualnetworklinks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -57,7 +60,7 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) Arguments() map[string]*pl
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: networkValidate.VirtualNetworkID,
+			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
 		"metadata": {
@@ -153,8 +156,6 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) Update() sdk.ResourceFunc 
 					Id: model.VirtualNetworkId,
 				}
 			}
-
-			properties.SystemData = nil
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties, virtualnetworklinks.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)

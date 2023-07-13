@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package environments
 
 // PublishedApis is a map containing Application IDs for well known APIs published by Microsoft.

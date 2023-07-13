@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning
 
 import (
@@ -157,8 +160,14 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureBlob)),
 			}
 
+			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
 			props := &datastore.AzureBlobDatastore{
 				AccountName:                   utils.String(containerId.StorageAccountName),
+				Endpoint:                      storageDomainSuffix,
 				ContainerName:                 utils.String(containerId.ContainerName),
 				Description:                   utils.String(model.Description),
 				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataAuthIdentity)),

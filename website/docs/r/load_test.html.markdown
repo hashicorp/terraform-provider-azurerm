@@ -15,6 +15,15 @@ Manages a Load Test Service.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
 resource "azurerm_load_test" "example" {
   location            = azurerm_resource_group.example.location
   name                = "example"
@@ -34,13 +43,13 @@ The following arguments are supported:
 
 * `description` - (Optional) Description of the resource. Changing this forces a new Load Test to be created.
 
-* `identity` - (Optional) Specifies the Managed Identity which should be assigned to this Load Test.
+* `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Load Test.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Load Test.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Load Test.
 
@@ -48,7 +57,21 @@ The following attributes are exported:
 
 ---
 
+## Blocks Reference
 
+### `identity` Block
+
+
+The `identity` block supports the following arguments:
+
+* `type` - (Required) Specifies the type of Managed Identity that should be assigned to this Load Test. Possible values are `SystemAssigned`, `SystemAssigned, UserAssigned` and `UserAssigned`.
+* `identity_ids` - (Optional) A list of the User Assigned Identity IDs that should be assigned to this Load Test.
+
+
+In addition to the arguments defined above, the `identity` block exports the following attributes:
+
+* `principal_id` - The Principal ID for the System-Assigned Managed Identity assigned to this Load Test.
+* `tenant_id` - The Tenant ID for the System-Assigned Managed Identity assigned to this Load Test.
 
 ## Timeouts
 

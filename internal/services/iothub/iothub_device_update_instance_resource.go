@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package iothub
 
 import (
@@ -255,9 +258,6 @@ func (r IotHubDeviceUpdateInstanceResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Tags = &model.Tags
 			}
-
-			// todo remove this when https://github.com/hashicorp/pandora/issues/1096 is fixed
-			existing.SystemData = nil
 
 			if err := client.InstancesCreateThenPoll(ctx, *id, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)

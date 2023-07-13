@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_monitor_action_rule_suppression
 
-Manages an Monitor Action Rule which type is suppression.
+Manages a Monitor Action Rule which type is suppression.
+
+!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_monitor_alert_processing_rule_suppression`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_alert_processing_rule_suppression) resource instead.
 
 ## Example Usage
 
@@ -169,7 +171,7 @@ The `target_resource_type` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Monitor Action Rule.
 

@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = ScopedLockId{}
 
 // ScopedLockId is a struct representing the Resource ID for a Scoped Lock
@@ -35,11 +38,11 @@ func ParseScopedLockID(input string) (*ScopedLockId, error) {
 	id := ScopedLockId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.LockName, ok = parsed.Parsed["lockName"]; !ok {
-		return nil, fmt.Errorf("the segment 'lockName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "lockName", *parsed)
 	}
 
 	return &id, nil
@@ -58,11 +61,11 @@ func ParseScopedLockIDInsensitively(input string) (*ScopedLockId, error) {
 	id := ScopedLockId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.LockName, ok = parsed.Parsed["lockName"]; !ok {
-		return nil, fmt.Errorf("the segment 'lockName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "lockName", *parsed)
 	}
 
 	return &id, nil

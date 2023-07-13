@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package serviceconnector
 
 import (
@@ -19,6 +22,27 @@ type AuthInfoModel struct {
 	PrincipalId    string `tfschema:"principal_id"`
 	SubscriptionId string `tfschema:"subscription_id"`
 	Certificate    string `tfschema:"certificate"`
+}
+
+type SecretStoreModel struct {
+	KeyVaultId string `tfschema:"key_vault_id"`
+}
+
+func secretStoreSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*schema.Schema{
+				"key_vault_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
 }
 
 func authInfoSchema() *pluginsdk.Schema {
@@ -80,6 +104,18 @@ func authInfoSchema() *pluginsdk.Schema {
 				},
 			},
 		},
+	}
+}
+
+func expandSecretStore(input []SecretStoreModel) *servicelinker.SecretStore {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0]
+
+	keyVaultId := v.KeyVaultId
+	return &servicelinker.SecretStore{
+		KeyVaultId: utils.String(keyVaultId),
 	}
 }
 
@@ -285,4 +321,17 @@ func flattenTargetService(input servicelinker.TargetServiceBase) string {
 	}
 
 	return targetServiceId
+}
+
+func flattenSecretStore(input servicelinker.SecretStore) []SecretStoreModel {
+	var keyVaultId string
+	if input.KeyVaultId != nil {
+		keyVaultId = *input.KeyVaultId
+	}
+
+	return []SecretStoreModel{
+		{
+			KeyVaultId: keyVaultId,
+		},
+	}
 }

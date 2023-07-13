@@ -1,44 +1,63 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2021-11-01/healthcareapis" // nolint: staticcheck
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/dicomservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors"
+	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	HealthcareServiceClient                                *healthcareapis.ServicesClient
-	HealthcareWorkspaceClient                              *healthcareapis.WorkspacesClient
-	HealthcareWorkspaceDicomServiceClient                  *healthcareapis.DicomServicesClient
-	HealthcareWorkspaceFhirServiceClient                   *healthcareapis.FhirServicesClient
-	HealthcareWorkspaceMedTechServiceClient                *healthcareapis.IotConnectorsClient
-	HealthcareWorkspaceMedTechServiceFhirDestinationClient *healthcareapis.IotConnectorFhirDestinationClient
+	HealthcareServiceClient                *service.ResourceClient
+	HealthcareWorkspaceClient              *workspaces.WorkspacesClient
+	HealthcareWorkspaceDicomServiceClient  *dicomservices.DicomServicesClient
+	HealthcareWorkspaceFhirServiceClient   *fhirservices.FhirServicesClient
+	HealthcareWorkspaceIotConnectorsClient *iotconnectors.IotConnectorsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	HealthcareServiceClient := healthcareapis.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HealthcareServiceClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	healthcareServiceClient, err := service.NewResourceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building HealthcareService Client: %+v", err)
+	}
+	o.Configure(healthcareServiceClient.Client, o.Authorizers.ResourceManager)
 
-	HealthcareWorkspaceClient := healthcareapis.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HealthcareWorkspaceClient.Client, o.ResourceManagerAuthorizer)
+	healthcareWorkspaceClient, err := workspaces.NewWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building HealthcareWorkspace Client: %+v", err)
+	}
+	o.Configure(healthcareWorkspaceClient.Client, o.Authorizers.ResourceManager)
 
-	HealthcareWorkspaceDicomServiceClient := healthcareapis.NewDicomServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HealthcareWorkspaceDicomServiceClient.Client, o.ResourceManagerAuthorizer)
+	healthcareWorkspaceDicomServiceClient, err := dicomservices.NewDicomServicesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building HealthcareWorkspaceDicomService Client: %+v", err)
+	}
+	o.Configure(healthcareWorkspaceDicomServiceClient.Client, o.Authorizers.ResourceManager)
 
-	HealthcareWorkspaceFhirServiceClient := healthcareapis.NewFhirServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HealthcareWorkspaceFhirServiceClient.Client, o.ResourceManagerAuthorizer)
+	healthcareWorkspaceFhirServiceClient, err := fhirservices.NewFhirServicesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building HealthcareWorkspaceFhirService Client: %+v", err)
+	}
+	o.Configure(healthcareWorkspaceFhirServiceClient.Client, o.Authorizers.ResourceManager)
 
-	HealthcareWorkspaceMedTechServiceClient := healthcareapis.NewIotConnectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HealthcareWorkspaceMedTechServiceClient.Client, o.ResourceManagerAuthorizer)
-
-	HealthcareWorkspaceMedTechServiceFhirDestinationClient := healthcareapis.NewIotConnectorFhirDestinationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HealthcareWorkspaceMedTechServiceFhirDestinationClient.Client, o.ResourceManagerAuthorizer)
+	healthcareWorkspaceIotConnectorsClient, err := iotconnectors.NewIotConnectorsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building HealthcareWorkspaceIotConnectors Client: %+v", err)
+	}
+	o.Configure(healthcareWorkspaceIotConnectorsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		HealthcareServiceClient:                                &HealthcareServiceClient,
-		HealthcareWorkspaceClient:                              &HealthcareWorkspaceClient,
-		HealthcareWorkspaceDicomServiceClient:                  &HealthcareWorkspaceDicomServiceClient,
-		HealthcareWorkspaceFhirServiceClient:                   &HealthcareWorkspaceFhirServiceClient,
-		HealthcareWorkspaceMedTechServiceClient:                &HealthcareWorkspaceMedTechServiceClient,
-		HealthcareWorkspaceMedTechServiceFhirDestinationClient: &HealthcareWorkspaceMedTechServiceFhirDestinationClient,
-	}
+		HealthcareServiceClient:                healthcareServiceClient,
+		HealthcareWorkspaceClient:              healthcareWorkspaceClient,
+		HealthcareWorkspaceDicomServiceClient:  healthcareWorkspaceDicomServiceClient,
+		HealthcareWorkspaceFhirServiceClient:   healthcareWorkspaceFhirServiceClient,
+		HealthcareWorkspaceIotConnectorsClient: healthcareWorkspaceIotConnectorsClient,
+	}, nil
 }

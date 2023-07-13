@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos
 
 import (
@@ -26,7 +29,6 @@ func dataSourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
 			},
 
@@ -35,7 +37,6 @@ func dataSourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 			"account_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.CosmosAccountName,
 			},
 
@@ -107,7 +108,7 @@ func dataSourceCosmosDbSQLDatabaseRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("autoscale_settings", nil)
 			}
 		} else {
-			common.SetResourceDataThroughputFromResponse(throughputResp, d)
+			common.SetResourceDataThroughputFromResponseLegacy(throughputResp, d)
 		}
 	}
 

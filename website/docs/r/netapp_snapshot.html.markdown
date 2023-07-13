@@ -64,7 +64,7 @@ resource "azurerm_netapp_volume" "example" {
   pool_name           = azurerm_netapp_pool.example.name
   volume_path         = "my-unique-file-path"
   service_level       = "Premium"
-  subnet_id           = azurerm_subnet.test.id
+  subnet_id           = azurerm_subnet.example.id
   storage_quota_in_gb = "100"
 }
 
@@ -98,7 +98,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the NetApp Snapshot.
 

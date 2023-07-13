@@ -66,6 +66,9 @@ func (c DatastoreClient) responderForListSecrets(resp *http.Response) (result Li
 		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+	if err != nil {
+		return
+	}
 	model, err := unmarshalDatastoreSecretsImplementation(respObj)
 	if err != nil {
 		return

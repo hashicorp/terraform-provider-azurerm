@@ -74,7 +74,9 @@ An `azure_monitor_workspace_integrations` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity. The only possible values is `SystemAssigned`. Changing this forces a new resource to be created.
+* `type` - (Required) Specifies the type of Managed Service Identity. Possible values are `SystemAssigned`, `UserAssigned`. Changing this forces a new resource to be created.
+
+* `identity_ids` - (Optional) Specifies the list of User Assigned Managed Service Identity IDs which should be assigned to this Dashboard Grafana.
 
 ## Attributes Reference
 

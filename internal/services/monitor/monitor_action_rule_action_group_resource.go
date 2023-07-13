@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -33,6 +36,8 @@ func resourceMonitorActionRuleActionGroup() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		DeprecationMessage: `This resource has been deprecated in favour of the 'azurerm_monitor_alert_processing_rule_action_group' resource and will be removed in v4.0 of the AzureRM Provider`,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.ActionRuleID(id)

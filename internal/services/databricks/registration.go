@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks
 
 import (
@@ -41,6 +44,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_databricks_workspace":                      resourceDatabricksWorkspace(),
 		"azurerm_databricks_workspace_customer_managed_key": resourceDatabricksWorkspaceCustomerManagedKey(),
+		"azurerm_databricks_virtual_network_peering":        resourceDatabricksVirtualNetworkPeering(),
 	}
 }
 

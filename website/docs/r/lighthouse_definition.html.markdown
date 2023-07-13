@@ -68,7 +68,7 @@ An `authorization` block supports the following:
 
 An `eligible_authorization` block supports the following:
 
-* `principal_id` - (Required) The Principal ID of the Azure Active Directory.
+* `principal_id` - (Required) Principal ID of the security group/service principal/user that would be assigned permissions to the projected subscription.
 
 * `role_definition_id` - (Required) The Principal ID of the Azure built-in role that defines the permissions that the Azure Active Directory will have on the projected scope.
 
@@ -110,7 +110,7 @@ A `plan` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - the fully qualified ID of the Lighthouse Definition.
 

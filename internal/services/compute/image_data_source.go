@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -7,16 +10,16 @@ import (
 	"sort"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
 )
 
 func dataSourceImage() *pluginsdk.Resource {
@@ -117,7 +120,7 @@ func dataSourceImage() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -128,86 +131,148 @@ func dataSourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	nameRegex, nameRegexOk := d.GetOk("name_regex")
-	resourceGroup := d.Get("resource_group_name").(string)
 
-	var img compute.Image
+	var id images.ImageId
+	var model images.Image
 
 	if !nameRegexOk {
 		var err error
-		if img, err = client.Get(ctx, resourceGroup, name, ""); err != nil {
-			if utils.ResponseWasNotFound(img.Response) {
-				return fmt.Errorf("image %q (Resource Group: %s) was not found", name, resourceGroup)
+		id = images.NewImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+		result, err := client.Get(ctx, id, images.DefaultGetOperationOptions())
+		if err != nil {
+			if response.WasNotFound(result.HttpResponse) {
+				return fmt.Errorf("%s was not found", id)
 			}
-			return fmt.Errorf("making Read request on image %q (Resource Group: %s): %s", name, resourceGroup, err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
+
+		if result.Model == nil {
+			return fmt.Errorf("%s was not found", id)
+		}
+		model = *result.Model
 	} else {
 		r := regexp.MustCompile(nameRegex.(string))
-
-		list := make([]compute.Image, 0)
-		resp, err := client.ListByResourceGroupComplete(ctx, resourceGroup)
+		resourceGroupId := commonids.NewResourceGroupID(subscriptionId, d.Get("resource_group_name").(string))
+		listResponse, err := client.ListByResourceGroupComplete(ctx, resourceGroupId)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response().Response) {
-				return fmt.Errorf("no Images were found for Resource Group %q", resourceGroup)
-			}
-			return fmt.Errorf("getting list of images (resource group %q): %+v", resourceGroup, err)
+			return fmt.Errorf("listing Images within %s: %+v", resourceGroupId, err)
 		}
-
-		for resp.NotDone() {
-			img = resp.Value()
-			if r.Match(([]byte)(*img.Name)) {
-				list = append(list, img)
-			}
-			err = resp.NextWithContext(ctx)
-
-			if err != nil {
-				return err
+		results := make([]images.Image, 0)
+		for _, v := range listResponse.Items {
+			if r.Match(([]byte)(*v.Name)) {
+				results = append(results, v)
 			}
 		}
 
-		if 1 > len(list) {
-			return fmt.Errorf("no Images were found for Resource Group %q", resourceGroup)
+		if len(results) == 0 {
+			return fmt.Errorf("no Images were found within %s", resourceGroupId)
 		}
-
-		if len(list) > 1 {
+		if len(results) > 1 {
 			desc := d.Get("sort_descending").(bool)
 			log.Printf("[DEBUG] Image - multiple results found and `sort_descending` is set to: %t", desc)
 
-			sort.Slice(list, func(i, j int) bool {
-				return (!desc && *list[i].Name < *list[j].Name) ||
-					(desc && *list[i].Name > *list[j].Name)
+			sort.Slice(results, func(i, j int) bool {
+				return (!desc && *results[i].Name < *results[j].Name) ||
+					(desc && *results[i].Name > *results[j].Name)
 			})
 		}
-		img = list[0]
-	}
+		model = results[0]
+		if model.Name == nil {
+			return fmt.Errorf("image name is null for the first Image in %s: %+v", resourceGroupId, model)
+		}
 
-	if img.Name == nil {
-		return fmt.Errorf("image name is empty in Resource Group %s", resourceGroup)
+		id = images.NewImageID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroupName, *model.Name)
 	}
-
-	id := parse.NewImageID(subscriptionId, resourceGroup, *img.Name)
 
 	d.SetId(id.ID())
-	d.Set("name", img.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(img.Location))
+	d.Set("name", id.ImageName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if profile := img.StorageProfile; profile != nil {
-		if disk := profile.OsDisk; disk != nil {
-			if err := d.Set("os_disk", flattenAzureRmImageOSDisk(disk)); err != nil {
-				return fmt.Errorf("[DEBUG] Error setting AzureRM Image OS Disk error: %+v", err)
+	d.Set("location", location.Normalize(model.Location))
+	if props := model.Properties; props != nil {
+		if profile := props.StorageProfile; profile != nil {
+			if err := d.Set("os_disk", flattenImageDataSourceOSDisk(profile.OsDisk)); err != nil {
+				return fmt.Errorf("setting `os_disk`: %+v", err)
 			}
-		}
 
-		if disks := profile.DataDisks; disks != nil {
-			if err := d.Set("data_disk", flattenAzureRmImageDataDisks(disks)); err != nil {
-				return fmt.Errorf("[DEBUG] Error setting AzureRM Image Data Disks error: %+v", err)
+			if err := d.Set("data_disk", flattenImageDataSourceDataDisks(profile.DataDisks)); err != nil {
+				return fmt.Errorf("setting `data_disk`: %+v", err)
 			}
+			d.Set("zone_resilient", profile.ZoneResilient)
 		}
-
-		d.Set("zone_resilient", profile.ZoneResilient)
 	}
 
-	return tags.FlattenAndSet(d, img.Tags)
+	if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		return fmt.Errorf("setting `tags`: %+v", err)
+	}
+
+	return nil
+}
+
+func flattenImageDataSourceOSDisk(input *images.ImageOSDisk) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil {
+		blobUri := ""
+		if uri := input.BlobUri; uri != nil {
+			blobUri = *uri
+		}
+		caching := ""
+		if input.Caching != nil {
+			caching = string(*input.Caching)
+		}
+		diskSizeGB := 0
+		if input.DiskSizeGB != nil {
+			diskSizeGB = int(*input.DiskSizeGB)
+		}
+		managedDiskId := ""
+		if disk := input.ManagedDisk; disk != nil && disk.Id != nil {
+			managedDiskId = *disk.Id
+		}
+		output = append(output, map[string]interface{}{
+			"blob_uri":        blobUri,
+			"caching":         caching,
+			"managed_disk_id": managedDiskId,
+			"os_type":         string(input.OsType),
+			"os_state":        string(input.OsState),
+			"size_gb":         diskSizeGB,
+		})
+	}
+
+	return output
+}
+
+func flattenImageDataSourceDataDisks(input *[]images.ImageDataDisk) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil {
+		for _, disk := range *input {
+			blobUri := ""
+			if disk.BlobUri != nil {
+				blobUri = *disk.BlobUri
+			}
+			caching := ""
+			if disk.Caching != nil {
+				caching = string(*disk.Caching)
+			}
+			diskSizeGb := 0
+			if disk.DiskSizeGB != nil {
+				diskSizeGb = int(*disk.DiskSizeGB)
+			}
+			managedDiskId := ""
+			if disk.ManagedDisk != nil && disk.ManagedDisk.Id != nil {
+				managedDiskId = *disk.ManagedDisk.Id
+			}
+			output = append(output, map[string]interface{}{
+				"blob_uri":        blobUri,
+				"caching":         caching,
+				"lun":             int(disk.Lun),
+				"managed_disk_id": managedDiskId,
+				"size_gb":         diskSizeGb,
+			})
+		}
+	}
+
+	return output
 }

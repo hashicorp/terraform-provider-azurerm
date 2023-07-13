@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -36,8 +39,8 @@ func TestDomainServiceName(t *testing.T) {
 		},
 
 		{
-			// subdomain longer than 15
-			Input: strings.Repeat("a", 16) + ".com",
+			// subdomain longer than 30
+			Input: strings.Repeat("a", 31) + ".com",
 			Valid: false,
 		},
 
@@ -55,7 +58,7 @@ func TestDomainServiceName(t *testing.T) {
 
 		{
 			// wide length subdomain
-			Input: strings.Repeat("a", 15) + ".com",
+			Input: strings.Repeat("a", 30) + ".com",
 			Valid: true,
 		},
 
@@ -85,7 +88,7 @@ func TestDomainServiceName(t *testing.T) {
 
 		{
 			// wide length subdomain
-			Input: strings.Repeat("a", 14) + ".com",
+			Input: strings.Repeat("a", 29) + ".com",
 			Valid: true,
 		},
 	}

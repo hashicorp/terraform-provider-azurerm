@@ -41,9 +41,9 @@ resource "azurerm_monitor_action_group" "example" {
 
   automation_runbook_receiver {
     name                    = "action_name_1"
-    automation_account_id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001"
+    automation_account_id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-runbooks/providers/Microsoft.Automation/automationAccounts/aaa001"
     runbook_name            = "my runbook"
-    webhook_resource_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001/webhooks/webhook_alert"
+    webhook_resource_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-runbooks/providers/Microsoft.Automation/automationAccounts/aaa001/webHooks/webhook_alert"
     is_global_runbook       = true
     service_uri             = "https://s13events.azure-automation.net/webhooks?token=randomtoken"
     use_common_alert_schema = true
@@ -131,6 +131,7 @@ The following arguments are supported:
 * `email_receiver` - (Optional) One or more `email_receiver` blocks as defined below.
 * `event_hub_receiver` - (Optional) One or more `event_hub_receiver` blocks as defined below.
 * `itsm_receiver` - (Optional) One or more `itsm_receiver` blocks as defined below.
+* `location` - (Optional) The Azure Region where the Action Group should exist. Changing this forces a new Action Group to be created. Defaults to `global`.
 * `logic_app_receiver` - (Optional) One or more `logic_app_receiver` blocks as defined below.
 * `sms_receiver` - (Optional) One or more `sms_receiver` blocks as defined below.
 * `voice_receiver` - (Optional) One or more `voice_receiver` blocks as defined below.
@@ -255,7 +256,7 @@ The `aad_auth` block supports the following:.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Action Group.
 

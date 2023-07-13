@@ -45,6 +45,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `auth_settings_v2` - An `auth_settings_v2` block as defined below.
 
+* `availability` - The current availability state. Possible values are `Normal`, `Limited`, and `DisasterRecoveryMode`.
+* 
 * `backup` - A `backup` block as defined below.
 
 * `client_affinity_enabled` - Is Client Affinity enabled?
@@ -58,6 +60,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `connection_string` - A `connection_string` block as defined below.
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
+
+* `hosting_environment_id` - The ID of the App Service Environment used by App Service.
 
 * `default_hostname` - The default hostname of the Linux Web App.
 
@@ -93,6 +97,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `virtual_network_subnet_id` - The subnet id which the Linux Web App is vNet Integrated with.
 
+* `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
+
 * `tags` - A mapping of tags assigned to the Linux Web App.
 
 ---
@@ -127,9 +133,13 @@ An `application_logs` block exports the following:
 
 An `application_stack` block exports the following:
 
-* `docker_image` - The Docker image reference, including repository.
+* `docker_image_name` - The docker image, including tag, used by this Linux Web App.
 
-* `docker_image_tag` - The image Tag.
+* `docker_registry_url` - The URL of the container registry where the `docker_image_name` is located.
+
+* `docker_registry_username` - The User Name to use for authentication against the registry to pull the image.
+
+* `docker_registry_password` - The User Name to use for authentication against the registry to pull the image.
 
 * `dotnet_version` - The version of .NET in use.
 

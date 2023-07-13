@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `batch_max_wait_time` - (Optional) The maximum wait time per batch in `hh:mm:ss` e.g. `00:02:00` for two minutes.
 
-* `batch_min_rows` - (Optional) The minimum number of rows per batch (must be between `0` and `10000`).
+* `batch_min_rows` - (Optional) The minimum number of rows per batch (must be between `0` and `1000000`).
 
 * `storage_account_key` - (Optional) The Access Key which should be used to connect to this Storage Account.
 
@@ -108,7 +108,7 @@ A `serialization` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Stream Analytics Output Blob Storage.
 

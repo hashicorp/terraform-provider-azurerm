@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package iothub_test
 
 import (
@@ -158,6 +161,9 @@ func TestAccIotHub_fileUpload(t *testing.T) {
 			Config: r.fileUploadBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("file_upload.0.default_ttl").HasValue("PT1H"),
+				check.That(data.ResourceName).Key("file_upload.0.lock_duration").HasValue("PT1M"),
+				check.That(data.ResourceName).Key("file_upload.0.sas_ttl").HasValue("PT1H"),
 			),
 		},
 		data.ImportStep(),

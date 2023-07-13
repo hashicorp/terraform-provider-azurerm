@@ -42,7 +42,7 @@ The `soa_record` block supports:
 
 * `email` - (Required) The email contact for the SOA record.
 
-* `host_name` - (Required) The domain name of the authoritative name server for the SOA record.
+* `host_name` - (Optional) The domain name of the authoritative name server for the SOA record. If not set, computed value from Azure will be used.
 
 * `expire_time` - (Optional) The expire time for the SOA record. Defaults to `2419200`.
 
@@ -60,7 +60,7 @@ The `soa_record` block supports:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The DNS Zone ID.
 

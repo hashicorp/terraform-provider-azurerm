@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = DaprComponentId{}
 
 // DaprComponentId is a struct representing the Resource ID for a Dapr Component
@@ -39,19 +42,19 @@ func ParseDaprComponentID(input string) (*DaprComponentId, error) {
 	id := DaprComponentId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ManagedEnvironmentName, ok = parsed.Parsed["managedEnvironmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'managedEnvironmentName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedEnvironmentName", *parsed)
 	}
 
 	if id.DaprComponentName, ok = parsed.Parsed["daprComponentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'daprComponentName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "daprComponentName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseDaprComponentIDInsensitively(input string) (*DaprComponentId, error) {
 	id := DaprComponentId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ManagedEnvironmentName, ok = parsed.Parsed["managedEnvironmentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'managedEnvironmentName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedEnvironmentName", *parsed)
 	}
 
 	if id.DaprComponentName, ok = parsed.Parsed["daprComponentName"]; !ok {
-		return nil, fmt.Errorf("the segment 'daprComponentName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "daprComponentName", *parsed)
 	}
 
 	return &id, nil

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package signalr
 
 import (
@@ -5,10 +8,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -104,7 +107,7 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 						"id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.PrivateEndpointID,
+							ValidateFunc: privateendpoints.ValidatePrivateEndpointID,
 						},
 
 						"allowed_request_types": {
@@ -196,9 +199,6 @@ func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, met
 
 		model.Properties.NetworkACLs = &networkACL
 	}
-
-	// todo remove this when https://github.com/hashicorp/pandora/issues/1096 is fixed
-	model.SystemData = nil
 
 	if err := client.UpdateThenPoll(ctx, *id, model); err != nil {
 		return fmt.Errorf("creating/updating NetworkACL for %s: %v", id, err)
@@ -301,9 +301,6 @@ func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta inte
 	if model.Properties != nil {
 		model.Properties.NetworkACLs = networkACL
 	}
-
-	// todo remove this when https://github.com/hashicorp/pandora/issues/1096 is fixed
-	model.SystemData = nil
 
 	if err := client.UpdateThenPoll(ctx, *id, model); err != nil {
 		return fmt.Errorf("resetting the default Network ACL configuration for %s: %+v", *id, err)

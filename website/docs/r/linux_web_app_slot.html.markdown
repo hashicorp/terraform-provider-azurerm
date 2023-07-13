@@ -84,6 +84,8 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Should the Linux Web App require HTTPS connections.
 
+* `public_network_access_enabled` - (Optional) Should public network access be enabled for the Web App. Defaults to `true`.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity).
@@ -140,9 +142,15 @@ An `application_logs` block supports the following:
 
 An `application_stack` block supports the following:
 
-* `docker_image` - (Optional) The Docker image reference, including repository host as needed.
+* `docker_image_name` - (Optional) The docker image, including tag, to be used. e.g. `appsvc/staticsite:latest`.
 
-* `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`.
+* `docker_registry_url` - (Optional) The URL of the container registry where the `docker_image_name` is located. e.g. `https://index.docker.io` or `https://mcr.microsoft.com`. This value is required with `docker_image_name`.
+
+* `docker_registry_username` - (Optional) The User Name to use for authentication against the registry to pull the image.
+
+* `docker_registry_password` - (Optional) The User Name to use for authentication against the registry to pull the image.
+
+~> **NOTE:** `docker_registry_url`, `docker_registry_username`, and `docker_registry_password` replace the use of the `app_settings` values of `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME` and `DOCKER_REGISTRY_SERVER_PASSWORD` respectively, these values will be managed by the provider and should not be specified in the `app_settings` map.
 
 * `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0` and `7.0`.
 
@@ -162,9 +170,9 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 
-* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0` and `8.1`.
+* `php_version` - (Optional) The version of PHP to run. Possible values are `8.0`, `8.1` and `8.2`.
 
-~> **NOTE:** versions `5.6` and `7.2` are deprecated and will be removed from the provider in a future version.
+~> **NOTE:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10` and `3.11`.
 
@@ -224,7 +232,9 @@ An `auth_settings_v2` block supports the following:
 
 * `unauthenticated_action` - (Optional) The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.
 
-* `default_provider` - (Optional) The Default Authentication Provider to use when more than one Authentication Provider is configured and the `unauthenticated_action` is set to `RedirectToLoginPage`.
+* `default_provider` - (Optional) The Default Authentication Provider to use when the `unauthenticated_action` is set to `RedirectToLoginPage`. Possible values include: `apple`, `azureactivedirectory`, `facebook`, `github`, `google`, `twitter` and the `name` of your `custom_oidc_v2` provider.
+
+~> **NOTE:** Whilst any value will be accepted by the API for `default_provider`, it can leave the app in an unusable state if this value does not correspond to the name of a known provider (either built-in value, or custom_oidc name) as it is used to build the auth endpoint URI.
 
 * `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
 
@@ -793,6 +803,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `app_metadata` - A `app_metadata` block as defined below.
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
+
+* `hosting_environment_id` - The ID of the App Service Environment used by App Service Slot.
 
 * `default_hostname` - The default hostname of the Linux Web App.
 

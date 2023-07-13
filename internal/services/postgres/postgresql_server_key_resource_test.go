@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package postgres_test
 
 import (
@@ -128,7 +131,7 @@ resource "azurerm_key_vault_access_policy" "server" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_postgresql_server.test.identity.0.principal_id
 
-  key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
+  key_permissions    = ["Get", "UnwrapKey", "WrapKey", "GetRotationPolicy", "SetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 
@@ -137,7 +140,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy", "SetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 
@@ -224,7 +227,7 @@ resource "azurerm_key_vault_access_policy" "replica" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_postgresql_server.replica.identity.0.principal_id
 
-  key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
+  key_permissions    = ["Get", "UnwrapKey", "WrapKey", "GetRotationPolicy", "SetRotationPolicy"]
   secret_permissions = ["Get"]
 }
 

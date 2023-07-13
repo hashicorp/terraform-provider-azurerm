@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package utils
 
 import (
@@ -33,6 +36,14 @@ func ExpandFloatRangeSlice(input []interface{}) *[][]float64 {
 		if item != nil {
 			result = append(result, *ExpandFloatSlice(item.([]interface{})))
 		}
+	}
+	return &result
+}
+
+func ExpandPtrMapStringString(input map[string]interface{}) *map[string]string {
+	result := make(map[string]string)
+	for k, v := range input {
+		result[k] = v.(string)
 	}
 	return &result
 }

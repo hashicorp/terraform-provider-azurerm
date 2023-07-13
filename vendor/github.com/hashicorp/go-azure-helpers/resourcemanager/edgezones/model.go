@@ -23,7 +23,7 @@ func (m *Model) MarshalJSON() ([]byte, error) {
 		out["name"] = m.Name
 		out["type"] = "EdgeZone"
 	}
-	
+
 	return json.Marshal(out)
 }
 

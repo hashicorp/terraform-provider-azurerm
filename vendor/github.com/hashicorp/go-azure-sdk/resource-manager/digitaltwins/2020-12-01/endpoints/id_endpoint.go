@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = EndpointId{}
 
 // EndpointId is a struct representing the Resource ID for a Endpoint
@@ -39,19 +42,19 @@ func ParseEndpointID(input string) (*EndpointId, error) {
 	id := EndpointId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DigitalTwinsInstanceName, ok = parsed.Parsed["digitalTwinsInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'digitalTwinsInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "digitalTwinsInstanceName", *parsed)
 	}
 
 	if id.EndpointName, ok = parsed.Parsed["endpointName"]; !ok {
-		return nil, fmt.Errorf("the segment 'endpointName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "endpointName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseEndpointIDInsensitively(input string) (*EndpointId, error) {
 	id := EndpointId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.DigitalTwinsInstanceName, ok = parsed.Parsed["digitalTwinsInstanceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'digitalTwinsInstanceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "digitalTwinsInstanceName", *parsed)
 	}
 
 	if id.EndpointName, ok = parsed.Parsed["endpointName"]; !ok {
-		return nil, fmt.Errorf("the segment 'endpointName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "endpointName", *parsed)
 	}
 
 	return &id, nil

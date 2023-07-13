@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic
 
 import (
@@ -127,6 +130,10 @@ func resourceLogicAppIntegrationAccountRead(d *pluginsdk.ResourceData, meta inte
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("name", id.IntegrationAccountName)

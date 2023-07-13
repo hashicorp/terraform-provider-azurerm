@@ -1,6 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package azure
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,4 +32,40 @@ func SchemaResourceGroupNameDiffSuppress() *pluginsdk.Schema {
 		DiffSuppressFunc: suppress.CaseDifference,
 		ValidateFunc:     resourcegroups.ValidateName,
 	}
+}
+
+func ValidateResourceID(i interface{}, k string) (warnings []string, errors []error) {
+	// ValidateResourceID should only be used when a more specific Resource ID validation function
+	// is unavailable.
+	// If in doubt, prefer a validation function that supports multiple types of validation functions
+	// rather than using this function
+	// e.g. `validation.Any(commonids.ValidateSubnetID, commonids.ValidateVirtualNetworkID)`
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	if _, err := ParseAzureResourceID(v); err != nil {
+		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
+	}
+
+	return warnings, errors
+}
+
+// Deprecated: use a more specific Resource ID validator instead, however note that empty strings should not
+// be allowed as a validation value. Rather than specifying an empty string, users can omit the field to use
+// an unset value.
+func ValidateResourceIDOrEmpty(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	if v == "" {
+		return
+	}
+
+	return ValidateResourceID(i, k)
 }

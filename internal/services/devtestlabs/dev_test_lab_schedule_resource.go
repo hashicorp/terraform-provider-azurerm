@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package devtestlabs
 
 import (
@@ -5,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/schedules"
@@ -291,7 +295,7 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}
 		props := model.Properties
 		d.Set("time_zone_id", props.TimeZoneId)
 		d.Set("task_type", props.TaskType)
-		d.Set("status", props.Status)
+		d.Set("status", string(pointer.From(props.Status)))
 
 		if err := d.Set("weekly_recurrence", flattenAzureRmDevTestLabScheduleRecurrenceWeekly(props.WeeklyRecurrence)); err != nil {
 			return fmt.Errorf("setting `weeklyRecurrence`: %#v", err)

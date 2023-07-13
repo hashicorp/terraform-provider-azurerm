@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 # This script creates nessesary certificates to execute integration
 # tests for Azure API Management

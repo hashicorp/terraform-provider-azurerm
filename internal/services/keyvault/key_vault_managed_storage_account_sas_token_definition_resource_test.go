@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package keyvault_test
 
 import (
@@ -5,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -324,7 +328,7 @@ func (KeyVaultManagedStorageAccountSasTokenDefinitionResource) Exists(ctx contex
 	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
 		return nil, err
 	}

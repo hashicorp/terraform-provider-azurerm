@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventgrid
 
 import (
@@ -83,6 +86,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 				),
 			),
 
+			// TODO: this can become `service_bus_queue_id` in 4.0
 			"service_bus_queue_endpoint_id": eventSubscriptionSchemaServiceBusQueueEndpointID(
 				utils.RemoveFromStringArray(
 					PossibleEventSubscriptionEndpointTypes(),
@@ -90,6 +94,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 				),
 			),
 
+			// TODO: this can become `service_bus_topic_id` in 4.0
 			"service_bus_topic_endpoint_id": eventSubscriptionSchemaServiceBusTopicEndpointID(
 				utils.RemoveFromStringArray(
 					PossibleEventSubscriptionEndpointTypes(),

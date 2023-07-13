@@ -1,6 +1,10 @@
 package streamingendpoints
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForAsyncOperationStatus() []string {
 		string(AsyncOperationStatusInProgress),
 		string(AsyncOperationStatusSucceeded),
 	}
+}
+
+func (s *AsyncOperationStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAsyncOperationStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAsyncOperationStatus(input string) (*AsyncOperationStatus, error) {
@@ -56,6 +73,19 @@ func PossibleValuesForStreamingEndpointResourceState() []string {
 		string(StreamingEndpointResourceStateStopped),
 		string(StreamingEndpointResourceStateStopping),
 	}
+}
+
+func (s *StreamingEndpointResourceState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStreamingEndpointResourceState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStreamingEndpointResourceState(input string) (*StreamingEndpointResourceState, error) {

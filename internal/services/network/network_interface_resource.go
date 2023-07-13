@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -13,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -69,7 +74,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     azure.ValidateResourceID,
+							ValidateFunc:     commonids.ValidateSubnetID,
 						},
 
 						"private_ip_address": {
@@ -100,7 +105,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+							ValidateFunc: validate.PublicIpAddressID,
 						},
 
 						"primary": {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -5,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -25,7 +28,7 @@ func (MetricAlertUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/metricAlerts/alert1
 		oldId := rawState["id"].(string)
-		id, err := parse.MetricAlertIDInsensitively(oldId)
+		id, err := metricalerts.ParseMetricAlertIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}

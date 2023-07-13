@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package environments
 
 import (
@@ -9,7 +12,13 @@ import (
 func Resource(endpoint Api) (*string, error) {
 	resource, ok := endpoint.ResourceIdentifier()
 	if !ok {
-		return nil, fmt.Errorf("the endpoint %q doesn't define a resource identifier", endpoint.Name())
+		// if this API has been defined in-line it may not have a Resource Identifier - however
+		// the resource will be the endpoint instead, so we can best-effort to obtain the auth token
+		resource2, ok2 := endpoint.Endpoint()
+		if !ok2 {
+			return nil, fmt.Errorf("the endpoint %q is not supported in this Azure Environment", endpoint.Name())
+		}
+		resource = resource2
 	}
 
 	return resource, nil

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql
 
 import (
@@ -81,6 +84,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"BC_Gen4",
 								"BC_Gen5",
 								"BC_DC",
+								"HS_Gen5",
 							}, false),
 						},
 
@@ -99,6 +103,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"Premium",
 								"GeneralPurpose",
 								"BusinessCritical",
+								"Hyperscale",
 							}, false),
 						},
 

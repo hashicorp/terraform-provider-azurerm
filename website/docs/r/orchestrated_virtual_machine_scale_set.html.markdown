@@ -119,6 +119,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Orchestrated Virtual Machine Scale Set.
 
+* `priority_mix` - (Optional) a `priority_mix` block as defined below
+
 ---
 
 An `additional_capabilities` block supports the following:
@@ -289,9 +291,9 @@ A `data_disk` block supports the following:
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt the Data Disk. Changing this forces a new resource to be created.
 
-* `ultra_ssd_disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable for UltraSSD disks.
+* `ultra_disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
 
-* `ultra_ssd_disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable for UltraSSD disks.
+* `ultra_disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
 
 * `write_accelerator_enabled` - (Optional) Specifies if Write Accelerator is enabled on the Data Disk. Defaults to `false`.
 
@@ -465,9 +467,17 @@ A `source_image_reference` block supports the following:
 
 ---
 
+A `priority_mix` block supports the following:
+
+* `base_regular_count` - (Optional) Specifies the base number of VMs of `Regular` priority that will be created before any VMs of priority `Spot` are created. Possible values are integers between `0` and `1000`. Defaults to `0`.
+
+* `regular_percentage_above_base` - (Optional) Specifies the desired percentage of VM instances that are of `Regular` priority after the base count has been reached. Possible values are integers between `0` and `100`. Defaults to `0`.
+
+---
+
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Orchestrated Virtual Machine Scale Set.
 

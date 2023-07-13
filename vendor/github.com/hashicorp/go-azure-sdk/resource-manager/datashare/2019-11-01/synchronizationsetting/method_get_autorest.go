@@ -65,6 +65,9 @@ func (c SynchronizationSettingClient) responderForGet(resp *http.Response) (resu
 		autorest.ByUnmarshallingJSON(&respObj),
 		autorest.ByClosing())
 	result.HttpResponse = resp
+	if err != nil {
+		return
+	}
 	model, err := unmarshalSynchronizationSettingImplementation(respObj)
 	if err != nil {
 		return

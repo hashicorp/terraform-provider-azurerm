@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package netapp
 
 import (
@@ -183,6 +186,10 @@ func netappSnapshotDeleteStateRefreshFunc(ctx context.Context, client *snapshots
 			}
 		}
 
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
 	}
 }

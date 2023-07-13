@@ -1,6 +1,10 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package signalr
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -12,10 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2021-10-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -64,6 +69,7 @@ func resourceWebPubSub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"Premium_P1",
 					"Standard_S1",
 					"Free_F1",
 				}, false),
@@ -196,6 +202,10 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	id := webpubsub.NewWebPubSubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	liveTraceConfig := d.Get("live_trace").([]interface{})
 
 	if d.IsNewResource() {
@@ -239,8 +249,30 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %q: %+v", id, err)
+	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(webpubsub.ProvisioningStateUpdating),
+			string(webpubsub.ProvisioningStateCreating),
+			string(webpubsub.ProvisioningStateMoving),
+			string(webpubsub.ProvisioningStateRunning),
+		},
+		Target:                    []string{string(webpubsub.ProvisioningStateSucceeded)},
+		Refresh:                   webPubsubProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return err
 	}
 
 	d.SetId(id.ID())
@@ -356,6 +388,9 @@ func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
@@ -456,4 +491,24 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 		"connectivity_logs_enabled": connectivityLogEnabled,
 		"http_request_logs_enabled": httpLogsEnabled,
 	}}
+}
+
+func webPubsubProvisioningStateRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.WebPubSubId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+
+		provisioningState := "Pending"
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return res, provisioningState, nil
+			}
+			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
+		}
+
+		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
+			provisioningState = string(*res.Model.Properties.ProvisioningState)
+		}
+
+		return res, provisioningState, nil
+	}
 }

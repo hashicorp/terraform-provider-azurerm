@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mobilenetwork_test
 
 import (
@@ -30,7 +33,7 @@ func TestAccMobileNetworkSiteDataSource_complete(t *testing.T) {
 
 func (r MobileNetworkSiteDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+%s
 
 data "azurerm_mobile_network_site" "test" {
   name              = azurerm_mobile_network_site.test.name

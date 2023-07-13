@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -5,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	applicationGatewayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	subnetValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -115,6 +118,10 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: workspaces.ValidateWorkspaceID,
 					},
+					"msi_auth_for_monitoring_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 					"oms_agent_identity": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -189,7 +196,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
 						},
-						ValidateFunc: subnetValidate.SubnetID,
+						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"effective_gateway_id": {
 						Type:     pluginsdk.TypeString,
@@ -316,6 +323,10 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 				return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
 			}
 			config["logAnalyticsWorkspaceResourceID"] = lawid.ID()
+		}
+
+		if useAADAuth, ok := value["msi_auth_for_monitoring_enabled"].(bool); ok {
+			config["useAADAuth"] = fmt.Sprintf("%t", useAADAuth)
 		}
 
 		addonProfiles[omsAgentKey] = managedclusters.ManagedClusterAddonProfile{
@@ -489,17 +500,24 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 	omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey)
 	if enabled := omsAgent.Enabled; enabled {
 		workspaceID := ""
+		useAADAuth := false
+
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
 			if lawid, err := workspaces.ParseWorkspaceID(v); err == nil {
 				workspaceID = lawid.ID()
 			}
 		}
 
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "useAADAuth"); v != "false" && v != "" {
+			useAADAuth = true
+		}
+
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
-			"log_analytics_workspace_id": workspaceID,
-			"oms_agent_identity":         omsAgentIdentity,
+			"log_analytics_workspace_id":      workspaceID,
+			"msi_auth_for_monitoring_enabled": useAADAuth,
+			"oms_agent_identity":              omsAgentIdentity,
 		})
 	}
 

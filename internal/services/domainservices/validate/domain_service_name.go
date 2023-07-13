@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -12,7 +15,7 @@ func DomainServiceName(input interface{}, key string) (warnings []string, errors
 		return
 	}
 
-	p := regexp.MustCompile(`^(([0-9a-zA-Z])|(([0-9a-zA-Z][0-9a-zA-Z-]{0,13}[0-9a-zA-Z])))(\.[0-9a-zA-Z-]+)+$`)
+	p := regexp.MustCompile(`^(([0-9a-zA-Z])|(([0-9a-zA-Z][0-9a-zA-Z-]{0,28}[0-9a-zA-Z])))(\.[0-9a-zA-Z-]+)+$`)
 	if !p.MatchString(v) {
 		errors = append(errors, fmt.Errorf("domain_name must be a valid FQDN and the first element must be 15 or fewer characters"))
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql
 
 import (
@@ -8,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -56,7 +60,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 
 			"sql_license_type": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sqlvirtualmachines.SqlServerLicenseTypePAYG),
@@ -606,7 +610,11 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("virtual_machine_id", props.VirtualMachineResourceId)
-			d.Set("sql_license_type", string(*props.SqlServerLicenseType))
+			sqlLicenseType := ""
+			if licenceType := props.SqlServerLicenseType; licenceType != nil {
+				sqlLicenseType = string(*licenceType)
+			}
+			d.Set("sql_license_type", sqlLicenseType)
 			if err := d.Set("auto_backup", flattenSqlVirtualMachineAutoBackup(props.AutoBackupSettings, d)); err != nil {
 				return fmt.Errorf("setting `auto_backup`: %+v", err)
 			}
@@ -629,7 +637,7 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				}
 				if scus := mgmtSettings.SqlConnectivityUpdateSettings; scus != nil {
 					d.Set("sql_connectivity_port", mgmtSettings.SqlConnectivityUpdateSettings.Port)
-					d.Set("sql_connectivity_type", mgmtSettings.SqlConnectivityUpdateSettings.ConnectivityType)
+					d.Set("sql_connectivity_type", string(pointer.From(mgmtSettings.SqlConnectivityUpdateSettings.ConnectivityType)))
 				}
 
 				d.Set("sql_instance", flattenSqlVirtualMachineSQLInstance(mgmtSettings.SqlInstanceSettings))

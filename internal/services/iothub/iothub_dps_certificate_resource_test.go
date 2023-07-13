@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package iothub_test
 
 import (
@@ -176,7 +179,7 @@ resource "azurerm_iothub_dps_certificate" "test" {
   resource_group_name = azurerm_resource_group.test.name
   iot_dps_name        = azurerm_iothub_dps.test.name
 
-  certificate_content = filebase64("testdata/application_gateway_test.cer")
+  certificate_content = filebase64("testdata/iothub_test.cer")
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

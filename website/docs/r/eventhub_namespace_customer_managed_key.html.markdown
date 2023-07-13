@@ -70,6 +70,7 @@ resource "azurerm_key_vault_access_policy" "example2" {
     "List",
     "Purge",
     "Recover",
+    "GetRotationPolicy",
   ]
 }
 

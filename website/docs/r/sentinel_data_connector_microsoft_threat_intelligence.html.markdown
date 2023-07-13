@@ -30,19 +30,13 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  workspace_name      = azurerm_log_analytics_workspace.example.name
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "example" {
   name                                         = "example-dc-msti"
-  log_analytics_workspace_id                   = azurerm_log_analytics_workspace.example.id
-  bing_safety_phishing_url_lookback_date       = "1970-01-01T00:00:00Z"
+  log_analytics_workspace_id                   = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   microsoft_emerging_threat_feed_lookback_date = "1970-01-01T00:00:00Z"
-
-  depends_on = [
-    azurerm_sentinel_log_analytics_workspace_onboarding.test
-  ]
 }
 ```
 
@@ -56,7 +50,11 @@ The following arguments are supported:
 
 * `bing_safety_phishing_url_lookback_date` - (Optional) The lookback date for the Bing Safety Phishing Url in RFC3339. Changing this forces a new Data Connector to be created.
 
+-> **Note:** `bing_safety_phishing_url_lookback_date` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
+
 * `microsoft_emerging_threat_feed_lookback_date` - (Optional) The lookback date for the Microsoft Emerging Threat Feed in RFC3339. Changing this forces a new Data Connector to be created.
+
+-> **Note:** `microsoft_emerging_threat_feed_lookback_date` will be required in version 4.0 of the provider.
 
 -> **NOTE:** At least one of `bing_safety_phishing_url_lookback_date` and `microsoft_emerging_threat_feed_lookback_date` must be specified.
 

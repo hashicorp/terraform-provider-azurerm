@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package media
 
 import (
@@ -32,6 +35,8 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 		Read:   resourceMediaServicesAccountRead,
 		Update: resourceMediaServicesAccountCreateUpdate,
 		Delete: resourceMediaServicesAccountDelete,
+
+		DeprecationMessage: azureMediaRetirementMessage,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -523,7 +528,7 @@ func flattenMediaServicesAccountIdentity(input *accounts.MediaServiceIdentity) (
 }
 
 func expandMediaServicesAccountKeyDelivery(input []interface{}) *accounts.KeyDelivery {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 

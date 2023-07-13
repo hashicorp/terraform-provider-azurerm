@@ -6,7 +6,7 @@ description: |-
   Manages a Private DNS TXT Record.
 ---
 
-# azurerm_private_dns_txtrecord
+# azurerm_private_dns_txt_record
 
 Enables you to manage DNS TXT Records within Azure Private DNS.
 
@@ -59,7 +59,7 @@ A `record` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Private DNS TXT Record ID.
 

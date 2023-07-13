@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory_test
 
 import (
@@ -645,7 +648,8 @@ resource "azurerm_key_vault" "test" {
       "Create",
       "Get",
       "Delete",
-      "Purge"
+      "Purge",
+      "GetRotationPolicy",
     ]
   }
 

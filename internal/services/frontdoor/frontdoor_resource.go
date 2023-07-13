@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package frontdoor
 
 import (
@@ -17,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
+	frontDoorValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -135,18 +138,16 @@ func resourceFrontDoorUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	// remove in 3.0
 	// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
 	// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
-	location := "Global"
-	cfgLocation, hasLocation := d.GetOk("location")
+	var location string
 
 	exists, err := client.Get(ctx, id)
 	if err != nil || exists.Model == nil {
-		if !response.WasNotFound(exists.HttpResponse) {
-			return fmt.Errorf("locating %s: %+v", id, err)
-		}
+		return fmt.Errorf("locating %s: %+v", id, err)
 	} else {
 		location = azure.NormalizeLocation(*exists.Model.Location)
 	}
 
+	cfgLocation, hasLocation := d.GetOk("location")
 	if hasLocation {
 		if location != azure.NormalizeLocation(cfgLocation) {
 			return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", name, resourceGroup, location, cfgLocation)
@@ -1725,7 +1726,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azValidate.FrontDoorName,
+			ValidateFunc: frontDoorValidate.FrontDoorName,
 		},
 
 		"cname": {
@@ -1764,7 +1765,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azValidate.BackendPoolRoutingRuleName,
+						ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
 					},
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -1854,7 +1855,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 								"backend_pool_name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: azValidate.BackendPoolRoutingRuleName,
+									ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
 								},
 								"cache_enabled": {
 									Type:     pluginsdk.TypeBool,
@@ -1925,7 +1926,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azValidate.BackendPoolRoutingRuleName,
+						ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
 					},
 					"sample_size": {
 						Type:     pluginsdk.TypeInt,
@@ -1959,7 +1960,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azValidate.BackendPoolRoutingRuleName,
+						ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
 					},
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -2054,7 +2055,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azValidate.BackendPoolRoutingRuleName,
+						ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
 					},
 					"health_probe_name": {
 						Type:     pluginsdk.TypeString,
@@ -2101,7 +2102,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azValidate.BackendPoolRoutingRuleName,
+						ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
 					},
 					"host_name": {
 						Type:     pluginsdk.TypeString,
@@ -2120,7 +2121,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"web_application_firewall_policy_link_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: frontDoorValidate.WebApplicationFirewallPolicyID,
 					},
 				},
 			},

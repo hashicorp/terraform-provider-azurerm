@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql_test
 
 import (
@@ -685,6 +688,8 @@ resource "azurerm_key_vault" "test" {
       "Delete",
       "Get",
       "Update",
+      "GetRotationPolicy",
+      "SetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -763,6 +768,8 @@ resource "azurerm_key_vault" "test" {
       "Delete",
       "Get",
       "Update",
+      "GetRotationPolicy",
+      "SetRotationPolicy",
     ]
 
     secret_permissions = [

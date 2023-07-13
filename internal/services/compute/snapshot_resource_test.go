@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -129,6 +132,21 @@ func TestAccSnapshot_fromUnmanagedDisk(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccSnapshot_incrementalEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.incrementalEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("source_uri"),
 	})
 }
 
@@ -287,6 +305,7 @@ resource "azurerm_key_vault" "test" {
       "Delete",
       "Get",
       "Purge",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -372,6 +391,7 @@ resource "azurerm_key_vault" "test2" {
       "Delete",
       "Get",
       "Purge",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -602,6 +622,37 @@ resource "azurerm_snapshot" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (SnapshotResource) incrementalEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestmd-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "10"
+}
+
+resource "azurerm_snapshot" "test" {
+  name                = "acctestss_%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  create_option       = "Copy"
+  source_uri          = azurerm_managed_disk.test.id
+  incremental_enabled = true
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (SnapshotResource) trustedLaunch(data acceptance.TestData) string {

@@ -236,7 +236,7 @@ A `security` block supports the following:
 
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Domain Service.
   

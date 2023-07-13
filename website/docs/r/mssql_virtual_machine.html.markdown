@@ -43,13 +43,13 @@ The following arguments are supported:
 
 * `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created.
 
-* `sql_license_type` - (Required) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit), `DR` (Disaster Recovery), and `PAYG` (Pay-As-You-Go). Changing this forces a new resource to be created.
+* `sql_license_type` - (Optional) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit), `DR` (Disaster Recovery), and `PAYG` (Pay-As-You-Go). Changing this forces a new resource to be created.
 
 * `auto_backup` - (Optional) An `auto_backup` block as defined below. This block can be added to an existing resource, but removing this block forces a new resource to be created.
 
 * `auto_patching` - (Optional) An `auto_patching` block as defined below.
 
-* `key_vault_credential` - (Optional) (Optional) An `key_vault_credential` block as defined below.
+* `key_vault_credential` - (Optional) An `key_vault_credential` block as defined below.
 
 * `r_services_enabled` - (Optional) Should R Services be enabled?
 
@@ -213,7 +213,7 @@ The `schedule` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the SQL Virtual Machine.
 

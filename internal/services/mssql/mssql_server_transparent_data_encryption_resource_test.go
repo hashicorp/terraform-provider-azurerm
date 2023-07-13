@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql_test
 
 import (
@@ -121,7 +124,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
-  purge_protection_enabled    = false
+  purge_protection_enabled    = true
 
   sku_name = "standard"
 
@@ -130,7 +133,7 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "Get", "List", "Create", "Delete", "Update", "Purge",
+      "Get", "List", "Create", "Delete", "Update", "Purge", "GetRotationPolicy", "SetRotationPolicy"
     ]
   }
 
@@ -139,7 +142,7 @@ resource "azurerm_key_vault" "test" {
     object_id = azurerm_mssql_server.test.identity[0].principal_id
 
     key_permissions = [
-      "Get", "WrapKey", "UnwrapKey", "List", "Create",
+      "Get", "WrapKey", "UnwrapKey", "List", "Create", "GetRotationPolicy", "SetRotationPolicy"
     ]
   }
 }
@@ -223,8 +226,10 @@ resource "azurerm_mssql_server" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [transparent_data_encryption_key_vault_key_id]
+  }
 }
-
-
 `, data.RandomInteger, data.Locations.Primary)
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package recoveryservices_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectioncontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -31,16 +34,16 @@ func TestAccBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 }
 
 func (t BackupProtectionContainerStorageAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ProtectionContainerID(state.ID)
+	id, err := protectioncontainers.ParseProtectionContainerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.RecoveryServices.BackupProtectionContainersClient.Get(ctx, id.VaultName, id.ResourceGroup, id.BackupFabricName, id.Name)
+	resp, err := clients.RecoveryServices.BackupProtectionContainersClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading site recovery protection container (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BackupProtectionContainerStorageAccountResource) basic(data acceptance.TestData) string {

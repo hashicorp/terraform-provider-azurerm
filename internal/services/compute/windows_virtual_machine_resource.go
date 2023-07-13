@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -14,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -31,7 +35,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func resourceWindowsVirtualMachine() *pluginsdk.Resource {
@@ -311,7 +315,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
-					computeValidate.ImageID,
+					images.ValidateImageID,
 					computeValidate.SharedImageID,
 					computeValidate.SharedImageVersionID,
 					computeValidate.CommunityGalleryImageID,
@@ -1005,10 +1009,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	log.Printf("[DEBUG] Retrieving Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
-		if utils.ResponseWasNotFound(existing.Response) {
-			return nil
-		}
-
 		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 

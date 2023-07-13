@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy
 
 import (
@@ -270,6 +273,9 @@ func policyDefinitionRefreshFunc(ctx context.Context, client *policy.Definitions
 
 func flattenJSON(stringMap interface{}) string {
 	if stringMap != nil {
+		if v, ok := stringMap.(*interface{}); ok {
+			stringMap = *v
+		}
 		value := stringMap.(map[string]interface{})
 		jsonString, err := pluginsdk.FlattenJsonToString(value)
 		if err == nil {

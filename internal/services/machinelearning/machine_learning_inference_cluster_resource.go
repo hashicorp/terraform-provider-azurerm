@@ -1,13 +1,18 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -163,7 +168,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// Get AKS Compute Properties
-	aksID, err := managedclusters.ParseManagedClusterID(d.Get("kubernetes_cluster_id").(string))
+	aksID, err := commonids.ParseKubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
 	if err != nil {
 		return err
 	}
@@ -235,12 +240,16 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	aksComputeProperties := computeResource.Model.Properties.(machinelearningcomputes.AKS)
 
 	// Retrieve AKS Cluster ID
-	aksId, err := managedclusters.ParseManagedClusterIDInsensitively(*aksComputeProperties.ResourceId)
+	aksId, err := commonids.ParseKubernetesClusterIDInsensitively(*aksComputeProperties.ResourceId)
 	if err != nil {
 		return err
 	}
 	d.Set("kubernetes_cluster_id", aksId.ID())
-	d.Set("cluster_purpose", aksComputeProperties.Properties.ClusterPurpose)
+	clusterPurpose := ""
+	if aksComputeProperties.Properties != nil {
+		clusterPurpose = string(pointer.From(aksComputeProperties.Properties.ClusterPurpose))
+	}
+	d.Set("cluster_purpose", clusterPurpose)
 	d.Set("description", aksComputeProperties.Description)
 
 	// Retrieve location

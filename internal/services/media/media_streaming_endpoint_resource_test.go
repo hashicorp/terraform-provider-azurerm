@@ -1,9 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package media_test
 
 import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -123,6 +127,8 @@ func (r MediaStreamingEndpointResource) Start(ctx context.Context, client *clien
 	if err != nil {
 		return err
 	}
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
 
 	if err := client.Media.V20220801Client.StreamingEndpoints.StartThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("starting %s: %+v", id, err)
