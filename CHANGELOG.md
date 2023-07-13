@@ -22,17 +22,19 @@ ENHANCEMENTS:
 * `voiceservices`: updating to use API Version `2023-04-03` [GH-22469]
 * Data Source: `azurerm_kubernetes_cluster` - add support for the `internal_ingress_gateway_enabled` and `external_ingress_gateway_enabled` properties [GH-22393]
 * `azurerm_batch_account` - support for the `network_profile` block [GH-22356]
-* `azurerm_container_app` - `min_replicas` and `max_replicas` now support a maximum value of `300` [GH-22511]
-* `azurerm_dns_zone` - can now use `host_name` with `dns_zone` for `soa_record` creation [GH-22312]
+* `azurerm_container_app` - the `min_replicas` and `max_replicas` propertiesnow support a maximum value of `300` [GH-22511]
+* `azurerm_dns_zone` - can now use the `host_name` property with `dns_zone` for `soa_record` creation [GH-22312]
 * `azurerm_kubernetes_cluster` - add support for the `internal_ingress_gateway_enabled` and `external_ingress_gateway_enabled` properties [GH-22393]
-* `azurerm_site_recovery_vmware_replication_policy_association`: update validate func and handling casing. [GH-22443]
+* `azurerm_site_recovery_vmware_replication_policy_association` - update validation to correctly handle case [GH-22443]
 
 BUG FIXES:
 
 * `azurerm_automation_dsc_configuration` - fixing an issue where `content_embedded` couldn't be deserialized [GH-22403]
-* `azurerm_data_factory_dataset_{cosmosdb_sqlapi|mysql|postgresql}` - Fix incorrect type/error message during read [GH-22438]
-* `azurerm_logic_app_workflow`: fix crash when `access_control` is empty block [GH-22486]
-* `azurerm_vpn_server_configuration`: fix a potential panic when setting deprecated variables [GH-22437]
+* `azurerm_data_factory_dataset_cosmosdb_sqlapi` - fix incorrect type/error message during read [GH-22438]
+* `azurerm_data_factory_dataset_mysql` - fix incorrect type/error message during read [GH-22438]
+* `azurerm_data_factory_dataset_postgresql` - fix incorrect type/error message during read [GH-22438]
+* `azurerm_logic_app_workflow` - prevent crash when `access_control` is empty block [GH-22486]
+* `azurerm_vpn_server_configuration` - prevent a potential panic when setting deprecated variables [GH-22437]
 
 ## 3.64.0 (July 06, 2023)
 
