@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: bump `go-azure-sdk` to `v0.20230713.1092427` and switch `machinelearning`, `maintenance`, `mixedreality`, `mariadb` and `mobilenetwork` to new base layer [GH-22503]
 * dependencies: move `azurerm_bastion_host` and `azurerm_network_connection_monitor` over to `hashicorp/go-azure-sdk` [GH-22425]
 * dependencies: updating to API Version `2022-08-08` [GH-22440]
 
