@@ -869,12 +869,15 @@ func expandLogicAppWorkflowIPAddressRanges(input []interface{}) *[]workflows.IPA
 }
 
 func expandLogicAppWorkflowOpenAuthenticationPolicy(input []interface{}) *map[string]workflows.OpenAuthenticationAccessPolicy {
-	if len(input) == 0 || input[0] == nil {
+	if len(input) == 0 {
 		return nil
 	}
 	results := make(map[string]workflows.OpenAuthenticationAccessPolicy)
 
 	for _, item := range input {
+		if item == nil {
+			continue
+		}
 		v := item.(map[string]interface{})
 		policyName := v["name"].(string)
 
