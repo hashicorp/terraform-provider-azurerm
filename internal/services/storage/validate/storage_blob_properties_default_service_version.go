@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -36,6 +39,17 @@ func BlobPropertiesDefaultServiceVersion(i interface{}, k string) (warnings []st
 		"2020-02-10",
 		"2020-04-08",
 		"2020-06-12",
+		"2020-08-04",
+		"2020-10-02",
+		"2020-12-06",
+		"2021-02-12",
+		"2021-04-10",
+		"2021-06-08",
+		"2021-08-06",
+		"2021-10-04",
+		"2021-12-02",
+		"2022-11-02",
+		"2023-01-03",
 	}
 	for _, str := range valid {
 		if v == str {

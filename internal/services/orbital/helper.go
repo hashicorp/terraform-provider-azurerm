@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package orbital
 
 import (
@@ -139,7 +142,7 @@ func EndPointSchema() *pluginsdk.Schema {
 
 				"ip_address": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validation.IsIPAddress,
 				},
 

@@ -38,11 +38,11 @@ func ParseScopedDiagnosticSettingID(input string) (*ScopedDiagnosticSettingId, e
 	id := ScopedDiagnosticSettingId{}
 
 	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceUri' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
 	}
 
 	if id.DiagnosticSettingName, ok = parsed.Parsed["diagnosticSettingName"]; !ok {
-		return nil, fmt.Errorf("the segment 'diagnosticSettingName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diagnosticSettingName", *parsed)
 	}
 
 	return &id, nil
@@ -61,11 +61,11 @@ func ParseScopedDiagnosticSettingIDInsensitively(input string) (*ScopedDiagnosti
 	id := ScopedDiagnosticSettingId{}
 
 	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceUri' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
 	}
 
 	if id.DiagnosticSettingName, ok = parsed.Parsed["diagnosticSettingName"]; !ok {
-		return nil, fmt.Errorf("the segment 'diagnosticSettingName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diagnosticSettingName", *parsed)
 	}
 
 	return &id, nil

@@ -255,8 +255,6 @@ A `worker_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `autoscale` - (Optional) A `autoscale` block as defined below.
-
 ---
 
 A `disk_encryption` block supports the following:
@@ -352,32 +350,6 @@ A `extension` block supports the following:
 * `log_analytics_workspace_id` - (Required) The workspace ID of the log analytics extension.
 
 * `primary_key` - (Required) The workspace key of the log analytics extension.
-
----
-
-An `autoscale` block supports the following:
-
-* `recurrence` - (Optional) A `recurrence` block as defined below.
-
--> **NOTE:** Capacity based autoscaling isn't supported to HBase clusters.
-
----
-
-A `recurrence` block supports the following:
-
-* `schedule` - (Required) A list of `schedule` blocks as defined below.
-
-* `timezone` - (Required) The time zone for the autoscale schedule times.
-
----
-
-A `schedule` block supports the following:
-
-* `days` - (Required) The days of the week to perform autoscale. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
-
-* `target_instance_count` - (Required) The number of worker nodes to autoscale at the specified time.
-
-* `time` - (Required) The time of day to perform the autoscale in 24hour format.
 
 ---
 

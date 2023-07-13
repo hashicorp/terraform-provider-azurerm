@@ -42,19 +42,19 @@ func ParseStorageTargetID(input string) (*StorageTargetId, error) {
 	id := StorageTargetId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.CacheName, ok = parsed.Parsed["cacheName"]; !ok {
-		return nil, fmt.Errorf("the segment 'cacheName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cacheName", *parsed)
 	}
 
 	if id.StorageTargetName, ok = parsed.Parsed["storageTargetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'storageTargetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageTargetName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseStorageTargetIDInsensitively(input string) (*StorageTargetId, error) {
 	id := StorageTargetId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.CacheName, ok = parsed.Parsed["cacheName"]; !ok {
-		return nil, fmt.Errorf("the segment 'cacheName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cacheName", *parsed)
 	}
 
 	if id.StorageTargetName, ok = parsed.Parsed["storageTargetName"]; !ok {
-		return nil, fmt.Errorf("the segment 'storageTargetName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageTargetName", *parsed)
 	}
 
 	return &id, nil

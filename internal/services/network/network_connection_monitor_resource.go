@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -169,8 +173,8 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.Any(
 							computeValidate.VirtualMachineID,
 							workspaces.ValidateWorkspaceID,
-							networkValidate.SubnetID,
-							networkValidate.VirtualNetworkID,
+							commonids.ValidateSubnetID,
+							commonids.ValidateVirtualNetworkID,
 						),
 					},
 

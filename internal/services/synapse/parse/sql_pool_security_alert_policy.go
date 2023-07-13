@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -47,7 +50,7 @@ func (id SqlPoolSecurityAlertPolicyId) ID() string {
 func SqlPoolSecurityAlertPolicyID(input string) (*SqlPoolSecurityAlertPolicyId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an SqlPoolSecurityAlertPolicy ID: %+v", input, err)
 	}
 
 	resourceId := SqlPoolSecurityAlertPolicyId{

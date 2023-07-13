@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssqlmanagedinstance
 
 import (
@@ -51,7 +54,7 @@ func (d MsSqlManagedInstanceDataSource) ResourceType() string {
 }
 
 func (d MsSqlManagedInstanceDataSource) ModelObject() interface{} {
-	return &MsSqlManagedInstanceModel{}
+	return &MsSqlManagedInstanceDataSourceModel{}
 }
 
 func (d MsSqlManagedInstanceDataSource) Arguments() map[string]*pluginsdk.Schema {

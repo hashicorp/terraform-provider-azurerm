@@ -1,18 +1,26 @@
 package nginxconfiguration
 
-import "github.com/Azure/go-autorest/autorest"
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type NginxConfigurationClient struct {
-	Client  autorest.Client
-	baseUri string
+	Client *resourcemanager.Client
 }
 
-func NewNginxConfigurationClientWithBaseURI(endpoint string) NginxConfigurationClient {
-	return NginxConfigurationClient{
-		Client:  autorest.NewClientWithUserAgent(userAgent()),
-		baseUri: endpoint,
+func NewNginxConfigurationClientWithBaseURI(api environments.Api) (*NginxConfigurationClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(api, "nginxconfiguration", defaultApiVersion)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating NginxConfigurationClient: %+v", err)
 	}
+
+	return &NginxConfigurationClient{
+		Client: client,
+	}, nil
 }

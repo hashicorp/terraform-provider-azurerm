@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package domainservices_test
 
 import (
@@ -485,6 +488,11 @@ resource "azurerm_virtual_network_peering" "test_primary_secondary" {
   allow_gateway_transit        = false
   allow_virtual_network_access = true
   use_remote_gateways          = false
+
+  depends_on = [
+    azurerm_subent.aadds_secondary,
+    azurerm_subent.workload_secondary,
+  ]
 }
 
 resource "azurerm_virtual_network_peering" "test_secondary_primary" {
@@ -497,6 +505,11 @@ resource "azurerm_virtual_network_peering" "test_secondary_primary" {
   allow_gateway_transit        = false
   allow_virtual_network_access = true
   use_remote_gateways          = false
+
+  depends_on = [
+    azurerm_subent.aadds_secondary,
+    azurerm_subent.workload_secondary,
+  ]
 }
 
 resource "azurerm_active_directory_domain_service_replica_set" "test_secondary" {

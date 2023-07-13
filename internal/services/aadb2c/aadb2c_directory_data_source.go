@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package aadb2c
 
 import (
@@ -34,7 +37,7 @@ func (r AadB2cDirectoryDataSource) ResourceType() string {
 }
 
 func (r AadB2cDirectoryDataSource) ModelObject() interface{} {
-	return &AadB2cDirectoryModel{}
+	return &AadB2cDirectoryDataSourceModel{}
 }
 
 func (r AadB2cDirectoryDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

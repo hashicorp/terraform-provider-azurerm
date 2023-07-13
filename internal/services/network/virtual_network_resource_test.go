@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -272,12 +275,12 @@ func TestVirtualNetworkResource_tagCount(t *testing.T) {
 }
 
 func (t VirtualNetworkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualNetworkID(state.ID)
+	id, err := commonids.ParseVirtualNetworkID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.VnetClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.VnetClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -286,12 +289,12 @@ func (t VirtualNetworkResource) Exists(ctx context.Context, clients *clients.Cli
 }
 
 func (r VirtualNetworkResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualNetworkID(state.ID)
+	id, err := commonids.ParseVirtualNetworkID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.Network.VnetClient.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Network.VnetClient.Delete(ctx, id.ResourceGroupName, id.VirtualNetworkName)
 	if err != nil {
 		return nil, fmt.Errorf("deleting on Virtual Network: %+v", err)
 	}

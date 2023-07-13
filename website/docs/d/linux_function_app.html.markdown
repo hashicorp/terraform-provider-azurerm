@@ -45,6 +45,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `auth_settings_v2` - A `auth_settings_v2` block as defined below.
 
+* `availability` - The current availability state. Possible values are `Normal`, `Limited`, and `DisasterRecoveryMode`.
+
 * `backup` - A `backup` block as defined below.
 
 * `builtin_logging_enabled` - Is built in logging enabled?
@@ -83,7 +85,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `possible_outbound_ip_address_list` - A list of possible outbound IP addresses, not all of which are necessarily in use. This is a superset of `outbound_ip_address_list`. For example `["52.23.25.3", "52.143.43.12"]`.
 
-* `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`. For example `["52.23.25.3", "52.143.43.12","52.143.43.17"]`.
+* `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`.
 
 * `service_plan_id` - The ID of the App Service Plan within which this Function App has been created.
 
@@ -102,6 +104,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `storage_uses_managed_identity` - Does the Function App use Managed Identity to access the storage account?
 
 * `tags` - A mapping of tags which are assigned to the Linux Function App.
+
+* `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
 
 * `virtual_network_subnet_id` - The subnet id which the Linux Function App is vNet Integrated with.
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -44,7 +47,7 @@ func (id ApplicationGatewayPrivateLinkConfigurationId) ID() string {
 func ApplicationGatewayPrivateLinkConfigurationID(input string) (*ApplicationGatewayPrivateLinkConfigurationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an ApplicationGatewayPrivateLinkConfiguration ID: %+v", input, err)
 	}
 
 	resourceId := ApplicationGatewayPrivateLinkConfigurationId{

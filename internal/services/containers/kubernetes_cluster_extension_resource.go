@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -8,9 +11,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-02-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -71,7 +74,7 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: managedclusters.ValidateManagedClusterID,
+			ValidateFunc: commonids.ValidateKubernetesClusterID,
 		},
 
 		"extension_type": {
@@ -204,7 +207,7 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Containers.KubernetesExtensionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			clusterID, err := managedclusters.ParseManagedClusterID(model.ClusterID)
+			clusterID, err := commonids.ParseKubernetesClusterID(model.ClusterID)
 			if err != nil {
 				return err
 			}
@@ -331,7 +334,7 @@ func (r KubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 
 			state := KubernetesClusterExtensionModel{
 				Name:      id.ExtensionName,
-				ClusterID: managedclusters.NewManagedClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
+				ClusterID: commonids.NewKubernetesClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
 			}
 
 			if model := resp.Model; model != nil {

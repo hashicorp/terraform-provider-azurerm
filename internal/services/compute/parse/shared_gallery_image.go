@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
@@ -5,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var _ resourceids.ResourceId = SharedGalleryImageId{}
 
 type SharedGalleryImageId struct {
 	GalleryName string
@@ -34,53 +38,30 @@ func (id SharedGalleryImageId) ID() string {
 	return fmt.Sprintf(fmtString, id.GalleryName, id.ImageName)
 }
 
+func (id SharedGalleryImageId) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.StaticSegment("sharedGalleries", "sharedGalleries", "sharedGalleries"),
+		resourceids.UserSpecifiedSegment("galleryName", "myGalleryName"),
+		resourceids.StaticSegment("images", "images", "images"),
+		resourceids.UserSpecifiedSegment("imageName", "myImageName"),
+	}
+}
+
 // SharedGalleryImageID parses a SharedGalleryImage Unique ID into an SharedGalleryImageId struct
 func SharedGalleryImageID(input string) (*SharedGalleryImageId, error) {
-	segments := make([]resourceids.Segment, 0)
-
-	segments = append(segments, resourceids.Segment{
-		FixedValue: utils.String("sharedGalleries"),
-		Name:       "sharedGalleries",
-		Type:       resourceids.StaticSegmentType,
-	})
-
-	segments = append(segments, resourceids.Segment{
-		ExampleValue: "myGalleryName",
-		Name:         "galleryName",
-		Type:         resourceids.UserSpecifiedSegmentType,
-	})
-
-	segments = append(segments, resourceids.Segment{
-		FixedValue: utils.String("images"),
-		Name:       "images",
-		Type:       resourceids.StaticSegmentType,
-	})
-
-	segments = append(segments, resourceids.Segment{
-		ExampleValue: "myImageName",
-		Name:         "imageName",
-		Type:         resourceids.UserSpecifiedSegmentType,
-	})
-
-	newParser := resourceids.NewParser(segments)
-
-	id, err := newParser.Parse(input, false)
+	id := SharedGalleryImageId{}
+	parsed, err := resourceids.NewParserFromResourceIdType(id).Parse(input, false)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := SharedGalleryImageId{
-		GalleryName: id.Parsed["galleryName"],
-		ImageName:   id.Parsed["imageName"],
+	var ok bool
+	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
+	}
+	if id.ImageName, ok = parsed.Parsed["imageName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "imageName", *parsed)
 	}
 
-	if resourceId.GalleryName == "" {
-		return nil, fmt.Errorf("ID was missing the 'GalleryName' element")
-	}
-
-	if resourceId.ImageName == "" {
-		return nil, fmt.Errorf("ID was missing the 'ImageName' element")
-	}
-
-	return &resourceId, nil
+	return &id, nil
 }

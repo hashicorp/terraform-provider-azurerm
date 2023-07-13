@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_public_ip" "static" {
   name                         = "${var.prefix}-client-ppip"
   location                     = "${var.location}"

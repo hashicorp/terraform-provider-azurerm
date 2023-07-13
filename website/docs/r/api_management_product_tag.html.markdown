@@ -39,15 +39,15 @@ resource "azurerm_api_management_product" "example" {
 }
 
 resource "azurerm_api_management_tag" "example" {
-  api_management_id = data.azurerm_api_management.example.id
+  api_management_id = azurerm_api_management.example.id
   name              = "example-tag"
 }
 
 resource "azurerm_api_management_product_tag" "example" {
   api_management_product_id = azurerm_api_management_product.example.product_id
-  api_management_name       = data.azurerm_api_management.example.name
-  resource_group_name       = data.azurerm_resource_group.example.name
-  name                      = azurerm_api_management_tag.example1.name
+  api_management_name       = azurerm_api_management.example.name
+  resource_group_name       = azurerm_resource_group.example.name
+  name                      = azurerm_api_management_tag.example.name
 }
 ```
 

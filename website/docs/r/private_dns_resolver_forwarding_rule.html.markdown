@@ -57,6 +57,13 @@ resource "azurerm_private_dns_resolver_outbound_endpoint" "example" {
   }
 }
 
+resource "azurerm_private_dns_resolver_dns_forwarding_ruleset" "example" {
+  name                                       = "example-drdfr"
+  resource_group_name                        = azurerm_resource_group.example.name
+  location                                   = azurerm_resource_group.example.location
+  private_dns_resolver_outbound_endpoint_ids = [azurerm_private_dns_resolver_outbound_endpoint.example.id]
+}
+
 resource "azurerm_private_dns_resolver_forwarding_rule" "example" {
   name                      = "example-rule"
   dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.example.id
@@ -80,7 +87,7 @@ The following arguments are supported:
 
 * `dns_forwarding_ruleset_id` - (Required) Specifies the ID of the Private DNS Resolver Forwarding Ruleset. Changing this forces a new Private DNS Resolver Forwarding Rule to be created.
 
-* `domain_name` - (Required) Specifies the domain name for the Private DNS Resolver Forwarding Rule.
+* `domain_name` - (Required) Specifies the domain name for the Private DNS Resolver Forwarding Rule. Changing this forces a new Private DNS Resolver Forwarding Rule to be created.
 
 * `target_dns_servers` - (Required) Can be specified multiple times to define multiple target DNS servers. Each `target_dns_servers` block as defined below.
 

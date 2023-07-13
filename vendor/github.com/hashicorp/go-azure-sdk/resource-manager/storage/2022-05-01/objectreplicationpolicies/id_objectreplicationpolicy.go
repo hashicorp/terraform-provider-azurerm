@@ -42,19 +42,19 @@ func ParseObjectReplicationPolicyID(input string) (*ObjectReplicationPolicyId, e
 	id := ObjectReplicationPolicyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
 	}
 
 	if id.ObjectReplicationPolicyId, ok = parsed.Parsed["objectReplicationPolicyId"]; !ok {
-		return nil, fmt.Errorf("the segment 'objectReplicationPolicyId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "objectReplicationPolicyId", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseObjectReplicationPolicyIDInsensitively(input string) (*ObjectReplicati
 	id := ObjectReplicationPolicyId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, fmt.Errorf("the segment 'storageAccountName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
 	}
 
 	if id.ObjectReplicationPolicyId, ok = parsed.Parsed["objectReplicationPolicyId"]; !ok {
-		return nil, fmt.Errorf("the segment 'objectReplicationPolicyId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "objectReplicationPolicyId", *parsed)
 	}
 
 	return &id, nil

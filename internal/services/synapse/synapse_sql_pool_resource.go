@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package synapse
 
 import (
@@ -328,7 +331,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if d.HasChange("sku_name") {
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("context had no deadline")
+				return fmt.Errorf("internal-error: context had no deadline")
 			}
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{

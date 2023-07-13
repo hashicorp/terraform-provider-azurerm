@@ -19,6 +19,24 @@ resource "azurerm_resource_group" "example" {
   location = "West US 2"
 }
 
+resource "azurerm_datadog_monitor" "example" {
+  name                = "example-monitor"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  datadog_organization {
+    api_key         = "XXXX"
+    application_key = "XXXX"
+  }
+  user {
+    name  = "Example"
+    email = "abc@xyz.com"
+  }
+  sku_name = "Linked"
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
 resource "azurerm_datadog_monitor_tag_rule" "example" {
   datadog_monitor_id = azurerm_datadog_monitor.example.id
   log {

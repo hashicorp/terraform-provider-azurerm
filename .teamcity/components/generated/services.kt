@@ -1,3 +1,5 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 // NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
 var services = mapOf(
@@ -11,6 +13,7 @@ var services = mapOf(
         "arckubernetes" to "ArcKubernetes",
         "attestation" to "Attestation",
         "authorization" to "Authorization",
+        "automanage" to "Automanage",
         "automation" to "Automation",
         "azurestackhci" to "Azure Stack HCI",
         "batch" to "Batch",
@@ -82,6 +85,7 @@ var services = mapOf(
         "mysql" to "MySQL",
         "netapp" to "NetApp",
         "network" to "Network",
+        "newrelic" to "New Relic",
         "nginx" to "Nginx",
         "notificationhub" to "Notification Hub",
         "orbital" to "Orbital",

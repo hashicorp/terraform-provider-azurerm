@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice
 
 import (
@@ -7,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -18,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type LinuxFunctionAppDataSource struct{}
@@ -36,6 +39,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	AppSettings               map[string]string                    `tfschema:"app_settings"`
 	AuthSettings              []helpers.AuthSettings               `tfschema:"auth_settings"`
 	AuthV2Settings            []helpers.AuthV2Settings             `tfschema:"auth_settings_v2"`
+	Availability              string                               `tfschema:"availability"`
 	Backup                    []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging            bool                                 `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled         bool                                 `tfschema:"client_certificate_enabled"`
@@ -47,6 +51,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	FunctionExtensionsVersion string                               `tfschema:"functions_extension_version"`
 	ForceDisableContentShare  bool                                 `tfschema:"content_share_force_disabled"`
 	HttpsOnly                 bool                                 `tfschema:"https_only"`
+	PublicNetworkAccess       bool                                 `tfschema:"public_network_access_enabled"`
 	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	StickySettings            []helpers.StickySettings             `tfschema:"sticky_settings"`
 	Tags                      map[string]string                    `tfschema:"tags"`
@@ -60,6 +65,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
 	PossibleOutboundIPAddresses   string   `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
+	Usage                         string   `tfschema:"usage"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
@@ -125,6 +131,11 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+
+		"availability": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
@@ -234,6 +245,16 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"usage": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
@@ -325,6 +346,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			state := LinuxFunctionAppDataSourceModel{
 				Name:                       id.SiteName,
 				ResourceGroup:              id.ResourceGroup,
+				Availability:               string(props.AvailabilityState),
 				ServicePlanId:              utils.NormalizeNilableString(props.ServerFarmID),
 				Location:                   location.NormalizeNilable(functionApp.Location),
 				Enabled:                    utils.NormaliseNilableBool(functionApp.Enabled),
@@ -336,6 +358,8 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				Kind:                       utils.NormalizeNilableString(functionApp.Kind),
 				CustomDomainVerificationId: utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:            utils.NormalizeNilableString(functionApp.DefaultHostName),
+				Usage:                      string(props.UsageState),
+				PublicNetworkAccess:        !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
 			}
 
 			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
@@ -425,7 +449,7 @@ func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input w
 			}
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
-			if m.SiteConfig[0].ApplicationStack != nil {
+			if len(m.SiteConfig[0].ApplicationStack) > 0 {
 				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
 			}
 

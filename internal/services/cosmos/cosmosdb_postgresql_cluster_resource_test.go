@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos_test
 
 import (
@@ -223,7 +226,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   coordinator_vcore_count         = 4
   node_count                      = 2
 
-  citus_version                        = "11.2"
+  citus_version                        = "11.3"
   coordinator_public_ip_access_enabled = false
   ha_enabled                           = true
   coordinator_server_edition           = "MemoryOptimized"

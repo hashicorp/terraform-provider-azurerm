@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud
 
 import (
@@ -14,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2022-11-01-preview/appplatform"
+	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudConfigurationService() *pluginsdk.Resource {
@@ -56,6 +59,15 @@ func resourceSpringCloudConfigurationService() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudServiceID,
+			},
+
+			"generation": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(appplatform.ConfigurationServiceGenerationGen1),
+					string(appplatform.ConfigurationServiceGenerationGen2),
+				}, false),
 			},
 
 			"repository": {
@@ -167,6 +179,7 @@ func resourceSpringCloudConfigurationServiceCreateUpdate(d *pluginsdk.ResourceDa
 
 	configurationServiceResource := appplatform.ConfigurationServiceResource{
 		Properties: &appplatform.ConfigurationServiceProperties{
+			Generation: appplatform.ConfigurationServiceGeneration(d.Get("generation").(string)),
 			Settings: &appplatform.ConfigurationServiceSettings{
 				GitProperty: &appplatform.ConfigurationServiceGitProperty{
 					Repositories: expandConfigurationServiceConfigurationServiceGitRepositoryArray(d.Get("repository").([]interface{})),
@@ -209,6 +222,7 @@ func resourceSpringCloudConfigurationServiceRead(d *pluginsdk.ResourceData, meta
 	d.Set("name", id.ConfigurationServiceName)
 	d.Set("spring_cloud_service_id", parse.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName).ID())
 	if props := resp.Properties; props != nil {
+		d.Set("generation", props.Generation)
 		if props.Settings != nil && props.Settings.GitProperty != nil {
 			d.Set("repository", flattenConfigurationServiceConfigurationServiceGitRepositoryArray(props.Settings.GitProperty.Repositories, d.Get("repository").([]interface{})))
 		}

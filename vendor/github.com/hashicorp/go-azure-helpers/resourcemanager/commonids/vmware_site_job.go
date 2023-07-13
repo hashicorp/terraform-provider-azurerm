@@ -42,19 +42,19 @@ func ParseVMwareSiteJobID(input string) (*VMwareSiteJobId, error) {
 	id := VMwareSiteJobId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.VMwareSiteName, ok = parsed.Parsed["vmwareSiteName"]; !ok {
-		return nil, fmt.Errorf("the segment 'vmwareSiteName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vmwareSiteName", *parsed)
 	}
 
 	if id.JobName, ok = parsed.Parsed["jobName"]; !ok {
-		return nil, fmt.Errorf("the segment 'jobName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "jobName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseVMwareSiteJobIDInsensitively(input string) (*VMwareSiteJobId, error) {
 	id := VMwareSiteJobId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.VMwareSiteName, ok = parsed.Parsed["vmwareSiteName"]; !ok {
-		return nil, fmt.Errorf("the segment 'vmwareSiteName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vmwareSiteName", *parsed)
 	}
 
 	if id.JobName, ok = parsed.Parsed["jobName"]; !ok {
-		return nil, fmt.Errorf("the segment 'jobName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "jobName", *parsed)
 	}
 
 	return &id, nil

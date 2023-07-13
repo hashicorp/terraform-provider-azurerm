@@ -40,15 +40,15 @@ func ParseFluidRelayServerID(input string) (*FluidRelayServerId, error) {
 	id := FluidRelayServerId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
 	}
 
 	if id.FluidRelayServerName, ok = parsed.Parsed["fluidRelayServerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'fluidRelayServerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fluidRelayServerName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseFluidRelayServerIDInsensitively(input string) (*FluidRelayServerId, er
 	id := FluidRelayServerId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroup' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
 	}
 
 	if id.FluidRelayServerName, ok = parsed.Parsed["fluidRelayServerName"]; !ok {
-		return nil, fmt.Errorf("the segment 'fluidRelayServerName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fluidRelayServerName", *parsed)
 	}
 
 	return &id, nil

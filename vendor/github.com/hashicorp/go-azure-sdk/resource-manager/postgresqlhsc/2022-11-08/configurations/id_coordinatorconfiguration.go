@@ -42,19 +42,19 @@ func ParseCoordinatorConfigurationID(input string) (*CoordinatorConfigurationId,
 	id := CoordinatorConfigurationId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ServerGroupsv2Name, ok = parsed.Parsed["serverGroupsv2Name"]; !ok {
-		return nil, fmt.Errorf("the segment 'serverGroupsv2Name' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serverGroupsv2Name", *parsed)
 	}
 
 	if id.CoordinatorConfigurationName, ok = parsed.Parsed["coordinatorConfigurationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'coordinatorConfigurationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "coordinatorConfigurationName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseCoordinatorConfigurationIDInsensitively(input string) (*CoordinatorCon
 	id := CoordinatorConfigurationId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.ServerGroupsv2Name, ok = parsed.Parsed["serverGroupsv2Name"]; !ok {
-		return nil, fmt.Errorf("the segment 'serverGroupsv2Name' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serverGroupsv2Name", *parsed)
 	}
 
 	if id.CoordinatorConfigurationName, ok = parsed.Parsed["coordinatorConfigurationName"]; !ok {
-		return nil, fmt.Errorf("the segment 'coordinatorConfigurationName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "coordinatorConfigurationName", *parsed)
 	}
 
 	return &id, nil

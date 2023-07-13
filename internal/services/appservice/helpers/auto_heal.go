@@ -1,15 +1,18 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package helpers
 
 import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-03-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type AutoHealSettingWindows struct {
@@ -33,7 +36,7 @@ type AutoHealRequestTrigger struct {
 type AutoHealStatusCodeTrigger struct {
 	StatusCodeRange string `tfschema:"status_code_range"` // Conflicts with `StatusCode`, `Win32Code`, and `SubStatus` when not a single value...
 	SubStatus       int    `tfschema:"sub_status"`
-	Win32Status     string `tfschema:"win32_status"`
+	Win32Status     int    `tfschema:"win32_status"`
 	Path            string `tfschema:"path"`
 	Count           int    `tfschema:"count"`
 	Interval        string `tfschema:"interval"` // Format - hh:mm:ss
@@ -247,7 +250,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 							},
 
 							"win32_status": {
-								Type:     pluginsdk.TypeString,
+								Type:     pluginsdk.TypeInt,
 								Optional: true,
 							},
 
@@ -414,7 +417,7 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 							},
 
 							"win32_status": {
-								Type:     pluginsdk.TypeString,
+								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},
 
@@ -596,6 +599,12 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 				if s.Path != "" {
 					statusCodeTrigger.Path = pointer.To(s.Path)
 				}
+				if s.SubStatus != 0 {
+					statusCodeTrigger.SubStatus = pointer.To(int32(s.SubStatus))
+				}
+				if s.Win32Status != 0 {
+					statusCodeTrigger.Win32Status = pointer.To(int32(s.Win32Status))
+				}
 				statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 			}
 		}
@@ -663,7 +672,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 				}
 
 				if s.Win32Status != nil {
-					t.Win32Status = strconv.Itoa(int(*s.Win32Status))
+					t.Win32Status = int(pointer.From(s.Win32Status))
 				}
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}

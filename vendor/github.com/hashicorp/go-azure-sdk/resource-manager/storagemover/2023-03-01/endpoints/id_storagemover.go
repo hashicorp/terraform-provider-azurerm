@@ -40,15 +40,15 @@ func ParseStorageMoverID(input string) (*StorageMoverId, error) {
 	id := StorageMoverId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.StorageMoverName, ok = parsed.Parsed["storageMoverName"]; !ok {
-		return nil, fmt.Errorf("the segment 'storageMoverName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageMoverName", *parsed)
 	}
 
 	return &id, nil
@@ -67,15 +67,15 @@ func ParseStorageMoverIDInsensitively(input string) (*StorageMoverId, error) {
 	id := StorageMoverId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.StorageMoverName, ok = parsed.Parsed["storageMoverName"]; !ok {
-		return nil, fmt.Errorf("the segment 'storageMoverName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageMoverName", *parsed)
 	}
 
 	return &id, nil

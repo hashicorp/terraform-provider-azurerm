@@ -42,19 +42,19 @@ func ParseSharedPrivateLinkResourceID(input string) (*SharedPrivateLinkResourceI
 	id := SharedPrivateLinkResourceId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'webPubSubName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "webPubSubName", *parsed)
 	}
 
 	if id.SharedPrivateLinkResourceName, ok = parsed.Parsed["sharedPrivateLinkResourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sharedPrivateLinkResourceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sharedPrivateLinkResourceName", *parsed)
 	}
 
 	return &id, nil
@@ -73,19 +73,19 @@ func ParseSharedPrivateLinkResourceIDInsensitively(input string) (*SharedPrivate
 	id := SharedPrivateLinkResourceId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'webPubSubName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "webPubSubName", *parsed)
 	}
 
 	if id.SharedPrivateLinkResourceName, ok = parsed.Parsed["sharedPrivateLinkResourceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'sharedPrivateLinkResourceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sharedPrivateLinkResourceName", *parsed)
 	}
 
 	return &id, nil

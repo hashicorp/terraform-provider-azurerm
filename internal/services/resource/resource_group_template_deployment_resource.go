@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package resource
 
 import (
@@ -356,7 +359,7 @@ func resourceGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, me
 	if deleteItemsInTemplate {
 		resourceClient := meta.(*clients.Client).Resource
 		log.Printf("[DEBUG] Removing items provisioned by the Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
-		if err := deleteItemsProvisionedByTemplate(ctx, resourceClient, *template.Properties); err != nil {
+		if err := deleteItemsProvisionedByTemplate(ctx, resourceClient, *template.Properties, id.SubscriptionId); err != nil {
 			return fmt.Errorf("removing items provisioned by this Template Deployment: %+v", err)
 		}
 		log.Printf("[DEBUG] Removed items provisioned by the Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)

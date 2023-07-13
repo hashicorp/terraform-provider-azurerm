@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventhub
 
 import (
@@ -159,7 +162,7 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
 		}
 
-		if err := future.Poller.PollUntilDone(); err != nil {
+		if err := future.Poller.PollUntilDone(ctx); err != nil {
 			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
 		}
 

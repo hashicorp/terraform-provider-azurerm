@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `pool_allocation_mode` - (Optional) Specifies the mode to use for pool allocation. Possible values are `BatchService` or `UserSubscription`. Defaults to `BatchService`.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`. Changing this forces a new resource to be created.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
 
 ~> **NOTE:** When using `UserSubscription` mode, an Azure KeyVault reference has to be specified. See `key_vault_reference` below.
 
@@ -103,7 +103,7 @@ A `key_vault_reference` block supports the following:
 
 A `encryption` block supports the following:
 
-* `key_vault_key_id` - (Required) The Azure key vault reference id with version that should be used to encrypt data, as documented [here](https://docs.microsoft.com/azure/batch/batch-customer-managed-key). Key rotation is not yet supported.
+* `key_vault_key_id` - (Required) The full URL path to the Azure key vault key id that should be used to encrypt data, as documented [here](https://docs.microsoft.com/azure/batch/batch-customer-managed-key). Both versioned and versionless keys are supported.
 
 ## Attributes Reference
 

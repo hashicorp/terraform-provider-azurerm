@@ -38,11 +38,11 @@ func ParsePricingID(input string) (*PricingId, error) {
 	id := PricingId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.PricingName, ok = parsed.Parsed["pricingName"]; !ok {
-		return nil, fmt.Errorf("the segment 'pricingName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "pricingName", *parsed)
 	}
 
 	return &id, nil
@@ -61,11 +61,11 @@ func ParsePricingIDInsensitively(input string) (*PricingId, error) {
 	id := PricingId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.PricingName, ok = parsed.Parsed["pricingName"]; !ok {
-		return nil, fmt.Errorf("the segment 'pricingName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "pricingName", *parsed)
 	}
 
 	return &id, nil

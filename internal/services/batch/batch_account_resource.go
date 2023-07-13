@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package batch
 
 import (
@@ -12,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2022-01-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -108,7 +111,6 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-				ForceNew: true,
 			},
 
 			"key_vault_reference": {
@@ -159,7 +161,7 @@ func resourceBatchAccount() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemId,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 						},
 					},
 				},
@@ -395,6 +397,14 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			parameters.Properties.AllowedAuthenticationModes = &[]batchaccount.AuthenticationMode{} // remove all modes need explicit set it to empty array not nil
 		} else {
 			parameters.Properties.AllowedAuthenticationModes = expandAllowedAuthenticationModes(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List())
+		}
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		if d.Get("public_network_access_enabled").(bool) {
+			parameters.Properties.PublicNetworkAccess = utils.ToPtr(batchaccount.PublicNetworkAccessTypeEnabled)
+		} else {
+			parameters.Properties.PublicNetworkAccess = utils.ToPtr(batchaccount.PublicNetworkAccessTypeDisabled)
 		}
 	}
 

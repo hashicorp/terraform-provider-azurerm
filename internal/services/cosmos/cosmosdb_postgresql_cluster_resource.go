@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos
 
 import (
@@ -138,6 +141,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"11.0",
 				"11.1",
 				"11.2",
+				"11.3",
 			}, false),
 		},
 
@@ -264,7 +268,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 			ForceNew:         true,
 			StateFunc:        location.StateFunc,
 			DiffSuppressFunc: location.DiffSuppressFunc,
-			RequiredWith:     []string{"source_resource_id", "point_in_time_in_utc"},
+			RequiredWith:     []string{"source_resource_id"},
 		},
 
 		"source_resource_id": {
@@ -272,7 +276,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: clusters.ValidateServerGroupsv2ID,
-			RequiredWith: []string{"source_location", "point_in_time_in_utc"},
+			RequiredWith: []string{"source_location"},
 		},
 
 		"sql_version": {

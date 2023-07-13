@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -131,6 +134,13 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"virtual_router_auto_scale_min_capacity": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(2),
+				Default:      2,
+			},
 		},
 	}
 }
@@ -188,6 +198,12 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if v, ok := d.GetOk("virtual_wan_id"); ok {
 		parameters.VirtualHubProperties.VirtualWan = &network.SubResource{
 			ID: utils.String(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("virtual_router_auto_scale_min_capacity"); ok {
+		parameters.VirtualHubProperties.VirtualRouterAutoScaleConfiguration = &network.VirtualRouterAutoScaleConfiguration{
+			MinCapacity: utils.Int32(int32(v.(int))),
 		}
 	}
 
@@ -276,6 +292,8 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			virtualRouterIps = props.VirtualRouterIps
 		}
 		d.Set("virtual_router_ips", virtualRouterIps)
+
+		d.Set("virtual_router_auto_scale_min_capacity", props.VirtualRouterAutoScaleConfiguration.MinCapacity)
 	}
 
 	defaultRouteTable := parse.NewHubRouteTableID(id.SubscriptionId, id.ResourceGroup, id.Name, "defaultRouteTable")

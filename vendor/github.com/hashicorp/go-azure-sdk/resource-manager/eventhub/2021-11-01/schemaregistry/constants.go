@@ -1,6 +1,10 @@
 package schemaregistry
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForSchemaCompatibility() []string {
 		string(SchemaCompatibilityForward),
 		string(SchemaCompatibilityNone),
 	}
+}
+
+func (s *SchemaCompatibility) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSchemaCompatibility(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSchemaCompatibility(input string) (*SchemaCompatibility, error) {
@@ -48,6 +65,19 @@ func PossibleValuesForSchemaType() []string {
 		string(SchemaTypeAvro),
 		string(SchemaTypeUnknown),
 	}
+}
+
+func (s *SchemaType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSchemaType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSchemaType(input string) (*SchemaType, error) {

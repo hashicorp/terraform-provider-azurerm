@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -13,7 +16,7 @@ import (
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 type OrchestratedVirtualMachineScaleSetDataSource struct{}
@@ -55,7 +58,6 @@ type VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress struct
 	IdleTimeoutInMinutes int                                                                         `tfschema:"idle_timeout_in_minutes"`
 	IPTag                []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag `tfschema:"ip_tag"`
 	PublicIpPrefixId     string                                                                      `tfschema:"public_ip_prefix_id"`
-	SkuName              string                                                                      `tfschema:"sku_name"`
 	Version              string                                                                      `tfschema:"version"`
 }
 

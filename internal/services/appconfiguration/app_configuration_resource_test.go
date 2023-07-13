@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration_test
 
 import (
@@ -255,13 +258,11 @@ func TestAccAppConfiguration_softDeleteRecoveryDisabled(t *testing.T) {
 		{
 			// attempting to re-create without recovery the soft-deleted
 			Config:      r.softDeleteRecoveryDisabled(data),
-			ExpectError: regexp.MustCompile("An existing soft-deleted App Configuration exists with the Name"),
+			ExpectError: regexp.MustCompile("creating Configuration Store"),
 		},
 	})
 }
 
-// This test may fail due to service API behaviour
-// TODO: retry checkNameAvailability to fix this test when SDK is ready, see https://github.com/Azure/AppConfiguration/issues/677
 func TestAccAppConfiguration_softDeletePurgeThenRecreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}

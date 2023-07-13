@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -41,7 +44,7 @@ func (id DdosProtectionPlanId) ID() string {
 func DdosProtectionPlanID(input string) (*DdosProtectionPlanId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an DdosProtectionPlan ID: %+v", input, err)
 	}
 
 	resourceId := DdosProtectionPlanId{
