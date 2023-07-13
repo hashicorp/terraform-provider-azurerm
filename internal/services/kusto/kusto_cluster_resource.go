@@ -171,7 +171,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"engine": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
+				Deprecated:   "The `engine` property will automatically be upgraded by the service team to v3 and is due to be removed from the api therefore it has been deprecated and will no longer function. It will be removed in a future version of the provider.",
 				ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
 			},
 
@@ -241,7 +241,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 	}
 
 	if features.FourPointOhBeta() {
-		s.Schema["engine"].Default = string(clusters.EngineTypeVThree)
 		s.Schema["language_extensions"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
@@ -262,7 +261,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 		}
 	} else {
-		s.Schema["engine"].Default = string(clusters.EngineTypeVTwo)
 		s.Schema["language_extensions"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -327,8 +325,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
 		}
 	}
-
-	engine := clusters.EngineType(d.Get("engine").(string))
 
 	publicNetworkAccess := clusters.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
@@ -469,7 +465,6 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("virtual_network_configuration", flattenKustoClusterVNET(props.VirtualNetworkConfiguration))
 			d.Set("uri", props.Uri)
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
-			d.Set("engine", string(pointer.From(props.EngineType)))
 			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
 
 			if features.FourPointOhBeta() {
