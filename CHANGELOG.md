@@ -11,7 +11,8 @@ ENHANCEMENTS:
 * provider: the Resource Providers `Microsoft.Kubernetes` and `Microsoft.KubernetesConfiguration` are now automatically registered [GH-22463]
 * `automation/dscconfiguration` - updating to API Version `2022-08-08` [GH-22403]
 * `azurestackhcl` - updating to API Version `2023-03-01` [GH-22411]
-* `batch`: updating to use API Version `2023-05-01` [GH-22412]
+* `batch` - updating to use API Version `2023-05-01` [GH-22412]
+* `datafactory` - moving `azurerm_data_factory` and `azurerm_data_factory_managed_private_endpoint` over to `hashicorp/go-azure-sdk` [GH-22409]
 * `elastic` - updating to API Version `2023-06-01` [GH-22451]
 * `kusto` - updating to API Version `2023-05-02` [GH-22410
 * `managedapplications` - migrate to `hashicorp/go-azure-sdk` [GH-21571]
