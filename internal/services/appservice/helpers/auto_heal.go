@@ -590,12 +590,6 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 				}
 				statusCodeTrigger.Count = pointer.To(int32(s.Count))
 				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
-				if s.Win32Status != "" {
-					win32Code, err := strconv.Atoi(s.Win32Status)
-					if err == nil {
-						statusCodeTrigger.Win32Status = pointer.To(int32(win32Code))
-					}
-				}
 				if s.Path != "" {
 					statusCodeTrigger.Path = pointer.To(s.Path)
 				}
