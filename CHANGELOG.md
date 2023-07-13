@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: move `azurerm_bastion_host` and `azurerm_network_connection_monitor` over to `hashicorp/go-azure-sdk` [GH-22425]
+* dependencies: updating to API Version `2022-08-08` [GH-22440]
 
 ## 3.65.0 (July 13, 2023)
 
