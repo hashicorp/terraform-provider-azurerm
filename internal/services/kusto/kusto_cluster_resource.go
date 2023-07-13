@@ -340,7 +340,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
 		EnableStreamingIngest:  utils.Bool(d.Get("streaming_ingestion_enabled").(bool)),
 		EnablePurge:            utils.Bool(d.Get("purge_enabled").(bool)),
-		EngineType:             &engine,
 		PublicNetworkAccess:    &publicNetworkAccess,
 		PublicIPType:           &publicIPType,
 		TrustedExternalTenants: expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{})),
