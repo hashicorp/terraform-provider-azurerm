@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning_test
 
 import (
@@ -376,7 +379,11 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 func (r InferenceClusterResource) template(data acceptance.TestData, vmSize string, nodeCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -468,7 +475,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 func (r InferenceClusterResource) privateTemplate(data acceptance.TestData, vmSize string, nodeCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}

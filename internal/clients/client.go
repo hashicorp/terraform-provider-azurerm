@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package clients
 
 import (
@@ -8,12 +11,12 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
-	azurestackhci_v2022_12_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-12-01"
+	azurestackhci_v2023_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01"
 	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
-	redis_v2022_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2022-06-01"
+	redis_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -27,6 +30,7 @@ import (
 	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
 	attestation "github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	authorization "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
+	automanage "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
 	automation "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/client"
 	azureStackHCI "github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/client"
 	batch "github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/client"
@@ -96,6 +100,7 @@ import (
 	mysql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/client"
 	netapp "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	network "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
+	newrelic "github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/client"
 	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
 	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
@@ -153,8 +158,9 @@ type Client struct {
 	ArcKubernetes         *arckubernetes.Client
 	Attestation           *attestation.Client
 	Authorization         *authorization.Client
+	Automanage            *automanage.Client
 	Automation            *automation.Client
-	AzureStackHCI         *azurestackhci_v2022_12_01.Client
+	AzureStackHCI         *azurestackhci_v2023_03_01.Client
 	Batch                 *batch.Client
 	Blueprints            *blueprints.Client
 	Bot                   *bot.Client
@@ -222,6 +228,7 @@ type Client struct {
 	MySQL                 *mysql.Client
 	NetApp                *netapp.Client
 	Network               *network.Client
+	NewRelic              *newrelic.Client
 	Nginx                 *nginx2.Client
 	NotificationHubs      *notificationhub.Client
 	Orbital               *orbital.Client
@@ -233,7 +240,7 @@ type Client struct {
 	PrivateDnsResolver    *dnsresolver.Client
 	Purview               *purview.Client
 	RecoveryServices      *recoveryServices.Client
-	Redis                 *redis_v2022_06_01.Client
+	Redis                 *redis_v2023_04_01.Client
 	RedisEnterprise       *redisenterprise.Client
 	Relay                 *relay.Client
 	Resource              *resource.Client
@@ -294,8 +301,13 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Attestation, err = attestation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Attestation: %+v", err)
 	}
-	client.Authorization = authorization.NewClient(o)
-	client.Automation = automation.NewClient(o)
+	if client.Authorization, err = authorization.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Authorization: %+v", err)
+	}
+	client.Automanage = automanage.NewClient(o)
+	if client.Automation, err = automation.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Automation: %+v", err)
+	}
 	client.AzureStackHCI = azureStackHCI.NewClient(o)
 	if client.Batch, err = batch.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Batch: %+v", err)
@@ -309,7 +321,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Communication, err = communication.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Communication: %+v", err)
 	}
-	client.Compute = compute.NewClient(o)
+	if client.Compute, err = compute.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Compute: %+v", err)
+	}
 	if client.ConfidentialLedger, err = confidentialledger.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ConfidentialLedger: %+v", err)
 	}
@@ -331,7 +345,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Dashboard, err = dashboard.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Dashboard: %+v", err)
 	}
-	client.DatabaseMigration = datamigration.NewClient(o)
+	if client.DatabaseMigration, err = datamigration.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DatabaseMigration: %+v", err)
+	}
 	if client.DataBricks, err = databricks.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DataBricks: %+v", err)
 	}
@@ -341,7 +357,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Datadog, err = datadog.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Datadog: %+v", err)
 	}
-	client.DataFactory = datafactory.NewClient(o)
+	if client.DataFactory, err = datafactory.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataFactory: %+v", err)
+	}
 	if client.DataProtection, err = dataprotection.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DataProtection: %+v", err)
 	}
@@ -366,7 +384,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
 	client.Firewall = firewall.NewClient(o)
-	client.FluidRelay = fluidrelay.NewClient(o)
+	if client.FluidRelay, err = fluidrelay.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for FluidRelay: %+v", err)
+	}
 	client.Frontdoor = frontdoor.NewClient(o)
 	client.HPCCache = hpccache.NewClient(o)
 	client.HSM = hsm.NewClient(o)
@@ -382,16 +402,24 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
-	client.LabService = labservice.NewClient(o)
+	if client.LabService, err = labservice.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for LabService: %+v", err)
+	}
 	client.Legacy = legacy.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.LoadBalancers = loadbalancers.NewClient(o)
-	client.Logic = logic.NewClient(o)
-	client.Logz = logz.NewClient(o)
+	if client.Logic, err = logic.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Logic: %+v", err)
+	}
+	if client.Logz, err = logz.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Logz: %+v", err)
+	}
 	client.MachineLearning = machinelearning.NewClient(o)
 	client.Maintenance = maintenance.NewClient(o)
-	client.ManagedApplication = managedapplication.NewClient(o)
+	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed Applications: %+v", err)
+	}
 	client.ManagementGroups = managementgroup.NewClient(o)
 	if client.Maps, err = maps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Maps: %+v", err)
@@ -406,23 +434,34 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.MSSQL = mssql.NewClient(o)
 	client.MSSQLManagedInstance = mssqlmanagedinstance.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
-	client.NetApp = netapp.NewClient(o)
+	if client.NetApp, err = netapp.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NetApp: %+v", err)
+	}
 	if client.Network, err = network.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Network: %+v", err)
+	}
+	if client.NewRelic, err = newrelic.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NewRelic: %+v", err)
 	}
 	if client.Nginx, err = nginx.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Nginx: %+v", err)
 	}
-	client.NotificationHubs = notificationhub.NewClient(o)
+	if client.NotificationHubs, err = notificationhub.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NotificationHubs: %+v", err)
+	}
 	client.Orbital = orbital.NewClient(o)
-	client.Policy = policy.NewClient(o)
+	if client.Policy, err = policy.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Policy: %+v", err)
+	}
 	if client.Portal, err = portal.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Portal: %+v", err)
 	}
 	client.Postgres = postgres.NewClient(o)
 	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
-	client.PrivateDnsResolver = dnsresolver.NewClient(o)
+	if client.PrivateDnsResolver, err = dnsresolver.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for PrivateDnsResolver: %+v", err)
+	}
 	client.Purview = purview.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	if client.Redis, err = redis.NewClient(o); err != nil {

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "null_resource" "enable-soft-delete-and-purge-protection" {
   # Soft Delete and Purge Protection aren't available in the Azure Provider at this time
   # as such we'll use the Azure CLI to enable them for the moment

@@ -1,7 +1,7 @@
-import jetbrains.buildServer.configs.kotlin.v2019_2.*
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.GolangFeature
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.ScriptBuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
+import jetbrains.buildServer.configs.kotlin.*
+import jetbrains.buildServer.configs.kotlin.buildFeatures.GolangFeature
+import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
+import jetbrains.buildServer.configs.kotlin.triggers.schedule
 
 // NOTE: in time this could be pulled out into a separate Kotlin package
 
@@ -128,6 +128,11 @@ fun ParametrizedWithType.hiddenPasswordVariable(name: String, value: String, des
 }
 
 fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek: String, daysOfMonth: String) {
+    // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
+    if (!enableTestTriggersGlobally) {
+        return
+    }
+
     schedule{
         enabled = nightlyTestsEnabled
         branchFilter = "+:refs/heads/main"

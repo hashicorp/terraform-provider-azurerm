@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package securitycenter_test
 
 import (
@@ -15,11 +18,11 @@ import (
 
 type SecurityCenterAssessmentPolicyResource struct{}
 
-func TestAccSecurityCenterAssessmentPolicy_basic(t *testing.T) {
+func testAccSecurityCenterAssessmentPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_policy", "test")
 	r := SecurityCenterAssessmentPolicyResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -30,11 +33,11 @@ func TestAccSecurityCenterAssessmentPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAssessmentPolicy_complete(t *testing.T) {
+func testAccSecurityCenterAssessmentPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_policy", "test")
 	r := SecurityCenterAssessmentPolicyResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -45,11 +48,11 @@ func TestAccSecurityCenterAssessmentPolicy_complete(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAssessmentPolicy_update(t *testing.T) {
+func testAccSecurityCenterAssessmentPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_policy", "test")
 	r := SecurityCenterAssessmentPolicyResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(),
 			Check: acceptance.ComposeTestCheckFunc(

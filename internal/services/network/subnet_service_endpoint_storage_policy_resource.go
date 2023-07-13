@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -55,7 +58,7 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
-				MaxItems: 1,
+				MaxItems: 2,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -72,6 +75,14 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 								ValidateFunc: validation.Any(
 									azure.ValidateResourceID,
 									mgValidate.ManagementGroupID,
+									validation.StringInSlice([]string{
+										"/services/Azure",
+										"/services/Azure/Batch",
+										"/services/Azure/DataFactory",
+										"/services/Azure/MachineLearning",
+										"/services/Azure/ManagedInstance",
+										"/services/Azure/WebPI",
+									}, false),
 								),
 							},
 						},
@@ -80,6 +91,16 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringLenBetween(0, 140),
+						},
+
+						"service": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "Microsoft.Storage",
+							ValidateFunc: validation.StringInSlice([]string{
+								"Microsoft.Storage",
+								"Global",
+							}, false),
 						},
 					},
 				},
@@ -137,7 +158,6 @@ func resourceSubnetServiceEndpointStoragePolicyRead(d *pluginsdk.ResourceData, m
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
 	id, err := parse.SubnetServiceEndpointStoragePolicyID(d.Id())
 	if err != nil {
 		return err
@@ -202,7 +222,7 @@ func expandServiceEndpointPolicyDefinitions(input []interface{}) *[]network.Serv
 			Name: utils.String(e["name"].(string)),
 			ServiceEndpointPolicyDefinitionPropertiesFormat: &network.ServiceEndpointPolicyDefinitionPropertiesFormat{
 				Description:      utils.String(e["description"].(string)),
-				Service:          utils.String("Microsoft.Storage"),
+				Service:          utils.String(e["service"].(string)),
 				ServiceResources: utils.ExpandStringSlice(e["service_resources"].(*pluginsdk.Set).List()),
 			},
 		})
@@ -225,6 +245,7 @@ func flattenServiceEndpointPolicyDefinitions(input *[]network.ServiceEndpointPol
 
 		var (
 			description     = ""
+			service         = ""
 			serviceResource = []interface{}{}
 		)
 		if b := e.ServiceEndpointPolicyDefinitionPropertiesFormat; b != nil {
@@ -232,12 +253,16 @@ func flattenServiceEndpointPolicyDefinitions(input *[]network.ServiceEndpointPol
 				description = *b.Description
 			}
 			serviceResource = utils.FlattenStringSlice(b.ServiceResources)
+			if b.Service != nil {
+				service = *b.Service
+			}
 		}
 
 		output = append(output, map[string]interface{}{
 			"name":              name,
 			"description":       description,
 			"service_resources": serviceResource,
+			"service":           service,
 		})
 	}
 

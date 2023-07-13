@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -14,17 +17,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/shim"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/filesystems"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/paths"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/directories"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/queue/queues"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/tables"
 )
 
 type Client struct {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -16,10 +19,11 @@ import (
 )
 
 type WorkspaceResourceModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	Location          string            `tfschema:"location"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name                       string            `tfschema:"name"`
+	ResourceGroupName          string            `tfschema:"resource_group_name"`
+	PublicNetworkAccessEnabled bool              `tfschema:"public_network_access_enabled"`
+	Location                   string            `tfschema:"location"`
+	Tags                       map[string]string `tfschema:"tags"`
 }
 
 type WorkspaceResource struct{}
@@ -48,6 +52,12 @@ func (r WorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
 
 		"location": commonschema.Location(),
 
@@ -80,10 +90,17 @@ func (r WorkspaceResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			publicNetworkAccess := azuremonitorworkspaces.PublicNetworkAccessEnabled
+			if !model.PublicNetworkAccessEnabled {
+				publicNetworkAccess = azuremonitorworkspaces.PublicNetworkAccessDisabled
+			}
+
 			properties := azuremonitorworkspaces.AzureMonitorWorkspaceResource{
-				Location:   location.Normalize(model.Location),
-				Properties: &azuremonitorworkspaces.AzureMonitorWorkspace{},
-				Tags:       &model.Tags,
+				Location: location.Normalize(model.Location),
+				Properties: &azuremonitorworkspaces.AzureMonitorWorkspace{
+					PublicNetworkAccess: pointer.To(publicNetworkAccess),
+				},
+				Tags: &model.Tags,
 			}
 
 			if _, err := client.Create(ctx, id, properties); err != nil {
@@ -126,6 +143,19 @@ func (r WorkspaceResource) Update() sdk.ResourceFunc {
 				resp.Model.Tags = pointer.To(model.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				if properties.Properties == nil {
+					properties.Properties = &azuremonitorworkspaces.AzureMonitorWorkspace{}
+				}
+
+				publicNetworkAccess := azuremonitorworkspaces.PublicNetworkAccessEnabled
+				if !model.PublicNetworkAccessEnabled {
+					publicNetworkAccess = azuremonitorworkspaces.PublicNetworkAccessDisabled
+				}
+
+				resp.Model.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+			}
+
 			if _, err := client.Create(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -163,6 +193,14 @@ func (r WorkspaceResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Tags = pointer.From(model.Tags)
 				state.Location = location.Normalize(model.Location)
+
+				if properties := model.Properties; properties != nil {
+					publicNetworkAccess := true
+					if properties.PublicNetworkAccess != nil {
+						publicNetworkAccess = azuremonitorworkspaces.PublicNetworkAccessEnabled == *properties.PublicNetworkAccess
+					}
+					state.PublicNetworkAccessEnabled = publicNetworkAccess
+				}
 			}
 
 			return metadata.Encode(&state)

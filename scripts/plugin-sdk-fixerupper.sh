@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 PACKAGE_NAME="$1"
 SERVICE_DIRECTORY="./internal/services/$PACKAGE_NAME"

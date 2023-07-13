@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package dns_test
 
 import (
@@ -71,11 +74,48 @@ func TestAccDnsZone_withTags(t *testing.T) {
 	})
 }
 
-func TestAccDnsZone_withSOARecord(t *testing.T) {
+func TestAccDnsZone_basicSOARecord(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
 	r := DnsZoneResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withBasicSOARecord(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDnsZone_completeSOARecord(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
+	r := DnsZoneResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCompletedSOARecord(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDnsZone_updateSOARecord(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
+	r := DnsZoneResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.withBasicSOARecord(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -205,8 +245,7 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   soa_record {
-    email     = "testemail.com"
-    host_name = "testhost.contoso.com"
+    email = "testemail.com"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -229,7 +268,6 @@ resource "azurerm_dns_zone" "test" {
 
   soa_record {
     email         = "testemail.com"
-    host_name     = "testhost.contoso.com"
     expire_time   = 2419200
     minimum_ttl   = 200
     refresh_time  = 2600

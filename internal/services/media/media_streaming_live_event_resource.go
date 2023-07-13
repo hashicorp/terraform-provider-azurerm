@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package media
 
 import (
@@ -27,6 +30,8 @@ func resourceMediaLiveEvent() *pluginsdk.Resource {
 		Read:   resourceMediaLiveEventRead,
 		Update: resourceMediaLiveEventUpdate,
 		Delete: resourceMediaLiveEventDelete,
+
+		DeprecationMessage: azureMediaRetirementMessage,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

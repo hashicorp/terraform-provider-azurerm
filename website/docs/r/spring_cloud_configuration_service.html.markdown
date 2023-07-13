@@ -57,6 +57,8 @@ The following arguments are supported:
 
 ---
 
+* `generation` - (Optional) The generation of the Spring Cloud Configuration Service. Possible values are `Gen1` and `Gen2`.
+
 * `repository` - (Optional) One or more `repository` blocks as defined below.
 
 ---

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos_test
 
 import (
@@ -3540,6 +3543,14 @@ resource "azurerm_cosmosdb_account" "test" {
 
   capabilities {
     name = "EnableUniqueCompoundNestedDocs"
+  }
+
+  capabilities {
+    name = "EnableTtlOnCustomPath"
+  }
+
+  capabilities {
+    name = "EnablePartialUniqueIndex"
   }
 
   consistency_policy {

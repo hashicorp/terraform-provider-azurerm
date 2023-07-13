@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation
 
 import (
@@ -412,7 +415,7 @@ func flattenEncryption(encryption *automationaccount.EncryptionProperties) []int
 	userAssignedIdentityId := ""
 
 	if keyProp := encryption.KeyVaultProperties; keyProp != nil {
-		keyId, err := keyVaultParse.NewNestedItemID(*keyProp.KeyvaultUri, "keys", *keyProp.KeyName, *keyProp.KeyVersion)
+		keyId, err := keyVaultParse.NewNestedItemID(*keyProp.KeyvaultUri, keyVaultParse.NestedItemTypeKey, *keyProp.KeyName, *keyProp.KeyVersion)
 		if err == nil {
 			keyVaultKeyId = keyId.ID()
 		}

@@ -43,7 +43,7 @@ type AzureVMWorkloadProtectedItem struct {
 	PolicyId                         *string               `json:"policyId,omitempty"`
 	PolicyName                       *string               `json:"policyName,omitempty"`
 	ResourceGuardOperationRequests   *[]string             `json:"resourceGuardOperationRequests,omitempty"`
-	SoftDeleteRetentionPeriod        *int64                `json:"softDeleteRetentionPeriod,omitempty"`
+	SoftDeleteRetentionPeriodInDays  *int64                `json:"softDeleteRetentionPeriodInDays,omitempty"`
 	SourceResourceId                 *string               `json:"sourceResourceId,omitempty"`
 	WorkloadType                     *DataSourceType       `json:"workloadType,omitempty"`
 }
