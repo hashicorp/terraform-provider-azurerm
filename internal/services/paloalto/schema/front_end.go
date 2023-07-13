@@ -8,15 +8,15 @@ import (
 )
 
 type FrontEnd struct {
-	BackendConfiguration  []EndpointConfiguration `tfschema:"backend"`
-	FrontendConfiguration []EndpointConfiguration `tfschema:"frontend"`
 	Name                  string                  `tfschema:"name"`
 	Protocol              string                  `tfschema:"protocol"`
+	FrontendConfiguration []EndpointConfiguration `tfschema:"front_end_config"`
+	BackendConfiguration  []EndpointConfiguration `tfschema:"back_end_config"`
 }
 
 type EndpointConfiguration struct {
 	PublicIPID string `tfschema:"public_ip_address_id"`
-	Port       string `tfschema:"port"`
+	Port       int    `tfschema:"port"`
 }
 
 // FrontEndSchema returns the schema for a Palo Alto NGFW Front End Settings
@@ -38,15 +38,15 @@ func FrontEndSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice(firewalls.PossibleValuesForProtocolType(), false),
 				},
 
-				"backend": EndopointSchema(),
+				"back_end_config": EndpointSchema(),
 
-				"frontend": EndopointSchema(),
+				"front_end_config": EndpointSchema(),
 			},
 		},
 	}
 }
 
-func EndopointSchema() *pluginsdk.Schema {
+func EndpointSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
@@ -60,7 +60,7 @@ func EndopointSchema() *pluginsdk.Schema {
 				},
 
 				"port": {
-					Type:         pluginsdk.TypeString,
+					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ValidateFunc: nil, // TODO - Need a atoi validation func for 1 - 65535
 				},

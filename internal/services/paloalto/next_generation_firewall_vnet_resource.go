@@ -7,11 +7,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,36 +19,34 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NextGenerationFirewall struct{}
+type NextGenerationFirewallVNetResource struct{}
 
-type NextGenerationFirewallModel struct {
-	Name              string                  `tfschema:"name"`
-	ResourceGroupName string                  `tfschema:"resource_group_name"`
-	Location          string                  `tfschema:"location"` // TODO RG Location only, or other OK?
-	NetworkProfile    []schema.NetworkProfile `tfschema:"network_profile"`
-	RuleStackId       string                  `tfschema:"rule_stack_id"`
-	DNSSettings       []schema.DNSSettings    `tfschema:"dns_settings"`
-	FrontEnd          []schema.FrontEnd       `tfschema:"front_end"`
-	PanoramaConfig    []schema.Panorama       `tfschema:"panorama"`
+type NextGenerationFirewallVnetModel struct {
+	Name              string                      `tfschema:"name"`
+	ResourceGroupName string                      `tfschema:"resource_group_name"`
+	Location          string                      `tfschema:"location"` // TODO RG Location only, or other OK?
+	NetworkProfile    []schema.NetworkProfileVnet `tfschema:"network_profile"`
+	RuleStackId       string                      `tfschema:"rule_stack_id"`
+	DNSSettings       []schema.DNSSettings        `tfschema:"dns_settings"`
+	FrontEnd          []schema.FrontEnd           `tfschema:"front_end"`
+	PanoramaConfig    []schema.Panorama           `tfschema:"panorama"`
 
 	// Computed
 	PlanData []schema.Plan `tfschema:"plan"`
 	PanEtag  string        `tfschema:"pan_etag"`
 
-	Identity []identity.ModelUserAssigned `tfschema:"identity"`
-
 	Tags map[string]interface{} `tfschema:"tags"`
 }
 
-var _ sdk.ResourceWithUpdate = NextGenerationFirewall{}
+var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetResource{}
 
-var _ sdk.ResourceWithCustomizeDiff = NextGenerationFirewall{}
+var _ sdk.ResourceWithCustomizeDiff = NextGenerationFirewallVNetResource{}
 
-func (r NextGenerationFirewall) ModelObject() interface{} {
-	return &NextGenerationFirewallModel{}
+func (r NextGenerationFirewallVNetResource) ModelObject() interface{} {
+	return &NextGenerationFirewallVnetModel{}
 }
 
-func (r NextGenerationFirewall) Arguments() map[string]*pluginsdk.Schema {
+func (r NextGenerationFirewallVNetResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -69,12 +67,12 @@ func (r NextGenerationFirewall) Arguments() map[string]*pluginsdk.Schema {
 			ConflictsWith:    []string{"rule_stack_id"},
 		},
 
-		"network_profile": schema.NetworkProfileSchema(),
+		"network_profile": schema.VnetNetworkProfileSchema(),
 
 		// Optional
 		"dns_settings": schema.DNSSettingsSchema(),
 
-		"rule_stack_id": {
+		"rule_stack_id": { // TODO - Need ForceNew to switch between Rulestack and Panorama
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: localrulestacks.ValidateLocalRulestackID,
@@ -88,13 +86,11 @@ func (r NextGenerationFirewall) Arguments() map[string]*pluginsdk.Schema {
 
 		"front_end": schema.FrontEndSchema(),
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
-
 		"tags": commonschema.Tags(),
 	}
 }
 
-func (r NextGenerationFirewall) Attributes() map[string]*pluginsdk.Schema {
+func (r NextGenerationFirewallVNetResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"plan": schema.PlanSchema(),
 
@@ -105,30 +101,28 @@ func (r NextGenerationFirewall) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r NextGenerationFirewall) CustomizeDiff() sdk.ResourceFunc {
+func (r NextGenerationFirewallVNetResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO - ForceNewIf config changes from Vnet to VHub or vice versa
-
-			// TODO - ForceNewIf Config changes from LocalRulestack to Panorama
+			// TODO if changing from Panorama to Rulestack or vice versa, ForceNew
 			return nil
 		},
 	}
 }
 
-func (r NextGenerationFirewall) ResourceType() string {
-	return "azurerm_palo_alto_next_generation_firewall"
+func (r NextGenerationFirewallVNetResource) ResourceType() string {
+	return "azurerm_palo_alto_next_generation_firewall_vnet"
 }
 
-func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
+func (r NextGenerationFirewallVNetResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallClient
 			localRulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
 
-			var model NextGenerationFirewallModel
+			var model NextGenerationFirewallVnetModel
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -149,21 +143,18 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 			firewall := firewalls.FirewallResource{
 				Properties: firewalls.FirewallDeploymentProperties{
 					DnsSettings: firewalls.DNSSettings{
-						EnableDnsProxy: pointer.To(firewalls.DNSProxyDISABLED),
-						EnabledDnsType: pointer.To(firewalls.EnabledDNSTypeCUSTOM),
+						//EnableDnsProxy: pointer.To(firewalls.DNSProxyDISABLED),
+						//EnabledDnsType: pointer.To(firewalls.EnabledDNSTypeCUSTOM),
 					},
 					MarketplaceDetails: firewalls.MarketplaceDetails{
 						OfferId:     "pan_swfw_cloud_ngfw", // TODO - Will just supplying the offer ID `panw-cloud-ngfw-payg` work?
 						PublisherId: "paloaltonetworks",
-						//MarketplaceSubscriptionStatus: pointer.To(firewalls.MarketplaceSubscriptionStatusSubscribed),
 					},
-					//NetworkProfile: firewalls.NetworkProfile{},
-					NetworkProfile: schema.ExpandNetworkProfile(model.NetworkProfile),
+					NetworkProfile: schema.ExpandNetworkProfileVnet(model.NetworkProfile),
 					PlanData: firewalls.PlanData{
 						BillingCycle:  firewalls.BillingCycleMONTHLY,
 						PlanId:        "panw-cloud-ngfw-payg",
 						EffectiveDate: pointer.To("0001-01-01T00:00:00Z"),
-						//UsageType:    pointer.To(firewalls.UsageTypePAYG),
 					},
 				},
 				Tags: tags.Expand(model.Tags),
@@ -184,7 +175,9 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 						})
 					}
 					dnsSettings.DnsServers = pointer.To(dnsServers)
-				} else {
+				}
+
+				if dns.AzureDNS {
 					dnsSettings.EnabledDnsType = pointer.To(firewalls.EnabledDNSTypeAZURE)
 				}
 
@@ -232,7 +225,7 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 							Address: firewalls.IPAddress{
 								ResourceId: pointer.To(fec.PublicIPID),
 							},
-							Port: fec.Port,
+							Port: strconv.Itoa(fec.Port),
 						}
 					}
 
@@ -242,7 +235,7 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 							Address: firewalls.IPAddress{
 								ResourceId: pointer.To(bec.PublicIPID),
 							},
-							Port: bec.Port,
+							Port: strconv.Itoa(bec.Port),
 						}
 					}
 
@@ -251,13 +244,6 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 
 				firewall.Properties.FrontEndSettings = pointer.To(fes)
 			}
-
-			ident, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
-			if err != nil {
-				return err
-			}
-
-			firewall.Identity = ident
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
 				return err
@@ -270,7 +256,7 @@ func (r NextGenerationFirewall) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r NextGenerationFirewall) Read() sdk.ResourceFunc {
+func (r NextGenerationFirewallVNetResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -281,7 +267,7 @@ func (r NextGenerationFirewall) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var state NextGenerationFirewallModel
+			var state NextGenerationFirewallVnetModel
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -304,22 +290,24 @@ func (r NextGenerationFirewall) Read() sdk.ResourceFunc {
 				}
 			}
 
-			netProfile := schema.FlattenNetworkProfile(props.NetworkProfile)
-			state.NetworkProfile = []schema.NetworkProfile{netProfile}
+			netProfile := schema.FlattenNetworkProfileVnet(props.NetworkProfile)
+			state.NetworkProfile = []schema.NetworkProfileVnet{netProfile}
 
 			if feSettings := pointer.From(props.FrontEndSettings); len(feSettings) != 0 {
 				fes := make([]schema.FrontEnd, 0)
 				for _, v := range feSettings {
+					bePort, _ := strconv.Atoi(v.BackendConfiguration.Port)
+					fePort, _ := strconv.Atoi(v.FrontendConfiguration.Port)
 					fe := schema.FrontEnd{
 						Name:     v.Name,
 						Protocol: string(v.Protocol),
 						BackendConfiguration: []schema.EndpointConfiguration{{
 							PublicIPID: pointer.From(v.BackendConfiguration.Address.ResourceId),
-							Port:       v.BackendConfiguration.Port,
+							Port:       bePort,
 						}},
 						FrontendConfiguration: []schema.EndpointConfiguration{{
 							PublicIPID: pointer.From(v.FrontendConfiguration.Address.ResourceId),
-							Port:       v.FrontendConfiguration.Port,
+							Port:       fePort,
 						}},
 					}
 
@@ -343,16 +331,6 @@ func (r NextGenerationFirewall) Read() sdk.ResourceFunc {
 
 			state.RuleStackId = pointer.From(props.AssociatedRulestack.ResourceId)
 
-			if existing.Model.Identity != nil {
-				ident, err := identity.FlattenLegacySystemAndUserAssignedMap(existing.Model.Identity)
-				if err != nil {
-					return err
-				}
-				if err := metadata.ResourceData.Set("identity", ident); err != nil {
-					return fmt.Errorf("setting `identity`: %+v", err)
-				}
-			}
-
 			state.PanEtag = pointer.From(props.PanEtag)
 
 			state.PlanData = schema.FlattenPlanData(props.PlanData)
@@ -364,7 +342,7 @@ func (r NextGenerationFirewall) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r NextGenerationFirewall) Delete() sdk.ResourceFunc {
+func (r NextGenerationFirewallVNetResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -384,11 +362,11 @@ func (r NextGenerationFirewall) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r NextGenerationFirewall) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r NextGenerationFirewallVNetResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return firewalls.ValidateFirewallID
 }
 
-func (r NextGenerationFirewall) Update() sdk.ResourceFunc {
+func (r NextGenerationFirewallVNetResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

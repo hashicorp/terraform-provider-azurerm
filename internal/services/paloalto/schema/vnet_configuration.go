@@ -15,12 +15,8 @@ type VnetConfiguration struct {
 func VnetConfigurationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Required: true,
 		MaxItems: 1,
-		ExactlyOneOf: []string{
-			"network_profile.0.vnet_configuration",
-			"network_profile.0.vwan_configuration",
-		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"virtual_network_id": {

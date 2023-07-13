@@ -14,16 +14,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NextGenerationFirewallResource struct{}
+type NextGenerationFirewallVWanResource struct{}
 
-func TestAccPaloAltoNextGenerationFirewall_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall", "test")
+func TestAccPaloAltoNextGenerationFirewallVHub_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vhub", "test")
 
-	r := NextGenerationFirewallResource{}
+	r := NextGenerationFirewallVWanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithVnet(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -32,7 +32,7 @@ func TestAccPaloAltoNextGenerationFirewall_basic(t *testing.T) {
 	})
 }
 
-func (r NextGenerationFirewallResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NextGenerationFirewallVWanResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := firewalls.ParseFirewallID(state.ID)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (r NextGenerationFirewallResource) Exists(ctx context.Context, client *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r NextGenerationFirewallResource) basicWithVnet(data acceptance.TestData) string {
+func (r NextGenerationFirewallVWanResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -57,25 +57,20 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_next_generation_firewall" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_vhub" "test" {
 	name                = "acctest-ngfw-%[2]d"
 	resource_group_name = azurerm_resource_group.test.name
 	rule_stack_id       = azurerm_palo_alto_local_rule_stack.test.id
 
 	network_profile {
-      public_ip_ids = [azurerm_public_ip.test.id]
-
-      vnet_configuration {
-        virtual_network_id  = azurerm_virtual_network.test.id
-        trusted_subnet_id   = azurerm_subnet.test1.id
-        untrusted_subnet_id = azurerm_subnet.test2.id
-      }
+      virtual_hub_id = azurerm_virtual_hub.test.id
+      public_ip_ids  = [azurerm_public_ip.test.id]
 	}
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NextGenerationFirewallResource) template(data acceptance.TestData) string {
+func (r NextGenerationFirewallVWanResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PANGFW-%[1]d"
@@ -96,64 +91,19 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
+resource "azurerm_virtual_wan" "test" {
+  name                = "acctestvwan-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-
-  tags = {
-    environment = "Production"
-  }
+  location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_subnet" "test1" {
-  name                 = "acctest-pangfw-%[1]d-1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "trusted"
-
-    service_delegation {
-      name = "PaloAltoNetworks.Cloudngfw/firewalls"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action", 
-      ]
-    }
-  }
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
 }
-
-resource "azurerm_subnet_network_security_group_association" "test1" {
-  subnet_id                 = azurerm_subnet.test1.id
-  network_security_group_id = azurerm_network_security_group.test.id
-}
-
-resource "azurerm_subnet" "test2" {
-  name                 = "acctest-pangfw-%[1]d-2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "untrusted"
-
-    service_delegation {
-      name = "PaloAltoNetworks.Cloudngfw/firewalls"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action", 
-      ]
-    }
-  }
-}
-
-
-resource "azurerm_subnet_network_security_group_association" "test2" {
-  subnet_id                 = azurerm_subnet.test2.id
-  network_security_group_id = azurerm_network_security_group.test.id
-}
-
 
 resource "azurerm_palo_alto_local_rule_stack" "test" {
   name                = "testAcc-palrs-%[1]d"

@@ -1,7 +1,6 @@
 package schema
 
 import (
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -9,20 +8,16 @@ import (
 type VWanConfiguration struct {
 	VHubID string `tfschema:"virtual_hub_id"`
 
-	ApplianceID     string `tfschema:"virtual_network_appliance_id"`
+	IpOfTrust       string `tfschema:"ip_of_trust_for_udr"`
 	TrustedSubnet   string `tfschema:"trusted_subnet"`
 	UnTrustedSubnet string `tfschema:"untrusted_subnet"`
-	IpOfTrust       string `tfschema:"ip_of_trust_for_udr"`
+	ApplianceID     string `tfschema:"virtual_network_appliance_id"`
 }
 
 func VWanConfigurationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		ExactlyOneOf: []string{
-			"network_profile.0.vwan_configuration",
-			"network_profile.0.vnet_configuration",
-		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"virtual_hub_id": {
@@ -32,18 +27,21 @@ func VWanConfigurationSchema() *pluginsdk.Schema {
 				},
 
 				"trusted_subnet_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: commonids.ValidateSubnetID,
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"untrusted_subnet_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: commonids.ValidateSubnetID,
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"ip_of_trust_for_udr": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"virtual_network_appliance_id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},

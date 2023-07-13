@@ -23,7 +23,8 @@ func (r Registration) Resources() []sdk.Resource {
 		LocalRulestackFQDNList{},
 		LocalRulestackPrefixList{},
 		LocalRulestackRule{},
-		NextGenerationFirewall{},
+		NextGenerationFirewallVHubResource{},
+		NextGenerationFirewallVNetResource{},
 	}
 }
 
