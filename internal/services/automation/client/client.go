@@ -9,6 +9,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration"
+
+	// use new sdk once https://github.com/hashicorp/pandora/issues/2756 fixed
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/dscnodeconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher"
 
 	// hybridrunbookworkergroup v2022-08-08 issue: https://github.com/Azure/azure-rest-api-specs/issues/24740
@@ -20,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/connectiontype"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/credential"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/dscconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/dscnodeconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/hybridrunbookworker"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/jobschedule"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/module"
@@ -109,11 +111,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(dscConfigurationClient.Client, o.Authorizers.ResourceManager)
 
-	dscNodeConfigurationClient, err := dscnodeconfiguration.NewDscNodeConfigurationClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("build dscNodeConfigurationClient: %+v", err)
-	}
-	o.Configure(dscNodeConfigurationClient.Client, o.Authorizers.ResourceManager)
+	dscNodeConfigurationClient := dscnodeconfiguration.NewDscNodeConfigurationClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&dscNodeConfigurationClient.Client, o.ResourceManagerAuthorizer)
 
 	jobScheduleClient, err := jobschedule.NewJobScheduleClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -174,7 +173,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ConnectionTypeClient:        connectionTypeClient,
 		CredentialClient:            credentialClient,
 		DscConfigurationClient:      dscConfigurationClient,
-		DscNodeConfigurationClient:  dscNodeConfigurationClient,
+		DscNodeConfigurationClient:  &dscNodeConfigurationClient,
 		JobScheduleClient:           jobScheduleClient,
 		ModuleClient:                moduleClient,
 		RunbookClient:               runbookClient,
