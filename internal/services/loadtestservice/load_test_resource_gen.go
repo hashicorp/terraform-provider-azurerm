@@ -54,7 +54,6 @@ func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"description": {
-			ForceNew: true,
 			Optional: true,
 			Type:     pluginsdk.TypeString,
 		},
@@ -82,6 +81,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			id := loadtests.NewLoadTestID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.Get(ctx, id)
