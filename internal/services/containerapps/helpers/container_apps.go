@@ -689,7 +689,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 30),
+					ValidateFunc: validation.IntBetween(0, 300),
 					Description:  "The minimum number of replicas for this container.",
 				},
 
@@ -697,7 +697,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      10,
-					ValidateFunc: validation.IntBetween(1, 30),
+					ValidateFunc: validation.IntBetween(1, 300),
 					Description:  "The maximum number of replicas for this container.",
 				},
 
