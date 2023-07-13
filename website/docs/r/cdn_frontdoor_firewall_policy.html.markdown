@@ -241,7 +241,7 @@ An `exclusion` block supports the following:
 
 * `operator` - (Required) Comparison operator to apply to the selector when specifying which elements in the collection this exclusion applies to. Possible values are: `Equals`, `Contains`, `StartsWith`, `EndsWith`, `EqualsAny`.
 
-* `selector` - (Required) Selector for the value in the `match_variable` attribute this exclusion applies to.
+* `selector` - (Required) Selector for the value in the `match_variable` attribute this exclusion applies to. Set to `"*"` if the `operator` is `EqualsAny`.
 
 ## Attributes Reference
 
