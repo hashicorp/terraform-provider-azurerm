@@ -413,8 +413,12 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Logz, err = logz.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Logz: %+v", err)
 	}
-	client.MachineLearning = machinelearning.NewClient(o)
-	client.Maintenance = maintenance.NewClient(o)
+	if client.MachineLearning, err = machinelearning.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Machine Learning: %+v", err)
+	}
+	if client.Maintenance, err = maintenance.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Maintenance: %+v", err)
+	}
 	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Managed Applications: %+v", err)
 	}
@@ -422,13 +426,19 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Maps, err = maps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Maps: %+v", err)
 	}
-	client.MariaDB = mariadb.NewClient(o)
+	if client.MariaDB, err = mariadb.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Maria DB: %+v", err)
+	}
 	if client.Media, err = media.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Media: %+v", err)
 	}
-	client.MixedReality = mixedreality.NewClient(o)
+	if client.MixedReality, err = mixedreality.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Mixed Reality: %+v", err)
+	}
 	client.Monitor = monitor.NewClient(o)
-	client.MobileNetwork = mobilenetwork.NewClient(o)
+	if client.MobileNetwork, err = mobilenetwork.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Mobile Network: %+v", err)
+	}
 	client.MSSQL = mssql.NewClient(o)
 	client.MSSQLManagedInstance = mssqlmanagedinstance.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
