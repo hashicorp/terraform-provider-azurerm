@@ -25,6 +25,7 @@ type Client struct {
 	VirtualNetworkRulesClient         *mysql.VirtualNetworkRulesClient
 	ServerAdministratorsClient        *mysql.ServerAdministratorsClient
 
+	// TODO: port over to using the Meta Client (which involves bumping the API Version)
 	AzureADAdministratorsClient *azureadadministrators.AzureADAdministratorsClient
 }
 
