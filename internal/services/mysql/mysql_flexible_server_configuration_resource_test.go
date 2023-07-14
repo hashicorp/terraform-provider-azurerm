@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -100,15 +101,16 @@ func (t MySQLFlexibleServerConfigurationResource) Exists(ctx context.Context, cl
 
 func (r MySQLFlexibleServerConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := configurations.ParseConfigurationID(state.Attributes["id"])
+		serverId, err := servers.ParseFlexibleServerID(state.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.MySQL.FlexibleServers.Configurations.Get(ctx, *id)
+		configId := configurations.NewConfigurationID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, configurationName)
+		resp, err := clients.MySQL.FlexibleServers.Configurations.Get(ctx, configId)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("%q does not exist", id)
+				return fmt.Errorf("%q does not exist", configId)
 			}
 			return fmt.Errorf("Bad: Get on mysqlConfigurationsClient: %+v", err)
 		}
