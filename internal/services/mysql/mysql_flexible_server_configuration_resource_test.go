@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -84,36 +85,36 @@ func TestAccMySQLFlexibleServerConfiguration_logSlowAdminStatements(t *testing.T
 }
 
 func (t MySQLFlexibleServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FlexibleServerConfigurationID(state.ID)
+	id, err := configurations.ParseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.MySQL.FlexibleServerConfigurationsClient.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName)
+	resp, err := clients.MySQL.FlexibleServers.Configurations.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MySQLFlexibleServerConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.FlexibleServerID(state.Attributes["id"])
+		id, err := configurations.ParseConfigurationID(state.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.MySQL.FlexibleServerConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name, configurationName)
+		resp, err := clients.MySQL.FlexibleServers.Configurations.Get(ctx, *id)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
+			if response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("%q does not exist", id)
 			}
 			return fmt.Errorf("Bad: Get on mysqlConfigurationsClient: %+v", err)
 		}
 
-		actualValue := *resp.Value
-		defaultValue := *resp.DefaultValue
+		actualValue := *resp.Model.Properties.Value
+		defaultValue := *resp.Model.Properties.DefaultValue
 
 		if defaultValue != actualValue {
 			return fmt.Errorf("MySQL Flexible Server Configuration wasn't set to the default value. Expected '%s' - got '%s': \n%+v", defaultValue, actualValue, resp)
@@ -125,22 +126,22 @@ func (r MySQLFlexibleServerConfigurationResource) checkReset(configurationName s
 
 func (r MySQLFlexibleServerConfigurationResource) checkValue(value string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.FlexibleServerConfigurationID(state.Attributes["id"])
+		id, err := configurations.ParseConfigurationID(state.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.MySQL.FlexibleServerConfigurationsClient.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName)
+		resp, err := clients.MySQL.FlexibleServers.Configurations.Get(ctx, *id)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
+			if response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("%q does not exist", id.ConfigurationName)
 			}
 
 			return fmt.Errorf("Get on MySQL.FlexibleServerConfigurationsClient: %+v", err)
 		}
 
-		if *resp.Value != value {
-			return fmt.Errorf("MySQL Flexible Server Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
+		if *resp.Model.Properties.Value != value {
+			return fmt.Errorf("MySQL Flexible Server Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Model.Properties.Value, resp)
 		}
 
 		return nil

@@ -4,8 +4,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"                // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	flexibleServers_v2021_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover"
@@ -17,7 +16,6 @@ import (
 type Client struct {
 	FlexibleServers *flexibleServers_v2021_05_01.Client
 
-	AzureADAdministratorsClient       *azureadadministrators.AzureADAdministratorsClient
 	ConfigurationsClient              *mysql.ConfigurationsClient
 	DatabasesClient                   *mysql.DatabasesClient
 	FirewallRulesClient               *mysql.FirewallRulesClient
@@ -27,9 +25,7 @@ type Client struct {
 	VirtualNetworkRulesClient         *mysql.VirtualNetworkRulesClient
 	ServerAdministratorsClient        *mysql.ServerAdministratorsClient
 
-	FlexibleDatabasesClient            *mysqlflexibleservers.DatabasesClient
-	FlexibleServerConfigurationsClient *mysqlflexibleservers.ConfigurationsClient
-	FlexibleServerFirewallRulesClient  *mysqlflexibleservers.FirewallRulesClient
+	AzureADAdministratorsClient *azureadadministrators.AzureADAdministratorsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -49,20 +45,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	FirewallRulesClient := mysql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	flexibleDatabasesClient := mysqlflexibleservers.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&flexibleDatabasesClient.Client, o.ResourceManagerAuthorizer)
-
 	flexibleServerClient := servers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&flexibleServerClient.Client, o.ResourceManagerAuthorizer)
 
 	flexibleServerFailoverClient := serverfailover.NewServerFailoverClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&flexibleServerFailoverClient.Client, o.ResourceManagerAuthorizer)
-
-	flexibleServerFirewallRulesClient := mysqlflexibleservers.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&flexibleServerFirewallRulesClient.Client, o.ResourceManagerAuthorizer)
-
-	flexibleServerConfigurationsClient := mysqlflexibleservers.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&flexibleServerConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
 	ServersClient := mysql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
@@ -83,17 +70,14 @@ func NewClient(o *common.ClientOptions) *Client {
 		FlexibleServers: &flexibleServersMetaClient,
 
 		// TODO: switch to using the Meta Clients
-		AzureADAdministratorsClient:        &azureADAdministratorsClient,
-		ConfigurationsClient:               &ConfigurationsClient,
-		DatabasesClient:                    &DatabasesClient,
-		FirewallRulesClient:                &FirewallRulesClient,
-		FlexibleDatabasesClient:            &flexibleDatabasesClient,
-		FlexibleServerFirewallRulesClient:  &flexibleServerFirewallRulesClient,
-		FlexibleServerConfigurationsClient: &flexibleServerConfigurationsClient,
-		ServersClient:                      &ServersClient,
-		ServerKeysClient:                   &ServerKeysClient,
-		ServerSecurityAlertPoliciesClient:  &serverSecurityAlertPoliciesClient,
-		VirtualNetworkRulesClient:          &VirtualNetworkRulesClient,
-		ServerAdministratorsClient:         &serverAdministratorsClient,
+		AzureADAdministratorsClient:       &azureADAdministratorsClient,
+		ConfigurationsClient:              &ConfigurationsClient,
+		DatabasesClient:                   &DatabasesClient,
+		FirewallRulesClient:               &FirewallRulesClient,
+		ServersClient:                     &ServersClient,
+		ServerKeysClient:                  &ServerKeysClient,
+		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,
+		VirtualNetworkRulesClient:         &VirtualNetworkRulesClient,
+		ServerAdministratorsClient:        &serverAdministratorsClient,
 	}
 }
