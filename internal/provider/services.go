@@ -114,6 +114,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql"
@@ -189,6 +190,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		sentinel.Registration{},
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
+		servicenetworking.Registration{},
 		storage.Registration{},
 		storagemover.Registration{},
 		signalr.Registration{},
