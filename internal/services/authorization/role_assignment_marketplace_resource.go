@@ -37,7 +37,7 @@ func (r RoleAssignmentMarketplaceResource) Read() sdk.ResourceFunc {
 }
 
 func (r RoleAssignmentMarketplaceResource) ResourceType() string {
-	return "azurerm_role_assignment_marketplace"
+	return "azurerm_marketplace_role_assignment"
 }
 
 func (r RoleAssignmentMarketplaceResource) ModelObject() interface{} {

@@ -20,7 +20,7 @@ import (
 type RoleAssignmentMarketplaceResource struct{}
 
 func TestAccRoleAssignmentMarketplace_emptyName(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_assignment_marketplace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	r := RoleAssignmentMarketplaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -36,7 +36,7 @@ func TestAccRoleAssignmentMarketplace_emptyName(t *testing.T) {
 }
 
 func TestAccRoleAssignmentMarketplace_roleName(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_assignment_marketplace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	id := uuid.New().String()
 
 	r := RoleAssignmentMarketplaceResource{}
@@ -55,7 +55,7 @@ func TestAccRoleAssignmentMarketplace_roleName(t *testing.T) {
 }
 
 func TestAccRoleAssignmentMarketplace_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_assignment_marketplace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	id := uuid.New().String()
 
 	r := RoleAssignmentMarketplaceResource{}
@@ -71,13 +71,13 @@ func TestAccRoleAssignmentMarketplace_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImportConfig(id),
-			ExpectError: acceptance.RequiresImportError("azurerm_role_assignment_marketplace"),
+			ExpectError: acceptance.RequiresImportError("azurerm_marketplace_role_assignment"),
 		},
 	})
 }
 
 func TestAccRoleAssignmentMarketplace_builtin(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_assignment_marketplace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	id := uuid.New().String()
 
 	r := RoleAssignmentMarketplaceResource{}
@@ -94,7 +94,7 @@ func TestAccRoleAssignmentMarketplace_builtin(t *testing.T) {
 }
 
 func TestAccRoleAssignmentMarketplace_ServicePrincipal(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_assignment_marketplace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
@@ -112,7 +112,7 @@ func TestAccRoleAssignmentMarketplace_ServicePrincipal(t *testing.T) {
 }
 
 func TestAccRoleAssignmentMarketplace_ServicePrincipalWithType(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_assignment_marketplace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
@@ -129,7 +129,7 @@ func TestAccRoleAssignmentMarketplace_ServicePrincipalWithType(t *testing.T) {
 }
 
 func TestAccRoleAssignmentMarketplace_ServicePrincipalGroup(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_assignment_marketplace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
@@ -176,7 +176,7 @@ data "azurerm_role_definition" "test" {
   name = "Monitoring Reader"
 }
 
-resource "azurerm_role_assignment_marketplace" "test" {
+resource "azurerm_marketplace_role_assignment" "test" {
   role_definition_id = "${data.azurerm_role_definition.test.id}"
   principal_id       = "${data.azurerm_client_config.test.object_id}"
   description        = "Test Role Assignment"
@@ -196,7 +196,7 @@ func (RoleAssignmentMarketplaceResource) roleNameConfig(id string) string {
 data "azurerm_client_config" "test" {
 }
 
-resource "azurerm_role_assignment_marketplace" "test" {
+resource "azurerm_marketplace_role_assignment" "test" {
   name                 = "%s"
   role_definition_name = "Log Analytics Reader"
   principal_id         = data.azurerm_client_config.test.object_id
@@ -214,10 +214,10 @@ func (RoleAssignmentMarketplaceResource) requiresImportConfig(id string) string 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_role_assignment_marketplace" "import" {
-  name                 = azurerm_role_assignment_marketplace.test.name
-  role_definition_name = azurerm_role_assignment_marketplace.test.role_definition_name
-  principal_id         = azurerm_role_assignment_marketplace.test.principal_id
+resource "azurerm_marketplace_role_assignment" "import" {
+  name                 = azurerm_marketplace_role_assignment.test.name
+  role_definition_name = azurerm_marketplace_role_assignment.test.role_definition_name
+  principal_id         = azurerm_marketplace_role_assignment.test.principal_id
 
   lifecycle {
     ignore_changes = [
@@ -237,7 +237,7 @@ data "azurerm_role_definition" "test" {
   name = "Log Analytics Reader"
 }
 
-resource "azurerm_role_assignment_marketplace" "test" {
+resource "azurerm_marketplace_role_assignment" "test" {
   name               = "%s"
   role_definition_id = "${data.azurerm_role_definition.test.id}"
   principal_id       = data.azurerm_client_config.test.object_id
@@ -263,7 +263,7 @@ resource "azuread_service_principal" "test" {
   application_id = azuread_application.test.application_id
 }
 
-resource "azurerm_role_assignment_marketplace" "test" {
+resource "azurerm_marketplace_role_assignment" "test" {
   name                 = "%s"
   role_definition_name = "Reader"
   principal_id         = azuread_service_principal.test.id
@@ -289,7 +289,7 @@ resource "azuread_service_principal" "test" {
   application_id = azuread_application.test.application_id
 }
 
-resource "azurerm_role_assignment_marketplace" "test" {
+resource "azurerm_marketplace_role_assignment" "test" {
   name                             = "%s"
   role_definition_name             = "Reader"
   principal_id                     = azuread_service_principal.test.id
@@ -313,7 +313,7 @@ resource "azuread_group" "test" {
   security_enabled = true
 }
 
-resource "azurerm_role_assignment_marketplace" "test" {
+resource "azurerm_marketplace_role_assignment" "test" {
   name                 = "%s"
   role_definition_name = "Reader"
   principal_id         = azuread_group.test.id

@@ -1,12 +1,12 @@
 ---
 subcategory: "Authorization"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_role_assignment_marketplace"
+page_title: "Azure Resource Manager: azurerm_marketplace_role_assignment"
 description: |-
   Assigns a given Principal (User or Group) to a given Role in a Private Azure Marketplace.
 ---
 
-# azurerm_role_assignment_marketplace
+# azurerm_marketplace_role_assignment
 
 Assigns a given Principal (User or Group) to a given Role in a Private Azure Marketplace.
 
@@ -16,7 +16,7 @@ Assigns a given Principal (User or Group) to a given Role in a Private Azure Mar
 data "azurerm_client_config" "example" {
 }
 
-resource "azurerm_role_assignment_marketplace" "example" {
+resource "azurerm_marketplace_role_assignment" "example" {
   role_definition_name = "Marketplace Admin"
   principal_id         = data.azurerm_client_config.example.object_id
 
@@ -39,7 +39,7 @@ data "azurerm_role_definition" "example" {
   name = "Log Analytics Reader"
 }
 
-resource "azurerm_role_assignment_marketplace" "example" {
+resource "azurerm_marketplace_role_assignment" "example" {
   role_definition_id = "${data.azurerm_role_definition.example.id}"
   principal_id       = data.azurerm_client_config.example.object_id
 
@@ -103,7 +103,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Role Assignments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_role_assignment_marketplace.example /providers/Microsoft.Marketplace/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000
+terraform import azurerm_marketplace_role_assignment.example /providers/Microsoft.Marketplace/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000
 ```
 
 ~> **NOTE:** For cross tenant scenarios, the format of the `resource id` consists of the Azure resource ID and the tenant ID, for example:
