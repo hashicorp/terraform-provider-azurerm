@@ -38,6 +38,7 @@ func possibleApplicationGatewaySslCipherSuiteValues() []string {
 	for _, cipherSuite := range network.PossibleApplicationGatewaySslCipherSuiteValues() {
 		cipherSuites = append(cipherSuites, string(cipherSuite))
 	}
+	cipherSuites = append(cipherSuites, "TLS_AES_256_GCM_SHA384")
 	return cipherSuites
 }
 
@@ -2719,7 +2720,7 @@ func expandApplicationGatewaySslPolicy(vs []interface{}) *network.ApplicationGat
 				PolicyType: policyType,
 				PolicyName: policyName,
 			}
-		} else if policyType == network.ApplicationGatewaySslPolicyTypeCustom {
+		} else if policyType == network.ApplicationGatewaySslPolicyTypeCustom || policyType == network.ApplicationGatewaySslPolicyTypeCustomV2 {
 			minProtocolVersion := network.ApplicationGatewaySslProtocol(v["min_protocol_version"].(string))
 			cipherSuites := make([]network.ApplicationGatewaySslCipherSuite, 0)
 
