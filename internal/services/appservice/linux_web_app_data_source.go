@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice
 
 import (
@@ -52,6 +55,7 @@ type LinuxWebAppDataSourceModel struct {
 	OutboundIPAddressList         []string                   `tfschema:"outbound_ip_address_list"`
 	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess           bool                       `tfschema:"public_network_access_enabled"`
 	Usage                         string                     `tfschema:"usage"`
 	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
 	VirtualNetworkSubnetID        string                     `tfschema:"virtual_network_subnet_id"`
@@ -204,6 +208,11 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"site_credential": helpers.SiteCredentialSchema(),
 
 		"service_plan_id": {
@@ -342,6 +351,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
 					webApp.VirtualNetworkSubnetID = subnetId
 				}
+				webApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 			}
 
 			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)

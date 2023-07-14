@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
-	azurestackhci_v2022_12_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2022-12-01"
+	azurestackhci_v2023_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01"
 	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
@@ -161,7 +161,7 @@ type Client struct {
 	Authorization         *authorization.Client
 	Automanage            *automanage.Client
 	Automation            *automation.Client
-	AzureStackHCI         *azurestackhci_v2022_12_01.Client
+	AzureStackHCI         *azurestackhci_v2023_03_01.Client
 	Batch                 *batch.Client
 	Blueprints            *blueprints.Client
 	Bot                   *bot.Client
@@ -303,9 +303,13 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Attestation, err = attestation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Attestation: %+v", err)
 	}
-	client.Authorization = authorization.NewClient(o)
+	if client.Authorization, err = authorization.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Authorization: %+v", err)
+	}
 	client.Automanage = automanage.NewClient(o)
-	client.Automation = automation.NewClient(o)
+	if client.Automation, err = automation.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Automation: %+v", err)
+	}
 	client.AzureStackHCI = azureStackHCI.NewClient(o)
 	if client.Batch, err = batch.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Batch: %+v", err)
@@ -343,7 +347,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Dashboard, err = dashboard.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Dashboard: %+v", err)
 	}
-	client.DatabaseMigration = datamigration.NewClient(o)
+	if client.DatabaseMigration, err = datamigration.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DatabaseMigration: %+v", err)
+	}
 	if client.DataBricks, err = databricks.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DataBricks: %+v", err)
 	}
@@ -353,7 +359,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Datadog, err = datadog.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Datadog: %+v", err)
 	}
-	client.DataFactory = datafactory.NewClient(o)
+	if client.DataFactory, err = datafactory.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DataFactory: %+v", err)
+	}
 	if client.DataProtection, err = dataprotection.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DataProtection: %+v", err)
 	}
@@ -378,7 +386,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
 	client.Firewall = firewall.NewClient(o)
-	client.FluidRelay = fluidrelay.NewClient(o)
+	if client.FluidRelay, err = fluidrelay.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for FluidRelay: %+v", err)
+	}
 	client.Frontdoor = frontdoor.NewClient(o)
 	if client.Graph, err = graph.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Graph: %+v", err)
@@ -397,31 +407,51 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
-	client.LabService = labservice.NewClient(o)
+	if client.LabService, err = labservice.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for LabService: %+v", err)
+	}
 	client.Legacy = legacy.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.LoadBalancers = loadbalancers.NewClient(o)
-	client.Logic = logic.NewClient(o)
-	client.Logz = logz.NewClient(o)
-	client.MachineLearning = machinelearning.NewClient(o)
-	client.Maintenance = maintenance.NewClient(o)
-	client.ManagedApplication = managedapplication.NewClient(o)
+	if client.Logic, err = logic.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Logic: %+v", err)
+	}
+	if client.Logz, err = logz.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Logz: %+v", err)
+	}
+	if client.MachineLearning, err = machinelearning.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Machine Learning: %+v", err)
+	}
+	if client.Maintenance, err = maintenance.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Maintenance: %+v", err)
+	}
+	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed Applications: %+v", err)
+	}
 	client.ManagementGroups = managementgroup.NewClient(o)
 	if client.Maps, err = maps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Maps: %+v", err)
 	}
-	client.MariaDB = mariadb.NewClient(o)
+	if client.MariaDB, err = mariadb.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Maria DB: %+v", err)
+	}
 	if client.Media, err = media.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Media: %+v", err)
 	}
-	client.MixedReality = mixedreality.NewClient(o)
+	if client.MixedReality, err = mixedreality.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Mixed Reality: %+v", err)
+	}
 	client.Monitor = monitor.NewClient(o)
-	client.MobileNetwork = mobilenetwork.NewClient(o)
+	if client.MobileNetwork, err = mobilenetwork.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Mobile Network: %+v", err)
+	}
 	client.MSSQL = mssql.NewClient(o)
 	client.MSSQLManagedInstance = mssqlmanagedinstance.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
-	client.NetApp = netapp.NewClient(o)
+	if client.NetApp, err = netapp.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NetApp: %+v", err)
+	}
 	if client.Network, err = network.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Network: %+v", err)
 	}
@@ -431,7 +461,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Nginx, err = nginx.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Nginx: %+v", err)
 	}
-	client.NotificationHubs = notificationhub.NewClient(o)
+	if client.NotificationHubs, err = notificationhub.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NotificationHubs: %+v", err)
+	}
 	client.Orbital = orbital.NewClient(o)
 	if client.Policy, err = policy.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Policy: %+v", err)
@@ -442,7 +474,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Postgres = postgres.NewClient(o)
 	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
-	client.PrivateDnsResolver = dnsresolver.NewClient(o)
+	if client.PrivateDnsResolver, err = dnsresolver.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for PrivateDnsResolver: %+v", err)
+	}
 	client.Purview = purview.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	if client.Redis, err = redis.NewClient(o); err != nil {
@@ -468,9 +502,11 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for SignalR: %+v", err)
 	}
 	client.Sql = sql.NewClient(o)
-	client.Storage = storage.NewClient(o)
-	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
+	if client.Storage, err = storage.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for StorageMover: %+v", err)
+	}
+	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
+		return fmt.Errorf("building Storage for StorageMover: %+v", err)
 	}
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
 	client.Subscription = subscription.NewClient(o)

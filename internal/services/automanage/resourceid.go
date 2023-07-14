@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automanage
 
 // leaving the Automanage prefix here to avoid stuttering the property name for now

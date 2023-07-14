@@ -35,13 +35,13 @@ type Client struct {
 	tenantId string
 }
 
-func NewMsGraphClient(api environments.Api, apiVersion ApiVersion) (*Client, error) {
+func NewMsGraphClient(api environments.Api, serviceName string, apiVersion ApiVersion) (*Client, error) {
 	endpoint, ok := api.Endpoint()
 	if !ok {
 		return nil, fmt.Errorf("no `endpoint` was returned for this environment")
 	}
 	baseUri := fmt.Sprintf("%s/%s", *endpoint, apiVersion)
-	baseClient := client.NewClient(baseUri, "MicrosoftGraph", string(apiVersion))
+	baseClient := client.NewClient(baseUri, fmt.Sprintf("MicrosoftGraph-%s", serviceName), string(apiVersion))
 	return &Client{
 		Client:        baseClient,
 		EnableRetries: true,

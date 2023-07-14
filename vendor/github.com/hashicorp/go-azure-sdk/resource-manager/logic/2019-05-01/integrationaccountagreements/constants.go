@@ -1,6 +1,10 @@
 package integrationaccountagreements
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -21,6 +25,19 @@ func PossibleValuesForAgreementType() []string {
 		string(AgreementTypeNotSpecified),
 		string(AgreementTypeXOneTwo),
 	}
+}
+
+func (s *AgreementType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAgreementType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAgreementType(input string) (*AgreementType, error) {
@@ -79,6 +96,19 @@ func PossibleValuesForEdifactCharacterSet() []string {
 	}
 }
 
+func (s *EdifactCharacterSet) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEdifactCharacterSet(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEdifactCharacterSet(input string) (*EdifactCharacterSet, error) {
 	vals := map[string]EdifactCharacterSet{
 		"keca":         EdifactCharacterSetKECA,
@@ -122,6 +152,19 @@ func PossibleValuesForEdifactDecimalIndicator() []string {
 	}
 }
 
+func (s *EdifactDecimalIndicator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEdifactDecimalIndicator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEdifactDecimalIndicator(input string) (*EdifactDecimalIndicator, error) {
 	vals := map[string]EdifactDecimalIndicator{
 		"comma":        EdifactDecimalIndicatorComma,
@@ -159,6 +202,19 @@ func PossibleValuesForEncryptionAlgorithm() []string {
 		string(EncryptionAlgorithmNotSpecified),
 		string(EncryptionAlgorithmRCTwo),
 	}
+}
+
+func (s *EncryptionAlgorithm) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEncryptionAlgorithm(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEncryptionAlgorithm(input string) (*EncryptionAlgorithm, error) {
@@ -204,6 +260,19 @@ func PossibleValuesForHashingAlgorithm() []string {
 	}
 }
 
+func (s *HashingAlgorithm) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseHashingAlgorithm(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseHashingAlgorithm(input string) (*HashingAlgorithm, error) {
 	vals := map[string]HashingAlgorithm{
 		"md5":          HashingAlgorithmMDFive,
@@ -239,6 +308,19 @@ func PossibleValuesForKeyType() []string {
 	}
 }
 
+func (s *KeyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKeyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseKeyType(input string) (*KeyType, error) {
 	vals := map[string]KeyType{
 		"notspecified": KeyTypeNotSpecified,
@@ -268,6 +350,19 @@ func PossibleValuesForMessageFilterType() []string {
 		string(MessageFilterTypeInclude),
 		string(MessageFilterTypeNotSpecified),
 	}
+}
+
+func (s *MessageFilterType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMessageFilterType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseMessageFilterType(input string) (*MessageFilterType, error) {
@@ -303,6 +398,19 @@ func PossibleValuesForSegmentTerminatorSuffix() []string {
 		string(SegmentTerminatorSuffixNone),
 		string(SegmentTerminatorSuffixNotSpecified),
 	}
+}
+
+func (s *SegmentTerminatorSuffix) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSegmentTerminatorSuffix(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSegmentTerminatorSuffix(input string) (*SegmentTerminatorSuffix, error) {
@@ -344,6 +452,19 @@ func PossibleValuesForSigningAlgorithm() []string {
 	}
 }
 
+func (s *SigningAlgorithm) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSigningAlgorithm(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSigningAlgorithm(input string) (*SigningAlgorithm, error) {
 	vals := map[string]SigningAlgorithm{
 		"default":      SigningAlgorithmDefault,
@@ -380,6 +501,19 @@ func PossibleValuesForTrailingSeparatorPolicy() []string {
 	}
 }
 
+func (s *TrailingSeparatorPolicy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTrailingSeparatorPolicy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseTrailingSeparatorPolicy(input string) (*TrailingSeparatorPolicy, error) {
 	vals := map[string]TrailingSeparatorPolicy{
 		"mandatory":    TrailingSeparatorPolicyMandatory,
@@ -412,6 +546,19 @@ func PossibleValuesForUsageIndicator() []string {
 		string(UsageIndicatorProduction),
 		string(UsageIndicatorTest),
 	}
+}
+
+func (s *UsageIndicator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUsageIndicator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseUsageIndicator(input string) (*UsageIndicator, error) {
@@ -448,6 +595,19 @@ func PossibleValuesForX12CharacterSet() []string {
 	}
 }
 
+func (s *X12CharacterSet) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseX12CharacterSet(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseX12CharacterSet(input string) (*X12CharacterSet, error) {
 	vals := map[string]X12CharacterSet{
 		"basic":        X12CharacterSetBasic,
@@ -478,6 +638,19 @@ func PossibleValuesForX12DateFormat() []string {
 		string(X12DateFormatNotSpecified),
 		string(X12DateFormatYYMMDD),
 	}
+}
+
+func (s *X12DateFormat) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseX12DateFormat(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseX12DateFormat(input string) (*X12DateFormat, error) {
@@ -513,6 +686,19 @@ func PossibleValuesForX12TimeFormat() []string {
 		string(X12TimeFormatHHMMSSdd),
 		string(X12TimeFormatNotSpecified),
 	}
+}
+
+func (s *X12TimeFormat) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseX12TimeFormat(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseX12TimeFormat(input string) (*X12TimeFormat, error) {

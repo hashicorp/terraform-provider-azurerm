@@ -1,10 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
 	"fmt"
 	"regexp"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 )
 
 func StorageSyncName(v interface{}, _ string) (warnings []string, errors []error) {
@@ -12,20 +13,6 @@ func StorageSyncName(v interface{}, _ string) (warnings []string, errors []error
 
 	if !regexp.MustCompile("^[0-9a-zA-Z-_. ]*[0-9a-zA-Z-_]$").MatchString(input) {
 		errors = append(errors, fmt.Errorf("name (%q) can only consist of letters, numbers, spaces, and any of the following characters: '.-_' and that does not end with characters: '. '", input))
-	}
-
-	return warnings, errors
-}
-
-func StorageSyncId(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return warnings, errors
-	}
-
-	if _, err := parse.StorageSyncServiceID(v); err != nil {
-		errors = append(errors, fmt.Errorf("can not parse %q as a Storage Sync resource id: %v", k, err))
 	}
 
 	return warnings, errors

@@ -371,6 +371,20 @@ A `ssh_key` block exports the following:
 
 * `key_data` - The Public SSH Key used to access the cluster.
 
+---
+
+A `service_mesh_profile` block exports the following:
+
+* `mode` - The mode of the service mesh.
+
+* `internal_ingress_gateway_enabled` - Is Istio Internal Ingress Gateway enabled?
+
+* `external_ingress_gateway_enabled` - Is Istio External Ingress Gateway enabled?
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureServiceMeshPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-addon#register-the-azureservicemeshpreview-feature-flag) for more information.
+
+---
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

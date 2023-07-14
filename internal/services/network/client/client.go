@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -5,10 +8,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/adminrulecollections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/adminrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/bastionhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectionmonitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectivityconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagerconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routefilters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routetables"
@@ -22,10 +29,10 @@ import (
 
 type Client struct {
 	ApplicationGatewaysClient                *network.ApplicationGatewaysClient
-	ApplicationSecurityGroupsClient          *network.ApplicationSecurityGroupsClient
-	BastionHostsClient                       *network.BastionHostsClient
+	ApplicationSecurityGroupsClient          *applicationsecuritygroups.ApplicationSecurityGroupsClient
+	BastionHostsClient                       *bastionhosts.BastionHostsClient
 	ConfigurationPolicyGroupClient           *network.ConfigurationPolicyGroupsClient
-	ConnectionMonitorsClient                 *network.ConnectionMonitorsClient
+	ConnectionMonitorsClient                 *connectionmonitors.ConnectionMonitorsClient
 	DDOSProtectionPlansClient                *network.DdosProtectionPlansClient
 	ExpressRouteAuthsClient                  *network.ExpressRouteCircuitAuthorizationsClient
 	ExpressRouteCircuitsClient               *network.ExpressRouteCircuitsClient
@@ -54,7 +61,7 @@ type Client struct {
 	PointToSiteVpnGatewaysClient             *network.P2sVpnGatewaysClient
 	ProfileClient                            *network.ProfilesClient
 	PacketCapturesClient                     *network.PacketCapturesClient
-	PrivateEndpointClient                    *network.PrivateEndpointsClient
+	PrivateEndpointClient                    *privateendpoints.PrivateEndpointsClient
 	PublicIPsClient                          *network.PublicIPAddressesClient
 	PublicIPPrefixesClient                   *network.PublicIPPrefixesClient
 	RouteMapsClient                          *network.RouteMapsClient
@@ -94,17 +101,26 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ApplicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ApplicationGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
-	ApplicationSecurityGroupsClient := network.NewApplicationSecurityGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ApplicationSecurityGroupsClient.Client, o.ResourceManagerAuthorizer)
+	ApplicationSecurityGroupsClient, err := applicationsecuritygroups.NewApplicationSecurityGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building application security groups client: %+v", err)
+	}
+	o.Configure(ApplicationSecurityGroupsClient.Client, o.Authorizers.ResourceManager)
 
-	BastionHostsClient := network.NewBastionHostsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&BastionHostsClient.Client, o.ResourceManagerAuthorizer)
+	BastionHostsClient, err := bastionhosts.NewBastionHostsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building bastion hosts client: %+v", err)
+	}
+	o.Configure(BastionHostsClient.Client, o.Authorizers.ResourceManager)
 
 	configurationPolicyGroupClient := network.NewConfigurationPolicyGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configurationPolicyGroupClient.Client, o.ResourceManagerAuthorizer)
 
-	ConnectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ConnectionMonitorsClient.Client, o.ResourceManagerAuthorizer)
+	ConnectionMonitorsClient, err := connectionmonitors.NewConnectionMonitorsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building connection monitors client: %+v", err)
+	}
+	o.Configure(ConnectionMonitorsClient.Client, o.Authorizers.ResourceManager)
 
 	DDOSProtectionPlansClient := network.NewDdosProtectionPlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DDOSProtectionPlansClient.Client, o.ResourceManagerAuthorizer)
@@ -223,8 +239,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	PacketCapturesClient := network.NewPacketCapturesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PacketCapturesClient.Client, o.ResourceManagerAuthorizer)
 
-	PrivateEndpointClient := network.NewPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&PrivateEndpointClient.Client, o.ResourceManagerAuthorizer)
+	PrivateEndpointClient, err := privateendpoints.NewPrivateEndpointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building private endpoint client: %+v", err)
+	}
+	o.Configure(PrivateEndpointClient.Client, o.Authorizers.ResourceManager)
 
 	VnetPeeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetPeeringsClient.Client, o.ResourceManagerAuthorizer)
@@ -333,10 +352,10 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		ApplicationGatewaysClient:                &ApplicationGatewaysClient,
-		ApplicationSecurityGroupsClient:          &ApplicationSecurityGroupsClient,
-		BastionHostsClient:                       &BastionHostsClient,
+		ApplicationSecurityGroupsClient:          ApplicationSecurityGroupsClient,
+		BastionHostsClient:                       BastionHostsClient,
 		ConfigurationPolicyGroupClient:           &configurationPolicyGroupClient,
-		ConnectionMonitorsClient:                 &ConnectionMonitorsClient,
+		ConnectionMonitorsClient:                 ConnectionMonitorsClient,
 		DDOSProtectionPlansClient:                &DDOSProtectionPlansClient,
 		ExpressRouteAuthsClient:                  &ExpressRouteAuthsClient,
 		ExpressRouteCircuitsClient:               &ExpressRouteCircuitsClient,
@@ -365,7 +384,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		PointToSiteVpnGatewaysClient:             &pointToSiteVpnGatewaysClient,
 		ProfileClient:                            &ProfileClient,
 		PacketCapturesClient:                     &PacketCapturesClient,
-		PrivateEndpointClient:                    &PrivateEndpointClient,
+		PrivateEndpointClient:                    PrivateEndpointClient,
 		PublicIPsClient:                          &PublicIPsClient,
 		PublicIPPrefixesClient:                   &PublicIPPrefixesClient,
 		RouteMapsClient:                          &RouteMapsClient,

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice
 
 import (
@@ -36,6 +39,7 @@ type WindowsWebAppDataSourceModel struct {
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
 	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
+	PublicNetworkAccess           bool                        `tfschema:"public_network_access_enabled"`
 	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
 	StickySettings                []helpers.StickySettings    `tfschema:"sticky_settings"`
 	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
@@ -184,6 +188,11 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"site_credential": helpers.SiteCredentialSchema(),
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"site_config": helpers.SiteConfigSchemaWindowsComputed(),
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
@@ -319,6 +328,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 					webApp.HostingEnvId = pointer.From(hostingEnv.ID)
 				}
+				webApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 			}
 
 			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)
