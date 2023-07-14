@@ -125,7 +125,7 @@ resource "azurerm_cognitive_deployment" "test" {
   model {
     format  = "OpenAI"
     name    = "text-embedding-ada-002"
-    version = "1"
+    version = "2"
   }
   scale {
     type = "Standard"
@@ -145,7 +145,7 @@ resource "azurerm_cognitive_deployment" "import" {
   model {
     format  = "OpenAI"
     name    = "text-embedding-ada-002"
-    version = "1"
+    version = "2"
   }
   scale {
     type = "Standard"
@@ -171,7 +171,8 @@ resource "azurerm_cognitive_deployment" "test" {
   scale {
     type = "Standard"
   }
-  rai_policy_name = "RAI policy"
+  rai_policy_name        = "RAI policy"
+  version_upgrade_option = "OnceNewDefaultVersionAvailable"
 }
 `, template, data.RandomInteger)
 }
