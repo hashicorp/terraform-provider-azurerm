@@ -39,7 +39,7 @@ func dataSourceServiceBusTopic() *pluginsdk.Resource {
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
 			},
 
-			//TODO Remove in 4.0
+			// TODO Remove in 4.0
 			"namespace_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -48,7 +48,7 @@ func dataSourceServiceBusTopic() *pluginsdk.Resource {
 				Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
-			//TODO Remove in 4.0
+			// TODO Remove in 4.0
 			"resource_group_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
