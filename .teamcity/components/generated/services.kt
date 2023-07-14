@@ -111,6 +111,7 @@ var services = mapOf(
         "sentinel" to "Sentinel",
         "servicefabric" to "Service Fabric",
         "servicefabricmanaged" to "Service Fabric Managed Clusters",
+        "servicenetworking" to "Service Networking",
         "servicebus" to "ServiceBus",
         "serviceconnector" to "ServiceConnector",
         "signalr" to "SignalR",

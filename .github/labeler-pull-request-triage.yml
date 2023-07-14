@@ -307,6 +307,9 @@ service/service-fabric:
 service/service-fabric-managed-cluster:
   - internal/services/servicefabricmanaged/**/*
 
+service/service-networking:
+  - internal/services/servicenetworking/**/*
+
 service/signalr:
   - internal/services/signalr/**/*
 
