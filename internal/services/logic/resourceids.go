@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic
 
 // @tombuildsstuff: @mbfrahry is going to send a PR to remove/clean these up

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning
 
 import (
@@ -292,7 +295,7 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	if err = future.Poller.PollUntilDone(); err != nil {
+	if err = future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
@@ -390,7 +393,7 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("deleting Machine Learning Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 	}
 
-	if err := future.Poller.PollUntilDone(); err != nil {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for deletion of Machine Learning Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 	}
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning
 
 import (
@@ -6,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
@@ -164,7 +168,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// Get AKS Compute Properties
-	aksID, err := managedclusters.ParseManagedClusterID(d.Get("kubernetes_cluster_id").(string))
+	aksID, err := commonids.ParseKubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
 	if err != nil {
 		return err
 	}
@@ -194,7 +198,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return fmt.Errorf("creating Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspaceID.WorkspaceName, workspaceID.ResourceGroupName, err)
 	}
-	if err := future.Poller.PollUntilDone(); err != nil {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of Inference Cluster %q in workspace %q (Resource Group %q): %+v", name, workspaceID.ResourceGroupName, workspaceID.ResourceGroupName, err)
 	}
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -236,7 +240,7 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	aksComputeProperties := computeResource.Model.Properties.(machinelearningcomputes.AKS)
 
 	// Retrieve AKS Cluster ID
-	aksId, err := managedclusters.ParseManagedClusterIDInsensitively(*aksComputeProperties.ResourceId)
+	aksId, err := commonids.ParseKubernetesClusterIDInsensitively(*aksComputeProperties.ResourceId)
 	if err != nil {
 		return err
 	}
@@ -280,7 +284,7 @@ func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("deleting Inference Cluster %q in workspace %q (Resource Group %q): %+v",
 			id.ComputeName, id.WorkspaceName, id.ResourceGroupName, err)
 	}
-	if err := future.Poller.PollUntilDone(); err != nil {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for deletion of Inference Cluster %q in workspace %q (Resource Group %q): %+v",
 			id.ComputeName, id.WorkspaceName, id.ResourceGroupName, err)
 	}

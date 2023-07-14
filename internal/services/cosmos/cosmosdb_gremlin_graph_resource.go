@@ -1,6 +1,10 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -67,6 +71,15 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosEntityName,
+			},
+
+			"analytical_storage_ttl": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				ValidateFunc: validation.All(
+					validation.IntBetween(-1, 2147483647),
+					validation.IntNotInSlice([]int{0}),
+				),
 			},
 
 			"default_ttl": {
@@ -172,6 +185,13 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// `analytical_storage_ttl` can't be disabled once it's enabled
+			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ interface{}) bool {
+				return (old.(int) == -1 || (old.(int) >= 1 && old.(int) <= 2147483647)) && new.(int) == 0
+			}),
+		),
 	}
 }
 
@@ -203,6 +223,10 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
 		},
+	}
+
+	if v, ok := d.GetOk("analytical_storage_ttl"); ok {
+		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(v.(int)))
 	}
 
 	if partitionkeypaths != "" {
@@ -293,6 +317,10 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
+	if v, ok := d.GetOk("analytical_storage_ttl"); ok {
+		db.Properties.Resource.AnalyticalStorageTtl = utils.Int64(int64(v.(int)))
+	}
+
 	if defaultTTL, hasDefaultTTL := d.GetOk("default_ttl"); hasDefaultTTL {
 		db.Properties.Resource.DefaultTtl = utils.Int64(int64(defaultTTL.(int)))
 	}
@@ -380,6 +408,10 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 					if err := d.Set("unique_key", flattenCosmosGremlinGraphUniqueKeys(ukp.UniqueKeys)); err != nil {
 						return fmt.Errorf("setting `unique_key`: %+v", err)
 					}
+				}
+
+				if v := props.AnalyticalStorageTtl; v != nil {
+					d.Set("analytical_storage_ttl", v)
 				}
 
 				if defaultTTL := props.DefaultTtl; defaultTTL != nil {

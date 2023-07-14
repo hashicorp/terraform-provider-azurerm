@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -289,11 +292,11 @@ func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *cl
 
 // nolint: unparam
 func (SharedImageVersionResource) setup(data acceptance.TestData) string {
-	return ImageResource{}.setupUnmanagedDisks(data, "LRS")
+	return ImageResource{}.setupUnmanagedDisks(data)
 }
 
 func (SharedImageVersionResource) provision(data acceptance.TestData) string {
-	template := ImageResource{}.standaloneImageProvision(data, "LRS", "")
+	template := ImageResource{}.standaloneImageProvision(data, "")
 	return fmt.Sprintf(`
 %s
 

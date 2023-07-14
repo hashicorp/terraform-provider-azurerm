@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -6,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -47,7 +51,7 @@ func resourceDataFactoryLinkedCustomService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryID,
+				ValidateFunc: factories.ValidateFactoryID,
 			},
 
 			"type": {
@@ -125,12 +129,12 @@ func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
+	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
@@ -158,7 +162,7 @@ func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		props["parameters"] = expandDataFactoryParameters(v.(map[string]interface{}))
+		props["parameters"] = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -213,7 +217,7 @@ func resourceDataFactoryLinkedCustomServiceRead(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.Set("name", id.Name)
-	d.Set("data_factory_id", parse.NewDataFactoryID(subscriptionId, id.ResourceGroup, id.FactoryName).ID())
+	d.Set("data_factory_id", factories.NewFactoryID(subscriptionId, id.ResourceGroup, id.FactoryName).ID())
 
 	byteArr, err := json.Marshal(resp.Properties)
 	if err != nil {
@@ -259,7 +263,7 @@ func resourceDataFactoryLinkedCustomServiceRead(d *pluginsdk.ResourceData, meta 
 		}
 		delete(m, "parameters")
 	}
-	if err := d.Set("parameters", flattenDataFactoryParameters(parameters)); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

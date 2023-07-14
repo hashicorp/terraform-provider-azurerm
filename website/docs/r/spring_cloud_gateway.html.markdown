@@ -136,6 +136,8 @@ A `cors` block supports the following:
 
 * `allowed_origins` - (Optional) Allowed origins to make cross-site requests. The special value `*` allows all domains.
 
+* `allowed_origin_patterns` - (Optional)  Allowed origin patterns to make cross-site requests.
+
 * `exposed_headers` - (Optional) HTTP response headers to expose for cross-site requests.
 
 * `max_age_seconds` - (Optional) How long, in seconds, the response from a pre-flight request can be cached by clients.

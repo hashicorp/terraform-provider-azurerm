@@ -6,6 +6,7 @@ package client
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -15,7 +16,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -206,8 +206,9 @@ func (r *Response) Unmarshal(model interface{}) error {
 	}
 
 	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
-		if _, ok := model.(**[]byte); !ok {
-			return fmt.Errorf("internal-error: `model` must be **[]byte but got %+v", model)
+		ptr, ok := model.(**[]byte)
+		if !ok || ptr == nil {
+			return fmt.Errorf("internal-error: `model` must be a non-nil `**[]byte` but got %+v", model)
 		}
 
 		// Read the response body and close it
@@ -221,7 +222,7 @@ func (r *Response) Unmarshal(model interface{}) error {
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
 
 		// copy the byte stream across
-		reflect.ValueOf(model).Elem().Elem().SetBytes(respBody)
+		*ptr = &respBody
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
@@ -541,6 +542,9 @@ func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retrya
 	r.ErrorHandler = RetryableErrorHandler
 	r.Logger = log.Default()
 
+	tlsConfig := tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 	r.HTTPClient = &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
@@ -548,6 +552,7 @@ func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retrya
 				d := &net.Dialer{Resolver: &net.Resolver{}}
 				return d.DialContext(ctx, network, addr)
 			},
+			TLSClientConfig:       &tlsConfig,
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,

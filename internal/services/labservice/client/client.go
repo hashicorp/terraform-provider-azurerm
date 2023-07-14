@@ -1,6 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/lab"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/labplan"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/schedule"
@@ -15,23 +20,35 @@ type Client struct {
 	UserClient     *user.UserClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	LabClient := lab.NewLabClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&LabClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	labClient, err := lab.NewLabClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(labClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building LabClient client: %+v", err)
+	}
 
-	LabPlanClient := labplan.NewLabPlanClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&LabPlanClient.Client, o.ResourceManagerAuthorizer)
+	labPlanClient, err := labplan.NewLabPlanClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(labPlanClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building LabPlanClient client: %+v", err)
+	}
 
-	ScheduleClient := schedule.NewScheduleClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ScheduleClient.Client, o.ResourceManagerAuthorizer)
+	scheduleClient, err := schedule.NewScheduleClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(scheduleClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ScheduleClient client: %+v", err)
+	}
 
-	UserClient := user.NewUserClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&UserClient.Client, o.ResourceManagerAuthorizer)
+	userClient, err := user.NewUserClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(userClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building UserClient client: %+v", err)
+	}
 
 	return &Client{
-		LabClient:      &LabClient,
-		LabPlanClient:  &LabPlanClient,
-		ScheduleClient: &ScheduleClient,
-		UserClient:     &UserClient,
-	}
+		LabClient:      labClient,
+		LabPlanClient:  labPlanClient,
+		ScheduleClient: scheduleClient,
+		UserClient:     userClient,
+	}, nil
 }
