@@ -24,7 +24,7 @@ func TestFunctionAppFunctionName(t *testing.T) {
 		},
 		{
 			Input: "-notValid",
-			Valid: true,
+			Valid: false,
 		},
 		{
 			Input: "ThisIsALongAndValidNameThatWillWork",
