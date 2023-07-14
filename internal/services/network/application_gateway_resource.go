@@ -38,7 +38,6 @@ func possibleApplicationGatewaySslCipherSuiteValues() []string {
 	for _, cipherSuite := range network.PossibleApplicationGatewaySslCipherSuiteValues() {
 		cipherSuites = append(cipherSuites, string(cipherSuite))
 	}
-	cipherSuites = append(cipherSuites, "TLS_AES_256_GCM_SHA384")
 	return cipherSuites
 }
 
