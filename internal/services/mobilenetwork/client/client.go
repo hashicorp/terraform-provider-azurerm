@@ -87,7 +87,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(packetCoreDataPlaneClient.Client, o.Authorizers.ResourceManager)
 
-	attachedDataNetworkClient,err := attacheddatanetwork.NewAttachedDataNetworkClientWithBaseURI(o.ResourceManagerEndpoint)
+	attachedDataNetworkClient, err := attacheddatanetwork.NewAttachedDataNetworkClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Attached Data Network Client: %+v", err)
 	}
