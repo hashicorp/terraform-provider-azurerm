@@ -18,7 +18,7 @@ type DeleteParentOperationResponse struct {
 }
 
 // DeleteParent ...
-func (c ConfigurationAssignmentsClient) DeleteParent(ctx context.Context, id Providers2ConfigurationAssignmentId) (result DeleteParentOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) DeleteParent(ctx context.Context, id ScopedConfigurationAssignmentId) (result DeleteParentOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

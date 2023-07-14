@@ -18,7 +18,7 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c ConfigurationAssignmentsClient) Delete(ctx context.Context, id ConfigurationAssignmentId) (result DeleteOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) Delete(ctx context.Context, id ScopedConfigurationAssignmentId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

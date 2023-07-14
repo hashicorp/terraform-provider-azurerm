@@ -18,7 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 }
 
 // CreateOrUpdate ...
-func (c ConfigurationAssignmentsClient) CreateOrUpdate(ctx context.Context, id ConfigurationAssignmentId, input ConfigurationAssignment) (result CreateOrUpdateOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) CreateOrUpdate(ctx context.Context, id ScopedConfigurationAssignmentId, input ConfigurationAssignment) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

@@ -18,7 +18,7 @@ type GetParentOperationResponse struct {
 }
 
 // GetParent ...
-func (c ConfigurationAssignmentsClient) GetParent(ctx context.Context, id Providers2ConfigurationAssignmentId) (result GetParentOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) GetParent(ctx context.Context, id ScopedConfigurationAssignmentId) (result GetParentOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

@@ -18,7 +18,7 @@ type GetOperationResponse struct {
 }
 
 // Get ...
-func (c ConfigurationAssignmentsClient) Get(ctx context.Context, id ConfigurationAssignmentId) (result GetOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) Get(ctx context.Context, id ScopedConfigurationAssignmentId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{

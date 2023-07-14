@@ -18,7 +18,7 @@ type CreateOrUpdateParentOperationResponse struct {
 }
 
 // CreateOrUpdateParent ...
-func (c ConfigurationAssignmentsClient) CreateOrUpdateParent(ctx context.Context, id Providers2ConfigurationAssignmentId, input ConfigurationAssignment) (result CreateOrUpdateParentOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) CreateOrUpdateParent(ctx context.Context, id ScopedConfigurationAssignmentId, input ConfigurationAssignment) (result CreateOrUpdateParentOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
