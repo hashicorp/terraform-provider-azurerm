@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * dependencies: move `azurerm_bastion_host` and `azurerm_network_connection_monitor` over to `hashicorp/go-azure-sdk` [GH-22425]
 * dependencies: move `storage_sync` resources over to `hashicorp/go-azure-sdk` [GH-21928]
 * dependencies: updating to API Version `2022-08-08` [GH-22440]
+* `azurerm_logic_app_standard` - Add new computed attribute `auto_swap_slot_name` [GH-22525]
 
 ## 3.65.0 (July 13, 2023)
 
