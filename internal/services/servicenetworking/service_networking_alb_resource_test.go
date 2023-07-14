@@ -35,7 +35,7 @@ func (r AlbResource) Exists(ctx context.Context, clients *clients.Client, state 
 func TestAccServiceNetworkingALB_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_alb", "test")
 
-	// for preview only, remove before merge
+	// it's available on limited regions.
 	data.Locations.Primary = "northeurope"
 	r := AlbResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -53,7 +53,7 @@ func TestAccServiceNetworkingALB_basic(t *testing.T) {
 func TestAccServiceNetworkingALB_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_alb", "test")
 
-	// for preview only, remove before merge
+	// it's available on limited regions.
 	data.Locations.Primary = "northeurope"
 	r := AlbResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -71,7 +71,7 @@ func TestAccServiceNetworkingALB_complete(t *testing.T) {
 func TestAccServiceNetworkingALB_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_alb", "test")
 
-	// for preview only, remove before merge
+	// it's available on limited regions.
 	data.Locations.Primary = "northeurope"
 	r := AlbResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
