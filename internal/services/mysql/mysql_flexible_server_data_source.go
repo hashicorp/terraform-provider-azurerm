@@ -171,7 +171,7 @@ func dataSourceMysqlFlexibleServer() *pluginsdk.Resource {
 }
 
 func dataSourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.FlexibleServerClient
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

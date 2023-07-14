@@ -17,20 +17,19 @@ import (
 type Client struct {
 	FlexibleServers *flexibleServers_v2021_05_01.Client
 
-	AzureADAdministratorsClient        *azureadadministrators.AzureADAdministratorsClient
-	ConfigurationsClient               *mysql.ConfigurationsClient
-	DatabasesClient                    *mysql.DatabasesClient
-	FirewallRulesClient                *mysql.FirewallRulesClient
+	AzureADAdministratorsClient       *azureadadministrators.AzureADAdministratorsClient
+	ConfigurationsClient              *mysql.ConfigurationsClient
+	DatabasesClient                   *mysql.DatabasesClient
+	FirewallRulesClient               *mysql.FirewallRulesClient
+	ServersClient                     *mysql.ServersClient
+	ServerKeysClient                  *mysql.ServerKeysClient
+	ServerSecurityAlertPoliciesClient *mysql.ServerSecurityAlertPoliciesClient
+	VirtualNetworkRulesClient         *mysql.VirtualNetworkRulesClient
+	ServerAdministratorsClient        *mysql.ServerAdministratorsClient
+
 	FlexibleDatabasesClient            *mysqlflexibleservers.DatabasesClient
 	FlexibleServerConfigurationsClient *mysqlflexibleservers.ConfigurationsClient
-	FlexibleServerClient               *servers.ServersClient
-	FlexibleServerFailoverClient       *serverfailover.ServerFailoverClient
 	FlexibleServerFirewallRulesClient  *mysqlflexibleservers.FirewallRulesClient
-	ServersClient                      *mysql.ServersClient
-	ServerKeysClient                   *mysql.ServerKeysClient
-	ServerSecurityAlertPoliciesClient  *mysql.ServerSecurityAlertPoliciesClient
-	VirtualNetworkRulesClient          *mysql.VirtualNetworkRulesClient
-	ServerAdministratorsClient         *mysql.ServerAdministratorsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -89,8 +88,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		DatabasesClient:                    &DatabasesClient,
 		FirewallRulesClient:                &FirewallRulesClient,
 		FlexibleDatabasesClient:            &flexibleDatabasesClient,
-		FlexibleServerClient:               &flexibleServerClient,
-		FlexibleServerFailoverClient:       &flexibleServerFailoverClient,
 		FlexibleServerFirewallRulesClient:  &flexibleServerFirewallRulesClient,
 		FlexibleServerConfigurationsClient: &flexibleServerConfigurationsClient,
 		ServersClient:                      &ServersClient,
