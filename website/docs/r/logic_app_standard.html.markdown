@@ -298,6 +298,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Logic App
 
+* `auto_swap_slot_name` - The Auto-swap slot name.
+
 * `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_hostname` - The default hostname associated with the Logic App - such as `mysite.azurewebsites.net`

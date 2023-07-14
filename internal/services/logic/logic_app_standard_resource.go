@@ -229,6 +229,11 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: commonids.ValidateSubnetID,
 			},
+
+			"auto_swap_slot_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
