@@ -36,10 +36,22 @@ func TestAccKubernetesCluster_serviceMeshProfile(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.serviceMeshProfile(data),
+			Config: r.serviceMeshProfile(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceMeshProfile(data, false, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -55,15 +67,19 @@ func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 			Config: r.serviceMeshProfileDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.serviceMeshProfile(data),
+			Config: r.serviceMeshProfile(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -71,7 +87,9 @@ func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 			Config: r.serviceMeshProfileDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -1088,7 +1106,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
-func (KubernetesClusterResource) serviceMeshProfile(data acceptance.TestData) string {
+func (KubernetesClusterResource) serviceMeshProfile(data acceptance.TestData, internalIngressEnabled bool, externalIngressEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1145,10 +1163,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   service_mesh_profile {
-    mode = "Istio"
+    mode                             = "Istio"
+    internal_ingress_gateway_enabled = %[3]t
+    external_ingress_gateway_enabled = %[4]t
   }
+
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, internalIngressEnabled, externalIngressEnabled)
 }
 
 func (KubernetesClusterResource) serviceMeshProfileDisabled(data acceptance.TestData) string {

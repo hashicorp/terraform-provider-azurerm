@@ -10,15 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationvaultsetting"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -60,11 +59,10 @@ func (s VMWareReplicationPolicyAssociationResource) Arguments() map[string]*plug
 		},
 
 		"policy_id": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			ValidateFunc:     azure.ValidateResourceID,
-			DiffSuppressFunc: suppress.CaseDifference,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: replicationpolicies.ValidateReplicationPolicyID,
 		},
 	}
 }
@@ -168,9 +166,18 @@ func (s VMWareReplicationPolicyAssociationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if prop := model.Properties; prop != nil {
-					if prop.PolicyId != nil {
-						state.RecoveryReplicationPolicyId = *prop.PolicyId
+
+					policyId := ""
+					// tracked on https://github.com/Azure/azure-rest-api-specs/issues/24751
+					if prop.PolicyId != nil && *prop.PolicyId != "" {
+						parsedPolicyId, err := replicationpolicies.ParseReplicationPolicyIDInsensitively(*prop.PolicyId)
+						if err != nil {
+							return fmt.Errorf("parsing %s: %+v", *prop.PolicyId, err)
+						}
+						policyId = parsedPolicyId.ID()
 					}
+
+					state.RecoveryReplicationPolicyId = policyId
 				}
 			}
 

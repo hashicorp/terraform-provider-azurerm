@@ -11,8 +11,9 @@ var tenantId = DslContext.getParameter("tenantId", "")
 var environment = DslContext.getParameter("environment", "public")
 var clientIdAlt = DslContext.getParameter("clientIdAlt", "")
 var clientSecretAlt = DslContext.getParameter("clientSecretAlt", "")
+var vcsRootId = DslContext.getParameter("vcsRootId", "")
 var enableTestTriggersGlobally = DslContext.getParameter("enableTestTriggersGlobally", "true").equals("true", ignoreCase = true)
 
-var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest, enableTestTriggersGlobally)
+var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest, vcsRootId, enableTestTriggersGlobally)
 
 project(AzureRM(environment, clientConfig))

@@ -37,15 +37,11 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SslProfile -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/sslProfiles/sslprofile1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=TrustedClientCertificate -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/trustedClientCertificates/trustedClientCert1 -rewrite=true
 
-// Bastion
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=BastionHost -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/bastionHosts/bastionHost1
-
 // NAT Gateway
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NatGateway -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/natGateways/gateway1
 // NOTE: the Nat Gateway <-> Public IP Association can't be generated at this time
 
 // Network Watcher
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ConnectionMonitor -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkWatchers/watcher1/connectionMonitors/connectionMonitor1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NetworkWatcher -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkWatchers/watcher1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=PacketCapture -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkWatchers/watcher1/packetCaptures/capture1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=FlowLog -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkWatchers/watcher1/flowLogs/log1

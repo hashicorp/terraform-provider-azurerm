@@ -103,14 +103,14 @@ resource "azurerm_service_plan" "example" {
   sku_name            = "S1"
 }
 
-resource "azurerm_windows_function_app" "test" {
+resource "azurerm_windows_function_app" "example" {
   name                = "example-function-app"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  service_plan_id     = azurerm_service_plan.example.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
 
   site_config {
     application_stack {
@@ -121,7 +121,7 @@ resource "azurerm_windows_function_app" "test" {
 
 resource "azurerm_function_app_function" "example" {
   name            = "example-function-app-function"
-  function_app_id = azurerm_linux_function_app.example.id
+  function_app_id = azurerm_windows_function_app.example.id
   language        = "CSharp"
 
   file {
