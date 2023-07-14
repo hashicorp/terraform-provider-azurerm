@@ -6,6 +6,8 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"                // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers" // nolint: staticcheck
+	"github.com/Azure/go-autorest/autorest"
+	flexibleServers_v2021_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/azureadadministrators"
@@ -13,6 +15,8 @@ import (
 )
 
 type Client struct {
+	FlexibleServers *flexibleServers_v2021_05_01.Client
+
 	AzureADAdministratorsClient        *azureadadministrators.AzureADAdministratorsClient
 	ConfigurationsClient               *mysql.ConfigurationsClient
 	DatabasesClient                    *mysql.DatabasesClient
@@ -30,6 +34,10 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	flexibleServersMetaClient := flexibleServers_v2021_05_01.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
+		o.ConfigureClient(c, o.ResourceManagerAuthorizer)
+	})
+
 	azureADAdministratorsClient := azureadadministrators.NewAzureADAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&azureADAdministratorsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -73,6 +81,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&serverAdministratorsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		FlexibleServers: &flexibleServersMetaClient,
+
+		// TODO: switch to using the Meta Clients
 		AzureADAdministratorsClient:        &azureADAdministratorsClient,
 		ConfigurationsClient:               &ConfigurationsClient,
 		DatabasesClient:                    &DatabasesClient,
