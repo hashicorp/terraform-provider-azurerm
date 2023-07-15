@@ -74,6 +74,12 @@ func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -117,6 +123,12 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	if d.Get("public_network_access_enabled").(bool) {
+		parameters.Properties.PublicNetworkAccess = utils.String("Enabled")
+	} else {
+		parameters.Properties.PublicNetworkAccess = utils.String("Disabled")
+	}
+
 	d.SetId(id.ID())
 
 	return resourceArmDesktopVirtualizationWorkspaceRead(d, meta)
@@ -145,6 +157,7 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, me
 
 	d.Set("name", id.WorkspaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
