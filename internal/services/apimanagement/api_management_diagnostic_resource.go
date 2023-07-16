@@ -46,8 +46,8 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"applicationinsights",
-					"azuremonitor",
+					string(apimanagement.DiagnosticIdentifierApplicationInsights),
+					string(apimanagement.DiagnosticIdentifierAzureMonitor),
 				}, false),
 			},
 
@@ -113,7 +113,6 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			"operation_name_format": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(apimanagement.OperationNameFormatName),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(apimanagement.OperationNameFormatName),
 					string(apimanagement.OperationNameFormatURL),
@@ -146,9 +145,16 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	parameters := apimanagement.DiagnosticContract{
 		DiagnosticContractProperties: &apimanagement.DiagnosticContractProperties{
-			LoggerID:            utils.String(d.Get("api_management_logger_id").(string)),
-			OperationNameFormat: apimanagement.OperationNameFormat(d.Get("operation_name_format").(string)),
+			LoggerID: utils.String(d.Get("api_management_logger_id").(string)),
 		},
+	}
+
+	if operationNameFormat, operationNameFormatSet := d.GetOk("operation_name_format"); d.Get("identifier") == apimanagement.DiagnosticIdentifierApplicationInsights {
+		if operationNameFormatSet {
+			parameters.OperationNameFormat = apimanagement.OperationNameFormat(operationNameFormat.(string))
+		} else {
+			parameters.OperationNameFormat = apimanagement.OperationNameFormatName
+		}
 	}
 
 	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
@@ -257,11 +263,9 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("backend_request", nil)
 			d.Set("backend_response", nil)
 		}
-		format := string(apimanagement.OperationNameFormatName)
 		if props.OperationNameFormat != "" {
-			format = string(props.OperationNameFormat)
+			d.Set("operation_name_format", string(props.OperationNameFormat))
 		}
-		d.Set("operation_name_format", format)
 	}
 
 	return nil

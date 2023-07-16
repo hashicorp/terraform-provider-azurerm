@@ -658,6 +658,16 @@ func PossibleNotificationNameValues() []NotificationName {
 	return []NotificationName{NotificationNameAccountClosedPublisher, NotificationNameBCC, NotificationNameNewApplicationNotificationMessage, NotificationNameNewIssuePublisherNotificationMessage, NotificationNamePurchasePublisherNotificationMessage, NotificationNameQuotaLimitApproachingPublisherNotificationMessage, NotificationNameRequestPublisherNotificationMessage}
 }
 
+// DiagnosticIdentifier enumerates the values for diagnostic identifier.
+type DiagnosticIdentifier string
+
+const (
+	// DiagnosticIdentifierApplicationInsights for Application Insights diagnostics.
+	DiagnosticIdentifierApplicationInsights DiagnosticIdentifier = "applicationinsights"
+	// DiagnosticIdentifierApplicationInsights for Azure Monitor diagnostics.
+	DiagnosticIdentifierAzureMonitor DiagnosticIdentifier = "azuremonitor"
+)
+
 // OperationNameFormat enumerates the values for operation name format.
 type OperationNameFormat string
 
