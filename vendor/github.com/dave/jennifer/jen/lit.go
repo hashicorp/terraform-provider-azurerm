@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package jen
 
 // Lit renders a literal. Lit supports only built-in types (bool, string, int, complex128, float64, 

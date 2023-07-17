@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package svchost deals with the representations of the so-called "friendly
 // hostnames" that we use to represent systems that provide Terraform-native
 // remote services, such as module registry, remote operations, etc.
