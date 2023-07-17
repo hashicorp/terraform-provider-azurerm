@@ -96,7 +96,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 				},
 			},
 
-			//TODO rename to bgp_route_propagation_enabled in 4.0
+			// TODO rename to bgp_route_propagation_enabled in 4.0
 			"disable_bgp_route_propagation": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
