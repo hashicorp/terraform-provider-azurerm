@@ -3,19 +3,19 @@ package migration
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
 	"log"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
+	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ pluginsdk.StateUpgrade = AssignmentVirtualMachineV0ToV1{}
+var _ pluginsdk.StateUpgrade = AssignmentVirtualMachineScaleSetV0ToV1{}
 
-type AssignmentVirtualMachineV0ToV1 struct {
+type AssignmentVirtualMachineScaleSetV0ToV1 struct {
 }
 
-func (AssignmentVirtualMachineV0ToV1) Schema() map[string]*pluginsdk.Schema {
+func (AssignmentVirtualMachineScaleSetV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": {
 			Type:     pluginsdk.TypeString,
@@ -29,7 +29,7 @@ func (AssignmentVirtualMachineV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"virtual_machine_id": {
+		"virtual_machine_scale_set_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
@@ -37,7 +37,7 @@ func (AssignmentVirtualMachineV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (AssignmentVirtualMachineV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+func (AssignmentVirtualMachineScaleSetV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldIdRaw := rawState["id"].(string)
 		oldId, err := configurationassignments.ParseScopedConfigurationAssignmentIDInsensitively(oldIdRaw)
@@ -45,12 +45,12 @@ func (AssignmentVirtualMachineV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc 
 			return nil, fmt.Errorf("parsing old id %q: %+v", oldIdRaw, err)
 		}
 
-		virtualMachineId, err := virtualmachines.ParseVirtualMachineIDInsensitively(oldId.Scope)
+		virtualMachineScaleSetId, err := parseCompute.VirtualMachineScaleSetIDInsensitively(oldId.Scope)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q as a virtual machine id: %+v", oldId.Scope, err)
+			return nil, fmt.Errorf("parsing %q as a virtual machine scale set id: %+v", oldId.Scope, err)
 		}
 
-		newId := configurationassignments.NewScopedConfigurationAssignmentID(virtualMachineId.ID(), oldId.ConfigurationAssignmentName)
+		newId := configurationassignments.NewScopedConfigurationAssignmentID(virtualMachineScaleSetId.ID(), oldId.ConfigurationAssignmentName)
 		newIdRaw := newId.ID()
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldIdRaw, newIdRaw)
 		rawState["id"] = newIdRaw
