@@ -20,8 +20,9 @@ import (
 
 func resourceMySQLFlexibleServerConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMySQLFlexibleServerConfigurationCreate,
+		Create: resourceMySQLFlexibleServerConfigurationUpdate,
 		Read:   resourceMySQLFlexibleServerConfigurationRead,
+		Update: resourceMySQLFlexibleServerConfigurationUpdate,
 		Delete: resourceMySQLFlexibleServerConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -55,19 +56,18 @@ func resourceMySQLFlexibleServerConfiguration() *pluginsdk.Resource {
 			"value": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 		},
 	}
 }
 
-func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServerConfigurationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration update.")
 
 	properties := mysqlflexibleservers.Configuration{
 		ConfigurationProperties: &mysqlflexibleservers.ConfigurationProperties{
@@ -81,11 +81,11 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	id := parse.NewFlexibleServerConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	future, err := client.Update(ctx, id.ResourceGroup, id.FlexibleServerName, id.ConfigurationName, properties)
 	if err != nil {
-		return fmt.Errorf("creating %s: %v", id, err)
+		return fmt.Errorf("updating %s: %v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %v", id, err)
+		return fmt.Errorf("waiting for update of %s: %v", id, err)
 	}
 
 	d.SetId(id.ID())

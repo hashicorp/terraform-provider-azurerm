@@ -83,6 +83,28 @@ func TestAccMySQLFlexibleServerConfiguration_logSlowAdminStatements(t *testing.T
 	})
 }
 
+func TestAccMySQLFlexibleServerConfiguration_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
+	r := MySQLFlexibleServerConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.template(data, "slow_query_log", "OFF"),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("OFF")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.template(data, "slow_query_log", "ON"),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("ON")),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t MySQLFlexibleServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FlexibleServerConfigurationID(state.ID)
 	if err != nil {
@@ -189,7 +211,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  zone                   = "2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
