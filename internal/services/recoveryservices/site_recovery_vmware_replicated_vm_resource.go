@@ -514,7 +514,8 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("creating %q: %+v", id, err)
 			}
-			metadata.SetID(id) // once the PUT request returned successfully, an item has been created, even if it may fail in the poll process.
+			// once the PUT request returned successfully, an item has been created, even if it may fail in the poll process.
+			metadata.SetID(id)
 
 			err = poller.Poller.PollUntilDone()
 			if err != nil {
@@ -529,6 +530,7 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for %s to be fully protected: %s", id, err)
 			}
 
+			// it needs an additional update to set the network interface.
 			updateInput := replicationprotecteditems.UpdateReplicationProtectedItemInput{
 				Properties: &replicationprotecteditems.UpdateReplicationProtectedItemInputProperties{
 					RecoveryAvailabilitySetId:      providerSpecificDetail.TargetAvailabilitySetId,
