@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/typed/logic"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/generator-typed-resource/logic"
 )
 
 func statistic() {

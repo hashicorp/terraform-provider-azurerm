@@ -2,6 +2,7 @@ package logic
 
 import (
 	"go/types"
+	"strings"
 	"testing"
 )
 
@@ -19,10 +20,10 @@ func Test_newSelectorExpr(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := newSelectorExpr(tt.args)
+			got := newSelectorExpr(strings.Split(tt.args, ".")...)
 			if got == nil {
 				if tt.want != "" {
-					t.Errorf("newSelectorExpr() = %v, want %v", types.ExprString(got), tt.want)
+					t.Errorf("newSelectorExpr() = nil, want %v", tt.want)
 				}
 				return
 			}

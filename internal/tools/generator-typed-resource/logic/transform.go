@@ -21,12 +21,6 @@ type transformer interface {
 	transform(info *funcInfo, node ast.Node, g *generator)
 }
 
-type fnAST struct {
-	file    *ast.File
-	fs      *token.FileSet
-	content string
-}
-
 var (
 	// by stage 0, 1, 2...
 	transformers = [][]transformer{
@@ -288,8 +282,7 @@ func (d dGetTransform) transform(info *funcInfo, node ast.Node, g *generator) {
 type importTransform struct{}
 
 func (i importTransform) transform(info *funcInfo, node ast.Node, g *generator) {
-	switch n := node.(type) {
-	case *ast.CallExpr:
+	if n, ok := node.(*ast.CallExpr); ok {
 		if fn, ok := n.Fun.(*ast.SelectorExpr); ok {
 			if types.ExprString(fn) == "tf.ImportAsExistsError" {
 				// imports.ForSchema => meta.ForSchema

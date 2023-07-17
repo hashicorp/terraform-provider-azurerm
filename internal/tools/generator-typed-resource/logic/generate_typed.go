@@ -133,8 +133,7 @@ func (g *generator) collectASTInfo() (res *MetaInfo) {
 				if resType := types.ExprString(fnRes.List[0].Type); resType == "*pluginsdk.Resource" {
 					// inspect resource in top level pluginsdk.Resource
 					ast.Inspect(n.Body, func(node ast.Node) bool {
-						switch c := node.(type) {
-						case *ast.CompositeLit:
+						if c, ok := node.(*ast.CompositeLit); ok {
 							if cType := types.ExprString(c.Type); cType == "pluginsdk.Resource" {
 								// compositeLit should contain Create
 								if g.collectResourceDefine(c, res) {
@@ -146,8 +145,7 @@ func (g *generator) collectASTInfo() (res *MetaInfo) {
 					})
 					// inspect schema
 					ast.Inspect(n.Body, func(node ast.Node) bool {
-						switch c := node.(type) {
-						case *ast.CompositeLit:
+						if c, ok := node.(*ast.CompositeLit); ok {
 							// top level schema definition
 							if cType := types.ExprString(c.Type); cType == "map[string]*pluginsdk.Schema" {
 								g.collectSchemaFromAST(c)
@@ -164,7 +162,7 @@ func (g *generator) collectASTInfo() (res *MetaInfo) {
 	})
 
 	g.splitSchema(res)
-	return
+	return res
 }
 
 func (g *generator) collectResourceDefine(c *ast.CompositeLit, meta *MetaInfo) (isResource bool) {
@@ -226,8 +224,7 @@ func (g *generator) getImporter(expr ast.Expr) (idValidator string) {
 	ast.Inspect(expr, func(node ast.Node) bool {
 		// try to expand the first function call of id validate
 		// if a function call arg[0] is id, them use it
-		switch n := node.(type) {
-		case *ast.CallExpr:
+		if n, ok := node.(*ast.CallExpr); ok {
 			func() {
 				defer func() {
 					_ = recover()
@@ -248,8 +245,7 @@ func (g *generator) getImporter(expr ast.Expr) (idValidator string) {
 
 func (g *generator) getStateUpgrade(expr ast.Expr) (res string) {
 	ast.Inspect(expr, func(node ast.Node) bool {
-		switch l := node.(type) {
-		case *ast.CompositeLit:
+		if l, ok := node.(*ast.CompositeLit); ok {
 			if typ := types.ExprString(l.Type); typ == "map[int]pluginsdk.StateUpgrade" {
 				res = types.ExprString(l)
 			}
@@ -296,8 +292,7 @@ func (g *generator) specialSchema(key string) *ModelField {
 		Name: camelCase(key),
 		Tag:  key,
 	}
-	switch key {
-	case "identity":
+	if key == "identity" {
 		if call, ok := expr.(*ast.CallExpr); ok {
 			if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
 				name := sel.Sel.Name
