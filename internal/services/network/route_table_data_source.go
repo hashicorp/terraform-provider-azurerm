@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -115,7 +116,7 @@ func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 				return err
 			}
 
-			if err := d.Set("disable_bgp_route_propagation", props.DisableBgpRoutePropagation); err != nil {
+			if err := d.Set("bgp_route_propagation_enabled", !pointer.From(props.DisableBgpRoutePropagation)); err != nil {
 				return err
 			}
 		}
