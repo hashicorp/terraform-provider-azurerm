@@ -84,11 +84,11 @@ func safeRun(fn func()) {
 }
 
 func goimports(file string) {
-	var out, err bytes.Buffer
+	var out, stdErr bytes.Buffer
 	cmd := exec.Command("goimports", "-w", file)
 	cmd.Stdout = &out
-	cmd.Stderr = &err
+	cmd.Stderr = &stdErr
 	if err := cmd.Run(); err != nil {
-		log.Printf("[Error] run goimports: %v", err)
+		log.Printf("[Error] run goimports: %v, stdout: %s, stderr: %s", err, out.String(), stdErr.String())
 	}
 }

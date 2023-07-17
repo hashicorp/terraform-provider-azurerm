@@ -1,16 +1,11 @@
 package logic
 
 import (
-	"flag"
 	"go/format"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
-)
-
-var (
-	resource = flag.String("resource", "", "resource name")
 )
 
 func Run(resources ...string) {
@@ -27,22 +22,26 @@ func Run(resources ...string) {
 			targets[res.name] = res
 		}
 	}
+
 	for _, name := range resources {
 		target := targets[name]
 		if target == nil {
 			log.Printf("no such resource: %s", name)
 			continue
 		}
+
 		g, err := newGenerator(target)
 		if err != nil {
 			log.Printf("[Error] build generator for %s: %v", name, err)
 		}
 		meta := g.buildMeta()
+
 		code, err := meta.codeGen()
 		if err != nil {
 			log.Printf("[Error] code gen %s err: %v", name, err)
 			continue
 		}
+
 		if code2, err := format.Source(code); err != nil {
 			log.Printf("[Error] format code: %v", err)
 		} else {
