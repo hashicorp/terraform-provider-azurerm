@@ -1414,7 +1414,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"admin_username": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Required: true,
 							ForceNew: true,
 						},
 						// This needs to become Required in 4.0 - omitting it isn't accepted by the API
