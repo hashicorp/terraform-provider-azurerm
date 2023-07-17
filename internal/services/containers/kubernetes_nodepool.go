@@ -646,7 +646,7 @@ func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(32768, 65000),
+					ValidateFunc: validation.IntBetween(32768, 65535),
 				},
 
 				"net_ipv4_neigh_default_gc_thresh1": {
@@ -681,7 +681,7 @@ func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(10, 75),
+					ValidateFunc: validation.IntBetween(10, 90),
 				},
 
 				"net_ipv4_tcp_keepalive_probes": {
@@ -722,14 +722,14 @@ func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(65536, 147456),
+					ValidateFunc: validation.IntBetween(65536, 524288),
 				},
 
 				"net_netfilter_nf_conntrack_max": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(131072, 1048576),
+					ValidateFunc: validation.IntBetween(131072, 2097152),
 				},
 
 				"vm_max_map_count": {
