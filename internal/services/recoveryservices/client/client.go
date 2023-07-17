@@ -140,7 +140,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	vmwareRunAsAccountsClient, err := vmwarerunasaccounts.NewRunAsAccountsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building VMWare Machine client: %+v", err)
+		return nil, fmt.Errorf("building VMWare Run As Accounts client: %+v", err)
 	}
 	o.Configure(vmwareRunAsAccountsClient.Client, o.Authorizers.ResourceManager)
 

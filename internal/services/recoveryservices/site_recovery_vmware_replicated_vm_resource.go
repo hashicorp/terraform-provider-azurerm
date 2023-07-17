@@ -3,8 +3,8 @@ package recoveryservices
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"net/url"
+	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -23,12 +23,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
-	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/azuresdkhacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/custompollers"
 	validateResourceGroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -124,11 +124,10 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"recovery_replication_policy_id": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			ValidateFunc:     azure.ValidateResourceID,
-			DiffSuppressFunc: suppress.CaseDifference,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: replicationpolicies.ValidateReplicationPolicyID,
 		},
 
 		"physical_server_credential_name": {
@@ -146,11 +145,10 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"target_resource_group_id": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			ValidateFunc:     validateResourceGroup.ResourceGroupID,
-			DiffSuppressFunc: suppress.CaseDifference,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validateResourceGroup.ResourceGroupID,
 		},
 
 		"target_vm_name": {
@@ -164,13 +162,13 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: storageaccounts.ValidateStorageAccountID,
-			AtLeastOneOf: []string{"managed_disk", "default_log_storage_account_id"},
+			ExactlyOneOf: []string{"managed_disk", "default_log_storage_account_id"},
 		},
 
-		"default_recovery_disk_type": { // only works in creation and will not be returned from service
+		"default_recovery_disk_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			AtLeastOneOf: []string{"managed_disk", "default_recovery_disk_type"},
+			ExactlyOneOf: []string{"managed_disk", "default_recovery_disk_type"},
 			ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 		},
 
@@ -200,10 +198,9 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"target_availability_set_id": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			ValidateFunc:     availabilitysets.ValidateAvailabilitySetID,
-			DiffSuppressFunc: suppress.CaseDifference,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
 			ConflictsWith: []string{
 				"target_zone",
 			},
@@ -222,24 +219,15 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
-		},
-
-		"target_subnet_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{
+				"network_interface",
+			},
 		},
 
 		"test_network_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
-		},
-
-		"test_subnet_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"target_boot_diagnostics_storage_account_id": {
@@ -250,13 +238,13 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 
 		// managed disk is enabled only if mobility service is already installed. (in most cases, it's not installed)
 		"managed_disk": {
-			Type:     pluginsdk.TypeSet,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem:     resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema(),
 		},
 
 		"network_interface": {
-			Type:     pluginsdk.TypeSet,
+			Type:     pluginsdk.TypeList,
 			Required: true,
 			Elem:     resourceSiteRecoveryVMWareReplicatedVMNetworkInterfaceSchema(),
 		},
@@ -280,16 +268,15 @@ func resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema() *pluginsdk.Resour
 			},
 
 			"target_disk_encryption_set_id": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     diskencryptionsets.ValidateDiskEncryptionSetID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: diskencryptionsets.ValidateDiskEncryptionSetID,
 			},
 
 			"log_storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: storageaccounts.ValidateStorageAccountID,
 			},
 		},
 	}
@@ -298,16 +285,16 @@ func resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema() *pluginsdk.Resour
 func resourceSiteRecoveryVMWareReplicatedVMNetworkInterfaceSchema() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
-			"source_mac_address": { // if it was left blank, we can use the only one NIC id as the source mac address
+			"source_mac_address": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Required:     true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-fA-F0-9]{2}(:[a-fA-F0-9]{2}){5}$`), "The `source_mac_address` must be in format `00:00:00:00:00:00`"),
 			},
 
 			"target_static_ip": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.IsIPv4Address,
 			},
 
 			"target_subnet_name": {
@@ -343,8 +330,8 @@ func (k VMWareReplicatedVmResource) CustomizeDiff() sdk.ResourceFunc {
 			_, newStorageAcc := diff.GetChange("default_log_storage_account_id")
 			_, newDiskType := diff.GetChange("default_recovery_disk_type")
 			_, newDes := diff.GetChange("default_target_disk_encryption_set_id")
-			_, newDisks := diff.GetChange("managed_disk")
-			for _, disk := range newDisks.(*schema.Set).List() {
+			oldDisks, newDisks := diff.GetChange("managed_disk")
+			for _, disk := range oldDisks.([]interface{}) {
 				disk := disk.(map[string]interface{})
 				if newStorageAcc.(string) != "" && disk["log_storage_account_id"] != newStorageAcc.(string) {
 					metadata.ResourceDiff.ForceNew("default_log_storage_account_id")
@@ -358,9 +345,9 @@ func (k VMWareReplicatedVmResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if diff.HasChanges("managed_disk") {
-				// if user has specified `managed_disk`, it's force new.
+				// if user has specified `managed_disk`, it forces new.
 				// or it acts as an optional field.
-				if len(newDisks.(*schema.Set).List()) != 1 {
+				if len(newDisks.([]interface{})) != 0 {
 					metadata.ResourceDiff.ForceNew("managed_disk")
 				}
 			}
@@ -392,7 +379,7 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing vault id %q: %+v", model.RecoveryVaultId, err)
 			}
 
-			containerId, err := fetchSiteRecoveryReplicatedVmVMWareContainerId(ctx, containerClient, vaultId.ID())
+			containerId, err := fetchSiteRecoveryContainerId(ctx, containerClient, vaultId.ID())
 			if err != nil {
 				return fmt.Errorf("fetch Replication Container from vault %q: %+v", vaultId, err)
 			}
@@ -404,6 +391,13 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 
 			id := replicationprotecteditems.NewReplicationProtectedItemID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, model.Name)
 			fabricId := replicationfabrics.NewReplicationFabricID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName)
+
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing site recovery vmware replicated vm %q: %+v", id, err)
+				}
+			}
 
 			processServerId, err := fetchProcessServerIdByName(ctx, fabricClient, fabricId, model.ApplianceName)
 			if err != nil {
@@ -425,13 +419,6 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("fetch run as account id %s: %+v", model.PhysicalServerCredentialName, err)
 			}
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing site recovery vmware replicated vm %q: %+v", id, err)
-				}
-			}
-
 			if existing.Model != nil {
 				return tf.ImportAsExistsError("azurerm_site_recovery_vmware_replicated_vm", *existing.Model.Id)
 			}
@@ -442,10 +429,6 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 				TargetResourceGroupId:    model.TargetResourceGroupId,
 				FabricDiscoveryMachineId: discoveryMachineId,
 				RunAsAccountId:           &runAsAccountId,
-			}
-
-			if model.TargetVmSize != "" {
-				providerSpecificDetail.TargetVMSize = &model.TargetVmSize
 			}
 
 			diskDefaultValueSet := false
@@ -470,6 +453,18 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 				providerSpecificDetail.DisksDefault = &diskDefaultValue
 			}
 
+			if model.MultiVmGroupName != "" {
+				providerSpecificDetail.MultiVMGroupName = &model.MultiVmGroupName
+			}
+
+			if model.ApplianceName != "" {
+				providerSpecificDetail.ProcessServerId = processServerId
+			}
+
+			if model.TargetVmSize != "" {
+				providerSpecificDetail.TargetVMSize = &model.TargetVmSize
+			}
+
 			if model.TargetAvailabilitySetId != "" {
 				providerSpecificDetail.TargetAvailabilitySetId = pointer.To(model.TargetAvailabilitySetId)
 			}
@@ -482,19 +477,10 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 				providerSpecificDetail.TargetBootDiagnosticsStorageAccountId = pointer.To(model.TargetBootDiagnosticsStorageAccountId)
 			}
 
-			if model.MultiVmGroupName != "" {
-				providerSpecificDetail.MultiVMGroupName = &model.MultiVmGroupName
-			}
-
 			if model.TargetProximityPlacementGroupId != "" {
 				providerSpecificDetail.TargetProximityPlacementGroupId = &model.TargetProximityPlacementGroupId
 			}
 
-			if model.ApplianceName != "" {
-				providerSpecificDetail.ProcessServerId = processServerId
-			}
-
-			// split test network and subnet into isolated parameters
 			if model.TargetNetworkId != "" {
 				providerSpecificDetail.TargetNetworkId = &model.TargetNetworkId
 			}
@@ -535,7 +521,38 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("polling %q: %+v", id, err)
 			}
 
-			err = resourceSiteRecoveryReplicatedVmVMWareClassicUpdateInternal(ctx, metadata)
+			log.Printf("[DEBUG] Waiting for %s to be fully protected..", id)
+			pollerType := custompollers.NewVMWareReplicatedVMPoller(client, id)
+
+			protectPoller := pollers.NewPoller(pollerType, 1*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := protectPoller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be fully protected: %s", id, err)
+			}
+
+			updateInput := replicationprotecteditems.UpdateReplicationProtectedItemInput{
+				Properties: &replicationprotecteditems.UpdateReplicationProtectedItemInputProperties{
+					RecoveryAvailabilitySetId:      providerSpecificDetail.TargetAvailabilitySetId,
+					RecoveryAzureVMName:            providerSpecificDetail.TargetVMName,
+					RecoveryAzureVMSize:            providerSpecificDetail.TargetVMSize,
+					SelectedRecoveryAzureNetworkId: providerSpecificDetail.TargetNetworkId,
+					SelectedTfoAzureNetworkId:      providerSpecificDetail.TestNetworkId,
+					ProviderSpecificDetails: replicationprotecteditems.InMageRcmUpdateReplicationProtectedItemInput{
+						LicenseType:                           providerSpecificDetail.LicenseType,
+						TargetAvailabilityZone:                providerSpecificDetail.TargetAvailabilityZone,
+						TargetAvailabilitySetId:               providerSpecificDetail.TargetAvailabilitySetId,
+						TargetBootDiagnosticsStorageAccountId: providerSpecificDetail.TargetBootDiagnosticsStorageAccountId,
+						TargetNetworkId:                       providerSpecificDetail.TargetNetworkId,
+						TargetProximityPlacementGroupId:       providerSpecificDetail.TargetProximityPlacementGroupId,
+						TargetResourceGroupId:                 &providerSpecificDetail.TargetResourceGroupId,
+						TargetVMName:                          providerSpecificDetail.TargetVMName,
+						TargetVMSize:                          providerSpecificDetail.TargetVMSize,
+						TestNetworkId:                         providerSpecificDetail.TestNetworkId,
+						VMNics:                                pointer.To(expandVMWareReplicatedVMNics(model.NetworkInterface)),
+					},
+				},
+			}
+
+			err = client.UpdateThenPoll(ctx, id, updateInput)
 			if err != nil {
 				return fmt.Errorf("creating %q: %+v", id, err)
 			}
@@ -548,7 +565,164 @@ func (s VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 func (s VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
-		Func:    resourceSiteRecoveryReplicatedVmVMWareClassicUpdateInternal,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.RecoveryServices.ReplicationProtectedItemsClient
+
+			var model SiteRecoveryReplicatedVmVMwareModel
+			err := metadata.Decode(&model)
+			if err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+
+			id, err := replicationprotecteditems.ParseReplicationProtectedItemID(metadata.ResourceData.Id())
+			if err != nil {
+				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: Model was nil", id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: Properties was nil", id)
+			}
+			if existing.Model.Properties.ProviderSpecificDetails == nil {
+				return fmt.Errorf("retrieving %s: ProviderSpecificDetails was nil", id)
+			}
+			if _, ok := existing.Model.Properties.ProviderSpecificDetails.(replicationprotecteditems.InMageRcmReplicationDetails); !ok {
+				return fmt.Errorf("retrieving %s: ProviderSpecificDetails was not InMageRcmProtectedItemDetails", id)
+			}
+
+			existingProps := *existing.Model.Properties
+			existingDetails := existingProps.ProviderSpecificDetails.(replicationprotecteditems.InMageRcmReplicationDetails)
+
+			vmNics := make([]replicationprotecteditems.InMageRcmNicInput, 0)
+			if metadata.ResourceData.HasChange("network_interface") {
+				if model.TargetNetworkId == "" && len(model.NetworkInterface) > 0 {
+					return fmt.Errorf("`target_network_id` must be set when a `network_interface` is configured")
+				}
+				vmNics = expandVMWareReplicatedVMNics(model.NetworkInterface)
+			} else {
+				if existingDetails.VMNics == nil {
+					return fmt.Errorf("retrieving `network_interface`: VMNics was nil.")
+				} else {
+					for _, respNic := range *existingDetails.VMNics {
+						vmNics = append(vmNics, replicationprotecteditems.InMageRcmNicInput{
+							IsPrimaryNic:          pointer.From(respNic.IsPrimaryNic),
+							IsSelectedForFailover: respNic.IsSelectedForFailover,
+							NicId:                 pointer.From(respNic.NicId),
+							TargetStaticIPAddress: respNic.TargetIPAddress,
+							TargetSubnetName:      respNic.TargetSubnetName,
+							TestStaticIPAddress:   respNic.TestIPAddress,
+							TestSubnetName:        respNic.TestSubnetName,
+						})
+					}
+				}
+			}
+
+			updateInput := replicationprotecteditems.InMageRcmUpdateReplicationProtectedItemInput{
+				VMNics: &vmNics,
+			}
+
+			if metadata.ResourceData.HasChange("license_type") {
+				updateInput.LicenseType = pointer.To(replicationprotecteditems.LicenseType(model.LicenseType))
+			} else if existingDetails.LicenseType != nil {
+				updateInput.LicenseType = pointer.To(replicationprotecteditems.LicenseType(*existingDetails.LicenseType))
+			}
+
+			if metadata.ResourceData.HasChange("target_vm_name") {
+				updateInput.TargetVMName = &model.TargetVmName
+			} else {
+				updateInput.TargetVMName = existingDetails.TargetVMName
+			}
+
+			if metadata.ResourceData.HasChange("target_resource_group_id") {
+				updateInput.TargetResourceGroupId = &model.TargetResourceGroupId
+			} else {
+				updateInput.TargetResourceGroupId = existingDetails.TargetResourceGroupId
+			}
+
+			if metadata.ResourceData.HasChange("target_availability_set_id") {
+				if model.TargetAvailabilitySetId != "" {
+					updateInput.TargetAvailabilitySetId = &model.TargetAvailabilitySetId
+				} else {
+					updateInput.TargetAvailabilitySetId = nil
+				}
+			} else {
+				updateInput.TargetAvailabilitySetId = existingDetails.TargetAvailabilitySetId
+			}
+
+			if metadata.ResourceData.HasChange("target_zone") {
+				if model.TargetZone != "" {
+					updateInput.TargetAvailabilityZone = &model.TargetZone
+				} else {
+					updateInput.TargetAvailabilityZone = nil
+				}
+			} else {
+				updateInput.TargetAvailabilityZone = existingDetails.TargetAvailabilityZone
+			}
+
+			if metadata.ResourceData.HasChange("target_network_id") {
+				updateInput.TargetNetworkId = &model.TargetNetworkId
+			} else {
+				updateInput.TargetNetworkId = existingDetails.TargetNetworkId
+			}
+
+			if metadata.ResourceData.HasChange("target_proximity_placement_group_id") {
+				updateInput.TargetProximityPlacementGroupId = &model.TargetProximityPlacementGroupId
+			} else {
+				updateInput.TargetProximityPlacementGroupId = existingDetails.TargetProximityPlacementGroupId
+			}
+
+			if metadata.ResourceData.HasChange("target_boot_diagnostics_storage_account_id") {
+				updateInput.TargetBootDiagnosticsStorageAccountId = &model.TargetBootDiagnosticsStorageAccountId
+			} else {
+				updateInput.TargetBootDiagnosticsStorageAccountId = existingDetails.TargetBootDiagnosticsStorageAccountId
+			}
+
+			props := replicationprotecteditems.UpdateReplicationProtectedItemInputProperties{
+				ProviderSpecificDetails: updateInput,
+			}
+
+			if metadata.ResourceData.HasChange("target_availability_set_id") {
+				props.RecoveryAvailabilitySetId = updateInput.TargetAvailabilitySetId
+			} else {
+				props.RecoveryAvailabilitySetId = existingDetails.TargetAvailabilitySetId
+			}
+
+			if metadata.ResourceData.HasChange("target_vm_name") {
+				props.RecoveryAzureVMName = &model.TargetVmName
+			} else {
+				props.RecoveryAzureVMName = existingDetails.TargetVMName
+			}
+
+			if metadata.ResourceData.HasChange("target_network_id") {
+				props.SelectedRecoveryAzureNetworkId = &model.TargetNetworkId
+			} else {
+				props.SelectedRecoveryAzureNetworkId = existingDetails.TargetNetworkId
+			}
+
+			if metadata.ResourceData.HasChange("target_vm_size") {
+				props.RecoveryAzureVMSize = &model.TargetVmSize
+			} else {
+				props.RecoveryAzureVMSize = existingDetails.TargetVMSize
+			}
+
+			parameters := replicationprotecteditems.UpdateReplicationProtectedItemInput{
+				Properties: &props,
+			}
+
+			err = client.UpdateThenPoll(ctx, *id, parameters)
+			if err != nil {
+				return fmt.Errorf("updating %q: %+v", id, err)
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -706,281 +880,7 @@ func (s VMWareReplicatedVmResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func resourceSiteRecoveryReplicatedVmVMWareClassicUpdateInternal(ctx context.Context, metadata sdk.ResourceMetaData) error {
-	client := metadata.Client.RecoveryServices.ReplicationProtectedItemsClient
-	containerClient := metadata.Client.RecoveryServices.ProtectionContainerClient
-	// We are only allowed to update the configuration once the VM is fully protected
-	state, err := waitForVmwareReplicationToBeHealthy(ctx, metadata)
-	if err != nil {
-		return err
-	}
-
-	var model SiteRecoveryReplicatedVmVMwareModel
-	err = metadata.Decode(&model)
-	if err != nil {
-		return fmt.Errorf("decoding %+v", err)
-	}
-
-	containerId, err := fetchSiteRecoveryReplicatedVmVMWareContainerId(ctx, containerClient, model.RecoveryVaultId)
-	if err != nil {
-		return fmt.Errorf("fetch Replication Container from vault %q: %+v", model.RecoveryVaultId, err)
-	}
-	parsedContainerId, err := replicationprotectioncontainers.ParseReplicationProtectionContainerID(containerId)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", containerId, err)
-	}
-
-	id := replicationprotecteditems.NewReplicationProtectedItemID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, model.Name)
-
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving %s: Model was nil", id)
-	}
-	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: Properties was nil", id)
-	}
-	if existing.Model.Properties.ProviderSpecificDetails == nil {
-		return fmt.Errorf("retrieving %s: ProviderSpecificDetails was nil", id)
-	}
-	if _, ok := existing.Model.Properties.ProviderSpecificDetails.(replicationprotecteditems.InMageRcmReplicationDetails); !ok {
-		return fmt.Errorf("retrieving %s: ProviderSpecificDetails was not InMageRcmProtectedItemDetails", id)
-	}
-
-	existingProps := *existing.Model.Properties
-	existingDetails := existingProps.ProviderSpecificDetails.(replicationprotecteditems.InMageRcmReplicationDetails)
-
-	var targetAvailabilitySetID *string
-	if model.TargetAvailabilitySetId != "" {
-		targetAvailabilitySetID = &model.TargetAvailabilitySetId
-	} else {
-		targetAvailabilitySetID = nil
-	}
-
-	var targetAvailabilityZone *string
-	if model.TargetZone != "" {
-		targetAvailabilityZone = &model.TargetZone
-	} else {
-		targetAvailabilityZone = nil
-	}
-
-	vmNics := make([]replicationprotecteditems.InMageRcmNicInput, 0)
-	if metadata.ResourceData.HasChange("network_interface") {
-		for _, nic := range model.NetworkInterface {
-			vmNic := replicationprotecteditems.InMageRcmNicInput{
-				TargetSubnetName: &nic.TargetSubnetName,
-			}
-			if nic.SourceMacAddress != "" {
-				vmNic.NicId = nic.SourceMacAddress
-			} else {
-				if len(model.NetworkInterface) > 1 {
-					return fmt.Errorf("when `source_mac_address` is not set, there must be exactly one `network_interface` block")
-				}
-				if state == nil || state.Properties == nil || state.Properties.ProviderSpecificDetails == nil {
-					return fmt.Errorf("failed to get nic id from state")
-				}
-
-				if detail, ok := state.Properties.ProviderSpecificDetails.(replicationprotecteditems.InMageRcmReplicationDetails); ok {
-					if detail.VMNics != nil && len(*detail.VMNics) == 1 && (*detail.VMNics)[0].NicId != nil {
-						vmNic.NicId = *(*detail.VMNics)[0].NicId
-					} else {
-						return fmt.Errorf("when `source_mac_address` is not set, there must be exactly one Network Adapter on the source VM")
-					}
-				} else {
-					return fmt.Errorf("unexpected provider specific details type: %T", state.Properties.ProviderSpecificDetails)
-				}
-			}
-
-			if nic.TargetStaticIp != "" {
-				vmNic.TargetStaticIPAddress = &nic.TargetStaticIp
-			}
-			if nic.IsPrimary {
-				vmNic.IsPrimaryNic = strconv.FormatBool(true)
-				vmNic.IsSelectedForFailover = utils.String("true")
-			} else {
-				vmNic.IsPrimaryNic = strconv.FormatBool(false)
-				vmNic.IsSelectedForFailover = utils.String("false")
-			}
-			vmNics = append(vmNics, vmNic)
-		}
-
-		if model.TargetNetworkId == "" && len(vmNics) > 0 {
-			return fmt.Errorf("`target_network_id` must be set when a `network_interface` is configured")
-		}
-	} else {
-		if existingDetails.VMNics == nil {
-			return fmt.Errorf("retrieving `network_interface`: VMNics was nil.")
-		} else {
-			for _, respNic := range *existingDetails.VMNics {
-				vmNics = append(vmNics, replicationprotecteditems.InMageRcmNicInput{
-					IsPrimaryNic:          pointer.From(respNic.IsPrimaryNic),
-					IsSelectedForFailover: respNic.IsSelectedForFailover,
-					NicId:                 pointer.From(respNic.NicId),
-					TargetStaticIPAddress: respNic.TargetIPAddress,
-					TargetSubnetName:      respNic.TargetSubnetName,
-					TestStaticIPAddress:   respNic.TestIPAddress,
-					TestSubnetName:        respNic.TestSubnetName,
-				})
-			}
-		}
-	}
-
-	updateInput := replicationprotecteditems.InMageRcmUpdateReplicationProtectedItemInput{
-		VMNics: &vmNics,
-	}
-
-	if metadata.ResourceData.HasChange("license_type") {
-		updateInput.LicenseType = pointer.To(replicationprotecteditems.LicenseType(model.LicenseType))
-	} else if existingDetails.LicenseType != nil {
-		updateInput.LicenseType = pointer.To(replicationprotecteditems.LicenseType(*existingDetails.LicenseType))
-	}
-
-	if metadata.ResourceData.HasChange("target_vm_name") {
-		updateInput.TargetVMName = &model.TargetVmName
-	} else {
-		updateInput.TargetVMName = existingDetails.TargetVMName
-	}
-
-	if metadata.ResourceData.HasChange("target_resource_group_id") {
-		updateInput.TargetResourceGroupId = &model.TargetResourceGroupId
-	} else {
-		updateInput.TargetResourceGroupId = existingDetails.TargetResourceGroupId
-	}
-
-	if metadata.ResourceData.HasChange("target_availability_set_id") {
-		updateInput.TargetAvailabilitySetId = targetAvailabilitySetID
-	} else {
-		updateInput.TargetAvailabilitySetId = existingDetails.TargetAvailabilitySetId
-	}
-
-	if metadata.ResourceData.HasChange("target_zone") {
-		updateInput.TargetAvailabilityZone = targetAvailabilityZone
-	} else {
-		updateInput.TargetAvailabilityZone = existingDetails.TargetAvailabilityZone
-	}
-
-	if metadata.ResourceData.HasChange("target_network_id") {
-		updateInput.TargetNetworkId = &model.TargetNetworkId
-	} else {
-		updateInput.TargetNetworkId = existingDetails.TargetNetworkId
-	}
-
-	if metadata.ResourceData.HasChange("target_proximity_placement_group_id") {
-		updateInput.TargetProximityPlacementGroupId = &model.TargetProximityPlacementGroupId
-	} else {
-		updateInput.TargetProximityPlacementGroupId = existingDetails.TargetProximityPlacementGroupId
-	}
-
-	if metadata.ResourceData.HasChange("target_boot_diagnostics_storage_account_id") {
-		updateInput.TargetBootDiagnosticsStorageAccountId = &model.TargetBootDiagnosticsStorageAccountId
-	} else {
-		updateInput.TargetBootDiagnosticsStorageAccountId = existingDetails.TargetBootDiagnosticsStorageAccountId
-	}
-
-	props := replicationprotecteditems.UpdateReplicationProtectedItemInputProperties{
-		ProviderSpecificDetails: updateInput,
-	}
-
-	if metadata.ResourceData.HasChange("target_vm_name") {
-		props.RecoveryAzureVMName = &model.TargetVmName
-	} else {
-		props.RecoveryAzureVMName = existingDetails.TargetVMName
-	}
-
-	if metadata.ResourceData.HasChange("target_network_id") {
-		props.SelectedRecoveryAzureNetworkId = &model.TargetNetworkId
-	} else {
-		props.SelectedRecoveryAzureNetworkId = existingDetails.TargetNetworkId
-	}
-
-	if metadata.ResourceData.HasChange("target_availability_set_id") {
-		props.RecoveryAvailabilitySetId = targetAvailabilitySetID
-	} else {
-		props.RecoveryAvailabilitySetId = existingDetails.TargetAvailabilitySetId
-	}
-
-	if metadata.ResourceData.HasChange("target_vm_size") {
-		props.RecoveryAzureVMSize = &model.TargetVmSize
-	} else {
-		props.RecoveryAzureVMSize = existingDetails.TargetVMSize
-	}
-
-	parameters := replicationprotecteditems.UpdateReplicationProtectedItemInput{
-		Properties: &props,
-	}
-
-	err = client.UpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("updating %q: %+v", id, err)
-	}
-
-	return nil
-}
-
-func waitForVmwareReplicationToBeHealthy(ctx context.Context, metadata sdk.ResourceMetaData) (*replicationprotecteditems.ReplicationProtectedItem, error) {
-	stateConf := &pluginsdk.StateChangeConf{
-		Target:       []string{"Protected", "normal"},
-		Refresh:      waitForVmwareClassicReplicationToBeHealthyRefreshFunc(ctx, metadata),
-		PollInterval: time.Minute,
-	}
-
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return nil, fmt.Errorf("context had no deadline")
-	}
-	stateConf.Timeout = time.Until(deadline)
-
-	result, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("waiting for site recovery to replicate vm: %+v", err)
-	}
-
-	protectedItem, ok := result.(replicationprotecteditems.ReplicationProtectedItem)
-	if ok {
-		return &protectedItem, nil
-	} else {
-		return nil, fmt.Errorf("waiting for site recovery return incompatible type")
-	}
-}
-
-func waitForVmwareClassicReplicationToBeHealthyRefreshFunc(ctx context.Context, metadata sdk.ResourceMetaData) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		id, err := replicationprotecteditems.ParseReplicationProtectedItemID(metadata.ResourceData.Id())
-		if err != nil {
-			return nil, "", err
-		}
-
-		client := metadata.Client.RecoveryServices.ReplicationProtectedItemsClient
-
-		resp, err := client.Get(ctx, *id)
-		if err != nil {
-			return nil, "", fmt.Errorf("making Read request on site recovery replicated vm Vmware Classic %s : %+v", id.String(), err)
-		}
-
-		if resp.Model == nil {
-			return nil, "", fmt.Errorf("Missing Model in response when making Read request on site recovery replicated vm Vmware Classic %s  %+v", id.String(), err)
-		}
-
-		if resp.Model.Properties == nil {
-			return nil, "", fmt.Errorf("Missing Properties in response when making Read request on site recovery replicated vm Vmware Classic %s  %+v", id.String(), err)
-		}
-
-		if resp.Model.Properties.ProviderSpecificDetails == nil {
-			return nil, "", fmt.Errorf("missing Properties.ProviderSpecificDetails in response when making Read request on site recovery replicated vm Vmware Classic %s : %+v", id.String(), err)
-		}
-
-		// Find first disk that is not fully replicated yet
-		if resp.Model.Properties.ProtectionState == nil {
-			return nil, "", fmt.Errorf("missing ProtectionState in response when making Read request on site recovery replicated vm Vmware Classic %s : %+v", id.String(), err)
-		}
-		return *resp.Model, *resp.Model.Properties.ProtectionState, nil
-	}
-}
-
-func fetchSiteRecoveryReplicatedVmVMWareContainerId(ctx context.Context, containerClient *replicationprotectioncontainers.ReplicationProtectionContainersClient, vaultId string) (string, error) {
+func fetchSiteRecoveryContainerId(ctx context.Context, containerClient *replicationprotectioncontainers.ReplicationProtectionContainersClient, vaultId string) (string, error) {
 	vId, err := replicationprotectioncontainers.ParseVaultID(vaultId)
 	if err != nil {
 		return "", fmt.Errorf("parse %s: %+v", vaultId, err)
@@ -1035,7 +935,7 @@ func fetchRunAsAccountsIdBySite(ctx context.Context, runAsAccountClient *vmwarer
 		}
 	}
 
-	return "", fmt.Errorf("retiring %q: run as account %s not found", siteId, displayName)
+	return "", fmt.Errorf("retrieving %q: run as account %s not found", siteId, displayName)
 }
 
 func fetchProcessServerIdByName(ctx context.Context, fabricClient *replicationfabrics.ReplicationFabricsClient, fabricId replicationfabrics.ReplicationFabricId, processServerName string) (string, error) {
@@ -1045,29 +945,29 @@ func fetchProcessServerIdByName(ctx context.Context, fabricClient *replicationfa
 	}
 
 	if resp.Model == nil {
-		return "", fmt.Errorf("retiring %q: Model is nil", fabricId)
+		return "", fmt.Errorf("retrieving %q: Model is nil", fabricId)
 	}
 
 	if resp.Model.Properties == nil {
-		return "", fmt.Errorf("retiring %q: Properties is nil", fabricId)
+		return "", fmt.Errorf("retrieving %q: Properties is nil", fabricId)
 	}
 
 	if resp.Model.Properties.CustomDetails == nil {
-		return "", fmt.Errorf("retiring %q: CustomDetails is nil", fabricId)
+		return "", fmt.Errorf("retrieving %q: CustomDetails is nil", fabricId)
 	}
 
 	if detail, ok := resp.Model.Properties.CustomDetails.(replicationfabrics.InMageRcmFabricSpecificDetails); ok {
-		if detail.ProcessServers == nil || len(*detail.ProcessServers) < 1 {
-			return "", fmt.Errorf("retiring %q: count of Process Servers is 0", fabricId)
+		if detail.ProcessServers == nil {
+			return "", fmt.Errorf("retrieving %q: ProcessServers is nil", fabricId)
 		}
 		for _, server := range *detail.ProcessServers {
 			if strings.EqualFold(*server.Name, processServerName) {
 				return *server.Id, nil
 			}
 		}
-		return "", fmt.Errorf("retiring %q: process server %s not found", fabricId, processServerName)
+		return "", fmt.Errorf("retrieving %q: process server %s not found", fabricId, processServerName)
 	}
-	return "", fmt.Errorf("retiring %q: Detail Type mismatch", fabricId)
+	return "", fmt.Errorf("retrieving %q: Detail Type mismatch", fabricId)
 }
 
 func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *vmwaremachines.MachinesClient, siteId string, machineName string) (string, error) {
@@ -1076,7 +976,8 @@ func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *vmwarema
 		return "", fmt.Errorf("parse %s: %+v", siteId, err)
 	}
 
-	resp, err := getAllVMWareMachinesInSite(ctx, machinesClient, *parsedSiteId, vmwaremachines.DefaultGetAllMachinesInSiteOperationOptions())
+	hackedClient := azuresdkhacks.MachinesClient{Client: machinesClient.Client}
+	resp, err := hackedClient.GetAllVMWareMachinesInSite(ctx, *parsedSiteId, vmwaremachines.DefaultGetAllMachinesInSiteOperationOptions())
 	if err != nil {
 		return "", err
 	}
@@ -1090,12 +991,16 @@ func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *vmwarema
 				continue
 			}
 			if strings.EqualFold(*machine.Properties.DisplayName, machineName) {
-				return handleAzureSdkForGoBug2824(*machine.Id), nil
+				parsedMachineId, err := vmwaremachines.ParseVMwareSiteIDInsensitively(*machine.Id)
+				if err != nil {
+					return "", fmt.Errorf("parse %s: %+v", *machine.Id, err)
+				}
+				return parsedMachineId.ID(), nil
 			}
 		}
 	}
 
-	return "", fmt.Errorf("retiring %q: machine %s not found", siteId, machineName)
+	return "", fmt.Errorf("retrieving %q: machine %s not found", siteId, machineName)
 }
 
 func fetchCredentialByRunAsAccountId(ctx context.Context, client *vmwarerunasaccounts.RunAsAccountsClient, id string) (string, error) {
@@ -1110,77 +1015,18 @@ func fetchCredentialByRunAsAccountId(ctx context.Context, client *vmwarerunasacc
 	}
 
 	if resp.Model == nil {
-		return "", fmt.Errorf("retiring %q: Model was nil", id)
+		return "", fmt.Errorf("retrieving %q: Model was nil", id)
 	}
 
 	if resp.Model.Properties == nil {
-		return "", fmt.Errorf("retiring %q: Properties was nil", id)
+		return "", fmt.Errorf("retrieving %q: Properties was nil", id)
 	}
 
 	if resp.Model.Properties.DisplayName == nil {
-		return "", fmt.Errorf("retiring %q: DisplayName was nil", id)
+		return "", fmt.Errorf("retrieving %q: DisplayName was nil", id)
 	}
 
 	return *resp.Model.Properties.DisplayName, nil
-}
-
-// workaround for https://github.com/hashicorp/go-azure-sdk/issues/492
-func getAllVMWareMachinesInSite(ctx context.Context, c *vmwaremachines.MachinesClient, id vmwaremachines.VMwareSiteId, options vmwaremachines.GetAllMachinesInSiteOperationOptions) (result vmwaremachines.GetAllMachinesInSiteOperationResponse, err error) {
-	opts := client.RequestOptions{
-		ContentType: "application/json",
-		ExpectedStatusCodes: []int{
-			http.StatusOK,
-		},
-		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/machines", id.ID()),
-		OptionsObject: options,
-	}
-
-	req, err := c.Client.NewRequest(ctx, opts)
-	if err != nil {
-		return
-	}
-
-	return warpedExecutePaged(ctx, req)
-}
-
-func warpedExecutePaged(ctx context.Context, req *client.Request) (result vmwaremachines.GetAllMachinesInSiteOperationResponse, err error) {
-	resp, err := req.ExecutePaged(ctx)
-	if resp != nil {
-		result.OData = resp.OData
-		result.HttpResponse = resp.Response
-	}
-	if err != nil {
-		return
-	}
-
-	var values struct {
-		Values   *[]vmwaremachines.VMwareMachine `json:"value"`
-		NextLink *string                         `json:"nextLink"`
-	}
-
-	if err = resp.Unmarshal(&values); err != nil {
-		return
-	}
-	result.Model = values.Values
-
-	if values.NextLink != nil {
-		nextReq := req
-		u, err := url.Parse(*values.NextLink)
-		if err != nil {
-			return result, err
-		}
-		nextReq.URL = u
-		nextResp, err := warpedExecutePaged(ctx, nextReq)
-		if err != nil {
-			return result, err
-		}
-		if nextResp.Model != nil {
-			result.Model = pointer.To(append(*result.Model, *nextResp.Model...))
-		}
-	}
-
-	return
 }
 
 func fetchVmwareSiteIdByFabric(ctx context.Context, fabricClient *replicationfabrics.ReplicationFabricsClient, fabricId replicationfabrics.ReplicationFabricId) (string, error) {
@@ -1189,16 +1035,38 @@ func fetchVmwareSiteIdByFabric(ctx context.Context, fabricClient *replicationfab
 		return "", err
 	}
 	if resp.Model == nil {
-		return "", fmt.Errorf("retiring %q: Model is nil", fabricId)
+		return "", fmt.Errorf("retrieving %q: Model is nil", fabricId)
 	}
 	if resp.Model.Properties == nil {
-		return "", fmt.Errorf("retiring %q: Properties is nil", fabricId)
+		return "", fmt.Errorf("retrieving %q: Properties is nil", fabricId)
 	}
 	if v, ok := resp.Model.Properties.CustomDetails.(replicationfabrics.InMageRcmFabricSpecificDetails); ok {
 		if v.VMwareSiteId == nil {
-			return "", fmt.Errorf("retiring %q: VMwareSiteId is nil", fabricId)
+			return "", fmt.Errorf("retrieving %q: VMwareSiteId is nil", fabricId)
 		}
 		return *v.VMwareSiteId, nil
 	}
-	return "", fmt.Errorf("retiring %q: Detail Type mismatch", fabricId)
+	return "", fmt.Errorf("retrieving %q: Detail Type mismatch", fabricId)
+}
+
+func expandVMWareReplicatedVMNics(input []NetworkInterfaceModel) []replicationprotecteditems.InMageRcmNicInput {
+	vmNics := make([]replicationprotecteditems.InMageRcmNicInput, 0)
+	for _, nic := range input {
+		vmNic := replicationprotecteditems.InMageRcmNicInput{
+			NicId:            nic.SourceMacAddress,
+			TargetSubnetName: &nic.TargetSubnetName,
+		}
+		if nic.TargetStaticIp != "" {
+			vmNic.TargetStaticIPAddress = &nic.TargetStaticIp
+		}
+		if nic.IsPrimary {
+			vmNic.IsPrimaryNic = strconv.FormatBool(true)
+			vmNic.IsSelectedForFailover = utils.String("true")
+		} else {
+			vmNic.IsPrimaryNic = strconv.FormatBool(false)
+			vmNic.IsSelectedForFailover = utils.String("false")
+		}
+		vmNics = append(vmNics, vmNic)
+	}
+	return vmNics
 }

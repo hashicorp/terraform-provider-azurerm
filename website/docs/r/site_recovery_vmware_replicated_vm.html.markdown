@@ -3,12 +3,12 @@ subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_site_recovery_vmware_replicated_vm"
 description: |-
-    Manages a VMWare VM protected with Azure Site Recovery on Azure.
+    Manages a VMWare replicated VM protected with Azure Site Recovery on Azure.
 ---
 
 # azurerm_site_recovery_vmware_replicated_vm
 
-Manages a VMWare VM replicated using Azure Site Recovery (VMWare to Azure only). A replicated VM keeps a copiously updated image of the VM in Azure in order to be able to start the VM in Azure in case of a disaster.
+Manages a VMWare replicated VM using Azure Site Recovery (VMWare to Azure only). A replicated VM keeps a copiously updated image of the VM in Azure in order to be able to start the VM in Azure in case of a disaster.
 
 ## Example Usage
 
@@ -35,7 +35,7 @@ resource "azurerm_site_recovery_vmware_replication_policy" "example" {
 resource "azurerm_site_recovery_vmware_replication_policy_association" "test" {
   name              = "example-association"
   recovery_vault_id = azurerm_recovery_services_vault.example.id
-  policy_id         = azurerm_site_recovery_hyperv_replication_policy.example.id
+  policy_id         = azurerm_site_recovery_vmware_replication_policy.example.id
 }
 
 resource "azurerm_storage_account" "example" {
@@ -89,8 +89,6 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "example" {
     target_subnet_name = azurerm_subnet.example.name
     is_primary         = true
   }
-
-  depends_on = [azurerm_site_recovery_vmware_replication_policy_association.example]
 }
 ```
 
@@ -98,19 +96,19 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "example" {
 
 The following arguments are supported:
 
+* `appliance_name` - (Required) The name of VMWare appliance which handles the replication. Changing this forces a new resource to be created.
+
 * `name` - (Required) The name of the replicated VM. Changing this forces a new resource to be created.
 
 * `recovery_vault_id` - (Required) The ID of the Recovery Services Vault where the replicated VM is created. Changing this forces a new resource to be created.
 
-* `source_vm_name` - (Required) The name of the source VM in VMWare. Changing this forces a new resource to be created.
+* `network_interface` - (Required) One or more `network_interface` block as defined below.
 
-* `appliance_name` - (Required) The name of VMWare appliance which handles the replication. Changing this forces a new resource to be created.
+* `physical_server_credential_name` - (Required) The name of the credential to access the source VM. Changing this forces a new resource to be created. More information about the credentials could be found [here](https://learn.microsoft.com/en-us/azure/site-recovery/deploy-vmware-azure-replication-appliance-modernized).
 
 * `recovery_replication_policy_id` - (Required) The ID of the policy to use for this replicated VM. Changing this forces a new resource to be created.
 
-* `physical_server_credential_name` - (Required) The name of credential to access source VM. Changing this forces a new resource to be created. More information about the credentials could be found [here](https://learn.microsoft.com/en-us/azure/site-recovery/deploy-vmware-azure-replication-appliance-modernized).
-
-* `license_type` - (Optional) The license type of the VM. Possible values are `NoLicenseType`, `NotSpecified` and `WindowsServer`. Defaults to `NotSpecified`.
+* `source_vm_name` - (Required) The name of the source VM in VMWare. Changing this forces a new resource to be created.
 
 * `target_resource_group_id` - (Required) The ID of resource group where the VM should be created when a failover is done. Changing this forces a new resource to be created.
 
@@ -118,27 +116,43 @@ The following arguments are supported:
 
 * `default_log_storage_account_id` - (Optional) The ID of the stroage account that should be used for logging during replication. 
 
-**Note:** Only standard types of stroage accounts are allowed.
+**Note:** Only standard types of storage accounts are allowed.
 
-**Note:** At least one of `default_log_storage_account_id` or `managed_disk` must be specified.
+**Note:** Only one of `default_log_storage_account_id` or `managed_disk` must be specified.
 
 **Note:** Changing `default_log_storage_account_id` forces a new resource to be created. But removing it does not.
 
-* `default_recovery_disk_type` - (Optional) The type of storage account that should be used for recovery disks when a failover is done. Possible values are `Standard_LRS`, `Standard_LRS` and `StandardSSD_LRS`. 
+**Note:** When `default_log_storage_account_id` co-exist with `managed_disk`, the value of `default_log_storage_account_id` must be as same as `log_storage_account_id` of every `managed_disk` or it forces a new resource to be created. 
 
-**Note:** At least one of `default_recovery_disk_type` or `managed_disk` must be specified.
+* `default_target_disk_encryption_set_id` - (Optional) The ID of the default Disk Encryption Set that should be used for the disks when a failover is done.
+
+**Note:** Only one of `default_target_disk_encryption_set_id` or `managed_disk` can be specified.
+
+**Note:** Changing `default_target_disk_encryption_set_id` forces a new resource to be created. But removing it does not.
+
+**Note:** When `default_target_disk_encryption_set_id` co-exist with `managed_disk`, the value of `default_target_disk_encryption_set_id` must be as same as `target_disk_encryption_set_id` of every `managed_disk` or it forces a new resource to be created. 
+
+* `default_recovery_disk_type` - (Optional) The type of storage account that should be used for recovery disks when a failover is done. Possible values are `Standard_LRS`, `Standard_LRS` and `StandardSSD_LRS`.
+
+**Note:** Only one of `default_recovery_disk_type` or `managed_disk` must be specified.
 
 **Note:** Changing `default_recovery_disk_type` forces a new resource to be created. But removing it does not.
 
-* `target_network_id` - (Optional) The ID of network to use when a failover is done.
+**Note:** When `default_recovery_disk_type` co-exist with `managed_disk`, the value of `default_recovery_disk_type` must be as same as `target_disk_type` of every `managed_disk` or it forces a new resource to be created.
 
-* `target_subnet_name` - (Optional) Name of the subnet to use when a failover is done.
-
-* `test_network_id` - (Optional) The ID of network to use when a test failover is done.
-
-* `test_subnet_name` - (Optional) Name of the subnet to use when a failover is done.
+* `license_type` - (Optional) The license type of the VM. Possible values are `NoLicenseType`, `NotSpecified` and `WindowsServer`. Defaults to `NotSpecified`.
 
 * `multi_vm_group_name` - (Optional) Name of group in which all machines will replicate together and have shared crash consistent and app-consistent recovery points when failed over. Changing this forces a new resource to be created.
+
+* `managed_disk` - (Optional) One or more `managed_disk` block as defined below. It's available only if mobility service is already installed on the source VM.
+
+**Note:** a replicated VM could be created without `managed_disk` block, once it has been specified, changing it forces a new resource to be created.
+
+* `target_boot_diagnostics_storage_account_id` - (Optional) The ID of the storage account that should be used for boot diagnostics when a failover is done.
+
+* `target_network_id` - (Optional) The ID of network to use when a failover is done.
+
+* `test_network_id` - (Optional) The ID of network to use when a test failover is done.
 
 * `target_proximity_placement_group_id` - (Optional) The ID of Proximity Placement Group the new VM should belong to when a failover is done.
 
@@ -146,23 +160,9 @@ The following arguments are supported:
 
 **Note:** Only one of `target_availability_set_id` or `target_zone` can be specified.
 
+* `target_zone` - (Optional) Specifies the Availability Zone where the Failover VM should exist.
+
 * `target_vm_size` - (Optional) Size of the VM that should be created when a failover is done, such as `Standard_F2`. If it's not specified, it will automatically be set by detecting the source VM size.
-
-* `target_zone` - (Optional) Specifies the Availability Zone where the Failover VM should exist. 
-
-* `default_target_disk_encryption_set_id` - (Optional) The ID of the default Disk Encryption Set that should be used for the disks when a failover is done. 
-
-**Note:** Only one of `default_target_disk_encryption_set_id` or `managed_disk` can be specified.
-
-**Note:** Changing `default_target_disk_encryption_set_id` forces a new resource to be created. But removing it does not.
-
-* `target_boot_diagnostics_storage_account_id` - (Optional) The ID of the storage account that should be used for boot diagnostics when a failover is done.
-
-* `managed_disk` - (Optional) One or more `managed_disk` block as defined below. It's available only if mobility service is already installed on the source VM.
-
-**Note:** a replicated VM could be created without `managed_disk` block, once it has been specified, changing it forces a new resource to be created.
-
-* `network_interface` - (Required) One or more `network_interface` block as defined below.
 
 ---
 
@@ -180,17 +180,15 @@ A `managed_disk` block supports the following:
 
 A `network_interface` block supports the following:
 
-* `source_mac_address` - (Optional) Mac address of the network interface of source VM. 
+* `source_mac_address` - (Required) Mac address of the network interface of source VM. 
 
--> **NOTE:** `source_mac_address` could be left blank in creation only if there is exactly one network interface on the source VM.
+* `is_primary` - (Required) Whether this `network_interface` is primary for the replicated VM.
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 
 * `target_subnet_name` - (Optional) Name of the subnet to use when a failover is done.
 
 * `test_subnet_name` - (Optional) Name of the subnet to use when a test failover is done.
-
-* `is_primary` - (Required) Whether this `network_interface` is primary for the replicated VM.
 
 ## Attributes Reference
 

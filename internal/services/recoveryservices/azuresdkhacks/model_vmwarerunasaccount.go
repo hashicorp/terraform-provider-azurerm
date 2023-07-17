@@ -14,5 +14,6 @@ type RunAsAccountProperties struct {
 	CredentialType   *runasaccounts.CredentialType `json:"credentialType,omitempty"`
 	DisplayName      *string                       `json:"displayName,omitempty"`
 	UpdatedTimestamp *string                       `json:"updatedTimestamp,omitempty"`
-	ApplianceName    *string                       `json:"applianceName,omitempty"`
+	// ApplianceName was not defined in the original code. This is the only change.
+	ApplianceName *string `json:"applianceName,omitempty"`
 }

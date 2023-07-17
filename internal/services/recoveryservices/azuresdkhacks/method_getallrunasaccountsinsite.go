@@ -12,6 +12,7 @@ import (
 )
 
 // workaround for https://github.com/Azure/azure-rest-api-specs/issues/24712
+// the difference is in the struct `RunAsAccountProperties`
 // TODO 4.0: check if this could be removed
 
 type RunAsAccountsClient struct {
