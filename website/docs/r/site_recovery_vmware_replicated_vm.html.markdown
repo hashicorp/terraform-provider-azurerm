@@ -114,6 +114,8 @@ The following arguments are supported:
 
 * `target_vm_name` - (Required) Name of the VM that should be created when a failover is done. Changing this forces a new resource to be created.
 
+* `target_network_id` - (Required) The ID of network to use when a failover is done.
+
 * `default_log_storage_account_id` - (Optional) The ID of the stroage account that should be used for logging during replication. 
 
 **Note:** Only standard types of storage accounts are allowed.
@@ -149,8 +151,6 @@ The following arguments are supported:
 **Note:** a replicated VM could be created without `managed_disk` block, once the block has been specified, changing it expect removing it forces a new resource to be created..
 
 * `target_boot_diagnostics_storage_account_id` - (Optional) The ID of the storage account that should be used for boot diagnostics when a failover is done.
-
-* `target_network_id` - (Optional) The ID of network to use when a failover is done.
 
 * `test_network_id` - (Optional) The ID of network to use when a test failover is done.
 

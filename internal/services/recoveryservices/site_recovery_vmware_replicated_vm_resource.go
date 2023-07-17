@@ -216,11 +216,8 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"target_network_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
-			RequiredWith: []string{
-				"network_interface",
-			},
 		},
 
 		"test_network_id": {
