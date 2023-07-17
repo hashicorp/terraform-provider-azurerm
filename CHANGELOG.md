@@ -4,10 +4,15 @@ ENHANCEMENTS:
 
 * dependencies: bump `go-azure-sdk` to `v0.20230713.1092427` and switch `machinelearning`, `maintenance`, `mixedreality`, `mariadb` and `mobilenetwork` to new base layer [GH-22503]
 * dependencies: move `azurerm_bastion_host` and `azurerm_network_connection_monitor` over to `hashicorp/go-azure-sdk` [GH-22425]
+* dependencies: move `mysql` resources over to `hashicorp/go-azure-sdk` [GH-22528]
 * dependencies: move `storage_sync` resources over to `hashicorp/go-azure-sdk` [GH-21928]
 * dependencies: updating to API Version `2022-08-08` [GH-22440]
 * `data.azurerm_servicebus_*` - add deprecation messages for `resource_group_name` and `namespace_name` [GH-22521]
 * `azurerm_logic_app_standard` - Add new computed attribute `auto_swap_slot_name` [GH-22525]
+
+BUG FIXES:
+
+* `azurerm_application_gateway` - send `min_protocol_version` and correct `policy_type` when using `CustomV2` [GH-22535]
 
 ## 3.65.0 (July 13, 2023)
 
