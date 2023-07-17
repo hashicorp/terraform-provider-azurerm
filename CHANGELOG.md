@@ -7,12 +7,14 @@ ENHANCEMENTS:
 * dependencies: move `mysql` resources over to `hashicorp/go-azure-sdk` [GH-22528]
 * dependencies: move `storage_sync` resources over to `hashicorp/go-azure-sdk` [GH-21928]
 * dependencies: updating to API Version `2022-08-08` [GH-22440]
+* `data.azurerm_route_table` - add support for the `bgp_route_propagation_enabled` property [GH-21940]
 * `data.azurerm_servicebus_*` - add deprecation messages for `resource_group_name` and `namespace_name` [GH-22521]
 * `azurerm_logic_app_standard` - Add new computed attribute `auto_swap_slot_name` [GH-22525]
 
 BUG FIXES:
 
 * `azurerm_application_gateway` - send `min_protocol_version` and correct `policy_type` when using `CustomV2` [GH-22535]
+* `azurerm_maintenance_configuration` - set `package_names_mask_to_exclude` and `package_names_mask_to_exclude` properly in expand and flatten function [GH-22555]
 
 ## 3.65.0 (July 13, 2023)
 
