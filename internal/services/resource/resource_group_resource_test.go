@@ -118,6 +118,15 @@ func TestAccResourceGroup_withNestedItemsAndFeatureFlag(t *testing.T) {
 		},
 	})
 }
+g
+func TestAccResourceGroup_doesTeamCityWork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	testResource := ResourceGroupResource{}
+	data.ResourceTest(t, testResource, []acceptance.TestStep{
+		data.ApplyStep(testResource.basicConfig, testResource),
+		data.ImportStep(),
+	})
+}
 
 func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	resourceGroup := state.Attributes["name"]
