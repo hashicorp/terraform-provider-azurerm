@@ -20,7 +20,7 @@ import (
 
 func resourceMySQLFlexibleServerConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMySQLFlexibleServerConfigurationUpdate,
+		Create: resourceMySQLFlexibleServerConfigurationCreate,
 		Read:   resourceMySQLFlexibleServerConfigurationRead,
 		Update: resourceMySQLFlexibleServerConfigurationUpdate,
 		Delete: resourceMySQLFlexibleServerConfigurationDelete,
@@ -61,6 +61,31 @@ func resourceMySQLFlexibleServerConfiguration() *pluginsdk.Resource {
 	}
 }
 
+func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Configurations
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
+
+	payload := configurations.Configuration{
+		Properties: &configurations.ConfigurationProperties{
+			Value: pointer.To(d.Get("value").(string)),
+		},
+	}
+	// NOTE: this resource intentionally doesn't support Requires Import
+	//       since a fallback route is created by default
+
+	id := configurations.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating %s: %v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceMySQLFlexibleServerConfigurationRead(d, meta)
+}
+
 func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Configurations
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -74,9 +99,6 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 			Value: pointer.To(d.Get("value").(string)),
 		},
 	}
-
-	// NOTE: this resource intentionally doesn't support Requires Import
-	//       since a fallback route is created by default
 
 	id := configurations.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 	if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
