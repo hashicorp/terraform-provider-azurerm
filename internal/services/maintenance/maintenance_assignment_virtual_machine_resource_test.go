@@ -67,6 +67,9 @@ func TestAccMaintenanceAssignmentVirtualMachine_linkMultipleMaintenanceAssignmen
 
 func (MaintenanceAssignmentVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := configurationassignments.ParseScopedConfigurationAssignmentID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.Get(ctx, *id)
 	if err != nil {
