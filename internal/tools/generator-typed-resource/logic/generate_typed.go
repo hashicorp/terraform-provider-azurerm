@@ -89,14 +89,11 @@ func (g *generator) collectASTInfo() (res *MetaInfo) {
 		return name
 	}
 	r := g.source.resource
-	//lint:ignore SA1019
-	createName := fnName(r.Create)
-	//lint:ignore SA1019
-	readName := fnName(r.Read)
-	//lint:ignore SA1019
-	updateName := fnName(r.Update)
-	//lint:ignore SA1019
-	deleteName := fnName(r.Delete)
+
+	createName := fnName(r.Create) //nolint:staticcheck
+	readName := fnName(r.Read)     //nolint:staticcheck
+	updateName := fnName(r.Update) //nolint:staticcheck
+	deleteName := fnName(r.Delete) //nolint:staticcheck
 
 	// collect function asts
 	ast.Inspect(g.ast, func(node ast.Node) bool {
