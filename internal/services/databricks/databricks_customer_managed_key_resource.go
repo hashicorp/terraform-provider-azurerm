@@ -12,7 +12,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/migration"
@@ -102,6 +101,7 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
 	if model := workspace.Model; model != nil {
 		if parameters := model.Properties.Parameters; parameters != nil {
 			if parameters.PrepareEncryption != nil {
@@ -120,11 +120,10 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 	}
 
-	if d.IsNewResource() {
-		if workspace.Model != nil && workspace.Model.Properties.Parameters != nil && workspace.Model.Properties.Parameters.Encryption != nil {
-			return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", id.ID())
-		}
-	}
+	// NOTE: Removed d.IsNewResouce check, the reason why I remove it is because it never made sense in the first place.
+	// If you create the CMK resource, remove it then add it again you will get an import error.
+	// It should not matter, nor care, if it is a new resource or not since it is only wrapping the
+	// custom parameters encyption value...
 
 	// We need to pull all of the custom params from the parent
 	// workspace resource and then add our new encryption values into the
@@ -182,6 +181,7 @@ func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	if model := resp.Model; model != nil {
 		if model.Properties.Parameters != nil {
 			if props := model.Properties.Parameters.Encryption; props != nil {
+
 				if props.Value.KeySource != nil {
 					keySource = string(*props.Value.KeySource)
 				}

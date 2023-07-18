@@ -63,23 +63,6 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
-	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
-	r := DatabricksWorkspaceCustomerManagedKeyResource{}
-	cmkTemplate := r.cmkTemplate()
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, cmkTemplate),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(parent.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
 func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
@@ -154,19 +137,6 @@ resource "azurerm_databricks_workspace" "test" {
 
 %[4]s
 `, data.RandomInteger, "eastus2", keyVault, cmk)
-}
-
-func (DatabricksWorkspaceCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
-	cmkTemplate := DatabricksWorkspaceCustomerManagedKeyResource{}.cmkTemplate()
-	template := DatabricksWorkspaceCustomerManagedKeyResource{}.basic(data, cmkTemplate)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_databricks_workspace_customer_managed_key" "import" {
-  workspace_id     = azurerm_databricks_workspace.test.id
-  key_vault_key_id = azurerm_key_vault_key.test.id
-}
-`, template)
 }
 
 func (DatabricksWorkspaceCustomerManagedKeyResource) noip(data acceptance.TestData, cmk string) string {

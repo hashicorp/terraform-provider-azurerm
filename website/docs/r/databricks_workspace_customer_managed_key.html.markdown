@@ -3,12 +3,12 @@ subcategory: "Databricks"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_databricks_workspace_customer_managed_key"
 description: |-
-  Manages a Customer Managed Key for a Databricks Workspace
+  Manages a Customer Managed Key for a Databricks Workspace DBFS root
 ---
 
 # azurerm_databricks_workspace_customer_managed_key
 
-Manages a Customer Managed Key for a Databricks Workspace
+Manages a Customer Managed Key for a Databricks Workspace DBFS root
 
 ## Example Usage
 
