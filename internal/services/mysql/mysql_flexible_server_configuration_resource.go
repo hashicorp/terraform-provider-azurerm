@@ -89,11 +89,15 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 
 func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Configurations
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration update.")
+
+	id, err := configurations.ParseConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	payload := configurations.Configuration{
 		Properties: &configurations.ConfigurationProperties{
@@ -101,8 +105,7 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 		},
 	}
 
-	id := configurations.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
-	if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating %s: %v", id, err)
 	}
 
