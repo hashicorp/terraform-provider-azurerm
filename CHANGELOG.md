@@ -19,6 +19,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * provider: the Resource Providers `Microsoft.Kubernetes` and `Microsoft.KubernetesConfiguration` are no longer automatically registered [GH-22580]
+* Data source `azurerm_virtual_machine_scale_set` - fix an issue where `computer_name`, `latest_model_applied`, `power_state` and `virtual_machine_id` attributes were not correctly set [GH-22566]
 * `azurerm_application_gateway` - send `min_protocol_version` and correct `policy_type` when using `CustomV2` [GH-22535]
 * `azurerm_maintenance_configuration` - set `package_names_mask_to_exclude` and `package_names_mask_to_exclude` properly in expand and flatten function [GH-22555]
 * `azurerm_synapse_firewall_rule` - correct overly strict validation for the `name` property [GH-22571]
