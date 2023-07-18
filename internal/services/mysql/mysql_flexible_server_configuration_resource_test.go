@@ -91,14 +91,14 @@ func TestAccMySQLFlexibleServerConfiguration_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data, "slow_query_log", "OFF"),
+			Config: r.slowQueryLog(data, "OFF"),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(r.checkValue("OFF")),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.template(data, "slow_query_log", "ON"),
+			Config: r.slowQueryLog(data, "ON"),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClient(r.checkValue("ON")),
 			),
@@ -182,6 +182,10 @@ func (r MySQLFlexibleServerConfigurationResource) interactiveTimeout(data accept
 
 func (r MySQLFlexibleServerConfigurationResource) logSlowAdminStatements(data acceptance.TestData) string {
 	return r.template(data, "log_slow_admin_statements", "on")
+}
+
+func (r MySQLFlexibleServerConfigurationResource) slowQueryLog(data acceptance.TestData, value string) string {
+	return r.template(data, "slow_query_log", value)
 }
 
 func (r MySQLFlexibleServerConfigurationResource) template(data acceptance.TestData, name string, value string) string {
