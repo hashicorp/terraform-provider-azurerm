@@ -93,6 +93,7 @@ func loadAllUntypedResources() []*untypedResource {
 	defineNames := allDefineFuncs()
 	for _, reg := range provider.SupportedUntypedServices() {
 		for name, r := range reg.SupportedResources() {
+			//lint:ignore SA1019
 			pc := reflect.ValueOf(r.Read).Pointer()
 			file, _ := runtime.FuncForPC(pc).FileLine(pc)
 			rss = append(rss, &untypedResource{

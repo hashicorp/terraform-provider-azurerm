@@ -89,9 +89,13 @@ func (g *generator) collectASTInfo() (res *MetaInfo) {
 		return name
 	}
 	r := g.source.resource
+	//lint:ignore SA1019
 	createName := fnName(r.Create)
+	//lint:ignore SA1019
 	readName := fnName(r.Read)
+	//lint:ignore SA1019
 	updateName := fnName(r.Update)
+	//lint:ignore SA1019
 	deleteName := fnName(r.Delete)
 
 	// collect function asts
