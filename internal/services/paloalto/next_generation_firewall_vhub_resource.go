@@ -3,20 +3,19 @@ package paloalto
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkvirtualappliances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -111,12 +110,11 @@ func (r NextGenerationFirewallVHubResource) ResourceType() string {
 
 func (r NextGenerationFirewallVHubResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 3 * time.Hour,
+		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallClient
-			ApplianceClient := metadata.Client.Network.VirtualAppliancesClient
 			localRulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
-
+			loc := ""
 			var model NextGenerationFirewallVHubModel
 
 			if err := metadata.Decode(&model); err != nil {
@@ -191,10 +189,10 @@ func (r NextGenerationFirewallVHubResource) Create() sdk.ResourceFunc {
 				}
 
 				firewall.Location = location.Normalize(ruleStack.Model.Location)
-
+				loc = location.Normalize(ruleStack.Model.Location)
 				firewall.Properties.AssociatedRulestack = &firewalls.RulestackDetails{
 					ResourceId: pointer.To(ruleStackID.ID()),
-					Location:   pointer.To(location.Normalize(ruleStack.Model.Location)),
+					Location:   pointer.To(loc),
 				}
 			}
 
@@ -238,26 +236,6 @@ func (r NextGenerationFirewallVHubResource) Create() sdk.ResourceFunc {
 				}
 
 				firewall.Properties.FrontEndSettings = pointer.To(fes)
-			}
-
-			applianceID := networkvirtualappliances.NewNetworkVirtualApplianceID(id.SubscriptionId, id.ResourceGroupName, fmt.Sprintf("%s-nva", id.FirewallName))
-
-			props := networkvirtualappliances.NetworkVirtualAppliancePropertiesFormat{
-				Delegation: &networkvirtualappliances.DelegationProperties{
-					ServiceName: pointer.To("PaloAltoNetworks.Cloudngfw/firewalls"),
-				},
-				VirtualHub: &networkvirtualappliances.SubResource{
-					Id: pointer.To(model.NetworkProfile[0].VHubID),
-				},
-			}
-
-			appliance := networkvirtualappliances.NetworkVirtualAppliance{
-				Location:   pointer.To(location.Normalize(model.Location)),
-				Properties: pointer.To(props),
-			}
-
-			if _, err = ApplianceClient.CreateOrUpdate(ctx, applianceID, appliance); err != nil {
-				return fmt.Errorf("creating Virtual Netowrk Appliance for %s: %+v", id, err)
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
@@ -363,7 +341,7 @@ func (r NextGenerationFirewallVHubResource) Read() sdk.ResourceFunc {
 
 func (r NextGenerationFirewallVHubResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 3 * time.Hour,
+		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallClient
 
@@ -383,7 +361,7 @@ func (r NextGenerationFirewallVHubResource) Delete() sdk.ResourceFunc {
 
 func (r NextGenerationFirewallVHubResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 3 * time.Hour,
+		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 
 			return nil

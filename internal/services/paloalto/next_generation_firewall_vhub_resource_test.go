@@ -58,12 +58,13 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_vhub" "test" {
-	name                = "acctest-ngfw-%[2]d"
+	name                = "acctest-ngfwvh-%[2]d"
 	resource_group_name = azurerm_resource_group.test.name
 	rule_stack_id       = azurerm_palo_alto_local_rule_stack.test.id
 
 	network_profile {
       virtual_hub_id = azurerm_virtual_hub.test.id
+      network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
       public_ip_ids  = [azurerm_public_ip.test.id]
 	}
 }
@@ -73,7 +74,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub" "test" {
 func (r NextGenerationFirewallVWanResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-PANGFW-%[1]d"
+  name     = "acctestRG-PANGFWVH-%[1]d"
   location = "%[2]s"
 }
 
@@ -83,12 +84,6 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-}
-
-resource "azurerm_network_security_group" "test" {
-  name                = "acceptanceTestSecurityGroup1"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_wan" "test" {
@@ -103,6 +98,10 @@ resource "azurerm_virtual_hub" "test" {
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id
   address_prefix      = "10.0.1.0/24"
+
+  tags = {
+    hubSaaSPreview = "true"
+  }
 }
 
 resource "azurerm_palo_alto_local_rule_stack" "test" {
@@ -125,6 +124,11 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   source {
     cidrs = ["any"]
   }
+}
+
+resource "azurerm_palo_alto_virtual_network_appliance" "test" {
+  name           = "testAcc-panva-%[1]d"
+  virtual_hub_id = azurerm_virtual_hub.test.id
 }
 
 `, data.RandomInteger, data.Locations.Primary)
