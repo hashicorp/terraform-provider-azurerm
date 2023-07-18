@@ -65,13 +65,15 @@ func (r LocalRulestackCertificate) Arguments() map[string]*schema.Schema {
 		"certificate_signer_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty, // TODO - Need to investigate valid values for this - What resource Type is it actually?
+			ForceNew:     true,
+			ValidateFunc: validation.IsURLWithHTTPS, // TODO - Need to investigate valid values for this - What resource Type is it actually?
 			ExactlyOneOf: []string{"self_signed", "certificate_signer_id"},
 		},
 
 		"self_signed": {
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      false,
 			ExactlyOneOf: []string{"certificate_signer_id", "self_signed"},
 		},
@@ -91,6 +93,7 @@ func (r LocalRulestackCertificate) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.CertificatesClient
+			rulstackClient := metadata.Client.PaloAlto.LocalRulestacksClient
 
 			model := LocalRulestackCertificateModel{}
 			if err := metadata.Decode(&model); err != nil {
@@ -138,6 +141,10 @@ func (r LocalRulestackCertificate) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
+			if _, err = rulstackClient.Commit(ctx, *ruleStackId); err != nil {
+				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
+			}
 
 			return nil
 		},

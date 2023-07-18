@@ -97,6 +97,22 @@ func TestAccPaloAltoLocalRulestackCertificate_selfSignedUpdate(t *testing.T) {
 	})
 }
 
+func TestAccPaloAltoLocalRulestackCertificate_authoritySigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_certificate", "test")
+
+	r := LocalRulestackCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeAuthoritySigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LocalRulestackCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(state.ID)
 	if err != nil {
@@ -197,7 +213,7 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
   name          = "testacc-palc-%[2]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
   
-  certificate_signer_id = "foo"
+  certificate_signer_id = "https://example.com/not-a-real-url"
 
   audit_comment = "Acceptance test audit comment - %[2]d"
   description   = "Acceptance test Desc - %[2]d"
