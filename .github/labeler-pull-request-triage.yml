@@ -141,6 +141,9 @@ service/fluid-relay:
 service/frontdoor:
   - internal/services/frontdoor/**/*
 
+service/graph:
+  - internal/services/graph/**/*
+
 service/hdinsight:
   - internal/services/hdinsight/**/*
 
