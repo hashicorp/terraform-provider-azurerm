@@ -74,6 +74,7 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 			Value: pointer.To(d.Get("value").(string)),
 		},
 	}
+	
 	// NOTE: this resource intentionally doesn't support Requires Import
 	//       since a fallback route is created by default
 
