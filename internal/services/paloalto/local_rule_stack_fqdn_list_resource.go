@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistlocalrulestack"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -85,6 +86,7 @@ func (r LocalRulestackFQDNList) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FQDNListsClient
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
 
 			model := LocalRulestackFQDNListModel{}
 
@@ -92,7 +94,7 @@ func (r LocalRulestackFQDNList) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			ruleStackId, err := fqdnlistlocalrulestack.ParseLocalRulestackID(model.RuleStackID)
+			ruleStackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
 			if err != nil {
 				return err
 			}
@@ -130,6 +132,10 @@ func (r LocalRulestackFQDNList) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
+			if _, err = rulestackClient.Commit(ctx, *ruleStackId); err != nil {
+				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
+			}
 
 			return nil
 		},

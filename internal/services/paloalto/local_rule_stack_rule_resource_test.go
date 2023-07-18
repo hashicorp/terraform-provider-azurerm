@@ -175,6 +175,13 @@ provider "azurerm" {
 
 %[1]s
 
+resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
+  name          = "testacc-palc-%[2]d"
+  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  self_signed   = true
+}
+
+
 resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   name          = "testacc-palr-%[2]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
@@ -185,7 +192,7 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   audit_comment = "test audit comment"
 
   //category {
-  //  // feeds = ["foo", "bar"] // Needs feeds defined on the LocalRulestack
+  //  // feeds = ["foo", "bar"] // Needs feeds defined on the LocalRulestack?
   //  // custom_urls = ["https://microsoft.com"] // TODO - This is another resource type in PAN?
   //}
 
@@ -198,7 +205,7 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
 
   logging_enabled = false
 
-  // inspection_certificate_id = // TODO - needs support for this resource type first
+  inspection_certificate_id = azurerm_palo_alto_local_rule_stack_certificate.test.id
 
   negate_destination = true
   negate_source = true

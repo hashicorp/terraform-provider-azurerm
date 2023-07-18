@@ -18,7 +18,7 @@ type NetworkProfileVnet struct {
 
 	// Computed
 	PublicIPs   []string `tfschema:"public_ip"`
-	EgressNatIP []string `tfschema:"egress_nat_ip_ids"`
+	EgressNatIP []string `tfschema:"egress_nat_ips"`
 	// Inferred
 	// NetworkType string      `tfschema:"network_type"`
 	// EnableEgressNat bool
@@ -35,9 +35,9 @@ type NetworkProfileVHub struct {
 	PublicIPs       []string `tfschema:"public_ip"`
 	EgressNatIP     []string `tfschema:"egress_nat_ip_ids"`
 	IpOfTrust       string   `tfschema:"ip_of_trust_for_udr"`
-	TrustedSubnet   string   `tfschema:"trusted_subnet"`
-	UnTrustedSubnet string   `tfschema:"untrusted_subnet"`
-	ApplianceID     string   `tfschema:"virtual_network_appliance_id"`
+	TrustedSubnet   string   `tfschema:"trusted_subnet_id"`
+	UnTrustedSubnet string   `tfschema:"untrusted_subnet_id"`
+	ApplianceID     string   `tfschema:"network_virtual_appliance_id"`
 }
 
 func VnetNetworkProfileSchema() *pluginsdk.Schema {
@@ -100,7 +100,15 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 				"virtual_hub_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: networkValidate.VirtualHubID,
+				},
+
+				"network_virtual_appliance_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: networkvirtualappliances.ValidateNetworkVirtualApplianceID,
 				},
 
 				"public_ip_ids": {
@@ -133,11 +141,6 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 				},
 
 				"ip_of_trust_for_udr": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"virtual_network_appliance_id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -186,11 +189,12 @@ func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfi
 	if len(profile.EgressNatIPIDs) > 0 {
 		result.EnableEgressNat = firewalls.EgressNatENABLED
 		egressNatIPs := make([]firewalls.IPAddress, 0)
-		for _, v := range profile.EgressNatIP {
+		for _, v := range profile.EgressNatIPIDs {
 			egressNatIPs = append(egressNatIPs, firewalls.IPAddress{
 				ResourceId: pointer.To(v),
 			})
 		}
+		result.EgressNatIP = pointer.To(egressNatIPs)
 	}
 
 	result.NetworkType = firewalls.NetworkTypeVNET
@@ -234,7 +238,7 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 	if len(profile.EgressNatIPIDs) > 0 {
 		result.EnableEgressNat = firewalls.EgressNatENABLED
 		egressNatIPs := make([]firewalls.IPAddress, 0)
-		for _, v := range profile.EgressNatIP {
+		for _, v := range profile.EgressNatIPIDs {
 			egressNatIPs = append(egressNatIPs, firewalls.IPAddress{
 				ResourceId: pointer.To(v),
 			})
@@ -247,6 +251,7 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 		VHub: firewalls.IPAddressSpace{
 			ResourceId: pointer.To(profile.VHubID),
 		},
+		NetworkVirtualApplianceId: pointer.To(profile.ApplianceID),
 	}
 
 	return result

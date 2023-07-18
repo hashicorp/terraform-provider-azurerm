@@ -120,7 +120,7 @@ func (r LocalRulestackRule) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"destination": schema.DesintationSchema(),
+		"destination": schema.DestinationSchema(),
 
 		"logging_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -131,7 +131,6 @@ func (r LocalRulestackRule) Arguments() map[string]*pluginsdk.Schema {
 		"inspection_certificate_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Sensitive:    true,
 			ValidateFunc: certificates.ValidateLocalRulestackCertificateID,
 		},
 
@@ -193,7 +192,7 @@ func (r LocalRulestackRule) ModelObject() interface{} {
 
 func (r LocalRulestackRule) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 3 * time.Hour,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulesClient
 
@@ -343,7 +342,7 @@ func (r LocalRulestackRule) Read() sdk.ResourceFunc {
 
 func (r LocalRulestackRule) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 3 * time.Hour,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulesClient
 

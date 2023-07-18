@@ -77,6 +77,11 @@ func TestAccPaloAltoLocalRulestack_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.completeWithCerts(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
@@ -126,11 +131,88 @@ provider "azurerm" {
 
 %[1]s
 
+resource "azurerm_palo_alto_local_rule_stack_certificate" "trust" {
+  name          = "testacc-palcT-%[2]d"
+  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  
+  certificate_signer_id = "https://example.com/acctest-trust-cert"
+
+  audit_comment = "Acceptance test audit comment - %[2]d"
+  description   = "Acceptance test Desc - %[2]d"
+}
+
+resource "azurerm_palo_alto_local_rule_stack_certificate" "untrust" {
+  name          = "testacc-palcU-%[2]d"
+  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  
+  certificate_signer_id = "https://example.com/acctest-untrust-cert"
+
+  audit_comment = "Acceptance test audit comment - %[2]d"
+  description   = "Acceptance test Desc - %[2]d"
+}
+
 resource "azurerm_palo_alto_local_rule_stack" "test" {
   name                = "testAcc-palrs-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
-  description         = "Acceptance Test Desc - %[2]d"
+
+  anti_spyware_profile  = "BestPractice"
+  anti_virus_profile    = "BestPractice"
+  url_filtering_profile = "BestPractice"
+  file_blocking_profile = "BestPractice"
+  dns_subscription      = "BestPractice"
+  vulnerability_profile = "BestPractice"
+
+  description = "Acceptance Test Desc - %[2]d"
+}
+
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LocalRulestackResource) completeWithCerts(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_local_rule_stack_certificate" "trust" {
+  name          = "testacc-palcT-%[2]d"
+  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  
+  certificate_signer_id = "https://example.com/acctest-trust-cert"
+
+  audit_comment = "Acceptance test audit comment - %[2]d"
+  description   = "Acceptance test Desc - %[2]d"
+}
+
+resource "azurerm_palo_alto_local_rule_stack_certificate" "untrust" {
+  name          = "testacc-palcU-%[2]d"
+  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  
+  certificate_signer_id = "https://example.com/acctest-untrust-cert"
+
+  audit_comment = "Acceptance test audit comment - %[2]d"
+  description   = "Acceptance test Desc - %[2]d"
+}
+
+resource "azurerm_palo_alto_local_rule_stack" "test" {
+  name                = "testAcc-palrs-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+
+  anti_spyware_profile  = "BestPractice"
+  anti_virus_profile    = "BestPractice"
+  url_filtering_profile = "BestPractice"
+  file_blocking_profile = "BestPractice"
+  dns_subscription      = "BestPractice"
+  vulnerability_profile = "BestPractice"
+
+  outbound_trusted_certificate_name   = "testacc-palcT-%[2]d"
+  outbound_untrusted_certificate_name = "testacc-palcU-%[2]d"
+
+  description = "Acceptance Test Desc - %[2]d"
 }
 
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
@@ -153,7 +235,7 @@ resource "azurerm_palo_alto_local_rule_stack" "test" {
 func (r LocalRulestackResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-CAE-%[1]d"
+  name     = "acctestRG-PALRS-%[1]d"
   location = "%[2]s"
 }
 `, data.RandomInteger, data.Locations.Primary)

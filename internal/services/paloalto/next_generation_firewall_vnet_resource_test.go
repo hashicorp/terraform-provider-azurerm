@@ -74,7 +74,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_vnet" "test" {
-	name                = "acctest-ngfw-%[2]d"
+	name                = "acctest-ngfwvn-%[2]d"
 	resource_group_name = azurerm_resource_group.test.name
 	rule_stack_id       = azurerm_palo_alto_local_rule_stack.test.id
 
@@ -110,7 +110,7 @@ resource "azurerm_public_ip" "egress" {
 
 
 resource "azurerm_palo_alto_next_generation_firewall_vnet" "test" {
-  name                = "acctest-ngfw-%[2]d"
+  name                = "acctest-ngfwvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   rule_stack_id       = azurerm_palo_alto_local_rule_stack.test.id
 
@@ -124,6 +124,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vnet" "test" {
         untrusted_subnet_id = azurerm_subnet.test2.id
       }
     }
+
   dns_settings {
     dns_servers = ["8.8.8.8", "8.8.4.4"]
   }
@@ -147,7 +148,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vnet" "test" {
 func (r NextGenerationFirewallVnetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-PANGFW-%[1]d"
+  name     = "acctestRG-PANGFWVN-%[1]d"
   location = "%[2]s"
 }
 

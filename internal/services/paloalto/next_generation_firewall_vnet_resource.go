@@ -24,7 +24,7 @@ type NextGenerationFirewallVNetResource struct{}
 type NextGenerationFirewallVnetModel struct {
 	Name              string                      `tfschema:"name"`
 	ResourceGroupName string                      `tfschema:"resource_group_name"`
-	Location          string                      `tfschema:"location"` // TODO RG Location only, or other OK?
+	Location          string                      `tfschema:"location"`
 	NetworkProfile    []schema.NetworkProfileVnet `tfschema:"network_profile"`
 	RuleStackId       string                      `tfschema:"rule_stack_id"`
 	DNSSettings       []schema.DNSSettings        `tfschema:"dns_settings"`
@@ -117,7 +117,7 @@ func (r NextGenerationFirewallVNetResource) ResourceType() string {
 
 func (r NextGenerationFirewallVNetResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 3 * time.Hour,
+		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallClient
 			localRulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
@@ -284,10 +284,15 @@ func (r NextGenerationFirewallVNetResource) Read() sdk.ResourceFunc {
 			dns := props.DnsSettings
 
 			if dnsServers := pointer.From(dns.DnsServers); len(dnsServers) > 0 {
-				dnsSettings := make([]string, 0)
+				dnsSettingAddresses := make([]string, 0)
 				for _, v := range dnsServers {
-					dnsSettings = append(dnsSettings, pointer.From(v.Address))
+					dnsSettingAddresses = append(dnsSettingAddresses, pointer.From(v.Address))
 				}
+
+				state.DNSSettings = []schema.DNSSettings{{
+					DnsServers: dnsSettingAddresses,
+					AzureDNS:   pointer.From(dns.EnabledDnsType) == firewalls.EnabledDNSTypeAZURE,
+				}}
 			}
 
 			netProfile := schema.FlattenNetworkProfileVnet(props.NetworkProfile)
@@ -344,7 +349,7 @@ func (r NextGenerationFirewallVNetResource) Read() sdk.ResourceFunc {
 
 func (r NextGenerationFirewallVNetResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 3 * time.Hour,
+		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallClient
 
@@ -368,7 +373,7 @@ func (r NextGenerationFirewallVNetResource) IDValidationFunc() pluginsdk.SchemaV
 
 func (r NextGenerationFirewallVNetResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 3 * time.Hour,
+		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 
 			return nil

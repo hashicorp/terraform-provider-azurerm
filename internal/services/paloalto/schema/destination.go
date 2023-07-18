@@ -2,29 +2,27 @@ package schema
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistlocalrulestack"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/prefixlistlocalrulestack"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"reflect"
 )
 
 type Destination struct {
 	CIDRS       []string `tfschema:"cidrs"`
 	Countries   []string `tfschema:"countries"`
 	Feeds       []string `tfschema:"feeds"`
-	FQDNLists   []string `tfschema:"fqdn_lists"`
-	PrefixLists []string `tfschema:"prefix_lists"`
+	FQDNLists   []string `tfschema:"fqdn_list_ids"`
+	PrefixLists []string `tfschema:"prefix_list_ids"`
 }
 
-var DestinationDefault = localrules.DestinationAddr{
-	Cidrs: pointer.To([]string{"any"}),
-}
-
-func DesintationSchema() *pluginsdk.Schema {
+func DestinationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
+		MaxItems: 1,
 		MinItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -38,6 +36,13 @@ func DesintationSchema() *pluginsdk.Schema {
 							validation.StringInSlice([]string{"any"}, false),
 						),
 					},
+					AtLeastOneOf: []string{
+						"destination.0.cidrs",
+						"destination.0.countries",
+						"destination.0.feeds",
+						"destination.0.fqdn_list_ids",
+						"destination.0.prefix_list_ids",
+					},
 				},
 
 				"countries": {
@@ -46,6 +51,13 @@ func DesintationSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validate.ISO3361CountryCode,
+					},
+					AtLeastOneOf: []string{
+						"destination.0.cidrs",
+						"destination.0.countries",
+						"destination.0.feeds",
+						"destination.0.fqdn_list_ids",
+						"destination.0.prefix_list_ids",
 					},
 				},
 
@@ -56,23 +68,44 @@ func DesintationSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: nil, // TODO - This is another resource type?
 					},
-				},
-
-				"fqdn_lists": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: nil, // TODO - FQDN List is another resource type belonging to a RuleStack, use the name validation when it exists
+					AtLeastOneOf: []string{
+						"destination.0.cidrs",
+						"destination.0.countries",
+						"destination.0.feeds",
+						"destination.0.fqdn_list_ids",
+						"destination.0.prefix_list_ids",
 					},
 				},
 
-				"prefix_lists": {
+				"fqdn_list_ids": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: nil, // TODO - Prefix List is another resource type belonging to a RuleStack, use the name validation when it exists
+						ValidateFunc: fqdnlistlocalrulestack.ValidateLocalRulestackFqdnListID,
+					},
+					AtLeastOneOf: []string{
+						"destination.0.cidrs",
+						"destination.0.countries",
+						"destination.0.feeds",
+						"destination.0.fqdn_list_ids",
+						"destination.0.prefix_list_ids",
+					},
+				},
+
+				"prefix_list_ids": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: prefixlistlocalrulestack.ValidateLocalRulestackPrefixListID,
+					},
+					AtLeastOneOf: []string{
+						"destination.0.cidrs",
+						"destination.0.countries",
+						"destination.0.feeds",
+						"destination.0.fqdn_list_ids",
+						"destination.0.prefix_list_ids",
 					},
 				},
 			},
@@ -97,7 +130,7 @@ func ExpandDestination(input []Destination) *localrules.DestinationAddr {
 }
 
 func FlattenDestination(input *localrules.DestinationAddr) []Destination {
-	if input == nil || reflect.DeepEqual(*input, DestinationDefault) {
+	if input == nil {
 		return []Destination{}
 	}
 

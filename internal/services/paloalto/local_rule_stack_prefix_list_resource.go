@@ -86,7 +86,7 @@ func (r LocalRulestackPrefixList) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PrefixListClient
-
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
 			model := LocalRulestackPrefixListModel{}
 
 			if err := metadata.Decode(&model); err != nil {
@@ -132,6 +132,10 @@ func (r LocalRulestackPrefixList) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
+			if _, err = rulestackClient.Commit(ctx, *ruleStackId); err != nil {
+				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
+			}
 
 			return nil
 		},
