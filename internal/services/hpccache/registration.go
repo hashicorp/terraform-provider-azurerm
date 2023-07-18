@@ -10,7 +10,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/hpc-cache"
@@ -41,5 +44,15 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_hpc_cache_blob_target":     resourceHPCCacheBlobTarget(),
 		"azurerm_hpc_cache_blob_nfs_target": resourceHPCCacheBlobNFSTarget(),
 		"azurerm_hpc_cache_nfs_target":      resourceHPCCacheNFSTarget(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		HPCCacheAMLFileSystemResource{},
 	}
 }
