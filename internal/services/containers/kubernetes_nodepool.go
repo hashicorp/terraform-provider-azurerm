@@ -367,6 +367,7 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 		},
 	}
 
+	// TODO 4.0: change the default value to `true` in the document
 	if !features.FourPointOhBeta() {
 		schema.Elem.(*pluginsdk.Resource).Schema["cpu_cfs_quota_enabled"].Default = false
 	}
@@ -463,6 +464,7 @@ func schemaNodePoolKubeletConfigForceNew() *pluginsdk.Schema {
 		},
 	}
 
+	// TODO 4.0: change the default value to `true` in the document
 	if !features.FourPointOhBeta() {
 		schema.Elem.(*pluginsdk.Resource).Schema["cpu_cfs_quota_enabled"].Default = false
 	}
