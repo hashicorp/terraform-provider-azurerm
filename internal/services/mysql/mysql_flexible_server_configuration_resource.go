@@ -106,7 +106,6 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("updating %s: %v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceMySQLFlexibleServerConfigurationRead(d, meta)
 }
 
