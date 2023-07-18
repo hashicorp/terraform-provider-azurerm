@@ -7,9 +7,10 @@ ENHANCEMENTS:
 * dependencies: move `mysql` resources over to `hashicorp/go-azure-sdk` [GH-22528]
 * dependencies: move `storage_sync` resources over to `hashicorp/go-azure-sdk` [GH-21928]
 * dependencies: updating to API Version `2022-08-08` [GH-22440]
-* `data.azurerm_route_table` - add support for the `bgp_route_propagation_enabled` property [GH-21940]
+* `data.azurerm_route_table` - support for the `bgp_route_propagation_enabled` property [GH-21940]
 * `data.azurerm_servicebus_*` - add deprecation messages for `resource_group_name` and `namespace_name` [GH-22521]
-* `azurerm_logic_app_standard` - Add new computed attribute `auto_swap_slot_name` [GH-22525]
+* `azurerm_logic_app_standard` - now exports the `auto_swap_slot_name` attribute [GH-22525]
+* `azurerm_postgresql_flexible_server` - support for `33554432` storage [GH-22574]
 
 BUG FIXES:
 
