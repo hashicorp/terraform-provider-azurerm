@@ -287,13 +287,13 @@ func flattenVirtualMachineScaleSetVM(input compute.VirtualMachineScaleSetVM, con
 			output["virtual_machine_id"] = *props.VMID
 		}
 
-		if profile := props.OsProfile; profile != nil {
-			output["computer_name"] = profile.ComputerName
+		if profile := props.OsProfile; profile != nil && profile.ComputerName != nil {
+			output["computer_name"] = *profile.ComputerName
 		}
 
 		if instance := props.InstanceView; instance != nil {
-			if statues := instance.Statuses; statues != nil {
-				for _, status := range *statues {
+			if statuses := instance.Statuses; statuses != nil {
+				for _, status := range *statuses {
 					if status.Code != nil && strings.HasPrefix(strings.ToLower(*status.Code), "powerstate/") {
 						output["power_state"] = strings.SplitN(*status.Code, "/", 2)[1]
 					}
