@@ -102,8 +102,6 @@ The following arguments are supported:
 
 * `recovery_vault_id` - (Required) The ID of the Recovery Services Vault where the replicated VM is created. Changing this forces a new resource to be created.
 
-* `network_interface` - (Required) One or more `network_interface` block as defined below.
-
 * `physical_server_credential_name` - (Required) The name of the credential to access the source VM. Changing this forces a new resource to be created. More information about the credentials could be found [here](https://learn.microsoft.com/en-us/azure/site-recovery/deploy-vmware-azure-replication-appliance-modernized).
 
 * `recovery_replication_policy_id` - (Required) The ID of the policy to use for this replicated VM. Changing this forces a new resource to be created.
@@ -114,7 +112,9 @@ The following arguments are supported:
 
 * `target_vm_name` - (Required) Name of the VM that should be created when a failover is done. Changing this forces a new resource to be created.
 
-* `target_network_id` - (Required) The ID of network to use when a failover is done.
+* `target_network_id` - (Optional) The ID of network to use when a failover is done.
+
+**Note:** `target_network_id` is required when `network_interface` is specified. 
 
 * `default_log_storage_account_id` - (Optional) The ID of the stroage account that should be used for logging during replication. 
 
@@ -149,6 +149,8 @@ The following arguments are supported:
 * `managed_disk` - (Optional) One or more `managed_disk` block as defined below. It's available only if mobility service is already installed on the source VM.
 
 **Note:** a replicated VM could be created without `managed_disk` block, once the block has been specified, changing it expect removing it forces a new resource to be created..
+
+* `network_interface` - (Optional) One or more `network_interface` block as defined below.
 
 * `target_boot_diagnostics_storage_account_id` - (Optional) The ID of the storage account that should be used for boot diagnostics when a failover is done.
 

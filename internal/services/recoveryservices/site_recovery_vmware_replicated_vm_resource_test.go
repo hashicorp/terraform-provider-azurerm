@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -16,6 +15,7 @@ import (
 )
 
 type SiteRecoveryVMWareReplicatedVmResource struct {
+	SubscriptionId   string
 	VaultName        string
 	VaultRgName      string
 	SourceVMName     string
@@ -26,8 +26,14 @@ type SiteRecoveryVMWareReplicatedVmResource struct {
 }
 
 func (r SiteRecoveryVMWareReplicatedVmResource) preCheck(t *testing.T) {
-	if r.VaultRgName == "" || r.VaultName == "" {
-		t.Skipf("`ARM_TEST_VMWARE_VAULT_ID` must be set for acceptance tests!")
+	if r.SubscriptionId == "" {
+		t.Skipf("subscription id is empty")
+	}
+	if r.VaultName == "" {
+		t.Skipf("vault name is empty")
+	}
+	if r.VaultRgName == "" {
+		t.Skipf("vault resource group name is empty")
 	}
 	if r.SourceVMName == "" {
 		t.Skipf("`ARM_TEST_VMWARE_SOURCE_VM_NAME` must be set for acceptance tests!")
@@ -47,11 +53,12 @@ func (r SiteRecoveryVMWareReplicatedVmResource) preCheck(t *testing.T) {
 }
 
 func newSiteRecoveryVMWareReplicatedVMResource(vaultId, sourceVMName, applianceName, location, credential, sourceMacAddress string) (SiteRecoveryVMWareReplicatedVmResource, error) {
-	parsedVaultId, err := vaults.ParseVaultID(vaultId)
+	parsedVaultId, err := replicationprotecteditems.ParseVaultID(vaultId)
 	if err != nil {
-		return SiteRecoveryVMWareReplicatedVmResource{}, fmt.Errorf("parse vault id: %+v", err)
+		return SiteRecoveryVMWareReplicatedVmResource{}, fmt.Errorf("parsing %q: %+v", vaultId, err)
 	}
 	return SiteRecoveryVMWareReplicatedVmResource{
+		SubscriptionId:   parsedVaultId.SubscriptionId,
 		VaultName:        parsedVaultId.VaultName,
 		VaultRgName:      parsedVaultId.ResourceGroupName,
 		SourceVMName:     sourceVMName,
@@ -87,8 +94,9 @@ func TestAccSiteVMWareRecoveryReplicatedVM_basic(t *testing.T) {
 		os.Getenv("ARM_TEST_VMWARE_SOURCE_MAC_ADDRESS"),
 	)
 	if err != nil {
-		t.Fatal(fmt.Errorf("build SiteRecoveryVMWareReplicatedVmResource: %+v", err))
+		t.Skipf("failed to create SiteRecoveryVMWareReplicatedVmResource: %+v", err)
 	}
+
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -105,6 +113,7 @@ func TestAccSiteVMWareRecoveryReplicatedVM_basic(t *testing.T) {
 func (r SiteRecoveryVMWareReplicatedVmResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
+  subscription_id = "%[1]s"
   features {
     resource_group {
       prevent_deletion_if_contains_resources = false
@@ -113,30 +122,30 @@ provider "azurerm" {
 }
 
 data "azurerm_recovery_services_vault" "vault" {
-  name                = "%[1]s"
-  resource_group_name = "%[2]s"
+  name                = "%[2]s"
+  resource_group_name = "%[3]s"
 }
 
 resource "azurerm_site_recovery_vmware_replication_policy" "test" {
   recovery_vault_id                                    = data.azurerm_recovery_services_vault.vault.id
-  name                                                 = "acctest-policy-%[3]d"
+  name                                                 = "acctest-policy-%[4]d"
   recovery_point_retention_in_minutes                  = 1440
   application_consistent_snapshot_frequency_in_minutes = 240
 }
 
 resource "azurerm_site_recovery_vmware_replication_policy_association" "test" {
-  name              = "acctest-%[3]d"
+  name              = "acctest-%[4]d"
   recovery_vault_id = data.azurerm_recovery_services_vault.vault.id
   policy_id         = azurerm_site_recovery_vmware_replication_policy.test.id
 }
 
 resource "azurerm_resource_group" "target" {
-  name     = "acctestRG-%[3]d"
-  location = "%[5]s"
+  name     = "acctestRG-%[4]d"
+  location = "%[6]s"
 }
 
 resource "azurerm_storage_account" "target" {
-  name                     = "acct%[4]s"
+  name                     = "acct%[5]s"
   resource_group_name      = azurerm_resource_group.target.name
   location                 = azurerm_resource_group.target.location
   account_tier             = "Standard"
@@ -144,7 +153,7 @@ resource "azurerm_storage_account" "target" {
 }
 
 resource "azurerm_virtual_network" "target" {
-  name                = "acctestvn-%[3]d"
+  name                = "acctestvn-%[4]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.target.location
   resource_group_name = azurerm_resource_group.target.name
@@ -159,21 +168,22 @@ resource "azurerm_subnet" "target" {
 
 
 resource "azurerm_site_recovery_vmware_replicated_vm" "test" {
-  name                                       = "acct%[3]d"
+  name                                       = "acct%[4]d"
   recovery_vault_id                          = data.azurerm_recovery_services_vault.vault.id
-  source_vm_name                             = "%[6]s"
-  appliance_name                             = "%[7]s"
+  source_vm_name                             = "%[7]s"
+  appliance_name                             = "%[8]s"
   recovery_replication_policy_id             = azurerm_site_recovery_vmware_replication_policy_association.test.policy_id
-  physical_server_credential_name            = "%[8]s"
+  physical_server_credential_name            = "%[9]s"
   license_type                               = "NotSpecified"
   target_boot_diagnostics_storage_account_id = azurerm_storage_account.target.id
-  target_vm_name                             = "%[6]s"
+  target_vm_name                             = "%[7]s"
   target_resource_group_id                   = azurerm_resource_group.target.id
   default_log_storage_account_id             = azurerm_storage_account.target.id
   default_recovery_disk_type                 = "Standard_LRS"
   target_network_id                          = azurerm_virtual_network.target.id
 
   network_interface {
+    source_mac_address = "%[10]s"
     target_subnet_name = azurerm_subnet.target.name
     is_primary         = true
   }
@@ -192,5 +202,5 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "test" {
     ]
   }
 }
-`, r.VaultName, r.VaultRgName, data.RandomInteger, data.RandomString, r.Location, r.SourceVMName, r.ApplianceName, r.Credential)
+`, r.SubscriptionId, r.VaultName, r.VaultRgName, data.RandomInteger, data.RandomString, r.Location, r.SourceVMName, r.ApplianceName, r.Credential, r.SourceMacAddress)
 }

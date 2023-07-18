@@ -216,8 +216,9 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"target_network_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
+			RequiredWith: []string{"network_interface"},
 		},
 
 		"test_network_id": {
@@ -241,7 +242,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"network_interface": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			Elem:     resourceSiteRecoveryVMWareReplicatedVMNetworkInterfaceSchema(),
 		},
 	}
@@ -600,9 +601,6 @@ func (s VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 
 			vmNics := make([]replicationprotecteditems.InMageRcmNicInput, 0)
 			if metadata.ResourceData.HasChange("network_interface") {
-				if model.TargetNetworkId == "" && len(model.NetworkInterface) > 0 {
-					return fmt.Errorf("`target_network_id` must be set when a `network_interface` is configured")
-				}
 				vmNics = expandVMWareReplicatedVMNics(model.NetworkInterface)
 			} else {
 				if existingDetails.VMNics == nil {
@@ -989,7 +987,7 @@ func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *vmwarema
 				continue
 			}
 			if strings.EqualFold(*machine.Properties.DisplayName, machineName) {
-				parsedMachineId, err := vmwaremachines.ParseVMwareSiteIDInsensitively(*machine.Id)
+				parsedMachineId, err := commonids.ParseVMwareSiteMachineIDInsensitively(*machine.Id)
 				if err != nil {
 					return "", fmt.Errorf("parse %s: %+v", *machine.Id, err)
 				}
