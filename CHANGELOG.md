@@ -1,5 +1,9 @@
 ## 3.66.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_graph_account` [GH-22334]
+
 ENHANCEMENTS:
 
 * dependencies: bump `go-azure-sdk` to `v0.20230713.1092427` and switch `machinelearning`, `maintenance`, `mixedreality`, `mariadb` and `mobilenetwork` to new base layer [GH-22503]
