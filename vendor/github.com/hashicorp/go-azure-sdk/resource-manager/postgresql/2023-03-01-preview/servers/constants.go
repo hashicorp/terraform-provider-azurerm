@@ -61,6 +61,70 @@ func parseArmServerKeyType(input string) (*ArmServerKeyType, error) {
 	return &out, nil
 }
 
+type AzureManagedDiskPerformanceTiers string
+
+const (
+	AzureManagedDiskPerformanceTiersPEightZero AzureManagedDiskPerformanceTiers = "P80"
+	AzureManagedDiskPerformanceTiersPFiveZero  AzureManagedDiskPerformanceTiers = "P50"
+	AzureManagedDiskPerformanceTiersPFour      AzureManagedDiskPerformanceTiers = "P4"
+	AzureManagedDiskPerformanceTiersPFourZero  AzureManagedDiskPerformanceTiers = "P40"
+	AzureManagedDiskPerformanceTiersPOne       AzureManagedDiskPerformanceTiers = "P1"
+	AzureManagedDiskPerformanceTiersPOneFive   AzureManagedDiskPerformanceTiers = "P15"
+	AzureManagedDiskPerformanceTiersPOneZero   AzureManagedDiskPerformanceTiers = "P10"
+	AzureManagedDiskPerformanceTiersPSevenZero AzureManagedDiskPerformanceTiers = "P70"
+	AzureManagedDiskPerformanceTiersPSix       AzureManagedDiskPerformanceTiers = "P6"
+	AzureManagedDiskPerformanceTiersPSixZero   AzureManagedDiskPerformanceTiers = "P60"
+	AzureManagedDiskPerformanceTiersPThree     AzureManagedDiskPerformanceTiers = "P3"
+	AzureManagedDiskPerformanceTiersPThreeZero AzureManagedDiskPerformanceTiers = "P30"
+	AzureManagedDiskPerformanceTiersPTwo       AzureManagedDiskPerformanceTiers = "P2"
+	AzureManagedDiskPerformanceTiersPTwoZero   AzureManagedDiskPerformanceTiers = "P20"
+)
+
+func PossibleValuesForAzureManagedDiskPerformanceTiers() []string {
+	return []string{
+		string(AzureManagedDiskPerformanceTiersPEightZero),
+		string(AzureManagedDiskPerformanceTiersPFiveZero),
+		string(AzureManagedDiskPerformanceTiersPFour),
+		string(AzureManagedDiskPerformanceTiersPFourZero),
+		string(AzureManagedDiskPerformanceTiersPOne),
+		string(AzureManagedDiskPerformanceTiersPOneFive),
+		string(AzureManagedDiskPerformanceTiersPOneZero),
+		string(AzureManagedDiskPerformanceTiersPSevenZero),
+		string(AzureManagedDiskPerformanceTiersPSix),
+		string(AzureManagedDiskPerformanceTiersPSixZero),
+		string(AzureManagedDiskPerformanceTiersPThree),
+		string(AzureManagedDiskPerformanceTiersPThreeZero),
+		string(AzureManagedDiskPerformanceTiersPTwo),
+		string(AzureManagedDiskPerformanceTiersPTwoZero),
+	}
+}
+
+func parseAzureManagedDiskPerformanceTiers(input string) (*AzureManagedDiskPerformanceTiers, error) {
+	vals := map[string]AzureManagedDiskPerformanceTiers{
+		"p80": AzureManagedDiskPerformanceTiersPEightZero,
+		"p50": AzureManagedDiskPerformanceTiersPFiveZero,
+		"p4":  AzureManagedDiskPerformanceTiersPFour,
+		"p40": AzureManagedDiskPerformanceTiersPFourZero,
+		"p1":  AzureManagedDiskPerformanceTiersPOne,
+		"p15": AzureManagedDiskPerformanceTiersPOneFive,
+		"p10": AzureManagedDiskPerformanceTiersPOneZero,
+		"p70": AzureManagedDiskPerformanceTiersPSevenZero,
+		"p6":  AzureManagedDiskPerformanceTiersPSix,
+		"p60": AzureManagedDiskPerformanceTiersPSixZero,
+		"p3":  AzureManagedDiskPerformanceTiersPThree,
+		"p30": AzureManagedDiskPerformanceTiersPThreeZero,
+		"p2":  AzureManagedDiskPerformanceTiersPTwo,
+		"p20": AzureManagedDiskPerformanceTiersPTwoZero,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AzureManagedDiskPerformanceTiers(input)
+	return &out, nil
+}
+
 type CreateMode string
 
 const (
@@ -69,6 +133,7 @@ const (
 	CreateModeGeoRestore         CreateMode = "GeoRestore"
 	CreateModePointInTimeRestore CreateMode = "PointInTimeRestore"
 	CreateModeReplica            CreateMode = "Replica"
+	CreateModeReviveDropped      CreateMode = "ReviveDropped"
 	CreateModeUpdate             CreateMode = "Update"
 )
 
@@ -79,6 +144,7 @@ func PossibleValuesForCreateMode() []string {
 		string(CreateModeGeoRestore),
 		string(CreateModePointInTimeRestore),
 		string(CreateModeReplica),
+		string(CreateModeReviveDropped),
 		string(CreateModeUpdate),
 	}
 }
@@ -90,6 +156,7 @@ func parseCreateMode(input string) (*CreateMode, error) {
 		"georestore":         CreateModeGeoRestore,
 		"pointintimerestore": CreateModePointInTimeRestore,
 		"replica":            CreateModeReplica,
+		"revivedropped":      CreateModeReviveDropped,
 		"update":             CreateModeUpdate,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -185,6 +252,34 @@ func parseHighAvailabilityMode(input string) (*HighAvailabilityMode, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := HighAvailabilityMode(input)
+	return &out, nil
+}
+
+type KeyStatusEnum string
+
+const (
+	KeyStatusEnumInvalid KeyStatusEnum = "Invalid"
+	KeyStatusEnumValid   KeyStatusEnum = "Valid"
+)
+
+func PossibleValuesForKeyStatusEnum() []string {
+	return []string{
+		string(KeyStatusEnumInvalid),
+		string(KeyStatusEnumValid),
+	}
+}
+
+func parseKeyStatusEnum(input string) (*KeyStatusEnum, error) {
+	vals := map[string]KeyStatusEnum{
+		"invalid": KeyStatusEnumInvalid,
+		"valid":   KeyStatusEnumValid,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := KeyStatusEnum(input)
 	return &out, nil
 }
 
@@ -364,6 +459,7 @@ func parseServerState(input string) (*ServerState, error) {
 type ServerVersion string
 
 const (
+	ServerVersionOneFive  ServerVersion = "15"
 	ServerVersionOneFour  ServerVersion = "14"
 	ServerVersionOneOne   ServerVersion = "11"
 	ServerVersionOneThree ServerVersion = "13"
@@ -372,6 +468,7 @@ const (
 
 func PossibleValuesForServerVersion() []string {
 	return []string{
+		string(ServerVersionOneFive),
 		string(ServerVersionOneFour),
 		string(ServerVersionOneOne),
 		string(ServerVersionOneThree),
@@ -381,6 +478,7 @@ func PossibleValuesForServerVersion() []string {
 
 func parseServerVersion(input string) (*ServerVersion, error) {
 	vals := map[string]ServerVersion{
+		"15": ServerVersionOneFive,
 		"14": ServerVersionOneFour,
 		"11": ServerVersionOneOne,
 		"13": ServerVersionOneThree,
@@ -423,5 +521,33 @@ func parseSkuTier(input string) (*SkuTier, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := SkuTier(input)
+	return &out, nil
+}
+
+type StorageAutoGrow string
+
+const (
+	StorageAutoGrowDisabled StorageAutoGrow = "Disabled"
+	StorageAutoGrowEnabled  StorageAutoGrow = "Enabled"
+)
+
+func PossibleValuesForStorageAutoGrow() []string {
+	return []string{
+		string(StorageAutoGrowDisabled),
+		string(StorageAutoGrowEnabled),
+	}
+}
+
+func parseStorageAutoGrow(input string) (*StorageAutoGrow, error) {
+	vals := map[string]StorageAutoGrow{
+		"disabled": StorageAutoGrowDisabled,
+		"enabled":  StorageAutoGrowEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := StorageAutoGrow(input)
 	return &out, nil
 }
