@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`. Changing this forces a new resource to be created.
 
-* `marketplace` - (Optional) A `marketplace` block as defined below. This field is applicable only for Spring Cloud Service with enterprise tier.
+* `marketplace` - (Optional) A `marketplace` block as defined below. Can only be specified when `sku` is set to `E0`.
 
 * `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.
 
@@ -140,9 +140,9 @@ The `default_build_service` block supports the following:
 
 The `marketplace` block supports the following:
 
-* `plan` - (Required) Specifies the plan id of the 3rd Party Artifact that is being procured.
+* `plan` - (Required) Specifies the plan ID of the 3rd Party Artifact that is being procured.
 
-* `publisher` - (Required) Specifies the publisher id of the 3rd Party Artifact that is being bought.
+* `publisher` - (Required) Specifies the publisher ID of the 3rd Party Artifact that is being procured.
 
 * `product` - (Required) Specifies the 3rd Party artifact that is being procured.
 
