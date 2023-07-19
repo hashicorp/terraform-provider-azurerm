@@ -13,9 +13,13 @@ Use this data source to get all variables in an Automation Account.
 ## Example Usage
 
 ```hcl
+data "azurerm_automation_account" "example" {
+  name                = "example-account"
+  resource_group_name = "example-resources"
+}
+
 data "azurerm_automation_variables" "example" {
-  resource_group_name     = "tfex-example-rg"
-  automation_account_name = "tfex-example-account"
+  automation_account_id = data.azurerm_automation_account.example.id
 }
 
 output "string_vars" {
@@ -27,9 +31,7 @@ output "string_vars" {
 
 The following arguments are supported:
 
-- `resource_group_name` - The Name of the Resource Group where the automation account exists.
-
-- `automation_account_name` - The name of the automation account in which the automation variables exist.
+- `automation_account_id` - The resource ID of the automation account.
 
 ## Attributes Reference
 
