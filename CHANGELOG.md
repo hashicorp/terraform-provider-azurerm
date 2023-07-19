@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `data.azurerm_servicebus_*` - add deprecation messages for `resource_group_name` and `namespace_name` [GH-22521]
 * `azurerm_logic_app_standard` - now exports the `auto_swap_slot_name` attribute [GH-22525]
 * `azurerm_postgresql_flexible_server` - support for `33554432` storage [GH-22574]
+* `azurerm_spring_cloud_service` - support for the `outbound_type` property [GH-22596]
 
 BUG FIXES:
 
