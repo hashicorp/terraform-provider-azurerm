@@ -31,7 +31,7 @@ output "string_vars" {
 
 The following arguments are supported:
 
-- `id` - The resource ID of the automation account.
+- `automation_account_id` - The resource ID of the automation account.
 
 ## Attributes Reference
 
