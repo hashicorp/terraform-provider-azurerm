@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -34,6 +35,11 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"bgp_route_propagation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
 			"location": commonschema.LocationComputed(),
 
@@ -109,11 +115,13 @@ func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 			if err := d.Set("subnets", flattenRouteTableDataSourceSubnets(props.Subnets)); err != nil {
 				return err
 			}
-		}
 
+			if err := d.Set("bgp_route_propagation_enabled", !pointer.From(props.DisableBgpRoutePropagation)); err != nil {
+				return err
+			}
+		}
 		return tags.FlattenAndSet(d, model.Tags)
 	}
-
 	return nil
 }
 

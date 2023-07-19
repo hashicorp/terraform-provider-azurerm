@@ -133,7 +133,7 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	if err != nil {
 		return fmt.Errorf("creating Machine Learning Compute (%q): %+v", id, err)
 	}
-	if err := future.Poller.PollUntilDone(); err != nil {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of Machine Learning Compute (%q): %+v", id, err)
 	}
 
@@ -205,7 +205,7 @@ func resourceSynapseSparkDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("deleting Machine Learning Compute (%q): %+v", id, err)
 	}
 
-	if err := future.Poller.PollUntilDone(); err != nil {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for deletion of the Machine Learning Compute (%q): %+v", id, err)
 	}
 	return nil

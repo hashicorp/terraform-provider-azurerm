@@ -9,8 +9,6 @@ fun AzureRM(environment: String, configuration : ClientConfiguration) : Project 
         // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
         enableTestTriggersGlobally = configuration.enableTestTriggersGlobally
 
-        vcsRoot(providerRepository)
-
         var pullRequestBuildConfig = pullRequestBuildConfiguration(environment, configuration)
         buildType(pullRequestBuildConfig)
 
@@ -31,7 +29,7 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
         var locationsToUse = if (testConfig.locationOverride.primary != "") testConfig.locationOverride else locationsForEnv
         var runNightly = runNightly.getOrDefault(environment, false)
 
-        var service = serviceDetails(serviceName, displayName, environment)
+        var service = serviceDetails(serviceName, displayName, environment, config.vcsRootId)
         var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth, testConfig.timeout)
 
         buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse,  testConfig.useAltSubscription, testConfig.useDevTestSubscription)
@@ -42,11 +40,11 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
     return list
 }
 
-fun pullRequestBuildConfiguration(environment: String, configuration: ClientConfiguration) : BuildType {
+fun pullRequestBuildConfiguration(environment: String, config: ClientConfiguration) : BuildType {
     var locationsForEnv = locations.get(environment)!!
-    var pullRequest = pullRequest("! Run Pull Request", environment)
+    var pullRequest = pullRequest("! Run Pull Request", environment, config.vcsRootId)
     var buildConfiguration = pullRequest.buildConfiguration(providerName)
-    buildConfiguration.params.ConfigureAzureSpecificTestParameters(environment, configuration, locationsForEnv)
+    buildConfiguration.params.ConfigureAzureSpecificTestParameters(environment, config, locationsForEnv)
     return buildConfiguration
 }
 

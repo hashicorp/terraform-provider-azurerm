@@ -797,7 +797,7 @@ func expandLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (map
 }
 
 func expandLogicAppWorkflowAccessControl(input []interface{}) *workflows.FlowAccessControlConfiguration {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
@@ -875,6 +875,9 @@ func expandLogicAppWorkflowOpenAuthenticationPolicy(input []interface{}) *map[st
 	results := make(map[string]workflows.OpenAuthenticationAccessPolicy)
 
 	for _, item := range input {
+		if item == nil {
+			continue
+		}
 		v := item.(map[string]interface{})
 		policyName := v["name"].(string)
 

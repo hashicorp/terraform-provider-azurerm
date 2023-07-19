@@ -8,6 +8,7 @@ class ClientConfiguration(var clientId: String,
                           val clientSecretAlt: String,
                           val subscriptionIdAlt : String,
                           val subscriptionIdDevTest : String,
+                          val vcsRootId : String,
                           val enableTestTriggersGlobally : Boolean) {
 }
 
