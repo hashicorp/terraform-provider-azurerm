@@ -2,7 +2,6 @@ package hpccache
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/amlfilesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -18,25 +18,34 @@ import (
 )
 
 type HPCCacheAMLFileSystemModel struct {
-	Name              string                  `tfschema:"name"`
-	ResourceGroupName string                  `tfschema:"resource_group_name"`
-	Location          string                  `tfschema:"location"`
-	SubnetId          string                  `tfschema:"subnet_id"`
-	Identity          []AMLFileSystemIdentity `tfschema:"identity"`
-	SkuName           string                  `tfschema:"sku_name"`
-	Tags              map[string]string       `tfschema:"tags"`
-	Zones             []string                `tfschema:"zones"`
+	Name                string                       `tfschema:"name"`
+	ResourceGroupName   string                       `tfschema:"resource_group_name"`
+	Location            string                       `tfschema:"location"`
+	HsmSetting          []HsmSetting                 `tfschema:"hsm_setting"`
+	Identity            []identity.ModelUserAssigned `tfschema:"identity"`
+	KeyEncryptionKey    []KeyEncryptionKey           `tfschema:"key_encryption_key"`
+	MaintenanceWindow   []MaintenanceWindow          `tfschema:"maintenance_window"`
+	SkuName             string                       `tfschema:"sku_name"`
+	StorageCapacityInTb float64                      `tfschema:"storage_capacity_in_tb"`
+	SubnetId            string                       `tfschema:"subnet_id"`
+	Zones               []string                     `tfschema:"zones"`
+	Tags                map[string]string            `tfschema:"tags"`
 }
 
-type AMLFileSystemIdentity struct {
-	PrincipalId            string                                   `tfschema:"principal_id"`
-	TenantId               string                                   `tfschema:"tenant_id"`
-	Type                   amlfilesystems.AmlFilesystemIdentityType `tfschema:"type"`
-	UserAssignedIdentities string                                   `tfschema:"user_assigned_identities"`
+type HsmSetting struct {
+	Container        string `tfschema:"container"`
+	ImportPrefix     string `tfschema:"import_prefix"`
+	LoggingContainer string `tfschema:"logging_container"`
 }
 
-type SkuName struct {
-	Name string `tfschema:"name"`
+type KeyEncryptionKey struct {
+	KeyUrl        string `tfschema:"key_url"`
+	SourceVaultId string `tfschema:"source_vault_id"`
+}
+
+type MaintenanceWindow struct {
+	DayOfWeek    amlfilesystems.MaintenanceDayOfWeekType `tfschema:"day_of_week"`
+	TimeOfDayUTC string                                  `tfschema:"time_of_day_utc"`
 }
 
 type HPCCacheAMLFileSystemResource struct{}
@@ -68,6 +77,12 @@ func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema 
 
 		"location": commonschema.Location(),
 
+		"storage_capacity_in_tb": {
+			Type:     pluginsdk.TypeFloat,
+			Required: true,
+			ForceNew: true,
+		},
+
 		"subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -75,39 +90,76 @@ func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"identity": {
+		"hsm_setting": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"principal_id": {
+					"container": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					"tenant_id": {
+					"logging_container": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(amlfilesystems.AmlFilesystemIdentityTypeUserAssigned),
-							string(amlfilesystems.AmlFilesystemIdentityTypeNone),
-						}, false),
+					"import_prefix": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
+		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
+
+		"key_encryption_key": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key_url": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					"user_assigned_identities": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						ValidateFunc:     validation.StringIsJSON,
-						DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+					"source_vault_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
+		"maintenance_window": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"day_of_week": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(amlfilesystems.PossibleValuesForMaintenanceDayOfWeekType(), false),
+					},
+
+					"time_of_day_utc": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -152,20 +204,34 @@ func (r HPCCacheAMLFileSystemResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := &amlfilesystems.AmlFilesystem{
-				Location: location.Normalize(model.Location),
-				Properties: &amlfilesystems.AmlFilesystemProperties{
-					FilesystemSubnet: model.SubnetId,
-				},
-				Tags:  &model.Tags,
-				Zones: &model.Zones,
-			}
-
 			identity, err := expandAMLFileSystemIdentity(model.Identity)
 			if err != nil {
 				return err
 			}
-			properties.Identity = identity
+
+			properties := &amlfilesystems.AmlFilesystem{
+				Location: location.Normalize(model.Location),
+				Identity: identity,
+				Properties: &amlfilesystems.AmlFilesystemProperties{
+					MaintenanceWindow:  expandAMLFileSystemMaintenanceWindowForCreate(model.MaintenanceWindow),
+					FilesystemSubnet:   model.SubnetId,
+					StorageCapacityTiB: model.StorageCapacityInTb,
+				},
+				Zones: pointer.To(model.Zones),
+				Tags:  pointer.To(model.Tags),
+			}
+
+			if v := model.HsmSetting; v != nil {
+				properties.Properties.Hsm = &amlfilesystems.AmlFilesystemPropertiesHsm{
+					Settings: expandAMLFileSystemHsmSetting(model.HsmSetting),
+				}
+			}
+
+			if v := model.KeyEncryptionKey; v != nil {
+				properties.Properties.EncryptionSettings = &amlfilesystems.AmlFilesystemEncryptionSettings{
+					KeyEncryptionKey: expandAMLFileSystemKeyEncryptionKey(v),
+				}
+			}
 
 			if v := model.SkuName; v != "" {
 				properties.Sku = &amlfilesystems.SkuName{
@@ -200,6 +266,16 @@ func (r HPCCacheAMLFileSystemResource) Update() sdk.ResourceFunc {
 			}
 
 			properties := amlfilesystems.AmlFilesystemUpdate{}
+
+			if metadata.ResourceData.HasChange("maintenance_window") {
+				properties.Properties.MaintenanceWindow = expandAMLFileSystemMaintenanceWindowForUpdate(model.MaintenanceWindow)
+			}
+
+			if metadata.ResourceData.HasChange("key_encryption_key") {
+				properties.Properties.EncryptionSettings = &amlfilesystems.AmlFilesystemEncryptionSettings{
+					KeyEncryptionKey: expandAMLFileSystemKeyEncryptionKey(model.KeyEncryptionKey),
+				}
+			}
 
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = pointer.To(model.Tags)
@@ -253,6 +329,13 @@ func (r HPCCacheAMLFileSystemResource) Read() sdk.ResourceFunc {
 
 			if properties := model.Properties; properties != nil {
 				state.SubnetId = properties.FilesystemSubnet
+				state.StorageCapacityInTb = properties.StorageCapacityTiB
+				state.MaintenanceWindow = flattenAMLFileSystemMaintenanceWindow(properties.MaintenanceWindow)
+				state.HsmSetting = flattenAMLFileSystemHsmSetting(properties.Hsm)
+
+				if v := properties.EncryptionSettings; v != nil && v.KeyEncryptionKey != nil {
+					state.KeyEncryptionKey = flattenAMLFileSystemKeyEncryptionKey(v.KeyEncryptionKey)
+				}
 			}
 
 			if v := model.Sku; v != nil {
@@ -260,11 +343,11 @@ func (r HPCCacheAMLFileSystemResource) Read() sdk.ResourceFunc {
 			}
 
 			if model.Zones != nil {
-				state.Zones = *model.Zones
+				state.Zones = pointer.From(model.Zones)
 			}
 
 			if model.Tags != nil {
-				state.Tags = *model.Tags
+				state.Tags = pointer.From(model.Tags)
 			}
 
 			return metadata.Encode(&state)
@@ -292,53 +375,168 @@ func (r HPCCacheAMLFileSystemResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandAMLFileSystemIdentity(input []AMLFileSystemIdentity) (*amlfilesystems.AmlFilesystemIdentity, error) {
-	if len(input) == 0 {
+func expandAMLFileSystemIdentity(input []identity.ModelUserAssigned) (*amlfilesystems.AmlFilesystemIdentity, error) {
+	identityValue, err := identity.ExpandUserAssignedMapFromModel(input)
+	if err != nil {
+		return nil, fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	output := amlfilesystems.AmlFilesystemIdentity{
+		Type: pointer.To(amlfilesystems.AmlFilesystemIdentityType(string(identityValue.Type))),
+	}
+
+	if identityValue.Type == identity.TypeUserAssigned {
+		output.UserAssignedIdentities = pointer.To(make(map[string]amlfilesystems.UserAssignedIdentitiesProperties))
+		for k := range identityValue.IdentityIds {
+			(*output.UserAssignedIdentities)[k] = amlfilesystems.UserAssignedIdentitiesProperties{}
+		}
+	}
+
+	return &output, nil
+}
+
+func flattenAMLFileSystemIdentity(input *amlfilesystems.AmlFilesystemIdentity) ([]identity.ModelUserAssigned, error) {
+	if input == nil {
 		return nil, nil
 	}
 
-	amlFileSystemIdentity := &input[0]
-	result := amlfilesystems.AmlFilesystemIdentity{
-		Type: &amlFileSystemIdentity.Type,
+	identityIds := make(map[string]identity.UserAssignedIdentityDetails, 0)
+	for k, v := range *input.UserAssignedIdentities {
+		identityIds[k] = identity.UserAssignedIdentityDetails{
+			ClientId:    v.ClientId,
+			PrincipalId: v.PrincipalId,
+		}
 	}
 
-	var userAssignedIdentitiesValue map[string]amlfilesystems.UserAssignedIdentitiesProperties
-	err := json.Unmarshal([]byte(amlFileSystemIdentity.UserAssignedIdentities), &userAssignedIdentitiesValue)
+	identityValue := identity.UserAssignedMap{
+		Type:        identity.Type(string(pointer.From(input.Type))),
+		IdentityIds: identityIds,
+	}
+
+	output, err := identity.FlattenUserAssignedMapToModel(&identityValue)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	result.UserAssignedIdentities = &userAssignedIdentitiesValue
 
-	return &result, nil
+	return *output, nil
 }
 
-func flattenAMLFileSystemIdentity(input *amlfilesystems.AmlFilesystemIdentity) ([]AMLFileSystemIdentity, error) {
-	var amlFileSystemIdentities []AMLFileSystemIdentity
+func expandAMLFileSystemMaintenanceWindowForCreate(input []MaintenanceWindow) amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow {
+	result := amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow{}
+	maintenanceWindow := &input[0]
+
+	if v := maintenanceWindow.DayOfWeek; v != "" {
+		result.DayOfWeek = pointer.To(v)
+	}
+
+	if v := maintenanceWindow.TimeOfDayUTC; v != "" {
+		result.TimeOfDayUTC = pointer.To(maintenanceWindow.TimeOfDayUTC)
+	}
+
+	return result
+}
+
+func expandAMLFileSystemMaintenanceWindowForUpdate(input []MaintenanceWindow) *amlfilesystems.AmlFilesystemUpdatePropertiesMaintenanceWindow {
+	if len(input) == 0 {
+		return nil
+	}
+
+	maintenanceWindow := &input[0]
+	result := amlfilesystems.AmlFilesystemUpdatePropertiesMaintenanceWindow{}
+
+	if v := maintenanceWindow.DayOfWeek; v != "" {
+		result.DayOfWeek = pointer.To(v)
+	}
+
+	if v := maintenanceWindow.TimeOfDayUTC; v != "" {
+		result.TimeOfDayUTC = pointer.To(maintenanceWindow.TimeOfDayUTC)
+	}
+
+	return &result
+}
+
+func flattenAMLFileSystemMaintenanceWindow(input amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow) []MaintenanceWindow {
+	var result []MaintenanceWindow
+	maintenanceWindow := MaintenanceWindow{}
+
+	if input.DayOfWeek != nil {
+		maintenanceWindow.DayOfWeek = pointer.From(input.DayOfWeek)
+	}
+
+	if input.TimeOfDayUTC != nil {
+		maintenanceWindow.TimeOfDayUTC = pointer.From(input.TimeOfDayUTC)
+	}
+
+	return append(result, maintenanceWindow)
+}
+
+func expandAMLFileSystemKeyEncryptionKey(input []KeyEncryptionKey) *amlfilesystems.KeyVaultKeyReference {
+	if len(input) == 0 {
+		return nil
+	}
+
+	keyEncryptionKey := &input[0]
+
+	output := amlfilesystems.KeyVaultKeyReference{
+		KeyUrl: keyEncryptionKey.KeyUrl,
+		SourceVault: amlfilesystems.KeyVaultKeyReferenceSourceVault{
+			Id: pointer.To(keyEncryptionKey.SourceVaultId),
+		},
+	}
+
+	return &output
+}
+
+func flattenAMLFileSystemKeyEncryptionKey(input *amlfilesystems.KeyVaultKeyReference) []KeyEncryptionKey {
 	if input == nil {
-		return amlFileSystemIdentities, nil
+		return nil
 	}
 
-	amlFileSystemIdentity := AMLFileSystemIdentity{}
+	var result []KeyEncryptionKey
 
-	if input.PrincipalId != nil {
-		amlFileSystemIdentity.PrincipalId = *input.PrincipalId
+	keyEncryptionKey := KeyEncryptionKey{
+		KeyUrl:        input.KeyUrl,
+		SourceVaultId: pointer.From(input.SourceVault.Id),
 	}
 
-	if input.TenantId != nil {
-		amlFileSystemIdentity.TenantId = *input.TenantId
+	return append(result, keyEncryptionKey)
+}
+
+func expandAMLFileSystemHsmSetting(input []HsmSetting) *amlfilesystems.AmlFilesystemHsmSettings {
+	if len(input) == 0 {
+		return nil
 	}
 
-	if input.Type != nil {
-		amlFileSystemIdentity.Type = *input.Type
+	hsmSetting := &input[0]
+
+	result := amlfilesystems.AmlFilesystemHsmSettings{
+		Container:        hsmSetting.Container,
+		LoggingContainer: hsmSetting.LoggingContainer,
 	}
 
-	if input.UserAssignedIdentities != nil && *input.UserAssignedIdentities != nil {
-		userAssignedIdentitiesValue, err := json.Marshal(*input.UserAssignedIdentities)
-		if err != nil {
-			return nil, err
+	if hsmSetting.ImportPrefix != "" {
+		result.ImportPrefix = pointer.To(hsmSetting.ImportPrefix)
+	}
+
+	return &result
+}
+
+func flattenAMLFileSystemHsmSetting(input *amlfilesystems.AmlFilesystemPropertiesHsm) []HsmSetting {
+	if input == nil {
+		return nil
+	}
+
+	var result []HsmSetting
+	hsmSetting := HsmSetting{}
+
+	if v := input.Settings; v != nil {
+		hsmSetting.Container = v.Container
+		hsmSetting.LoggingContainer = v.LoggingContainer
+
+		if v.ImportPrefix != nil {
+			hsmSetting.ImportPrefix = pointer.From(v.ImportPrefix)
 		}
-		amlFileSystemIdentity.UserAssignedIdentities = string(userAssignedIdentitiesValue)
 	}
 
-	return append(amlFileSystemIdentities, amlFileSystemIdentity), nil
+	return append(result, hsmSetting)
 }
