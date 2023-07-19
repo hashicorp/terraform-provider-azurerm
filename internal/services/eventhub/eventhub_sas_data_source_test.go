@@ -75,10 +75,5 @@ data "azurerm_eventhub_sas" "test" {
   connection_string = data.azurerm_eventhub_authorization_rule.test.primary_connection_string
   expiry            = "%s"
 }
-
-output "sas_token" {
-  value     = replace(data.azurerm_eventhub_sas.test.sas, "\u0026", "&")
-  sensitive = true
-}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, endDate)
 }
