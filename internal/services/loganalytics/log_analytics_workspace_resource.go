@@ -178,7 +178,12 @@ func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.R
 		log.Printf("[INFO] Log Analytics Workspace SKU: OLD: %q, NEW: %q", old, new)
 		// If the old value is not LACluster(e.g. "") return ForceNew because they are
 		// really changing the sku...
-		if !strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumLACluster)) && !strings.EqualFold(old.(string), "") {
+		changingFromLACluster := strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumLACluster)) || strings.EqualFold(old.(string), "")
+		// changing from capacity reservation to perGB does not force new when the last sku update date is more than 31-days ago.
+		// to let users do the change, we do not force new in this case and let the API error out.
+		changingFromCapacityReservationToPerGB := strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) && strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight))
+		changingFromPerGBToCapacityReservation := strings.EqualFold(old.(string), string(workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight)) && strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumCapacityReservation))
+		if !changingFromCapacityReservationToPerGB && !changingFromLACluster && !changingFromPerGBToCapacityReservation {
 			d.ForceNew("sku")
 		}
 	}
@@ -288,10 +293,11 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	propName := "reservation_capacity_in_gb_per_day"
-	capacityReservationLevel, ok := d.GetOk(propName)
-	if ok {
+	// read from raw config as it's an optional + computed property, GetOk() will read value from state.
+	capacityReservationLevel := d.GetRawConfig().AsValueMap()[propName]
+	if !capacityReservationLevel.IsNull() {
 		if strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) {
-			capacityReservationLevelValue := workspaces.CapacityReservationLevel(int64(capacityReservationLevel.(int)))
+			capacityReservationLevelValue := workspaces.CapacityReservationLevel(int64(d.Get(propName).(int)))
 			parameters.Properties.Sku.CapacityReservationLevel = &capacityReservationLevelValue
 		} else {
 			return fmt.Errorf("`%s` can only be used with the `CapacityReservation` SKU", propName)
