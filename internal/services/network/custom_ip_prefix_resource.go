@@ -429,6 +429,8 @@ func (t commissionedStates) strings() (out []string) {
 	return
 }
 
+// updateCommissionedState implements a state machine to coordinate transitions between different values of CommissionedState for both v4 and v6 prefixes.
+// The provided desiredState should be the sought after end state, and the method will work out a path to achieving that state and walk the resource to get there.
 func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, desiredState network.CommissionedState) (*network.CommissionedState, error) {
 	existing, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
@@ -557,7 +559,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 						return lastKnownState, err
 					}
 
-					// Update the lastKnownState so we can monitor for retries on the next iteration
+					// Update the lastKnownState, so we can monitor for retries on the next iteration
 					lastKnownState = latestState
 				}
 
@@ -622,8 +624,9 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 	}
 
 	result, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("waiting for CommissionedState of %s: %+v", id, err)
+
+	if result == nil {
+		return nil, fmt.Errorf("retrieving %s: response was nil", id)
 	}
 
 	prefix, ok := result.(network.CustomIPPrefix)
@@ -632,7 +635,11 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 	}
 
 	if prefix.CustomIPPrefixPropertiesFormat == nil {
-		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
+		return &prefix.CustomIPPrefixPropertiesFormat.CommissionedState, fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	if err != nil {
+		return &prefix.CustomIPPrefixPropertiesFormat.CommissionedState, fmt.Errorf("waiting for CommissionedState of %s: %+v", id, err)
 	}
 
 	return &prefix.CustomIPPrefixPropertiesFormat.CommissionedState, nil
