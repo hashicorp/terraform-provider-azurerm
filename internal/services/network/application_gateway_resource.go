@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -8,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -402,7 +406,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.SubnetID,
+							ValidateFunc: commonids.ValidateSubnetID,
 						},
 
 						"id": {
@@ -598,7 +602,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									"subnet_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: networkValidate.SubnetID,
+										ValidateFunc: commonids.ValidateSubnetID,
 									},
 
 									"private_ip_address": {
@@ -2715,7 +2719,7 @@ func expandApplicationGatewaySslPolicy(vs []interface{}) *network.ApplicationGat
 				PolicyType: policyType,
 				PolicyName: policyName,
 			}
-		} else if policyType == network.ApplicationGatewaySslPolicyTypeCustom {
+		} else if policyType == network.ApplicationGatewaySslPolicyTypeCustom || policyType == network.ApplicationGatewaySslPolicyTypeCustomV2 {
 			minProtocolVersion := network.ApplicationGatewaySslProtocol(v["min_protocol_version"].(string))
 			cipherSuites := make([]network.ApplicationGatewaySslCipherSuite, 0)
 

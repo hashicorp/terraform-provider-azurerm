@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +20,7 @@ type AbortLatestOperationOperationResponse struct {
 }
 
 // AbortLatestOperation ...
-func (c ManagedClustersClient) AbortLatestOperation(ctx context.Context, id ManagedClusterId) (result AbortLatestOperationOperationResponse, err error) {
+func (c ManagedClustersClient) AbortLatestOperation(ctx context.Context, id commonids.KubernetesClusterId) (result AbortLatestOperationOperationResponse, err error) {
 	req, err := c.preparerForAbortLatestOperation(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedclusters.ManagedClustersClient", "AbortLatestOperation", nil, "Failure preparing request")
@@ -36,7 +37,7 @@ func (c ManagedClustersClient) AbortLatestOperation(ctx context.Context, id Mana
 }
 
 // AbortLatestOperationThenPoll performs AbortLatestOperation then polls until it's completed
-func (c ManagedClustersClient) AbortLatestOperationThenPoll(ctx context.Context, id ManagedClusterId) error {
+func (c ManagedClustersClient) AbortLatestOperationThenPoll(ctx context.Context, id commonids.KubernetesClusterId) error {
 	result, err := c.AbortLatestOperation(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing AbortLatestOperation: %+v", err)
@@ -50,7 +51,7 @@ func (c ManagedClustersClient) AbortLatestOperationThenPoll(ctx context.Context,
 }
 
 // preparerForAbortLatestOperation prepares the AbortLatestOperation request.
-func (c ManagedClustersClient) preparerForAbortLatestOperation(ctx context.Context, id ManagedClusterId) (*http.Request, error) {
+func (c ManagedClustersClient) preparerForAbortLatestOperation(ctx context.Context, id commonids.KubernetesClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

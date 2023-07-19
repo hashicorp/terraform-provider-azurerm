@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package maintenance
 
 import (
@@ -519,10 +522,10 @@ func expandMaintenanceConfigurationInstallPatchesLinux(input []interface{}) *mai
 	if v, ok := v["classifications_to_include"]; ok {
 		linuxParameters.ClassificationsToInclude = utils.ExpandStringSlice(v.([]interface{}))
 	}
-	if v, ok := v["packages_to_exclude"]; ok {
+	if v, ok := v["package_names_mask_to_exclude"]; ok {
 		linuxParameters.PackageNameMasksToExclude = utils.ExpandStringSlice(v.([]interface{}))
 	}
-	if v, ok := v["packages_to_include"]; ok {
+	if v, ok := v["package_names_mask_to_include"]; ok {
 		linuxParameters.PackageNameMasksToInclude = utils.ExpandStringSlice(v.([]interface{}))
 	}
 	return &linuxParameters
@@ -539,11 +542,11 @@ func flattenMaintenanceConfigurationInstallPatchesLinux(input *maintenanceconfig
 		}
 
 		if packageNameMasksToInclude := v.PackageNameMasksToInclude; packageNameMasksToInclude != nil {
-			output["packages_to_exclude"] = utils.FlattenStringSlice(packageNameMasksToInclude)
+			output["package_names_mask_to_exclude"] = utils.FlattenStringSlice(packageNameMasksToInclude)
 		}
 
 		if packageNameMasksToExclude := v.PackageNameMasksToExclude; packageNameMasksToExclude != nil {
-			output["packages_to_include"] = utils.FlattenStringSlice(packageNameMasksToExclude)
+			output["package_names_mask_to_include"] = utils.FlattenStringSlice(packageNameMasksToExclude)
 		}
 
 		results = append(results, output)

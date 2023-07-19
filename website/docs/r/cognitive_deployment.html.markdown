@@ -70,7 +70,15 @@ A `model` block supports the following:
 
 A `scale` block supports the following:
 
-* `type` - (Required) Deployment scale type. Possible value is `Standard`. Changing this forces a new resource to be created.
+* `type` - (Required) The name of the SKU. Ex - `Standard` or `P3`. It is typically a letter+number code. Changing this forces a new resource to be created.
+
+* `tier` - (Optional) Possible values are `Free`, `Basic`, `Standard`, `Premium`, `Enterprise`. Changing this forces a new resource to be created.
+
+* `size` - (Optional) The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code. Changing this forces a new resource to be created.
+
+* `family` - (Optional) If the service has different generations of hardware, for the same SKU, then that can be captured here. Changing this forces a new resource to be created.
+
+* `capacity` - (Optional) Tokens-per-Minute (TPM). If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted. Default value is `1`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

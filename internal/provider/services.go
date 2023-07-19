@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package provider
 
 import (
@@ -51,6 +54,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/graph"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache"
@@ -84,6 +88,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital"
@@ -133,6 +138,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		arckubernetes.Registration{},
 		automanage.Registration{},
 		automation.Registration{},
+		authorization.Registration{},
 		batch.Registration{},
 		bot.Registration{},
 		cognitive.Registration{},
@@ -150,10 +156,12 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		domainservices.Registration{},
 		eventhub.Registration{},
 		fluidrelay.Registration{},
+		graph.Registration{},
 		hybridcompute.Registration{},
 		iothub.Registration{},
 		iotcentral.Registration{},
 		keyvault.Registration{},
+		kusto.Registration{},
 		labservice.Registration{},
 		loadbalancer.Registration{},
 		loganalytics.Registration{},
@@ -166,6 +174,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		mysql.Registration{},
 		network.Registration{},
 		netapp.Registration{},
+		newrelic.Registration{},
 		nginx.Registration{},
 		policy.Registration{},
 		privatednsresolver.Registration{},

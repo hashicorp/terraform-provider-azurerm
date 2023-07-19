@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -40,10 +43,6 @@ func importDataFactoryLinkedService(expectType datafactory.TypeBasicLinkedServic
 				return nil, err
 			}
 			delete(m, "type")
-		}
-
-		if datafactory.TypeBasicLinkedService(t) != expectType {
-			return nil, fmt.Errorf("data factory linked service has mismatched type, expected: %q, got %q", expectType, t)
 		}
 
 		if datafactory.TypeBasicLinkedService(t) != expectType {

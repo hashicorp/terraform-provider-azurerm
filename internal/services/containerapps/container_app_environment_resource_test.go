@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containerapps_test
 
 import (
@@ -109,7 +112,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_environment" "test" {
-  name                       = "accTest-CAEnv%[2]d"
+  name                       = "acctest-CAEnv%[2]d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
@@ -140,7 +143,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_environment" "test" {
-  name                       = "accTest-CAEnv%[2]d"
+  name                       = "acctest-CAEnv%[2]d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
@@ -166,7 +169,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_environment" "test" {
-  name                       = "accTest-CAEnv%[2]d"
+  name                       = "acctest-CAEnv%[2]d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -38,7 +39,7 @@ func (r ListOperationResponse) LoadMore(ctx context.Context) (resp ListOperation
 }
 
 // List ...
-func (c AgentPoolsClient) List(ctx context.Context, id ManagedClusterId) (resp ListOperationResponse, err error) {
+func (c AgentPoolsClient) List(ctx context.Context, id commonids.KubernetesClusterId) (resp ListOperationResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "agentpools.AgentPoolsClient", "List", nil, "Failure preparing request")
@@ -60,7 +61,7 @@ func (c AgentPoolsClient) List(ctx context.Context, id ManagedClusterId) (resp L
 }
 
 // preparerForList prepares the List request.
-func (c AgentPoolsClient) preparerForList(ctx context.Context, id ManagedClusterId) (*http.Request, error) {
+func (c AgentPoolsClient) preparerForList(ctx context.Context, id commonids.KubernetesClusterId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -142,12 +143,12 @@ func (c AgentPoolsClient) responderForList(resp *http.Response) (result ListOper
 }
 
 // ListComplete retrieves all of the results into a single object
-func (c AgentPoolsClient) ListComplete(ctx context.Context, id ManagedClusterId) (ListCompleteResult, error) {
+func (c AgentPoolsClient) ListComplete(ctx context.Context, id commonids.KubernetesClusterId) (ListCompleteResult, error) {
 	return c.ListCompleteMatchingPredicate(ctx, id, AgentPoolOperationPredicate{})
 }
 
 // ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c AgentPoolsClient) ListCompleteMatchingPredicate(ctx context.Context, id ManagedClusterId, predicate AgentPoolOperationPredicate) (resp ListCompleteResult, err error) {
+func (c AgentPoolsClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.KubernetesClusterId, predicate AgentPoolOperationPredicate) (resp ListCompleteResult, err error) {
 	items := make([]AgentPool, 0)
 
 	page, err := c.List(ctx, id)

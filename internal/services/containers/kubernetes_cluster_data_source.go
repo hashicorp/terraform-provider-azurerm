@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -328,6 +331,14 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Computed: true,
 						},
 					},
+				},
+			},
+
+			"custom_ca_trust_certificates_base64": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -670,6 +681,27 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"service_mesh_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"internal_ingress_gateway_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"external_ingress_gateway_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -683,7 +715,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := managedclusters.NewManagedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewKubernetesClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -750,6 +782,16 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
 			if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
+			}
+
+			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile.CustomCATrustCertificates)
+			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
+				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
+			}
+
+			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
+			if err := d.Set("service_mesh_profile", serviceMeshProfile); err != nil {
+				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)
 			}
 
 			kubeletIdentity, err := flattenKubernetesClusterDataSourceIdentityProfile(props.IdentityProfile)
@@ -1430,4 +1472,18 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 			"max_surge": maxSurge,
 		},
 	}
+}
+
+func flattenCustomCaTrustCerts(input *[]string) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	customCaTrustCertInterface := make([]interface{}, len(*input))
+
+	for index, value := range *input {
+		customCaTrustCertInterface[index] = value
+	}
+
+	return customCaTrustCertInterface
 }

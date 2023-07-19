@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic
 
 import (
@@ -48,6 +51,11 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"auto_swap_slot_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"use_extension_bundle": {

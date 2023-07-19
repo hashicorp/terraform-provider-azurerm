@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning
 
 import (
@@ -158,7 +161,7 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 
 			props := &datastore.AzureFileDatastore{
 				AccountName:                   fileShareId.StorageAccountName,
-				FileShareName:                 fileShareId.ShareName,
+				FileShareName:                 fileShareId.FileshareName,
 				Description:                   utils.String(model.Description),
 				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
 				Tags:                          utils.ToPtr(model.Tags),
@@ -226,7 +229,7 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 
 			props := &datastore.AzureFileDatastore{
 				AccountName:                   fileShareId.StorageAccountName,
-				FileShareName:                 fileShareId.ShareName,
+				FileShareName:                 fileShareId.FileshareName,
 				Description:                   utils.String(state.Description),
 				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
 				Tags:                          utils.ToPtr(state.Tags),

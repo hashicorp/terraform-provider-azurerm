@@ -81,7 +81,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := agentpools.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
 
 read, err := client.GetAvailableAgentPoolVersions(ctx, id)
 if err != nil {
@@ -113,7 +113,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agentpools.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
+id := agentpools.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterValue")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)

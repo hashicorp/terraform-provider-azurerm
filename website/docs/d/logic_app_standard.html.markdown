@@ -41,6 +41,8 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below.
 
+* `auto_swap_slot_name` - The Auto-swap slot name.
+
 ---
 
 The `identity` block exports the following:

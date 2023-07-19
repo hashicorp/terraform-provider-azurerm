@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql
 
 import (
@@ -262,7 +265,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
 
-		if keyId.NestedItemType == "keys" {
+		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
 			// msSql requires the versioned key URL...
 			props.KeyID = pointer.To(keyId.ID())
 		} else {
@@ -368,7 +371,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
 
-		if keyId.NestedItemType == "keys" {
+		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
 			props.KeyID = pointer.To(keyId.ID())
 		} else {
 			return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)

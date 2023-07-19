@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package serviceconnector_test
 
 import (
@@ -152,6 +155,7 @@ resource "azurerm_linux_web_app" "test" {
     ignore_changes = [
       app_settings["AZURE_STORAGEBLOB_RESOURCEENDPOINT"],
       identity,
+      sticky_settings,
     ]
   }
 }
@@ -294,6 +298,7 @@ resource "azurerm_linux_web_app" "test" {
     ignore_changes = [
       app_settings["AZURE_STORAGEBLOB_RESOURCEENDPOINT"],
       identity,
+      sticky_settings,
     ]
   }
 }
@@ -397,6 +402,12 @@ resource "azurerm_subnet" "test1" {
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      service_endpoints,
+    ]
+  }
 }
 
 resource "azurerm_linux_web_app" "test" {
@@ -407,6 +418,14 @@ resource "azurerm_linux_web_app" "test" {
   virtual_network_subnet_id = azurerm_subnet.test1.id
 
   site_config {}
+
+  lifecycle {
+    ignore_changes = [
+      app_settings,
+      identity,
+      sticky_settings,
+    ]
+  }
 }
 
 resource "azurerm_app_service_connection" "test" {
@@ -414,7 +433,7 @@ resource "azurerm_app_service_connection" "test" {
   app_service_id     = azurerm_linux_web_app.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   client_type        = "java"
-  vnet_solution      = "privateLink"
+  vnet_solution      = "serviceEndpoint"
   authentication {
     type = "systemAssignedIdentity"
   }
@@ -486,6 +505,7 @@ resource "azurerm_linux_web_app" "test" {
     ignore_changes = [
       app_settings,
       identity,
+      sticky_settings,
     ]
   }
 }

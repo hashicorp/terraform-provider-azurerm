@@ -1,6 +1,10 @@
 package datastore
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForCredentialsType() []string {
 		string(CredentialsTypeSas),
 		string(CredentialsTypeServicePrincipal),
 	}
+}
+
+func (s *CredentialsType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCredentialsType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCredentialsType(input string) (*CredentialsType, error) {
@@ -60,6 +77,19 @@ func PossibleValuesForDatastoreType() []string {
 	}
 }
 
+func (s *DatastoreType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDatastoreType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDatastoreType(input string) (*DatastoreType, error) {
 	vals := map[string]DatastoreType{
 		"azureblob":         DatastoreTypeAzureBlob,
@@ -94,6 +124,19 @@ func PossibleValuesForSecretsType() []string {
 	}
 }
 
+func (s *SecretsType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSecretsType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSecretsType(input string) (*SecretsType, error) {
 	vals := map[string]SecretsType{
 		"accountkey":       SecretsTypeAccountKey,
@@ -124,6 +167,19 @@ func PossibleValuesForServiceDataAccessAuthIdentity() []string {
 		string(ServiceDataAccessAuthIdentityWorkspaceSystemAssignedIdentity),
 		string(ServiceDataAccessAuthIdentityWorkspaceUserAssignedIdentity),
 	}
+}
+
+func (s *ServiceDataAccessAuthIdentity) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseServiceDataAccessAuthIdentity(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseServiceDataAccessAuthIdentity(input string) (*ServiceDataAccessAuthIdentity, error) {

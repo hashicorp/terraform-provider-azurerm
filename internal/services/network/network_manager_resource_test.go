@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -33,6 +36,7 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerNetworkGroup_complete,
 			"update":         testAccNetworkManagerNetworkGroup_update,
 			"requiresImport": testAccNetworkManagerNetworkGroup_requiresImport,
+			"dataSource":     testAccNetworkManagerNetworkGroupDataSource_complete,
 		},
 		"SubscriptionConnection": {
 			"basic":          testAccNetworkSubscriptionNetworkManagerConnection_basic,

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package resourceproviders
 
 // Required returns core Resource Providers used by the AzureRM Provider

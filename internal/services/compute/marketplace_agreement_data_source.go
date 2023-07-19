@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -6,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2021-01-01/agreements"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -59,14 +62,16 @@ func dataSourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := agreements.NewOfferPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
+	// The Resource ID for this is the Plan ID, however we have to retrieve information about the signed plan
+	id := agreements.NewPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
 
 	log.Printf("[DEBUG] retrieving %s", id)
 
-	term, err := client.MarketplaceAgreementsGet(ctx, id)
+	getId := agreements.NewOfferPlanID(id.SubscriptionId, id.PublisherId, id.OfferId, id.PlanId)
+	term, err := client.MarketplaceAgreementsGet(ctx, getId)
 	if err != nil {
-		if !response.WasNotFound(term.HttpResponse) {
-			return fmt.Errorf("%s was not found", id)
+		if response.WasNotFound(term.HttpResponse) {
+			return fmt.Errorf("%s was not found", getId)
 		}
 
 		return fmt.Errorf("retrieving %s: %s", id, err)

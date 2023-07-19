@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning
 
 import (
@@ -9,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -20,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -145,7 +148,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"node_public_ip_enabled": {
@@ -225,7 +228,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	if err != nil {
 		return fmt.Errorf("creating Machine Learning Compute (%q): %+v", id, err)
 	}
-	if err := future.Poller.PollUntilDone(); err != nil {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of Machine Learning Compute (%q): %+v", id, err)
 	}
 
@@ -311,7 +314,7 @@ func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("deleting Machine Learning Compute (%q): %+v", id, err)
 	}
 
-	if err := future.Poller.PollUntilDone(); err != nil {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for deletion of the Machine Learning Compute (%q): %+v", id, err)
 	}
 	return nil
