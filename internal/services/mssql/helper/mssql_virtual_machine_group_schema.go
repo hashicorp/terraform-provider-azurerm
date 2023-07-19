@@ -12,7 +12,6 @@ type WsfcDomainProfile struct {
 	ClusterBootstrapAccountName string `tfschema:"cluster_bootstrap_account_name"`
 	ClusterOperatorAccountName  string `tfschema:"cluster_operator_account_name"`
 	SqlServiceAccountName       string `tfschema:"sql_service_account_name"`
-	FileShareWitnessPath        string `tfschema:"file_share_witness_path"`
 	StorageAccountUrl           string `tfschema:"storage_account_url"`
 	StorageAccountPrimaryKey    string `tfschema:"storage_account_primary_key"`
 	ClusterSubnetType           string `tfschema:"cluster_subnet_type"`
@@ -25,6 +24,16 @@ func WsfcDomainProfileSchemaMsSqlVirtualMachineAvailabilityGroup() *pluginsdk.Sc
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"cluster_subnet_type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(sqlvirtualmachinegroups.ClusterSubnetTypeMultiSubnet),
+						string(sqlvirtualmachinegroups.ClusterSubnetTypeSingleSubnet),
+					}, false),
+				},
+
 				"fqdn": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
@@ -60,13 +69,6 @@ func WsfcDomainProfileSchemaMsSqlVirtualMachineAvailabilityGroup() *pluginsdk.Sc
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"file_share_witness_path": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
 				"storage_account_url": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -79,15 +81,6 @@ func WsfcDomainProfileSchemaMsSqlVirtualMachineAvailabilityGroup() *pluginsdk.Sc
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"cluster_subnet_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(sqlvirtualmachinegroups.ClusterSubnetTypeMultiSubnet),
-						string(sqlvirtualmachinegroups.ClusterSubnetTypeSingleSubnet),
-					}, false),
 				},
 			},
 		},

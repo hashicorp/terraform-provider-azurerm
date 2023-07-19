@@ -16,7 +16,7 @@ import (
 
 type MsSqlVirtualMachineGroupResource struct{}
 
-func TestAccMsSqlVirtualMachineGroupResource_basic(t *testing.T) {
+func TestAccMsSqlVirtualMachineGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine_group", "test")
 	r := MsSqlVirtualMachineGroupResource{}
 
@@ -27,6 +27,7 @@ func TestAccMsSqlVirtualMachineGroupResource_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -44,13 +45,72 @@ func TestAccMsSqlVirtualMachineGroup_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlVirtualMachineGroupResource_complete(t *testing.T) {
+func TestAccMsSqlVirtualMachineGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine_group", "test")
 	r := MsSqlVirtualMachineGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("wsfc_domain_profile.0.storage_account_primary_key"),
+	})
+}
+
+func TestAccMsSqlVirtualMachineGroup_wsfcDomainProfileBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine_group", "test")
+	r := MsSqlVirtualMachineGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.wsfcDomainProfileBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlVirtualMachineGroup_wsfcDomainProfileStorageAccountPrimaryKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine_group", "test")
+	r := MsSqlVirtualMachineGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.wsfcDomainProfileStorageAccountPrimaryKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("wsfc_domain_profile.0.storage_account_primary_key"),
+		{
+			Config: r.wsfcDomainProfileStorageAccountPrimaryKeyUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("wsfc_domain_profile.0.storage_account_primary_key"),
+	})
+}
+
+func TestAccMsSqlVirtualMachineGroup_tags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine_group", "test")
+	r := MsSqlVirtualMachineGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.tagsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -75,7 +135,7 @@ func (MsSqlVirtualMachineGroupResource) Exists(ctx context.Context, client *clie
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r MsSqlVirtualMachineGroupResource) basic(data acceptance.TestData) string {
+func (MsSqlVirtualMachineGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%[1]d"
@@ -95,10 +155,6 @@ resource "azurerm_mssql_virtual_machine_group" "test" {
     cluster_subnet_type = "SingleSubnet"
   }
 }
-
-
-
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
@@ -121,7 +177,7 @@ resource "azurerm_mssql_virtual_machine_group" "import" {
 `, r.basic(data))
 }
 
-func (r MsSqlVirtualMachineGroupResource) complete(data acceptance.TestData) string {
+func (MsSqlVirtualMachineGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -141,19 +197,20 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_mssql_virtual_machine_group" "test" {
-  name                = "acctestag%[4]s"
+  name                = "acctestag%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sql_image_offer     = "SQL2017-WS2016"
   sql_image_sku       = "Developer"
 
-
   wsfc_domain_profile {
     fqdn                           = "testdomain.com"
-    cluster_bootstrap_account_name = "bootstrapacc%[5]s"
-    cluster_operator_account_name  = "opacc%[5]s"
-    sql_service_account_name       = "sqlsrvacc%[5]s"
+    ou_path                        = "OU=test,DC=testdomain,DC=com"
+    cluster_bootstrap_account_name = "bootstrapacc%[3]s"
+    cluster_operator_account_name  = "opacc%[3]s"
+    sql_service_account_name       = "sqlsrvacc%[3]s"
     storage_account_url            = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_primary_key    = azurerm_storage_account.test.primary_access_key
     cluster_subnet_type            = "SingleSubnet"
   }
 
@@ -161,5 +218,157 @@ resource "azurerm_mssql_virtual_machine_group" "test" {
     test = "testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (MsSqlVirtualMachineGroupResource) wsfcDomainProfileBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_virtual_machine_group" "test" {
+  name                = "acctestag%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sql_image_offer     = "SQL2017-WS2016"
+  sql_image_sku       = "Developer"
+
+  wsfc_domain_profile {
+    fqdn                = "testdomain.com"
+    cluster_subnet_type = "SingleSubnet"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (MsSqlVirtualMachineGroupResource) wsfcDomainProfileStorageAccountPrimaryKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_virtual_machine_group" "test" {
+  name                = "acctestag%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sql_image_offer     = "SQL2017-WS2016"
+  sql_image_sku       = "Developer"
+
+  wsfc_domain_profile {
+    fqdn                        = "testdomain.com"
+    storage_account_url         = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_primary_key = azurerm_storage_account.test.primary_access_key
+    cluster_subnet_type         = "SingleSubnet"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (MsSqlVirtualMachineGroupResource) wsfcDomainProfileStorageAccountPrimaryKeyUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_virtual_machine_group" "test" {
+  name                = "acctestag%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sql_image_offer     = "SQL2017-WS2016"
+  sql_image_sku       = "Developer"
+
+  wsfc_domain_profile {
+    fqdn                        = "testdomain.com"
+    storage_account_url         = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_primary_key = azurerm_storage_account.test.secondary_access_key
+    cluster_subnet_type         = "SingleSubnet"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (MsSqlVirtualMachineGroupResource) tags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_virtual_machine_group" "test" {
+  name                = "acctestag%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sql_image_offer = "SQL2017-WS2016"
+  sql_image_sku   = "Developer"
+
+  wsfc_domain_profile {
+    fqdn                = "testdomain.com"
+    cluster_subnet_type = "SingleSubnet"
+  }
+
+  tags = {
+    test = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (MsSqlVirtualMachineGroupResource) tagsUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_virtual_machine_group" "test" {
+  name                = "acctestag%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sql_image_offer = "SQL2017-WS2016"
+  sql_image_sku   = "Developer"
+
+  wsfc_domain_profile {
+    fqdn                = "testdomain.com"
+    cluster_subnet_type = "SingleSubnet"
+  }
+
+  tags = {
+    test = "testing2"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/availabilitygrouplisteners"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -61,22 +63,18 @@ func (r MsSqlVirtualMachineGroupResource) Arguments() map[string]*pluginsdk.Sche
 		"location": commonschema.Location(),
 
 		"sql_image_offer": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"SQL2016-WS2016",
-				"SQL2017-WS2016",
-				"SQL2019-WS2019",
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.SqlImageOfferName,
 		},
 
 		"sql_image_sku": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(sqlvirtualmachinegroups.SqlVmGroupImageSkuDeveloper),
-				string(sqlvirtualmachinegroups.SqlVmGroupImageSkuEnterprise),
+				string(sqlvirtualmachinegroups.SqlVMGroupImageSkuDeveloper),
+				string(sqlvirtualmachinegroups.SqlVMGroupImageSkuEnterprise),
 			}, false),
 		},
 
@@ -114,20 +112,16 @@ func (r MsSqlVirtualMachineGroupResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			sqlVmGroupImageSku := sqlvirtualmachinegroups.SqlVmGroupImageSku(model.SqlImageSku)
-
 			parameters := sqlvirtualmachinegroups.SqlVirtualMachineGroup{
 				Properties: &sqlvirtualmachinegroups.SqlVirtualMachineGroupProperties{
 					SqlImageOffer:     utils.String(model.SqlImageOffer),
-					SqlImageSku:       &sqlVmGroupImageSku,
+					SqlImageSku:       pointer.To(sqlvirtualmachinegroups.SqlVMGroupImageSku(model.SqlImageSku)),
 					WsfcDomainProfile: expandMsSqlVirtualMachineGroupWsfcDomainProfile(model.WsfcDomainProfile),
 				},
 
 				Location: azure.NormalizeLocation(model.Location),
 				Tags:     &model.Tags,
 			}
-
-			parameters.Properties.WsfcDomainProfile.FileShareWitnessPath = utils.String("")
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -179,7 +173,15 @@ func (r MsSqlVirtualMachineGroupResource) Read() sdk.ResourceFunc {
 					}
 					state.SqlImageSku = sqlImageSku
 
-					state.WsfcDomainProfile = flattenMsSqlVirtualMachineGroupWsfcDomainProfile(props.WsfcDomainProfile)
+					var oldModel MsSqlVirtualMachineGroupModel
+					if err = metadata.Decode(&oldModel); err != nil {
+						return err
+					}
+					storageAccountPrimaryKey := ""
+					if oldModel.WsfcDomainProfile != nil && len(oldModel.WsfcDomainProfile) != 0 {
+						storageAccountPrimaryKey = oldModel.WsfcDomainProfile[0].StorageAccountPrimaryKey
+					}
+					state.WsfcDomainProfile = flattenMsSqlVirtualMachineGroupWsfcDomainProfile(props.WsfcDomainProfile, storageAccountPrimaryKey)
 
 				}
 				state.Location = azure.NormalizeLocation(model.Location)
@@ -207,22 +209,15 @@ func (r MsSqlVirtualMachineGroupResource) Update() sdk.ResourceFunc {
 
 			id := sqlvirtualmachinegroups.NewSqlVirtualMachineGroupID(subscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id)
+			_, err := client.Get(ctx, id)
 			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for present of existing %s: %+v", id, err)
-				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			sqlVmGroupImageSku := sqlvirtualmachinegroups.SqlVmGroupImageSku(model.SqlImageSku)
 
 			parameters := sqlvirtualmachinegroups.SqlVirtualMachineGroup{
 				Properties: &sqlvirtualmachinegroups.SqlVirtualMachineGroupProperties{
 					SqlImageOffer:     utils.String(model.SqlImageOffer),
-					SqlImageSku:       &sqlVmGroupImageSku,
+					SqlImageSku:       pointer.To(sqlvirtualmachinegroups.SqlVMGroupImageSku(model.SqlImageSku)),
 					WsfcDomainProfile: expandMsSqlVirtualMachineGroupWsfcDomainProfile(model.WsfcDomainProfile),
 				},
 
@@ -264,77 +259,34 @@ func expandMsSqlVirtualMachineGroupWsfcDomainProfile(wsfcDomainProfile []helper.
 	}
 
 	result := sqlvirtualmachinegroups.WsfcDomainProfile{
-		DomainFqdn:               &wsfcDomainProfile[0].Fqdn,
-		OuPath:                   &wsfcDomainProfile[0].OuPath,
-		ClusterBootstrapAccount:  &wsfcDomainProfile[0].ClusterBootstrapAccountName,
-		ClusterOperatorAccount:   &wsfcDomainProfile[0].ClusterOperatorAccountName,
-		SqlServiceAccount:        &wsfcDomainProfile[0].SqlServiceAccountName,
-		FileShareWitnessPath:     &wsfcDomainProfile[0].FileShareWitnessPath,
-		StorageAccountUrl:        &wsfcDomainProfile[0].StorageAccountUrl,
-		StorageAccountPrimaryKey: &wsfcDomainProfile[0].StorageAccountPrimaryKey,
+		ClusterSubnetType:        pointer.To(sqlvirtualmachinegroups.ClusterSubnetType(wsfcDomainProfile[0].ClusterSubnetType)),
+		DomainFqdn:               pointer.To(wsfcDomainProfile[0].Fqdn),
+		OuPath:                   pointer.To(wsfcDomainProfile[0].OuPath),
+		ClusterBootstrapAccount:  pointer.To(wsfcDomainProfile[0].ClusterBootstrapAccountName),
+		ClusterOperatorAccount:   pointer.To(wsfcDomainProfile[0].ClusterOperatorAccountName),
+		SqlServiceAccount:        pointer.To(wsfcDomainProfile[0].SqlServiceAccountName),
+		StorageAccountUrl:        pointer.To(wsfcDomainProfile[0].StorageAccountUrl),
+		StorageAccountPrimaryKey: pointer.To(wsfcDomainProfile[0].StorageAccountPrimaryKey),
 	}
-
-	clusterSubnetType := sqlvirtualmachinegroups.ClusterSubnetType(wsfcDomainProfile[0].ClusterSubnetType)
-	result.ClusterSubnetType = &clusterSubnetType
 
 	return &result
 }
 
-func flattenMsSqlVirtualMachineGroupWsfcDomainProfile(domainProfile *sqlvirtualmachinegroups.WsfcDomainProfile) []helper.WsfcDomainProfile {
+func flattenMsSqlVirtualMachineGroupWsfcDomainProfile(domainProfile *sqlvirtualmachinegroups.WsfcDomainProfile, storageAccountPrimaryKey string) []helper.WsfcDomainProfile {
 	if domainProfile == nil {
 		return []helper.WsfcDomainProfile{}
 	}
 
-	var fqdn string
-	if domainProfile.DomainFqdn != nil {
-		fqdn = *domainProfile.DomainFqdn
-	}
-
-	var clusterOperatorAccountName string
-	if domainProfile.ClusterOperatorAccount != nil {
-		clusterOperatorAccountName = *domainProfile.ClusterOperatorAccount
-	}
-
-	var clusterBootstrapAccountName string
-	if domainProfile.ClusterBootstrapAccount != nil {
-		clusterBootstrapAccountName = *domainProfile.ClusterBootstrapAccount
-	}
-
-	var ouPath string
-	if domainProfile.OuPath != nil {
-		ouPath = *domainProfile.OuPath
-	}
-
-	var sqlServiceAccountName string
-	if domainProfile.SqlServiceAccount != nil {
-		sqlServiceAccountName = *domainProfile.SqlServiceAccount
-	}
-
-	var fileShareWitnessPath string
-	if domainProfile.FileShareWitnessPath != nil {
-		fileShareWitnessPath = *domainProfile.FileShareWitnessPath
-	}
-
-	var storageAccountURL string
-	if domainProfile.StorageAccountUrl != nil {
-		storageAccountURL = *domainProfile.StorageAccountUrl
-	}
-
-	var clusterSubnetType string
-	if domainProfile.ClusterSubnetType != nil {
-		clusterSubnetType = string(*domainProfile.ClusterSubnetType)
-	}
-
 	return []helper.WsfcDomainProfile{
 		{
-			Fqdn:                        fqdn,
-			OuPath:                      ouPath,
-			ClusterBootstrapAccountName: clusterBootstrapAccountName,
-			ClusterOperatorAccountName:  clusterOperatorAccountName,
-			SqlServiceAccountName:       sqlServiceAccountName,
-			FileShareWitnessPath:        fileShareWitnessPath,
-			StorageAccountUrl:           storageAccountURL,
-			ClusterSubnetType:           clusterSubnetType,
+			Fqdn:                        pointer.From(domainProfile.DomainFqdn),
+			OuPath:                      pointer.From(domainProfile.OuPath),
+			ClusterBootstrapAccountName: pointer.From(domainProfile.ClusterBootstrapAccount),
+			ClusterOperatorAccountName:  pointer.From(domainProfile.ClusterOperatorAccount),
+			SqlServiceAccountName:       pointer.From(domainProfile.SqlServiceAccount),
+			StorageAccountUrl:           pointer.From(domainProfile.StorageAccountUrl),
+			ClusterSubnetType:           string(pointer.From(domainProfile.ClusterSubnetType)),
+			StorageAccountPrimaryKey:    storageAccountPrimaryKey,
 		},
 	}
 }

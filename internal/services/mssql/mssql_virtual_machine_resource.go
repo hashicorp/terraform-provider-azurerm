@@ -433,9 +433,10 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"sql_virtual_machine_group_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: sqlvirtualmachinegroups.ValidateSqlVirtualMachineGroupID,
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ValidateFunc:     sqlvirtualmachinegroups.ValidateSqlVirtualMachineGroupID,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"wsfc_domain_credentials": {
@@ -556,7 +557,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 			AssessmentSettings:               expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{})),
 			KeyVaultCredentialSettings:       expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
 			WsfcDomainCredentials:            expandSqlVirtualMachineWsfcDomainCredentials(d.Get("wsfc_domain_credentials").([]interface{})),
-			SqlVirtualMachineGroupResourceId: utils.String(sqlVmGroupId),
+			SqlVirtualMachineGroupResourceId: pointer.To(sqlVmGroupId),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachines.ServerConfigurationsManagementSettings{
 				AdditionalFeaturesServerConfigurations: &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{
 					IsRServicesEnabled: utils.Bool(d.Get("r_services_enabled").(bool)),
@@ -697,10 +698,6 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 
 			if err := d.Set("storage_configuration", flattenSqlVirtualMachineStorageConfigurationSettings(props.StorageConfigurationSettings, storageWorkloadType)); err != nil {
 				return fmt.Errorf("setting `storage_configuration`: %+v", err)
-			}
-
-			if err := d.Set("wsfc_domain_credentials", flattenSqlVirtualMachineWsfcDomainCredentials(props.WsfcDomainCredentials)); err != nil {
-				return fmt.Errorf("setting `wsfc_domain_credentials`: %+v", err)
 			}
 
 			sqlVirtualMachineGroupIdStr := ""
@@ -1448,37 +1445,8 @@ func expandSqlVirtualMachineWsfcDomainCredentials(input []interface{}) *sqlvirtu
 	wsfcDomainCredentials := input[0].(map[string]interface{})
 
 	return &sqlvirtualmachines.WsfcDomainCredentials{
-		ClusterBootstrapAccountPassword: utils.String(wsfcDomainCredentials["cluster_bootstrap_account_password"].(string)),
-		ClusterOperatorAccountPassword:  utils.String(wsfcDomainCredentials["cluster_operator_account_password"].(string)),
-		SqlServiceAccountPassword:       utils.String(wsfcDomainCredentials["sql_service_account_password"].(string)),
-	}
-}
-
-func flattenSqlVirtualMachineWsfcDomainCredentials(wsfcDomainCredentials *sqlvirtualmachines.WsfcDomainCredentials) []interface{} {
-	if wsfcDomainCredentials == nil {
-		return []interface{}{}
-	}
-
-	clusterBootstrapAccountPassword := ""
-	if wsfcDomainCredentials.ClusterBootstrapAccountPassword != nil {
-		clusterBootstrapAccountPassword = *wsfcDomainCredentials.ClusterBootstrapAccountPassword
-	}
-
-	clusterOperatorAccountPassword := ""
-	if wsfcDomainCredentials.ClusterOperatorAccountPassword != nil {
-		clusterOperatorAccountPassword = *wsfcDomainCredentials.ClusterOperatorAccountPassword
-	}
-
-	sqlServiceAccountPassword := ""
-	if wsfcDomainCredentials.SqlServiceAccountPassword != nil {
-		sqlServiceAccountPassword = *wsfcDomainCredentials.SqlServiceAccountPassword
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"cluster_bootstrap_account_password": clusterBootstrapAccountPassword,
-			"cluster_operator_account_password":  clusterOperatorAccountPassword,
-			"sql_service_account_password":       sqlServiceAccountPassword,
-		},
+		ClusterBootstrapAccountPassword: pointer.To(wsfcDomainCredentials["cluster_bootstrap_account_password"].(string)),
+		ClusterOperatorAccountPassword:  pointer.To(wsfcDomainCredentials["cluster_operator_account_password"].(string)),
+		SqlServiceAccountPassword:       pointer.To(wsfcDomainCredentials["sql_service_account_password"].(string)),
 	}
 }
