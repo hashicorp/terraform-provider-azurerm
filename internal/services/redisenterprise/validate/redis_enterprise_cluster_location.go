@@ -61,7 +61,6 @@ func friendlyValidRedisEnterpriseClusterLocations() []string {
 		"UK West",
 		"East US 2",
 		"East US 2 EUAP",
-		"West Central US",
 		"West Europe",
 		"West US",
 		"West US 2",
