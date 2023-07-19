@@ -831,10 +831,8 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 				}
 			}
 			output.RdbBackupEnabled = utils.String(strconv.FormatBool(rdbBackupEnabled))
-		} else {
-			if rdbBackupEnabled && !strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
-				return nil, fmt.Errorf("The `rdb_backup_enabled` property requires a `Premium` sku to be set")
-			}
+		} else if rdbBackupEnabled && !strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
+			return nil, fmt.Errorf("The `rdb_backup_enabled` property requires a `Premium` sku to be set")
 		}
 	}
 
