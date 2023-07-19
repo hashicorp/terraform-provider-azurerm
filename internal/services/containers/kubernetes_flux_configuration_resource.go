@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -126,7 +125,7 @@ func (r KubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.Schema
 			return
 		}
 
-		id, err := extensions.ParseScopedExtensionID(idRaw)
+		id, err := fluxconfiguration.ParseScopedFluxConfigurationID(idRaw)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("parsing %q: %+v", idRaw, err))
 			return

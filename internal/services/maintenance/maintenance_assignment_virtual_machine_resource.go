@@ -5,6 +5,7 @@ package maintenance
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"strings"
 	"time"
 
@@ -54,10 +55,11 @@ func resourceArmMaintenanceAssignmentVirtualMachine() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"maintenance_configuration_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: maintenanceconfigurations.ValidateMaintenanceConfigurationID,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateFunc:     maintenanceconfigurations.ValidateMaintenanceConfigurationID,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"virtual_machine_id": {
@@ -89,11 +91,9 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 	}
 	if !response.WasNotFound(resp.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine", id.ID())
@@ -156,7 +156,12 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 	d.Set("virtual_machine_id", vmId.ID())
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		loc := location.NormalizeNilable(model.Location)
+		// location isn't returned by the API
+		if loc == "" {
+			loc = d.Get("location").(string)
+		}
+		d.Set("location", loc)
 
 		if props := model.Properties; props != nil {
 			maintenanceConfigurationId := ""
@@ -183,7 +188,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineDelete(d *pluginsdk.ResourceD
 		return err
 	}
 
-	if _, err := client.DeleteParent(ctx, *id); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

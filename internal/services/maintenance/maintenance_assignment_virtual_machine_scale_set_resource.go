@@ -94,11 +94,9 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 	}
 	if !response.WasNotFound(resp.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine_scale_set", id.ID())

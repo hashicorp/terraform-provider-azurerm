@@ -88,14 +88,11 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 	}
 
 	id := configurationassignments.NewScopedConfigurationAssignmentID(dedicatedHostId.ID(), configurationId.MaintenanceConfigurationName)
-	resp, err := client.Get(ctx, id)
+	resp, err := client.GetParent(ctx, id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
-
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 	}
 	if !response.WasNotFound(resp.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_maintenance_assignment_dedicated_host", id.ID())
