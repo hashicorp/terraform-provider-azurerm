@@ -157,7 +157,12 @@ func resourceArmMaintenanceAssignmentDedicatedHostRead(d *pluginsdk.ResourceData
 	d.Set("dedicated_host_id", dedicatedHostId.ID())
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		loc := location.NormalizeNilable(model.Location)
+		// location isn't returned by the API
+		if loc == "" {
+			loc = d.Get("location").(string)
+		}
+		d.Set("location", loc)
 
 		if props := model.Properties; props != nil {
 			maintenanceConfigurationId := ""
