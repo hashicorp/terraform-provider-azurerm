@@ -1,13 +1,11 @@
 package schema
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Panorama struct {
-	Name      string `tfschema:"name,omitempty"`
-	B64Config string `tfschema:"base64_config"`
+	Name string `tfschema:"name,omitempty"`
 
 	// Computed
 	DeviceGroupName string `tfschema:"device_group_name"`
@@ -18,24 +16,12 @@ type Panorama struct {
 	VMAuthKey       string `tfschema:"virtual_machine_ssh_key"`
 }
 
-// PanoramaSchema TODO returns the schema for a Palo Alto Panorama Settings
 func PanoramaSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		ExactlyOneOf: []string{
-			"panorama",
-			"rule_stack_id",
-		},
-		RequiredWith: []string{"location"},
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"base64_config": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validate.Base64EncodedString,
-				},
 
 				// Computed - Parsed out from the b64 config string
 				"name": {

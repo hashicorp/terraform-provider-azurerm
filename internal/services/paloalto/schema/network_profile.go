@@ -168,8 +168,8 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfile {
 	result := firewalls.NetworkProfile{
 		EnableEgressNat: firewalls.EgressNatDISABLED,
-		EgressNatIP:     &[]firewalls.IPAddress{},
 	}
+
 	if len(input) == 0 {
 		return result
 	}

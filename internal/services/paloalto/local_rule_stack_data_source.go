@@ -39,7 +39,7 @@ func (l LocalRulestackDataSource) Arguments() map[string]*schema.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.LocalRulestackName,
+			ValidateFunc: validate.LocalRuleStackName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),

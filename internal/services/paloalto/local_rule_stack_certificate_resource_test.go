@@ -136,7 +136,7 @@ provider "azurerm" {
   features {}
 }
 
-%s 
+%[1]s
 
 resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
   name          = "testacc-palc-%[2]d"
@@ -150,7 +150,7 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
 func (r LocalRulestackCertificateResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
-%s 
+%[1]s
 
 resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
   name          = azurerm_palo_alto_local_rule_stack_certificate.test.name
@@ -167,7 +167,7 @@ provider "azurerm" {
   features {}
 }
 
-%s 
+%[1]s
 
 resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
   name          = "testacc-palc-%[2]d"
@@ -187,7 +187,7 @@ provider "azurerm" {
   features {}
 }
 
-%s 
+%[1]s
 
 resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
   name          = "testacc-palc-%[2]d"
@@ -207,17 +207,18 @@ provider "azurerm" {
   features {}
 }
 
-%s 
+%[1]s
 
 resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
   name          = "testacc-palc-%[2]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
-  
+
   certificate_signer_id = "https://example.com/not-a-real-url"
 
   audit_comment = "Acceptance test audit comment - %[2]d"
   description   = "Acceptance test Desc - %[2]d"
 }
+
 
 `, r.template(data), data.RandomInteger)
 }

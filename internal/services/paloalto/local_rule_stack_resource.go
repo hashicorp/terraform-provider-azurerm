@@ -17,46 +17,46 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LocalRulestack struct{}
+type LocalRuleStack struct{}
 
-var _ sdk.ResourceWithUpdate = LocalRulestack{}
+var _ sdk.ResourceWithUpdate = LocalRuleStack{}
 
 const (
-	RulestackSecurityServicesCustom       string = "Custom"
-	RulestackSecurityServicesNone         string = "None"
-	RulestackSecurityServicesBestPractice string = "BestPractice"
+	RuleStackSecurityServicesCustom       string = "Custom"
+	RuleStackSecurityServicesNone         string = "None"
+	RuleStackSecurityServicesBestPractice string = "BestPractice"
 )
 
-type LocalRulestackModel struct {
-	Name                           string `tfschema:"name"`
-	ResourceGroupName              string `tfschema:"resource_group_name"`
-	Location                       string `tfschema:"location"`
-	AntiSpywareProfile             string `tfschema:"anti_spyware_profile"`
-	AntiVirusProfile               string `tfschema:"anti_virus_profile"`
-	DNSSubscription                string `tfschema:"dns_subscription"`
-	FileBlockingProfile            string `tfschema:"file_blocking_profile"`
-	OutboundTrustedCertificateID   string `tfschema:"outbound_trusted_certificate_name"`
-	OutboundUntrustedCertificateID string `tfschema:"outbound_untrusted_certificate_name"`
-	URLFilteringProfile            string `tfschema:"url_filtering_profile"`
-	VulnerabilityProfile           string `tfschema:"vulnerability_profile"`
-	Description                    string `tfschema:"description"`
+type LocalRuleStackModel struct {
+	Name                             string `tfschema:"name"`
+	ResourceGroupName                string `tfschema:"resource_group_name"`
+	Location                         string `tfschema:"location"`
+	AntiSpywareProfile               string `tfschema:"anti_spyware_profile"`
+	AntiVirusProfile                 string `tfschema:"anti_virus_profile"`
+	DNSSubscription                  string `tfschema:"dns_subscription"`
+	FileBlockingProfile              string `tfschema:"file_blocking_profile"`
+	OutboundTrustedCertificateName   string `tfschema:"outbound_trusted_certificate_name"`
+	OutboundUntrustedCertificateName string `tfschema:"outbound_untrusted_certificate_name"`
+	URLFilteringProfile              string `tfschema:"url_filtering_profile"`
+	VulnerabilityProfile             string `tfschema:"vulnerability_profile"`
+	Description                      string `tfschema:"description"`
 }
 
-func (r LocalRulestack) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r LocalRuleStack) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return localrulestacks.ValidateLocalRulestackID
 }
 
-func (r LocalRulestack) ResourceType() string {
+func (r LocalRuleStack) ResourceType() string {
 	return "azurerm_palo_alto_local_rule_stack"
 }
 
-func (r LocalRulestack) Arguments() map[string]*pluginsdk.Schema {
+func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.LocalRulestackName,
+			ValidateFunc: validate.LocalRuleStackName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -66,79 +66,79 @@ func (r LocalRulestack) Arguments() map[string]*pluginsdk.Schema {
 		"vulnerability_profile": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RulestackSecurityServicesNone,
+			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
-				RulestackSecurityServicesCustom,
-				RulestackSecurityServicesNone,
-				RulestackSecurityServicesBestPractice,
+				RuleStackSecurityServicesCustom,
+				RuleStackSecurityServicesNone,
+				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
 
 		"anti_spyware_profile": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RulestackSecurityServicesNone,
+			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
-				RulestackSecurityServicesCustom,
-				RulestackSecurityServicesNone,
-				RulestackSecurityServicesBestPractice,
+				RuleStackSecurityServicesCustom,
+				RuleStackSecurityServicesNone,
+				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
 
 		"anti_virus_profile": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RulestackSecurityServicesNone,
+			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
-				RulestackSecurityServicesCustom,
-				RulestackSecurityServicesNone,
-				RulestackSecurityServicesBestPractice,
+				RuleStackSecurityServicesCustom,
+				RuleStackSecurityServicesNone,
+				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
 
 		"url_filtering_profile": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RulestackSecurityServicesNone,
+			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
-				RulestackSecurityServicesCustom,
-				RulestackSecurityServicesNone,
-				RulestackSecurityServicesBestPractice,
+				RuleStackSecurityServicesCustom,
+				RuleStackSecurityServicesNone,
+				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
 
 		"file_blocking_profile": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RulestackSecurityServicesNone,
+			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
-				RulestackSecurityServicesCustom,
-				RulestackSecurityServicesNone,
-				RulestackSecurityServicesBestPractice,
+				RuleStackSecurityServicesCustom,
+				RuleStackSecurityServicesNone,
+				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
 
 		"dns_subscription": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RulestackSecurityServicesNone,
+			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
-				RulestackSecurityServicesCustom,
-				RulestackSecurityServicesNone,
-				RulestackSecurityServicesBestPractice,
+				RuleStackSecurityServicesCustom,
+				RuleStackSecurityServicesNone,
+				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
 
 		"outbound_trusted_certificate_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.LocalRulestackCertificateName,
+			ValidateFunc: validate.LocalRuleStackCertificateName,
 		},
 
 		"outbound_untrusted_certificate_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.LocalRulestackCertificateName,
+			ValidateFunc: validate.LocalRuleStackCertificateName,
 		},
 
 		"description": {
@@ -148,21 +148,21 @@ func (r LocalRulestack) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LocalRulestack) Attributes() map[string]*pluginsdk.Schema {
+func (r LocalRuleStack) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRulestack) ModelObject() interface{} {
-	return &LocalRulestackModel{}
+func (r LocalRuleStack) ModelObject() interface{} {
+	return &LocalRuleStackModel{}
 }
 
-func (r LocalRulestack) Create() sdk.ResourceFunc {
+func (r LocalRuleStack) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulestacksClient
 
-			model := LocalRulestackModel{}
+			model := LocalRuleStackModel{}
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -180,25 +180,25 @@ func (r LocalRulestack) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			outboundTrustedCert := model.OutboundTrustedCertificateID
+			outboundTrustedCert := model.OutboundTrustedCertificateName
 			if outboundTrustedCert != "" {
-				certId, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(model.OutboundTrustedCertificateID)
+				certId, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(model.OutboundTrustedCertificateName)
 				if err != nil {
 					return fmt.Errorf("parsing `outbound_trusted_certificate_name` for %s: %+v", id, err)
 				}
 				outboundTrustedCert = certId.CertificateName
 			}
 
-			outboundUntrustedCert := model.OutboundUntrustedCertificateID
+			outboundUntrustedCert := model.OutboundUntrustedCertificateName
 			if outboundUntrustedCert != "" {
-				certId, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(model.OutboundUntrustedCertificateID)
+				certId, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(model.OutboundUntrustedCertificateName)
 				if err != nil {
 					return fmt.Errorf("parsing `outbound_untrusted_certificate_name` for %s: %+v", id, err)
 				}
 				outboundUntrustedCert = certId.CertificateName
 			}
 
-			localRulestack := localrulestacks.LocalRulestackResource{
+			localRuleStack := localrulestacks.LocalRulestackResource{
 				Location: model.Location,
 				Properties: localrulestacks.RulestackProperties{
 					DefaultMode: pointer.To(localrulestacks.DefaultModeNONE),
@@ -217,8 +217,12 @@ func (r LocalRulestack) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, localRulestack); err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, id, localRuleStack); err != nil {
 				return err
+			}
+
+			if _, err = client.Commit(ctx, id); err != nil {
+				return fmt.Errorf("committing config for %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -228,7 +232,7 @@ func (r LocalRulestack) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestack) Read() sdk.ResourceFunc {
+func (r LocalRuleStack) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -239,7 +243,7 @@ func (r LocalRulestack) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var state LocalRulestackModel
+			var state LocalRuleStackModel
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -257,12 +261,8 @@ func (r LocalRulestack) Read() sdk.ResourceFunc {
 			state.Location = location.Normalize(existing.Model.Location)
 
 			if secServices := props.SecurityServices; secServices != nil {
-				if cert := pointer.From(secServices.OutboundUnTrustCertificate); cert != "" {
-					state.OutboundUntrustedCertificateID = certificateobjectlocalrulestack.NewLocalRulestackCertificateID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName, cert).ID()
-				}
-				if cert := pointer.From(secServices.OutboundTrustCertificate); cert != "" {
-					state.OutboundTrustedCertificateID = certificateobjectlocalrulestack.NewLocalRulestackCertificateID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName, cert).ID()
-				}
+				state.OutboundUntrustedCertificateName = pointer.From(secServices.OutboundUnTrustCertificate)
+				state.OutboundTrustedCertificateName = pointer.From(secServices.OutboundTrustCertificate)
 				state.VulnerabilityProfile = pointer.From(secServices.VulnerabilityProfile)
 				state.AntiSpywareProfile = pointer.From(secServices.AntiSpywareProfile)
 				state.AntiVirusProfile = pointer.From(secServices.AntiVirusProfile)
@@ -276,7 +276,7 @@ func (r LocalRulestack) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestack) Delete() sdk.ResourceFunc {
+func (r LocalRuleStack) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -296,7 +296,7 @@ func (r LocalRulestack) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestack) Update() sdk.ResourceFunc {
+func (r LocalRuleStack) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -307,7 +307,7 @@ func (r LocalRulestack) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			model := LocalRulestackModel{}
+			model := LocalRuleStackModel{}
 
 			if err = metadata.Decode(&model); err != nil {
 				return err
@@ -321,20 +321,14 @@ func (r LocalRulestack) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			localRulestack := *existing.Model
-			props := localRulestack.Properties
-			update := localrulestacks.LocalRulestackResourceUpdateProperties{
-				DefaultMode: props.DefaultMode,
-				Description: props.Description,
-				PanLocation: props.PanLocation,
-				Scope:       props.Scope,
-			}
+			localRuleStack := *existing.Model
+			update := localRuleStack.Properties
 
 			if metadata.ResourceData.HasChange("description") {
 				update.Description = pointer.To(model.Description)
 			}
 
-			secServices := pointer.From(props.SecurityServices)
+			secServices := pointer.From(update.SecurityServices)
 
 			if metadata.ResourceData.HasChange("dns_subscription") {
 				secServices.DnsSubscription = pointer.To(model.DNSSubscription)
@@ -361,16 +355,18 @@ func (r LocalRulestack) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("outbound_trusted_certificate_name") {
-				secServices.OutboundTrustCertificate = pointer.To(model.OutboundTrustedCertificateID)
+				secServices.OutboundTrustCertificate = pointer.To(model.OutboundTrustedCertificateName)
 			}
 
 			if metadata.ResourceData.HasChange("outbound_untrusted_certificate_name") {
-				secServices.OutboundUnTrustCertificate = pointer.To(model.OutboundUntrustedCertificateID)
+				secServices.OutboundUnTrustCertificate = pointer.To(model.OutboundUntrustedCertificateName)
 			}
 
 			update.SecurityServices = pointer.To(secServices)
 
-			if _, err = client.Update(ctx, *id, localrulestacks.LocalRulestackResourceUpdate{Properties: &update}); err != nil {
+			localRuleStack.Properties = update
+
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, localRuleStack); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 

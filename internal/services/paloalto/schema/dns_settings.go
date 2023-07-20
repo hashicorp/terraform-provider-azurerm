@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,4 +44,48 @@ func DNSSettingsSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func ExpandDNSSettings(input []DNSSettings) firewalls.DNSSettings {
+	result := firewalls.DNSSettings{
+		EnableDnsProxy: pointer.To(firewalls.DNSProxyDISABLED),
+		EnabledDnsType: pointer.To(firewalls.EnabledDNSTypeCUSTOM),
+	}
+
+	if len(input) == 1 {
+		result.EnableDnsProxy = pointer.To(firewalls.DNSProxyENABLED)
+		dns := input[0]
+		if len(dns.DnsServers) > 0 {
+			dnsServers := make([]firewalls.IPAddress, 0)
+			for _, v := range dns.DnsServers {
+				dnsServers = append(dnsServers, firewalls.IPAddress{
+					Address: pointer.To(v),
+				})
+			}
+			result.DnsServers = pointer.To(dnsServers)
+		}
+
+		if dns.AzureDNS {
+			result.EnabledDnsType = pointer.To(firewalls.EnabledDNSTypeAZURE)
+		}
+	}
+
+	return result
+}
+
+func FlattenDNSSettings(input firewalls.DNSSettings) []DNSSettings {
+	result := DNSSettings{}
+	if pointer.From(input.EnableDnsProxy) == firewalls.DNSProxyDISABLED {
+		return []DNSSettings{}
+	}
+
+	dnsServers := make([]string, 0)
+	for _, v := range pointer.From(input.DnsServers) {
+		dnsServers = append(dnsServers, pointer.From(v.Address))
+	}
+	result.DnsServers = dnsServers
+
+	result.AzureDNS = pointer.From(input.EnabledDnsType) == firewalls.EnabledDNSTypeAZURE
+
+	return []DNSSettings{result}
 }

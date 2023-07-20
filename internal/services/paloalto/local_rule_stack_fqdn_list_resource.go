@@ -45,7 +45,7 @@ func (r LocalRulestackFQDNList) Arguments() map[string]*schema.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.LocalRulestackFQDNListName, // TODO - Check this
+			ValidateFunc: validate.LocalRuleStackFQDNListName, // TODO - Check this
 		},
 
 		"rule_stack_id": {

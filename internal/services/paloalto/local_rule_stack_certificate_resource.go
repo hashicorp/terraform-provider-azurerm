@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type LocalRulestackCertificate struct{}
+type LocalRuleStackCertificate struct{}
 
-var _ sdk.ResourceWithUpdate = LocalRulestackCertificate{}
+var _ sdk.ResourceWithUpdate = LocalRuleStackCertificate{}
 
-type LocalRulestackCertificateModel struct {
+type LocalRuleStackCertificateModel struct {
 	Name                string `tfschema:"name"`
 	RuleStackID         string `tfschema:"rule_stack_id"`
 	AuditComment        string `tfschema:"audit_comment"`
@@ -29,20 +29,20 @@ type LocalRulestackCertificateModel struct {
 	SelfSigned          bool   `tfschema:"self_signed"`
 }
 
-func (r LocalRulestackCertificate) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r LocalRuleStackCertificate) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return certificateobjectlocalrulestack.ValidateLocalRulestackCertificateID
 }
 
-func (r LocalRulestackCertificate) ResourceType() string {
+func (r LocalRuleStackCertificate) ResourceType() string {
 	return "azurerm_palo_alto_local_rule_stack_certificate"
 }
 
-func (r LocalRulestackCertificate) Arguments() map[string]*schema.Schema {
+func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.LocalRulestackCertificateName,
+			ValidateFunc: validate.LocalRuleStackCertificateName,
 		},
 
 		"rule_stack_id": {
@@ -80,22 +80,22 @@ func (r LocalRulestackCertificate) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (r LocalRulestackCertificate) Attributes() map[string]*schema.Schema {
+func (r LocalRuleStackCertificate) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRulestackCertificate) ModelObject() interface{} {
-	return &LocalRulestackCertificateModel{}
+func (r LocalRuleStackCertificate) ModelObject() interface{} {
+	return &LocalRuleStackCertificateModel{}
 }
 
-func (r LocalRulestackCertificate) Create() sdk.ResourceFunc {
+func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.CertificatesClient
 			rulstackClient := metadata.Client.PaloAlto.LocalRulestacksClient
 
-			model := LocalRulestackCertificateModel{}
+			model := LocalRuleStackCertificateModel{}
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
@@ -143,7 +143,7 @@ func (r LocalRulestackCertificate) Create() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if _, err = rulstackClient.Commit(ctx, *ruleStackId); err != nil {
-				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
+				return fmt.Errorf("committing Local RuleStack config for %s: %+v", id, err)
 			}
 
 			return nil
@@ -151,7 +151,7 @@ func (r LocalRulestackCertificate) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestackCertificate) Read() sdk.ResourceFunc {
+func (r LocalRuleStackCertificate) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -162,7 +162,7 @@ func (r LocalRulestackCertificate) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var state LocalRulestackCertificateModel
+			var state LocalRuleStackCertificateModel
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -187,7 +187,7 @@ func (r LocalRulestackCertificate) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestackCertificate) Delete() sdk.ResourceFunc {
+func (r LocalRuleStackCertificate) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -207,13 +207,13 @@ func (r LocalRulestackCertificate) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestackCertificate) Update() sdk.ResourceFunc {
+func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.CertificatesClient
 
-			model := LocalRulestackCertificateModel{}
+			model := LocalRuleStackCertificateModel{}
 
 			if err := metadata.Decode(&model); err != nil {
 				return err

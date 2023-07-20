@@ -155,13 +155,15 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   applications = ["any"]
 
   destination {
-	countries = ["US", "GB"]
+    countries = ["US", "GB"]
   }
 
   source {
-	countries = ["US", "GB"]
+    countries = ["US", "GB"]
   }
 }
+
+
 
 
 `, r.template(data), data.RandomInteger)
@@ -187,20 +189,20 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
   priority      = 100
 
-  action = "DenySilent"
-  applications = ["any"]
+  action        = "DenySilent"
+  applications  = ["any"]
   audit_comment = "test audit comment"
 
   //category {
-  //  // feeds = ["foo", "bar"] // Needs feeds defined on the LocalRulestack?
+  //  // feeds = ["foo", "bar"] // Needs feeds defined on the LocalRuleStack?
   //  // custom_urls = ["https://microsoft.com"] // TODO - This is another resource type in PAN?
   //}
 
   decryption_rule_type = "SSLOutboundInspection" // TODO - Needs Certs to be available on the RuleStack
-  description = "Acceptance Test Rule - dated %[2]d"
+  description          = "Acceptance Test Rule - dated %[2]d"
 
   destination {
-	countries = ["US", "GB"]
+    countries = ["US", "GB"]
   }
 
   logging_enabled = false
@@ -208,21 +210,23 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   inspection_certificate_id = azurerm_palo_alto_local_rule_stack_certificate.test.id
 
   negate_destination = true
-  negate_source = true
-  
+  negate_source      = true
+
   protocol = "TCP:8080"
-  
+
   enabled = false
 
   source {
-	countries = ["US", "GB"]
+    countries = ["US", "GB"]
   }
 
   tags = {
     "acctest" = "true"
-    "foo" = "bar"
+    "foo"     = "bar"
   }
 }
+
+
 
 
 `, r.template(data), data.RandomInteger)

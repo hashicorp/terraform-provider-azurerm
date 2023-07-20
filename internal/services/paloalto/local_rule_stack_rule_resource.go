@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type LocalRulestackRule struct{}
+type LocalRuleStackRule struct{}
 
-var _ sdk.ResourceWithUpdate = LocalRulestackRule{}
+var _ sdk.ResourceWithUpdate = LocalRuleStackRule{}
 
 var protocolApplicationDefault = "application-default"
 
@@ -39,7 +39,7 @@ type LocalRuleModel struct {
 	Description             string                 `tfschema:"description"`
 	Destination             []schema.Destination   `tfschema:"destination"`
 	LoggingEnabled          bool                   `tfschema:"logging_enabled"`
-	InspectionCertificateID string                 `tfschema:"inspection_certificate_id"` // This is the name of a Certificate resource belonging to the SAME LocalRulestack as this rule
+	InspectionCertificateID string                 `tfschema:"inspection_certificate_id"` // This is the name of a Certificate resource belonging to the SAME LocalRuleStack as this rule
 	NegateDestination       bool                   `tfschema:"negate_destination"`
 	NegateSource            bool                   `tfschema:"negate_source"`
 	Protocol                string                 `tfschema:"protocol"`
@@ -52,20 +52,20 @@ type LocalRuleModel struct {
 	Etag string `tfschema:"etag"` // TODO - Expose this here?
 }
 
-func (r LocalRulestackRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r LocalRuleStackRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return localrules.ValidateLocalRuleID
 }
 
-func (r LocalRulestackRule) ResourceType() string {
+func (r LocalRuleStackRule) ResourceType() string {
 	return "azurerm_palo_alto_local_rule_stack_rule"
 }
 
-func (r LocalRulestackRule) Arguments() map[string]*pluginsdk.Schema {
+func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.LocalRulestackRuleName, // TODO - Check this
+			ValidateFunc: validate.LocalRuleStackRuleName, // TODO - Check this
 		},
 
 		"rule_stack_id": {
@@ -177,7 +177,7 @@ func (r LocalRulestackRule) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LocalRulestackRule) Attributes() map[string]*pluginsdk.Schema {
+func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"etag": {
 			Type:     pluginsdk.TypeString,
@@ -186,11 +186,11 @@ func (r LocalRulestackRule) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LocalRulestackRule) ModelObject() interface{} {
+func (r LocalRuleStackRule) ModelObject() interface{} {
 	return &LocalRuleModel{}
 }
 
-func (r LocalRulestackRule) Create() sdk.ResourceFunc {
+func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -284,7 +284,7 @@ func (r LocalRulestackRule) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestackRule) Read() sdk.ResourceFunc {
+func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -340,7 +340,7 @@ func (r LocalRulestackRule) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestackRule) Delete() sdk.ResourceFunc {
+func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -360,7 +360,7 @@ func (r LocalRulestackRule) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestackRule) Update() sdk.ResourceFunc {
+func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type LocalRulestackPrefixList struct{}
+type LocalRuleStackPrefixList struct{}
 
-var _ sdk.ResourceWithUpdate = LocalRulestackPrefixList{}
+var _ sdk.ResourceWithUpdate = LocalRuleStackPrefixList{}
 
-type LocalRulestackPrefixListModel struct {
+type LocalRuleStackPrefixListModel struct {
 	Name         string   `tfschema:"name"`
 	RuleStackID  string   `tfschema:"rule_stack_id"`
 	PrefixList   []string `tfschema:"prefix_list"`
@@ -28,24 +28,24 @@ type LocalRulestackPrefixListModel struct {
 	Description  string   `tfschema:"description"`
 }
 
-func (r LocalRulestackPrefixList) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r LocalRuleStackPrefixList) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return prefixlistlocalrulestack.ValidateLocalRulestackPrefixListID
 }
 
-func (r LocalRulestackPrefixList) ResourceType() string {
+func (r LocalRuleStackPrefixList) ResourceType() string {
 	return "azurerm_palo_alto_local_rule_stack_prefix_list"
 }
 
-func (r LocalRulestackPrefixList) ModelObject() interface{} {
-	return &LocalRulestackPrefixListModel{}
+func (r LocalRuleStackPrefixList) ModelObject() interface{} {
+	return &LocalRuleStackPrefixListModel{}
 }
 
-func (r LocalRulestackPrefixList) Arguments() map[string]*schema.Schema {
+func (r LocalRuleStackPrefixList) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.LocalRulestackRuleName, // TODO - Check this
+			ValidateFunc: validate.LocalRuleStackRuleName, // TODO - Check this
 		},
 
 		"rule_stack_id": {
@@ -77,17 +77,17 @@ func (r LocalRulestackPrefixList) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (r LocalRulestackPrefixList) Attributes() map[string]*schema.Schema {
+func (r LocalRuleStackPrefixList) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRulestackPrefixList) Create() sdk.ResourceFunc {
+func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PrefixListClient
 			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
-			model := LocalRulestackPrefixListModel{}
+			model := LocalRuleStackPrefixListModel{}
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -134,7 +134,7 @@ func (r LocalRulestackPrefixList) Create() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if _, err = rulestackClient.Commit(ctx, *ruleStackId); err != nil {
-				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
+				return fmt.Errorf("committing Local RuleStack config for %s: %+v", id, err)
 			}
 
 			return nil
@@ -142,7 +142,7 @@ func (r LocalRulestackPrefixList) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestackPrefixList) Read() sdk.ResourceFunc {
+func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -153,7 +153,7 @@ func (r LocalRulestackPrefixList) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var state LocalRulestackPrefixListModel
+			var state LocalRuleStackPrefixListModel
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -177,7 +177,7 @@ func (r LocalRulestackPrefixList) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestackPrefixList) Delete() sdk.ResourceFunc {
+func (r LocalRuleStackPrefixList) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -197,7 +197,7 @@ func (r LocalRulestackPrefixList) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalRulestackPrefixList) Update() sdk.ResourceFunc {
+func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -208,7 +208,7 @@ func (r LocalRulestackPrefixList) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			model := LocalRulestackPrefixListModel{}
+			model := LocalRuleStackPrefixListModel{}
 
 			if err = metadata.Decode(&model); err != nil {
 				return err

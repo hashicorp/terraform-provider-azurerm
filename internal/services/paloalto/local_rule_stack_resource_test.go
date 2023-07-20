@@ -82,6 +82,11 @@ func TestAccPaloAltoLocalRulestack_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.complete(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
@@ -134,7 +139,7 @@ provider "azurerm" {
 resource "azurerm_palo_alto_local_rule_stack_certificate" "trust" {
   name          = "testacc-palcT-%[2]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
-  
+
   certificate_signer_id = "https://example.com/acctest-trust-cert"
 
   audit_comment = "Acceptance test audit comment - %[2]d"
@@ -144,7 +149,7 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "trust" {
 resource "azurerm_palo_alto_local_rule_stack_certificate" "untrust" {
   name          = "testacc-palcU-%[2]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
-  
+
   certificate_signer_id = "https://example.com/acctest-untrust-cert"
 
   audit_comment = "Acceptance test audit comment - %[2]d"
@@ -166,6 +171,7 @@ resource "azurerm_palo_alto_local_rule_stack" "test" {
   description = "Acceptance Test Desc - %[2]d"
 }
 
+
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
@@ -180,7 +186,7 @@ provider "azurerm" {
 resource "azurerm_palo_alto_local_rule_stack_certificate" "trust" {
   name          = "testacc-palcT-%[2]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
-  
+
   certificate_signer_id = "https://example.com/acctest-trust-cert"
 
   audit_comment = "Acceptance test audit comment - %[2]d"
@@ -190,7 +196,7 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "trust" {
 resource "azurerm_palo_alto_local_rule_stack_certificate" "untrust" {
   name          = "testacc-palcU-%[2]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
-  
+
   certificate_signer_id = "https://example.com/acctest-untrust-cert"
 
   audit_comment = "Acceptance test audit comment - %[2]d"
@@ -214,6 +220,7 @@ resource "azurerm_palo_alto_local_rule_stack" "test" {
 
   description = "Acceptance Test Desc - %[2]d"
 }
+
 
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }

@@ -18,14 +18,16 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		LocalRulestack{},
-		LocalRulestackCertificate{},
+		LocalRuleStack{},
+		LocalRuleStackCertificate{},
 		LocalRulestackFQDNList{},
-		LocalRulestackPrefixList{},
-		LocalRulestackRule{},
+		LocalRuleStackPrefixList{},
+		LocalRuleStackRule{},
 		NetworkVirtualApplianceResource{},
-		NextGenerationFirewallVHubResource{},
-		NextGenerationFirewallVNetResource{},
+		NextGenerationFirewallVHubLocalRuleStackResource{},
+		NextGenerationFirewallVHubPanoramaResource{},
+		NextGenerationFirewallVNetLocalRulestackResource{},
+		NextGenerationFirewallVNetPanoramaResource{},
 	}
 }
 
