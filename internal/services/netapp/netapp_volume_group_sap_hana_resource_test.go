@@ -1781,5 +1781,5 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, data.RandomInteger, "westus")
+`, data.RandomInteger, "eastus")
 }
