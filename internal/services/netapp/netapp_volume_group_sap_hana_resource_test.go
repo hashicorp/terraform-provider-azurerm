@@ -340,7 +340,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -370,7 +370,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -400,7 +400,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -429,7 +429,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv3"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
@@ -458,7 +458,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv3"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
@@ -529,7 +529,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -563,7 +563,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -597,7 +597,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -630,7 +630,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
@@ -663,7 +663,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
@@ -738,7 +738,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -772,7 +772,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -806,7 +806,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -839,7 +839,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
@@ -872,7 +872,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
@@ -927,7 +927,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1200
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -957,7 +957,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -987,7 +987,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -1016,7 +1016,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
@@ -1045,7 +1045,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     storage_quota_in_gb        = 1200
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
@@ -1096,7 +1096,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_primary" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -1126,7 +1126,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_primary" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -1156,7 +1156,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_primary" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -1185,7 +1185,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_primary" {
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
@@ -1214,7 +1214,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_primary" {
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
@@ -1258,7 +1258,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -1295,7 +1295,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -1325,7 +1325,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
-    security_style               = "Unix"
+    security_style               = "unix"
     snapshot_directory_visible   = false
 
     export_policy_rule {
@@ -1361,7 +1361,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
@@ -1397,7 +1397,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
-    security_style             = "Unix"
+    security_style             = "unix"
     snapshot_directory_visible = false
 
     export_policy_rule {
