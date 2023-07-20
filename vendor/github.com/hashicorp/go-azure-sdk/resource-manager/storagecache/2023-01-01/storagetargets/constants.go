@@ -1,6 +1,10 @@
 package storagetargets
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -21,6 +25,19 @@ func PossibleValuesForOperationalStateType() []string {
 		string(OperationalStateTypeReady),
 		string(OperationalStateTypeSuspended),
 	}
+}
+
+func (s *OperationalStateType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperationalStateType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOperationalStateType(input string) (*OperationalStateType, error) {
@@ -61,6 +78,19 @@ func PossibleValuesForProvisioningStateType() []string {
 	}
 }
 
+func (s *ProvisioningStateType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningStateType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningStateType(input string) (*ProvisioningStateType, error) {
 	vals := map[string]ProvisioningStateType{
 		"cancelled": ProvisioningStateTypeCancelled,
@@ -95,6 +125,19 @@ func PossibleValuesForStorageTargetType() []string {
 		string(StorageTargetTypeNfsThree),
 		string(StorageTargetTypeUnknown),
 	}
+}
+
+func (s *StorageTargetType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageTargetType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStorageTargetType(input string) (*StorageTargetType, error) {
