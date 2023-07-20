@@ -349,7 +349,6 @@ func TestAccCdnFrontDoorRule_allowEmptyQueryString(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRule_allowForwardSlashUrlConditionMatchValue(t *testing.T) {
-	// NOTE: Regression test case for issue #19682
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
