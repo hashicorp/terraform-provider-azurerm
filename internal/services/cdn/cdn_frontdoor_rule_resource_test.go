@@ -1204,7 +1204,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 
   name                      = "accTestRule%d"
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
-  
+
   order = 0
 
   actions {
