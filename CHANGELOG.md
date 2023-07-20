@@ -6,7 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: bump `go-azure-sdk` to `v0.20230713.1092427` and switch `machinelearning`, `maintenance`, `mixedreality`, `mariadb` and `mobilenetwork` to new base layer [GH-22503]
+* dependencies: bump `go-azure-sdk` to `v0.20230720.1190320` and switch `machinelearning`, `mixedreality`, `mariadb`, `storagecache`, `storagepool`, `vmware`, `videoanalyzer`, `voiceServices` and `mobilenetwork` to new base layer [GH-22538]
 * dependencies: move `azurerm_bastion_host` and `azurerm_network_connection_monitor` over to `hashicorp/go-azure-sdk` [GH-22425]
 * dependencies: move `azurerm_network_watcher_flow_log` to `hashicorp/go-azure-sdk` [GH-22575]
 * dependencies: move `mysql` resources over to `hashicorp/go-azure-sdk` [GH-22528]
