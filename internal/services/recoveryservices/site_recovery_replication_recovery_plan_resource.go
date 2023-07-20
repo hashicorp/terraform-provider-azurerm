@@ -115,6 +115,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 			ValidateFunc: replicationfabrics.ValidateReplicationFabricID,
 		},
 
+		// lintignore:S013
 		"shutdown_recovery_group": {
 			Type:     pluginsdk.TypeList,
 			Required: features.FourPointOhBeta(),
@@ -139,6 +140,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 			},
 		},
 
+		// lintignore:S013
 		"failover_recovery_group": {
 			Type:     pluginsdk.TypeList,
 			Required: features.FourPointOhBeta(),
@@ -163,6 +165,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 			},
 		},
 
+		// lintignore:S013
 		"boot_recovery_group": {
 			Type:     pluginsdk.TypeList,
 			Required: features.FourPointOhBeta(),
