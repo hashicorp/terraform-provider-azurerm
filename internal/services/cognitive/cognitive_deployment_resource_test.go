@@ -109,7 +109,7 @@ resource "azurerm_cognitive_account" "test" {
   kind                = "%s"
   sku_name            = "S0"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, kind)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, kind)
 }
 
 func (r CognitiveDeploymentTestResource) basic(data acceptance.TestData) string {
