@@ -1031,6 +1031,12 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			updateDefaultIdentity = true
 		}
 
+		// adding 'DefaultIdentity' to avoid causing it to fallback
+		// to "FirstPartyIdentity" on update(s), issue #22466
+		if v, ok := d.GetOk("default_identity_type"); ok {
+			accountProps.DefaultIdentity = pointer.To(v.(string))
+		}
+
 		// we need the following in the accountProps even if they have not changed...
 		if v, ok := d.GetOk("analytical_storage"); ok {
 			accountProps.AnalyticalStorageConfiguration = expandCosmosDBAccountAnalyticalStorageConfiguration(v.([]interface{}))
@@ -1206,7 +1212,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			if identityChanged {
 				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q because the 'Identity' was changed to %q", configDefaultIdentity, expandedIdentity.Type)
 			} else {
-				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q", configDefaultIdentity)
+				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q because 'default_identity_type' was changed", configDefaultIdentity)
 			}
 
 			// PATCH instead of PUT...
@@ -1221,6 +1227,8 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			if err != nil {
 				return fmt.Errorf("updating 'default_identity_type' %q: %+v", id, err)
 			}
+		} else {
+			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'DefaultIdentity' [NO CHANGE]")
 		}
 	}
 
