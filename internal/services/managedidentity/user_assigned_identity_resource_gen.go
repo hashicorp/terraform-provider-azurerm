@@ -84,6 +84,7 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			id := commonids.NewUserAssignedIdentityID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.UserAssignedIdentitiesGet(ctx, id)

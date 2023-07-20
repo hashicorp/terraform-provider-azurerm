@@ -527,6 +527,7 @@ resource "azurerm_spring_cloud_service" "test" {
     service_runtime_subnet_id = azurerm_subnet.test2.id
     cidr_ranges               = ["10.4.0.0/16", "10.5.0.0/16", "10.3.0.1/16"]
     read_timeout_seconds      = 2
+    outbound_type             = "loadBalancer"
   }
 
   config_server_git_setting {

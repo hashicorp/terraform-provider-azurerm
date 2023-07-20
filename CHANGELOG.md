@@ -1,11 +1,35 @@
 ## 3.66.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_graph_account` [GH-22334]
+
 ENHANCEMENTS:
 
 * dependencies: bump `go-azure-sdk` to `v0.20230713.1092427` and switch `machinelearning`, `maintenance`, `mixedreality`, `mariadb` and `mobilenetwork` to new base layer [GH-22503]
 * dependencies: move `azurerm_bastion_host` and `azurerm_network_connection_monitor` over to `hashicorp/go-azure-sdk` [GH-22425]
+* dependencies: move `azurerm_network_watcher_flow_log` to `hashicorp/go-azure-sdk` [GH-22575]
+* dependencies: move `mysql` resources over to `hashicorp/go-azure-sdk` [GH-22528]
 * dependencies: move `storage_sync` resources over to `hashicorp/go-azure-sdk` [GH-21928]
 * dependencies: updating to API Version `2022-08-08` [GH-22440]
+* `postgres` - updating to API Version `2023-03-01-preview` [GH-22577]
+* `data.azurerm_route_table` - support for the `bgp_route_propagation_enabled` property [GH-21940]
+* `data.azurerm_servicebus_*` - add deprecation messages for `resource_group_name` and `namespace_name` [GH-22521]
+* `azurerm_logic_app_standard` - now exports the `auto_swap_slot_name` attribute [GH-22525]
+* `azurerm_postgresql_flexible_server` - support for `33554432` storage [GH-22574]
+* `azurerm_spring_cloud_service` - support for the `outbound_type` property [GH-22596]
+
+BUG FIXES:
+
+* provider: the Resource Providers `Microsoft.Kubernetes` and `Microsoft.KubernetesConfiguration` are no longer automatically registered [GH-22580]
+* Data source `azurerm_virtual_machine_scale_set` - fix an issue where `computer_name`, `latest_model_applied`, `power_state` and `virtual_machine_id` attributes were not correctly set [GH-22566]
+* `azurerm_app_service_public_certificate` - Poll for certificate during Read to get around eventual consistency [GH-22587]
+* `azurerm_application_gateway` - send `min_protocol_version` and correct `policy_type` when using `CustomV2` [GH-22535]
+* `azurerm_cognitive_deployment` - remove upper limit on validation for the `capacity` property in the `scale` block [GH-22502]
+* `azurerm_kubernetes_cluster` - `windows_profile.admin_password` will become Required in 4.0 [GH-22554]
+* `azurerm_maintenance_configuration` - set `package_names_mask_to_exclude` and `package_names_mask_to_exclude` properly in expand and flatten function [GH-22555]
+* `azurerm_redis_cache` - only set `rdb_backup_enabled` when using a premium SKU [GH-22309]
+* `azurerm_synapse_firewall_rule` - correct overly strict validation for the `name` property [GH-22571]
 
 ## 3.65.0 (July 13, 2023)
 

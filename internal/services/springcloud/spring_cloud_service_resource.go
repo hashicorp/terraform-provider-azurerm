@@ -181,6 +181,17 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 							ForceNew: true,
 						},
 
+						"outbound_type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  "loadBalancer",
+							ValidateFunc: validation.StringInSlice([]string{
+								"loadBalancer",
+								"userDefinedRouting",
+							}, false),
+						},
+
 						"read_timeout_seconds": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
@@ -858,6 +869,7 @@ func expandSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
 		ServiceRuntimeSubnetID: utils.String(v["service_runtime_subnet_id"].(string)),
 		AppSubnetID:            utils.String(v["app_subnet_id"].(string)),
 		ServiceCidr:            utils.String(strings.Join(*cidrRanges, ",")),
+		OutboundType:           utils.String(v["outbound_type"].(string)),
 	}
 	if readTimeoutInSeconds := v["read_timeout_seconds"].(int); readTimeoutInSeconds != 0 {
 		network.IngressConfig = &appplatform.IngressConfig{
@@ -1289,6 +1301,11 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 		}
 	}
 
+	outboundType := "loadBalancer"
+	if input.OutboundType != nil {
+		outboundType = *input.OutboundType
+	}
+
 	if serviceRuntimeSubnetID == "" && appSubnetID == "" && serviceRuntimeNetworkResourceGroup == "" && appNetworkResourceGroup == "" && len(cidrRanges) == 0 {
 		return []interface{}{}
 	}
@@ -1301,6 +1318,7 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 			"app_network_resource_group":             appNetworkResourceGroup,
 			"read_timeout_seconds":                   readTimeoutInSeconds,
 			"service_runtime_network_resource_group": serviceRuntimeNetworkResourceGroup,
+			"outbound_type":                          outboundType,
 		},
 	}
 }
