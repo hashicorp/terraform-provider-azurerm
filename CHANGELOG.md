@@ -24,7 +24,8 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * provider: the Resource Providers `Microsoft.Kubernetes` and `Microsoft.KubernetesConfiguration` are no longer automatically registered [GH-22580]
-* Data source `azurerm_virtual_machine_scale_set` - fix an issue where `computer_name`, `latest_model_applied`, `power_state` and `virtual_machine_id` attributes were not correctly set [GH-22566]
+* `data.automation_account_variables` - correctly populate missing variable attributes [GH-22611]
+* `data.azurerm_virtual_machine_scale_set` - fix an issue where `computer_name`, `latest_model_applied`, `power_state` and `virtual_machine_id` attributes were not correctly set [GH-22566]
 * `azurerm_app_service_public_certificate` - Poll for certificate during Read to get around eventual consistency [GH-22587]
 * `azurerm_application_gateway` - send `min_protocol_version` and correct `policy_type` when using `CustomV2` [GH-22535]
 * `azurerm_cognitive_deployment` - remove upper limit on validation for the `capacity` property in the `scale` block [GH-22502]
