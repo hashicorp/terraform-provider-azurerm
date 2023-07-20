@@ -29,6 +29,7 @@ BUG FIXES:
 * `azurerm_app_service_public_certificate` - Poll for certificate during Read to get around eventual consistency [GH-22587]
 * `azurerm_application_gateway` - send `min_protocol_version` and correct `policy_type` when using `CustomV2` [GH-22535]
 * `azurerm_cognitive_deployment` - remove upper limit on validation for the `capacity` property in the `scale` block [GH-22502]
+* `azurerm_cosmosdb_account` - fixed regression to `default_identity_type` being switched to `FirstPartyIdentity` on update [GH-22609]
 * `azurerm_kubernetes_cluster` - `windows_profile.admin_password` will become Required in 4.0 [GH-22554]
 * `azurerm_maintenance_configuration` - set `package_names_mask_to_exclude` and `package_names_mask_to_exclude` properly in expand and flatten function [GH-22555]
 * `azurerm_redis_cache` - only set `rdb_backup_enabled` when using a premium SKU [GH-22309]
