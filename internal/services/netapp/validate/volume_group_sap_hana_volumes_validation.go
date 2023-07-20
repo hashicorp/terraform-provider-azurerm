@@ -67,8 +67,8 @@ func PossibleValuesForProtocolTypeVolumeGroupSapHana() []string {
 type SecurityStyle string
 
 const (
-	SecurityStyleUnix SecurityStyle = "Unix"
-	SecurityStyleNtfs SecurityStyle = "Ntfs"
+	SecurityStyleUnix SecurityStyle = "unix"
+	SecurityStyleNtfs SecurityStyle = "ntfs"
 )
 
 func PossibleValuesForSecurityStyle() []string {
