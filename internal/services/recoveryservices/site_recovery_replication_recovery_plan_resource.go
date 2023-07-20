@@ -556,7 +556,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-// deprecated
+// TODO: deprecated, remove in v4.0
 func expandRecoveryGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans.RecoveryPlanGroup, error) {
 	output := make([]replicationrecoveryplans.RecoveryPlanGroup, 0)
 	if pass, err := validateRecoveryGroup(input); !pass {

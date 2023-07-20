@@ -248,19 +248,19 @@ The following arguments are supported:
 
 * `recovery_group` - (Optional) Three or more `recovery_group` block defined as below.
 
-**Note:** The `recovery_group` is deprecated in favor of `shutdown_recovery_group`, `failover_recovery_group` and `boot_recovery_group`. It will be removed in v4.0 of the Azure Provider.
+**Note:** The `recovery_group` block is deprecated in favor of `shutdown_recovery_group`, `failover_recovery_group` and `boot_recovery_group`. It will be removed in v4.0 of the Azure Provider.
 
-* `shutdown_recovery_group` - (Optional) One `shutdown_recovery_group` block defined as below.
+* `shutdown_recovery_group` - (Optional) One `shutdown_recovery_group` block as defined below.
 
 -> **NOTE:** `shutdown_recovery_group` will be required in the next major version of the AzureRM Provider.
 
-* `failover_recovery_group` - (Optional) One `failover_recovery_group` block defined as below.
+* `failover_recovery_group` - (Optional) One `failover_recovery_group` block as defined below.
 
 -> **NOTE:** `failover_recovery_group` will be required in the next major version of the AzureRM Provider.
 
-* `boot_recovery_group` - (Optional) One or more `boot_recovery_group` block defined as below.
+* `boot_recovery_group` - (Optional) One or more `boot_recovery_group` blocks as defined below.
 
--> **NOTE:** `boot_recovery_group` will be required in the next major version of the AzureRM Provider.
+-> **NOTE:** At least one `boot_recovery_group` block will be required in the next major version of the AzureRM Provider.
 
 * `azure_to_azure_settings` - (Optional) An `azure_to_azure_settings` block defined as block.
 
