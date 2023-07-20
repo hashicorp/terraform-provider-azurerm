@@ -117,7 +117,6 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"reservation_capacity_in_gb_per_day": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Computed: true,
 				ValidateFunc: validation.IntInSlice([]int{
 					int(workspaces.CapacityReservationLevelOneHundred),
 					int(workspaces.CapacityReservationLevelTwoHundred),
@@ -293,11 +292,10 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	propName := "reservation_capacity_in_gb_per_day"
-	// read from raw config as it's an optional + computed property, GetOk() will read value from state.
-	capacityReservationLevel := d.GetRawConfig().AsValueMap()[propName]
-	if !capacityReservationLevel.IsNull() {
+	capacityReservationLevel, ok := d.GetOk(propName)
+	if ok {
 		if strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) {
-			capacityReservationLevelValue := workspaces.CapacityReservationLevel(int64(d.Get(propName).(int)))
+			capacityReservationLevelValue := workspaces.CapacityReservationLevel(int64(capacityReservationLevel.(int)))
 			parameters.Properties.Sku.CapacityReservationLevel = &capacityReservationLevelValue
 		} else {
 			return fmt.Errorf("`%s` can only be used with the `CapacityReservation` SKU", propName)
