@@ -1431,7 +1431,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
 }
 
 
-`, template, data.RandomInteger, "eastus")
+`, template, data.RandomInteger, "westus")
 }
 
 func (r NetAppVolumeGroupSapHanaResource) templateForAvgCrossRegionReplication(data acceptance.TestData) string {
@@ -1595,7 +1595,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, template, data.RandomInteger, "eastus")
+`, template, data.RandomInteger, "westus")
 }
 
 func (NetAppVolumeGroupSapHanaResource) templatePPG(data acceptance.TestData) string {
