@@ -179,7 +179,7 @@ func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDBAccount_updateTagsWithUserAssingedDefaultIdentity(t *testing.T) {
+func TestAccCosmosDBAccount_updateTagsWithUserAssignedDefaultIdentity(t *testing.T) {
 	// Regression test case for issue #22466
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
