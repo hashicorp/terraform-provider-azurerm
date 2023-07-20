@@ -27,6 +27,7 @@ BUG FIXES:
 * `azurerm_application_gateway` - send `min_protocol_version` and correct `policy_type` when using `CustomV2` [GH-22535]
 * `azurerm_cognitive_deployment` - remove upper limit on validation for the `capacity` property in the `scale` block [GH-22502]
 * `azurerm_maintenance_configuration` - set `package_names_mask_to_exclude` and `package_names_mask_to_exclude` properly in expand and flatten function [GH-22555]
+* `azurerm_redis_cache` - only set `rdb_backup_enabled` when using a premium SKU [GH-22309]
 * `azurerm_synapse_firewall_rule` - correct overly strict validation for the `name` property [GH-22571]
 
 ## 3.65.0 (July 13, 2023)
