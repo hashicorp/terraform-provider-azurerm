@@ -39,15 +39,15 @@ In addition to the argument listed above, the following attributes are exported:
 
 - `bool` - One or more `variable` blocks as defined below for each boolean variable.
 
-- `datetime` - One or more `variable` blocks as defined below for each boolean variable.
+- `datetime` - One or more `variable` blocks as defined below for each datetime variable.
 
-- `encrypted` - One or more `variable` blocks as defined below for each boolean variable.
+- `encrypted` - One or more `variable` blocks as defined below for each encrypted variable.
 
-- `int` - One or more `variable` blocks as defined below for each boolean variable.
+- `int` - One or more `variable` blocks as defined below for each int variable.
 
-- `null` - One or more `variable` blocks as defined below for each boolean variable.
+- `null` - One or more `variable` blocks as defined below for each null variable.
 
-- `string` - One or more `variable` blocks as defined below for each boolean variable.
+- `string` - One or more `variable` blocks as defined below for each string variable.
 
 ---
 
@@ -60,6 +60,8 @@ A `variable` block exports the following attributes:
 - `encrypted` - Specifies if the Automation Variable is encrypted.
 
 - `value` - The value of the Automation Variable.
+
+~> **NOTE:** There is no `value` property returned for `encrypted` or `null` variable types.
 
 ## Timeouts
 
