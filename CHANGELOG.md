@@ -33,6 +33,7 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster` - `windows_profile.admin_password` will become Required in 4.0 [GH-22554]
 * `azurerm_maintenance_configuration` - set `package_names_mask_to_exclude` and `package_names_mask_to_exclude` properly in expand and flatten function [GH-22555]
 * `azurerm_redis_cache` - only set `rdb_backup_enabled` when using a premium SKU [GH-22309]
+* `azurerm_site_recovery_replication_recovery_plan` - fix an issue where the order of boot recovery groups was not correctly maintained [GH-22348]
 * `azurerm_synapse_firewall_rule` - correct overly strict validation for the `name` property [GH-22571]
 
 ## 3.65.0 (July 13, 2023)
