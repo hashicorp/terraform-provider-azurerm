@@ -348,6 +348,21 @@ func TestAccCdnFrontDoorRule_allowEmptyQueryString(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorRule_allowForwardSlashUrlConditionMatchValue(t *testing.T) {
+	// NOTE: Regression test case for issue #19682
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.allowForwardSlashUrlConditionMatchValue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CdnFrontDoorRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontDoorRuleID(state.ID)
 	if err != nil {
@@ -1170,6 +1185,42 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
       query_string         = ""
       destination_hostname = "contoso.com"
       destination_path     = "/test/page"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) allowForwardSlashUrlConditionMatchValue(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  
+  order = 0
+
+  actions {
+    route_configuration_override_action {
+      cache_behavior                = "HonorOrigin"
+      compression_enabled           = true
+      query_string_caching_behavior = "IgnoreQueryString"
+    }
+  }
+
+  conditions {
+    url_path_condition {
+      match_values     = ["/"]
+      negate_condition = false
+      operator         = "EndsWith"
     }
   }
 }
