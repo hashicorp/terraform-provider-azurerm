@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `postgres` - updating to API Version `2023-03-01-preview` [GH-22577]
 * `data.azurerm_route_table` - support for the `bgp_route_propagation_enabled` property [GH-21940]
 * `data.azurerm_servicebus_*` - add deprecation messages for `resource_group_name` and `namespace_name` [GH-22521]
+* `azurerm_cdn_frontdoor_rule` - allow `conditions.x.url_path_condition.x.match_values` to be set to `/` [GH-22610]
 * `azurerm_logic_app_standard` - now exports the `auto_swap_slot_name` attribute [GH-22525]
 * `azurerm_postgresql_flexible_server` - support for `33554432` storage [GH-22574]
 * `azurerm_spring_cloud_service` - support for the `outbound_type` property [GH-22596]
