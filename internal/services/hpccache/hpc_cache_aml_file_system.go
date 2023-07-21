@@ -13,6 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/amlfilesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -44,8 +47,8 @@ type KeyEncryptionKey struct {
 }
 
 type MaintenanceWindow struct {
-	DayOfWeek    amlfilesystems.MaintenanceDayOfWeekType `tfschema:"day_of_week"`
-	TimeOfDayUTC string                                  `tfschema:"time_of_day_utc"`
+	DayOfWeek      amlfilesystems.MaintenanceDayOfWeekType `tfschema:"day_of_week"`
+	TimeOfDayInUTC string                                  `tfschema:"time_of_day_in_utc"`
 }
 
 type HPCCacheAMLFileSystemResource struct{}
@@ -70,17 +73,42 @@ func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.AMLFileSystemName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
 
+		"maintenance_window": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"day_of_week": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(amlfilesystems.PossibleValuesForMaintenanceDayOfWeekType(), false),
+					},
+
+					"time_of_day_in_utc": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.TimeOfDayInUTC,
+					},
+				},
+			},
+		},
+
 		"storage_capacity_in_tb": {
 			Type:     pluginsdk.TypeFloat,
 			Required: true,
 			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.IntBetween(8, 128),
+				validation.IntDivisibleBy(8),
+			),
 		},
 
 		"subnet_id": {
@@ -101,21 +129,22 @@ func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema 
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: storageValidate.StorageContainerResourceManagerID,
 					},
 
 					"logging_container": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: storageValidate.StorageContainerResourceManagerID,
 					},
 
 					"import_prefix": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Default:      "/",
+						ValidateFunc: validate.ImportPrefix,
 					},
 				},
 			},
@@ -132,34 +161,13 @@ func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema 
 					"key_url": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: keyVaultValidate.NestedItemId,
 					},
 
 					"source_vault_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		},
-
-		"maintenance_window": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"day_of_week": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(amlfilesystems.PossibleValuesForMaintenanceDayOfWeekType(), false),
-					},
-
-					"time_of_day_utc": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: commonids.ValidateKeyVaultID,
 					},
 				},
 			},
@@ -429,8 +437,8 @@ func expandAMLFileSystemMaintenanceWindowForCreate(input []MaintenanceWindow) am
 		result.DayOfWeek = pointer.To(v)
 	}
 
-	if v := maintenanceWindow.TimeOfDayUTC; v != "" {
-		result.TimeOfDayUTC = pointer.To(maintenanceWindow.TimeOfDayUTC)
+	if v := maintenanceWindow.TimeOfDayInUTC; v != "" {
+		result.TimeOfDayUTC = pointer.To(v)
 	}
 
 	return result
@@ -448,8 +456,8 @@ func expandAMLFileSystemMaintenanceWindowForUpdate(input []MaintenanceWindow) *a
 		result.DayOfWeek = pointer.To(v)
 	}
 
-	if v := maintenanceWindow.TimeOfDayUTC; v != "" {
-		result.TimeOfDayUTC = pointer.To(maintenanceWindow.TimeOfDayUTC)
+	if v := maintenanceWindow.TimeOfDayInUTC; v != "" {
+		result.TimeOfDayUTC = pointer.To(v)
 	}
 
 	return &result
@@ -464,7 +472,7 @@ func flattenAMLFileSystemMaintenanceWindow(input amlfilesystems.AmlFilesystemPro
 	}
 
 	if input.TimeOfDayUTC != nil {
-		maintenanceWindow.TimeOfDayUTC = pointer.From(input.TimeOfDayUTC)
+		maintenanceWindow.TimeOfDayInUTC = pointer.From(input.TimeOfDayUTC)
 	}
 
 	return append(result, maintenanceWindow)
