@@ -171,7 +171,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"engine": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Deprecated:   "The `engine` property will automatically be upgraded by the service team to v3 and is due to be removed from the api therefore it has been deprecated and will no longer function. It will be removed in a future version of the provider.",
+				Deprecated:   "This property has been deprecated as it will no longer be supported by the API. It will be removed in a future version of the provider.",
 				ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
 			},
 
