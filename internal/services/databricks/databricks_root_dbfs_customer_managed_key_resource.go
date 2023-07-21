@@ -22,9 +22,9 @@ import (
 
 func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: databricksWorkspaceRootDbfsCustomerManagedKeyCreateUpdate,
+		Create: databricksWorkspaceRootDbfsCustomerManagedKeyCreate,
 		Read:   databricksWorkspaceRootDbfsCustomerManagedKeyRead,
-		Update: databricksWorkspaceRootDbfsCustomerManagedKeyCreateUpdate,
+		Update: databricksWorkspaceRootDbfsCustomerManagedKeyUpdate,
 		Delete: databricksWorkspaceRootDbfsCustomerManagedKeyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -68,7 +68,7 @@ func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource
 	}
 }
 
-func databricksWorkspaceRootDbfsCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -134,7 +134,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreateUpdate(d *pluginsdk.Reso
 	props := getRootDbfsProps(*workspace.Model, params)
 
 	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
-		return fmt.Errorf("creating/updating Root DBFS Customer Managed Key for %s: %+v", *id, err)
+		return fmt.Errorf("creating Root DBFS Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())
@@ -203,6 +203,78 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 	}
 
 	return nil
+}
+
+func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
+	if err != nil {
+		return err
+	}
+
+	keyIdRaw := d.Get("key_vault_key_id").(string)
+	key, err := keyVaultParse.ParseNestedItemID(keyIdRaw)
+	if err != nil {
+		return err
+	}
+
+	// Not sure if I should also lock the key vault here too
+	// or at the very least the key?
+	locks.ByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	defer locks.UnlockByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	var encryptionEnabled bool
+
+	workspace, err := workspaceClient.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if model := workspace.Model; model != nil {
+		if parameters := model.Properties.Parameters; parameters != nil {
+			if parameters.PrepareEncryption != nil {
+				encryptionEnabled = model.Properties.Parameters.PrepareEncryption.Value
+			}
+		}
+	}
+
+	if !encryptionEnabled {
+		return fmt.Errorf("%s: `customer_managed_key_enabled` must be set to `true`", *id)
+	}
+
+	// make sure the key vault exists
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, meta.(*clients.Client).Resource, key.KeyVaultBaseUrl)
+	if err != nil || keyVaultIdRaw == nil {
+		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
+	}
+
+	// We need to pull all of the custom params from the parent
+	// workspace resource and then add our new encryption values into the
+	// structure, else the other values set in the parent workspace
+	// resource will be lost and overwritten as nil. ¯\_(ツ)_/¯
+	// NOTE: 'workspace.Parameters' will never be nil as 'customer_managed_key_enabled' and 'infrastructure_encryption_enabled'
+	// fields have a default value in the parent workspace resource.
+	keySource := workspaces.KeySourceMicrosoftPointKeyvault
+	params := workspace.Model.Properties.Parameters
+	params.Encryption = &workspaces.WorkspaceEncryptionParameter{
+		Value: &workspaces.Encryption{
+			KeySource:   &keySource,
+			KeyName:     &key.Name,
+			Keyversion:  &key.Version,
+			Keyvaulturi: &key.KeyVaultBaseUrl,
+		},
+	}
+
+	props := getRootDbfsProps(*workspace.Model, params)
+
+	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
+		return fmt.Errorf("updating Root DBFS Customer Managed Key for %s: %+v", *id, err)
+	}
+
+	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
 }
 
 func databricksWorkspaceRootDbfsCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
