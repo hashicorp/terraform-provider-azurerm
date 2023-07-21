@@ -511,7 +511,7 @@ func expandArmDatabaseModuleArray(input []interface{}, isGeoEnabled bool) (*[]da
 		v := item.(map[string]interface{})
 		moduleName := v["name"].(string)
 		if moduleName != "RediSearch" && moduleName != "RedisJSON" && isGeoEnabled {
-			return nil, fmt.Errorf("Only RediSearch and RedisJSON module are allowed with geo-replication")
+			return nil, fmt.Errorf("Only RediSearch and RedisJSON modules are allowed with geo-replication")
 		}
 		results = append(results, databases.Module{
 			Name: moduleName,
