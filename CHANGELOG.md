@@ -34,6 +34,7 @@ BUG FIXES:
 * `azurerm_cognitive_deployment` - remove upper limit on validation for the `capacity` property in the `scale` block [GH-22502]
 * `azurerm_cosmosdb_account` - fixed regression to `default_identity_type` being switched to `FirstPartyIdentity` on update [GH-22609]
 * `azurerm_kubernetes_cluster` - `windows_profile.admin_password` will become Required in 4.0 [GH-22554]
+* `azurerm_kusto_cluster` - the `engine` property has been deprecataed and is non functional [GH-22497]
 * `azurerm_maintenance_configuration` - set `package_names_mask_to_exclude` and `package_names_mask_to_exclude` properly in expand and flatten function [GH-22555]
 * `azurerm_redis_cache` - only set `rdb_backup_enabled` when using a premium SKU [GH-22309]
 * `azurerm_site_recovery_replication_recovery_plan` - fix an issue where the order of boot recovery groups was not correctly maintained [GH-22348]
