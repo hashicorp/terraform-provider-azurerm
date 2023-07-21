@@ -76,8 +76,9 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 				}, false),
 			},
 			"subplan": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"extension": {
 				Type:     pluginsdk.TypeSet,
@@ -85,14 +86,9 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name:": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"AgentlessDiscoveryForKubernetes",
-								"OnUploadMalwareScanning",
-								"SensitiveDataDiscovery",
-								"ContainerRegistriesVulnerabilityAssessments",
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
