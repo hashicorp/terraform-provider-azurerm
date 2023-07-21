@@ -17,7 +17,7 @@ type GetAtResourceLevelOperationResponse struct {
 }
 
 // GetAtResourceLevel ...
-func (c ManagementLocksClient) GetAtResourceLevel(ctx context.Context, id ResourceLockId) (result GetAtResourceLevelOperationResponse, err error) {
+func (c ManagementLocksClient) GetAtResourceLevel(ctx context.Context, id ScopedLockId) (result GetAtResourceLevelOperationResponse, err error) {
 	req, err := c.preparerForGetAtResourceLevel(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementlocks.ManagementLocksClient", "GetAtResourceLevel", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c ManagementLocksClient) GetAtResourceLevel(ctx context.Context, id Resour
 }
 
 // preparerForGetAtResourceLevel prepares the GetAtResourceLevel request.
-func (c ManagementLocksClient) preparerForGetAtResourceLevel(ctx context.Context, id ResourceLockId) (*http.Request, error) {
+func (c ManagementLocksClient) preparerForGetAtResourceLevel(ctx context.Context, id ScopedLockId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

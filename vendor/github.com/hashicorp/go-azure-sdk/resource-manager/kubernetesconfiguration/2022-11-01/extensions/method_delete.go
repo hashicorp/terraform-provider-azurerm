@@ -48,7 +48,7 @@ func (o DeleteOperationOptions) ToQuery() *client.QueryParams {
 }
 
 // Delete ...
-func (c ExtensionsClient) Delete(ctx context.Context, id ExtensionId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
+func (c ExtensionsClient) Delete(ctx context.Context, id ScopedExtensionId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
@@ -85,7 +85,7 @@ func (c ExtensionsClient) Delete(ctx context.Context, id ExtensionId, options De
 }
 
 // DeleteThenPoll performs Delete then polls until it's completed
-func (c ExtensionsClient) DeleteThenPoll(ctx context.Context, id ExtensionId, options DeleteOperationOptions) error {
+func (c ExtensionsClient) DeleteThenPoll(ctx context.Context, id ScopedExtensionId, options DeleteOperationOptions) error {
 	result, err := c.Delete(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing Delete: %+v", err)

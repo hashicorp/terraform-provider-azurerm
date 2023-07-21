@@ -248,11 +248,11 @@ bug:
 crash:
   - 'panic:'
 v/1.x (legacy):
-  - '### AzureRM Provider Version\n\n(|v)1\.\d+\.\d+'
+  - '### AzureRM Provider Version\s+(|(?i)azurerm )(|v|V)1\.\d+'
 v/2.x (legacy):
-  - '### AzureRM Provider Version\n\n(|v)2\.\d+\.\d+'
+  - '### AzureRM Provider Version\s+(|(?i)azurerm )(|v|V)2\.\d+'
 v/3.x:
-  - '### AzureRM Provider Version\n\n(|v)3\.\d+\.\d+'
+  - '### AzureRM Provider Version\s+(|(?i)azurerm )(|v|V)3\.\d+'
 `
 
 const azurerm = "azurerm_"

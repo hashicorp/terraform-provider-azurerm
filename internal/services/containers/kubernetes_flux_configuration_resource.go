@@ -118,7 +118,27 @@ func (r KubernetesFluxConfigurationResource) ModelObject() interface{} {
 }
 
 func (r KubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return fluxconfiguration.ValidateFluxConfigurationID
+	return func(val interface{}, key string) (warns []string, errs []error) {
+		idRaw, ok := val.(string)
+		if !ok {
+			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
+			return
+		}
+
+		id, err := fluxconfiguration.ParseScopedFluxConfigurationID(idRaw)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q: %+v", idRaw, err))
+			return
+		}
+
+		// validate the scope is a connected cluster id
+		if _, err := commonids.ParseKubernetesClusterID(id.Scope); err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q as a Kubernetes Cluster ID: %+v", idRaw, err))
+			return
+		}
+
+		return
+	}
 }
 
 func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -532,14 +552,13 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Containers.KubernetesFluxConfigurationClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 			clusterID, err := commonids.ParseKubernetesClusterID(model.ClusterID)
 			if err != nil {
 				return err
 			}
 
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
-			id := fluxconfiguration.NewFluxConfigurationID(subscriptionId, clusterID.ResourceGroupName, "Microsoft.ContainerService", "managedClusters", clusterID.ManagedClusterName, model.Name)
+			id := fluxconfiguration.NewScopedFluxConfigurationID(clusterID.ID(), model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -599,7 +618,7 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.KubernetesFluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -681,7 +700,7 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.KubernetesFluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -700,9 +719,13 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			clusterId, err := commonids.ParseKubernetesClusterID(id.Scope)
+			if err != nil {
+				return err
+			}
 			state := KubernetesFluxConfigurationModel{
 				Name:      id.FluxConfigurationName,
-				ClusterID: commonids.NewKubernetesClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
+				ClusterID: clusterId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -738,7 +761,7 @@ func (r KubernetesFluxConfigurationResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.KubernetesFluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

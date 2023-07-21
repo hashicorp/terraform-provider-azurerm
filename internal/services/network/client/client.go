@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/bastionhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectionmonitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectivityconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/flowlogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagerconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
@@ -42,7 +43,7 @@ type Client struct {
 	ExpressRoutePeeringsClient               *network.ExpressRouteCircuitPeeringsClient
 	ExpressRoutePortsClient                  *network.ExpressRoutePortsClient
 	ExpressRoutePortAuthorizationsClient     *network.ExpressRoutePortAuthorizationsClient
-	FlowLogsClient                           *network.FlowLogsClient
+	FlowLogsClient                           *flowlogs.FlowLogsClient
 	HubRouteTableClient                      *network.HubRouteTablesClient
 	HubVirtualNetworkConnectionClient        *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                         *network.InterfacesClient
@@ -149,8 +150,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ExpressRoutePortAuthorizationsClient := network.NewExpressRoutePortAuthorizationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRoutePortAuthorizationsClient.Client, o.ResourceManagerAuthorizer)
 
-	FlowLogsClient := network.NewFlowLogsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&FlowLogsClient.Client, o.ResourceManagerAuthorizer)
+	FlowLogsClient, err := flowlogs.NewFlowLogsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building flow logs client: %+v", err)
+	}
+	o.Configure(FlowLogsClient.Client, o.Authorizers.ResourceManager)
 
 	HubRouteTableClient := network.NewHubRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HubRouteTableClient.Client, o.ResourceManagerAuthorizer)
@@ -365,7 +369,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ExpressRoutePeeringsClient:               &ExpressRoutePeeringsClient,
 		ExpressRoutePortsClient:                  &ExpressRoutePortsClient,
 		ExpressRoutePortAuthorizationsClient:     &ExpressRoutePortAuthorizationsClient,
-		FlowLogsClient:                           &FlowLogsClient,
+		FlowLogsClient:                           FlowLogsClient,
 		HubRouteTableClient:                      &HubRouteTableClient,
 		HubVirtualNetworkConnectionClient:        &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                         &InterfacesClient,
