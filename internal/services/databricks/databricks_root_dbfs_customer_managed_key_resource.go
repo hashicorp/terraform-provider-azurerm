@@ -14,19 +14,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/migration"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
+func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: databricksWorkspaceCustomerManagedKeyCreateUpdate,
-		Read:   databricksWorkspaceCustomerManagedKeyRead,
-		Update: databricksWorkspaceCustomerManagedKeyCreateUpdate,
-		Delete: databricksWorkspaceCustomerManagedKeyDelete,
+		Create: databricksWorkspaceRootDbfsCustomerManagedKeyCreateUpdate,
+		Read:   databricksWorkspaceRootDbfsCustomerManagedKeyRead,
+		Update: databricksWorkspaceRootDbfsCustomerManagedKeyCreateUpdate,
+		Delete: databricksWorkspaceRootDbfsCustomerManagedKeyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -52,15 +51,9 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.CustomerManagedKeyV0ToV1{},
-		}),
-
 		Schema: map[string]*pluginsdk.Schema{
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
-				Deprecated:   "this resource has been deprecated in favour of the `azurerm_databricks_workspace_root_dbfs_customer_managed_key` resource and will be removed from the v4.0 azurerm provider.",
 				Required:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
@@ -75,7 +68,7 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func databricksWorkspaceRootDbfsCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -121,11 +114,6 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 	}
 
-	// NOTE: Removed d.IsNewResouce check, the reason why I remove it is because it never made sense in the first place.
-	// If you create the CMK resource, remove it then add it again you will get an import error.
-	// It should not matter, nor care, if it is a new resource or not since it is only wrapping the
-	// custom parameters encyption value...
-
 	// We need to pull all of the custom params from the parent
 	// workspace resource and then add our new encryption values into the
 	// structure, else the other values set in the parent workspace
@@ -143,17 +131,17 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 		},
 	}
 
-	props := getProps(*workspace.Model, params)
+	props := getRootDbfsProps(*workspace.Model, params)
 
 	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
-		return fmt.Errorf("creating/updating Customer Managed Key for %s: %+v", *id, err)
+		return fmt.Errorf("creating/updating Root DBFS Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())
-	return databricksWorkspaceCustomerManagedKeyRead(d, meta)
+	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
 }
 
-func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,7 +205,7 @@ func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func databricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func databricksWorkspaceRootDbfsCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,16 +239,16 @@ func databricksWorkspaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	props := getProps(*workspace.Model, params)
+	props := getRootDbfsProps(*workspace.Model, params)
 
 	if err = client.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
-		return fmt.Errorf("removing Customer Managed Key from %s: %+v", *id, err)
+		return fmt.Errorf("removing Root DBFS Customer Managed Key from %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func getProps(workspace workspaces.Workspace, params *workspaces.WorkspaceCustomParameters) workspaces.Workspace {
+func getRootDbfsProps(workspace workspaces.Workspace, params *workspaces.WorkspaceCustomParameters) workspaces.Workspace {
 	props := workspaces.Workspace{
 		Location: workspace.Location,
 		Sku:      workspace.Sku,
