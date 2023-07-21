@@ -79,6 +79,56 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
+			"extension": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name:": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"AgentlessDiscoveryForKubernetes",
+								"OnUploadMalwareScanning",
+								"SensitiveDataDiscovery",
+								"ContainerRegistriesVulnerabilityAssessments",
+							}, false),
+						},
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"additional_properties": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+						"operation_status": {
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"code": {
+										Computed: true,
+										Type:     pluginsdk.TypeString,
+									},
+									"message": {
+										Computed: true,
+										Type:     pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+					},
+				},
+				Set: func(i interface{}) int {
+					m := i.(map[string]interface{})
+					return pluginsdk.HashString(m["name"])
+				},
+			},
 		},
 	}
 }
@@ -105,12 +155,16 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 
 		if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree {
-			return fmt.Errorf("the princing tier of this subscription is not Free \r %+v", tf.ImportAsExistsError("azurerm_security_center_subscription_pricing", id.ID()))
+			return fmt.Errorf("the pricing tier of this subscription is not Free \r %+v", tf.ImportAsExistsError("azurerm_security_center_subscription_pricing", id.ID()))
 		}
 	}
 
 	if v, ok := d.GetOk("subplan"); ok {
 		pricing.Properties.SubPlan = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("extension"); ok {
+		pricing.Properties.Extensions = expandPricingExtensions(v.(*pluginsdk.Set).List())
 	}
 
 	if _, err := client.Update(ctx, id, pricing); err != nil {
@@ -147,6 +201,12 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 		if properties := resp.Model.Properties; properties != nil {
 			d.Set("tier", properties.PricingTier)
 			d.Set("subplan", properties.SubPlan)
+			if properties.Extensions != nil {
+				err = d.Set("extension", flattenPricingExtensions(properties.Extensions))
+				if err != nil {
+					return fmt.Errorf("setting `extension`: %+v", err)
+				}
+			}
 		}
 	}
 
@@ -175,4 +235,51 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 
 	log.Printf("[DEBUG] Security Center Subscription deletion invocation")
 	return nil
+}
+
+func expandPricingExtensions(extensionInput []interface{}) *[]pricings_v2023_01_01.Extension {
+	if len(extensionInput) <= 0 {
+		return nil
+	}
+
+	extensions := make([]pricings_v2023_01_01.Extension, len(extensionInput))
+
+	for i, v := range extensionInput {
+		raw := v.(map[string]interface{})
+		extensions[i].Name = raw["name"].(string)
+		extensions[i].IsEnabled = pricings_v2023_01_01.IsEnabledTrue
+		if !raw["enabled"].(bool) {
+			extensions[i].IsEnabled = pricings_v2023_01_01.IsEnabledFalse
+		}
+		if vap, ok := raw["additional_properties"]; ok {
+			extensions[i].AdditionalExtensionProperties = &vap
+		}
+	}
+
+	return &extensions
+}
+
+func flattenPricingExtensions(extensions *[]pricings_v2023_01_01.Extension) []interface{} {
+	if extensions == nil || len(*extensions) <= 0 {
+		return []interface{}{}
+	}
+
+	data := make([]interface{}, len(*extensions))
+	for i, v := range *extensions {
+		item := make(map[string]interface{})
+		item["name"] = v.Name
+		item["enabled"] = v.IsEnabled == pricings_v2023_01_01.IsEnabledTrue
+		if v.AdditionalExtensionProperties != nil {
+			item["additional_properties"] = v.AdditionalExtensionProperties
+		}
+		if v.OperationStatus != nil {
+			status := make(map[string]interface{})
+			status["code"] = v.OperationStatus.Code
+			status["message"] = v.OperationStatus.Message
+			item["operation_status"] = status
+		}
+		data[i] = item
+	}
+
+	return data
 }
