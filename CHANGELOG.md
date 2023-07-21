@@ -2,7 +2,9 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_mobile_network_attached_data_network` [GH-22168]
 * **New Resource:** `azurerm_graph_account` [GH-22334]
+* **New Resource:** `azurerm_mobile_network_attached_data_network` [GH-22168]
 
 ENHANCEMENTS:
 
