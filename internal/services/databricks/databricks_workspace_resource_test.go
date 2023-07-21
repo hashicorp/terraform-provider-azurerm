@@ -1806,6 +1806,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 }
 
 resource "azurerm_private_endpoint" "databricks" {
+  depends_on = [azurerm_databricks_workspace_root_dbfs_customer_managed_key.test]
+
   name                = "acctest-endpoint-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
