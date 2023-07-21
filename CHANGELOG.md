@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_eventhub_namespace` - updates properly when encryption is enabled [GH-22625]
 * `azurerm_logic_app_standard` - now exports the `auto_swap_slot_name` attribute [GH-22525]
 * `azurerm_postgresql_flexible_server` - support for `33554432` storage [GH-22574]
+* `azurerm_postgresql_flexible_server` - support for the `geo_backup_key_vault_key_id` and `geo_backup_user_assigned_identity_id` properties [GH-22612]
 * `azurerm_spring_cloud_service` - support for the `marketplace` block [GH-22553]
 * `azurerm_spring_cloud_service` - support for the `outbound_type` property [GH-22596]
 
