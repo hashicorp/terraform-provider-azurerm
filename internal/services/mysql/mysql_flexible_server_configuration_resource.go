@@ -22,6 +22,7 @@ func resourceMySQLFlexibleServerConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMySQLFlexibleServerConfigurationCreate,
 		Read:   resourceMySQLFlexibleServerConfigurationRead,
+		Update: resourceMySQLFlexibleServerConfigurationUpdate,
 		Delete: resourceMySQLFlexibleServerConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -55,7 +56,6 @@ func resourceMySQLFlexibleServerConfiguration() *pluginsdk.Resource {
 			"value": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 		},
 	}
@@ -84,6 +84,31 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	}
 
 	d.SetId(id.ID())
+	return resourceMySQLFlexibleServerConfigurationRead(d, meta)
+}
+
+func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MySQL.FlexibleServers.Configurations
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration update.")
+
+	id, err := configurations.ParseConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	payload := configurations.Configuration{
+		Properties: &configurations.ConfigurationProperties{
+			Value: pointer.To(d.Get("value").(string)),
+		},
+	}
+
+	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %v", id, err)
+	}
+
 	return resourceMySQLFlexibleServerConfigurationRead(d, meta)
 }
 

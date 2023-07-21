@@ -85,6 +85,28 @@ func TestAccMySQLFlexibleServerConfiguration_logSlowAdminStatements(t *testing.T
 	})
 }
 
+func TestAccMySQLFlexibleServerConfiguration_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
+	r := MySQLFlexibleServerConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.slowQueryLog(data, "OFF"),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("OFF")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.slowQueryLog(data, "ON"),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("ON")),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t MySQLFlexibleServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := configurations.ParseConfigurationID(state.ID)
 	if err != nil {
@@ -160,6 +182,10 @@ func (r MySQLFlexibleServerConfigurationResource) interactiveTimeout(data accept
 
 func (r MySQLFlexibleServerConfigurationResource) logSlowAdminStatements(data acceptance.TestData) string {
 	return r.template(data, "log_slow_admin_statements", "on")
+}
+
+func (r MySQLFlexibleServerConfigurationResource) slowQueryLog(data acceptance.TestData, value string) string {
+	return r.template(data, "slow_query_log", value)
 }
 
 func (r MySQLFlexibleServerConfigurationResource) template(data acceptance.TestData, name string, value string) string {
