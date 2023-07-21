@@ -69,7 +69,8 @@ resource "azurerm_dns_txt_record" "example" {
   resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
   record {
-    value = azurerm_static_site_custom_domain.example.validation_token
+    # Use a static value to workaround Azure API not returning the validation token after validation has completed
+    value = azurerm_static_site_custom_domain.example.validation_token == "" ? "validated" : azurerm_static_site_custom_domain.example.validation_token
   }
 }
 ```
