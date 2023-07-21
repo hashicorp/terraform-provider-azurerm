@@ -925,6 +925,38 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
+	// backup must be updated independently
+	var backup documentdb.BasicBackupPolicy
+	if existing.DatabaseAccountGetProperties.BackupPolicy != nil {
+		backup = existing.DatabaseAccountGetProperties.BackupPolicy
+		if d.HasChange("backup") {
+			if v, ok := d.GetOk("backup"); ok {
+				newBackup, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), string(existing.DatabaseAccountGetProperties.CreateMode))
+				if err != nil {
+					return fmt.Errorf("expanding `backup`: %+v", err)
+				}
+				updateParameters := documentdb.DatabaseAccountUpdateParameters{
+					DatabaseAccountUpdateProperties: &documentdb.DatabaseAccountUpdateProperties{
+						BackupPolicy: newBackup,
+					},
+				}
+
+				// Update Database 'backup'...
+				future, err := client.Update(ctx, id.ResourceGroup, id.Name, updateParameters)
+				if err != nil {
+					return fmt.Errorf("updating CosmosDB Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to finish updating: %+v", id.Name, id.ResourceGroup, err)
+				}
+				backup = newBackup
+			} else if string(existing.CreateMode) != "" {
+				return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+			}
+		}
+	}
+
 	updateRequired := false
 	if props := existing.DatabaseAccountGetProperties; props != nil {
 		location := azure.NormalizeLocation(pointer.From(existing.Location))
@@ -960,7 +992,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		// later, however we need to know if they changed or not...
 		if d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
 			"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
-			"capacity", "create_mode", "restore", "key_vault_key_id", "mongo_server_version", "backup",
+			"capacity", "create_mode", "restore", "key_vault_key_id", "mongo_server_version",
 			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
 			"kind", "tags", "enable_free_tier", "enable_automatic_failover", "analytical_storage_enabled",
 			"local_authentication_disabled") {
@@ -1009,6 +1041,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				NetworkACLBypass:                   networkByPass,
 				NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 				DisableLocalAuth:                   disableLocalAuthentication,
+				BackupPolicy:                       backup,
 			},
 			Tags: t,
 		}
@@ -1054,16 +1087,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			accountProps.APIProperties = &documentdb.APIProperties{
 				ServerVersion: documentdb.ServerVersion(v.(string)),
 			}
-		}
-
-		if v, ok := d.GetOk("backup"); ok {
-			policy, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), createMode)
-			if err != nil {
-				return fmt.Errorf("expanding `backup`: %+v", err)
-			}
-			accountProps.BackupPolicy = policy
-		} else if createMode != "" {
-			return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
 		}
 
 		// Only do this update if a value has changed above...
