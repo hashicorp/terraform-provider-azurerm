@@ -33,7 +33,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_eventhub":                              dataSourceEventHub(),
 		"azurerm_eventhub_cluster":                      dataSourceEventHubCluster(),
-		"azurerm_eventhub_sas":                          dataSourceEventHubSharedAccessSignature(),
 		"azurerm_eventhub_authorization_rule":           EventHubAuthorizationRuleDataSource(),
 		"azurerm_eventhub_consumer_group":               EventHubConsumerGroupDataSource(),
 		"azurerm_eventhub_namespace":                    EventHubNamespaceDataSource(),
@@ -57,7 +56,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 // DataSources returns a list of Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		EventHubSharedAccessSignatureDataSource{},
+	}
 }
 
 // Resources returns a list of Resources supported by this Service
