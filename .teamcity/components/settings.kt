@@ -171,7 +171,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "eventhub" to testConfiguration(useDevTestSubscription = true),
         "firewall" to testConfiguration(useDevTestSubscription = true),
         "keyvault" to testConfiguration(useDevTestSubscription = true),
-        "postgres" to testConfiguration(locationOverride = LocationConfiguration("northeurope", "centralus", "eastus", false), useDevTestSubscription = true),
+        "postgres" to testConfiguration(locationOverride = LocationConfiguration("northeurope", "centralus", "westeurope", false), useDevTestSubscription = true),
         "privatedns" to testConfiguration(useDevTestSubscription = true),
         "redis" to testConfiguration(useDevTestSubscription = true)
 )
