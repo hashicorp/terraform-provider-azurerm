@@ -1,3 +1,9 @@
+## 3.67.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_image` - add support for encryption through `os_disk.0.disk_encryption_set_id` [GH-22642]
+
 ## 3.66.0 (July 20, 2023)
 
 FEATURES:
