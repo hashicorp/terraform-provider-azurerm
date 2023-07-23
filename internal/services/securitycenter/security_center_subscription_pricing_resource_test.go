@@ -98,6 +98,24 @@ func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T
 	})
 }
 
+func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	data.ResourceSequentialTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.cloudPostureExtension(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
+				check.That(data.ResourceName).Key("extension").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := pricings_v2023_01_01.ParsePricingIDInsensitively(state.ID)
 	if err != nil {
@@ -135,6 +153,37 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   tier          = "Standard"
   resource_type = "StorageAccounts"
   subplan       = "PerStorageAccount"
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) cloudPostureExtension() string {
+	return `
+provider "azurerm" {
+  features {
+
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier= "Standard"
+  resource_type = "CloudPosture"
+  extension {
+    name= "SensitiveDataDiscovery"
+    is_enabled = "True"
+  }
+  extension {
+    name= "AgentlessDiscoveryForKubernetes"
+    is_enabled = "False"
+  }
+  extension {
+    name= "AgentlessVmScanning"
+    is_enabled = "True"
+    additional_extension_properties = {
+ExclusionTags = "[]"
+    }
+
+  }
 }
 `
 }

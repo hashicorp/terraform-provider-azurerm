@@ -79,11 +79,36 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
+			"extension": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"is_enabled": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"additional_extension_properties": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Default:  map[string]string{},
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
 func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -109,8 +134,16 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	if v, ok := d.GetOk("subplan"); ok {
-		pricing.Properties.SubPlan = utils.String(v.(string))
+	if vSub, okSub := d.GetOk("subplan"); okSub {
+		pricing.Properties.SubPlan = utils.String(vSub.(string))
+	}
+
+	// can not set extensions for free tier
+	if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
+		if vExt, okExt := d.GetOk("extension"); okExt {
+			var extensions = ConvertInputExtensionToSDKModel(vExt.([]interface{}))
+			pricing.Properties.Extensions = extensions
+		}
 	}
 
 	if _, err := client.Update(ctx, id, pricing); err != nil {
@@ -147,6 +180,7 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 		if properties := resp.Model.Properties; properties != nil {
 			d.Set("tier", properties.PricingTier)
 			d.Set("subplan", properties.SubPlan)
+			d.Set("extensions", properties.Extensions)
 		}
 	}
 
@@ -175,4 +209,27 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 
 	log.Printf("[DEBUG] Security Center Subscription deletion invocation")
 	return nil
+}
+
+func ConvertInputExtensionToSDKModel(inputList []interface{}) *[]pricings_v2023_01_01.Extension {
+	if len(inputList) == 0 {
+		return nil
+	}
+
+	var outputList []pricings_v2023_01_01.Extension
+	for _, v := range inputList {
+		input := v.(map[string]interface{})
+		output := pricings_v2023_01_01.Extension{
+			Name:      input["name"].(string),
+			IsEnabled: pricings_v2023_01_01.IsEnabled(input["is_enabled"].(string)),
+		}
+		if output.IsEnabled == "True" {
+			if vAdditional, ok := input["additional_extension_properties"]; ok {
+				output.AdditionalExtensionProperties = &vAdditional
+			}
+		}
+		outputList = append(outputList, output)
+	}
+
+	return &outputList
 }
