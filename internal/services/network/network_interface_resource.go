@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -164,7 +164,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			// Computed
 			"applied_dns_servers": {
@@ -272,7 +272,7 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
 		Location:         utils.String(location),
 		Properties:       &properties,
-		Tags:             utils.ExpandPtrMapStringString(t),
+		Tags:             tags.Expand(t),
 	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, iface)
@@ -370,7 +370,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
-		update.Tags = utils.ExpandPtrMapStringString(tagsRaw)
+		update.Tags = tags.Expand(tagsRaw)
 	} else {
 		update.Tags = existing.Model.Tags
 	}
@@ -479,9 +479,7 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
-			return err
-		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil

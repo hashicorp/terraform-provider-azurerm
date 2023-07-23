@@ -10,13 +10,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceNetworkInterface() *pluginsdk.Resource {
@@ -175,7 +174,7 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -272,9 +271,5 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
 	}
 
-	if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
-		return err
-	}
-
-	return nil
+	return tags.FlattenAndSet(d, model.Tags)
 }
