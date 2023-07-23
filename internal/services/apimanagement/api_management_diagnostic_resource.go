@@ -46,8 +46,8 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.DiagnosticIdentifierApplicationInsights),
-					string(apimanagement.DiagnosticIdentifierAzureMonitor),
+					"applicationinsights",
+					"azuremonitor",
 				}, false),
 			},
 
@@ -149,7 +149,7 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if operationNameFormat, operationNameFormatSet := d.GetOk("operation_name_format"); d.Get("identifier") == apimanagement.DiagnosticIdentifierApplicationInsights {
+	if operationNameFormat, operationNameFormatSet := d.GetOk("operation_name_format"); d.Get("identifier") == "applicationinsights" {
 		if operationNameFormatSet {
 			parameters.OperationNameFormat = apimanagement.OperationNameFormat(operationNameFormat.(string))
 		} else {
