@@ -601,18 +601,20 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	patchSchedule := expandRedisPatchSchedule(d)
+	if d.HasChange("patch_schedule") {
+		patchSchedule := expandRedisPatchSchedule(d)
 
-	patchSchedulesRedisId := patchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
-	if patchSchedule == nil || len(patchSchedule.Properties.ScheduleEntries) == 0 {
-		_, err = patchClient.Delete(ctx, patchSchedulesRedisId)
-		if err != nil {
-			return fmt.Errorf("deleting Patch Schedule for %s: %+v", *id, err)
-		}
-	} else {
-		_, err = patchClient.CreateOrUpdate(ctx, patchSchedulesRedisId, *patchSchedule)
-		if err != nil {
-			return fmt.Errorf("setting Patch Schedule for %s: %+v", *id, err)
+		patchSchedulesRedisId := patchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
+		if patchSchedule == nil || len(patchSchedule.Properties.ScheduleEntries) == 0 {
+			_, err = patchClient.Delete(ctx, patchSchedulesRedisId)
+			if err != nil {
+				return fmt.Errorf("deleting Patch Schedule for %s: %+v", *id, err)
+			}
+		} else {
+			_, err = patchClient.CreateOrUpdate(ctx, patchSchedulesRedisId, *patchSchedule)
+			if err != nil {
+				return fmt.Errorf("setting Patch Schedule for %s: %+v", *id, err)
+			}
 		}
 	}
 
