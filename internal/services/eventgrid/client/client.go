@@ -5,10 +5,13 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid" // nolint: staticcheck
+	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
+	eventgrid_v2022_06_15.Client
+
 	DomainsClient                       *eventgrid.DomainsClient
 	DomainTopicsClient                  *eventgrid.DomainTopicsClient
 	EventSubscriptionsClient            *eventgrid.EventSubscriptionsClient
