@@ -78,32 +78,32 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 			"subplan": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"extension": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"name:": {
+						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.StringIsNotWhiteSpace,
 						},
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  true,
+							Required: true,
 						},
 						"additional_properties": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								ValidateFunc: validation.StringIsNotWhiteSpace,
 							},
 						},
 						"operation_status": {
+							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -272,7 +272,7 @@ func flattenPricingExtensions(extensions *[]pricings_v2023_01_01.Extension) []in
 			status := make(map[string]interface{})
 			status["code"] = v.OperationStatus.Code
 			status["message"] = v.OperationStatus.Message
-			item["operation_status"] = status
+			item["operation_status"] = &[]interface{}{status}
 		}
 		data[i] = item
 	}
