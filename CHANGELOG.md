@@ -1,5 +1,9 @@
 ## 3.67.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_role_assignment_marketplace` [GH-22398]
+
 ENHANCEMENTS:
 
 * `azurerm_image` - add support for encryption through `os_disk.0.disk_encryption_set_id` [GH-22642]
