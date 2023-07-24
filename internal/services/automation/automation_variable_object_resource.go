@@ -13,9 +13,9 @@ import (
 
 func resourceAutomationVariableObject() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableObjectCreateUpdate,
+		Create: resourceAutomationVariableObjectCreate,
 		Read:   resourceAutomationVariableObjectRead,
-		Update: resourceAutomationVariableObjectCreateUpdate,
+		Update: resourceAutomationVariableObjectUpdate,
 		Delete: resourceAutomationVariableObjectDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -35,7 +35,11 @@ func resourceAutomationVariableObject() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationVariableObjectCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableObjectCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	return resourceAutomationVariableCreateUpdate(d, meta, "Object")
+}
+
+func resourceAutomationVariableObjectUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceAutomationVariableCreateUpdate(d, meta, "Object")
 }
 
