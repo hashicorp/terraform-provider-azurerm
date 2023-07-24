@@ -3,11 +3,11 @@
 FEATURES:
 
 * **New Resource**: `azurerm_kubernetes_cluster_trusted_access_role_binding` [GH-22647]
-* **New Resource:** `azurerm_role_assignment_marketplace` [GH-22398]
+* **New Resource:** `azurerm_marketplace_role_assignment` [GH-22398]
 
 ENHANCEMENTS:
 
-* `azurerm_image` - add support for encryption through `os_disk.0.disk_encryption_set_id` [GH-22642]
+* `azurerm_image` - support for the field `disk_encryption_set_id` within the `os_disk` block [GH-22642]
 
 ## 3.66.0 (July 20, 2023)
 
