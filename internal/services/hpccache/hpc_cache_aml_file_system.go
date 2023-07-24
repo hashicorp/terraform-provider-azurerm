@@ -88,17 +88,24 @@ func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema 
 				Schema: map[string]*pluginsdk.Schema{
 					"day_of_week": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Required:     true,
 						ValidateFunc: validation.StringInSlice(amlfilesystems.PossibleValuesForMaintenanceDayOfWeekType(), false),
 					},
 
 					"time_of_day_in_utc": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Required:     true,
 						ValidateFunc: validate.TimeOfDayInUTC,
 					},
 				},
 			},
+		},
+
+		"sku_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"storage_capacity_in_tb": {
@@ -117,6 +124,8 @@ func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema 
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
+
+		"zones": commonschema.ZonesMultipleRequiredForceNew(),
 
 		"hsm_setting": {
 			Type:     pluginsdk.TypeList,
@@ -173,15 +182,6 @@ func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema 
 			},
 		},
 
-		"sku_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
-
 		"tags": commonschema.Tags(),
 	}
 }
@@ -225,6 +225,9 @@ func (r HPCCacheAMLFileSystemResource) Create() sdk.ResourceFunc {
 					FilesystemSubnet:   model.SubnetId,
 					StorageCapacityTiB: model.StorageCapacityInTb,
 				},
+				Sku: &amlfilesystems.SkuName{
+					Name: pointer.To(model.SkuName),
+				},
 				Zones: pointer.To(model.Zones),
 				Tags:  pointer.To(model.Tags),
 			}
@@ -238,12 +241,6 @@ func (r HPCCacheAMLFileSystemResource) Create() sdk.ResourceFunc {
 			if v := model.KeyEncryptionKey; v != nil {
 				properties.Properties.EncryptionSettings = &amlfilesystems.AmlFilesystemEncryptionSettings{
 					KeyEncryptionKey: expandAMLFileSystemKeyEncryptionKey(v),
-				}
-			}
-
-			if v := model.SkuName; v != "" {
-				properties.Sku = &amlfilesystems.SkuName{
-					Name: pointer.To(v),
 				}
 			}
 
@@ -340,18 +337,12 @@ func (r HPCCacheAMLFileSystemResource) Read() sdk.ResourceFunc {
 				state.StorageCapacityInTb = properties.StorageCapacityTiB
 				state.MaintenanceWindow = flattenAMLFileSystemMaintenanceWindow(properties.MaintenanceWindow)
 				state.HsmSetting = flattenAMLFileSystemHsmSetting(properties.Hsm)
+				state.SkuName = pointer.From(model.Sku.Name)
+				state.Zones = pointer.From(model.Zones)
 
 				if v := properties.EncryptionSettings; v != nil && v.KeyEncryptionKey != nil {
 					state.KeyEncryptionKey = flattenAMLFileSystemKeyEncryptionKey(v.KeyEncryptionKey)
 				}
-			}
-
-			if v := model.Sku; v != nil {
-				state.SkuName = pointer.From(v.Name)
-			}
-
-			if model.Zones != nil {
-				state.Zones = pointer.From(model.Zones)
 			}
 
 			if model.Tags != nil {
@@ -430,18 +421,12 @@ func flattenAMLFileSystemIdentity(input *amlfilesystems.AmlFilesystemIdentity) (
 }
 
 func expandAMLFileSystemMaintenanceWindowForCreate(input []MaintenanceWindow) amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow {
-	result := amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow{}
 	maintenanceWindow := &input[0]
 
-	if v := maintenanceWindow.DayOfWeek; v != "" {
-		result.DayOfWeek = pointer.To(v)
+	return amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow{
+		DayOfWeek:    pointer.To(maintenanceWindow.DayOfWeek),
+		TimeOfDayUTC: pointer.To(maintenanceWindow.TimeOfDayInUTC),
 	}
-
-	if v := maintenanceWindow.TimeOfDayInUTC; v != "" {
-		result.TimeOfDayUTC = pointer.To(v)
-	}
-
-	return result
 }
 
 func expandAMLFileSystemMaintenanceWindowForUpdate(input []MaintenanceWindow) *amlfilesystems.AmlFilesystemUpdatePropertiesMaintenanceWindow {
@@ -465,14 +450,10 @@ func expandAMLFileSystemMaintenanceWindowForUpdate(input []MaintenanceWindow) *a
 
 func flattenAMLFileSystemMaintenanceWindow(input amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow) []MaintenanceWindow {
 	var result []MaintenanceWindow
-	maintenanceWindow := MaintenanceWindow{}
 
-	if input.DayOfWeek != nil {
-		maintenanceWindow.DayOfWeek = pointer.From(input.DayOfWeek)
-	}
-
-	if input.TimeOfDayUTC != nil {
-		maintenanceWindow.TimeOfDayInUTC = pointer.From(input.TimeOfDayUTC)
+	maintenanceWindow := MaintenanceWindow{
+		DayOfWeek:      pointer.From(input.DayOfWeek),
+		TimeOfDayInUTC: pointer.From(input.TimeOfDayUTC),
 	}
 
 	return append(result, maintenanceWindow)
