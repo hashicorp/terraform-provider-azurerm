@@ -130,7 +130,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := roleassignments.NewProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceTypeValue", "resourceValue")
+id := roleassignments.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.ListForResource(ctx, id, roleassignments.DefaultListForResourceOperationOptions())` can be used to do batched pagination
 items, err := client.ListForResourceComplete(ctx, id, roleassignments.DefaultListForResourceOperationOptions())
