@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource**: `azurerm_kubernetes_cluster_trusted_access_role_binding` [GH-22647]
 * **New Resource:** `azurerm_role_assignment_marketplace` [GH-22398]
 
 ENHANCEMENTS:
