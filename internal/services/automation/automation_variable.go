@@ -13,7 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -26,7 +26,7 @@ import (
 func ParseAzureAutomationVariableValue(resource string, input *string) (interface{}, error) {
 	if input == nil {
 		if resource != "azurerm_automation_variable_null" {
-			return nil, fmt.Errorf("Expected value \"nil\" to be %q, actual type is \"azurerm_automation_variable_null\"", resource)
+			return nil, fmt.Errorf("expected value \"nil\" to be %q, actual type is \"azurerm_automation_variable_null\"", resource)
 		}
 		return nil, nil
 	}
@@ -52,7 +52,7 @@ func ParseAzureAutomationVariableValue(resource string, input *string) (interfac
 	}
 
 	if actualResource != resource {
-		return nil, fmt.Errorf("Expected value %q to be %q, actual type is %q", *input, resource, actualResource)
+		return nil, fmt.Errorf("expected value %q to be %q, actual type is %q", *input, resource, actualResource)
 	}
 	return value, nil
 }

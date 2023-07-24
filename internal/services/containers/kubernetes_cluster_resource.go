@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -366,24 +366,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"monitor_metrics": {
+			"custom_ca_trust_certificates_base64": {
 				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"annotations_allowed": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"labels_allowed": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
+				MaxItems: 10,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsBase64,
 				},
 			},
 
@@ -919,6 +908,27 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"monitor_metrics": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"annotations_allowed": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"labels_allowed": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"node_os_channel_upgrade": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1308,6 +1318,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								string(managedclusters.ServiceMeshModeIstio),
 							}, false),
 						},
+						"internal_ingress_gateway_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"external_ingress_gateway_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -1399,9 +1417,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Required: true,
 							ForceNew: true,
 						},
+						// This needs to become Required in 4.0 - omitting it isn't accepted by the API
 						"admin_password": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringLenBetween(8, 123),
 						},
@@ -1466,20 +1485,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 				Default:  false,
 			},
-
-			"custom_ca_trust_certificates_base64": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 10,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsBase64,
-				},
-			},
 		},
 	}
 
-	// CLEANUP: post-3.0 we should inline these?
 	for k, v := range schemaKubernetesAddOns() {
 		resource.Schema[k] = v
 	}
@@ -1512,6 +1520,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				string(managedclusters.NetworkPluginModeOverlay),
 				"Overlay",
 			}, false),
+		}
+		resource.Schema["windows_profile"].Elem.(*pluginsdk.Resource).Schema["admin_password"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringLenBetween(8, 123),
 		}
 	}
 
@@ -4326,10 +4340,40 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 	}
 
 	raw := input[0].(map[string]interface{})
+
+	mode := raw["mode"].(string)
+
 	profile := managedclusters.ServiceMeshProfile{}
-	if managedclusters.ServiceMeshMode(raw["mode"].(string)) == managedclusters.ServiceMeshModeIstio {
-		profile.Mode = managedclusters.ServiceMeshMode(raw["mode"].(string))
+
+	if managedclusters.ServiceMeshMode(mode) == managedclusters.ServiceMeshModeIstio {
+		profile.Mode = managedclusters.ServiceMeshMode(mode)
 		profile.Istio = &managedclusters.IstioServiceMesh{}
+
+		profile.Istio.Components = &managedclusters.IstioComponents{}
+
+		istioIngressGatewaysList := make([]managedclusters.IstioIngressGateway, 0)
+
+		if raw["internal_ingress_gateway_enabled"] != nil {
+
+			ingressGatewayElementInternal := managedclusters.IstioIngressGateway{
+				Enabled: raw["internal_ingress_gateway_enabled"].(bool),
+				Mode:    managedclusters.IstioIngressGatewayModeInternal,
+			}
+
+			istioIngressGatewaysList = append(istioIngressGatewaysList, ingressGatewayElementInternal)
+		}
+
+		if raw["external_ingress_gateway_enabled"] != nil {
+
+			ingressGatewayElementExternal := managedclusters.IstioIngressGateway{
+				Enabled: raw["external_ingress_gateway_enabled"].(bool),
+				Mode:    managedclusters.IstioIngressGatewayModeExternal,
+			}
+
+			istioIngressGatewaysList = append(istioIngressGatewaysList, ingressGatewayElementExternal)
+		}
+
+		profile.Istio.Components.IngressGateways = &istioIngressGatewaysList
 	}
 
 	return &profile
@@ -4410,11 +4454,30 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 		return nil
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"mode": string(managedclusters.ServiceMeshModeIstio),
-		},
+	returnMap := map[string]interface{}{
+		"mode": string(managedclusters.ServiceMeshModeIstio),
 	}
+
+	if (input.Istio.Components.IngressGateways != nil) && len(*input.Istio.Components.IngressGateways) > 0 {
+
+		for _, value := range *input.Istio.Components.IngressGateways {
+
+			mode := value.Mode
+			enabled := value.Enabled
+
+			var currentIngressKey string
+
+			if mode == managedclusters.IstioIngressGatewayModeExternal {
+				currentIngressKey = "external_ingress_gateway_enabled"
+			} else {
+				currentIngressKey = "internal_ingress_gateway_enabled"
+			}
+
+			returnMap[currentIngressKey] = enabled
+		}
+	}
+
+	return []interface{}{returnMap}
 }
 
 func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {

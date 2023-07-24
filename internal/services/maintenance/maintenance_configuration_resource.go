@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -231,7 +231,7 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -288,7 +288,7 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 			ExtensionProperties: extensionProperties,
 			InstallPatches:      installPatches,
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, configuration); err != nil {
@@ -345,7 +345,7 @@ func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta int
 			}
 		}
 		d.Set("location", location.NormalizeNilable(model.Location))
-		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
@@ -522,10 +522,10 @@ func expandMaintenanceConfigurationInstallPatchesLinux(input []interface{}) *mai
 	if v, ok := v["classifications_to_include"]; ok {
 		linuxParameters.ClassificationsToInclude = utils.ExpandStringSlice(v.([]interface{}))
 	}
-	if v, ok := v["packages_to_exclude"]; ok {
+	if v, ok := v["package_names_mask_to_exclude"]; ok {
 		linuxParameters.PackageNameMasksToExclude = utils.ExpandStringSlice(v.([]interface{}))
 	}
-	if v, ok := v["packages_to_include"]; ok {
+	if v, ok := v["package_names_mask_to_include"]; ok {
 		linuxParameters.PackageNameMasksToInclude = utils.ExpandStringSlice(v.([]interface{}))
 	}
 	return &linuxParameters
@@ -542,11 +542,11 @@ func flattenMaintenanceConfigurationInstallPatchesLinux(input *maintenanceconfig
 		}
 
 		if packageNameMasksToInclude := v.PackageNameMasksToInclude; packageNameMasksToInclude != nil {
-			output["packages_to_exclude"] = utils.FlattenStringSlice(packageNameMasksToInclude)
+			output["package_names_mask_to_exclude"] = utils.FlattenStringSlice(packageNameMasksToInclude)
 		}
 
 		if packageNameMasksToExclude := v.PackageNameMasksToExclude; packageNameMasksToExclude != nil {
-			output["packages_to_include"] = utils.FlattenStringSlice(packageNameMasksToExclude)
+			output["package_names_mask_to_include"] = utils.FlattenStringSlice(packageNameMasksToExclude)
 		}
 
 		results = append(results, output)

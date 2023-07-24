@@ -17,7 +17,7 @@ type CreateOrUpdateParentOperationResponse struct {
 }
 
 // CreateOrUpdateParent ...
-func (c ConfigurationAssignmentsClient) CreateOrUpdateParent(ctx context.Context, id Providers2ConfigurationAssignmentId, input ConfigurationAssignment) (result CreateOrUpdateParentOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) CreateOrUpdateParent(ctx context.Context, id ScopedConfigurationAssignmentId, input ConfigurationAssignment) (result CreateOrUpdateParentOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdateParent(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationassignments.ConfigurationAssignmentsClient", "CreateOrUpdateParent", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c ConfigurationAssignmentsClient) CreateOrUpdateParent(ctx context.Context
 }
 
 // preparerForCreateOrUpdateParent prepares the CreateOrUpdateParent request.
-func (c ConfigurationAssignmentsClient) preparerForCreateOrUpdateParent(ctx context.Context, id Providers2ConfigurationAssignmentId, input ConfigurationAssignment) (*http.Request, error) {
+func (c ConfigurationAssignmentsClient) preparerForCreateOrUpdateParent(ctx context.Context, id ScopedConfigurationAssignmentId, input ConfigurationAssignment) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

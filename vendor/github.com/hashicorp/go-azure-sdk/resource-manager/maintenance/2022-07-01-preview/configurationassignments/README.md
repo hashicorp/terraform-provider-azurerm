@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceTypeValue", "resourceValue", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
 
 payload := configurationassignments.ConfigurationAssignment{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewProviders2ConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceParentTypeValue", "resourceParentValue", "resourceTypeValue", "resourceValue", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
 
 payload := configurationassignments.ConfigurationAssignment{
 	// ...
@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceTypeValue", "resourceValue", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewProviders2ConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceParentTypeValue", "resourceParentValue", "resourceTypeValue", "resourceValue", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
 
 read, err := client.DeleteParent(ctx, id)
 if err != nil {
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceTypeValue", "resourceValue", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -114,7 +114,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewProviders2ConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceParentTypeValue", "resourceParentValue", "resourceTypeValue", "resourceValue", "configurationAssignmentValue")
+id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
 
 read, err := client.GetParent(ctx, id)
 if err != nil {
@@ -130,7 +130,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceTypeValue", "resourceValue")
+id := configurationassignments.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.List(ctx, id)
 if err != nil {
@@ -146,7 +146,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationassignments.NewResourceGroupProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerValue", "resourceParentTypeValue", "resourceParentValue", "resourceTypeValue", "resourceValue")
+id := configurationassignments.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.ListParent(ctx, id)
 if err != nil {

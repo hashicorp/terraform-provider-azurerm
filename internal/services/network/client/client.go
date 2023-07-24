@@ -9,7 +9,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/adminrulecollections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/adminrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/bastionhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectionmonitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectivityconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/flowlogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagerconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
@@ -28,9 +31,9 @@ import (
 type Client struct {
 	ApplicationGatewaysClient                *network.ApplicationGatewaysClient
 	ApplicationSecurityGroupsClient          *applicationsecuritygroups.ApplicationSecurityGroupsClient
-	BastionHostsClient                       *network.BastionHostsClient
+	BastionHostsClient                       *bastionhosts.BastionHostsClient
 	ConfigurationPolicyGroupClient           *network.ConfigurationPolicyGroupsClient
-	ConnectionMonitorsClient                 *network.ConnectionMonitorsClient
+	ConnectionMonitorsClient                 *connectionmonitors.ConnectionMonitorsClient
 	DDOSProtectionPlansClient                *network.DdosProtectionPlansClient
 	ExpressRouteAuthsClient                  *network.ExpressRouteCircuitAuthorizationsClient
 	ExpressRouteCircuitsClient               *network.ExpressRouteCircuitsClient
@@ -40,7 +43,7 @@ type Client struct {
 	ExpressRoutePeeringsClient               *network.ExpressRouteCircuitPeeringsClient
 	ExpressRoutePortsClient                  *network.ExpressRoutePortsClient
 	ExpressRoutePortAuthorizationsClient     *network.ExpressRoutePortAuthorizationsClient
-	FlowLogsClient                           *network.FlowLogsClient
+	FlowLogsClient                           *flowlogs.FlowLogsClient
 	HubRouteTableClient                      *network.HubRouteTablesClient
 	HubVirtualNetworkConnectionClient        *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                         *network.InterfacesClient
@@ -105,14 +108,20 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(ApplicationSecurityGroupsClient.Client, o.Authorizers.ResourceManager)
 
-	BastionHostsClient := network.NewBastionHostsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&BastionHostsClient.Client, o.ResourceManagerAuthorizer)
+	BastionHostsClient, err := bastionhosts.NewBastionHostsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building bastion hosts client: %+v", err)
+	}
+	o.Configure(BastionHostsClient.Client, o.Authorizers.ResourceManager)
 
 	configurationPolicyGroupClient := network.NewConfigurationPolicyGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configurationPolicyGroupClient.Client, o.ResourceManagerAuthorizer)
 
-	ConnectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ConnectionMonitorsClient.Client, o.ResourceManagerAuthorizer)
+	ConnectionMonitorsClient, err := connectionmonitors.NewConnectionMonitorsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building connection monitors client: %+v", err)
+	}
+	o.Configure(ConnectionMonitorsClient.Client, o.Authorizers.ResourceManager)
 
 	DDOSProtectionPlansClient := network.NewDdosProtectionPlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DDOSProtectionPlansClient.Client, o.ResourceManagerAuthorizer)
@@ -141,8 +150,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ExpressRoutePortAuthorizationsClient := network.NewExpressRoutePortAuthorizationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRoutePortAuthorizationsClient.Client, o.ResourceManagerAuthorizer)
 
-	FlowLogsClient := network.NewFlowLogsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&FlowLogsClient.Client, o.ResourceManagerAuthorizer)
+	FlowLogsClient, err := flowlogs.NewFlowLogsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building flow logs client: %+v", err)
+	}
+	o.Configure(FlowLogsClient.Client, o.Authorizers.ResourceManager)
 
 	HubRouteTableClient := network.NewHubRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HubRouteTableClient.Client, o.ResourceManagerAuthorizer)
@@ -345,9 +357,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		ApplicationGatewaysClient:                &ApplicationGatewaysClient,
 		ApplicationSecurityGroupsClient:          ApplicationSecurityGroupsClient,
-		BastionHostsClient:                       &BastionHostsClient,
+		BastionHostsClient:                       BastionHostsClient,
 		ConfigurationPolicyGroupClient:           &configurationPolicyGroupClient,
-		ConnectionMonitorsClient:                 &ConnectionMonitorsClient,
+		ConnectionMonitorsClient:                 ConnectionMonitorsClient,
 		DDOSProtectionPlansClient:                &DDOSProtectionPlansClient,
 		ExpressRouteAuthsClient:                  &ExpressRouteAuthsClient,
 		ExpressRouteCircuitsClient:               &ExpressRouteCircuitsClient,
@@ -357,7 +369,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ExpressRoutePeeringsClient:               &ExpressRoutePeeringsClient,
 		ExpressRoutePortsClient:                  &ExpressRoutePortsClient,
 		ExpressRoutePortAuthorizationsClient:     &ExpressRoutePortAuthorizationsClient,
-		FlowLogsClient:                           &FlowLogsClient,
+		FlowLogsClient:                           FlowLogsClient,
 		HubRouteTableClient:                      &HubRouteTableClient,
 		HubVirtualNetworkConnectionClient:        &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                         &InterfacesClient,

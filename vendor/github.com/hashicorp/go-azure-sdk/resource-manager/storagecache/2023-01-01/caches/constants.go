@@ -1,6 +1,10 @@
 package caches
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForDomainJoinedType() []string {
 		string(DomainJoinedTypeNo),
 		string(DomainJoinedTypeYes),
 	}
+}
+
+func (s *DomainJoinedType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDomainJoinedType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDomainJoinedType(input string) (*DomainJoinedType, error) {
@@ -48,6 +65,19 @@ func PossibleValuesForFirmwareStatusType() []string {
 		string(FirmwareStatusTypeAvailable),
 		string(FirmwareStatusTypeUnavailable),
 	}
+}
+
+func (s *FirmwareStatusType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFirmwareStatusType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseFirmwareStatusType(input string) (*FirmwareStatusType, error) {
@@ -98,6 +128,19 @@ func PossibleValuesForHealthStateType() []string {
 	}
 }
 
+func (s *HealthStateType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseHealthStateType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseHealthStateType(input string) (*HealthStateType, error) {
 	vals := map[string]HealthStateType{
 		"degraded":      HealthStateTypeDegraded,
@@ -138,6 +181,19 @@ func PossibleValuesForNfsAccessRuleAccess() []string {
 	}
 }
 
+func (s *NfsAccessRuleAccess) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNfsAccessRuleAccess(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseNfsAccessRuleAccess(input string) (*NfsAccessRuleAccess, error) {
 	vals := map[string]NfsAccessRuleAccess{
 		"no": NfsAccessRuleAccessNo,
@@ -167,6 +223,19 @@ func PossibleValuesForNfsAccessRuleScope() []string {
 		string(NfsAccessRuleScopeHost),
 		string(NfsAccessRuleScopeNetwork),
 	}
+}
+
+func (s *NfsAccessRuleScope) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNfsAccessRuleScope(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseNfsAccessRuleScope(input string) (*NfsAccessRuleScope, error) {
@@ -200,6 +269,19 @@ func PossibleValuesForPrimingJobState() []string {
 		string(PrimingJobStateQueued),
 		string(PrimingJobStateRunning),
 	}
+}
+
+func (s *PrimingJobState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrimingJobState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePrimingJobState(input string) (*PrimingJobState, error) {
@@ -240,6 +322,19 @@ func PossibleValuesForProvisioningStateType() []string {
 	}
 }
 
+func (s *ProvisioningStateType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningStateType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningStateType(input string) (*ProvisioningStateType, error) {
 	vals := map[string]ProvisioningStateType{
 		"cancelled": ProvisioningStateTypeCancelled,
@@ -274,6 +369,19 @@ func PossibleValuesForUsernameDownloadedType() []string {
 	}
 }
 
+func (s *UsernameDownloadedType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUsernameDownloadedType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseUsernameDownloadedType(input string) (*UsernameDownloadedType, error) {
 	vals := map[string]UsernameDownloadedType{
 		"error": UsernameDownloadedTypeError,
@@ -305,6 +413,19 @@ func PossibleValuesForUsernameSource() []string {
 		string(UsernameSourceLDAP),
 		string(UsernameSourceNone),
 	}
+}
+
+func (s *UsernameSource) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUsernameSource(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseUsernameSource(input string) (*UsernameSource, error) {

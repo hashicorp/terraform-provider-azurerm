@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/datastore"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
@@ -16,19 +18,28 @@ type Client struct {
 	DatastoreClient  *datastore.DatastoreClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	ComputeClient := machinelearningcomputes.NewMachineLearningComputesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ComputeClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	computeClient, err := machinelearningcomputes.NewMachineLearningComputesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Compute Client: %+v", err)
+	}
+	o.Configure(computeClient.Client, o.Authorizers.ResourceManager)
 
-	WorkspacesClient := workspaces.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
+	workspacesClient, err := workspaces.NewWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Workspaces Client: %+v", err)
+	}
+	o.Configure(workspacesClient.Client, o.Authorizers.ResourceManager)
 
-	DatastoreClient := datastore.NewDatastoreClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DatastoreClient.Client, o.ResourceManagerAuthorizer)
+	datastoreClient, err := datastore.NewDatastoreClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Datastore Client: %+v", err)
+	}
+	o.Configure(datastoreClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ComputeClient:    &ComputeClient,
-		WorkspacesClient: &WorkspacesClient,
-		DatastoreClient:  &DatastoreClient,
-	}
+		ComputeClient:    computeClient,
+		WorkspacesClient: workspacesClient,
+		DatastoreClient:  datastoreClient,
+	}, nil
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -62,7 +63,7 @@ func (o ListAtResourceLevelOperationOptions) toQueryString() map[string]interfac
 }
 
 // ListAtResourceLevel ...
-func (c ManagementLocksClient) ListAtResourceLevel(ctx context.Context, id ResourceId, options ListAtResourceLevelOperationOptions) (resp ListAtResourceLevelOperationResponse, err error) {
+func (c ManagementLocksClient) ListAtResourceLevel(ctx context.Context, id commonids.ScopeId, options ListAtResourceLevelOperationOptions) (resp ListAtResourceLevelOperationResponse, err error) {
 	req, err := c.preparerForListAtResourceLevel(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementlocks.ManagementLocksClient", "ListAtResourceLevel", nil, "Failure preparing request")
@@ -84,7 +85,7 @@ func (c ManagementLocksClient) ListAtResourceLevel(ctx context.Context, id Resou
 }
 
 // preparerForListAtResourceLevel prepares the ListAtResourceLevel request.
-func (c ManagementLocksClient) preparerForListAtResourceLevel(ctx context.Context, id ResourceId, options ListAtResourceLevelOperationOptions) (*http.Request, error) {
+func (c ManagementLocksClient) preparerForListAtResourceLevel(ctx context.Context, id commonids.ScopeId, options ListAtResourceLevelOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -171,12 +172,12 @@ func (c ManagementLocksClient) responderForListAtResourceLevel(resp *http.Respon
 }
 
 // ListAtResourceLevelComplete retrieves all of the results into a single object
-func (c ManagementLocksClient) ListAtResourceLevelComplete(ctx context.Context, id ResourceId, options ListAtResourceLevelOperationOptions) (ListAtResourceLevelCompleteResult, error) {
+func (c ManagementLocksClient) ListAtResourceLevelComplete(ctx context.Context, id commonids.ScopeId, options ListAtResourceLevelOperationOptions) (ListAtResourceLevelCompleteResult, error) {
 	return c.ListAtResourceLevelCompleteMatchingPredicate(ctx, id, options, ManagementLockObjectOperationPredicate{})
 }
 
 // ListAtResourceLevelCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ManagementLocksClient) ListAtResourceLevelCompleteMatchingPredicate(ctx context.Context, id ResourceId, options ListAtResourceLevelOperationOptions, predicate ManagementLockObjectOperationPredicate) (resp ListAtResourceLevelCompleteResult, err error) {
+func (c ManagementLocksClient) ListAtResourceLevelCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, options ListAtResourceLevelOperationOptions, predicate ManagementLockObjectOperationPredicate) (resp ListAtResourceLevelCompleteResult, err error) {
 	items := make([]ManagementLockObject, 0)
 
 	page, err := c.ListAtResourceLevel(ctx, id, options)
