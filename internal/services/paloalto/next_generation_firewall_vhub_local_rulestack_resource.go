@@ -142,7 +142,6 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 					PlanData: firewalls.PlanData{
 						BillingCycle: firewalls.BillingCycleMONTHLY,
 						PlanId:       "panw-cloud-ngfw-payg",
-						// EffectiveDate: pointer.To("0001-01-01T00:00:00Z"),
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
 				},

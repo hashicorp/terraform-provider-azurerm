@@ -44,11 +44,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_requiresImport(t *t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError(data.ResourceName),
-		},
-		data.ImportStep(),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -154,10 +150,9 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "test
 func (r NextGenerationFirewallVWanResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
-
 %[1]s
 
-resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "import" {
   name                = azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack.test.name
   resource_group_name = azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack.test.resource_group_name
   rule_stack_id       = azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack.test.rule_stack_id

@@ -21,6 +21,8 @@ func (r Registration) Resources() []sdk.Resource {
 		LocalRuleStack{},
 		LocalRuleStackCertificate{},
 		LocalRulestackFQDNList{},
+		LocalRulestackOutboundTrustCertificateResource{},
+		LocalRulestackOutboundUnTrustCertificateResource{},
 		LocalRuleStackPrefixList{},
 		LocalRuleStackRule{},
 		NetworkVirtualApplianceResource{},

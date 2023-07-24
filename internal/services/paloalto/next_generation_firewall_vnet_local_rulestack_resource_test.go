@@ -44,10 +44,7 @@ func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_requiresImport(t *t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError(data.ResourceName),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -150,7 +147,6 @@ resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "test
 func (r NextGenerationFirewallVnetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
-
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "import" {
@@ -159,12 +155,12 @@ resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "impo
   rule_stack_id       = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.rule_stack_id
 
   network_profile {
-    public_ip_ids = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_provile.0.public_ip_ids
+    public_ip_ids = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_profile.0.public_ip_ids
 
     vnet_configuration {
-      virtual_network_id  = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_provile.0.vnet_configuration.0.virtual_network_id
-      trusted_subnet_id   = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_provile.0.vnet_configuration.0.trusted_subnet_id
-      untrusted_subnet_id = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_provile.0.vnet_configuration.0.untrusted_subnet_id
+      virtual_network_id  = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_profile.0.vnet_configuration.0.virtual_network_id
+      trusted_subnet_id   = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_profile.0.vnet_configuration.0.trusted_subnet_id
+      untrusted_subnet_id = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_profile.0.vnet_configuration.0.untrusted_subnet_id
     }
   }
 }

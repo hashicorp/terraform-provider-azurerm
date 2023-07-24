@@ -133,7 +133,7 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			if _, err = rulestackClient.Commit(ctx, *ruleStackId); err != nil {
+			if err = rulestackClient.CommitThenPoll(ctx, *ruleStackId); err != nil {
 				return fmt.Errorf("committing Local RuleStack config for %s: %+v", id, err)
 			}
 
@@ -202,6 +202,7 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PrefixListClient
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
 
 			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
@@ -238,6 +239,11 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 
 			if _, err = client.CreateOrUpdate(ctx, *id, prefixList); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 
 			return nil

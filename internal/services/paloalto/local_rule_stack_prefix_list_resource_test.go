@@ -44,10 +44,7 @@ func TestAccLocalRulestackPrefixList_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError(data.ResourceName),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -136,7 +133,7 @@ func (r LocalRuleStackPrefixList) requiresImport(data acceptance.TestData) strin
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule_stack_prefix_list" "test" {
+resource "azurerm_palo_alto_local_rule_stack_prefix_list" "import" {
   name          = azurerm_palo_alto_local_rule_stack_prefix_list.test.name
   rule_stack_id = azurerm_palo_alto_local_rule_stack_prefix_list.test.rule_stack_id
 

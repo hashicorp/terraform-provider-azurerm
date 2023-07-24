@@ -182,9 +182,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Read() sdk.ResourceFun
 
 			state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
 
-			netProfile := schema.FlattenNetworkProfileVnet(props.NetworkProfile)
-
-			state.NetworkProfile = []schema.NetworkProfileVnet{netProfile}
+			state.NetworkProfile = schema.FlattenNetworkProfileVnet(props.NetworkProfile)
 
 			state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 

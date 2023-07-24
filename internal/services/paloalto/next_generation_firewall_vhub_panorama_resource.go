@@ -48,6 +48,10 @@ func (r NextGenerationFirewallVHubPanoramaResource) IDValidationFunc() pluginsdk
 	return firewalls.ValidateFirewallID
 }
 
+func (r NextGenerationFirewallVHubPanoramaResource) ResourceType() string {
+	return "azurerm_palo_alto_next_generation_firewall_vhub_panorama"
+}
+
 func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -89,10 +93,6 @@ func (r NextGenerationFirewallVHubPanoramaResource) Attributes() map[string]*plu
 			Computed: true,
 		},
 	}
-}
-
-func (r NextGenerationFirewallVHubPanoramaResource) ResourceType() string {
-	return "azurerm_palo_alto_next_generation_firewall_vhub_panorama"
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) Create() sdk.ResourceFunc {

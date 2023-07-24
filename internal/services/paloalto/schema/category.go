@@ -21,7 +21,7 @@ func CategorySchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"feeds": {
 					Type:     pluginsdk.TypeList,
-					Required: true,
+					Optional: true,
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,

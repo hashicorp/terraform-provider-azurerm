@@ -273,7 +273,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 				props.Protocol = pointer.To(model.Protocol)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, localrules.LocalRulesResource{Properties: props}); err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, id, localrules.LocalRulesResource{Properties: props}); err != nil {
 				return err
 			}
 
@@ -322,7 +322,11 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 			state.Description = pointer.From(props.Description)
 			state.Destination = schema.FlattenDestination(props.Destination)
 			state.LoggingEnabled = stateEnumAsBool(props.EnableLogging)
-			state.InspectionCertificateID = pointer.From(props.InboundInspectionCertificate)
+			if certName := pointer.From(props.InboundInspectionCertificate); certName != "" {
+				state.InspectionCertificateID = certificates.NewLocalRulestackCertificateID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName, certName).ID()
+			} else {
+				state.InspectionCertificateID = certName
+			}
 			state.NegateDestination = boolEnumAsBoolRule(props.NegateDestination)
 			state.NegateSource = boolEnumAsBoolRule(props.NegateSource)
 			if v := pointer.From(props.Protocol); !strings.EqualFold(v, protocolApplicationDefault) {
@@ -452,7 +456,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 				ruleEntry.Properties.Tags = expandTagsForRule(model.Tags)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, ruleEntry); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, *id, ruleEntry); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 

@@ -173,7 +173,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Read() sdk.ResourceFunc {
 
 			state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
 
-			state.NetworkProfile = []schema.NetworkProfileVnet{schema.FlattenNetworkProfileVnet(props.NetworkProfile)}
+			state.NetworkProfile = schema.FlattenNetworkProfileVnet(props.NetworkProfile)
 
 			state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 

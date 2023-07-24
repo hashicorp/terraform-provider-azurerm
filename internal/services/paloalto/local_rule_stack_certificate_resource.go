@@ -93,7 +93,7 @@ func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.CertificatesClient
-			rulstackClient := metadata.Client.PaloAlto.LocalRulestacksClient
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
 
 			model := LocalRuleStackCertificateModel{}
 			if err := metadata.Decode(&model); err != nil {
@@ -142,7 +142,7 @@ func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			if _, err = rulstackClient.Commit(ctx, *ruleStackId); err != nil {
+			if err = rulestackClient.CommitThenPoll(ctx, *ruleStackId); err != nil {
 				return fmt.Errorf("committing Local RuleStack config for %s: %+v", id, err)
 			}
 
@@ -212,7 +212,7 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.CertificatesClient
-
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
 			model := LocalRuleStackCertificateModel{}
 
 			if err := metadata.Decode(&model); err != nil {
@@ -246,6 +246,11 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 
 			if _, err = client.CreateOrUpdate(ctx, *id, cert); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+				return fmt.Errorf("committing Local RuleStack config for %s: %+v", id, err)
 			}
 
 			return nil

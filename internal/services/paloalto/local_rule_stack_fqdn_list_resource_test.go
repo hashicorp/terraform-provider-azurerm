@@ -15,7 +15,7 @@ import (
 
 type LocalRulestackFQDNList struct{}
 
-func TestAccPaloAltoLocalRuleFQDNList_basic(t *testing.T) {
+func TestAccPaloAltoLocalRulestackFQDNList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
 
 	r := LocalRulestackFQDNList{}
@@ -31,7 +31,7 @@ func TestAccPaloAltoLocalRuleFQDNList_basic(t *testing.T) {
 	})
 }
 
-func TestAccPaloAltoLocalRuleFQDNList_complete(t *testing.T) {
+func TestAccPaloAltoLocalRulestackFQDNList_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
 
 	r := LocalRulestackFQDNList{}
@@ -47,7 +47,7 @@ func TestAccPaloAltoLocalRuleFQDNList_complete(t *testing.T) {
 	})
 }
 
-func TestAccPaloAltoLocalRuleFQDNList_update(t *testing.T) {
+func TestAccPaloAltoLocalRulestackFQDNList_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
 
 	r := LocalRulestackFQDNList{}
@@ -70,7 +70,7 @@ func TestAccPaloAltoLocalRuleFQDNList_update(t *testing.T) {
 	})
 }
 
-func TestAccPaloAltoLocalRuleFQDNList_requiresImport(t *testing.T) {
+func TestAccPaloAltoLocalRulestackFQDNList_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
 
 	r := LocalRulestackFQDNList{}
@@ -82,10 +82,7 @@ func TestAccPaloAltoLocalRuleFQDNList_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError(data.ResourceName),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -136,7 +133,7 @@ resource "azurerm_palo_alto_local_rule_stack_fqdn_list" "test" {
   name          = "testacc-pafqdn-%[2]d"
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
 
-  fully_qualified_domain_names = ["contoso.com", "test.example.com"]
+  fully_qualified_domain_names = ["contoso.com", "test.example.com", "anothertest.example.com"]
 
   audit_comment = "Acc Test Audit Comment - %[2]d"
   description   = "Acc Test Description - %[2]d"

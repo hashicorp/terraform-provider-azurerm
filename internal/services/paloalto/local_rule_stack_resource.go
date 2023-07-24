@@ -3,7 +3,6 @@ package paloalto
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectlocalrulestack"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"time"
 
@@ -28,18 +27,16 @@ const (
 )
 
 type LocalRuleStackModel struct {
-	Name                             string `tfschema:"name"`
-	ResourceGroupName                string `tfschema:"resource_group_name"`
-	Location                         string `tfschema:"location"`
-	AntiSpywareProfile               string `tfschema:"anti_spyware_profile"`
-	AntiVirusProfile                 string `tfschema:"anti_virus_profile"`
-	DNSSubscription                  string `tfschema:"dns_subscription"`
-	FileBlockingProfile              string `tfschema:"file_blocking_profile"`
-	OutboundTrustedCertificateName   string `tfschema:"outbound_trusted_certificate_name"`
-	OutboundUntrustedCertificateName string `tfschema:"outbound_untrusted_certificate_name"`
-	URLFilteringProfile              string `tfschema:"url_filtering_profile"`
-	VulnerabilityProfile             string `tfschema:"vulnerability_profile"`
-	Description                      string `tfschema:"description"`
+	Name                 string `tfschema:"name"`
+	ResourceGroupName    string `tfschema:"resource_group_name"`
+	Location             string `tfschema:"location"`
+	AntiSpywareProfile   string `tfschema:"anti_spyware_profile"`
+	AntiVirusProfile     string `tfschema:"anti_virus_profile"`
+	DNSSubscription      string `tfschema:"dns_subscription"`
+	FileBlockingProfile  string `tfschema:"file_blocking_profile"`
+	URLFilteringProfile  string `tfschema:"url_filtering_profile"`
+	VulnerabilityProfile string `tfschema:"vulnerability_profile"`
+	Description          string `tfschema:"description"`
 }
 
 func (r LocalRuleStack) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -129,18 +126,6 @@ func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"outbound_trusted_certificate_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validate.LocalRuleStackCertificateName,
-		},
-
-		"outbound_untrusted_certificate_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validate.LocalRuleStackCertificateName,
-		},
-
 		"description": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -180,24 +165,6 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			outboundTrustedCert := model.OutboundTrustedCertificateName
-			if outboundTrustedCert != "" {
-				certId, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(model.OutboundTrustedCertificateName)
-				if err != nil {
-					return fmt.Errorf("parsing `outbound_trusted_certificate_name` for %s: %+v", id, err)
-				}
-				outboundTrustedCert = certId.CertificateName
-			}
-
-			outboundUntrustedCert := model.OutboundUntrustedCertificateName
-			if outboundUntrustedCert != "" {
-				certId, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(model.OutboundUntrustedCertificateName)
-				if err != nil {
-					return fmt.Errorf("parsing `outbound_untrusted_certificate_name` for %s: %+v", id, err)
-				}
-				outboundUntrustedCert = certId.CertificateName
-			}
-
 			localRuleStack := localrulestacks.LocalRulestackResource{
 				Location: model.Location,
 				Properties: localrulestacks.RulestackProperties{
@@ -205,14 +172,12 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 					Description: pointer.To(model.Description),
 					Scope:       pointer.To(localrulestacks.ScopeTypeLOCAL),
 					SecurityServices: &localrulestacks.SecurityServices{
-						AntiSpywareProfile:         pointer.To(model.AntiSpywareProfile),
-						AntiVirusProfile:           pointer.To(model.AntiVirusProfile),
-						DnsSubscription:            pointer.To(model.DNSSubscription),
-						FileBlockingProfile:        pointer.To(model.FileBlockingProfile),
-						OutboundTrustCertificate:   pointer.To(outboundTrustedCert),
-						OutboundUnTrustCertificate: pointer.To(outboundUntrustedCert),
-						UrlFilteringProfile:        pointer.To(model.URLFilteringProfile),
-						VulnerabilityProfile:       pointer.To(model.VulnerabilityProfile),
+						AntiSpywareProfile:   pointer.To(model.AntiSpywareProfile),
+						AntiVirusProfile:     pointer.To(model.AntiVirusProfile),
+						DnsSubscription:      pointer.To(model.DNSSubscription),
+						FileBlockingProfile:  pointer.To(model.FileBlockingProfile),
+						UrlFilteringProfile:  pointer.To(model.URLFilteringProfile),
+						VulnerabilityProfile: pointer.To(model.VulnerabilityProfile),
 					},
 				},
 			}
@@ -221,11 +186,11 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err = client.Commit(ctx, id); err != nil {
+			metadata.SetID(id)
+
+			if err = client.CommitThenPoll(ctx, id); err != nil {
 				return fmt.Errorf("committing config for %s: %+v", id, err)
 			}
-
-			metadata.SetID(id)
 
 			return nil
 		},
@@ -261,8 +226,6 @@ func (r LocalRuleStack) Read() sdk.ResourceFunc {
 			state.Location = location.Normalize(existing.Model.Location)
 
 			if secServices := props.SecurityServices; secServices != nil {
-				state.OutboundUntrustedCertificateName = pointer.From(secServices.OutboundUnTrustCertificate)
-				state.OutboundTrustedCertificateName = pointer.From(secServices.OutboundTrustCertificate)
 				state.VulnerabilityProfile = pointer.From(secServices.VulnerabilityProfile)
 				state.AntiSpywareProfile = pointer.From(secServices.AntiSpywareProfile)
 				state.AntiVirusProfile = pointer.From(secServices.AntiVirusProfile)
@@ -281,7 +244,6 @@ func (r LocalRuleStack) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulestacksClient
-
 			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -354,14 +316,6 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 				secServices.FileBlockingProfile = pointer.To(model.FileBlockingProfile)
 			}
 
-			if metadata.ResourceData.HasChange("outbound_trusted_certificate_name") {
-				secServices.OutboundTrustCertificate = pointer.To(model.OutboundTrustedCertificateName)
-			}
-
-			if metadata.ResourceData.HasChange("outbound_untrusted_certificate_name") {
-				secServices.OutboundUnTrustCertificate = pointer.To(model.OutboundUntrustedCertificateName)
-			}
-
 			update.SecurityServices = pointer.To(secServices)
 
 			localRuleStack.Properties = update
@@ -370,7 +324,7 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			if _, err = client.Commit(ctx, *id); err != nil {
+			if err = client.CommitThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("committing config for %s: %+v", *id, err)
 			}
 

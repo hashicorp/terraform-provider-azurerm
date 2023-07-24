@@ -243,6 +243,7 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 				ResourceId: pointer.To(v),
 			})
 		}
+		result.EgressNatIP = pointer.To(egressNatIPs)
 	}
 
 	result.NetworkType = firewalls.NetworkTypeVWAN
@@ -257,7 +258,7 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 	return result
 }
 
-func FlattenNetworkProfileVnet(input firewalls.NetworkProfile) NetworkProfileVnet {
+func FlattenNetworkProfileVnet(input firewalls.NetworkProfile) []NetworkProfileVnet {
 	result := NetworkProfileVnet{}
 
 	for _, v := range input.PublicIPs {
@@ -286,7 +287,7 @@ func FlattenNetworkProfileVnet(input firewalls.NetworkProfile) NetworkProfileVne
 		result.VnetConfiguration = []VnetConfiguration{vNet}
 	}
 
-	return result
+	return []NetworkProfileVnet{result}
 }
 
 func FlattenNetworkProfileVHub(input firewalls.NetworkProfile) (*NetworkProfileVHub, error) {
