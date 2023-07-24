@@ -53,6 +53,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_automation_variable_bool":     dataSourceAutomationVariableBool(),
 		"azurerm_automation_variable_datetime": dataSourceAutomationVariableDateTime(),
 		"azurerm_automation_variable_int":      dataSourceAutomationVariableInt(),
+		"azurerm_automation_variable_object":   dataSourceAutomationVariableObject(),
 		"azurerm_automation_variable_string":   dataSourceAutomationVariableString(),
 	}
 }

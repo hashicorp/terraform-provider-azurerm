@@ -42,6 +42,15 @@ type NullVariable struct {
 	IsEncrypted bool   `tfschema:"encrypted"`
 }
 
+type ObjectVariable struct {
+	ID          string `tfschema:"id"`
+	Name        string `tfschema:"name"`
+	Description string `tfschema:"description"`
+	IsEncrypted bool   `tfschema:"encrypted"`
+	Value       string `tfschema:"value"`
+	// Value       map[string]interface{} `tfschema:"value"`
+}
+
 type StringVariable struct {
 	ID          string `tfschema:"id"`
 	Name        string `tfschema:"name"`
