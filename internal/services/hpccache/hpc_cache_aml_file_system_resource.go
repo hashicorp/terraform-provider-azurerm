@@ -29,16 +29,16 @@ type HPCCacheAMLFileSystemModel struct {
 	KeyEncryptionKey    []KeyEncryptionKey           `tfschema:"key_encryption_key"`
 	MaintenanceWindow   []MaintenanceWindow          `tfschema:"maintenance_window"`
 	SkuName             string                       `tfschema:"sku_name"`
-	StorageCapacityInTb float64                      `tfschema:"storage_capacity_in_tb"`
+	StorageCapacityInTb int64                        `tfschema:"storage_capacity_in_tb"`
 	SubnetId            string                       `tfschema:"subnet_id"`
 	Zones               []string                     `tfschema:"zones"`
 	Tags                map[string]string            `tfschema:"tags"`
 }
 
 type HsmSetting struct {
-	Container        string `tfschema:"container"`
-	ImportPrefix     string `tfschema:"import_prefix"`
-	LoggingContainer string `tfschema:"logging_container"`
+	ContainerId        string `tfschema:"container_id"`
+	LoggingContainerId string `tfschema:"logging_container_id"`
+	ImportPrefix       string `tfschema:"import_prefix"`
 }
 
 type KeyEncryptionKey struct {
@@ -109,7 +109,7 @@ func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		"storage_capacity_in_tb": {
-			Type:     pluginsdk.TypeFloat,
+			Type:     pluginsdk.TypeInt,
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.All(
@@ -134,14 +134,14 @@ func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema 
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"container": {
+					"container_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: storageValidate.StorageContainerResourceManagerID,
 					},
 
-					"logging_container": {
+					"logging_container_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -221,27 +221,17 @@ func (r HPCCacheAMLFileSystemResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Identity: identity,
 				Properties: &amlfilesystems.AmlFilesystemProperties{
+					Hsm:                expandAMLFileSystemHsmSetting(model.HsmSetting),
+					EncryptionSettings: expandAMLFileSystemKeyEncryptionKey(model.KeyEncryptionKey),
 					MaintenanceWindow:  expandAMLFileSystemMaintenanceWindowForCreate(model.MaintenanceWindow),
 					FilesystemSubnet:   model.SubnetId,
-					StorageCapacityTiB: model.StorageCapacityInTb,
+					StorageCapacityTiB: float64(model.StorageCapacityInTb),
 				},
 				Sku: &amlfilesystems.SkuName{
 					Name: pointer.To(model.SkuName),
 				},
 				Zones: pointer.To(model.Zones),
 				Tags:  pointer.To(model.Tags),
-			}
-
-			if v := model.HsmSetting; v != nil {
-				properties.Properties.Hsm = &amlfilesystems.AmlFilesystemPropertiesHsm{
-					Settings: expandAMLFileSystemHsmSetting(model.HsmSetting),
-				}
-			}
-
-			if v := model.KeyEncryptionKey; v != nil {
-				properties.Properties.EncryptionSettings = &amlfilesystems.AmlFilesystemEncryptionSettings{
-					KeyEncryptionKey: expandAMLFileSystemKeyEncryptionKey(v),
-				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
@@ -270,16 +260,16 @@ func (r HPCCacheAMLFileSystemResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			properties := amlfilesystems.AmlFilesystemUpdate{}
+			properties := amlfilesystems.AmlFilesystemUpdate{
+				Properties: &amlfilesystems.AmlFilesystemUpdateProperties{},
+			}
 
 			if metadata.ResourceData.HasChange("maintenance_window") {
 				properties.Properties.MaintenanceWindow = expandAMLFileSystemMaintenanceWindowForUpdate(model.MaintenanceWindow)
 			}
 
 			if metadata.ResourceData.HasChange("key_encryption_key") {
-				properties.Properties.EncryptionSettings = &amlfilesystems.AmlFilesystemEncryptionSettings{
-					KeyEncryptionKey: expandAMLFileSystemKeyEncryptionKey(model.KeyEncryptionKey),
-				}
+				properties.Properties.EncryptionSettings = expandAMLFileSystemKeyEncryptionKey(model.KeyEncryptionKey)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -324,6 +314,7 @@ func (r HPCCacheAMLFileSystemResource) Read() sdk.ResourceFunc {
 				Name:              id.AmlFilesystemName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
+				Tags:              pointer.From(model.Tags),
 			}
 
 			identity, err := flattenAMLFileSystemIdentity(model.Identity)
@@ -334,19 +325,12 @@ func (r HPCCacheAMLFileSystemResource) Read() sdk.ResourceFunc {
 
 			if properties := model.Properties; properties != nil {
 				state.SubnetId = properties.FilesystemSubnet
-				state.StorageCapacityInTb = properties.StorageCapacityTiB
+				state.StorageCapacityInTb = int64(properties.StorageCapacityTiB)
 				state.MaintenanceWindow = flattenAMLFileSystemMaintenanceWindow(properties.MaintenanceWindow)
 				state.HsmSetting = flattenAMLFileSystemHsmSetting(properties.Hsm)
 				state.SkuName = pointer.From(model.Sku.Name)
 				state.Zones = pointer.From(model.Zones)
-
-				if v := properties.EncryptionSettings; v != nil && v.KeyEncryptionKey != nil {
-					state.KeyEncryptionKey = flattenAMLFileSystemKeyEncryptionKey(v.KeyEncryptionKey)
-				}
-			}
-
-			if model.Tags != nil {
-				state.Tags = pointer.From(model.Tags)
+				state.KeyEncryptionKey = flattenAMLFileSystemKeyEncryptionKey(properties.EncryptionSettings)
 			}
 
 			return metadata.Encode(&state)
@@ -459,59 +443,63 @@ func flattenAMLFileSystemMaintenanceWindow(input amlfilesystems.AmlFilesystemPro
 	return append(result, maintenanceWindow)
 }
 
-func expandAMLFileSystemKeyEncryptionKey(input []KeyEncryptionKey) *amlfilesystems.KeyVaultKeyReference {
+func expandAMLFileSystemKeyEncryptionKey(input []KeyEncryptionKey) *amlfilesystems.AmlFilesystemEncryptionSettings {
 	if len(input) == 0 {
 		return nil
 	}
 
 	keyEncryptionKey := &input[0]
 
-	output := amlfilesystems.KeyVaultKeyReference{
+	result := &amlfilesystems.KeyVaultKeyReference{
 		KeyUrl: keyEncryptionKey.KeyUrl,
 		SourceVault: amlfilesystems.KeyVaultKeyReferenceSourceVault{
 			Id: pointer.To(keyEncryptionKey.SourceVaultId),
 		},
 	}
 
-	return &output
+	return &amlfilesystems.AmlFilesystemEncryptionSettings{
+		KeyEncryptionKey: result,
+	}
 }
 
-func flattenAMLFileSystemKeyEncryptionKey(input *amlfilesystems.KeyVaultKeyReference) []KeyEncryptionKey {
-	if input == nil {
+func flattenAMLFileSystemKeyEncryptionKey(input *amlfilesystems.AmlFilesystemEncryptionSettings) []KeyEncryptionKey {
+	if input == nil || input.KeyEncryptionKey == nil {
 		return nil
 	}
 
-	var result []KeyEncryptionKey
+	keyEncryptionKey := input.KeyEncryptionKey
 
-	keyEncryptionKey := KeyEncryptionKey{
-		KeyUrl:        input.KeyUrl,
-		SourceVaultId: pointer.From(input.SourceVault.Id),
+	result := KeyEncryptionKey{
+		KeyUrl:        keyEncryptionKey.KeyUrl,
+		SourceVaultId: pointer.From(keyEncryptionKey.SourceVault.Id),
 	}
 
-	return append(result, keyEncryptionKey)
+	return []KeyEncryptionKey{result}
 }
 
-func expandAMLFileSystemHsmSetting(input []HsmSetting) *amlfilesystems.AmlFilesystemHsmSettings {
+func expandAMLFileSystemHsmSetting(input []HsmSetting) *amlfilesystems.AmlFilesystemPropertiesHsm {
 	if len(input) == 0 {
 		return nil
 	}
 
 	hsmSetting := &input[0]
 
-	result := amlfilesystems.AmlFilesystemHsmSettings{
-		Container:        hsmSetting.Container,
-		LoggingContainer: hsmSetting.LoggingContainer,
+	result := &amlfilesystems.AmlFilesystemHsmSettings{
+		Container:        hsmSetting.ContainerId,
+		LoggingContainer: hsmSetting.LoggingContainerId,
 	}
 
 	if hsmSetting.ImportPrefix != "" {
 		result.ImportPrefix = pointer.To(hsmSetting.ImportPrefix)
 	}
 
-	return &result
+	return &amlfilesystems.AmlFilesystemPropertiesHsm{
+		Settings: result,
+	}
 }
 
 func flattenAMLFileSystemHsmSetting(input *amlfilesystems.AmlFilesystemPropertiesHsm) []HsmSetting {
-	if input == nil {
+	if input == nil || input.Settings == nil {
 		return nil
 	}
 
@@ -519,8 +507,8 @@ func flattenAMLFileSystemHsmSetting(input *amlfilesystems.AmlFilesystemPropertie
 	hsmSetting := HsmSetting{}
 
 	if v := input.Settings; v != nil {
-		hsmSetting.Container = v.Container
-		hsmSetting.LoggingContainer = v.LoggingContainer
+		hsmSetting.ContainerId = v.Container
+		hsmSetting.LoggingContainerId = v.LoggingContainer
 
 		if v.ImportPrefix != nil {
 			hsmSetting.ImportPrefix = pointer.From(v.ImportPrefix)

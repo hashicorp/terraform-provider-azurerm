@@ -155,6 +155,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		domainservices.Registration{},
 		eventhub.Registration{},
 		fluidrelay.Registration{},
+		hpccache.Registration{},
 		hybridcompute.Registration{},
 		iothub.Registration{},
 		iotcentral.Registration{},
