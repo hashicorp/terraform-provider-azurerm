@@ -17,7 +17,7 @@ import (
 type NextGenerationFirewallVNetPanoramaResource struct{}
 
 func TestAccNextGenerationFirewallVNetPanoramaResource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_panorama", "test")
 	r := NextGenerationFirewallVNetPanoramaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -57,7 +57,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_vnet_panorama" "test" {
   name                   = "acctest-ngfwvnp-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
   panorama_base64_config = "Ly8gVE9ETyAtIGdldCBhIHJlYWwgYSBwYW5vcmFtYSBjb25maWcuCg==" // TODO - get a real a panorama config.
@@ -72,7 +72,6 @@ resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "test
     }
   }
 }
-
 `, r.template(data), data.RandomInteger)
 }
 
@@ -93,7 +92,7 @@ resource "azurerm_public_ip" "egress" {
 }
 
 
-resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_vnet_panorama" "test" {
   name                   = "acctest-ngfwvn-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = "%[3]s"
