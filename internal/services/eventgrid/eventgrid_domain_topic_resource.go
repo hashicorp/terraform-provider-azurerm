@@ -9,14 +9,14 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domaintopics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceEventGridDomainTopic() *pluginsdk.Resource {
@@ -32,7 +32,7 @@ func resourceEventGridDomainTopic() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DomainTopicID(id)
+			_, err := domaintopics.ParseDomainTopicID(id)
 			return err
 		}),
 
@@ -69,85 +69,74 @@ func resourceEventGridDomainTopic() *pluginsdk.Resource {
 }
 
 func resourceEventGridDomainTopicCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
+	client := meta.(*clients.Client).EventGrid.DomainTopics
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDomainTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("domain_name").(string), d.Get("name").(string))
+	id := domaintopics.NewDomainTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("domain_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_eventgrid_domain_topic", id.ID())
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id); err != nil {
 		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to become available: %s", id, err)
-	}
-
 	d.SetId(id.ID())
-
 	return resourceEventGridDomainTopicRead(d, meta)
 }
 
 func resourceEventGridDomainTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
+	client := meta.(*clients.Client).EventGrid.DomainTopics
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DomainTopicID(d.Id())
+	id, err := domaintopics.ParseDomainTopicID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] EventGrid Domain Topic %q was not found (Resource Group %q)", id.TopicName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("%s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on EventGrid Domain Topic %q: %+v", id.TopicName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.DomainName)
 	d.Set("domain_name", id.DomainName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	return nil
 }
 
 func resourceEventGridDomainTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
+	client := meta.(*clients.Client).EventGrid.DomainTopics
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DomainTopicID(d.Id())
+	id, err := domaintopics.ParseDomainTopicID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

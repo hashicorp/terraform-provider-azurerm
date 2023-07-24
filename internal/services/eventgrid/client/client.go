@@ -12,7 +12,6 @@ import (
 type Client struct {
 	eventgrid_v2022_06_15.Client
 
-	DomainTopicsClient                  *eventgrid.DomainTopicsClient
 	EventSubscriptionsClient            *eventgrid.EventSubscriptionsClient
 	TopicsClient                        *eventgrid.TopicsClient
 	SystemTopicsClient                  *eventgrid.SystemTopicsClient
@@ -20,9 +19,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	DomainTopicsClient := eventgrid.NewDomainTopicsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&DomainTopicsClient.Client, o.ResourceManagerAuthorizer)
-
 	EventSubscriptionsClient := eventgrid.NewEventSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&EventSubscriptionsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -37,7 +33,6 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		EventSubscriptionsClient:            &EventSubscriptionsClient,
-		DomainTopicsClient:                  &DomainTopicsClient,
 		TopicsClient:                        &TopicsClient,
 		SystemTopicsClient:                  &SystemTopicsClient,
 		SystemTopicEventSubscriptionsClient: &SystemTopicEventSubscriptionsClient,
