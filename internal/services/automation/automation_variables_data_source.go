@@ -201,7 +201,7 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 						Name:        pointer.From(v.Name),
 						Description: pointer.From(v.Properties.Description),
 						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
-						Value:       pointer.From(v.Properties.Value), //objVar,
+						Value:       pointer.From(v.Properties.Value),
 					})
 				} else if s, err := strconv.Unquote(pointer.From(v.Properties.Value)); err == nil {
 					var_str = append(var_str, helper.StringVariable{

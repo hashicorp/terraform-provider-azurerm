@@ -30,7 +30,6 @@ func resourceAutomationVariableObject() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		// @TODO Create a validation function to check that we have a JSON object passed to us?
 		Schema: resourceAutomationVariableCommonSchema(pluginsdk.TypeString, validation.StringIsNotEmpty),
 	}
 }
