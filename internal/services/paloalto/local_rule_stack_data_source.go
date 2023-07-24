@@ -20,10 +20,18 @@ type LocalRulestackDataSource struct{}
 var _ sdk.DataSource = LocalRulestackDataSource{}
 
 type LocalRulestackDataSourceModel struct {
-	Name              string `tfschema:"name"`
-	ResourceGroupName string `tfschema:"resource_group_name"`
-	Location          string `tfschema:"location"`
-	Description       string `tfschema:"description"`
+	Name                       string `tfschema:"name"`
+	ResourceGroupName          string `tfschema:"resource_group_name"`
+	Location                   string `tfschema:"location"`
+	AntiSpywareProfile         string `tfschema:"anti_spyware_profile"`
+	AntiVirusProfile           string `tfschema:"anti_virus_profile"`
+	DNSSubscription            string `tfschema:"dns_subscription"`
+	FileBlockingProfile        string `tfschema:"file_blocking_profile"`
+	URLFilteringProfile        string `tfschema:"url_filtering_profile"`
+	VulnerabilityProfile       string `tfschema:"vulnerability_profile"`
+	OutboundTrustCertificate   string `tfschema:"outbound_trust_certificate"`
+	OutboundUnTrustCertificate string `tfschema:"outbound_untrust_certificate"`
+	Description                string `tfschema:"description"`
 }
 
 func (l LocalRulestackDataSource) ResourceType() string {
@@ -50,6 +58,46 @@ func (l LocalRulestackDataSource) Arguments() map[string]*schema.Schema {
 
 func (l LocalRulestackDataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
+		"vulnerability_profile": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"anti_spyware_profile": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"anti_virus_profile": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"url_filtering_profile": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"file_blocking_profile": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"dns_subscription": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"outbound_trust_certificate": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"outbound_untrust_certificate": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"description": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -81,6 +129,16 @@ func (l LocalRulestackDataSource) Read() sdk.ResourceFunc {
 			props := existing.Model.Properties
 
 			model.Description = pointer.From(props.Description)
+			if secServices := props.SecurityServices; secServices != nil {
+				model.FileBlockingProfile = pointer.From(secServices.FileBlockingProfile)
+				model.AntiVirusProfile = pointer.From(secServices.AntiVirusProfile)
+				model.AntiSpywareProfile = pointer.From(secServices.AntiSpywareProfile)
+				model.URLFilteringProfile = pointer.From(secServices.UrlFilteringProfile)
+				model.VulnerabilityProfile = pointer.From(secServices.VulnerabilityProfile)
+				model.DNSSubscription = pointer.From(secServices.DnsSubscription)
+				model.OutboundTrustCertificate = pointer.From(secServices.OutboundTrustCertificate)
+				model.OutboundUnTrustCertificate = pointer.From(secServices.OutboundUnTrustCertificate)
+			}
 
 			metadata.SetID(id)
 

@@ -238,10 +238,10 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   applications  = ["any"]
   audit_comment = "test audit comment"
 
-  category {
-   // feeds = ["foo", "bar"] // Needs feeds defined on the LocalRuleStack?
-   custom_urls = ["https://contoso.com"] // TODO - This is another resource type in PAN?
-  }
+  //category {
+  // // feeds = ["foo", "bar"] // Needs feeds defined on the LocalRuleStack?
+  // custom_urls = [azurerm_palo_alto_local_rule_stack_fqdn_list.test.name] // TODO - This is another resource type in PAN?
+  //}
 
   decryption_rule_type = "SSLOutboundInspection"
   description          = "Acceptance Test Rule - dated %[2]d"
@@ -391,6 +391,11 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "untrust" {
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
 
   certificate_signer_id = "https://example.com/acctest-untrust-cert"
+
+  // TODO - This depends_on is a workaround for the etag serialisation bug - needs removing before merge
+  depends_on = [
+    azurerm_palo_alto_local_rule_stack_certificate.trust,
+  ]
 }
 
 resource "azurerm_local_rulestack_outbound_trust_certificate_association" "test" {

@@ -3,7 +3,6 @@ package paloalto
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -11,9 +10,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type LocalRuleStack struct{}
@@ -154,6 +155,8 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 			}
 
 			id := localrulestacks.NewLocalRulestackID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -268,6 +271,9 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
 
 			model := LocalRuleStackModel{}
 

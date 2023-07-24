@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistlocalrulestack"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -94,12 +95,14 @@ func (r LocalRulestackFQDNList) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			ruleStackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
+			rulestackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
 			if err != nil {
 				return err
 			}
+			locks.ByID(rulestackId.ID())
+			defer locks.UnlockByID(rulestackId.ID())
 
-			id := fqdnlistlocalrulestack.NewLocalRulestackFqdnListID(ruleStackId.SubscriptionId, ruleStackId.ResourceGroupName, ruleStackId.LocalRulestackName, model.Name)
+			id := fqdnlistlocalrulestack.NewLocalRulestackFqdnListID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -133,7 +136,7 @@ func (r LocalRulestackFQDNList) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			if err = rulestackClient.CommitThenPoll(ctx, *ruleStackId); err != nil {
+			if err = rulestackClient.CommitThenPoll(ctx, *rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 
@@ -188,6 +191,10 @@ func (r LocalRulestackFQDNList) Delete() sdk.ResourceFunc {
 				return err
 			}
 
+			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			locks.ByID(rulestackId.ID())
+			defer locks.UnlockByID(rulestackId.ID())
+
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -215,6 +222,10 @@ func (r LocalRulestackFQDNList) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			locks.ByID(rulestackId.ID())
+			defer locks.UnlockByID(rulestackId.ID())
+
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retreiving %s: %+v", *id, err)
@@ -238,7 +249,6 @@ func (r LocalRulestackFQDNList) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
 			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}

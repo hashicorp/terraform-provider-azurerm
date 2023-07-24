@@ -10,32 +10,33 @@ import (
 	certificates "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectlocalrulestack"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LocalRulestackOutboundTrustCertificateResource struct{}
+type LocalRulestackOutboundTrustCertificateAssociationResource struct{}
 
 type LocalRulestackOutboundTrustCertificateResourceModel struct {
 	RulestackID   string `tfschema:"rulestack_id"`
 	CertificateID string `tfschema:"certificate_id"`
 }
 
-var _ sdk.Resource = LocalRulestackOutboundTrustCertificateResource{}
+var _ sdk.Resource = LocalRulestackOutboundTrustCertificateAssociationResource{}
 
-func (l LocalRulestackOutboundTrustCertificateResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (l LocalRulestackOutboundTrustCertificateAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return certificates.ValidateLocalRulestackCertificateID
 }
 
-func (l LocalRulestackOutboundTrustCertificateResource) ModelObject() interface{} {
+func (l LocalRulestackOutboundTrustCertificateAssociationResource) ModelObject() interface{} {
 	return &LocalRulestackOutboundTrustCertificateResourceModel{}
 }
 
-func (l LocalRulestackOutboundTrustCertificateResource) ResourceType() string {
+func (l LocalRulestackOutboundTrustCertificateAssociationResource) ResourceType() string {
 	return "azurerm_local_rulestack_outbound_trust_certificate_association"
 }
 
-func (l LocalRulestackOutboundTrustCertificateResource) Arguments() map[string]*schema.Schema {
+func (l LocalRulestackOutboundTrustCertificateAssociationResource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"rulestack_id": {
 			Type:         pluginsdk.TypeString,
@@ -53,11 +54,11 @@ func (l LocalRulestackOutboundTrustCertificateResource) Arguments() map[string]*
 	}
 }
 
-func (l LocalRulestackOutboundTrustCertificateResource) Attributes() map[string]*schema.Schema {
+func (l LocalRulestackOutboundTrustCertificateAssociationResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (l LocalRulestackOutboundTrustCertificateResource) Create() sdk.ResourceFunc {
+func (l LocalRulestackOutboundTrustCertificateAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -69,19 +70,25 @@ func (l LocalRulestackOutboundTrustCertificateResource) Create() sdk.ResourceFun
 				return err
 			}
 
-			ruleStackId, err := localrulestacks.ParseLocalRulestackID(model.RulestackID)
+			rulestackId, err := localrulestacks.ParseLocalRulestackID(model.RulestackID)
 			if err != nil {
 				return err
 			}
+
+			locks.ByID(rulestackId.ID())
+			defer locks.UnlockByID(rulestackId.ID())
 
 			certificateId, err := certificates.ParseLocalRulestackCertificateID(model.CertificateID)
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *ruleStackId)
+			locks.ByID(certificateId.ID())
+			defer locks.UnlockByID(certificateId.ID())
+
+			existing, err := client.Get(ctx, *rulestackId)
 			if err != nil {
-				return fmt.Errorf("retrieving the local Rulestack to associate the Outbound Trust Certificate on %s: %+v", *ruleStackId, err)
+				return fmt.Errorf("retrieving the local Rulestack to associate the Outbound Trust Certificate on %s: %+v", *rulestackId, err)
 			}
 
 			rulestack := *existing.Model
@@ -94,12 +101,12 @@ func (l LocalRulestackOutboundTrustCertificateResource) Create() sdk.ResourceFun
 
 			rulestack.Properties = props
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *ruleStackId, rulestack); err != nil {
-				return fmt.Errorf("creating Outbound Trust Certificate Association for %s: %+v", ruleStackId, err)
+			if err = client.CreateOrUpdateThenPoll(ctx, *rulestackId, rulestack); err != nil {
+				return fmt.Errorf("creating Outbound Trust Certificate Association for %s: %+v", rulestackId, err)
 			}
 
-			if err = client.CommitThenPoll(ctx, *ruleStackId); err != nil {
-				return fmt.Errorf("committing Local Rulestack configurtion for UnTrust Certificate for %s: %+v", ruleStackId, err)
+			if err = client.CommitThenPoll(ctx, *rulestackId); err != nil {
+				return fmt.Errorf("committing Local Rulestack configurtion for UnTrust Certificate for %s: %+v", rulestackId, err)
 			}
 
 			metadata.SetID(certificateId)
@@ -109,7 +116,7 @@ func (l LocalRulestackOutboundTrustCertificateResource) Create() sdk.ResourceFun
 	}
 }
 
-func (l LocalRulestackOutboundTrustCertificateResource) Read() sdk.ResourceFunc {
+func (l LocalRulestackOutboundTrustCertificateAssociationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -143,7 +150,7 @@ func (l LocalRulestackOutboundTrustCertificateResource) Read() sdk.ResourceFunc 
 	}
 }
 
-func (l LocalRulestackOutboundTrustCertificateResource) Delete() sdk.ResourceFunc {
+func (l LocalRulestackOutboundTrustCertificateAssociationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -153,8 +160,12 @@ func (l LocalRulestackOutboundTrustCertificateResource) Delete() sdk.ResourceFun
 			if err != nil {
 				return err
 			}
+			locks.ByID(certId.ID())
+			defer locks.UnlockByID(certId.ID())
 
 			rulestackId := localrulestacks.NewLocalRulestackID(certId.SubscriptionId, certId.ResourceGroupName, certId.LocalRulestackName)
+			locks.ByID(rulestackId.ID())
+			defer locks.UnlockByID(rulestackId.ID())
 
 			existing, err := client.Get(ctx, rulestackId)
 			if err != nil {

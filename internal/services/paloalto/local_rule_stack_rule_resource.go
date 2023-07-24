@@ -12,6 +12,7 @@ import (
 	certificates "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectlocalrulestack"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -195,6 +196,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulesClient
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
 
 			model := LocalRuleModel{}
 
@@ -202,13 +204,15 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			ruleStackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
+			rulestackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
 			if err != nil {
 				return err
 			}
+			locks.ByID(rulestackId.ID())
+			defer locks.UnlockByID(rulestackId.ID())
 
 			// API uses Priority not Name for ID, despite swagger defining `ruleName` as required, not Priority - https://github.com/Azure/azure-rest-api-specs/issues/24697
-			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, ruleStackId.ResourceGroupName, ruleStackId.LocalRulestackName, strconv.Itoa(model.Priority))
+			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.Itoa(model.Priority))
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -273,11 +277,15 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 				props.Protocol = pointer.To(model.Protocol)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, localrules.LocalRulesResource{Properties: props}); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, localrules.LocalRulesResource{Properties: props}); err != nil {
 				return err
 			}
 
 			metadata.SetID(id)
+
+			if err = rulestackClient.CommitThenPoll(ctx, *rulestackId); err != nil {
+				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
+			}
 
 			return nil
 		},
@@ -355,6 +363,10 @@ func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
 				return err
 			}
 
+			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			locks.ByID(rulestackId.ID())
+			defer locks.UnlockByID(rulestackId.ID())
+
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -380,6 +392,9 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
