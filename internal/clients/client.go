@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 
+	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
@@ -193,7 +195,7 @@ type Client struct {
 	Dns                   *dns_v2018_05_01.Client
 	DomainServices        *domainservices.Client
 	Elastic               *elastic.Client
-	EventGrid             *eventgrid.Client
+	EventGrid             *eventgrid_v2022_06_15.Client
 	Eventhub              *eventhub.Client
 	Firewall              *firewall.Client
 	FluidRelay            *fluidrelay_2022_05_26.Client
@@ -397,7 +399,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Elastic, err = elastic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Elastic: %+v", err)
 	}
-	client.EventGrid = eventgrid.NewClient(o)
+	if client.EventGrid, err = eventgrid.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for EventGrid: %+v", err)
+	}
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
