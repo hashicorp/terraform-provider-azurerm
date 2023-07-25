@@ -4,11 +4,11 @@ bug:
 crash:
   - 'panic:'
 v/1.x (legacy):
-  - '### AzureRM Provider Version\n\n(|v)1\.\d+\.\d+'
+  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)1\.\d+'
 v/2.x (legacy):
-  - '### AzureRM Provider Version\n\n(|v)2\.\d+\.\d+'
+  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)2\.\d+'
 v/3.x:
-  - '### AzureRM Provider Version\n\n(|v)3\.\d+\.\d+'
+  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)3\.\d+'
 service/aadb2c:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_aadb2c_directory((.|\n)*)###'
 
@@ -34,7 +34,7 @@ service/attestation:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_attestation_provider((.|\n)*)###'
 
 service/authorization:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(client_config|federated_identity_credential|pim_|role_|user_assigned_identity)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(client_config|federated_identity_credential|marketplace_role_assignment|pim_|role_|user_assigned_identity)((.|\n)*)###'
 
 service/automanage:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automanage_configuration((.|\n)*)###'
