@@ -534,22 +534,25 @@ func expandMaintenanceConfigurationInstallPatchesLinux(input []interface{}) *mai
 func flattenMaintenanceConfigurationInstallPatchesLinux(input *maintenanceconfigurations.InputLinuxParameters) []interface{} {
 	results := make([]interface{}, 0)
 
-	if v := input; v != nil {
-		output := make(map[string]interface{})
-
-		if classificationsToInclude := v.ClassificationsToInclude; classificationsToInclude != nil {
-			output["classifications_to_include"] = utils.FlattenStringSlice(classificationsToInclude)
+	if input != nil {
+		classificationsToInclude := make([]interface{}, 0)
+		if input.ClassificationsToInclude != nil {
+			classificationsToInclude = utils.FlattenStringSlice(input.ClassificationsToInclude)
+		}
+		packageNamesMaskToExclude := make([]interface{}, 0)
+		if input.PackageNameMasksToExclude != nil {
+			packageNamesMaskToExclude = utils.FlattenStringSlice(input.PackageNameMasksToExclude)
+		}
+		packageNamesMaskToInclude := make([]interface{}, 0)
+		if input.PackageNameMasksToInclude != nil {
+			packageNamesMaskToInclude = utils.FlattenStringSlice(input.PackageNameMasksToInclude)
 		}
 
-		if packageNameMasksToInclude := v.PackageNameMasksToInclude; packageNameMasksToInclude != nil {
-			output["package_names_mask_to_exclude"] = utils.FlattenStringSlice(packageNameMasksToInclude)
-		}
-
-		if packageNameMasksToExclude := v.PackageNameMasksToExclude; packageNameMasksToExclude != nil {
-			output["package_names_mask_to_include"] = utils.FlattenStringSlice(packageNameMasksToExclude)
-		}
-
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"classifications_to_include":    classificationsToInclude,
+			"package_names_mask_to_exclude": packageNamesMaskToExclude,
+			"package_names_mask_to_include": packageNamesMaskToInclude,
+		})
 	}
 
 	return results
