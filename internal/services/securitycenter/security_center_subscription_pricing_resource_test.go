@@ -170,15 +170,15 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   resource_type = "CloudPosture"
   extension {
     name= "SensitiveDataDiscovery"
-    is_enabled = "True"
+    enabled = "True"
   }
   extension {
     name= "AgentlessDiscoveryForKubernetes"
-    is_enabled = "False"
+    enabled = "False"
   }
   extension {
     name= "AgentlessVmScanning"
-    is_enabled = "True"
+    enabled = "True"
     additional_extension_properties = {
 ExclusionTags = "[]"
     }

@@ -84,7 +84,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"is_enabled": {
+						"enabled": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 						},
@@ -180,7 +180,7 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 		if properties := resp.Model.Properties; properties != nil {
 			d.Set("tier", properties.PricingTier)
 			d.Set("subplan", properties.SubPlan)
-			d.Set("extensions", properties.Extensions)
+			d.Set("extensions", *(properties.Extensions))
 		}
 	}
 
@@ -221,7 +221,7 @@ func ConvertInputExtensionToSDKModel(inputList []interface{}) *[]pricings_v2023_
 		input := v.(map[string]interface{})
 		output := pricings_v2023_01_01.Extension{
 			Name:      input["name"].(string),
-			IsEnabled: pricings_v2023_01_01.IsEnabled(input["is_enabled"].(string)),
+			IsEnabled: pricings_v2023_01_01.IsEnabled(input["enabled"].(string)),
 		}
 		if output.IsEnabled == "True" {
 			if vAdditional, ok := input["additional_extension_properties"]; ok {
