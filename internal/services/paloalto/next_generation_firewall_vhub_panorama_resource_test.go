@@ -59,6 +59,7 @@ provider "azurerm" {
 resource "azurerm_palo_alto_next_generation_firewall_vhub_panorama" "test" {
   name                   = "acctest-ngfwvh-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
   panorama_base64_config = "Ly8gVE9ETyAtIGdldCBhIHJlYWwgYSBwYW5vcmFtYSBjb25maWcuCg==" // TODO - get a real a panorama config.
 
   network_profile {
