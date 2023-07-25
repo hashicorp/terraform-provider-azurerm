@@ -240,7 +240,7 @@ func (t NetworkWatcherFlowLogResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.Network.FlowLogsClient.Get(ctx, *id)
+	resp, err := clients.Network.FlowLogs.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Network Watcher Flow Log (%s): %+v", id, err)
 	}

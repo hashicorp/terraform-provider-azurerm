@@ -183,7 +183,7 @@ func azureRMSuppressFlowLogRetentionPolicyDaysDiff(_, old, _ string, d *pluginsd
 }
 
 func resourceNetworkWatcherFlowLogCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FlowLogsClient
+	client := meta.(*clients.Client).Network.FlowLogs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -263,7 +263,7 @@ func resourceNetworkWatcherFlowLogCreateUpdate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FlowLogsClient
+	client := meta.(*clients.Client).Network.FlowLogs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -329,7 +329,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceNetworkWatcherFlowLogDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FlowLogsClient
+	client := meta.(*clients.Client).Network.FlowLogs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
