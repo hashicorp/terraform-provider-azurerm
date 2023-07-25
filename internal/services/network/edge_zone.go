@@ -43,5 +43,5 @@ func flattenEdgeZoneModel(input *edgezones.Model) string {
 	if input == nil || input.Name == "" {
 		return ""
 	}
-	return edgezones.NormalizeNilable(&input.Name)
+	return edgezones.Normalize(input.Name)
 }
