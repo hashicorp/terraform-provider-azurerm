@@ -118,7 +118,7 @@ func resourceEventGridDomainTopicRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.DomainName)
+	d.Set("name", id.TopicName)
 	d.Set("domain_name", id.DomainName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 

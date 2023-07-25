@@ -4,10 +4,10 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
+	serviceBusQueues "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
+	serviceBusTopics "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -161,7 +161,7 @@ func eventSubscriptionSchemaServiceBusQueueEndpointID(conflictsWith []string) *p
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
 		ConflictsWith: conflictsWith,
-		ValidateFunc:  queues.ValidateQueueID,
+		ValidateFunc:  serviceBusQueues.ValidateQueueID,
 	}
 }
 
@@ -170,7 +170,7 @@ func eventSubscriptionSchemaServiceBusTopicEndpointID(conflictsWith []string) *p
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
 		ConflictsWith: conflictsWith,
-		ValidateFunc:  topics.ValidateTopicID,
+		ValidateFunc:  serviceBusTopics.ValidateTopicID,
 	}
 }
 

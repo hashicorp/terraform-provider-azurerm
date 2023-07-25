@@ -250,7 +250,11 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 
 	fullUrlResp, err := client.SystemTopicEventSubscriptionsGetFullUrl(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving Full Url for %s: %+v", *id, err)
+		// unexpected status 400 with error: InvalidRequest: Destination type of the event subscription XXXX
+		// is StorageQueue which doesn't support full URL. Only webhook destination type supports full URL.
+		if !response.WasBadRequest(fullUrlResp.HttpResponse) {
+			return fmt.Errorf("retrieving full url for %s: %+v", *id, err)
+		}
 	}
 
 	d.Set("name", id.EventSubscriptionName)
