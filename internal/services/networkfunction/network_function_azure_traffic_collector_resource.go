@@ -16,16 +16,12 @@ import (
 )
 
 type NetworkFunctionAzureTrafficCollectorModel struct {
-	Name              string                   `tfschema:"name"`
-	ResourceGroupName string                   `tfschema:"resource_group_name"`
-	Location          string                   `tfschema:"location"`
-	Tags              map[string]string        `tfschema:"tags"`
-	VirtualHub        []ResourceReferenceModel `tfschema:"virtual_hub"`
-	CollectorPolicies []ResourceReferenceModel `tfschema:"collector_policy"`
-}
-
-type ResourceReferenceModel struct {
-	Id string `tfschema:"id"`
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
+	Tags              map[string]string `tfschema:"tags"`
+	CollectorPolicies []string          `tfschema:"collector_policy_ids"`
+	VirtualHub        []string          `tfschema:"virtual_hub_id"`
 }
 
 type NetworkFunctionAzureTrafficCollectorResource struct{}
@@ -66,29 +62,19 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Arguments() map[string]*pl
 
 func (r NetworkFunctionAzureTrafficCollectorResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"collector_policy": {
+		"collector_policy_ids": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 
-		"virtual_hub": {
+		"virtual_hub_id": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 	}
@@ -157,8 +143,6 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			properties.SystemData = nil
-
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
 			}
@@ -192,35 +176,21 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			state := NetworkFunctionAzureTrafficCollectorModel{
 				Name:              id.AzureTrafficCollectorName,
 				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
 			}
 
-			if properties := model.Properties; properties != nil {
-				collectorPoliciesValue, err := flattenResourceReferenceModelArray(properties.CollectorPolicies)
-				if err != nil {
-					return err
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				if properties := model.Properties; properties != nil {
+					state.CollectorPolicies = flattenCollectorPolicyModelArray(properties.CollectorPolicies)
+					state.VirtualHub = flattenVirtualHubModel(properties.VirtualHub)
 				}
 
-				state.CollectorPolicies = collectorPoliciesValue
-
-				virtualHubValue, err := flattenResourceReferenceModel(properties.VirtualHub)
-				if err != nil {
-					return err
+				if model.Tags != nil {
+					state.Tags = *model.Tags
 				}
-
-				state.VirtualHub = virtualHubValue
-			}
-
-			if model.Tags != nil {
-				state.Tags = *model.Tags
 			}
 
 			return metadata.Encode(&state)
@@ -248,36 +218,26 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Delete() sdk.ResourceFunc 
 	}
 }
 
-func flattenResourceReferenceModelArray(inputList *[]azuretrafficcollectors.ResourceReference) ([]ResourceReferenceModel, error) {
-	var outputList []ResourceReferenceModel
+func flattenCollectorPolicyModelArray(inputList *[]azuretrafficcollectors.ResourceReference) []string {
+	var outputList []string
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
-		output := ResourceReferenceModel{}
-
 		if input.Id != nil {
-			output.Id = *input.Id
+			outputList = append(outputList, *input.Id)
 		}
-
-		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenResourceReferenceModel(input *azuretrafficcollectors.ResourceReference) ([]ResourceReferenceModel, error) {
-	var outputList []ResourceReferenceModel
-	if input == nil {
-		return outputList, nil
+func flattenVirtualHubModel(input *azuretrafficcollectors.ResourceReference) []string {
+	var outputList []string
+	if input != nil && input.Id != nil {
+		outputList = append(outputList, *input.Id)
 	}
 
-	output := ResourceReferenceModel{}
-
-	if input.Id != nil {
-		output.Id = *input.Id
-	}
-
-	return append(outputList, output), nil
+	return outputList
 }

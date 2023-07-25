@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -101,6 +104,142 @@ func TestLoadBalancerBackendAddressPoolID(t *testing.T) {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := LoadBalancerBackendAddressPoolID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
+			}
+
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
+		}
+
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
+		}
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+		if actual.LoadBalancerName != v.Expected.LoadBalancerName {
+			t.Fatalf("Expected %q but got %q for LoadBalancerName", v.Expected.LoadBalancerName, actual.LoadBalancerName)
+		}
+		if actual.BackendAddressPoolName != v.Expected.BackendAddressPoolName {
+			t.Fatalf("Expected %q but got %q for BackendAddressPoolName", v.Expected.BackendAddressPoolName, actual.BackendAddressPoolName)
+		}
+	}
+}
+
+func TestLoadBalancerBackendAddressPoolIDInsensitively(t *testing.T) {
+	testData := []struct {
+		Input    string
+		Error    bool
+		Expected *LoadBalancerBackendAddressPoolId
+	}{
+
+		{
+			// empty
+			Input: "",
+			Error: true,
+		},
+
+		{
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
+		},
+
+		{
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
+		},
+
+		{
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
+		},
+
+		{
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
+		},
+
+		{
+			// missing LoadBalancerName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
+			Error: true,
+		},
+
+		{
+			// missing value for LoadBalancerName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/",
+			Error: true,
+		},
+
+		{
+			// missing BackendAddressPoolName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/",
+			Error: true,
+		},
+
+		{
+			// missing value for BackendAddressPoolName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/backendAddressPools/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/backendAddressPools/backendAddressPool1",
+			Expected: &LoadBalancerBackendAddressPoolId{
+				SubscriptionId:         "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:          "resGroup1",
+				LoadBalancerName:       "loadBalancer1",
+				BackendAddressPoolName: "backendAddressPool1",
+			},
+		},
+
+		{
+			// lower-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadbalancers/loadBalancer1/backendaddresspools/backendAddressPool1",
+			Expected: &LoadBalancerBackendAddressPoolId{
+				SubscriptionId:         "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:          "resGroup1",
+				LoadBalancerName:       "loadBalancer1",
+				BackendAddressPoolName: "backendAddressPool1",
+			},
+		},
+
+		{
+			// upper-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/LOADBALANCERS/loadBalancer1/BACKENDADDRESSPOOLS/backendAddressPool1",
+			Expected: &LoadBalancerBackendAddressPoolId{
+				SubscriptionId:         "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:          "resGroup1",
+				LoadBalancerName:       "loadBalancer1",
+				BackendAddressPoolName: "backendAddressPool1",
+			},
+		},
+
+		{
+			// mixed-cased segment names
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/LoAdBaLaNcErS/loadBalancer1/BaCkEnDaDdReSsPoOlS/backendAddressPool1",
+			Expected: &LoadBalancerBackendAddressPoolId{
+				SubscriptionId:         "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:          "resGroup1",
+				LoadBalancerName:       "loadBalancer1",
+				BackendAddressPoolName: "backendAddressPool1",
+			},
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q", v.Input)
+
+		actual, err := LoadBalancerBackendAddressPoolIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

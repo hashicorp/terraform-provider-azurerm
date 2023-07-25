@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package bot_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -86,17 +89,17 @@ func TestAccBotHealthbot_update(t *testing.T) {
 }
 
 func (r HealthbotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BotHealthbotID(state.ID)
+	id, err := healthbots.ParseHealthBotID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Bot.HealthbotClient.Get(ctx, id.ResourceGroup, id.HealthBotName)
+	resp, err := client.Bot.HealthBotClient.Healthbots.BotsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Healthbot service %q (resource group: %q): %+v", id.HealthBotName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r HealthbotResource) template(data acceptance.TestData) string {

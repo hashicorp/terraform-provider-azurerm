@@ -72,7 +72,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of Database Migration Project.
 
@@ -90,5 +90,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Database Migration Projects can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_database_migration_project.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.DataMigration/services/example-dms/projects/project1
+terraform import azurerm_database_migration_project.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.DataMigration/services/example-dms/projects/project1
 ```

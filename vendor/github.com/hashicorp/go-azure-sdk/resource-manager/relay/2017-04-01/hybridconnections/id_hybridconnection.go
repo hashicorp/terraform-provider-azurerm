@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = HybridConnectionId{}
 
 // HybridConnectionId is a struct representing the Resource ID for a Hybrid Connection
@@ -39,19 +42,19 @@ func ParseHybridConnectionID(input string) (*HybridConnectionId, error) {
 	id := HybridConnectionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
 	}
 
 	if id.HybridConnectionName, ok = parsed.Parsed["hybridConnectionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'hybridConnectionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridConnectionName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseHybridConnectionIDInsensitively(input string) (*HybridConnectionId, er
 	id := HybridConnectionId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
 	}
 
 	if id.HybridConnectionName, ok = parsed.Parsed["hybridConnectionName"]; !ok {
-		return nil, fmt.Errorf("the segment 'hybridConnectionName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hybridConnectionName", *parsed)
 	}
 
 	return &id, nil

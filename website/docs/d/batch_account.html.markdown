@@ -50,7 +50,9 @@ The following attributes are exported:
 
 * `account_endpoint` - The account endpoint used to interact with the Batch service.
 
-* `key_vault_reference` - The `key_vault_reference` block that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode. 
+* `key_vault_reference` - The `key_vault_reference` block that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode.
+
+* `encryption` - The `encryption` block that describes the Azure KeyVault key reference used to encrypt data for the Azure Batch account.
 
 * `tags` - A map of tags assigned to the Batch account.
 
@@ -58,11 +60,17 @@ The following attributes are exported:
 
 ---
 
-A `key_vault_reference` block have the following properties:
+A `key_vault_reference` block exports the following:
 
 * `id` - The Azure identifier of the Azure KeyVault reference.
 
 * `url` - The HTTPS URL of the Azure KeyVault reference.
+
+---
+
+An `encryption` block exports the following:
+
+* `key_vault_key_id` - The full URL path of the Key Vault Key used to encrypt data for this Batch account.
 
 ---
 

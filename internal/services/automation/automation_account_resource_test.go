@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation_test
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -81,7 +84,6 @@ func TestAccAutomationAccount_encryption(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
 				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("encryption.0.key_source").HasValue("Microsoft.Keyvault"),
 			),
 		},
 		data.ImportStep(),
@@ -323,6 +325,7 @@ resource "azurerm_key_vault" "test" {
       "List",
       "Delete",
       "Purge",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -341,6 +344,7 @@ resource "azurerm_key_vault" "test" {
       "Recover",
       "WrapKey",
       "UnwrapKey",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = []
@@ -384,7 +388,6 @@ resource "azurerm_automation_account" "test" {
   local_authentication_enabled = false
 
   encryption {
-    key_source                = "Microsoft.Keyvault"
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
     key_vault_key_id          = azurerm_key_vault_key.test.id
   }

@@ -33,7 +33,7 @@ resource "azurerm_network_function_azure_traffic_collector" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Network Function Azure Traffic Collector. It can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 80 characters, and it must begin with a letter or number and end with a letter, number or underscore. Changing this forces a new Network Function Azure Traffic Collector to be created.
+* `name` - (Required) Specifies the name which should be used for this Network Function Azure Traffic Collector. Changing this forces a new Network Function Azure Traffic Collector to be created.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Network Function Azure Traffic Collector should exist. Changing this forces a new Network Function Azure Traffic Collector to be created.
 
@@ -47,21 +47,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Network Function Azure Traffic Collector.
 
-* `collector_policy` - A `collector_policy` block as defined below.
+* `collector_policy_ids` - The list of Resource IDs of collector policies.
 
-* `virtual_hub` - A `virtual_hub` block as defined below.
-
----
-
-A `collector_policy` block exports the following:
-
-* `id` - Resource ID.
-
----
-
-A `virtual_hub` block exports the following:
-
-* `id` - Resource ID.
+* `virtual_hub_id` - The Resource ID of virtual hub.
 
 ## Timeouts
 

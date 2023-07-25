@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -6,7 +9,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -20,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceVirtualNetworkGateway() *pluginsdk.Resource {
@@ -53,9 +56,9 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"type": {
 			Type:     pluginsdk.TypeString,
@@ -161,7 +164,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						ValidateFunc: validate.PublicIpAddressID,
 					},
 				},
 			},
@@ -383,7 +386,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		"default_local_network_gateway_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			ValidateFunc: validate.LocalNetworkGatewayID,
 		},
 
 		"tags": tags.Schema(),
@@ -838,7 +841,7 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]network.IPConfigur
 	for _, e := range *input {
 		var ipConfigName string
 		if e.IpconfigurationID != nil {
-			id, err := parse.VirtualNetworkGatewayIpConfigurationID(*e.IpconfigurationID)
+			id, err := parse.VirtualNetworkGatewayIpConfigurationIDInsensitively(*e.IpconfigurationID)
 			if err != nil {
 				return nil, err
 			}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/flowlogs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -232,17 +235,17 @@ func testAccNetworkWatcherFlowLog_tags(t *testing.T) {
 }
 
 func (t NetworkWatcherFlowLogResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FlowLogID(state.ID)
+	id, err := flowlogs.ParseFlowLogID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.FlowLogsClient.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
+	resp, err := clients.Network.FlowLogsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Network Watcher Flow Log (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (NetworkWatcherFlowLogResource) prerequisites(data acceptance.TestData) string {
@@ -384,6 +387,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
   name                 = "flowlog-%d"
+  location             = azurerm_network_watcher.test.location
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -412,6 +416,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
   name                 = "flowlog-%d"
+  location             = azurerm_network_watcher.test.location
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -447,6 +452,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
   name                 = "flowlog-%d"
+  location             = azurerm_network_watcher.test.location
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -483,6 +489,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
   name                 = "flowlog-%d"
+  location             = azurerm_network_watcher.test.location
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -518,6 +525,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
   name                 = "flowlog-%d"
+  location             = azurerm_network_watcher.test.location
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id

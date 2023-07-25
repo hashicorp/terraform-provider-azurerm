@@ -3,20 +3,33 @@ package clients
 // NOTE: this file is generated - manual changes will be overwritten.
 
 import (
-	loadtestservice_v2021_12_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview"
-	managedidentity_v2018_11_30 "github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-11-30"
+	"fmt"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	containers "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	loadtestservice "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/client"
 	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 )
 
 type autoClient struct {
-	LoadTestService *loadtestservice_v2021_12_01_preview.Client
-	ManagedIdentity *managedidentity_v2018_11_30.Client
+	ContainerService *containers.AutoClient
+	LoadTestService  *loadtestservice.AutoClient
+	ManagedIdentity  *managedidentity.AutoClient
 }
 
-func buildAutoClients(client *autoClient, o *common.ClientOptions) error {
-	client.LoadTestService = loadtestservice.NewClient(o)
-	client.ManagedIdentity = managedidentity.NewClient(o)
+func buildAutoClients(client *autoClient, o *common.ClientOptions) (err error) {
+
+	if client.ContainerService, err = containers.NewClient(o); err != nil {
+		return fmt.Errorf("building client for ContainerService: %+v", err)
+	}
+
+	if client.LoadTestService, err = loadtestservice.NewClient(o); err != nil {
+		return fmt.Errorf("building client for LoadTestService: %+v", err)
+	}
+
+	if client.ManagedIdentity, err = managedidentity.NewClient(o); err != nil {
+		return fmt.Errorf("building client for ManagedIdentity: %+v", err)
+	}
+
 	return nil
 }

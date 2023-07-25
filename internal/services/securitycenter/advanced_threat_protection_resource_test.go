@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package securitycenter_test
 
 import (
@@ -40,15 +43,14 @@ func TestAccAdvancedThreatProtection_storageAccount(t *testing.T) {
 }
 
 func TestAccAdvancedThreatProtection_cosmosAccount(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
-
-	// nolint unused
-	r := AdvancedThreatProtectionResource{}
-
 	// the API errors on deleting the cosmos DB account some of the time so lets skip this test for now
 	// TODO: remove once this is fixed: https://github.com/Azure/azure-sdk-for-go/issues/6310
 	// run it multiple times in a row as it only fails 50% of the time
 	t.Skip()
+
+	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
+
+	r := AdvancedThreatProtectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

@@ -36,11 +36,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Notification Hub Namespace should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region in which this Notification Hub Namespace should be created.
+* `location` - (Required) The Azure Region in which this Notification Hub Namespace should be created. Changing this forces a new resource to be created.
 
-* `namespace_type` - (Required) The Type of Namespace - possible values are `Messaging` or `NotificationHub`. Changing this forces a new resource to be created.
+* `namespace_type` - (Required) The Type of Namespace - possible values are `Messaging` or `NotificationHub`. 
 
-* `sku_name` - (Required) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. 
 
 * `enabled` - (Optional) Is this Notification Hub Namespace enabled? Defaults to `true`.
 
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Notification Hub Namespace.
 

@@ -1,7 +1,9 @@
+---
 name: "Pull Request Triage"
 
 permissions:
   pull-requests: write
+  issues: write
 
 on: [pull_request_target]
 
@@ -9,12 +11,11 @@ jobs:
   triage:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/labeler@v3
+    - uses: actions/labeler@0967ca812e7fdc8f5f71402a1b486d5bd061fe20 # v4.2.0
       with:
         configuration-path: .github/labeler-pull-request-triage.yml
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
-    # See also: https://github.com/CodelyTV/pr-size-labeler/pull/26
-    - uses: bflad/pr-size-labeler@7df62b12a176513631973abfe151d2b6213c3f12
+    - uses: CodelyTV/pr-size-labeler@54ef36785e9f4cb5ecf1949cfc9b00dbb621d761 # v1.8.1
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         xs_label: 'size/XS'

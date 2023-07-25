@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package features
 
 func Default() UserFeatures {
@@ -30,6 +33,9 @@ func Default() UserFeatures {
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
 			PermanentlyDeleteOnDestroy: true,
+		},
+		ManagedDisk: ManagedDiskFeatures{
+			ExpandWithoutDowntime: true,
 		},
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: true,

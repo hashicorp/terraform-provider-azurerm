@@ -1,20 +1,26 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package synapse
 
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/sdk/2021-06-01-preview/artifacts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	artifacts "github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse"
 )
 
 func resourceSynapseLinkedService() *pluginsdk.Resource {
@@ -27,6 +33,11 @@ func resourceSynapseLinkedService() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LinkedServiceID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SynapseLinkedServiceV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -54,6 +65,109 @@ func resourceSynapseLinkedService() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(artifacts.TypeBasicLinkedServiceTypeAmazonMWS),
+					string(artifacts.TypeBasicLinkedServiceTypeAmazonRdsForOracle),
+					string(artifacts.TypeBasicLinkedServiceTypeAmazonRdsForSQLServer),
+					string(artifacts.TypeBasicLinkedServiceTypeAmazonRedshift),
+					string(artifacts.TypeBasicLinkedServiceTypeAmazonS3),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureBatch),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureBlobFS),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureBlobStorage),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureDataExplorer),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureDataLakeAnalytics),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureDataLakeStore),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureDatabricks),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureDatabricksDeltaLake),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureFileStorage),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureFunction),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureKeyVault),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureML),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureMLService),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureMariaDB),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureMySQL),
+					string(artifacts.TypeBasicLinkedServiceTypeAzurePostgreSQL),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureSQLDW),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureSQLDatabase),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureSQLMI),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureSearch),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureStorage),
+					string(artifacts.TypeBasicLinkedServiceTypeAzureTableStorage),
+					string(artifacts.TypeBasicLinkedServiceTypeCassandra),
+					string(artifacts.TypeBasicLinkedServiceTypeCommonDataServiceForApps),
+					string(artifacts.TypeBasicLinkedServiceTypeConcur),
+					string(artifacts.TypeBasicLinkedServiceTypeCosmosDb),
+					string(artifacts.TypeBasicLinkedServiceTypeCosmosDbMongoDbAPI),
+					string(artifacts.TypeBasicLinkedServiceTypeCouchbase),
+					string(artifacts.TypeBasicLinkedServiceTypeCustomDataSource),
+					string(artifacts.TypeBasicLinkedServiceTypeDb2),
+					string(artifacts.TypeBasicLinkedServiceTypeDrill),
+					string(artifacts.TypeBasicLinkedServiceTypeDynamics),
+					string(artifacts.TypeBasicLinkedServiceTypeDynamicsAX),
+					string(artifacts.TypeBasicLinkedServiceTypeDynamicsCrm),
+					string(artifacts.TypeBasicLinkedServiceTypeEloqua),
+					string(artifacts.TypeBasicLinkedServiceTypeFileServer),
+					string(artifacts.TypeBasicLinkedServiceTypeFtpServer),
+					string(artifacts.TypeBasicLinkedServiceTypeGoogleAdWords),
+					string(artifacts.TypeBasicLinkedServiceTypeGoogleBigQuery),
+					string(artifacts.TypeBasicLinkedServiceTypeGoogleCloudStorage),
+					string(artifacts.TypeBasicLinkedServiceTypeGreenplum),
+					string(artifacts.TypeBasicLinkedServiceTypeHBase),
+					string(artifacts.TypeBasicLinkedServiceTypeHDInsight),
+					string(artifacts.TypeBasicLinkedServiceTypeHDInsightOnDemand),
+					string(artifacts.TypeBasicLinkedServiceTypeHTTPServer),
+					string(artifacts.TypeBasicLinkedServiceTypeHdfs),
+					string(artifacts.TypeBasicLinkedServiceTypeHive),
+					string(artifacts.TypeBasicLinkedServiceTypeHubspot),
+					string(artifacts.TypeBasicLinkedServiceTypeImpala),
+					string(artifacts.TypeBasicLinkedServiceTypeInformix),
+					string(artifacts.TypeBasicLinkedServiceTypeJira),
+					string(artifacts.TypeBasicLinkedServiceTypeLinkedService),
+					string(artifacts.TypeBasicLinkedServiceTypeMagento),
+					string(artifacts.TypeBasicLinkedServiceTypeMariaDB),
+					string(artifacts.TypeBasicLinkedServiceTypeMarketo),
+					string(artifacts.TypeBasicLinkedServiceTypeMicrosoftAccess),
+					string(artifacts.TypeBasicLinkedServiceTypeMongoDb),
+					string(artifacts.TypeBasicLinkedServiceTypeMongoDbAtlas),
+					string(artifacts.TypeBasicLinkedServiceTypeMongoDbV2),
+					string(artifacts.TypeBasicLinkedServiceTypeMySQL),
+					string(artifacts.TypeBasicLinkedServiceTypeNetezza),
+					string(artifacts.TypeBasicLinkedServiceTypeOData),
+					string(artifacts.TypeBasicLinkedServiceTypeOdbc),
+					string(artifacts.TypeBasicLinkedServiceTypeOffice365),
+					string(artifacts.TypeBasicLinkedServiceTypeOracle),
+					string(artifacts.TypeBasicLinkedServiceTypeOracleServiceCloud),
+					string(artifacts.TypeBasicLinkedServiceTypePaypal),
+					string(artifacts.TypeBasicLinkedServiceTypePhoenix),
+					string(artifacts.TypeBasicLinkedServiceTypePostgreSQL),
+					string(artifacts.TypeBasicLinkedServiceTypePresto),
+					string(artifacts.TypeBasicLinkedServiceTypeQuickBooks),
+					string(artifacts.TypeBasicLinkedServiceTypeResponsys),
+					string(artifacts.TypeBasicLinkedServiceTypeRestService),
+					string(artifacts.TypeBasicLinkedServiceTypeSQLServer),
+					string(artifacts.TypeBasicLinkedServiceTypeSalesforce),
+					string(artifacts.TypeBasicLinkedServiceTypeSalesforceMarketingCloud),
+					string(artifacts.TypeBasicLinkedServiceTypeSalesforceServiceCloud),
+					string(artifacts.TypeBasicLinkedServiceTypeSapBW),
+					string(artifacts.TypeBasicLinkedServiceTypeSapCloudForCustomer),
+					string(artifacts.TypeBasicLinkedServiceTypeSapEcc),
+					string(artifacts.TypeBasicLinkedServiceTypeSapHana),
+					string(artifacts.TypeBasicLinkedServiceTypeSapOpenHub),
+					string(artifacts.TypeBasicLinkedServiceTypeSapTable),
+					string(artifacts.TypeBasicLinkedServiceTypeServiceNow),
+					string(artifacts.TypeBasicLinkedServiceTypeSftp),
+					string(artifacts.TypeBasicLinkedServiceTypeSharePointOnlineList),
+					string(artifacts.TypeBasicLinkedServiceTypeShopify),
+					string(artifacts.TypeBasicLinkedServiceTypeSnowflake),
+					string(artifacts.TypeBasicLinkedServiceTypeSpark),
+					string(artifacts.TypeBasicLinkedServiceTypeSquare),
+					string(artifacts.TypeBasicLinkedServiceTypeSybase),
+					string(artifacts.TypeBasicLinkedServiceTypeTeradata),
+					string(artifacts.TypeBasicLinkedServiceTypeVertica),
+					string(artifacts.TypeBasicLinkedServiceTypeWeb),
+					string(artifacts.TypeBasicLinkedServiceTypeXero),
+					string(artifacts.TypeBasicLinkedServiceTypeZoho),
+				}, false),
 			},
 
 			"type_properties_json": {
@@ -124,13 +238,17 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	environment := meta.(*clients.Client).Account.Environment
+	synapseDomainSuffix, ok := environment.Synapse.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)
+	}
 
 	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 
-	client, err := synapseClient.LinkedServiceClient(workspaceId.Name, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.LinkedServiceClient(workspaceId.Name, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -196,6 +314,12 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("waiting on creation for %s: %+v", id, err)
 	}
 
+	// Sometimes this resource fails to create but Azure is returning a 200. We'll check if the last response failed or not before moving on
+	// todo remove this once https://github.com/hashicorp/go-azure-sdk/pull/122 is merged
+	if err = checkLinkedServiceResponse(future.Response()); err != nil {
+		return err
+	}
+
 	d.SetId(id.ID())
 
 	return resourceSynapseLinkedServiceRead(d, meta)
@@ -206,13 +330,17 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	environment := meta.(*clients.Client).Account.Environment
+	synapseDomainSuffix, ok := environment.Synapse.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)
+	}
 
 	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client, err := synapseClient.LinkedServiceClient(id.WorkspaceName, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.LinkedServiceClient(id.WorkspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -311,13 +439,17 @@ func resourceSynapseLinkedServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	environment := meta.(*clients.Client).Account.Environment
+	synapseDomainSuffix, ok := environment.Synapse.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)
+	}
 
 	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client, err := synapseClient.LinkedServiceClient(id.WorkspaceName, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.LinkedServiceClient(id.WorkspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -398,4 +530,38 @@ func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *artifacts.Integratio
 
 func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
+}
+
+func checkLinkedServiceResponse(response *http.Response) error {
+	respBody, err := io.ReadAll(response.Body)
+	if err != nil {
+		return fmt.Errorf("reading status response body: %+v", err)
+	}
+	defer response.Body.Close()
+
+	body := make(map[string]interface{})
+	err = json.Unmarshal(respBody, &body)
+	if err != nil {
+		return fmt.Errorf("could not parse status response: %+v", err)
+	}
+
+	if statusRaw, ok := body["status"]; ok && statusRaw != nil {
+		if status, ok := statusRaw.(string); ok {
+			if status == "Failed" {
+				if errorRaw, ok := body["error"]; ok && errorRaw != nil {
+					if responseError, ok := errorRaw.(map[string]interface{}); ok {
+						if messageRaw, ok := responseError["message"]; ok && messageRaw != nil {
+							if message, ok := messageRaw.(string); ok {
+								return fmt.Errorf("creating/updating Linked Service: %s", message)
+							}
+						}
+					}
+				}
+				// we are specifically checking for `error` in the payload but if the status is Failed, we should return what we know
+				return fmt.Errorf("creating/updating Linked Service: %+v", body)
+			}
+		}
+	}
+
+	return nil
 }

@@ -1,11 +1,15 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package signalr
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -89,7 +93,7 @@ func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("parsing ID of %s: %+v", signalrID, err)
 	}
 
-	id := signalr.NewSharedPrivateLinkResourceID(subscriptionId, signalrID.ResourceGroupName, signalrID.ResourceName, d.Get("name").(string))
+	id := signalr.NewSharedPrivateLinkResourceID(subscriptionId, signalrID.ResourceGroupName, signalrID.SignalRName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.SharedPrivateLinkResourcesGet(ctx, id)
 		if err != nil {
@@ -135,15 +139,16 @@ func resourceSignalRSharedPrivateLinkRead(d *pluginsdk.ResourceData, meta interf
 	resp, err := client.SharedPrivateLinkResourcesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
-			return fmt.Errorf("%s was not found", id)
+			return nil
 		}
 		return fmt.Errorf("retrieving shared private link %s: %+v", id, err)
 	}
 
 	if model := resp.Model; model != nil {
 		d.Set("name", model.Name)
-		d.Set("signalr_service_id", signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName).ID())
+		d.Set("signalr_service_id", signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID())
 
 		if props := model.Properties; props != nil {
 			d.Set("sub_resource_name", props.GroupId)

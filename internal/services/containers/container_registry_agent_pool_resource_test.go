@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -65,20 +68,17 @@ func TestAccContainerRegistryAgentPool_complete(t *testing.T) {
 }
 
 func (t ContainerRegistryAgentPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ContainerRegistryAgentPoolID(state.ID)
+	id, err := agentpools.ParseAgentPoolID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.AgentPoolName
-	registryName := id.RegistryName
 
-	resp, err := clients.Containers.ContainerRegistryAgentPoolsClient.Get(ctx, resourceGroup, registryName, name)
+	resp, err := clients.Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Container Registry Agent Pool (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ContainerRegistryAgentPoolResource) basic(data acceptance.TestData) string {

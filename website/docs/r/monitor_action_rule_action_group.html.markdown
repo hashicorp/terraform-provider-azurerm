@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_monitor_action_rule_action_group
 
-Manages an Monitor Action Rule which type is action group.
+Manages a Monitor Action Rule which type is action group.
+
+!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_monitor_alert_processing_rule_action_group`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_alert_processing_rule_action_group) resource instead.
 
 ## Example Usage
 
@@ -146,7 +148,7 @@ The `target_resource_type` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Monitor Action Rule.
 
@@ -164,5 +166,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Monitor Action Rule can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_monitor_action_rule_action_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AlertsManagement/actionRules/actionRule1
+terraform import azurerm_monitor_action_rule_action_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AlertsManagement/actionRules/actionRule1
 ```

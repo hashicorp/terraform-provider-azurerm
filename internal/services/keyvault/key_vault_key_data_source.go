@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package keyvault
 
 import (
@@ -9,7 +12,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -17,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func dataSourceKeyVaultKey() *pluginsdk.Resource {
@@ -35,11 +40,7 @@ func dataSourceKeyVaultKey() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
-			"key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: keyVaultValidate.VaultID,
-			},
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
 
 			"key_type": {
 				Type:     pluginsdk.TypeString,
@@ -126,7 +127,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	defer cancel()
 
 	name := d.Get("name").(string)
-	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return err
 	}
@@ -170,7 +171,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("curve", key.Crv)
 
 		if key := resp.Key; key != nil {
-			if key.Kty == keyvault.RSA || key.Kty == keyvault.RSAHSM {
+			if key.Kty == keyvault.JSONWebKeyTypeRSA || key.Kty == keyvault.JSONWebKeyTypeRSAHSM {
 				nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 				if err != nil {
 					return fmt.Errorf("failed to decode N: %+v", err)
@@ -187,7 +188,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				if err != nil {
 					return fmt.Errorf("failed to read public key: %+v", err)
 				}
-			} else if key.Kty == keyvault.EC || key.Kty == keyvault.ECHSM {
+			} else if key.Kty == keyvault.JSONWebKeyTypeEC || key.Kty == keyvault.JSONWebKeyTypeECHSM {
 				// do ec keys
 				xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
 				if err != nil {
@@ -202,11 +203,11 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 					Y: big.NewInt(0).SetBytes(yBytes),
 				}
 				switch key.Crv {
-				case keyvault.P256:
+				case keyvault.JSONWebKeyCurveNameP256:
 					publicKey.Curve = elliptic.P256()
-				case keyvault.P384:
+				case keyvault.JSONWebKeyCurveNameP384:
 					publicKey.Curve = elliptic.P384()
-				case keyvault.P521:
+				case keyvault.JSONWebKeyCurveNameP521:
 					publicKey.Curve = elliptic.P521()
 				}
 				if publicKey.Curve != nil {
@@ -221,8 +222,8 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	d.Set("version", parsedId.Version)
 
-	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, parsedId.Name, parsedId.Version).ID())
-	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, parsedId.Name).ID())
+	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, parsedId.Name, parsedId.Version).ID())
+	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, parsedId.Name).ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

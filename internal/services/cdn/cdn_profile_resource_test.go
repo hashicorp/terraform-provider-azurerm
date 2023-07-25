@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cdn_test
 
 import (
@@ -67,43 +70,8 @@ func TestAccCdnProfile_withTags(t *testing.T) {
 	})
 }
 
-func TestAccCdnProfile_basicToStandardAkamai(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	r := CdnProfileResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.standardAkamai(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCdnProfile_standardAkamai(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	r := CdnProfileResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.standardAkamai(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				acceptance.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Akamai"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+// Removed 'TestAccCdnProfile_basicToStandardAkamai' and 'TestAccCdnProfile_standardAkamai' test cases
+// due to Akamai support being retired.
 
 func TestAccCdnProfile_standardMicrosoft(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
@@ -216,26 +184,6 @@ resource "azurerm_cdn_profile" "test" {
   tags = {
     environment = "staging"
   }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r CdnProfileResource) standardAkamai(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_profile" "test" {
-  name                = "acctestcdnprof%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Akamai"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

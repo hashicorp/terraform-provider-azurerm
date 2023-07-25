@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package dns
 
 import (
@@ -82,7 +85,7 @@ func dataSourceDnsTxtRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.RelativeRecordSetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnsZoneName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -94,7 +97,6 @@ func dataSourceDnsTxtRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 
 			return tags.FlattenAndSet(d, props.Metadata)
-
 		}
 	}
 

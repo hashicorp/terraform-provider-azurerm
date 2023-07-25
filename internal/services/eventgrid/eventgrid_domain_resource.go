@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventgrid
 
 import (
@@ -6,7 +9,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -70,7 +73,7 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				}, false),
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"input_mapping_fields": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -112,7 +115,7 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"input_mapping_default_values": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,

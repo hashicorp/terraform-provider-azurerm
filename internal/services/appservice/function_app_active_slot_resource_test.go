@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice_test
 
 import (
@@ -162,7 +165,7 @@ resource "azurerm_windows_function_app_slot" "update" {
 
   site_config {
     application_stack {
-      dotnet_version = "6"
+      dotnet_version = "v6.0"
     }
 
     cors {
@@ -368,7 +371,7 @@ resource "azurerm_windows_function_app" "test" {
 
   site_config {
     application_stack {
-      dotnet_version = "6"
+      dotnet_version = "v6.0"
     }
 
     cors {
@@ -400,7 +403,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 
   site_config {
     application_stack {
-      dotnet_version = "6"
+      dotnet_version = "v6.0"
     }
 
     cors {

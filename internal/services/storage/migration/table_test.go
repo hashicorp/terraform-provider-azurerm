@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -6,16 +9,15 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
 
 func TestTableStateV0ToV1(t *testing.T) {
-	clouds := []azure.Environment{
-		azure.ChinaCloud,
-		azure.GermanCloud,
-		azure.PublicCloud,
-		azure.USGovernmentCloud,
+	clouds := []*environments.Environment{
+		environments.AzurePublic(),
+		environments.AzureChina(),
+		environments.AzureUSGovernment(),
 	}
 
 	for _, cloud := range clouds {
@@ -26,15 +28,20 @@ func TestTableStateV0ToV1(t *testing.T) {
 			"name":                 "table1",
 			"storage_account_name": "account1",
 		}
+
 		meta := &clients.Client{
 			Account: &clients.ResourceManagerAccount{
-				Environment: cloud,
+				Environment: *cloud,
 			},
 		}
-		suffix := meta.Account.Environment.StorageEndpointSuffix
+
+		suffix, ok := meta.Account.Environment.Storage.DomainSuffix()
+		if !ok {
+			t.Fatalf("could not determine Storage domain suffix for environment %q", meta.Account.Environment.Name)
+		}
 
 		expected := map[string]interface{}{
-			"id":                   fmt.Sprintf("https://account1.table.%s/table1", suffix),
+			"id":                   fmt.Sprintf("https://account1.table.%s/table1", *suffix),
 			"name":                 "table1",
 			"storage_account_name": "account1",
 		}
@@ -53,11 +60,10 @@ func TestTableStateV0ToV1(t *testing.T) {
 }
 
 func TestTableStateV1ToV2(t *testing.T) {
-	clouds := []azure.Environment{
-		azure.ChinaCloud,
-		azure.GermanCloud,
-		azure.PublicCloud,
-		azure.USGovernmentCloud,
+	clouds := []*environments.Environment{
+		environments.AzurePublic(),
+		environments.AzureChina(),
+		environments.AzureUSGovernment(),
 	}
 
 	for _, cloud := range clouds {
@@ -65,18 +71,21 @@ func TestTableStateV1ToV2(t *testing.T) {
 
 		meta := &clients.Client{
 			Account: &clients.ResourceManagerAccount{
-				Environment: cloud,
+				Environment: *cloud,
 			},
 		}
-		suffix := meta.Account.Environment.StorageEndpointSuffix
+		suffix, ok := meta.Account.Environment.Storage.DomainSuffix()
+		if !ok {
+			t.Fatalf("could not determine Storage domain suffix for environment %q", meta.Account.Environment.Name)
+		}
 
 		input := map[string]interface{}{
-			"id":                   fmt.Sprintf("https://account1.table.%s/table1", suffix),
+			"id":                   fmt.Sprintf("https://account1.table.%s/table1", *suffix),
 			"name":                 "table1",
 			"storage_account_name": "account1",
 		}
 		expected := map[string]interface{}{
-			"id":                   fmt.Sprintf("https://account1.table.%s/Tables('table1')", suffix),
+			"id":                   fmt.Sprintf("https://account1.table.%s/Tables('table1')", *suffix),
 			"name":                 "table1",
 			"storage_account_name": "account1",
 		}

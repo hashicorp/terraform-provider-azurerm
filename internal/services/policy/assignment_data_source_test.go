@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy_test
 
 import (
@@ -5,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -17,10 +19,10 @@ func TestAccDataSourceAssignment_builtinPolicyBasic(t *testing.T) {
 	d := AssignmentDataSource{}
 	r := ResourceGroupAssignmentTestResource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.builtinPolicy(data, r),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("parameters").Exists(),
 			),
 		},
@@ -31,10 +33,10 @@ func TestAccDataSourceAssignment_builtinPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_assignment", "test")
 	d := AssignmentDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.builtinPolicyComplete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("policy_definition_id").Exists(),
 				check.That(data.ResourceName).Key("description").HasValue("Description"),
@@ -55,10 +57,10 @@ func TestAccDataSourceAssignment_identity(t *testing.T) {
 	d := AssignmentDataSource{}
 	r := ResourceGroupAssignmentTestResource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.systemAssignedIdentity(data, r),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
@@ -66,7 +68,7 @@ func TestAccDataSourceAssignment_identity(t *testing.T) {
 		},
 		{
 			Config: d.userAssignedIdentity(data, r),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 			),

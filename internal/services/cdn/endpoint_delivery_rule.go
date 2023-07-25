@@ -1,7 +1,10 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cdn
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/deliveryruleactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/deliveryruleconditions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"

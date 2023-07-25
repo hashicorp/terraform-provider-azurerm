@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package frontdoor
 
 import (
@@ -35,7 +38,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_frontdoor":                            resourceFrontDoor(),
 		"azurerm_frontdoor_firewall_policy":            resourceFrontDoorFirewallPolicy(),
-		"azurerm_frontdoor_custom_https_configuration": resourceFrontDoorCustomHttpsConfiguration(),
+		"azurerm_frontdoor_custom_https_configuration": resourceFrontDoorCustomHTTPSConfiguration(),
 		"azurerm_frontdoor_rules_engine":               resourceFrontDoorRulesEngine(),
 	}
 }

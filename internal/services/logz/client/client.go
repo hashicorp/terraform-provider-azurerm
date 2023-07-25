@@ -1,34 +1,45 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/subaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	MonitorClient           *logz.MonitorsClient
-	TagRuleClient           *logz.TagRulesClient
-	SubAccountClient        *logz.SubAccountClient
-	SubAccountTagRuleClient *logz.SubAccountTagRulesClient
+	MonitorClient    *monitors.MonitorsClient
+	TagRuleClient    *tagrules.TagRulesClient
+	SubAccountClient *subaccount.SubAccountClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	monitorClient := logz.NewMonitorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&monitorClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	monitorClient, err := monitors.NewMonitorsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(monitorClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building TagRuleClient client: %+v", err)
+	}
 
-	tagRuleClient := logz.NewTagRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&tagRuleClient.Client, o.ResourceManagerAuthorizer)
+	tagRuleClient, err := tagrules.NewTagRulesClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(tagRuleClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building TagRuleClient client: %+v", err)
+	}
 
-	subAccountClient := logz.NewSubAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&subAccountClient.Client, o.ResourceManagerAuthorizer)
-
-	subAccountTagRuleClient := logz.NewSubAccountTagRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&subAccountTagRuleClient.Client, o.ResourceManagerAuthorizer)
+	subAccountClient, err := subaccount.NewSubAccountClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(subAccountClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SubAccountClient client: %+v", err)
+	}
 
 	return &Client{
-		MonitorClient:           &monitorClient,
-		TagRuleClient:           &tagRuleClient,
-		SubAccountClient:        &subAccountClient,
-		SubAccountTagRuleClient: &subAccountTagRuleClient,
-	}
+		MonitorClient:    monitorClient,
+		TagRuleClient:    tagRuleClient,
+		SubAccountClient: subAccountClient,
+	}, nil
 }

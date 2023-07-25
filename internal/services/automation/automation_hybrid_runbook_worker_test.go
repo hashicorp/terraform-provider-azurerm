@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/hybridrunbookworker"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/hybridrunbookworker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -114,10 +117,6 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 
-  tags = {
-    azsecpack                                                                  = "nonprod"
-    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

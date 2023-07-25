@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+
+set -e
 
 function runTests {
   echo "==> Checking source code against terraform provider linters..."

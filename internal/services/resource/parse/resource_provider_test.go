@@ -1,14 +1,11 @@
-package parse
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+package parse
 
 import (
 	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
-
-var _ resourceid.Formatter = ResourceProviderId{}
 
 func TestResourceProviderIDFormatter(t *testing.T) {
 	actual := NewResourceProviderID("12345678-1234-9876-4563-123456789012", "Instruments.Didgeridoo").ID()

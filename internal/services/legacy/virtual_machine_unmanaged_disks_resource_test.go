@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package legacy_test
 
 import (
@@ -337,7 +340,8 @@ func TestAccVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 }
 
 // to accept terms for config:
-//   get-AzureRmMarketplaceTerms -publisher kemptech -product vlm-azure -name freeloadmaster | Set-AzureRmMarketplaceTerms -accept
+//
+//	get-AzureRmMarketplaceTerms -publisher kemptech -product vlm-azure -name freeloadmaster | Set-AzureRmMarketplaceTerms -accept
 func TestAccVirtualMachine_plan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	r := VirtualMachineResource{}

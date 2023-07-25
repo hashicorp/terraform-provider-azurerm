@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration_test
 
 import (
@@ -8,10 +11,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type AppConfigurationKeyResource struct{}
@@ -37,6 +40,20 @@ func TestAccAppConfigurationKey_basicNoLabel(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicNoLabel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppConfigurationKey_complicatedKeyLabel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
+	r := AppConfigurationKeyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complicatedKeyLabel(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -81,14 +98,14 @@ func TestAccAppConfigurationKey_KVToVault(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("type").HasValue(appconfiguration.KeyTypeKV),
+				check.That(data.ResourceName).Key("type").HasValue("kv"),
 			),
 		},
 		{
 			Config: r.vaultKeyBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("type").HasValue(appconfiguration.KeyTypeVault),
+				check.That(data.ResourceName).Key("type").HasValue("vault"),
 			),
 		},
 	})
@@ -144,26 +161,22 @@ func TestAccAppConfigurationKey_lockUpdate(t *testing.T) {
 }
 
 func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	resourceID, err := parse.KeyId(state.ID)
+	nestedItemId, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
 	}
 
-	client, err := clients.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
-	if client == nil {
-		// if the AppConfiguration is gone all the data will be too
-		return utils.Bool(false), nil
-	}
+	client, err := clients.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := client.GetKeyValues(ctx, resourceID.Key, resourceID.Label, "", "", []string{})
+	res, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
 	if err != nil {
-		return nil, fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Key, err)
+		return nil, fmt.Errorf("while checking for key's %q existence: %+v", nestedItemId.Key, err)
 	}
 
-	return utils.Bool(res.Response().StatusCode == 200), nil
+	return utils.Bool(res.Response.StatusCode == 200), nil
 }
 
 func (t AppConfigurationKeyResource) base(data acceptance.TestData) string {
@@ -207,6 +220,20 @@ resource "azurerm_app_configuration_key" "test" {
   key                    = "acctest-ackey-%d"
   content_type           = "test"
   label                  = "acctest-ackeylabel-%d"
+  value                  = "a test"
+}
+`, t.base(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (t AppConfigurationKeyResource) complicatedKeyLabel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_key" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  key                    = "acctest-ackey-%d/Label/AppConfigurationKey/Label/"
+  content_type           = "test"
+  label                  = "/AppConfigurationKey/acctest-ackeylabel-%d"
   value                  = "a test"
 }
 `, t.base(data), data.RandomInteger, data.RandomInteger)

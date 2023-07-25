@@ -1,6 +1,10 @@
 package collectorpolicies
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -21,6 +25,19 @@ func PossibleValuesForCreatedByType() []string {
 		string(CreatedByTypeManagedIdentity),
 		string(CreatedByTypeUser),
 	}
+}
+
+func (s *CreatedByType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCreatedByType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCreatedByType(input string) (*CreatedByType, error) {
@@ -51,6 +68,19 @@ func PossibleValuesForDestinationType() []string {
 	}
 }
 
+func (s *DestinationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDestinationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDestinationType(input string) (*DestinationType, error) {
 	vals := map[string]DestinationType{
 		"azuremonitor": DestinationTypeAzureMonitor,
@@ -76,6 +106,19 @@ func PossibleValuesForEmissionType() []string {
 	}
 }
 
+func (s *EmissionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEmissionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEmissionType(input string) (*EmissionType, error) {
 	vals := map[string]EmissionType{
 		"ipfix": EmissionTypeIPFIX,
@@ -99,6 +142,19 @@ func PossibleValuesForIngestionType() []string {
 	return []string{
 		string(IngestionTypeIPFIX),
 	}
+}
+
+func (s *IngestionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIngestionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseIngestionType(input string) (*IngestionType, error) {
@@ -132,6 +188,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"deleting":  ProvisioningStateDeleting,
@@ -158,6 +227,19 @@ func PossibleValuesForSourceType() []string {
 	return []string{
 		string(SourceTypeResource),
 	}
+}
+
+func (s *SourceType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSourceType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSourceType(input string) (*SourceType, error) {

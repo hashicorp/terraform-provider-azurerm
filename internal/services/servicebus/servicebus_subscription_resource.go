@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicebus
 
 import (
@@ -306,7 +309,6 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 				clientScopedEnabled = true
 			}
 			d.Set("client_scoped_subscription", flattenServiceBusNamespaceClientScopedSubscription(props.ClientAffineProperties))
-
 		}
 	}
 

@@ -1,18 +1,22 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package devtestlabs
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/labs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceDevTestLab() *pluginsdk.Resource {
@@ -80,11 +84,11 @@ func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDevTestLabID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := labs.NewLabID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.LabName, "")
+	resp, err := client.Get(ctx, id, labs.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -93,21 +97,27 @@ func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.LabName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.LabProperties; props != nil {
-		d.Set("storage_type", string(props.LabStorageType))
+	if model := resp.Model; model != nil {
 
-		// Computed fields
-		d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
-		d.Set("default_storage_account_id", props.DefaultStorageAccount)
-		d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
-		d.Set("key_vault_id", props.VaultName)
-		d.Set("premium_data_disk_storage_account_id", props.PremiumDataDiskStorageAccount)
-		d.Set("unique_identifier", props.UniqueIdentifier)
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("storage_type", string(pointer.From(props.LabStorageType)))
+
+			// Computed fields
+			d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
+			d.Set("default_storage_account_id", props.DefaultStorageAccount)
+			d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
+			d.Set("key_vault_id", props.VaultName)
+			d.Set("premium_data_disk_storage_account_id", props.PremiumDataDiskStorageAccount)
+			d.Set("unique_identifier", props.UniqueIdentifier)
+		}
+		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
+		}
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package iothub
 
 import (
@@ -52,5 +55,17 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_iothub_endpoint_servicebus_topic":  resourceIotHubEndpointServiceBusTopic(),
 		"azurerm_iothub_endpoint_storage_container": resourceIotHubEndpointStorageContainer(),
 		"azurerm_iothub_shared_access_policy":       resourceIotHubSharedAccessPolicy(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		IotHubDeviceUpdateAccountResource{},
+		IotHubDeviceUpdateInstanceResource{},
+		IotHubFileUploadResource{},
 	}
 }

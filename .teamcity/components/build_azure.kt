@@ -1,4 +1,4 @@
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParametrizedWithType
+import jetbrains.buildServer.configs.kotlin.ParametrizedWithType
 
 class ClientConfiguration(var clientId: String,
                           var clientSecret: String,
@@ -6,13 +6,16 @@ class ClientConfiguration(var clientId: String,
                           val tenantId : String,
                           val clientIdAlt: String,
                           val clientSecretAlt: String,
-                          val subscriptionIdAlt : String) {
+                          val subscriptionIdAlt : String,
+                          val subscriptionIdDevTest : String,
+                          val vcsRootId : String,
+                          val enableTestTriggersGlobally : Boolean) {
 }
 
 class LocationConfiguration(var primary : String, var secondary : String, var tertiary : String, var rotate : Boolean) {
 }
 
-fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: String, config: ClientConfiguration, locationsForEnv: LocationConfiguration, useAltSubscription: Boolean = false) {
+fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: String, config: ClientConfiguration, locationsForEnv: LocationConfiguration, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false) {
     hiddenPasswordVariable("env.ARM_CLIENT_ID", config.clientId, "The ID of the Service Principal used for Testing")
     hiddenPasswordVariable("env.ARM_CLIENT_ID_ALT", config.clientIdAlt, "The ID of the Alternate Service Principal used for Testing")
     hiddenPasswordVariable("env.ARM_CLIENT_SECRET", config.clientSecret, "The Client Secret of the Service Principal used for Testing")
@@ -20,8 +23,11 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     hiddenVariable("env.ARM_ENVIRONMENT", environment, "The Azure Environment in which the tests are running")
     hiddenVariable("env.ARM_PROVIDER_DYNAMIC_TEST", "%b".format(locationsForEnv.rotate), "Should tests rotate between the supported regions?")
     if (useAltSubscription) {
-        hiddenPasswordVariable("env.ARM_SUBSCRIPTION_ID", config.subscriptionIdAlt, "The ID of the Azure Subscription used for Testing (swapped)")
-        hiddenPasswordVariable("env.ARM_SUBSCRIPTION_ID_ALT", config.subscriptionId, "The ID of the Alternate Azure Subscription used for Testing (swapped)")
+        hiddenPasswordVariable("env.ARM_SUBSCRIPTION_ID", config.subscriptionIdAlt, "The ID of the Azure Subscription used for Testing (Alt swapped in)")
+        hiddenPasswordVariable("env.ARM_SUBSCRIPTION_ID_ALT", config.subscriptionId, "The ID of the Alternate Azure Subscription used for Testing (Main swapped out)")
+    } else if (useDevTestSubscription) {
+        hiddenPasswordVariable("env.ARM_SUBSCRIPTION_ID", config.subscriptionIdDevTest, "The ID of the Azure Subscription used for Testing (DevTest swapped in)")
+        hiddenPasswordVariable("env.ARM_SUBSCRIPTION_ID_ALT", config.subscriptionId, "The ID of the Alternate Azure Subscription used for Testing (Main swapped out)")
     } else {
         hiddenPasswordVariable("env.ARM_SUBSCRIPTION_ID", config.subscriptionId, "The ID of the Azure Subscription used for Testing")
         hiddenPasswordVariable("env.ARM_SUBSCRIPTION_ID_ALT", config.subscriptionIdAlt, "The ID of the Alternate Azure Subscription used for Testing")

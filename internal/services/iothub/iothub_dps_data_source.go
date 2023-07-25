@@ -1,9 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package iothub
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -87,7 +91,7 @@ func dataSourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("service_operations_host_name", props.ServiceOperationsHostName)
 		d.Set("device_provisioning_host_name", props.DeviceProvisioningHostName)
 		d.Set("id_scope", props.IdScope)
-		d.Set("allocation_policy", props.AllocationPolicy)
+		d.Set("allocation_policy", string(pointer.From(props.AllocationPolicy)))
 		d.Set("tags", flattenTags(model.Tags))
 	}
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic
 
 import (
@@ -6,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -48,6 +51,11 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"auto_swap_slot_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"use_extension_bundle": {
@@ -406,6 +414,14 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *web.SiteConfig) []interf
 	}
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
+
+	result["scm_type"] = string(input.ScmType)
+	result["scm_min_tls_version"] = string(input.ScmMinTLSVersion)
+	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
+
+	if input.ScmIPSecurityRestrictionsUseMain != nil {
+		result["scm_use_main_ip_restriction"] = *input.ScmIPSecurityRestrictionsUseMain
+	}
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)

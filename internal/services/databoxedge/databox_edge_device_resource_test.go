@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package databoxedge_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -97,17 +100,17 @@ func TestAccDataboxEdgeDevice_update(t *testing.T) {
 }
 
 func (DataboxEdgeDeviceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DeviceID(state.ID)
+	id, err := devices.ParseDataBoxEdgeDeviceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataboxEdge.DeviceClient.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)
+	resp, err := clients.DataboxEdge.DeviceClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.DeviceProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 // Location has to be hard coded due to limited support of locations for this resource

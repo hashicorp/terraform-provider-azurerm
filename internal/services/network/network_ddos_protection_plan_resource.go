@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,7 +8,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 const azureNetworkDDoSProtectionPlanResourceName = "azurerm_network_ddos_protection_plan"
@@ -45,9 +50,9 @@ func resourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"virtual_network_ids": {
 				Type:     pluginsdk.TypeList,
@@ -204,13 +209,13 @@ func expandNetworkDDoSProtectionPlanVnetNames(d *pluginsdk.ResourceData) (*[]str
 	vnetNames := make([]string, 0)
 
 	for _, vnetID := range vnetIDs {
-		vnetResourceID, err := parse.VirtualNetworkID(vnetID.(string))
+		vnetResourceID, err := commonids.ParseVirtualNetworkID(vnetID.(string))
 		if err != nil {
 			return nil, err
 		}
 
-		if !utils.SliceContainsValue(vnetNames, vnetResourceID.Name) {
-			vnetNames = append(vnetNames, vnetResourceID.Name)
+		if !utils.SliceContainsValue(vnetNames, vnetResourceID.VirtualNetworkName) {
+			vnetNames = append(vnetNames, vnetResourceID.VirtualNetworkName)
 		}
 	}
 
@@ -238,13 +243,13 @@ func extractVnetNames(d *pluginsdk.ResourceData) (*[]string, error) {
 	vnetNames := make([]string, 0)
 
 	for _, vnetID := range vnetIDs {
-		vnetResourceID, err := parse.VirtualNetworkID(vnetID.(string))
+		vnetResourceID, err := commonids.ParseVirtualNetworkID(vnetID.(string))
 		if err != nil {
 			return nil, err
 		}
 
-		if !utils.SliceContainsValue(vnetNames, vnetResourceID.Name) {
-			vnetNames = append(vnetNames, vnetResourceID.Name)
+		if !utils.SliceContainsValue(vnetNames, vnetResourceID.VirtualNetworkName) {
+			vnetNames = append(vnetNames, vnetResourceID.VirtualNetworkName)
 		}
 	}
 

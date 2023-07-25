@@ -1,0 +1,85 @@
+---
+name: Provider Tests
+on:
+  pull_request:
+    types: ["opened", "synchronize"]
+    paths:
+      - '.github/workflows/provider-test.yaml'
+      - 'internal/**.go'
+      - 'vendor/github.com/hashicorp/go-azure-sdk/sdk/auth/**'
+      - 'vendor/github.com/hashicorp/go-azure-sdk/sdk/environments/**'
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: read
+
+jobs:
+  secrets-check:
+    runs-on: ubuntu-latest
+    outputs:
+      available: "${{ steps.check-secrets.outputs.available }}"
+    steps:
+      # we check for the ACTIONS_ID_TOKEN_REQUEST_URL variable as a proxy for other secrets
+      # it will be unset when running for a PR from a fork, in which case we don't run these tests
+      - id: check-secrets
+        run: |
+          if [[ "${ACTIONS_ID_TOKEN_REQUEST_URL}" == "" ]]; then
+            echo "available=false" | tee ${GITHUB_OUTPUT}
+          else
+            echo "available=true" | tee ${GITHUB_OUTPUT}
+          fi
+
+  provider-tests:
+    runs-on: [custom, linux, large]
+    needs: [secrets-check]
+    if: needs.secrets-check.outputs.available == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
+      - name: Install Go
+        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
+        with:
+          go-version-file: ./.go-version
+
+      - name: Azure CLI login
+        run: az login --output none --username="${{ secrets.AZCLI_USERNAME }}" --password="${{ secrets.AZCLI_PASSWORD }}"
+
+      - name: Set OIDC Token
+        run: |
+          echo "ARM_OIDC_TOKEN=$(curl -H "Accept: application/json; api-version=2.0" -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" -H "Content-Type: application/json" -G --data-urlencode "audience=api://AzureADTokenExchange" "${ACTIONS_ID_TOKEN_REQUEST_URL}" | jq -r '.value')" >>${GITHUB_ENV}
+
+      - name: Set OIDC Token File Path
+        run: echo "${ARM_OIDC_TOKEN}" >"${RUNNER_TEMP}/oidc-token.jwt" && echo "ARM_OIDC_TOKEN_FILE_PATH=${RUNNER_TEMP}/oidc-token.jwt" >>${GITHUB_ENV}
+
+      - name: Set Client ID Path
+        run: echo "${{ secrets.ARM_CLIENT_ID }}" >"${RUNNER_TEMP}/client-id" && echo "ARM_CLIENT_ID_PATH=${RUNNER_TEMP}/client-id" >>${GITHUB_ENV}
+
+      - name: Set Client Secret Path
+        run: echo "${{ secrets.ARM_CLIENT_SECRET }}" >"${RUNNER_TEMP}/client-secret" && echo "ARM_CLIENT_SECRET_PATH=${RUNNER_TEMP}/client-secret" >>${GITHUB_ENV}
+
+      - name: Run provider tests
+        run: make testacc TEST=./internal/provider TESTARGS="-run '^TestAcc'"
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_CERTIFICATE: ${{ secrets.ARM_CLIENT_CERTIFICATE }}
+          ARM_CLIENT_CERTIFICATE_PASSWORD: ${{ secrets.ARM_CLIENT_CERTIFICATE_PASSWORD }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+      - name: Clean Up OIDC Token File Path
+        run: rm -f "${RUNNER_TEMP}/oidc-token.jwt"
+        if: always()
+
+      - name: Clean Up Client ID Path
+        run: rm -f "${RUNNER_TEMP}/client-id"
+        if: always()
+
+      - name: Clean Up Client Secret Path
+        run: rm -f "${RUNNER_TEMP}/client-secret"
+        if: always()
+  save-artifacts-on-fail:
+    if: ${{ needs.secrets-check.result }} == 'failure' || ${{ needs.provider-tests.result }} == 'failure'
+    uses: ./.github/workflows/save-artifacts.yaml

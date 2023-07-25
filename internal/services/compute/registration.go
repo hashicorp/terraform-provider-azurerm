@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -30,6 +33,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_image":                     dataSourceImage(),
 		"azurerm_images":                    dataSourceImages(),
 		"azurerm_disk_access":               dataSourceDiskAccess(),
+		"azurerm_marketplace_agreement":     dataSourceMarketplaceAgreement(),
 		"azurerm_platform_image":            dataSourcePlatformImage(),
 		"azurerm_proximity_placement_group": dataSourceProximityPlacementGroup(),
 		"azurerm_shared_image_gallery":      dataSourceSharedImageGallery(),
@@ -77,7 +81,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		OrchestratedVirtualMachineScaleSetDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {

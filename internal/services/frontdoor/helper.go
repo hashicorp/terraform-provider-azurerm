@@ -1,28 +1,31 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package frontdoor
 
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-04-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 )
 
-func isFrontDoorFrontendEndpointConfigurable(currentState frontdoors.CustomHttpsProvisioningState, customHttpsProvisioningEnabled bool, frontendEndpointId frontdoors.FrontendEndpointId) error {
+func isFrontDoorFrontendEndpointConfigurable(currentState frontdoors.CustomHTTPSProvisioningState, customHttpsProvisioningEnabled bool, frontendEndpointId frontdoors.FrontendEndpointId) error {
 	action := "disable"
 	if customHttpsProvisioningEnabled {
 		action = "enable"
 	}
 
 	switch currentState {
-	case frontdoors.CustomHttpsProvisioningStateDisabling, frontdoors.CustomHttpsProvisioningStateEnabling, frontdoors.CustomHttpsProvisioningStateFailed:
+	case frontdoors.CustomHTTPSProvisioningStateDisabling, frontdoors.CustomHTTPSProvisioningStateEnabling, frontdoors.CustomHTTPSProvisioningStateFailed:
 		return fmt.Errorf("unable to %s %s Custom Domain HTTPS state because the Frontend Endpoint is currently in the %q state", action, frontendEndpointId, currentState)
 	default:
 		return nil
 	}
 }
 
-func NormalizeCustomHTTPSProvisioningStateToBool(provisioningState frontdoors.CustomHttpsProvisioningState) bool {
-	return provisioningState == frontdoors.CustomHttpsProvisioningStateEnabled || provisioningState == frontdoors.CustomHttpsProvisioningStateEnabling
+func NormalizeCustomHTTPSProvisioningStateToBool(provisioningState frontdoors.CustomHTTPSProvisioningState) bool {
+	return provisioningState == frontdoors.CustomHTTPSProvisioningStateEnabled || provisioningState == frontdoors.CustomHTTPSProvisioningStateEnabling
 }
 
 func FlattenTransformSlice(input *[]webapplicationfirewallpolicies.TransformType) []interface{} {

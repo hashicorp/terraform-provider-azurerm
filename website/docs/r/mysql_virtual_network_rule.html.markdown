@@ -71,6 +71,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the MySQL Virtual Network Rule. Cannot be empty and must only contain alphanumeric characters and hyphens. Cannot start with a number, and cannot start or end with a hyphen. Changing this forces a new resource to be created.
 
 ~> **NOTE:** `name` must be between 1-128 characters long and must satisfy all of the requirements below:
+
 1. Contains only alphanumeric and hyphen characters
 2. Cannot start with a number or hyphen
 3. Cannot end with a hyphen
@@ -85,7 +86,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MySQL Virtual Network Rule.
 

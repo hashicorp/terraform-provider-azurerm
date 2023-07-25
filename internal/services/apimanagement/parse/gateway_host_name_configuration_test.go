@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -11,8 +14,8 @@ import (
 var _ resourceids.Id = GatewayHostNameConfigurationId{}
 
 func TestGatewayHostNameConfigurationIDFormatter(t *testing.T) {
-	actual := NewGatewayHostNameConfigurationID("12345678-1234-9876-4563-123456789012", "resGroup1", "service1", "gateway1", "default").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/gateways/gateway1/hostnameConfigurations/default"
+	actual := NewGatewayHostNameConfigurationID("12345678-1234-9876-4563-123456789012", "resGroup1", "service1", "gateway1", "hostname1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/gateways/gateway1/hostnameConfigurations/hostname1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -93,19 +96,19 @@ func TestGatewayHostNameConfigurationID(t *testing.T) {
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/gateways/gateway1/hostnameConfigurations/default",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/gateways/gateway1/hostnameConfigurations/hostname1",
 			Expected: &GatewayHostNameConfigurationId{
 				SubscriptionId:            "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:             "resGroup1",
 				ServiceName:               "service1",
 				GatewayName:               "gateway1",
-				HostnameConfigurationName: "default",
+				HostnameConfigurationName: "hostname1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.APIMANAGEMENT/SERVICE/SERVICE1/GATEWAYS/GATEWAY1/HOSTNAMECONFIGURATIONS/DEFAULT",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.APIMANAGEMENT/SERVICE/SERVICE1/GATEWAYS/GATEWAY1/HOSTNAMECONFIGURATIONS/HOSTNAME1",
 			Error: true,
 		},
 	}

@@ -28,11 +28,12 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_batch_account" "example" {
-  name                 = "testbatchaccount"
-  resource_group_name  = azurerm_resource_group.example.name
-  location             = azurerm_resource_group.example.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.example.id
+  name                                = "testbatchaccount"
+  resource_group_name                 = azurerm_resource_group.example.name
+  location                            = azurerm_resource_group.example.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.example.id
+  storage_account_authentication_mode = "StorageKeys"
 
   tags = {
     env = "test"
@@ -54,6 +55,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `network_profile` - (Optional) A `network_profile` block as defined below.
+
 * `pool_allocation_mode` - (Optional) Specifies the mode to use for pool allocation. Possible values are `BatchService` or `UserSubscription`. Defaults to `BatchService`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
@@ -62,9 +65,11 @@ The following arguments are supported:
 
 ~> **NOTE:** When using `UserSubscription` mode, the `Microsoft Azure Batch` service principal has to have `Contributor` role on your subscription scope, as documented [here](https://docs.microsoft.com/azure/batch/batch-account-create-portal#additional-configuration-for-user-subscription-mode).
 
-* `key_vault_reference` - (Optional) A `key_vault_reference` block that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode.
+* `key_vault_reference` - (Optional) A `key_vault_reference` block, as defined below, that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode.
 
 * `storage_account_id` - (Optional) Specifies the storage account to use for the Batch account. If not specified, Azure Batch will manage the storage.
+
+~> **NOTE:** When using `storage_account_id`, the `storage_account_authentication_mode` must be specified as well.
 
 * `storage_account_authentication_mode` - (Optional) Specifies the storage account authentication mode. Possible values include `StorageKeys`, `BatchAccountManagedIdentity`.
 
@@ -90,6 +95,39 @@ An `identity` block supports the following:
 
 ---
 
+A `network_profile` block supports the following:
+
+* `account_access` - (Optional) An `account_access` block as defined below.
+
+* `node_management_access` - (Optional) A `node_management_access` block as defined below.
+
+~> **NOTE:** At least one of `account_access` or `node_management_access` must be specified.
+
+---
+
+An `account_access` block supports the following:
+
+* `default_action` - (Optional) Specifies the default action for the account access. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
+---
+
+A `node_management_access` block supports the following:
+
+* `default_action` - (Optional) Specifies the default action for the node management access. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
+
+---
+
+An `ip_rule` block supports the following:
+
+* `ip_range` - (Required) The CIDR block from which requests will match the rule.
+
+* `action` - (Optional) Specifies the action of the ip rule. The only possible value is `Allow`. Defaults to `Allow`.
+
+---
+
 A `key_vault_reference` block supports the following:
 
 * `id` - (Required) The Azure identifier of the Azure KeyVault to use.
@@ -100,11 +138,11 @@ A `key_vault_reference` block supports the following:
 
 A `encryption` block supports the following:
 
-* `key_vault_key_id` - (Required) The Azure key vault reference id with version that should be used to encrypt data, as documented [here](https://docs.microsoft.com/azure/batch/batch-customer-managed-key). Key rotation is not yet supported.
+* `key_vault_key_id` - (Required) The full URL path to the Azure key vault key id that should be used to encrypt data, as documented [here](https://docs.microsoft.com/azure/batch/batch-customer-managed-key). Both versioned and versionless keys are supported.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Batch Account.
 

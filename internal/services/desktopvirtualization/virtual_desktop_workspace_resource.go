@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package desktopvirtualization
 
 import (
@@ -55,9 +58,9 @@ func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty, // TODO: determine more accurate requirements in time
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"friendly_name": {
 				Type:         pluginsdk.TypeString,

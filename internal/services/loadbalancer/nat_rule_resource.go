@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package loadbalancer
 
 import (
@@ -5,8 +8,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
@@ -51,7 +54,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"loadbalancer_id": {
 				Type:         pluginsdk.TypeString,
@@ -105,7 +108,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"backend_address_pool_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				ValidateFunc:  azure.ValidateResourceID,
+				ValidateFunc:  loadBalancerValidate.LoadBalancerBackendAddressPoolID,
 				ConflictsWith: []string{"frontend_port"},
 				RequiredWith:  []string{"frontend_port_start", "frontend_port_end"},
 			},
@@ -255,7 +258,7 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
 		if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.ID != nil {
-			feid, err := parse.LoadBalancerFrontendIpConfigurationID(*props.FrontendIPConfiguration.ID)
+			feid, err := parse.LoadBalancerFrontendIpConfigurationIDInsensitively(*props.FrontendIPConfiguration.ID)
 			if err != nil {
 				return err
 			}
@@ -267,7 +270,7 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
 
 		if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
-			d.Set("backend_address_pool_id", *props.BackendAddressPool.ID)
+			d.Set("backend_address_pool_id", props.BackendAddressPool.ID)
 		}
 
 		frontendPort := 0

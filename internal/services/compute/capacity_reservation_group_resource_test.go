@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -5,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -19,10 +22,10 @@ type CapacityReservationGroupResource struct{}
 func TestAccCapacityReservationGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation_group", "test")
 	r := CapacityReservationGroupResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -33,10 +36,10 @@ func TestAccCapacityReservationGroup_basic(t *testing.T) {
 func TestAccCapacityReservationGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation_group", "test")
 	r := CapacityReservationGroupResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -47,10 +50,10 @@ func TestAccCapacityReservationGroup_requiresImport(t *testing.T) {
 func TestAccCapacityReservationGroup_zones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation_group", "test")
 	r := CapacityReservationGroupResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.zones(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -61,17 +64,17 @@ func TestAccCapacityReservationGroup_zones(t *testing.T) {
 func TestAccCapacityReservationGroup_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation_group", "test")
 	r := CapacityReservationGroupResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.tagsUpdated(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -79,21 +82,21 @@ func TestAccCapacityReservationGroup_tags(t *testing.T) {
 	})
 }
 
-func (r CapacityReservationGroupResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.CapacityReservationGroupID(state.ID)
+func (r CapacityReservationGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := capacityreservationgroups.ParseCapacityReservationGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Compute.CapacityReservationGroupsClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Compute.CapacityReservationGroupsClient.Get(ctx, *id, capacityreservationgroups.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r CapacityReservationGroupResource) template(data acceptance.TestData) string {

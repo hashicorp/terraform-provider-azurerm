@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package resource
 
 import (
@@ -6,10 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -55,6 +59,10 @@ func dataSourceResources() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+						"resource_group_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -84,11 +92,6 @@ func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	var filter string
 
-	if resourceGroupName != "" {
-		v := fmt.Sprintf("resourceGroup eq '%s'", resourceGroupName)
-		filter += v
-	}
-
 	if resourceName != "" {
 		if strings.Contains(filter, "eq") {
 			filter += " and "
@@ -106,10 +109,20 @@ func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	// Use List instead of listComplete because of bug in SDK: https://github.com/Azure/azure-sdk-for-go/issues/9510
+	var resourcesResp resources.ListResultPage
 	resources := make([]map[string]interface{}, 0)
-	resourcesResp, err := client.List(ctx, filter, "", nil)
-	if err != nil {
-		return fmt.Errorf("getting resources: %+v", err)
+	if resourceGroupName != "" {
+		resp, err := client.ListByResourceGroup(ctx, resourceGroupName, filter, "", nil)
+		if err != nil {
+			return fmt.Errorf("getting resources by resource group: %+v", err)
+		}
+		resourcesResp = resp
+	} else {
+		resp, err := client.List(ctx, filter, "", nil)
+		if err != nil {
+			return fmt.Errorf("getting resources: %+v", err)
+		}
+		resourcesResp = resp
 	}
 
 	resources = append(resources, filterResource(resourcesResp.Values(), requiredTags)...)
@@ -159,6 +172,14 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 				resID = *res.ID
 			}
 
+			resResourceGroupName := ""
+			if res.ID != nil {
+				resourceObj, err := resourceids.ParseAzureResourceID(*res.ID)
+				if err == nil {
+					resResourceGroupName = resourceObj.ResourceGroup
+				}
+			}
+
 			resType := ""
 			if res.Type != nil {
 				resType = *res.Type
@@ -180,11 +201,12 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 			}
 
 			result = append(result, map[string]interface{}{
-				"name":     resName,
-				"id":       resID,
-				"type":     resType,
-				"location": resLocation,
-				"tags":     resTags,
+				"name":                resName,
+				"id":                  resID,
+				"resource_group_name": resResourceGroupName,
+				"type":                resType,
+				"location":            resLocation,
+				"tags":                resTags,
 			})
 		} else {
 			log.Printf("[DEBUG] azurerm_resources - resources %q (id: %q) skipped as a required tag is not set or has the wrong value.", *res.Name, *res.ID)

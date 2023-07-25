@@ -1,0 +1,826 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package appservice_test
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+)
+
+func TestAccWindowsFunctionAppSlot_authV2AzureActiveDirectory(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2AzureActiveDirectory(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_authV2Apple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2Apple(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_authV2AppleCustomSettingName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2AppleCustomSetting(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_authV2CustomOIDC(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2CustomOIDC(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_authV2Facebook(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2Facebook(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_authV2Github(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2Github(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_authV2Google(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2Google(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_authV2Microsoft(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2Microsoft(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_authV2Twitter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2Twitter(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_authV2MultipleAuths(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2Multi(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_authV2Update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2Twitter(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.authV2Facebook(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_authV2UpgradeFromV1(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standardComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeAuthV2(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r WindowsFunctionAppSlotResource) authV2AzureActiveDirectory(data acceptance.TestData, planSku string) string {
+	secretSettingName := "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    "%[3]s" = "%[4]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "Return401"
+    active_directory_v2 {
+      client_id                  = data.azurerm_client_config.current.client_id
+      client_secret_setting_name = "%[3]s"
+      tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
+    }
+    login {}
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue, data.Client().TenantID)
+}
+
+func (r WindowsFunctionAppSlotResource) authV2Apple(data acceptance.TestData, planSku string) string {
+	secretSettingName := "APPLE_PROVIDER_AUTHENTICATION_SECRET"
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    "%[3]s" = "%[4]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "Return401"
+
+    apple_v2 {
+      client_id                  = "testAppleID"
+      client_secret_setting_name = "%[3]s"
+    }
+
+    login {}
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r WindowsFunctionAppSlotResource) authV2AppleCustomSetting(data acceptance.TestData, planSku string) string {
+	secretSettingName := "TEST_PROVIDER_AUTHENTICATION_SECRET"
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    "%[3]s" = "%[4]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "Return401"
+
+    apple_v2 {
+      client_id                  = "testAppleID"
+      client_secret_setting_name = "%[3]s"
+    }
+
+    login {}
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+// static web app? - Need to add test when Static Web Apps are deployable from TF.
+
+func (r WindowsFunctionAppSlotResource) authV2CustomOIDC(data acceptance.TestData, planSku string) string {
+	secretSettingName := "TESTCUSTOM_PROVIDER_AUTHENTICATION_SECRET"
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    "%[3]s" = "%[4]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "Return401"
+
+    custom_oidc_v2 {
+      name                          = "testcustom"
+      client_id                     = "testCustomID"
+      openid_configuration_endpoint = "https://oidc.testcustom.contoso.com/auth"
+    }
+
+    login {}
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r WindowsFunctionAppSlotResource) authV2Facebook(data acceptance.TestData, planSku string) string {
+	secretSettingName := "FACEBOOK_PROVIDER_AUTHENTICATION_SECRET"
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    "%[3]s" = "%[4]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "RedirectToLoginPage"
+
+    facebook_v2 {
+      app_id                  = "testFacebookID"
+      app_secret_setting_name = "%[3]s"
+    }
+
+    login {}
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r WindowsFunctionAppSlotResource) authV2Github(data acceptance.TestData, planSku string) string {
+	secretSettingName := "GITHUB_PROVIDER_AUTHENTICATION_SECRET"
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    "%[3]s" = "%[4]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "RedirectToLoginPage"
+
+    github_v2 {
+      client_id                  = "testGithubID"
+      client_secret_setting_name = "%[3]s"
+    }
+
+    login {}
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r WindowsFunctionAppSlotResource) authV2Google(data acceptance.TestData, planSku string) string {
+	secretSettingName := "GOOGLE_PROVIDER_AUTHENTICATION_SECRET"
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    "%[3]s" = "%[4]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "RedirectToLoginPage"
+
+    google_v2 {
+      client_id                  = "testGoogleID"
+      client_secret_setting_name = "%[3]s"
+    }
+
+    login {}
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r WindowsFunctionAppSlotResource) authV2Microsoft(data acceptance.TestData, planSku string) string {
+	secretSettingName := "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    "%[3]s" = "%[4]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "RedirectToLoginPage"
+
+    microsoft_v2 {
+      client_id                  = "testMSFTID"
+      client_secret_setting_name = "%[3]s"
+    }
+
+    login {}
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r WindowsFunctionAppSlotResource) authV2Twitter(data acceptance.TestData, planSku string) string {
+	secretSettingName := "TWITTER_PROVIDER_AUTHENTICATION_SECRET"
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    "%[3]s" = "%[4]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "RedirectToLoginPage"
+
+    twitter_v2 {
+      consumer_key                 = "testTwitterKey"
+      consumer_secret_setting_name = "%[3]s"
+    }
+
+    login {}
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r WindowsFunctionAppSlotResource) authV2Multi(data acceptance.TestData, planSku string) string {
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    "APPLE_PROVIDER_AUTHENTICATION_SECRET"     = "%[3]s"
+    "FACEBOOK_PROVIDER_AUTHENTICATION_SECRET"  = "%[3]s"
+    "GITHUB_PROVIDER_AUTHENTICATION_SECRET"    = "%[3]s"
+    "GOOGLE_PROVIDER_AUTHENTICATION_SECRET"    = "%[3]s"
+    "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = "%[3]s"
+    "TWITTER_PROVIDER_AUTHENTICATION_SECRET"   = "%[3]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "RedirectToLoginPage"
+
+    apple_v2 {
+      client_id                  = "testAppleID"
+      client_secret_setting_name = "APPLE_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    facebook_v2 {
+      app_id                  = "testFacebookID"
+      app_secret_setting_name = "FACEBOOK_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    github_v2 {
+      client_id                  = "testGithubID"
+      client_secret_setting_name = "GITHUB_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    google_v2 {
+      client_id                  = "testGoogleID"
+      client_secret_setting_name = "GOOGLE_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    microsoft_v2 {
+      client_id                  = "testMSFTID"
+      client_secret_setting_name = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    twitter_v2 {
+      consumer_key                 = "testTwitterKey"
+      consumer_secret_setting_name = "TWITTER_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    login {}
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, secretSettingValue)
+}
+
+func (r WindowsFunctionAppSlotResource) completeAuthV2(data acceptance.TestData, planSku string) string {
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%[2]d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    "foo"                                      = "bar"
+    "APPLE_PROVIDER_AUTHENTICATION_SECRET"     = "%[3]s"
+    "FACEBOOK_PROVIDER_AUTHENTICATION_SECRET"  = "%[3]s"
+    "GITHUB_PROVIDER_AUTHENTICATION_SECRET"    = "%[3]s"
+    "GOOGLE_PROVIDER_AUTHENTICATION_SECRET"    = "%[3]s"
+    "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = "%[3]s"
+    "TWITTER_PROVIDER_AUTHENTICATION_SECRET"   = "%[3]s"
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "RedirectToLoginPage"
+
+    apple_v2 {
+      client_id                  = "testAppleID"
+      client_secret_setting_name = "APPLE_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    facebook_v2 {
+      app_id                  = "testFacebookID"
+      app_secret_setting_name = "FACEBOOK_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    github_v2 {
+      client_id                  = "testGithubID"
+      client_secret_setting_name = "GITHUB_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    google_v2 {
+      client_id                  = "testGoogleID"
+      client_secret_setting_name = "GOOGLE_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    microsoft_v2 {
+      client_id                  = "testMSFTID"
+      client_secret_setting_name = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    twitter_v2 {
+      consumer_key                 = "testTwitterKey"
+      consumer_secret_setting_name = "TWITTER_PROVIDER_AUTHENTICATION_SECRET"
+    }
+
+    login {}
+  }
+
+  backup {
+    name                = "acctest"
+    storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
+    schedule {
+      frequency_interval = 7
+      frequency_unit     = "Day"
+    }
+  }
+
+  builtin_logging_enabled            = false
+  client_certificate_enabled         = true
+  client_certificate_mode            = "OptionalInteractiveUser"
+  client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
+
+  connection_string {
+    name  = "First"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  enabled                     = false
+  functions_extension_version = "~3"
+  https_only                  = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  site_config {
+    always_on          = true
+    app_command_line   = "whoami"
+    api_definition_url = "https://example.com/azure_function_app_def.json"
+    // api_management_api_id = ""  // TODO
+    application_insights_key               = azurerm_application_insights.test.instrumentation_key
+    application_insights_connection_string = azurerm_application_insights.test.connection_string
+
+    application_stack {
+      powershell_core_version = "7"
+    }
+
+    default_documents = [
+      "first.html",
+      "second.jsp",
+      "third.aspx",
+      "hostingstart.html",
+    ]
+
+    http2_enabled = true
+
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+
+    load_balancing_mode       = "LeastResponseTime"
+    pre_warmed_instance_count = 2
+    remote_debugging_enabled  = true
+    remote_debugging_version  = "VS2017"
+
+    scm_ip_restriction {
+      ip_address = "10.20.20.20/32"
+      name       = "test-scm-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+
+    scm_ip_restriction {
+      ip_address = "fd80::/64"
+      name       = "test-scm-restriction-v6"
+      priority   = 124
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+
+    use_32_bit_worker  = true
+    websockets_enabled = true
+    ftps_state         = "FtpsOnly"
+    health_check_path  = "/health-check"
+    worker_count       = 3
+
+    minimum_tls_version     = "1.1"
+    scm_minimum_tls_version = "1.1"
+
+    cors {
+      allowed_origins = [
+        "https://www.contoso.com",
+        "www.contoso.com",
+      ]
+
+      support_credentials = true
+    }
+
+    vnet_route_all_enabled = true
+  }
+
+  tags = {
+    terraform = "true"
+    Env       = "AccTest"
+  }
+}
+`, r.storageContainerTemplate(data, planSku), data.RandomInteger, secretSettingValue)
+}

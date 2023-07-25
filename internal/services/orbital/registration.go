@@ -1,8 +1,15 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package orbital
 
 import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 type Registration struct{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/orbital"
+}
 
 func (r Registration) WebsiteCategories() []string {
 	return []string{
@@ -22,6 +29,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		SpacecraftResource{},
 		ContactProfileResource{},
+		ContactResource{},
 	}
 }
 

@@ -11,15 +11,23 @@ type Client struct {
 	CollectorPoliciesClient      *collectorpolicies.CollectorPoliciesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	azureTrafficCollectorsClient := azuretrafficcollectors.NewAzureTrafficCollectorsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&azureTrafficCollectorsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	azureTrafficCollectorsClient, err := azuretrafficcollectors.NewAzureTrafficCollectorsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, err
+	}
 
-	collectorPoliciesClient := collectorpolicies.NewCollectorPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&collectorPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	o.Configure(azureTrafficCollectorsClient.Client, o.Authorizers.ResourceManager)
+
+	collectorPoliciesClient, err := collectorpolicies.NewCollectorPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, err
+	}
+
+	o.Configure(collectorPoliciesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AzureTrafficCollectorsClient: &azureTrafficCollectorsClient,
-		CollectorPoliciesClient:      &collectorPoliciesClient,
-	}
+		AzureTrafficCollectorsClient: azureTrafficCollectorsClient,
+		CollectorPoliciesClient:      collectorPoliciesClient,
+	}, nil
 }

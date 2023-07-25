@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -5,11 +8,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -152,12 +156,12 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewScheduledQueryRulesID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := scheduledqueryrules.NewScheduledQueryRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ScheduledQueryRuleName)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q: %+v", id.ScheduledQueryRuleName, id.ResourceGroup, err)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("[DEBUG] %s: %+v", id, err)
 		}
 		return fmt.Errorf("getting Monitor %s: %+v", id, err)
 	}
@@ -165,57 +169,53 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 	d.SetId(id.ID())
 
 	d.Set("name", id.ScheduledQueryRuleName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	d.Set("description", resp.Description)
-	if resp.Enabled == insights.EnabledTrue {
-		d.Set("enabled", true)
-	} else {
-		d.Set("enabled", false)
-	}
-
-	action, ok := resp.Action.(insights.AlertingAction)
-	if !ok {
-		return fmt.Errorf("wrong action type in %s: %T", id, resp.Action)
-	}
-	if action.AznsAction != nil {
-		if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
-			return fmt.Errorf("setting `action`: %+v", err)
+		props := model.Properties
+		d.Set("description", props.Description)
+		if props.Enabled != nil && *props.Enabled == scheduledqueryrules.EnabledTrue {
+			d.Set("enabled", true)
+		} else {
+			d.Set("enabled", false)
 		}
-	}
-	severity, err := strconv.Atoi(string(action.Severity))
-	if err != nil {
-		return fmt.Errorf("converting action.Severity %q to int in %s: %+v", action.Severity, id, err)
-	}
-	d.Set("severity", severity)
-	d.Set("throttling", action.ThrottlingInMin)
-	if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
-		return fmt.Errorf("setting `trigger`: %+v", err)
-	}
 
-	if schedule := resp.Schedule; schedule != nil {
-		if schedule.FrequencyInMinutes != nil {
+		action, ok := props.Action.(scheduledqueryrules.AlertingAction)
+		if !ok {
+			return fmt.Errorf("wrong action type in %s: %T", id, props.Action)
+		}
+		if action.AznsAction != nil {
+			if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
+				return fmt.Errorf("setting `action`: %+v", err)
+			}
+		}
+		severity, err := strconv.Atoi(string(action.Severity))
+		if err != nil {
+			return fmt.Errorf("converting action.Severity %q to int in %s: %+v", action.Severity, id, err)
+		}
+		d.Set("severity", severity)
+		d.Set("throttling", action.ThrottlingInMin)
+		if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
+			return fmt.Errorf("setting `trigger`: %+v", err)
+		}
+
+		if schedule := props.Schedule; schedule != nil {
 			d.Set("frequency", schedule.FrequencyInMinutes)
-		}
-		if schedule.TimeWindowInMinutes != nil {
 			d.Set("time_window", schedule.TimeWindowInMinutes)
 		}
+
+		d.Set("authorized_resource_ids", utils.FlattenStringSlice(props.Source.AuthorizedResources))
+		d.Set("data_source_id", props.Source.DataSourceId)
+		d.Set("query", props.Source.Query)
+		d.Set("query_type", string(pointer.From(props.Source.QueryType)))
+
+		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+			return err
+		}
+
 	}
 
-	if source := resp.Source; source != nil {
-		if source.AuthorizedResources != nil {
-			d.Set("authorized_resource_ids", utils.FlattenStringSlice(source.AuthorizedResources))
-		}
-		if source.DataSourceID != nil {
-			d.Set("data_source_id", source.DataSourceID)
-		}
-		if source.Query != nil {
-			d.Set("query", source.Query)
-		}
-		d.Set("query_type", string(source.QueryType))
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

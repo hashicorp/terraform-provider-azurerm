@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package loadbalancer
 
 import (
@@ -5,7 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -15,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
@@ -218,7 +221,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 
 		backendAddressPoolId := ""
 		if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
-			bapid, err := parse.LoadBalancerBackendAddressPoolID(*props.BackendAddressPool.ID)
+			bapid, err := parse.LoadBalancerBackendAddressPoolIDInsensitively(*props.BackendAddressPool.ID)
 			if err != nil {
 				return err
 			}
@@ -234,7 +237,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 				if feConfig.ID == nil {
 					continue
 				}
-				feid, err := parse.LoadBalancerFrontendIpConfigurationID(*feConfig.ID)
+				feid, err := parse.LoadBalancerFrontendIpConfigurationIDInsensitively(*feConfig.ID)
 				if err != nil {
 					return err
 				}

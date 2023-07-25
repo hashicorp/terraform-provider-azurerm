@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package portal
 
 import (
@@ -6,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -60,13 +64,13 @@ func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	displayName, displayNameOk := d.GetOk("display_name")
+	displayName := d.Get("display_name")
 
 	id := dashboard.NewDashboardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	props := dashboard.Dashboard{}
 
-	if !displayNameOk {
+	if displayName == "" {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
@@ -81,9 +85,10 @@ func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) 
 	} else {
 		dashboards := make([]dashboard.Dashboard, 0)
 
-		iterator, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName))
+		resourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName)
+		iterator, err := client.ListByResourceGroupComplete(ctx, resourceGroupId)
 		if err != nil {
-			return fmt.Errorf("getting list of Portal Dashboards for %s: %+v", id, err)
+			return fmt.Errorf("getting list of Portal Dashboards within %s: %+v", resourceGroupId, err)
 		}
 
 		log.Printf("portal_debug iterator: %+v", iterator.Items)
@@ -98,15 +103,16 @@ func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
-		if 1 > len(dashboards) {
-			return fmt.Errorf("no Portal Dashboards were found for %s", id)
+		if len(dashboards) == 0 {
+			return fmt.Errorf("no Portal Dashboards were found within %s", resourceGroupId)
 		}
 
 		if len(dashboards) > 1 {
-			return fmt.Errorf("multiple Portal Dashboards were found for %s", id)
+			return fmt.Errorf("multiple (%d) Portal Dashboards were found within %s", len(dashboards), resourceGroupId)
 		}
 
 		props = dashboards[0]
+		id.DashboardName = pointer.From(props.Name)
 	}
 
 	d.SetId(id.ID())

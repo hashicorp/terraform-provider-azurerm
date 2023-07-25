@@ -1,16 +1,19 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package batch
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceBatchCertificate() *pluginsdk.Resource {
@@ -62,11 +65,11 @@ func dataSourceBatchCertificateRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := certificate.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
@@ -74,15 +77,38 @@ func dataSourceBatchCertificateRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
+	if model := resp.Model; model != nil {
+		d.Set("name", model.Name)
+	}
 	d.Set("account_name", id.BatchAccountName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.CertificateProperties; props != nil {
-		d.Set("format", props.Format)
-		d.Set("public_data", props.PublicData)
-		d.Set("thumbprint", props.Thumbprint)
-		d.Set("thumbprint_algorithm", props.ThumbprintAlgorithm)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			format := ""
+			if v := props.Format; v != nil {
+				format = string(*v)
+			}
+			d.Set("format", format)
+
+			publicData := ""
+			if v := props.PublicData; v != nil {
+				publicData = *v
+			}
+			d.Set("public_data", publicData)
+
+			thumbprint := ""
+			if v := props.Thumbprint; v != nil {
+				thumbprint = *v
+			}
+			d.Set("thumbprint", thumbprint)
+
+			thumbprintAlgorithm := ""
+			if v := props.ThumbprintAlgorithm; v != nil {
+				thumbprintAlgorithm = *v
+			}
+			d.Set("thumbprint_algorithm", thumbprintAlgorithm)
+		}
 	}
 
 	return nil

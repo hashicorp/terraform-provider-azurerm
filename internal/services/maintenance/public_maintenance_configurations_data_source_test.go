@@ -1,7 +1,9 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package maintenance_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -57,28 +59,28 @@ func TestAccDataSourcePublicMaintenanceConfigurations_recurEvery(t *testing.T) {
 }
 
 func (PublicMaintenanceConfigurationsDataSource) allFilters() string {
-	return fmt.Sprintf(`
+	return `
 data "azurerm_public_maintenance_configurations" "test" {
   location    = "West Europe"
   scope       = "SQLManagedInstance"
   recur_every = "Monday-Thursday"
 }
-`)
+`
 }
 
 func (PublicMaintenanceConfigurationsDataSource) noFilters() string {
-	return fmt.Sprintf(`
+	return `
 data "azurerm_public_maintenance_configurations" "test" {
 
 }
-`)
+`
 }
 
 func (PublicMaintenanceConfigurationsDataSource) recurEvery() string {
-	return fmt.Sprintf(`
+	return `
 data "azurerm_public_maintenance_configurations" "test" {
   scope       = "SQLManagedInstance"
   recur_every = "Friday-Sunday"
 }
-`)
+`
 }

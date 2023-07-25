@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -88,56 +91,6 @@ func TestIPv4Address(t *testing.T) {
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("Expected IPv4Address to return %d error(s) not %d", len(errors), tc.Errors)
-			}
-		})
-	}
-}
-
-func TestIPv4AddressOrEmpty(t *testing.T) {
-	cases := []struct {
-		IP     string
-		Errors int
-	}{
-		{
-			IP:     "",
-			Errors: 0,
-		},
-		{
-			IP:     "0.0.0.0",
-			Errors: 0,
-		},
-		{
-			IP:     "1.2.3.no",
-			Errors: 1,
-		},
-		{
-			IP:     "text",
-			Errors: 1,
-		},
-		{
-			IP:     "1.2.3.4",
-			Errors: 0,
-		},
-		{
-			IP:     "12.34.43.21",
-			Errors: 0,
-		},
-		{
-			IP:     "100.123.199.0",
-			Errors: 0,
-		},
-		{
-			IP:     "255.255.255.255",
-			Errors: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.IP, func(t *testing.T) {
-			_, errors := IPv4AddressOrEmpty(tc.IP, "test")
-
-			if len(errors) != tc.Errors {
-				t.Fatalf("Expected IPv4AddressOrEmpty to return %d error(s) not %d", len(errors), tc.Errors)
 			}
 		})
 	}

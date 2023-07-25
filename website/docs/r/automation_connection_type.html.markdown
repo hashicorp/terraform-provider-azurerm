@@ -36,7 +36,7 @@ resource "azurerm_automation_connection_type" "example" {
   resource_group_name     = azurerm_resource_group.example.name
   automation_account_name = azurerm_automation_account.example.name
 
-  field_definitions {
+  field {
     name = "example"
     type = "string"
   }
@@ -73,7 +73,7 @@ A `field` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The the Automation Connection Type ID.
 

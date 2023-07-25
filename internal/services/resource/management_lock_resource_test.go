@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package resource_test
 
 import (
@@ -6,10 +9,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -162,17 +165,17 @@ func TestAccManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 }
 
 func (t ManagementLockResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ParseManagementLockID(state.ID)
+	id, err := managementlocks.ParseScopedLockID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Resource.LocksClient.GetByScope(ctx, id.Scope, id.Name)
+	resp, err := clients.Resource.LocksClient.GetByScope(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Management Lock (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ManagementLockResource) resourceGroupReadOnlyBasic(data acceptance.TestData) string {

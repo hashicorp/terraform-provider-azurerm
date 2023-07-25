@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package iotcentral
 
 import (
@@ -317,7 +320,6 @@ func flattenIotCentralApplicationNetworkRuleSetIPRule(input *[]apps.NetworkRuleS
 
 func isNetworkRuleSetNullified(networkRuleSet apps.NetworkRuleSets) bool {
 	if networkRuleSet.ApplyToDevices != nil && *networkRuleSet.ApplyToDevices {
-
 		return false
 	}
 

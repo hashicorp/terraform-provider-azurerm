@@ -1,10 +1,15 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -46,7 +51,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryID,
+				ValidateFunc: factories.ValidateFactoryID,
 			},
 
 			"connection_string": {
@@ -54,7 +59,20 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
+			},
+
+			"connection_string_insecure": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					accountKeyRegex := regexp.MustCompile("AccountKey=[^;]+")
+
+					maskedNew := accountKeyRegex.ReplaceAllString(new, "")
+					return (new == d.Get(k).(string)) && (maskedNew == old)
+				},
 			},
 
 			"storage_kind": {
@@ -73,7 +91,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 			},
 
 			// TODO for @favoretti: rename this to 'sas_token_linked_key_vault_key' for 3.4.0
@@ -145,7 +163,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
+				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 			},
 
 			"service_principal_id": {
@@ -202,12 +220,12 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
+	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
@@ -229,6 +247,10 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 			Value: utils.String(v.(string)),
 			Type:  datafactory.TypeSecureString,
 		}
+	}
+
+	if v, ok := d.GetOk("connection_string_insecure"); ok {
+		blobStorageProperties.ConnectionString = v.(string)
 	}
 
 	if v, ok := d.GetOk("sas_uri"); ok {
@@ -263,7 +285,6 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 
 		blobStorageProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
 		blobStorageProperties.Tenant = utils.String(d.Get("tenant_id").(string))
-
 	}
 
 	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
@@ -273,7 +294,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		blobStorageLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		blobStorageLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -316,7 +337,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+	dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
@@ -348,6 +369,11 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 			d.Set("service_endpoint", blobStorage.ServiceEndpoint)
 			d.Set("use_managed_identity", true)
 		}
+
+		// blobStorage.ConnectionString is returned as a String when using `connection_string_insecure` and SecureString when using `connection_string`
+		if insecureConnectionString, ok := blobStorage.ConnectionString.(string); ok {
+			d.Set("connection_string_insecure", insecureConnectionString)
+		}
 	}
 
 	if properties := blobStorage.AzureBlobStorageLinkedServiceTypeProperties; properties != nil {
@@ -377,7 +403,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("setting `annotations` for Data Factory Azure Blob Storage %s: %+v", *id, err)
 	}
 
-	parameters := flattenDataFactoryParameters(blobStorage.Parameters)
+	parameters := flattenLinkedServiceParameters(blobStorage.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

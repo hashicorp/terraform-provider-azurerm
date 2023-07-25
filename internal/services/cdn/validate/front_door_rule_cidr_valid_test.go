@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import "testing"
@@ -141,7 +144,6 @@ func TestFrontDoorRuleCidrIsValid(t *testing.T) {
 			} else {
 				t.Logf("[DEBUG] Testing Value %s", tc.Input)
 			}
-
 		}
 	}
 }

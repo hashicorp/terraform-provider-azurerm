@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -175,7 +178,6 @@ resource "azurerm_api_management_custom_domain" "import" {
 }
 
 func (ApiManagementCustomDomainResource) template(data acceptance.TestData, systemAssignedIdentity bool) string {
-
 	identitySnippet := `
   identity {
     type = "SystemAssigned"

@@ -41,7 +41,6 @@ resource "azurerm_api_management_api_version_set" "example" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -70,7 +69,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the API Version Set.
 

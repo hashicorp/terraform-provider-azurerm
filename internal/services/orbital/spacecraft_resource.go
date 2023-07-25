@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package orbital
 
 import (
@@ -6,9 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-03-01/spacecraft"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/spacecraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,9 +43,9 @@ func (r SpacecraftResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"location": azure.SchemaLocation(),
+		"location": commonschema.Location(),
 
 		"norad_id": {
 			Type:         pluginsdk.TypeString,
@@ -111,21 +114,21 @@ func (r SpacecraftResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `links`: %+v", err)
 			}
 			spacecraftProperties := spacecraft.SpacecraftsProperties{
-				Links:     &links,
-				NoradId:   model.NoradId,
-				TleLine1:  &model.TwoLineElements[0],
-				TleLine2:  &model.TwoLineElements[1],
-				TitleLine: &model.TitleLine,
+				Links:     links,
+				NoradId:   utils.String(model.NoradId),
+				TleLine1:  model.TwoLineElements[0],
+				TleLine2:  model.TwoLineElements[1],
+				TitleLine: model.TitleLine,
 			}
 
 			spacecraft := spacecraft.Spacecraft{
 				Id:         utils.String(id.ID()),
 				Location:   model.Location,
 				Name:       utils.String(model.Name),
-				Properties: &spacecraftProperties,
+				Properties: spacecraftProperties,
 				Tags:       &model.Tags,
 			}
-			if _, err = client.CreateOrUpdate(ctx, id, spacecraft); err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, id, spacecraft); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
@@ -154,19 +157,19 @@ func (r SpacecraftResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				props := model.Properties
-				twoLineElements := []string{*props.TleLine1, *props.TleLine2}
+				twoLineElements := []string{props.TleLine1, props.TleLine2}
 				state := SpacecraftResourceModel{
 					Name:            id.SpacecraftName,
 					ResourceGroup:   id.ResourceGroupName,
 					Location:        model.Location,
-					NoradId:         props.NoradId,
+					NoradId:         *props.NoradId,
 					TwoLineElements: twoLineElements,
-					TitleLine:       *props.TitleLine,
+					TitleLine:       props.TitleLine,
 				}
 				if model.Tags != nil {
 					state.Tags = *model.Tags
 				}
-				spacecraftLinks, err := flattenSpacecraftLinks(*props.Links)
+				spacecraftLinks, err := flattenSpacecraftLinks(props.Links)
 				if err != nil {
 					return err
 				}
@@ -191,11 +194,10 @@ func (r SpacecraftResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if resp, err := client.Delete(ctx, *id); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %s: %+v", *id, err)
-				}
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+
 			return nil
 		},
 	}
@@ -228,16 +230,17 @@ func (r SpacecraftResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChangesExcept("name", "resource_group_name") {
 				spacecraft := spacecraft.Spacecraft{
 					Location: state.Location,
-					Properties: &spacecraft.SpacecraftsProperties{
-						Links:     &spacecraftLinks,
-						NoradId:   state.NoradId,
-						TitleLine: &state.TitleLine,
-						TleLine1:  &state.TwoLineElements[0],
-						TleLine2:  &state.TwoLineElements[1],
+					Properties: spacecraft.SpacecraftsProperties{
+						Links:     spacecraftLinks,
+						NoradId:   utils.String(state.NoradId),
+						TitleLine: state.TitleLine,
+						TleLine1:  state.TwoLineElements[0],
+						TleLine2:  state.TwoLineElements[1],
 					},
 					Tags: &state.Tags,
 				}
-				if _, err := client.CreateOrUpdate(ctx, *id, spacecraft); err != nil {
+
+				if err := client.CreateOrUpdateThenPoll(ctx, *id, spacecraft); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package securitycenter_test
 
 import (
@@ -15,11 +18,11 @@ import (
 
 type SecurityCenterAssessmentResource struct{}
 
-func TestAccSecurityCenterAssessment_basic(t *testing.T) {
+func testAccSecurityCenterAssessment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -30,11 +33,11 @@ func TestAccSecurityCenterAssessment_basic(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAssessment_requiresImport(t *testing.T) {
+func testAccSecurityCenterAssessment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -45,11 +48,11 @@ func TestAccSecurityCenterAssessment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAssessment_complete(t *testing.T) {
+func testAccSecurityCenterAssessment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -60,11 +63,11 @@ func TestAccSecurityCenterAssessment_complete(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAssessment_update(t *testing.T) {
+func testAccSecurityCenterAssessment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment", "test")
 	r := SecurityCenterAssessmentResource{}
 
-	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -218,6 +221,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "VirtualMachines"
+  subplan       = "P2"
 }
 
 resource "azurerm_security_center_assessment_policy" "test" {

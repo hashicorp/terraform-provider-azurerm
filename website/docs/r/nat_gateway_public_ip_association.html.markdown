@@ -50,7 +50,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The (Terraform specific) ID of the Association between the NAT Gateway and the Public IP.
 

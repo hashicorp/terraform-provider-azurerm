@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package synapse_test
 
 import (
@@ -214,7 +217,7 @@ resource "azurerm_key_vault_access_policy" "deployer" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "Create", "Get", "Delete", "Purge"
+    "Create", "Get", "Delete", "Purge", "GetRotationPolicy"
   ]
 }
 

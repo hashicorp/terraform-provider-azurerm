@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package domainservices_test
 
 import (
@@ -8,12 +11,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -80,10 +82,10 @@ func TestAccDomainServiceTrust_basic(t *testing.T) {
 		t.Skipf("Skipping: %v", err)
 	}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -98,10 +100,10 @@ func TestAccDomainServiceTrust_requiresImport(t *testing.T) {
 		t.Skipf("Skipping: %v", err)
 	}
 
-	data.ResourceSequentialTest(t, r, []resource.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -109,7 +111,7 @@ func TestAccDomainServiceTrust_requiresImport(t *testing.T) {
 	})
 }
 
-func (r DomainServiceTrustResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r DomainServiceTrustResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.DomainServices.DomainServicesClient
 
 	id, err := parse.DomainServiceTrustID(state.ID)
@@ -179,7 +181,7 @@ resource "azurerm_active_directory_domain_service_trust" "import" {
 `, template)
 }
 
-func (r DomainServiceTrustResource) template(data acceptance.TestData) string {
+func (r DomainServiceTrustResource) template(_ acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

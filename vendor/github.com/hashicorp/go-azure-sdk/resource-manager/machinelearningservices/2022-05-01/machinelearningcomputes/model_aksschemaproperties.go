@@ -5,7 +5,7 @@ package machinelearningcomputes
 
 type AKSSchemaProperties struct {
 	AgentCount                 *int64                      `json:"agentCount,omitempty"`
-	AgentVmSize                *string                     `json:"agentVmSize,omitempty"`
+	AgentVMSize                *string                     `json:"agentVmSize,omitempty"`
 	AksNetworkingConfiguration *AksNetworkingConfiguration `json:"aksNetworkingConfiguration,omitempty"`
 	ClusterFqdn                *string                     `json:"clusterFqdn,omitempty"`
 	ClusterPurpose             *ClusterPurpose             `json:"clusterPurpose,omitempty"`

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package web
 
 import (
@@ -187,7 +190,7 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
 			if err != nil {
 				if utils.ResponseWasNotFound(existing.Response) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}

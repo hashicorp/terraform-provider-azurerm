@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -5,9 +8,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsDefault(t *testing.T) {
@@ -892,6 +895,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+// nolint: unused
 func (r LinuxVirtualMachineResource) otherPatchAssessmentModeAutomaticByPlatform(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1372,12 +1376,45 @@ func (r LinuxVirtualMachineResource) otherEdgeZone(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[3]d"
+  location = "%[2]s"
+}
+
 data "azurerm_extended_locations" "test" {
   location = azurerm_resource_group.test.location
 }
 
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[3]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%[3]d"
+  location            = azurerm_resource_group.test.location
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d"
+  name                = "acctestVM-%[3]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_D2s_v3" # intentional for premium/edgezones
@@ -1405,7 +1442,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.otherBootDiagnosticsTemplate(data), data.RandomInteger)
+`, r.templateBasePublicKey(), data.Locations.Primary, data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) otherGalleryApplication(data acceptance.TestData) string {
@@ -1548,16 +1585,16 @@ resource "azurerm_storage_blob" "test" {
   name                   = "script"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "script"
+  type                   = "Page"
+  size                   = 512
 }
 
 resource "azurerm_storage_blob" "test2" {
   name                   = "script2"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "script2"
+  type                   = "Page"
+  size                   = 512
 }
 
 resource "azurerm_shared_image_gallery" "test" {
@@ -1954,6 +1991,7 @@ resource "azurerm_key_vault" "test" {
 
     key_permissions = [
       "Create",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [

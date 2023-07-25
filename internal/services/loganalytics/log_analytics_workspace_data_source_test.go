@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package loganalytics_test
 
 import (
@@ -19,7 +22,7 @@ func TestAccDataSourceLogAnalyticsWorkspace_basic(t *testing.T) {
 		{
 			Config: r.basicWithDataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku").HasValue("pergb2018"),
+				check.That(data.ResourceName).Key("sku").HasValue("PerGB2018"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("30"),
 				check.That(data.ResourceName).Key("daily_quota_gb").HasValue("-1"),
 			),
@@ -35,7 +38,7 @@ func TestAccDataSourceLogAnalyticsWorkspace_volumeCapWithDataSource(t *testing.T
 		{
 			Config: r.volumeCapWithDataSource(data, 4.5),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku").HasValue("pergb2018"),
+				check.That(data.ResourceName).Key("sku").HasValue("PerGB2018"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("30"),
 				check.That(data.ResourceName).Key("daily_quota_gb").HasValue("4.5"),
 			),

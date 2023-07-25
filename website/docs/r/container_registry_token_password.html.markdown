@@ -29,8 +29,8 @@ resource "azurerm_container_registry" "example" {
 
 resource "azurerm_container_registry_scope_map" "example" {
   name                    = "example-scope-map"
-  container_registry_name = azurerm_container_registry.acr.name
-  resource_group_name     = azurerm_resource_group.rg.name
+  container_registry_name = azurerm_container_registry.example.name
+  resource_group_name     = azurerm_resource_group.example.name
   actions = [
     "repositories/repo1/content/read",
     "repositories/repo1/content/write"
@@ -39,9 +39,9 @@ resource "azurerm_container_registry_scope_map" "example" {
 
 resource "azurerm_container_registry_token" "example" {
   name                    = "exampletoken"
-  container_registry_name = azurerm_container_registry.acr.name
-  resource_group_name     = azurerm_resource_group.rg.name
-  scope_map_id            = azurerm_container_registry_scope_map.map.id
+  container_registry_name = azurerm_container_registry.example.name
+  resource_group_name     = azurerm_resource_group.example.name
+  scope_map_id            = azurerm_container_registry_scope_map.example.id
 }
 
 resource "azurerm_container_registry_token_password" "example" {
@@ -67,21 +67,23 @@ The following arguments are supported:
 
 A `password` block supports the following:
 
-* `expiry` - (Optional) The expiration date of the password in RFC3339 format.
+* `expiry` - (Optional) The expiration date of the password in RFC3339 format. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container Registry Token Password.
 
-* `password` - Up to two `password` blocks as defined below.
+* `password1` - One `password` block as defined below.
+
+* `password2` - One `password` block as defined below.
 
 ---
 
 A `password` block exports the following:
 
-- `value` - The value of the password (Sensitive).
+* `value` - The value of the password (Sensitive).
 
 ## Timeouts
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -44,7 +47,7 @@ func (id WebAppSlotId) ID() string {
 func WebAppSlotID(input string) (*WebAppSlotId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an WebAppSlot ID: %+v", input, err)
 	}
 
 	resourceId := WebAppSlotId{

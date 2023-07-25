@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package common
 
 import (
@@ -32,7 +35,7 @@ func correlationRequestID() string {
 		if err != nil {
 			log.Printf("[WARN] Failed to generate uuid for msCorrelationRequestID: %+v", err)
 		}
-		log.Printf("[DEBUG] Genereated Provider Correlation Request Id: %s", msCorrelationRequestID)
+		log.Printf("[DEBUG] Generated Provider Correlation Request Id: %s", msCorrelationRequestID)
 	})
 
 	return msCorrelationRequestID

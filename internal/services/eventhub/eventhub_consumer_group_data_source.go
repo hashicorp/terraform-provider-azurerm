@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventhub
 
 import (
@@ -73,7 +76,7 @@ func EventHubConsumerGroupDataSourceRead(d *pluginsdk.ResourceData, meta interfa
 	d.SetId(id.ID())
 
 	d.Set("name", id.ConsumerGroupName)
-	d.Set("eventhub_name", id.EventHubName)
+	d.Set("eventhub_name", id.EventhubName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 

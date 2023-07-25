@@ -1,11 +1,14 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
 	"sort"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func expandIDsToSubResources(input []interface{}) *[]compute.SubResource {
@@ -22,6 +25,23 @@ func expandIDsToSubResources(input []interface{}) *[]compute.SubResource {
 
 func flattenSubResourcesToIDs(input *[]compute.SubResource) []interface{} {
 	ids := make([]interface{}, 0)
+	if input == nil {
+		return ids
+	}
+
+	for _, v := range *input {
+		if v.ID == nil {
+			continue
+		}
+
+		ids = append(ids, *v.ID)
+	}
+
+	return ids
+}
+
+func flattenSubResourcesToStringIDs(input *[]compute.SubResource) []string {
+	ids := make([]string, 0)
 	if input == nil {
 		return ids
 	}

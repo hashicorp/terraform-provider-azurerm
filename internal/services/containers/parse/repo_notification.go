@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
@@ -57,7 +60,6 @@ func ParseRepositoryNotification(v string) (*RepositoryNotification, error) {
 		Artifact: *artifact,
 		Action:   action,
 	}, nil
-
 }
 
 func parseArtifact(v string) (*Artifact, error) {

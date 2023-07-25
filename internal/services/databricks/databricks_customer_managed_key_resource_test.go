@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks_test
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2021-04-01-preview/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -251,6 +254,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Create",
     "Decrypt",
     "Encrypt",
+    "GetRotationPolicy",
     "Sign",
     "UnwrapKey",
     "Verify",
@@ -272,6 +276,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
   key_permissions = [
     "Get",
+    "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
     "Delete",

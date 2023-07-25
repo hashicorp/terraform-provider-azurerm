@@ -1,7 +1,10 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package frontdoor
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -61,7 +64,7 @@ func flattenCustomHttpsConfiguration(properties *frontdoors.FrontendEndpointProp
 		return result
 	}
 
-	if config := properties.CustomHttpsConfiguration; config != nil {
+	if config := properties.CustomHTTPSConfiguration; config != nil {
 		certificateSource := string(frontdoors.FrontDoorCertificateSourceFrontDoor)
 		keyVaultCertificateVaultId := ""
 		keyVaultCertificateSecretName := ""
@@ -87,13 +90,13 @@ func flattenCustomHttpsConfiguration(properties *frontdoors.FrontendEndpointProp
 			}
 		}
 
-		if properties.CustomHttpsProvisioningState != nil && *properties.CustomHttpsProvisioningState != "" {
-			provisioningState = string(*properties.CustomHttpsProvisioningState)
-			if properties.CustomHttpsProvisioningState != nil && *properties.CustomHttpsProvisioningState == frontdoors.CustomHttpsProvisioningStateEnabled || *properties.CustomHttpsProvisioningState == frontdoors.CustomHttpsProvisioningStateEnabling {
+		if properties.CustomHTTPSProvisioningState != nil && *properties.CustomHTTPSProvisioningState != "" {
+			provisioningState = string(*properties.CustomHTTPSProvisioningState)
+			if properties.CustomHTTPSProvisioningState != nil && *properties.CustomHTTPSProvisioningState == frontdoors.CustomHTTPSProvisioningStateEnabled || *properties.CustomHTTPSProvisioningState == frontdoors.CustomHTTPSProvisioningStateEnabling {
 				result.CustomHTTPSProvisioningEnabled = true
 
-				if properties.CustomHttpsProvisioningSubstate != nil && *properties.CustomHttpsProvisioningSubstate != "" {
-					provisioningSubstate = string(*properties.CustomHttpsProvisioningSubstate)
+				if properties.CustomHTTPSProvisioningSubstate != nil && *properties.CustomHTTPSProvisioningSubstate != "" {
+					provisioningSubstate = string(*properties.CustomHTTPSProvisioningSubstate)
 				}
 			}
 

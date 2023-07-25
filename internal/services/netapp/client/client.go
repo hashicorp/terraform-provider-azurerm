@@ -1,12 +1,18 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/netappaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshotpolicy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumesreplication"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshotpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -14,36 +20,62 @@ type Client struct {
 	AccountClient           *netappaccounts.NetAppAccountsClient
 	PoolClient              *capacitypools.CapacityPoolsClient
 	VolumeClient            *volumes.VolumesClient
+	VolumeGroupClient       *volumegroups.VolumeGroupsClient
 	VolumeReplicationClient *volumesreplication.VolumesReplicationClient
 	SnapshotClient          *snapshots.SnapshotsClient
 	SnapshotPoliciesClient  *snapshotpolicy.SnapshotPolicyClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	accountClient := netappaccounts.NewNetAppAccountsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	accountClient, err := netappaccounts.NewNetAppAccountsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(accountClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AccountClient client: %+v", err)
+	}
 
-	poolClient := capacitypools.NewCapacityPoolsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&poolClient.Client, o.ResourceManagerAuthorizer)
+	poolClient, err := capacitypools.NewCapacityPoolsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(poolClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building PoolClient client: %+v", err)
+	}
 
-	volumeClient := volumes.NewVolumesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&volumeClient.Client, o.ResourceManagerAuthorizer)
+	volumeClient, err := volumes.NewVolumesClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(volumeClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VolumeClient client: %+v", err)
+	}
 
-	volumeReplicationClient := volumesreplication.NewVolumesReplicationClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&volumeReplicationClient.Client, o.ResourceManagerAuthorizer)
+	volumeGroupClient, err := volumegroups.NewVolumeGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(volumeGroupClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VolumeGroupClient client: %+v", err)
+	}
 
-	snapshotClient := snapshots.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&snapshotClient.Client, o.ResourceManagerAuthorizer)
+	volumeReplicationClient, err := volumesreplication.NewVolumesReplicationClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(volumeReplicationClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VolumeReplicationClient client: %+v", err)
+	}
 
-	snapshotPoliciesClient := snapshotpolicy.NewSnapshotPolicyClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&snapshotPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	snapshotClient, err := snapshots.NewSnapshotsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(snapshotClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SnapshotClient client: %+v", err)
+	}
+
+	snapshotPoliciesClient, err := snapshotpolicy.NewSnapshotPolicyClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(snapshotPoliciesClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SnapshotPoliciesClient client: %+v", err)
+	}
 
 	return &Client{
-		AccountClient:           &accountClient,
-		PoolClient:              &poolClient,
-		VolumeClient:            &volumeClient,
-		VolumeReplicationClient: &volumeReplicationClient,
-		SnapshotClient:          &snapshotClient,
-		SnapshotPoliciesClient:  &snapshotPoliciesClient,
-	}
+		AccountClient:           accountClient,
+		PoolClient:              poolClient,
+		VolumeClient:            volumeClient,
+		VolumeGroupClient:       volumeGroupClient,
+		VolumeReplicationClient: volumeReplicationClient,
+		SnapshotClient:          snapshotClient,
+		SnapshotPoliciesClient:  snapshotPoliciesClient,
+	}, nil
 }

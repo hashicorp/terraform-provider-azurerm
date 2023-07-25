@@ -1,15 +1,17 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
-	"fmt"
-
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func additionalUnattendContentSchema() *pluginsdk.Schema {
@@ -97,7 +99,7 @@ func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent
 }
 
 func bootDiagnosticsSchema() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -171,11 +173,7 @@ func linuxSecretSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
-				"key_vault_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: azure.ValidateResourceID, // TODO: more granular validation
-				},
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
 
 				// whilst we /could/ flatten this to `certificate_urls` we're intentionally not to keep this
 				// closer to the Windows VMSS resource, which will also take a `store` param
@@ -342,11 +340,14 @@ func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	// Id /...../Versions/16.04.201909091 is not a valid resource reference."
 	// as such the image is split into two fields (source_image_id and source_image_reference) to provide better validation
 	return &pluginsdk.Schema{
-		Type:          pluginsdk.TypeList,
-		Optional:      true,
-		ForceNew:      isVirtualMachine,
-		MaxItems:      1,
-		ConflictsWith: []string{"source_image_id"},
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: isVirtualMachine,
+		MaxItems: 1,
+		ExactlyOneOf: []string{
+			"source_image_id",
+			"source_image_reference",
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"publisher": {
@@ -378,6 +379,43 @@ func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	}
 }
 
+func sourceImageReferenceSchemaOrchestratedVMSS() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		ConflictsWith: []string{
+			"source_image_id",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"publisher": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"offer": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"sku": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"version": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
 func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId string) bool {
 	if imageId != "" {
 		return false
@@ -399,31 +437,27 @@ func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId s
 	return false
 }
 
-func expandSourceImageReference(referenceInput []interface{}, imageId string) (*compute.ImageReference, error) {
+func expandSourceImageReference(referenceInput []interface{}, imageId string) *compute.ImageReference {
 	if imageId != "" {
-		// With Version            : "/CommunityGalleries/publicGalleryName/Images/myGalleryImageName/Versions/(major.minor.patch | latest)"
-		// Versionless(e.g. latest): "/CommunityGalleries/publicGalleryName/Images/myGalleryImageName"
+		// With Version            : "/communityGalleries/publicGalleryName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
+		// Versionless(e.g. latest): "/communityGalleries/publicGalleryName/images/myGalleryImageName"
 		if _, errors := validation.Any(validate.CommunityGalleryImageID, validate.CommunityGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
 			return &compute.ImageReference{
 				CommunityGalleryImageID: utils.String(imageId),
-			}, nil
+			}
 		}
 
-		// With Version            : "/SharedGalleries/galleryUniqueName/Images/myGalleryImageName/Versions/(major.minor.patch | latest)"
-		// Versionless(e.g. latest): "/SharedGalleries/galleryUniqueName/Images/myGalleryImageName"
+		// With Version            : "/sharedGalleries/galleryUniqueName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
+		// Versionless(e.g. latest): "/sharedGalleries/galleryUniqueName/images/myGalleryImageName"
 		if _, errors := validation.Any(validate.SharedGalleryImageID, validate.SharedGalleryImageVersionID)(imageId, "source_image_id"); len(errors) == 0 {
 			return &compute.ImageReference{
 				SharedGalleryImageID: utils.String(imageId),
-			}, nil
+			}
 		}
 
 		return &compute.ImageReference{
 			ID: utils.String(imageId),
-		}, nil
-	}
-
-	if len(referenceInput) == 0 {
-		return nil, fmt.Errorf("either a `source_image_id` or a `source_image_reference` block must be specified")
+		}
 	}
 
 	raw := referenceInput[0].(map[string]interface{})
@@ -432,7 +466,7 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) (*
 		Offer:     utils.String(raw["offer"].(string)),
 		Sku:       utils.String(raw["sku"].(string)),
 		Version:   utils.String(raw["version"].(string)),
-	}, nil
+	}
 }
 
 func flattenSourceImageReference(input *compute.ImageReference, hasImageId bool) []interface{} {
@@ -550,11 +584,7 @@ func windowsSecretSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// whilst this isn't present in the nested object it's required when this is specified
-				"key_vault_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: azure.ValidateResourceID,
-				},
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
 
 				"certificate": {
 					Type:     pluginsdk.TypeSet,

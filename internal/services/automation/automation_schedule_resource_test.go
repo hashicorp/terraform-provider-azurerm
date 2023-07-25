@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation_test
 
 import (
@@ -6,12 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/schedule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AutomationScheduleResource struct{}
@@ -23,6 +26,29 @@ func TestAccAutomationSchedule_oneTime_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.oneTime_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// test for: https://github.com/hashicorp/terraform-provider-azurerm/issues/21854
+func TestAccAutomationSchedule_expiryTimeOfEuropeTimeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	r := AutomationScheduleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.expiryTimeOfEuropeTimeZone(data, "foo"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.expiryTimeOfEuropeTimeZone(data, "bar"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -199,17 +225,17 @@ func TestAccAutomationSchedule_monthly_advanced_by_week_day(t *testing.T) {
 }
 
 func (t AutomationScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ScheduleID(state.ID)
+	id, err := schedule.ParseScheduleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Automation.ScheduleClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := clients.Automation.ScheduleClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Schedule '%s' (resource group: '%s') does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.ScheduleProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AutomationScheduleResource) template(data acceptance.TestData) string {
@@ -243,6 +269,24 @@ resource "azurerm_automation_schedule" "test" {
   frequency               = "OneTime"
 }
 `, AutomationScheduleResource{}.template(data), data.RandomInteger)
+}
+
+func (a AutomationScheduleResource) expiryTimeOfEuropeTimeZone(data acceptance.TestData, desc string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_schedule" "test" {
+  name                    = "acctestAS-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  frequency               = "Week"
+  interval                = 1
+  timezone                = "Europe/Amsterdam"
+  start_time              = "2026-04-15T18:01:15+02:00"
+  description             = "%s"
+  week_days               = ["Monday"]
+}
+`, a.template(data), data.RandomInteger, desc)
 }
 
 func (AutomationScheduleResource) requiresImport(data acceptance.TestData) string {

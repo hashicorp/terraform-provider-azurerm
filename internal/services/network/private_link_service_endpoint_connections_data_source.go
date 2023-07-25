@@ -1,18 +1,22 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourcePrivateLinkServiceEndpointConnections() *pluginsdk.Resource {
@@ -138,9 +142,9 @@ func dataSourceflattenPrivateLinkServicePrivateEndpointConnections(input *[]netw
 				if id := p.ID; id != nil {
 					v["private_endpoint_id"] = *id
 
-					id, _ := parse.PrivateEndpointID(*id)
-					if id.Name != "" {
-						v["private_endpoint_name"] = id.Name
+					id, _ := privateendpoints.ParsePrivateEndpointID(*id)
+					if id.PrivateEndpointName != "" {
+						v["private_endpoint_name"] = id.PrivateEndpointName
 					}
 				}
 			}

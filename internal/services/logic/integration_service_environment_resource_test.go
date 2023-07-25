@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -16,6 +19,8 @@ import (
 type IntegrationServiceEnvironmentResource struct{}
 
 func TestAccIntegrationServiceEnvironment_basic(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -42,6 +47,8 @@ func TestAccIntegrationServiceEnvironment_basic(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_complete(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -69,6 +76,8 @@ func TestAccIntegrationServiceEnvironment_complete(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_developer(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -96,6 +105,8 @@ func TestAccIntegrationServiceEnvironment_developer(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 
@@ -158,6 +169,8 @@ func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
 }
 
 func TestAccIntegrationServiceEnvironment_requiresImport(t *testing.T) {
+	t.Skip("Skipping since Integration Service Environment is deprecated.")
+
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	r := IntegrationServiceEnvironmentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -184,17 +197,17 @@ func TestAccIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 }
 
 func (IntegrationServiceEnvironmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IntegrationServiceEnvironmentID(state.ID)
+	id, err := integrationserviceenvironments.ParseIntegrationServiceEnvironmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Logic.IntegrationServiceEnvironmentClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Logic.IntegrationServiceEnvironmentClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Integration Service Environment %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.ID(), err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (IntegrationServiceEnvironmentResource) template(data acceptance.TestData) string {

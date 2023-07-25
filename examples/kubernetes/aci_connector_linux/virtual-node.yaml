@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,9 +22,8 @@ spec:
         - containerPort: 80
       nodeSelector:
         kubernetes.io/role: agent
-        beta.kubernetes.io/os: linux
+        kubernetes.io/os: linux
         type: virtual-kubelet
       tolerations:
       - key: virtual-kubelet.io/provider
         operator: Exists
-        

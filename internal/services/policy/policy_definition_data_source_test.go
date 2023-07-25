@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy_test
 
 import (
@@ -23,6 +26,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 				check.That(data.ResourceName).Key("display_name").HasValue("Allowed resource types"),
 				check.That(data.ResourceName).Key("type").HasValue("Microsoft.Authorization/policyDefinitions"),
 				check.That(data.ResourceName).Key("description").HasValue("This policy enables you to specify the resource types that your organization can deploy. Only resource types that support 'tags' and 'location' will be affected by this policy. To restrict all resources please duplicate this policy and change the 'mode' to 'All'."),
+				check.That(data.ResourceName).Key("mode").HasValue("Indexed"),
 			),
 		},
 	})
@@ -56,6 +60,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtInByName(t *testing.T) {
 				check.That(data.ResourceName).Key("display_name").HasValue("Allowed resource types"),
 				check.That(data.ResourceName).Key("type").HasValue("Microsoft.Authorization/policyDefinitions"),
 				check.That(data.ResourceName).Key("description").HasValue("This policy enables you to specify the resource types that your organization can deploy. Only resource types that support 'tags' and 'location' will be affected by this policy. To restrict all resources please duplicate this policy and change the 'mode' to 'All'."),
+				check.That(data.ResourceName).Key("mode").HasValue("Indexed"),
 			),
 		},
 	})
@@ -90,6 +95,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_customByDisplayName(t *testing.T) 
 				check.That(data.ResourceName).Key("policy_rule").HasValue("{\"if\":{\"not\":{\"field\":\"location\",\"in\":\"[parameters('allowedLocations')]\"}},\"then\":{\"effect\":\"audit\"}}"),
 				check.That(data.ResourceName).Key("parameters").HasValue("{\"allowedLocations\":{\"type\":\"Array\",\"metadata\":{\"description\":\"The list of allowed locations for resources.\",\"displayName\":\"Allowed locations\",\"strongType\":\"location\"}}}"),
 				check.That(data.ResourceName).Key("metadata").Exists(),
+				check.That(data.ResourceName).Key("mode").HasValue("All"),
 			),
 		},
 	})
@@ -110,6 +116,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_customByName(t *testing.T) {
 				check.That(data.ResourceName).Key("policy_rule").HasValue("{\"if\":{\"not\":{\"field\":\"location\",\"in\":\"[parameters('allowedLocations')]\"}},\"then\":{\"effect\":\"audit\"}}"),
 				check.That(data.ResourceName).Key("parameters").HasValue("{\"allowedLocations\":{\"type\":\"Array\",\"metadata\":{\"description\":\"The list of allowed locations for resources.\",\"displayName\":\"Allowed locations\",\"strongType\":\"location\"}}}"),
 				check.That(data.ResourceName).Key("metadata").Exists(),
+				check.That(data.ResourceName).Key("mode").HasValue("All"),
 			),
 		},
 	})

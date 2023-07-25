@@ -1,6 +1,9 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
-import "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+import "github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 
 func FindNetworkInterfaceIPConfiguration(input *[]network.InterfaceIPConfiguration, name string) *network.InterfaceIPConfiguration {
 	if input == nil {

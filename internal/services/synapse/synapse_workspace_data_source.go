@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package synapse
 
 import (
@@ -42,7 +45,7 @@ func dataSourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"tags": tags.SchemaDataSource(),
 		},
@@ -71,7 +74,11 @@ func dataSourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{})
 	if props := resp.WorkspaceProperties; props != nil {
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
 	}
-	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
+	flattenIdentities, err := flattenIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("identity", flattenIdentities); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)

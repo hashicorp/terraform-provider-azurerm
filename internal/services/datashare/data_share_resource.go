@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datashare
 
 import (
@@ -5,11 +8,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/synchronizationsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -33,7 +39,7 @@ func resourceDataShare() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ShareID(id)
+			_, err := share.ParseShareID(id)
 			return err
 		}),
 
@@ -49,7 +55,7 @@ func resourceDataShare() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AccountID,
+				ValidateFunc: account.ValidateAccountID,
 			},
 
 			"kind": {
@@ -57,8 +63,8 @@ func resourceDataShare() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(datashare.CopyBased),
-					string(datashare.InPlace),
+					string(share.ShareKindCopyBased),
+					string(share.ShareKindInPlace),
 				}, false),
 			},
 
@@ -83,8 +89,8 @@ func resourceDataShare() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(datashare.Day),
-								string(datashare.Hour),
+								string(synchronizationsetting.RecurrenceIntervalDay),
+								string(synchronizationsetting.RecurrenceIntervalHour),
 							}, false),
 						},
 
@@ -114,37 +120,37 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	name := d.Get("name").(string)
-	accountId, err := parse.AccountID(d.Get("account_id").(string))
+	accountId, err := account.ParseAccountID(d.Get("account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	resourceId := parse.NewShareID(subscriptionId, accountId.ResourceGroup, accountId.Name, name)
+	id := share.NewShareID(subscriptionId, accountId.ResourceGroupName, accountId.AccountName, name)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing DataShare %q (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_share", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_share", id.ID())
 		}
 	}
 
-	share := datashare.Share{
-		ShareProperties: &datashare.ShareProperties{
-			ShareKind:   datashare.ShareKind(d.Get("kind").(string)),
+	share := share.Share{
+		Properties: &share.ShareProperties{
+			ShareKind:   pointer.To(share.ShareKind(d.Get("kind").(string))),
 			Description: utils.String(d.Get("description").(string)),
 			Terms:       utils.String(d.Get("terms").(string)),
 		},
 	}
 
-	if _, err := client.Create(ctx, accountId.ResourceGroup, accountId.Name, name, share); err != nil {
-		return fmt.Errorf("creating Data Share %q (Account %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
+	if _, err := client.Create(ctx, id, share); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 
 	if d.HasChange("snapshot_schedule") {
 		// only one dependent sync setting is allowed in one data share
@@ -152,20 +158,18 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		if origins := o.([]interface{}); len(origins) > 0 {
 			origin := origins[0].(map[string]interface{})
 			if originName, ok := origin["name"].(string); ok && originName != "" {
-				future, err := syncClient.Delete(ctx, accountId.ResourceGroup, accountId.Name, name, originName)
-				if err != nil {
-					return fmt.Errorf("deleting DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
-				}
-				if err = future.WaitForCompletionRef(ctx, syncClient.Client); err != nil {
-					return fmt.Errorf("waiting for DataShare %q snapshot schedule (Resource Group %q / accountName %q) to be deleted: %+v", name, accountId.ResourceGroup, accountId.Name, err)
+				syncId := synchronizationsetting.NewSynchronizationSettingID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ShareName, originName)
+				if err := syncClient.DeleteThenPoll(ctx, syncId); err != nil {
+					return fmt.Errorf("deleting datashare snapshot schedule %s: %+v", syncId, err)
 				}
 			}
 		}
 	}
 
 	if snapshotSchedule := expandAzureRmDataShareSnapshotSchedule(d.Get("snapshot_schedule").([]interface{})); snapshotSchedule != nil {
-		if _, err := syncClient.Create(ctx, accountId.ResourceGroup, accountId.Name, name, d.Get("snapshot_schedule.0.name").(string), snapshotSchedule); err != nil {
-			return fmt.Errorf("creating DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
+		syncId := synchronizationsetting.NewSynchronizationSettingID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ShareName, d.Get("snapshot_schedule.0.name").(string))
+		if _, err := syncClient.Create(ctx, syncId, snapshotSchedule); err != nil {
+			return fmt.Errorf("creating datashare snapshot schedule %s: %+v", syncId, err)
 		}
 	}
 
@@ -179,45 +183,42 @@ func resourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ShareID(d.Id())
+	id, err := share.ParseShareID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	dataShare, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(dataShare.Response) {
-			log.Printf("[INFO] DataShare %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving DataShare %q (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	accountId := parse.NewAccountID(subscriptionId, id.ResourceGroup, id.AccountName)
+	accountId := account.NewAccountID(subscriptionId, id.ResourceGroupName, id.AccountName)
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ShareName)
 	d.Set("account_id", accountId.ID())
 
-	if props := dataShare.ShareProperties; props != nil {
-		d.Set("kind", props.ShareKind)
-		d.Set("description", props.Description)
-		d.Set("terms", props.Terms)
-	}
-
-	settings := make([]datashare.ScheduledSynchronizationSetting, 0)
-	syncIterator, err := syncClient.ListByShareComplete(ctx, id.ResourceGroup, id.AccountName, id.Name, "")
-	if err != nil {
-		return fmt.Errorf("listing Snapshot Schedules for Data Share %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
-	}
-	for syncIterator.NotDone() {
-		item, ok := syncIterator.Value().AsScheduledSynchronizationSetting()
-		if ok && item != nil {
-			settings = append(settings, *item)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("kind", string(pointer.From(props.ShareKind)))
+			d.Set("description", props.Description)
+			d.Set("terms", props.Terms)
 		}
+	}
 
-		if err := syncIterator.NextWithContext(ctx); err != nil {
-			return fmt.Errorf("retrieving next Snapshot Schedule: %+v", err)
+	settings := make([]synchronizationsetting.ScheduledSynchronizationSetting, 0)
+	snapshotSchedules, err := syncClient.ListByShareComplete(ctx, synchronizationsetting.NewShareID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ShareName))
+	if err != nil {
+		return fmt.Errorf("listing snapshot schedules for %s: %+v", *id, err)
+	}
+	for _, item := range snapshotSchedules.Items {
+		if s, ok := item.(synchronizationsetting.ScheduledSynchronizationSetting); ok {
+			settings = append(settings, s)
 		}
 	}
 	if err := d.Set("snapshot_schedule", flattenAzureRmDataShareSnapshotSchedule(settings)); err != nil {
@@ -233,35 +234,27 @@ func resourceDataShareDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ShareID(d.Id())
+	id, err := share.ParseShareID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// sync setting will not automatically be deleted after the data share is deleted
 	if _, ok := d.GetOk("snapshot_schedule"); ok {
-		syncFuture, err := syncClient.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name, d.Get("snapshot_schedule.0.name").(string))
-		if err != nil {
-			return fmt.Errorf("deleting DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
-		}
-		if err = syncFuture.WaitForCompletionRef(ctx, syncClient.Client); err != nil {
-			return fmt.Errorf("waiting for DataShare %q snapshot schedule (Resource Group %q / accountName %q) to be deleted: %+v", id.Name, id.ResourceGroup, id.AccountName, err)
+		syncId := synchronizationsetting.NewSynchronizationSettingID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ShareName, d.Get("snapshot_schedule.0.name").(string))
+		if err := syncClient.DeleteThenPoll(ctx, syncId); err != nil {
+			return fmt.Errorf("deleting datashare snapshot schedule %s: %+v", syncId, err)
 		}
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting DataShare %q (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for DataShare %q (Resource Group %q / accountName %q) to be deleted: %+v", id.Name, id.ResourceGroup, id.AccountName, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandAzureRmDataShareSnapshotSchedule(input []interface{}) *datashare.ScheduledSynchronizationSetting {
+func expandAzureRmDataShareSnapshotSchedule(input []interface{}) *synchronizationsetting.ScheduledSynchronizationSetting {
 	if len(input) == 0 {
 		return nil
 	}
@@ -270,33 +263,30 @@ func expandAzureRmDataShareSnapshotSchedule(input []interface{}) *datashare.Sche
 
 	startTime, _ := time.Parse(time.RFC3339, snapshotSchedule["start_time"].(string))
 
-	return &datashare.ScheduledSynchronizationSetting{
-		Kind: datashare.KindBasicSynchronizationSettingKindScheduleBased,
-		ScheduledSynchronizationSettingProperties: &datashare.ScheduledSynchronizationSettingProperties{
-			RecurrenceInterval:  datashare.RecurrenceInterval(snapshotSchedule["recurrence"].(string)),
-			SynchronizationTime: &date.Time{Time: startTime},
+	syncTime := date.Time{Time: startTime}.String()
+
+	return &synchronizationsetting.ScheduledSynchronizationSetting{
+		Properties: synchronizationsetting.ScheduledSynchronizationSettingProperties{
+			RecurrenceInterval:  synchronizationsetting.RecurrenceInterval(snapshotSchedule["recurrence"].(string)),
+			SynchronizationTime: syncTime,
 		},
 	}
 }
 
-func flattenAzureRmDataShareSnapshotSchedule(input []datashare.ScheduledSynchronizationSetting) []interface{} {
+func flattenAzureRmDataShareSnapshotSchedule(input []synchronizationsetting.ScheduledSynchronizationSetting) []interface{} {
 	output := make([]interface{}, 0)
 
 	for _, setting := range input {
+		props := setting.Properties
 		name := ""
 		if setting.Name != nil {
 			name = *setting.Name
 		}
 
-		startTime := ""
-		if setting.SynchronizationTime != nil && !setting.SynchronizationTime.IsZero() {
-			startTime = setting.SynchronizationTime.Format(time.RFC3339)
-		}
-
 		output = append(output, map[string]interface{}{
 			"name":       name,
-			"recurrence": string(setting.RecurrenceInterval),
-			"start_time": startTime,
+			"recurrence": string(props.RecurrenceInterval),
+			"start_time": props.SynchronizationTime,
 		})
 	}
 

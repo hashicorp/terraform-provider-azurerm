@@ -10,7 +10,7 @@ description: |-
 
 Manages a Backup Instance to back up PostgreSQL.
 
--> **Note:** Before using this resource, there are some prerequisite permissions for configure backup and restore. See more details from https://docs.microsoft.com/azure/backup/backup-azure-database-postgresql#prerequisite-permissions-for-configure-backup-and-restore.
+-> **Note:** Before using this resource, there are some prerequisite permissions for configure backup and restore. See more details from <https://docs.microsoft.com/azure/backup/backup-azure-database-postgresql#prerequisite-permissions-for-configure-backup-and-restore>.
 
 ## Example Usage
 
@@ -155,7 +155,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Backup Instance PostgreSQL.
 

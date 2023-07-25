@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -65,5 +68,15 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_storage_sync":                         resourceStorageSync(),
 		"azurerm_storage_sync_cloud_endpoint":          resourceStorageSyncCloudEndpoint(),
 		"azurerm_storage_sync_group":                   resourceStorageSyncGroup(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		LocalUserResource{},
 	}
 }

@@ -71,7 +71,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The EventHub ID.
 
@@ -88,8 +88,6 @@ The following attributes are exported:
 * `secondary_key` - The Secondary Key for the Event Hubs Authorization Rule.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 

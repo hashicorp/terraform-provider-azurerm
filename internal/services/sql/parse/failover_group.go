@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -44,7 +47,7 @@ func (id FailoverGroupId) ID() string {
 func FailoverGroupID(input string) (*FailoverGroupId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an FailoverGroup ID: %+v", input, err)
 	}
 
 	resourceId := FailoverGroupId{

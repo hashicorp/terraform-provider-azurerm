@@ -52,7 +52,7 @@ output "job_id" {
 
 * `last_output_time` - The time at which the Stream Analytics job last produced an output.
 
-* `output_error_policy` - The policy which should be applied to events which arrive at the output and cannot be written to the external storage due to being malformed (such as missing column values, column values of wrong type or size). 
+* `output_error_policy` - The policy which should be applied to events which arrive at the output and cannot be written to the external storage due to being malformed (such as missing column values, column values of wrong type or size).
 
 * `start_mode` - The starting mode set for this Stream Analytics Job.
 

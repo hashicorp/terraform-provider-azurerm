@@ -33,11 +33,13 @@ The following arguments are supported:
 
 ---
 
+* `managed_by` - (Optional) The ID of the resource or application that manages this Resource Group.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Resource Group.
 
@@ -55,5 +57,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Resource Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_resource_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example
+terraform import azurerm_resource_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1
 ```

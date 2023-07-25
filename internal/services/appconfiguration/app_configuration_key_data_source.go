@@ -1,20 +1,23 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type KeyDataSource struct{}
@@ -26,7 +29,7 @@ func (k KeyDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"configuration_store_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
 		},
 		"key": {
 			Type:         pluginsdk.TypeString,
@@ -88,35 +91,36 @@ func (k KeyDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			decodedKey, err := url.QueryUnescape(model.Key)
-			if err != nil {
-				return fmt.Errorf("while decoding key of resource ID: %+v", err)
-			}
-
-			id := parse.AppConfigurationKeyId{
-				ConfigurationStoreId: model.ConfigurationStoreId,
-				Key:                  decodedKey,
-				Label:                model.Label,
-			}
-
-			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("building data plane client: app configuration %q was not found", model.ConfigurationStoreId)
-			}
+			configurationStoreId, err := configurationstores.ParseConfigurationStoreID(model.ConfigurationStoreId)
 			if err != nil {
 				return err
 			}
 
-			kv, err := client.GetKeyValue(ctx, decodedKey, model.Label, "", "", "", []string{})
+			configurationStoreEndpoint, err := metadata.Client.AppConfiguration.EndpointForConfigurationStore(ctx, *configurationStoreId)
+			if err != nil {
+				return fmt.Errorf("retrieving Endpoint for feature %q in %q: %s", model.Key, *configurationStoreId, err)
+			}
+
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(*configurationStoreEndpoint)
+			if err != nil {
+				return err
+			}
+
+			nestedItemId, err := parse.NewNestedItemID(client.Endpoint, model.Key, model.Label)
+			if err != nil {
+				return err
+			}
+
+			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("key %s was not found", decodedKey)
+						return fmt.Errorf("key %s was not found", model.Key)
 					}
 				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
+					return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
 				}
-				return fmt.Errorf("while checking for key's %q existence: %+v", decodedKey, err)
+				return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
 			}
 
 			if contentType := utils.NormalizeNilableString(kv.ContentType); contentType != VaultKeyContentType {
@@ -141,12 +145,8 @@ func (k KeyDataSource) Read() sdk.ResourceFunc {
 				model.Locked = *kv.Locked
 			}
 			model.Etag = utils.NormalizeNilableString(kv.Etag)
-			if id.Label == "" {
-				// We set an empty label as %00 in the resource ID
-				// Otherwise it breaks the ID parsing logic
-				id.Label = "%00"
-			}
-			metadata.SetID(id)
+
+			metadata.SetID(nestedItemId)
 			return metadata.Encode(&model)
 		},
 	}

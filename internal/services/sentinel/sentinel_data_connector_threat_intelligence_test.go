@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel_test
 
 import (
@@ -8,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -61,7 +65,7 @@ func TestAccAzureRMSentinelDataConnectorThreatIntelligence_requiresImport(t *tes
 }
 
 func (r SentinelDataConnectorThreatIntelligenceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Sentinel.DataConnectorsClient
+	client := azuresdkhacks.DataConnectorsClient{BaseClient: clients.Sentinel.DataConnectorsClient.BaseClient}
 
 	id, err := parse.DataConnectorID(state.ID)
 	if err != nil {
@@ -85,8 +89,7 @@ func (r SentinelDataConnectorThreatIntelligenceResource) basic(data acceptance.T
 
 resource "azurerm_sentinel_data_connector_threat_intelligence" "test" {
   name                       = "accTestDC-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  depends_on                 = [azurerm_log_analytics_solution.test]
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 `, template, data.RandomInteger)
 }
@@ -100,9 +103,9 @@ data "azurerm_client_config" "test" {}
 
 resource "azurerm_sentinel_data_connector_threat_intelligence" "test" {
   name                       = "accTestDC-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   tenant_id                  = data.azurerm_client_config.test.tenant_id
-  depends_on                 = [azurerm_log_analytics_solution.test]
+  lookback_date              = "1990-01-01T00:00:00Z"
 }
 `, template, data.RandomInteger)
 }
@@ -137,17 +140,8 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

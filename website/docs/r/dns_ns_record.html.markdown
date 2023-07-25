@@ -43,7 +43,7 @@ resource "azurerm_dns_ns_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS NS Record.
+* `name` - (Required) The name of the DNS NS Record. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The DNS NS Record ID.
 
@@ -80,5 +80,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 NS records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_ns_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/NS/myrecord1
+terraform import azurerm_dns_ns_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/NS/myrecord1
 ```

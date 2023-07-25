@@ -13,10 +13,21 @@ Manages an Automation Source Control.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_automation_account" "example" {
+  name                = "example-account"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Basic"
+}
+
 resource "azurerm_automation_source_control" "example" {
   name                  = "example"
-  resource_group_name   = "example"
-  automation_account_id = azurerm_automation_account.test.id
+  automation_account_id = azurerm_automation_account.example.id
   folder_path           = "runbook"
 
   security {
@@ -35,7 +46,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Automation Source Control. Changing this forces a new Automation Source Control to be created.
 
-* `automation_account_id` (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
+* `automation_account_id` - (Required) The ID of Automation Account to manage this Source Control. Changing this forces a new Automation Source Control to be created.
 
 * `folder_path` - (Required) The folder path of the source control. This Path must be relative.
 
@@ -53,7 +64,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A short description of the Source Control.
 
-* `publish_runbook_enabled` - (Optional) Whether auto publish the Source Control.
+* `publish_runbook_enabled` - (Optional) Whether auto publish the Source Control. Defaults to `true`.
 
 ---
 
@@ -67,7 +78,7 @@ A `security` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Automation Source Control.
 

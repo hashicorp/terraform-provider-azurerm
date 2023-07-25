@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package legacy_test
 
 import (
@@ -5,13 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
 )
 
 type VirtualMachineResource struct{}
@@ -112,12 +116,12 @@ func (VirtualMachineResource) Exists(ctx context.Context, clients *clients.Clien
 
 func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.ManagedDiskID(*diskId)
+		id, err := disks.ParseDiskID(*diskId)
 		if err != nil {
 			return err
 		}
 
-		disk, err := clients.Legacy.DisksClient.Get(ctx, id.ResourceGroup, id.DiskName)
+		disk, err := clients.Legacy.DisksClient.Get(ctx, id.ResourceGroupName, id.DiskName)
 		if err != nil {
 			if utils.ResponseWasNotFound(disk.Response) {
 				return fmt.Errorf("disk %s does not exist", *id)
@@ -125,7 +129,7 @@ func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.Clien
 			return err
 		}
 
-		future, err := clients.Legacy.DisksClient.Delete(ctx, id.ResourceGroup, id.DiskName)
+		future, err := clients.Legacy.DisksClient.Delete(ctx, id.ResourceGroupName, id.DiskName)
 		if err != nil {
 			return fmt.Errorf("deleting disk %q: %s", id.String(), err)
 		}
@@ -140,12 +144,12 @@ func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.Clien
 
 func (VirtualMachineResource) managedDiskExists(diskId *string, shouldExist bool) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.ManagedDiskID(*diskId)
+		id, err := disks.ParseDiskID(*diskId)
 		if err != nil {
 			return err
 		}
 
-		disk, err := clients.Legacy.DisksClient.Get(ctx, id.ResourceGroup, id.DiskName)
+		disk, err := clients.Legacy.DisksClient.Get(ctx, id.ResourceGroupName, id.DiskName)
 		if err != nil {
 			if utils.ResponseWasNotFound(disk.Response) {
 				if !shouldExist {

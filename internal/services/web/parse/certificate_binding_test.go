@@ -1,13 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
 	"reflect"
 	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
 )
-
-var _ resourceid.Formatter = CertificateBindingId{}
 
 func TestCertificateBindingIDFormatter(t *testing.T) {
 	hostnameBindingId := HostnameBindingId{

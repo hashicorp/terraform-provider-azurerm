@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package redisenterprise_test
 
 import (
@@ -227,6 +230,11 @@ resource "azurerm_redis_enterprise_database" "test" {
   module {
     name = "RedisTimeSeries"
     args = "RETENTION_POLICY 20"
+  }
+
+  module {
+    name = "RedisJSON"
+    args = ""
   }
 
   port = 10000

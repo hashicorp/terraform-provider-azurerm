@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -24,7 +27,6 @@ func WorkspaceID(input interface{}, key string) (warnings []string, errors []err
 			errors = append(errors, fmt.Errorf("expected the <workSpace id> in %q to be a valid UUID, but got %q", key, segments[1]))
 			return
 		}
-
 	} else {
 		errors = append(errors, fmt.Errorf("expected %q in the format {<subscription id}|{workSpace id} but got %q", key, v))
 	}

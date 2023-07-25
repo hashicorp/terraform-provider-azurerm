@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package videoanalyzer_test
 
 import (
@@ -61,8 +64,8 @@ func (VideoAnalyzerEdgeModuleResource) Exists(ctx context.Context, clients *clie
 	return utils.Bool(resp.Model != nil), nil
 }
 
+// nolint: unused
 func (r VideoAnalyzerEdgeModuleResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -71,9 +74,10 @@ resource "azurerm_video_analyzer_edge_module" "test" {
   resource_group_name = azurerm_resource_group.test.name
   video_analyzer_name = azurerm_video_analyzer.test.name
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
+// nolint: unused
 func (r VideoAnalyzerEdgeModuleResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
@@ -87,6 +91,7 @@ resource "azurerm_video_analyzer_edge_module" "import" {
 `, template)
 }
 
+// nolint: unused
 func (VideoAnalyzerEdgeModuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

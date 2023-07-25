@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package applicationinsights
 
 import (
@@ -189,11 +192,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Create() sdk.ResourceFunc {
 				properties.Properties.Localized = &localizedValue
 			}
 
-			galleriesValue, err := expandWorkbookTemplateGalleryModel(model.Galleries)
-			if err != nil {
-				return err
-			}
-
+			galleriesValue := expandWorkbookTemplateGalleryModel(model.Galleries)
 			if galleriesValue != nil {
 				properties.Properties.Galleries = *galleriesValue
 			}
@@ -239,11 +238,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("galleries") {
-				galleriesValue, err := expandWorkbookTemplateGalleryModel(model.Galleries)
-				if err != nil {
-					return err
-				}
-
+				galleriesValue := expandWorkbookTemplateGalleryModel(model.Galleries)
 				if galleriesValue != nil {
 					properties.Properties.Galleries = *galleriesValue
 				}
@@ -311,7 +306,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ApplicationInsightsWorkbookTemplateModel{
-				Name:              id.ResourceName,
+				Name:              id.WorkbookTemplateName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
 			}
@@ -321,12 +316,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Read() sdk.ResourceFunc {
 					state.Author = *properties.Author
 				}
 
-				galleriesValue, err := flattenWorkbookTemplateGalleryModel(&properties.Galleries)
-				if err != nil {
-					return err
-				}
-
-				state.Galleries = galleriesValue
+				state.Galleries = flattenWorkbookTemplateGalleryModel(&properties.Galleries)
 
 				if properties.Priority != nil {
 					state.Priority = *properties.Priority
@@ -380,7 +370,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandWorkbookTemplateGalleryModel(inputList []WorkbookTemplateGalleryModel) (*[]workbooktemplates.WorkbookTemplateGallery, error) {
+func expandWorkbookTemplateGalleryModel(inputList []WorkbookTemplateGalleryModel) *[]workbooktemplates.WorkbookTemplateGallery {
 	var outputList []workbooktemplates.WorkbookTemplateGallery
 	for _, input := range inputList {
 		output := workbooktemplates.WorkbookTemplateGallery{
@@ -394,13 +384,13 @@ func expandWorkbookTemplateGalleryModel(inputList []WorkbookTemplateGalleryModel
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
-func flattenWorkbookTemplateGalleryModel(inputList *[]workbooktemplates.WorkbookTemplateGallery) ([]WorkbookTemplateGalleryModel, error) {
+func flattenWorkbookTemplateGalleryModel(inputList *[]workbooktemplates.WorkbookTemplateGallery) []WorkbookTemplateGalleryModel {
 	var outputList []WorkbookTemplateGalleryModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -429,5 +419,5 @@ func flattenWorkbookTemplateGalleryModel(inputList *[]workbooktemplates.Workbook
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }

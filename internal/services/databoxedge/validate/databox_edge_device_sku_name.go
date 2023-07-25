@@ -1,10 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
@@ -19,8 +22,8 @@ func DataboxEdgeDeviceSkuName(v interface{}, k string) (warnings []string, error
 	}
 
 	skuParts := strings.Split(value, "-")
-	validSkus := getValidSkus()
-	validTiers := getValidTiers()
+	validSkus := devices.PossibleValuesForSkuName()
+	validTiers := devices.PossibleValuesForSkuTier()
 
 	// Validate the SKU Name section
 	for _, str := range validSkus {
@@ -48,38 +51,4 @@ func DataboxEdgeDeviceSkuName(v interface{}, k string) (warnings []string, error
 	}
 
 	return warnings, errors
-}
-
-func getValidSkus() []string {
-	return []string{
-		string(databoxedge.Gateway),
-		// notified that the Edge SKU has been deprecated per the
-		// service team as via a communication on Thursday, March 11, 2021
-		// and been replaced by the below new SKUs: EdgePBase is the new Edge SKU
-		string(databoxedge.EdgeMRMini),
-		string(databoxedge.EdgePBase),
-		string(databoxedge.EdgePHigh),
-		string(databoxedge.EdgePRBase),
-		string(databoxedge.EdgePRBaseUPS),
-		string(databoxedge.GPU),
-		string(databoxedge.RCALarge),
-		string(databoxedge.RCASmall),
-		string(databoxedge.RDC),
-		string(databoxedge.TCALarge),
-		string(databoxedge.TCASmall),
-		string(databoxedge.TDC),
-		string(databoxedge.TEA1Node),
-		string(databoxedge.TEA1NodeUPS),
-		string(databoxedge.TEA1NodeHeater),
-		string(databoxedge.TEA1NodeUPSHeater),
-		string(databoxedge.TEA4NodeHeater),
-		string(databoxedge.TEA4NodeUPSHeater),
-		string(databoxedge.TMA),
-	}
-}
-
-func getValidTiers() []string {
-	return []string{
-		string(databoxedge.Standard),
-	}
 }

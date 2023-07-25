@@ -28,7 +28,7 @@ output "eventhub_authorization_rule_id" {
 
 The following arguments are supported:
 
-* `name` - The name of the EventHub Authorization Rule resource. 
+* `name` - The name of the EventHub Authorization Rule resource.
 
 * `resource_group_name` - The name of the resource group in which the EventHub Namespace exists.
 

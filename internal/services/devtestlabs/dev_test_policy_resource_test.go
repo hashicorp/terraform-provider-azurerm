@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package devtestlabs_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/policies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -68,17 +71,17 @@ func TestAccDevTestPolicy_complete(t *testing.T) {
 }
 
 func (DevTestPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DevTestLabPolicyID(state.ID)
+	id, err := policies.ParsePolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DevTestLabs.PoliciesClient.Get(ctx, id.ResourceGroup, id.LabName, id.PolicySetName, id.PolicyName, "")
+	resp, err := clients.DevTestLabs.PoliciesClient.Get(ctx, *id, policies.GetOperationOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.PolicyProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DevTestPolicyResource) basic(data acceptance.TestData) string {
@@ -115,7 +118,7 @@ func (r DevTestPolicyResource) requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_dev_test_policy" "import" {
   name                = azurerm_dev_test_policy.test.name
-  policy_set_name     = "$[azurerm_dev_test_policy.test.policy_set_name}"
+  policy_set_name     = azurerm_dev_test_policy.test.policy_set_name
   lab_name            = azurerm_dev_test_policy.test.lab_name
   resource_group_name = azurerm_dev_test_policy.test.resource_group_name
   threshold           = "999"

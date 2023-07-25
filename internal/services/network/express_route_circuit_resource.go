@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -6,7 +9,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -21,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
@@ -142,6 +145,12 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"authorization_key": {
+				Type:      pluginsdk.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+
 			"service_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -217,7 +226,9 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if !d.IsNewResource() {
 		erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = &allowRdfeOps
 	} else {
-		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{}
+		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{
+			AuthorizationKey: utils.String(d.Get("authorization_key").(string)),
+		}
 
 		// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
 		if _, ok := d.GetOk("express_route_port_id"); ok {
@@ -260,6 +271,18 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("for %s to be able to be queried: %+v", id, err)
 	}
 
+	//  authorization_key can only be set after Circuit is created
+	if erc.AuthorizationKey != nil && *erc.AuthorizationKey != "" {
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, erc)
+		if err != nil {
+			return fmt.Errorf(" Updating %s: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf(" Updating %s: %+v", id, err)
+		}
+	}
+
 	d.SetId(id.ID())
 
 	return resourceExpressRouteCircuitRead(d, meta)
@@ -300,7 +323,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
 
 		if resp.ExpressRoutePort.ID != nil {
-			portID, err := parse.ExpressRoutePortID(*resp.ExpressRoutePort.ID)
+			portID, err := parse.ExpressRoutePortIDInsensitively(*resp.ExpressRoutePort.ID)
 			if err != nil {
 				return err
 			}

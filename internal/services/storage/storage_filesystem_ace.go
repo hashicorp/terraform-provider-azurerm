@@ -1,7 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
 )
 
@@ -46,10 +50,17 @@ func ExpandDataLakeGen2AceList(input []interface{}) (*accesscontrol.ACL, error) 
 	return &accesscontrol.ACL{Entries: aceList}, nil
 }
 
-func FlattenDataLakeGen2AceList(acl accesscontrol.ACL) []interface{} {
-	output := make([]interface{}, len(acl.Entries))
+func FlattenDataLakeGen2AceList(d *pluginsdk.ResourceData, acl accesscontrol.ACL) []interface{} {
+	existingACLs, _ := ExpandDataLakeGen2AceList(d.Get("ace").(*pluginsdk.Set).List())
+	output := make([]interface{}, 0)
 
-	for i, v := range acl.Entries {
+	for _, v := range acl.Entries {
+		// Filter ACL defalt entries (ones without ID value, for scopes 'user', 'group', 'other', 'mask').
+		//    Include default entries, only if use in a configuration, to match the state file.
+		if v.TagQualifier == nil && existingACLs != nil && !isACLContainingEntry(existingACLs, v.TagType, v.TagQualifier, v.IsDefault) {
+			continue
+		}
+
 		ace := make(map[string]interface{})
 
 		scope := "access"
@@ -65,7 +76,22 @@ func FlattenDataLakeGen2AceList(acl accesscontrol.ACL) []interface{} {
 		ace["id"] = id
 		ace["permissions"] = v.Permissions
 
-		output[i] = ace
+		output = append(output, ace)
 	}
+
 	return output
+}
+
+func isACLContainingEntry(acl *accesscontrol.ACL, tagType accesscontrol.TagType, tagQualifier *uuid.UUID, isDefault bool) bool {
+	if acl == nil || acl.Entries == nil || len(acl.Entries) == 0 {
+		return false
+	}
+
+	for _, v := range acl.Entries {
+		if v.TagType == tagType && v.TagQualifier == tagQualifier && v.IsDefault == isDefault {
+			return true
+		}
+	}
+
+	return false
 }

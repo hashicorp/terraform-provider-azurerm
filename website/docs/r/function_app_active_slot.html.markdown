@@ -64,6 +64,7 @@ resource "azurerm_function_app_active_slot" "example" {
 ```
 
 ### Linux Function App
+
 ```hcl
 provider "azurerm" {
   features {}
@@ -131,7 +132,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Function App Active Slot
 
 * `last_successful_swap` - The timestamp of the last successful swap with `Production`
-
 
 ## Timeouts
 

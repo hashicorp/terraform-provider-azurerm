@@ -1,15 +1,19 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func dataSourcePlatformImage() *pluginsdk.Resource {
@@ -21,7 +25,7 @@ func dataSourcePlatformImage() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"publisher": {
 				Type:     pluginsdk.TypeString,
@@ -58,7 +62,7 @@ func dataSourcePlatformImageRead(d *pluginsdk.ResourceData, meta interface{}) er
 	sku := d.Get("sku").(string)
 
 	result, err := client.List(ctx, location, publisher, offer, sku, "", utils.Int32(int32(1000)), "name")
-	if err != nil {
+	if err != nil || result.Value == nil {
 		return fmt.Errorf("reading Platform Images: %+v", err)
 	}
 
@@ -75,8 +79,11 @@ func dataSourcePlatformImageRead(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("could not find image (location %q / publisher %q / offer %q / sku %q / version % q): %+v", location, publisher, offer, sku, version, err)
 		}
 	} else {
-		// get the latest image
-		// the last value is the latest, apparently.
+		// get the latest image (the last value is the latest, apparently)
+		// list can be empty if user hasn't licensed any matching images
+		if len(*result.Value) == 0 {
+			return fmt.Errorf("no images available to this user (location %q / publisher %q / offer %q / sku %q)", location, publisher, offer, sku)
+		}
 		image = &(*result.Value)[len(*result.Value)-1]
 	}
 

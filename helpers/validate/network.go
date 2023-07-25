@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -19,21 +22,9 @@ func CIDR(i interface{}, k string) (warnings []string, errors []error) {
 }
 
 func IPv4Address(i interface{}, k string) (warnings []string, errors []error) {
-	return validateIpv4Address(i, k, false)
-}
-
-func IPv4AddressOrEmpty(i interface{}, k string) (warnings []string, errors []error) {
-	return validateIpv4Address(i, k, true)
-}
-
-func validateIpv4Address(i interface{}, k string, allowEmpty bool) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if v == "" && allowEmpty {
 		return
 	}
 

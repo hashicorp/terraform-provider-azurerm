@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -23,7 +26,7 @@ resource "azurerm_linux_web_app" "example" {
 
   site_config {
     application_stack {
-      node_version = "16-lts"
+      node_version = "18-lts"
     }
   }
 }

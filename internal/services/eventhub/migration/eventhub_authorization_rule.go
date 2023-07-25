@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -43,7 +46,6 @@ func (EventHubAuthorizationRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (EventHubAuthorizationRuleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-
 		oldID := rawState["id"].(string)
 
 		newID, err := eventhubs.ParseEventhubAuthorizationRuleIDInsensitively(oldID)

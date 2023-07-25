@@ -41,16 +41,16 @@ resource "azurerm_data_factory_pipeline" "test" {
   }
   activities_json = <<JSON
 [
-	{
-		"name": "Append variable1",
-		"type": "AppendVariable",
-		"dependsOn": [],
-		"userProperties": [],
-		"typeProperties": {
-			"variableName": "bob",
-			"value": "something"
-		}
-	}
+    {
+        "name": "Append variable1",
+        "type": "AppendVariable",
+        "dependsOn": [],
+        "userProperties": [],
+        "typeProperties": {
+          "variableName": "bob",
+          "value": "something"
+        }
+    }
 ]
   JSON
 }
@@ -82,7 +82,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Pipeline.
 

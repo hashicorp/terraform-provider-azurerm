@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package streamanalytics_test
 
 import (
@@ -5,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -112,17 +116,17 @@ func TestAccStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T) {
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StreamInputID(state.ID)
+	id, err := inputs.ParseInputID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
+	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(true), nil
 }
@@ -246,7 +250,6 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
   storage_account_name      = azurerm_storage_account.test.name
-  storage_account_key       = azurerm_storage_account.test.primary_access_key
   storage_container_name    = azurerm_storage_container.test.name
   path_pattern              = "some-random-pattern"
   date_format               = "yyyy/MM/dd"
@@ -299,11 +302,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = false
 }
 
 resource "azurerm_storage_container" "test" {
@@ -316,7 +320,7 @@ resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
   resource_group_name                      = azurerm_resource_group.test.name
   location                                 = azurerm_resource_group.test.location
-  compatibility_level                      = "1.0"
+  compatibility_level                      = "1.1"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
   events_out_of_order_max_delay_in_seconds = 50
@@ -325,9 +329,9 @@ resource "azurerm_stream_analytics_job" "test" {
   streaming_units                          = 3
 
   transformation_query = <<QUERY
-    SELECT *
-    INTO [YourOutputAlias]
-    FROM [YourInputAlias]
+   SELECT *
+   INTO [YourOutputAlias]
+   FROM [YourInputAlias]
 QUERY
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)

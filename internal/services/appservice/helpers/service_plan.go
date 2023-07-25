@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package helpers
 
 import (
@@ -21,7 +24,8 @@ var appServicePlanSkus = []string{
 	"B1", "B2", "B3", // basic
 	"S1", "S2", "S3", // standard
 	"P1v2", "P2v2", "P3v2", // Premium V2
-	"P1v3", "P2v3", "P3v3", // Premium V3
+	"P0v3", "P1v3", "P2v3", "P3v3", // Premium V3
+	"P1mv3", "P2mv3", "P3mv3", "P4mv3", "P5mv3", // Premium V3 memory optimized
 }
 
 var freeSkus = []string{
@@ -43,7 +47,7 @@ var elasticSkus = []string{
 
 var isolatedSkus = []string{
 	"I1", "I2", "I3", // Isolated V1 - ASEV2
-	"I1v2", "I2v2", "I3v2", // Isolated v2 - ASEv3
+	"I1v2", "I2v2", "I3v2", "I4v2", "I5v2", "I6v2", // Isolated v2 - ASEv3
 }
 
 var workflowSkus = []string{

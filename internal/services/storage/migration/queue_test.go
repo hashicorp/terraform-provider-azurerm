@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -6,16 +9,15 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
 
 func TestQueueV0ToV1(t *testing.T) {
-	clouds := []azure.Environment{
-		azure.ChinaCloud,
-		azure.GermanCloud,
-		azure.PublicCloud,
-		azure.USGovernmentCloud,
+	clouds := []*environments.Environment{
+		environments.AzurePublic(),
+		environments.AzureChina(),
+		environments.AzureUSGovernment(),
 	}
 
 	for _, cloud := range clouds {
@@ -26,13 +28,20 @@ func TestQueueV0ToV1(t *testing.T) {
 			"name":                 "some-name",
 			"storage_account_name": "some-account",
 		}
+
 		meta := &clients.Client{
 			Account: &clients.ResourceManagerAccount{
-				Environment: cloud,
+				Environment: *cloud,
 			},
 		}
+
+		suffix, ok := meta.Account.Environment.Storage.DomainSuffix()
+		if !ok {
+			t.Fatalf("could not determine Storage domain suffix for environment %q", meta.Account.Environment.Name)
+		}
+
 		expected := map[string]interface{}{
-			"id":                   fmt.Sprintf("https://some-account.queue.%s/some-name", cloud.StorageEndpointSuffix),
+			"id":                   fmt.Sprintf("https://some-account.queue.%s/some-name", *suffix),
 			"name":                 "some-name",
 			"storage_account_name": "some-account",
 		}

@@ -1,16 +1,21 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datashare
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/synchronizationsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceDataShare() *pluginsdk.Resource {
@@ -31,7 +36,7 @@ func dataSourceDataShare() *pluginsdk.Resource {
 			"account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.AccountID,
+				ValidateFunc: account.ValidateAccountID,
 			},
 
 			"kind": {
@@ -83,44 +88,42 @@ func dataSourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	defer cancel()
 
 	name := d.Get("name").(string)
-	accountId, err := parse.AccountID(d.Get("account_id").(string))
+	accountId, err := account.ParseAccountID(d.Get("account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
+	id := share.NewShareID(subscriptionId, accountId.ResourceGroupName, accountId.AccountName, name)
+
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("DataShare %q (Account %q / Resource Group %q) was not found", name, accountId.Name, accountId.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving DataShare %q (Account %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	dataShareId := parse.NewShareID(subscriptionId, accountId.ResourceGroup, accountId.Name, name).ID()
-	d.SetId(dataShareId)
+	d.SetId(id.ID())
 
 	d.Set("name", name)
 	d.Set("account_id", accountId.ID())
 
-	if props := resp.ShareProperties; props != nil {
-		d.Set("description", props.Description)
-		d.Set("kind", string(props.ShareKind))
-		d.Set("terms", props.Terms)
-	}
-
-	settings := make([]datashare.ScheduledSynchronizationSetting, 0)
-	syncIterator, err := syncClient.ListByShareComplete(ctx, accountId.ResourceGroup, accountId.Name, name, "")
-	if err != nil {
-		return fmt.Errorf("listing Snapshot Schedules for Data Share %q (Account %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
-	}
-	for syncIterator.NotDone() {
-		item, ok := syncIterator.Value().AsScheduledSynchronizationSetting()
-		if ok && item != nil {
-			settings = append(settings, *item)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("kind", string(pointer.From(props.ShareKind)))
+			d.Set("description", props.Description)
+			d.Set("terms", props.Terms)
 		}
+	}
 
-		if err := syncIterator.NextWithContext(ctx); err != nil {
-			return fmt.Errorf("retrieving next Snapshot Schedule: %+v", err)
+	settings := make([]synchronizationsetting.ScheduledSynchronizationSetting, 0)
+	snapshotSchedules, err := syncClient.ListByShareComplete(ctx, synchronizationsetting.NewShareID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ShareName))
+	if err != nil {
+		return fmt.Errorf("listing snapshot schedules for %s: %+v", id, err)
+	}
+	for _, item := range snapshotSchedules.Items {
+		if s, ok := item.(synchronizationsetting.ScheduledSynchronizationSetting); ok {
+			settings = append(settings, s)
 		}
 	}
 
@@ -131,24 +134,20 @@ func dataSourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func flattenDataShareDataSourceSnapshotSchedule(input []datashare.ScheduledSynchronizationSetting) []interface{} {
+func flattenDataShareDataSourceSnapshotSchedule(input []synchronizationsetting.ScheduledSynchronizationSetting) []interface{} {
 	output := make([]interface{}, 0)
 
-	for _, sync := range input {
+	for _, setting := range input {
+		props := setting.Properties
 		name := ""
-		if sync.Name != nil {
-			name = *sync.Name
-		}
-
-		startTime := ""
-		if sync.SynchronizationTime != nil && !sync.SynchronizationTime.IsZero() {
-			startTime = sync.SynchronizationTime.Format(time.RFC3339)
+		if props.UserName != nil {
+			name = *props.UserName
 		}
 
 		output = append(output, map[string]interface{}{
 			"name":       name,
-			"recurrence": string(sync.RecurrenceInterval),
-			"start_time": startTime,
+			"recurrence": string(props.RecurrenceInterval),
+			"start_time": props.SynchronizationTime,
 		})
 	}
 

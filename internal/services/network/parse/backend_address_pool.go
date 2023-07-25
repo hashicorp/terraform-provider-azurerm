@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -44,7 +47,7 @@ func (id BackendAddressPoolId) ID() string {
 func BackendAddressPoolID(input string) (*BackendAddressPoolId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an BackendAddressPool ID: %+v", input, err)
 	}
 
 	resourceId := BackendAddressPoolId{
@@ -64,6 +67,62 @@ func BackendAddressPoolID(input string) (*BackendAddressPoolId, error) {
 		return nil, err
 	}
 	if resourceId.Name, err = id.PopSegment("backendAddressPools"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// BackendAddressPoolIDInsensitively parses an BackendAddressPool ID into an BackendAddressPoolId struct, insensitively
+// This should only be used to parse an ID for rewriting, the BackendAddressPoolID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func BackendAddressPoolIDInsensitively(input string) (*BackendAddressPoolId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := BackendAddressPoolId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'applicationGateways' segment
+	applicationGatewaysKey := "applicationGateways"
+	for key := range id.Path {
+		if strings.EqualFold(key, applicationGatewaysKey) {
+			applicationGatewaysKey = key
+			break
+		}
+	}
+	if resourceId.ApplicationGatewayName, err = id.PopSegment(applicationGatewaysKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'backendAddressPools' segment
+	backendAddressPoolsKey := "backendAddressPools"
+	for key := range id.Path {
+		if strings.EqualFold(key, backendAddressPoolsKey) {
+			backendAddressPoolsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(backendAddressPoolsKey); err != nil {
 		return nil, err
 	}
 

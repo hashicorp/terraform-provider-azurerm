@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation_test
 
 import (
@@ -5,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/jobschedule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AutomationJobScheduleResource struct{}
@@ -92,19 +94,17 @@ func TestAccAutomationJobSchedule_requiresImport(t *testing.T) {
 }
 
 func (t AutomationJobScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.JobScheduleID(state.ID)
+	id, err := jobschedule.ParseJobScheduleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	jobScheduleUUID := uuid.FromStringOrNil(id.Name)
-
-	resp, err := clients.Automation.JobScheduleClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, jobScheduleUUID)
+	resp, err := clients.Automation.JobScheduleClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Job Schedule '%s' (Account %q / Resource Group %q) does not exist", id.Name, id.AutomationAccountName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.JobScheduleProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AutomationJobScheduleResource) template(data acceptance.TestData) string {

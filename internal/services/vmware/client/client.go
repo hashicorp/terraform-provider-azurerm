@@ -1,9 +1,15 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/authorizations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/privateclouds"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/authorizations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -11,21 +17,38 @@ type Client struct {
 	AuthorizationClient *authorizations.AuthorizationsClient
 	ClusterClient       *clusters.ClustersClient
 	PrivateCloudClient  *privateclouds.PrivateCloudsClient
+	DataStoreClient     *datastores.DataStoresClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	authorizationClient := authorizations.NewAuthorizationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&authorizationClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	authorizationClient, err := authorizations.NewAuthorizationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Authorization Client: %+v", err)
+	}
+	o.Configure(authorizationClient.Client, o.Authorizers.ResourceManager)
 
-	clusterClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&clusterClient.Client, o.ResourceManagerAuthorizer)
+	clusterClient, err := clusters.NewClustersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Cluster Client: %+v", err)
+	}
+	o.Configure(clusterClient.Client, o.Authorizers.ResourceManager)
 
-	privateCloudClient := privateclouds.NewPrivateCloudsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&privateCloudClient.Client, o.ResourceManagerAuthorizer)
+	privateCloudClient, err := privateclouds.NewPrivateCloudsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Private Cloud Client: %+v", err)
+	}
+	o.Configure(privateCloudClient.Client, o.Authorizers.ResourceManager)
+
+	dataStoresClient, err := datastores.NewDataStoresClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Data Stores Client: %+v", err)
+	}
+	o.Configure(dataStoresClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AuthorizationClient: &authorizationClient,
-		ClusterClient:       &clusterClient,
-		PrivateCloudClient:  &privateCloudClient,
-	}
+		AuthorizationClient: authorizationClient,
+		ClusterClient:       clusterClient,
+		PrivateCloudClient:  privateCloudClient,
+		DataStoreClient:     dataStoresClient,
+	}, nil
 }

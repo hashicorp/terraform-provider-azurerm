@@ -1,6 +1,10 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -8,12 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceProximityPlacementGroup() *pluginsdk.Resource {
@@ -47,8 +54,32 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
+			"allowed_vm_sizes": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"zone": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				RequiredWith: []string{"allowed_vm_sizes"},
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("allowed_vm_sizes", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.(*pluginsdk.Set).List()) > 0 && len(new.(*pluginsdk.Set).List()) == 0
+			}),
+		),
 	}
 }
 
@@ -60,8 +91,8 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	id := proximityplacementgroups.NewProximityPlacementGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
+	existing, err := client.Get(ctx, id, proximityplacementgroups.DefaultGetOperationOptions())
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, proximityplacementgroups.DefaultGetOperationOptions())
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -74,8 +105,21 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	payload := proximityplacementgroups.ProximityPlacementGroup{
-		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Location:   location.Normalize(d.Get("location").(string)),
+		Properties: &proximityplacementgroups.ProximityPlacementGroupProperties{},
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("allowed_vm_sizes"); ok {
+		if payload.Properties.Intent == nil {
+			payload.Properties.Intent = &proximityplacementgroups.ProximityPlacementGroupPropertiesIntent{}
+		}
+		payload.Properties.Intent.VMSizes = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+	}
+
+	if v, ok := d.GetOk("zone"); ok {
+		zones := zones.Expand([]string{v.(string)})
+		payload.Zones = &zones
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
@@ -111,6 +155,23 @@ func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("resource_group_name", id.ResourceGroupName)
 
 		d.Set("location", location.Normalize(model.Location))
+
+		intentVmSizes := make([]string, 0)
+		if props := model.Properties; props != nil {
+			if intent := props.Intent; intent != nil {
+				if intent.VMSizes != nil {
+					intentVmSizes = *intent.VMSizes
+				}
+			}
+		}
+		d.Set("allowed_vm_sizes", intentVmSizes)
+
+		zone := ""
+		if v := zones.Flatten(model.Zones); len(v) != 0 {
+			zone = v[0]
+		}
+		d.Set("zone", zone)
+
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}

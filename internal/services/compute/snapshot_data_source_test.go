@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -129,6 +132,7 @@ resource "azurerm_key_vault" "test" {
       "Delete",
       "Get",
       "Purge",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [

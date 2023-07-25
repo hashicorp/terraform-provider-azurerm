@@ -1,7 +1,10 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package common
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -74,7 +77,7 @@ func CassandraTableSchemaPropertySchema() *pluginsdk.Schema {
 }
 
 func DatabaseAutoscaleSettingsSchema() *pluginsdk.Schema {
-	//lintignore:XS003
+	// lintignore:XS003
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -116,7 +119,6 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 				"included_path": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"path": {
@@ -130,7 +132,6 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 				"excluded_path": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"path": {

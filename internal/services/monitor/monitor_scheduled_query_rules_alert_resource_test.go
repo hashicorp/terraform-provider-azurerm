@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor_test
 
 import (
@@ -7,10 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -25,6 +28,20 @@ func TestAccMonitorScheduledQueryRules_AlertingActionBasic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.AlertingActionConfigBasic(data, ts),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+func TestAccMonitorScheduledQueryRules_AlertingActionQueryTypeNumber(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
+	r := MonitorScheduledQueryRulesResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.AlertingActionQueryTypeNumber(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -154,6 +171,49 @@ QUERY
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts, strconv.FormatBool(autoMitigate))
+}
+
+func (MonitorScheduledQueryRulesResource) AlertingActionQueryTypeNumber(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-monitor-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestWorkspace-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+}
+
+resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
+  name                    = "acctestsqr-%[1]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  data_source_id          = azurerm_log_analytics_workspace.test.id
+  query_type              = "Number"
+  query                   = <<-QUERY
+Heartbeat | summarize AggregatedValue = count() by bin(TimeGenerated, 5m)
+QUERY
+  frequency               = 60
+  time_window             = 60
+  auto_mitigation_enabled = true
+  action {
+    action_group = [azurerm_monitor_action_group.test.id]
+  }
+  trigger {
+    operator  = "GreaterThan"
+    threshold = 5000
+  }
+}`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (MonitorScheduledQueryRulesResource) AlertingActionConfigBasic(data acceptance.TestData, ts string) string {
@@ -384,15 +444,15 @@ QUERY
 }
 
 func (t MonitorScheduledQueryRulesResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ScheduledQueryRulesID(state.ID)
+	id, err := scheduledqueryrules.ParseScheduledQueryRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Monitor.ScheduledQueryRulesClient.Get(ctx, id.ResourceGroup, id.ScheduledQueryRuleName)
+	resp, err := clients.Monitor.ScheduledQueryRulesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }

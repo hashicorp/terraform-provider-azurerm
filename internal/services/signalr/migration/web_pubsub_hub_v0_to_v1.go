@@ -1,9 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -79,7 +82,7 @@ func (WebPubsubHubV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		// the old segment is `WebPubsub` but should be `webPubsub`
 		oldID := rawState["id"].(string)
-		newID, err := parse.WebPubsubHubIDInsensitively(oldID)
+		newID, err := webpubsub.ParseHubIDInsensitively(oldID)
 		if err != nil {
 			return nil, err
 		}
@@ -87,7 +90,7 @@ func (WebPubsubHubV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		// parent webPubsub ID should also has the segment `webPubsub`
 		oldWebPubSubID := rawState["web_pubsub_id"].(string)
-		newWebPubsubID, err := parse.WebPubsubIDInsensitively(oldWebPubSubID)
+		newWebPubsubID, err := webpubsub.ParseWebPubSubIDInsensitively(oldWebPubSubID)
 		if err != nil {
 			return nil, err
 		}

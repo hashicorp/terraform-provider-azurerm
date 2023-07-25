@@ -53,6 +53,7 @@ resource "azurerm_synapse_firewall_rule" "example" {
   end_ip_address       = "255.255.255.255"
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -71,7 +72,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Synapse Firewall Rule ID.
 

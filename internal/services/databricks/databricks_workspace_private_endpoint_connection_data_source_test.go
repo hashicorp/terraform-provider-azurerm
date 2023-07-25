@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks_test
 
 import (
@@ -24,7 +27,7 @@ func TestAccDatabricksWorkspacePrivateEndpointConnectionDataSource_basic(t *test
 				check.That(data.ResourceName).Key("connections.0.workspace_private_endpoint_id").Exists(),
 				check.That(data.ResourceName).Key("connections.0.status").Exists(),
 				check.That(data.ResourceName).Key("connections.0.description").Exists(),
-				check.That(data.ResourceName).Key("connections.0.action_required").IsEmpty(),
+				check.That(data.ResourceName).Key("connections.0.action_required").HasValue("None"),
 			),
 		},
 	})

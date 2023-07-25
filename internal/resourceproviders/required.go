@@ -1,9 +1,14 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package resourceproviders
 
-// RequiredResourceProviders returns all of the Resource Providers used by the AzureRM Provider
+// Required returns core Resource Providers used by the AzureRM Provider
+// Terraform auto-registers core Resource Providers, since those RP’s should be enabled by default
+// but that list is something we come up with based on experience.
 // whilst all may not be used by every user - the intention is that we determine which should be
 // registered such that we can avoid obscure errors where Resource Providers aren't registered.
-// new Resource Providers should be added to this list as they're used in the Provider
+// new core Resource Providers should be added to this list as they're used in the Provider
 // (this is the approach used by Microsoft in their tooling)
 func Required() map[string]struct{} {
 	// NOTE: Resource Providers in this list are case sensitive
@@ -68,10 +73,8 @@ func Required() map[string]struct{} {
 		"Microsoft.SecurityInsights":        {},
 		"Microsoft.ServiceBus":              {},
 		"Microsoft.ServiceFabric":           {},
-		"Microsoft.ServiceFabricMesh":       {},
 		"Microsoft.Sql":                     {},
 		"Microsoft.Storage":                 {},
-		"Microsoft.StoragePool":             {},
 		"Microsoft.StreamAnalytics":         {},
 		"Microsoft.TimeSeriesInsights":      {},
 		"Microsoft.Web":                     {},

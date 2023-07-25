@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
 import (
@@ -5,16 +8,16 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceDataFactory() *pluginsdk.Resource {
@@ -31,7 +34,7 @@ func dataSourceDataFactory() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
-					`Invalid name for Data Factory, see https://docs.microsoft.com/en-us/azure/data-factory/naming-rules`,
+					`Invalid name for Data Factory, see https://docs.microsoft.com/azure/data-factory/naming-rules`,
 				),
 			},
 
@@ -103,22 +106,21 @@ func dataSourceDataFactory() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.FactoriesClient
+	client := meta.(*clients.Client).DataFactory.Factories
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, "")
+	id := factories.NewFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id, factories.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -126,33 +128,74 @@ func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	d.SetId(id.ID())
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	d.Set("vsts_configuration", []interface{}{})
-	d.Set("github_configuration", []interface{}{})
-	repoType, repo := flattenDataFactoryRepoConfiguration(&resp)
-	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryVSTSConfiguration {
-		if err := d.Set("vsts_configuration", repo); err != nil {
-			return fmt.Errorf("setting `vsts_configuration`: %+v", err)
+		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			githubConfiguration := flattenGitHubRepoConfigurationDataSource(props.RepoConfiguration)
+			if err := d.Set("github_configuration", githubConfiguration); err != nil {
+				return fmt.Errorf("setting `github_configuration`: %+v", err)
+			}
+
+			vstsConfiguration := flattenVSTSRepoConfigurationDataSource(props.RepoConfiguration)
+			if err := d.Set("vsts_configuration", vstsConfiguration); err != nil {
+				return fmt.Errorf("setting `vsts_configuration`: %+v", err)
+			}
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
-	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryGitHubConfiguration {
-		if err := d.Set("github_configuration", repo); err != nil {
-			return fmt.Errorf("setting `github_configuration`: %+v", err)
+
+	return nil
+}
+
+func flattenGitHubRepoConfigurationDataSource(input factories.FactoryRepoConfiguration) []interface{} {
+	output := make([]interface{}, 0)
+
+	if v, ok := input.(factories.FactoryGitHubConfiguration); ok {
+		gitUrl := ""
+		if v.HostName != nil {
+			gitUrl = *v.HostName
 		}
-	}
-	if repoType == datafactory.TypeBasicFactoryRepoConfigurationTypeFactoryRepoConfiguration {
-		d.Set("vsts_configuration", repo)
-		d.Set("github_configuration", repo)
-	}
-
-	identity, err := flattenIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
+		output = append(output, map[string]interface{}{
+			"account_name":    v.AccountName,
+			"branch_name":     v.CollaborationBranch,
+			"git_url":         gitUrl,
+			"repository_name": v.RepositoryName,
+			"root_folder":     v.RootFolder,
+		})
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return output
+}
+
+func flattenVSTSRepoConfigurationDataSource(input factories.FactoryRepoConfiguration) []interface{} {
+	output := make([]interface{}, 0)
+
+	if v, ok := input.(factories.FactoryVSTSConfiguration); ok {
+		tenantId := ""
+		if v.TenantId != nil {
+			tenantId = *v.TenantId
+		}
+		output = append(output, map[string]interface{}{
+			"account_name":    v.AccountName,
+			"branch_name":     v.CollaborationBranch,
+			"project_name":    v.ProjectName,
+			"repository_name": v.RepositoryName,
+			"root_folder":     v.RootFolder,
+			"tenant_id":       tenantId,
+		})
+	}
+
+	return output
 }

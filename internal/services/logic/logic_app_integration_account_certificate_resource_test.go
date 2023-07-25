@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic_test
 
 import (
@@ -5,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountcertificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -82,14 +86,14 @@ func TestAccLogicAppIntegrationAccountCertificate_update(t *testing.T) {
 }
 
 func (r LogicAppIntegrationAccountCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IntegrationAccountCertificateID(state.ID)
+	id, err := integrationaccountcertificates.ParseCertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Logic.IntegrationAccountCertificateClient.Get(ctx, id.ResourceGroup, id.IntegrationAccountName, id.CertificateName)
+	resp, err := client.Logic.IntegrationAccountCertificateClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q %+v", id, err)
@@ -135,7 +139,8 @@ resource "azurerm_key_vault_access_policy" "test1" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy"
   ]
 
   secret_permissions = [
@@ -159,7 +164,8 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy"
   ]
 
   secret_permissions = [
@@ -287,7 +293,8 @@ resource "azurerm_key_vault_access_policy" "test3" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy"
   ]
 
   secret_permissions = [
@@ -311,7 +318,8 @@ resource "azurerm_key_vault_access_policy" "test4" {
     "Update",
     "List",
     "Decrypt",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy"
   ]
 
   secret_permissions = [

@@ -1,7 +1,10 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package devtestlabs
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2018-09-15/dtl"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -20,8 +23,8 @@ func schemaDevTestVirtualMachineInboundNatRule() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(dtl.TCP),
-						string(dtl.UDP),
+						string(virtualmachines.TransportProtocolTcp),
+						string(virtualmachines.TransportProtocolUdp),
 					}, false),
 				},
 
@@ -41,8 +44,8 @@ func schemaDevTestVirtualMachineInboundNatRule() *pluginsdk.Schema {
 	}
 }
 
-func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []dtl.InboundNatRule {
-	rules := make([]dtl.InboundNatRule, 0)
+func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []virtualmachines.InboundNatRule {
+	rules := make([]virtualmachines.InboundNatRule, 0)
 	if input == nil {
 		return rules
 	}
@@ -50,11 +53,11 @@ func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []dtl.InboundN
 	for _, val := range input.List() {
 		v := val.(map[string]interface{})
 		backendPort := v["backend_port"].(int)
-		protocol := v["protocol"].(string)
+		protocol := virtualmachines.TransportProtocol(v["protocol"].(string))
 
-		rule := dtl.InboundNatRule{
-			TransportProtocol: dtl.TransportProtocol(protocol),
-			BackendPort:       utils.Int32(int32(backendPort)),
+		rule := virtualmachines.InboundNatRule{
+			TransportProtocol: &protocol,
+			BackendPort:       utils.Int64(int64(backendPort)),
 		}
 
 		rules = append(rules, rule)
@@ -63,7 +66,7 @@ func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []dtl.InboundN
 	return rules
 }
 
-func expandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, osType string) *dtl.GalleryImageReference {
+func expandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, osType string) *virtualmachines.GalleryImageReference {
 	if len(input) == 0 {
 		return nil
 	}
@@ -74,7 +77,7 @@ func expandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, os
 	sku := v["sku"].(string)
 	version := v["version"].(string)
 
-	return &dtl.GalleryImageReference{
+	return &virtualmachines.GalleryImageReference{
 		Offer:     utils.String(offer),
 		OsType:    utils.String(osType),
 		Publisher: utils.String(publisher),
@@ -115,7 +118,7 @@ func schemaDevTestVirtualMachineGalleryImageReference() *pluginsdk.Schema {
 	}
 }
 
-func flattenDevTestVirtualMachineGalleryImage(input *dtl.GalleryImageReference) []interface{} {
+func flattenDevTestVirtualMachineGalleryImage(input *virtualmachines.GalleryImageReference) []interface{} {
 	results := make([]interface{}, 0)
 
 	if input != nil {

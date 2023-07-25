@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -57,6 +60,21 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"storageAccountAndLocalDisk": testAccNetworkPacketCapture_storageAccountAndLocalDisk,
 			"withFilters":                testAccNetworkPacketCapture_withFilters,
 			"requiresImport":             testAccNetworkPacketCapture_requiresImport,
+		},
+		"VMPacketCapture": {
+			"localDisk":                  testAccVirtualMachinePacketCapture_localDisk,
+			"storageAccount":             testAccVirtualMachinePacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccVirtualMachinePacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccVirtualMachinePacketCapture_withFilters,
+			"requiresImport":             testAccVirtualMachinePacketCapture_requiresImport,
+		},
+		"VMSSPacketCapture": {
+			"localDisk":                  testAccVirtualMachineScaleSetPacketCapture_localDisk,
+			"storageAccount":             testAccVirtualMachineScaleSetPacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccVirtualMachineScaleSetPacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccVirtualMachineScaleSetPacketCapture_withFilters,
+			"requiresImport":             testAccVirtualMachineScaleSetPacketCapture_requiresImport,
+			"machineScope":               testAccVirtualMachineScaleSetPacketCapture_machineScope,
 		},
 		"FlowLog": {
 			"basic":                testAccNetworkWatcherFlowLog_basic,

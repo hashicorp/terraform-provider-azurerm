@@ -41,14 +41,14 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Load Balancer Rule.
 
 * `backend_address_pool_id` - A reference to a Backend Address Pool over which this Load Balancing Rule operates.
 
 * `probe_id` - A reference to a Probe used by this Load Balancing Rule.
- 
+
 * `frontend_ip_configuration_name` - The name of the frontend IP configuration to which the rule is associated.
 
 * `protocol` - The transport protocol for the external endpoint.
@@ -61,7 +61,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `idle_timeout_in_minutes` - Specifies the idle timeout in minutes for TCP connections.
 
-* `load_distribution` - Specifies the load balancing distribution type used by the Load Balancer. 
+* `load_distribution` - Specifies the load balancing distribution type used by the Load Balancer.
 
 * `disable_outbound_snat` - If outbound SNAT is enabled for this Load Balancer Rule.
 

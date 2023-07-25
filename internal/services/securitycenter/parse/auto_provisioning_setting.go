@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -38,7 +41,7 @@ func (id AutoProvisioningSettingId) ID() string {
 func AutoProvisioningSettingID(input string) (*AutoProvisioningSettingId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an AutoProvisioningSetting ID: %+v", input, err)
 	}
 
 	resourceId := AutoProvisioningSettingId{

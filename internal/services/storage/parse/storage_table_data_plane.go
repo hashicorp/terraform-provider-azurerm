@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
@@ -5,12 +8,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/tables"
 )
 
 // TODO: tests for this
-var _ resourceid.Formatter = StorageTableDataPlaneId{}
+var _ resourceids.Id = StorageTableDataPlaneId{}
 
 type StorageTableDataPlaneId struct {
 	AccountName  string
@@ -18,7 +21,15 @@ type StorageTableDataPlaneId struct {
 	Name         string
 }
 
-// only present to comply with the interface
+func (id StorageTableDataPlaneId) String() string {
+	components := []string{
+		fmt.Sprintf("Account Name %q", id.AccountName),
+		fmt.Sprintf("Domain Suffix %q", id.DomainSuffix),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return fmt.Sprintf("Storage Table %s", strings.Join(components, " / "))
+}
+
 func (id StorageTableDataPlaneId) ID() string {
 	return fmt.Sprintf("https://%s.table.%s/Tables('%s')", id.AccountName, id.DomainSuffix, id.Name)
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos
 
 import (
@@ -82,7 +85,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := sqldedicatedgateway.NewServiceID(cosmosdbAccountId.SubscriptionId, cosmosdbAccountId.ResourceGroupName, cosmosdbAccountId.AccountName, string(sqldedicatedgateway.ServiceTypeSqlDedicatedGateway))
+			id := sqldedicatedgateway.NewServiceID(cosmosdbAccountId.SubscriptionId, cosmosdbAccountId.ResourceGroupName, cosmosdbAccountId.DatabaseAccountName, string(sqldedicatedgateway.ServiceTypeSqlDedicatedGateway))
 			existing, err := client.ServiceGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -183,7 +186,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Read() sdk.ResourceFunc {
 			}
 
 			state := CosmosDbSqlDedicatedGatewayModel{
-				CosmosDbAccountId: cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
+				CosmosDbAccountId: cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName).ID(),
 			}
 
 			if props := model.Properties; props != nil {

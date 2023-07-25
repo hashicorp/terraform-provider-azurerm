@@ -44,13 +44,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Confidential Ledger exists. Changing this forces a new resource to be created.
 
-* `azuread_service_principal` - (Required) A list of `azuread_service_principal` blocks as defined below.
+* `azuread_based_service_principal` - (Required) A list of `azuread_based_service_principal` blocks as defined below.
 
 * `ledger_type` - (Required) Specifies the type of Confidential Ledger. Possible values are `Private` and `Public`. Changing this forces a new resource to be created.
 
 ---
 
-* `cert_based_security_principals` - (Optional) A list of `cert_based_security_principals` blocks as defined below.
+* `certificate_based_security_principal` - (Optional) A list of `certificate_based_security_principal` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Confidential Ledger.
 
@@ -74,7 +74,7 @@ A `certificate_based_security_principal` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of this Confidential Ledger.
 

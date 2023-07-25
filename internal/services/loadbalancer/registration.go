@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package loadbalancer
 
 import (
@@ -39,6 +42,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_lb":                      dataSourceArmLoadBalancer(),
 		"azurerm_lb_backend_address_pool": dataSourceArmLoadBalancerBackendAddressPool(),
 		"azurerm_lb_rule":                 dataSourceArmLoadBalancerRule(),
+		"azurerm_lb_outbound_rule":        dataSourceArmLoadBalancerOutboundRule(),
 	}
 }
 

@@ -12,7 +12,7 @@ Manages a Static Site Custom Domain.
 
 !> DNS validation polling is only done for CNAME records, terraform will not validate TXT validation records are complete.
 
-## Example Usage 
+## Example Usage
 
 ### CNAME validation
 
@@ -59,7 +59,7 @@ resource "azurerm_static_site" "example" {
 
 resource "azurerm_static_site_custom_domain" "example" {
   static_site_id  = azurerm_static_site.example.id
-  domain_name     = "my-domain.${azurerm_dns_txt_record.example.zone_name}"
+  domain_name     = "my-domain.contoso.com"
   validation_type = "dns-txt-token"
 }
 
@@ -82,11 +82,11 @@ The following arguments are supported:
 
 * `static_site_id` - (Required) The ID of the Static Site. Changing this forces a new Static Site Custom Domain to be created.
 
-* `validation_type` - (Required) One of `cname-delegation` or `dns-txt-token`. Changing this forces a new Static Site Custom Domain to be created.
+* `validation_type` - (Optional) One of `cname-delegation` or `dns-txt-token`. Changing this forces a new Static Site Custom Domain to be created.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Static Site Custom Domain.
 

@@ -14,9 +14,8 @@ Use this data source to access information about an existing Service Bus Topic.
 
 ```hcl
 data "azurerm_servicebus_topic" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
-  namespace_name      = "existing"
+  name         = "existing"
+  namespace_id = "existing"
 }
 
 output "id" {
@@ -34,9 +33,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Service Bus Topic exists.
 
+~> **Note:** `namespace_name` and `resource_group_name` has been deprecated and will be removed in version 4.0 of the provider in favour of `namespace_id`.
+
+* `namespace_id` - (Required) The ID of the ServiceBus Namespace where the Service Bus Topic exists.
+
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Service Bus Topic.
 
@@ -44,7 +47,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_message_ttl` - The ISO 8601 timespan duration of TTL of messages sent to this topic if no TTL value is set on the message itself.
 
-* `duplicate_detection_history_time_window` - The ISO 8601 timespan duration during which duplicates can be detected. 
+* `duplicate_detection_history_time_window` - The ISO 8601 timespan duration during which duplicates can be detected.
 
 * `enable_batched_operations` - Boolean flag which controls if server-side batched operations are enabled.
 
@@ -54,7 +57,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `max_size_in_megabytes` - Integer value which controls the size of memory allocated for the topic. For supported values see the "Queue/topic size" section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
-* `requires_duplicate_detection` - Boolean flag which controls whether the Topic requires duplicate detection. 
+* `requires_duplicate_detection` - Boolean flag which controls whether the Topic requires duplicate detection.
 
 * `status` - The Status of the Service Bus Topic. Acceptable values are Active or Disabled.
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -89,7 +92,6 @@ func (ServiceBusSubscriptionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (ServiceBusSubscriptionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-
 		oldId := rawState["id"].(string)
 		id, err := subscriptions.ParseSubscriptions2ID(oldId)
 		if err != nil {

@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = EventhubId{}
 
 // EventhubId is a struct representing the Resource ID for a Eventhub
@@ -14,16 +17,16 @@ type EventhubId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 	NamespaceName     string
-	EventHubName      string
+	EventhubName      string
 }
 
 // NewEventhubID returns a new EventhubId struct
-func NewEventhubID(subscriptionId string, resourceGroupName string, namespaceName string, eventHubName string) EventhubId {
+func NewEventhubID(subscriptionId string, resourceGroupName string, namespaceName string, eventhubName string) EventhubId {
 	return EventhubId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		NamespaceName:     namespaceName,
-		EventHubName:      eventHubName,
+		EventhubName:      eventhubName,
 	}
 }
 
@@ -39,19 +42,19 @@ func ParseEventhubID(input string) (*EventhubId, error) {
 	id := EventhubId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
 	}
 
-	if id.EventHubName, ok = parsed.Parsed["eventHubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'eventHubName' was not found in the resource id %q", input)
+	if id.EventhubName, ok = parsed.Parsed["eventhubName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventhubName", *parsed)
 	}
 
 	return &id, nil
@@ -70,19 +73,19 @@ func ParseEventhubIDInsensitively(input string) (*EventhubId, error) {
 	id := EventhubId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
 	}
 
 	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, fmt.Errorf("the segment 'resourceGroupName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
 	}
 
 	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, fmt.Errorf("the segment 'namespaceName' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
 	}
 
-	if id.EventHubName, ok = parsed.Parsed["eventHubName"]; !ok {
-		return nil, fmt.Errorf("the segment 'eventHubName' was not found in the resource id %q", input)
+	if id.EventhubName, ok = parsed.Parsed["eventhubName"]; !ok {
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventhubName", *parsed)
 	}
 
 	return &id, nil
@@ -106,7 +109,7 @@ func ValidateEventhubID(input interface{}, key string) (warnings []string, error
 // ID returns the formatted Eventhub ID
 func (id EventhubId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventHub/namespaces/%s/eventhubs/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventHubName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventhubName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Eventhub ID
@@ -121,7 +124,7 @@ func (id EventhubId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
 		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
 		resourceids.StaticSegment("staticEventhubs", "eventhubs", "eventhubs"),
-		resourceids.UserSpecifiedSegment("eventHubName", "eventHubValue"),
+		resourceids.UserSpecifiedSegment("eventhubName", "eventhubValue"),
 	}
 }
 
@@ -131,7 +134,7 @@ func (id EventhubId) String() string {
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Namespace Name: %q", id.NamespaceName),
-		fmt.Sprintf("Event Hub Name: %q", id.EventHubName),
+		fmt.Sprintf("Eventhub Name: %q", id.EventhubName),
 	}
 	return fmt.Sprintf("Eventhub (%s)", strings.Join(components, "\n"))
 }

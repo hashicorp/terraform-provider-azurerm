@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package keyvault_test
 
 import (
@@ -19,6 +22,7 @@ func TestAccDataSourceKeyVaultSecrets_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("names.#").HasValue("31"),
+				check.That(data.ResourceName).Key("secrets.#").HasValue("31"),
 			),
 		},
 	})

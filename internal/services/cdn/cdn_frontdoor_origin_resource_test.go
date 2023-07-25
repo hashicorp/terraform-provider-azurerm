@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cdn_test
 
 import (
@@ -188,6 +191,69 @@ func TestAccCdnFrontDoorOrigin_privateLinkLoadBalancer(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorOrigin_removeOriginHostHeaderName(t *testing.T) {
+	// regression test case for issue 20617
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
+	r := CdnFrontDoorOriginResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.removeOriginHostHeader(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("origin_host_header").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorOrigin_OriginHostHeaderRegression(t *testing.T) {
+	// regression test case for issue 20866
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
+	r := CdnFrontDoorOriginResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.OriginHostHeaderRegression(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("origin_host_header").HasValue("regression20866.australiaeast.cloudapp.azure.com"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.OriginHostHeaderRegressionUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("origin_host_header").HasValue("regression20866.australiaeast.cloudapp.azure.com"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.OriginHostHeaderRegression(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("origin_host_header").HasValue("regression20866.australiaeast.cloudapp.azure.com"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.removeOriginHostHeader(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("origin_host_header").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CdnFrontDoorOriginResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontDoorOriginID(state.ID)
 	if err != nil {
@@ -206,6 +272,7 @@ func (r CdnFrontDoorOriginResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(true), nil
 }
 
+//nolint:unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkStorage(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
@@ -232,6 +299,7 @@ resource "azurerm_storage_account" "test" {
 `, template, data.RandomString)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkStorageStaticWebSite(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
@@ -264,6 +332,7 @@ resource "azurerm_storage_account" "test" {
 `, template, data.RandomString)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkLoadBalancer(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", true)
 	return fmt.Sprintf(`
@@ -325,6 +394,7 @@ resource "azurerm_private_link_service" "test" {
 `, template, data.RandomInteger)
 }
 
+//nolint:unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkWebApp(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
@@ -525,6 +595,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkBlobPrimary(data acceptance.TestData) string {
 	template := r.templatePrivateLinkStorage(data)
 	return fmt.Sprintf(`
@@ -555,6 +626,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkStaticWebSite(data acceptance.TestData) string {
 	template := r.templatePrivateLinkStorageStaticWebSite(data)
 	return fmt.Sprintf(`
@@ -585,6 +657,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkAppServices(data acceptance.TestData) string {
 	template := r.templatePrivateLinkWebApp(data)
 	return fmt.Sprintf(`
@@ -615,6 +688,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
+// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkLoadBalancer(data acceptance.TestData) string {
 	template := r.templatePrivateLinkLoadBalancer(data)
 	return fmt.Sprintf(`
@@ -677,4 +751,78 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, loadBalancerDependsOn, data.RandomInteger, profileSku, data.RandomInteger)
+}
+
+func (r CdnFrontDoorOriginResource) removeOriginHostHeader(data acceptance.TestData) string {
+	template := r.template(data, "Standard_AzureFrontDoor", false)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "acctest-cdnfdorigin-%d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
+
+  certificate_name_check_enabled = false
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  priority                       = 1
+  weight                         = 1
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorOriginResource) OriginHostHeaderRegression(data acceptance.TestData) string {
+	template := r.template(data, "Standard_AzureFrontDoor", false)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "acctest-cdnfdorigin-%d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
+
+  certificate_name_check_enabled = false
+  host_name                      = "contoso.com"
+  origin_host_header             = "regression20866.australiaeast.cloudapp.azure.com"
+  http_port                      = 80
+  https_port                     = 443
+  priority                       = 1
+  weight                         = 1
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorOriginResource) OriginHostHeaderRegressionUpdate(data acceptance.TestData) string {
+	template := r.template(data, "Standard_AzureFrontDoor", false)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "acctest-cdnfdorigin-%d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
+
+  certificate_name_check_enabled = false
+  host_name                      = "contoso.com"
+  origin_host_header             = "regression20866.australiaeast.cloudapp.azure.com"
+  http_port                      = 80
+  https_port                     = 443
+  priority                       = 5
+  weight                         = 1
+}
+`, template, data.RandomInteger)
 }

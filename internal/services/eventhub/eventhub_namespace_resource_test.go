@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventhub_test
 
 import (
@@ -671,6 +674,7 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium"
   capacity            = "1"
+  zone_redundant      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

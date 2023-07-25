@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package automation_test
 
 import (
@@ -6,11 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestParseAzureRmAutomationVariableValue(t *testing.T) {
@@ -70,7 +73,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "true",
 			HasError:    false,
 			ExpectValue: true,
-			Expect:      func(v interface{}) bool { return v.(bool) == true },
+			Expect:      func(v interface{}) bool { return v.(bool) },
 		},
 		{
 			Name:        "boolean variable false",
@@ -78,7 +81,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "false",
 			HasError:    false,
 			ExpectValue: false,
-			Expect:      func(v interface{}) bool { return v.(bool) == false },
+			Expect:      func(v interface{}) bool { return !v.(bool) },
 		},
 		{
 			Name:        "datetime variable",
@@ -114,15 +117,15 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationVariableExists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState, varType string) (*bool, error) {
-	id, err := parse.VariableID(state.ID)
+	id, err := variable.ParseVariableID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Automation.VariableClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	resp, err := clients.Automation.VariableClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation %s Variable %q (Automation Account Name %q / Resource Group %q) does not exist", varType, id.Name, id.AutomationAccountName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Automation %s Variable %q (Automation Account Name %q / Resource Group %q) does not exist", varType, id.VariableName, id.AutomationAccountName, id.ResourceGroupName)
 	}
 
-	return utils.Bool(resp.VariableProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }

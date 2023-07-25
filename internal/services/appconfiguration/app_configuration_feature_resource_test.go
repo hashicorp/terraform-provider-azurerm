@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration_test
 
 import (
@@ -11,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type AppConfigurationFeatureResource struct{}
@@ -60,6 +64,34 @@ func TestAccAppConfigurationFeature_basicNoLabel(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationFeature_customKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
+	r := AppConfigurationFeatureResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppConfigurationFeature_basicWithSlash(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
+	r := AppConfigurationFeatureResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithSlash(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfigurationFeature_basicNoFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
 	r := AppConfigurationFeatureResource{}
@@ -88,6 +120,27 @@ func TestAccAppConfigurationFeature_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationFeature_noLabelUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
+	r := AppConfigurationFeatureResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicNoLabel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNoLabel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfigurationFeature_lockUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
 	r := AppConfigurationFeatureResource{}
@@ -106,6 +159,20 @@ func TestAccAppConfigurationFeature_lockUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("locked").HasValue("true"),
 			),
 		},
+	})
+}
+
+func TestAccAppConfigurationFeature_complicatedKeyLabel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
+	r := AppConfigurationFeatureResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complicatedKeyLabel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -131,64 +198,33 @@ func TestAccAppConfigurationFeature_enabledUpdate(t *testing.T) {
 }
 
 func (t AppConfigurationFeatureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	resourceID, err := parse.FeatureId(state.ID)
+	nestedItemId, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
 		return nil, fmt.Errorf("while parsing resource ID: %+v", err)
 	}
 
-	client, err := clients.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
-	if client == nil {
-		// if the AppConfiguration is gone all the data is too
-		return utils.Bool(false), nil
-	}
+	client, err := clients.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := client.GetKeyValues(ctx, resourceID.Name, resourceID.Label, "", "", []string{})
+	res, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
 	if err != nil {
-		return nil, fmt.Errorf("while checking for key's %q existence: %+v", resourceID.Name, err)
+		return nil, fmt.Errorf("while checking for key's %q existence: %+v", nestedItemId.Key, err)
 	}
 
-	return utils.Bool(res.Response().StatusCode == 200), nil
+	return utils.Bool(res.Response.StatusCode == 200), nil
 }
 
 func (t AppConfigurationFeatureResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appconfig-%d"
-  location = "%s"
-}
-
-data "azurerm_client_config" "test" {
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_resource_group.test.id
-  role_definition_name = "App Configuration Data Owner"
-  principal_id         = data.azurerm_client_config.test.object_id
-}
-
-resource "azurerm_app_configuration" "test" {
-  name                = "testacc-appconf%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
-
-  depends_on = [
-    azurerm_role_assignment.test,
-  ]
-}
+%s
 
 resource "azurerm_app_configuration_feature" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   description            = "test description"
   name                   = "acctest-ackey-%d"
-  label                  = "acctest-ackeylabel-%d"
+  label                  = "acctest-ackeylabel-%[2]d"
   enabled                = true
 
   percentage_filter_value = 10
@@ -214,40 +250,12 @@ resource "azurerm_app_configuration_feature" "test" {
   }
 }
 
-
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, t.template(data), data.RandomInteger)
 }
 
 func (t AppConfigurationFeatureResource) basicNoLabel(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appconfig-%d"
-  location = "%s"
-}
-
-data "azurerm_client_config" "test" {
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_resource_group.test.id
-  role_definition_name = "App Configuration Data Owner"
-  principal_id         = data.azurerm_client_config.test.object_id
-}
-
-resource "azurerm_app_configuration" "test" {
-  name                = "testacc-appconf%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
-
-  depends_on = [
-    azurerm_role_assignment.test,
-  ]
-}
+%s
 
 resource "azurerm_app_configuration_feature" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
@@ -255,7 +263,48 @@ resource "azurerm_app_configuration_feature" "test" {
   name                   = "acctest-ackey-%d"
   enabled                = true
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, t.template(data), data.RandomInteger)
+}
+
+func (t AppConfigurationFeatureResource) customKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  description            = "test description"
+  name                   = "acctest-ackey-%d"
+  key                    = "custom/:-key-%[2]d"
+  enabled                = true
+}
+`, t.template(data), data.RandomInteger)
+}
+
+func (t AppConfigurationFeatureResource) updateNoLabel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  description            = "test description"
+  name                   = "acctest-ackey-%d"
+  enabled                = false
+}
+`, t.template(data), data.RandomInteger)
+}
+
+func (t AppConfigurationFeatureResource) basicWithSlash(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  description            = "test description"
+  name                   = "acctest/ackey/%d"
+  label                  = "acctest/label"
+  enabled                = true
+}
+`, t.template(data), data.RandomInteger)
 }
 
 func (t AppConfigurationFeatureResource) requiresImport(data acceptance.TestData) string {
@@ -294,90 +343,63 @@ resource "azurerm_app_configuration_feature" "import" {
 `, t.basic(data))
 }
 
+func (t AppConfigurationFeatureResource) complicatedKeyLabel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  name                   = "acctest-ackey-%d/Label/AppConfigurationKey/Label/"
+  label                  = "/Key/AppConfigurationKey/Label/acctest-ackeylabel-%[2]d"
+  enabled                = true
+}
+`, t.template(data), data.RandomInteger)
+}
+
 func (t AppConfigurationFeatureResource) lockUpdate(data acceptance.TestData, lockStatus bool) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appconfig-%d"
-  location = "%s"
-}
-
-data "azurerm_client_config" "test" {
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_resource_group.test.id
-  role_definition_name = "App Configuration Data Owner"
-  principal_id         = data.azurerm_client_config.test.object_id
-}
-
-resource "azurerm_app_configuration" "test" {
-  name                = "testacc-appconf%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
-
-  depends_on = [
-    azurerm_role_assignment.test,
-  ]
-}
+%s
 
 resource "azurerm_app_configuration_feature" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   description            = "test description"
   name                   = "acctest-ackey-%d"
-  label                  = "acctest-ackeylabel-%d"
+  label                  = "acctest-ackeylabel-%[2]d"
   enabled                = true
-  locked                 = %t
+  locked                 = %[3]t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, lockStatus)
+`, t.template(data), data.RandomInteger, lockStatus)
 }
 
 func (t AppConfigurationFeatureResource) enabledUpdate(data acceptance.TestData, enabledStatus bool) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appconfig-%d"
-  location = "%s"
-}
-
-data "azurerm_client_config" "test" {
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_resource_group.test.id
-  role_definition_name = "App Configuration Data Owner"
-  principal_id         = data.azurerm_client_config.test.object_id
-}
-
-resource "azurerm_app_configuration" "test" {
-  name                = "testacc-appconf%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
-
-  depends_on = [
-    azurerm_role_assignment.test,
-  ]
-}
+%s
 
 resource "azurerm_app_configuration_feature" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   description            = "test description"
   name                   = "acctest-ackey-%d"
-  label                  = "acctest-ackeylabel-%d"
-  enabled                = %t
+  label                  = "acctest-ackeylabel-%[2]d"
+  enabled                = %[3]t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabledStatus)
+`, t.template(data), data.RandomInteger, enabledStatus)
 }
 
 func (t AppConfigurationFeatureResource) basicNoFilters(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  description            = "test description"
+  name                   = "acctest-ackey-%[2]d"
+  label                  = "acctest-ackeylabel-%[2]d"
+  enabled                = true
+}
+`, t.template(data), data.RandomInteger)
+}
+
+func (t AppConfigurationFeatureResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -398,7 +420,7 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_app_configuration" "test" {
-  name                = "testacc-appconf%d"
+  name                = "testacc-appconf%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
@@ -407,15 +429,5 @@ resource "azurerm_app_configuration" "test" {
     azurerm_role_assignment.test,
   ]
 }
-
-resource "azurerm_app_configuration_feature" "test" {
-  configuration_store_id = azurerm_app_configuration.test.id
-  description            = "test description"
-  name                   = "acctest-ackey-%d"
-  label                  = "acctest-ackeylabel-%d"
-  enabled                = true
-}
-
-
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

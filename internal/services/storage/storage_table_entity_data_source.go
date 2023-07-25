@@ -1,8 +1,10 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -10,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/entities"
 )
 
 func dataSourceStorageTableEntity() *pluginsdk.Resource {
@@ -72,9 +74,7 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving Account %q for Table %q: %s", storageAccountName, tableName, err)
 	}
 	if account == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", tableName, storageAccountName)
-		d.SetId("")
-		return nil
+		return fmt.Errorf("the parent Storage Account %s was not found", storageAccountName)
 	}
 
 	client, err := storageClient.TableEntityClient(ctx, *account)

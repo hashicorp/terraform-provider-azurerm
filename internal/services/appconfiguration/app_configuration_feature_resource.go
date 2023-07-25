@@ -1,23 +1,29 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 const (
@@ -29,10 +35,13 @@ type FeatureResource struct{}
 
 var _ sdk.ResourceWithUpdate = FeatureResource{}
 
+var _ sdk.ResourceWithStateMigration = FeatureResource{}
+
 type FeatureResourceModel struct {
 	ConfigurationStoreId string                       `tfschema:"configuration_store_id"`
 	Description          string                       `tfschema:"description"`
 	Enabled              bool                         `tfschema:"enabled"`
+	Key                  string                       `tfschema:"key"`
 	Name                 string                       `tfschema:"name"`
 	Label                string                       `tfschema:"label"`
 	Locked               bool                         `tfschema:"locked"`
@@ -48,7 +57,7 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
 		},
 		"description": {
 			Type:     pluginsdk.TypeString,
@@ -58,11 +67,18 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+		"key": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AppConfigurationFeatureKey,
+		},
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotWhiteSpace,
+			ValidateFunc: validate.AppConfigurationFeatureName,
 		},
 		"etag": {
 			Type:     pluginsdk.TypeString,
@@ -165,22 +181,55 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
-			}
+			configurationStoreId, err := configurationstores.ParseConfigurationStoreID(model.ConfigurationStoreId)
 			if err != nil {
 				return err
 			}
 
-			appCfgFeatureResourceID := parse.AppConfigurationFeatureId{
-				ConfigurationStoreId: model.ConfigurationStoreId,
-				Name:                 model.Name,
-				Label:                model.Label,
+			configurationStoreEndpoint, err := metadata.Client.AppConfiguration.EndpointForConfigurationStore(ctx, *configurationStoreId)
+			if err != nil {
+				return fmt.Errorf("retrieving Endpoint for feature %q in %q: %s", model.Name, *configurationStoreId, err)
 			}
 
-			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, model.Name)
-			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []string{})
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(*configurationStoreEndpoint)
+			if err != nil {
+				return err
+			}
+
+			// users can customize the key, but if they don't we use the name
+			rawKey := model.Name
+			if model.Key != "" {
+				rawKey = model.Key
+			}
+			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, rawKey)
+
+			nestedItemId, err := parse.NewNestedItemID(client.Endpoint, featureKey, model.Label)
+			if err != nil {
+				return err
+			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context had no deadline")
+			}
+
+			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
+			// allow some time for role permission to be propagated
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q read permission to be propagated", featureKey)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Forbidden"},
+				Target:                    []string{"Error", "Exists", "NotFound"},
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Feature %q read permission to be propagated: %+v", featureKey, err)
+			}
+
+			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
@@ -190,59 +239,82 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
 				}
 			} else if kv.Response.StatusCode == 200 {
-				return tf.ImportAsExistsError(k.ResourceType(), appCfgFeatureResourceID.ID())
+				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 
 			err = createOrUpdateFeature(ctx, client, model)
 			if err != nil {
 				return fmt.Errorf("while creating feature: %+v", err)
 			}
-			if appCfgFeatureResourceID.Label == "" {
-				// We set an empty label as %00 in the resource ID
-				// Otherwise it breaks the ID parsing logic
-				appCfgFeatureResourceID.Label = "%00"
+
+			// https://github.com/Azure/AppConfiguration/issues/763
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q to be provisioned", model.Key)
+			stateConf = &pluginsdk.StateChangeConf{
+				Pending:                   []string{"NotFound", "Forbidden"},
+				Target:                    []string{"Exists"},
+				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
+				PollInterval:              10 * time.Second,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
 			}
-			metadata.SetID(appCfgFeatureResourceID)
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Feature %q to be provisioned: %+v", featureKey, err)
+			}
+
+			metadata.SetID(nestedItemId)
 			return nil
 		},
-		Timeout: 30 * time.Minute,
+		Timeout: 45 * time.Minute,
 	}
 }
 
 func (k FeatureResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.FeatureId(metadata.ResourceData.Id())
+			nestedItemId, err := parse.ParseNestedItemID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
-			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, resourceID.Name)
 
-			// We set an empty label as %00 in the ID to make the ID validator happy
-			// but in reality the label is just an empty string
-			if resourceID.Label == "%00" {
-				resourceID.Label = ""
+			resourceClient := metadata.Client.Resource
+			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, resourceClient, nestedItemId.ConfigurationStoreEndpoint)
+			if err != nil {
+				return fmt.Errorf("while retrieving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
 			}
-
-			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
-			if client == nil {
+			if configurationStoreIdRaw == nil {
 				// if the AppConfiguration is gone then all the data inside it is too
-				return metadata.MarkAsGone(resourceID)
+				log.Printf("[DEBUG] Unable to determine the Resource ID for Configuration Store at Endpoint %q - removing from state", nestedItemId.ConfigurationStoreEndpoint)
+				return metadata.MarkAsGone(nestedItemId)
 			}
+
+			configurationStoreId, err := configurationstores.ParseConfigurationStoreID(*configurationStoreIdRaw)
 			if err != nil {
 				return err
 			}
 
-			kv, err := client.GetKeyValue(ctx, featureKey, resourceID.Label, "", "", "", []string{})
+			ok, err := metadata.Client.AppConfiguration.Exists(ctx, *configurationStoreId)
+			if err != nil {
+				return fmt.Errorf("while checking Configuration Store %q for feature %q existence: %v", *configurationStoreId, *nestedItemId, err)
+			}
+			if !ok {
+				log.Printf("[DEBUG] Configuration Store %q for feature %q was not found - removing from state", *configurationStoreId, *nestedItemId)
+				return metadata.MarkAsGone(nestedItemId)
+			}
+
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
+			if err != nil {
+				return err
+			}
+
+			kv, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return metadata.MarkAsGone(resourceID)
+						return metadata.MarkAsGone(nestedItemId)
 					}
-				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
 				}
-				return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
+				return fmt.Errorf("while checking for key %q existence: %+v", *nestedItemId, err)
 			}
 
 			var fv FeatureValue
@@ -252,9 +324,10 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			}
 
 			model := FeatureResourceModel{
-				ConfigurationStoreId: resourceID.ConfigurationStoreId,
+				ConfigurationStoreId: configurationStoreId.ID(),
 				Description:          fv.Description,
 				Enabled:              fv.Enabled,
+				Key:                  strings.TrimPrefix(utils.NormalizeNilableString(kv.Key), fmt.Sprintf("%s/", FeatureKeyPrefix)),
 				Name:                 fv.ID,
 				Label:                utils.NormalizeNilableString(kv.Label),
 				Tags:                 tags.Flatten(kv.Tags),
@@ -290,16 +363,12 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 func (k FeatureResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.FeatureId(metadata.ResourceData.Id())
+			nestedItemId, err := parse.ParseNestedItemID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
-			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, resourceID.Name)
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
-			}
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return err
 			}
@@ -309,10 +378,17 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
+			configurationStoreId, err := configurationstores.ParseConfigurationStoreID(model.ConfigurationStoreId)
+			if err != nil {
+				return err
+			}
+
+			metadata.Client.AppConfiguration.AddToCache(*configurationStoreId, nestedItemId.ConfigurationStoreEndpoint)
+
 			if metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("enabled") || metadata.ResourceData.HasChange("locked") || metadata.ResourceData.HasChange("description") {
 				// Remove the lock, if any. We will put it back again if the model says so.
-				if _, err = client.DeleteLock(ctx, featureKey, resourceID.Label, "", ""); err != nil {
-					return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", resourceID.Name, resourceID.Label, err)
+				if _, err = client.DeleteLock(ctx, nestedItemId.Key, nestedItemId.Label, "", ""); err != nil {
+					return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", nestedItemId.Key, nestedItemId.Label, err)
 				}
 				err = createOrUpdateFeature(ctx, client, model)
 				if err != nil {
@@ -329,37 +405,31 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 func (k FeatureResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceID, err := parse.FeatureId(metadata.ResourceData.Id())
-			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, resourceID.Name)
-
+			nestedItemId, err := parse.ParseNestedItemID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
-			if client == nil {
-				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
-			}
+			client, err := metadata.Client.AppConfiguration.DataPlaneClientWithEndpoint(nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return err
 			}
 
-			kv, err := client.GetKeyValues(ctx, featureKey, resourceID.Label, "", "", []string{})
+			kv, err := client.GetKeyValues(ctx, nestedItemId.Key, nestedItemId.Label, "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
-				return fmt.Errorf("while checking for feature's %q existence: %+v", resourceID.Name, err)
+				return fmt.Errorf("while checking for feature's %q existence: %+v", nestedItemId.Key, err)
 			}
 			keysFound := kv.Values()
 			if len(keysFound) == 0 {
 				return nil
 			}
 
-			if _, err = client.DeleteLock(ctx, featureKey, resourceID.Label, "", ""); err != nil {
-				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", resourceID.Name, resourceID.Label, err)
+			if _, err = client.DeleteLock(ctx, nestedItemId.Key, nestedItemId.Label, "", ""); err != nil {
+				return fmt.Errorf("while unlocking key %q: %+v", *nestedItemId, err)
 			}
 
-			_, err = client.DeleteKeyValue(ctx, featureKey, resourceID.Label, "")
-			if err != nil {
-				return fmt.Errorf("while removing key %q from App Configuration Store %q: %+v", resourceID.Name, resourceID.ConfigurationStoreId, err)
+			if _, err = client.DeleteKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, ""); err != nil {
+				return fmt.Errorf("while removing key %q: %+v", *nestedItemId, err)
 			}
 
 			return nil
@@ -369,11 +439,16 @@ func (k FeatureResource) Delete() sdk.ResourceFunc {
 }
 
 func (k FeatureResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AppConfigurationFeatureID
+	return validate.NestedItemId
 }
 
 func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseClient, model FeatureResourceModel) error {
-	featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, model.Name)
+	rawKey := model.Name
+	if model.Key != "" {
+		rawKey = model.Key
+	}
+	featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, rawKey)
+
 	entity := appconfiguration.KeyValue{
 		Key:         utils.String(featureKey),
 		Label:       utils.String(model.Label),
@@ -434,4 +509,12 @@ func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseCli
 	}
 
 	return nil
+}
+func (k FeatureResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.FeatureResourceV0ToV1{},
+		},
+	}
 }

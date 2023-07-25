@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package applicationinsights
 
 import (
@@ -42,7 +45,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_application_insights":                      resourceApplicationInsights(),
 		"azurerm_application_insights_analytics_item":       resourceApplicationInsightsAnalyticsItem(),
 		"azurerm_application_insights_smart_detection_rule": resourceApplicationInsightsSmartDetectionRule(),
-		"azurerm_application_insights_web_test":             resourceApplicationInsightsWebTests(),
+
+		// TODO change in 4.0 to azurerm_application_insights_classic_web_test
+		"azurerm_application_insights_web_test": resourceApplicationInsightsWebTests(),
 	}
 }
 
@@ -56,5 +61,6 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ApplicationInsightsWorkbookResource{},
 		ApplicationInsightsWorkbookTemplateResource{},
+		ApplicationInsightsStandardWebTestResource{},
 	}
 }

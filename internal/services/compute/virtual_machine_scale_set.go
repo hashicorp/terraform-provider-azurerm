@@ -1,18 +1,24 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
 	"bytes"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
-	identity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/applicationsecuritygroups"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
@@ -74,9 +80,9 @@ func expandVirtualMachineScaleSetIdentity(input []interface{}) (*compute.Virtual
 		Type: compute.ResourceIdentityType(string(expanded.Type)),
 	}
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
+		out.UserAssignedIdentities = make(map[string]*compute.UserAssignedIdentitiesValue)
 		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{
+			out.UserAssignedIdentities[k] = &compute.UserAssignedIdentitiesValue{
 				// intentionally empty
 			}
 		}
@@ -166,7 +172,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					ValidateFunc: networkValidate.NetworkSecurityGroupID,
 				},
 				"primary": {
 					Type:     pluginsdk.TypeBool,
@@ -178,22 +184,29 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 	}
 }
 
-func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
+func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 100,
+		Computed: !features.FourPointOhBeta(),
+		ConflictsWith: func() []string {
+			if !features.FourPointOhBeta() {
+				return []string{"gallery_applications"}
+			}
+			return []string{}
+		}(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"package_reference_id": {
+				"version_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.GalleryApplicationVersionID,
+					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
 				},
 
 				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
-				"configuration_reference_blob_uri": {
+				"configuration_blob_uri": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -218,6 +231,119 @@ func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeList,
+		Optional:      true,
+		MaxItems:      100,
+		Computed:      !features.FourPointOhBeta(),
+		ConflictsWith: []string{"gallery_application"},
+		Deprecated:    "`gallery_applications` has been renamed to `gallery_application` and will be deprecated in 4.0",
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"package_reference_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
+					Deprecated:   "`package_reference_id` has been renamed to `version_id` and will be deprecated in 4.0",
+				},
+
+				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
+				"configuration_reference_blob_uri": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					Deprecated:   "`configuration_reference_blob_uri` has been renamed to `configuration_blob_uri` and will be deprecated in 4.0",
+				},
+
+				"order": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ForceNew:     true,
+					ValidateFunc: validation.IntBetween(0, 2147483647),
+				},
+
+				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
+				"tag": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func expandVirtualMachineScaleSetGalleryApplication(input []interface{}) *[]compute.VMGalleryApplication {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]compute.VMGalleryApplication, 0)
+
+	for _, v := range input {
+		packageReferenceId := v.(map[string]interface{})["version_id"].(string)
+		configurationReference := v.(map[string]interface{})["configuration_blob_uri"].(string)
+		order := v.(map[string]interface{})["order"].(int)
+		tag := v.(map[string]interface{})["tag"].(string)
+
+		app := &compute.VMGalleryApplication{
+			PackageReferenceID:     utils.String(packageReferenceId),
+			ConfigurationReference: utils.String(configurationReference),
+			Order:                  utils.Int32(int32(order)),
+			Tags:                   utils.String(tag),
+		}
+
+		out = append(out, *app)
+	}
+
+	return &out
+}
+
+func flattenVirtualMachineScaleSetGalleryApplication(input *[]compute.VMGalleryApplication) []interface{} {
+	if len(*input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, 0)
+
+	for _, v := range *input {
+		var packageReferenceId, configurationReference, tag string
+		var order int
+
+		if v.PackageReferenceID != nil {
+			packageReferenceId = *v.PackageReferenceID
+		}
+
+		if v.ConfigurationReference != nil {
+			configurationReference = *v.ConfigurationReference
+		}
+
+		if v.Order != nil {
+			order = int(*v.Order)
+		}
+
+		if v.Tags != nil {
+			tag = *v.Tags
+		}
+
+		app := map[string]interface{}{
+			"version_id":             packageReferenceId,
+			"configuration_blob_uri": configurationReference,
+			"order":                  order,
+			"tag":                    tag,
+		}
+
+		out = append(out, app)
+	}
+
+	return out
 }
 
 func expandVirtualMachineScaleSetGalleryApplications(input []interface{}) *[]compute.VMGalleryApplication {
@@ -513,7 +639,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: azure.ValidateResourceID,
+						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
 					},
 					Set:      pluginsdk.HashString,
 					MaxItems: 20,
@@ -544,7 +670,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				"subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: commonids.ValidateSubnetID,
 				},
 
 				"version": {
@@ -687,7 +813,7 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceIDOrEmpty,
+					ValidateFunc: networkValidate.PublicIpPrefixID,
 				},
 			},
 		},
@@ -1193,8 +1319,11 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesPremiumV2LRS),
+						string(compute.StorageAccountTypesPremiumZRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesStandardSSDZRS),
 						string(compute.StorageAccountTypesUltraSSDLRS),
 					}, false),
 				},
@@ -1205,16 +1334,20 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
+				// TODO rename `ultra_ssd_disk_iops_read_write` to `disk_iops_read_write` in 4.0
 				"ultra_ssd_disk_iops_read_write": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Computed: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+					Computed:     true,
 				},
 
+				// TODO rename `ultra_ssd_disk_mbps_read_write` to `disk_mbps_read_write` in 4.0
 				"ultra_ssd_disk_mbps_read_write": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Computed: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+					Computed:     true,
 				},
 			},
 		},
@@ -1227,12 +1360,13 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 
+		storageAccountType := compute.StorageAccountTypes(raw["storage_account_type"].(string))
 		disk := compute.VirtualMachineScaleSetDataDisk{
 			Caching:    compute.CachingTypes(raw["caching"].(string)),
 			DiskSizeGB: utils.Int32(int32(raw["disk_size_gb"].(int))),
 			Lun:        utils.Int32(int32(raw["lun"].(int))),
 			ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
-				StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
+				StorageAccountType: storageAccountType,
 			},
 			WriteAcceleratorEnabled: utils.Bool(raw["write_accelerator_enabled"].(bool)),
 			CreateOption:            compute.DiskCreateOptionTypes(raw["create_option"].(string)),
@@ -1249,25 +1383,21 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 		}
 
 		var iops int
-		if diskIops, ok := raw["disk_iops_read_write"]; ok && diskIops.(int) > 0 {
+		if diskIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && diskIops.(int) > 0 {
 			iops = diskIops.(int)
-		} else if ssdIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && ssdIops.(int) > 0 {
-			iops = ssdIops.(int)
 		}
 
-		if iops > 0 && !ultraSSDEnabled {
-			return nil, fmt.Errorf("disk_iops_read_write and ultra_ssd_disk_iops_read_write are only available for UltraSSD disks")
+		if iops > 0 && !ultraSSDEnabled && storageAccountType != compute.StorageAccountTypesPremiumV2LRS {
+			return nil, fmt.Errorf("`ultra_ssd_disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		var mbps int
-		if diskMbps, ok := raw["disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
+		if diskMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
 			mbps = diskMbps.(int)
-		} else if ssdMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && ssdMbps.(int) > 0 {
-			mbps = ssdMbps.(int)
 		}
 
-		if mbps > 0 && !ultraSSDEnabled {
-			return nil, fmt.Errorf("disk_mbps_read_write and ultra_ssd_disk_mbps_read_write are only available for UltraSSD disks")
+		if mbps > 0 && !ultraSSDEnabled && storageAccountType != compute.StorageAccountTypesPremiumV2LRS {
+			return nil, fmt.Errorf("`ultra_ssd_disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
@@ -1334,24 +1464,16 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 		}
 
 		dataDisk := map[string]interface{}{
-			"name":                      name,
-			"caching":                   string(v.Caching),
-			"create_option":             string(v.CreateOption),
-			"lun":                       lun,
-			"disk_encryption_set_id":    diskEncryptionSetId,
-			"disk_size_gb":              diskSizeGb,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
-		}
-
-		// Do not set value unless value is greater than 0 - issue 15516
-		if iops > 0 {
-			dataDisk["ultra_ssd_disk_iops_read_write"] = iops
-		}
-
-		// Do not set value unless value is greater than 0 - issue 15516
-		if mbps > 0 {
-			dataDisk["ultra_ssd_disk_mbps_read_write"] = mbps
+			"name":                           name,
+			"caching":                        string(v.Caching),
+			"create_option":                  string(v.CreateOption),
+			"lun":                            lun,
+			"disk_encryption_set_id":         diskEncryptionSetId,
+			"disk_size_gb":                   diskSizeGb,
+			"storage_account_type":           storageAccountType,
+			"ultra_ssd_disk_iops_read_write": iops,
+			"ultra_ssd_disk_mbps_read_write": mbps,
+			"write_accelerator_enabled":      writeAcceleratorEnabled,
 		}
 
 		output = append(output, dataDisk)
@@ -1383,10 +1505,12 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// note: OS Disks don't support Ultra SSDs
+						// note: OS Disks don't support Ultra SSDs or PremiumV2_LRS
 						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesPremiumZRS),
 						string(compute.StorageAccountTypesStandardLRS),
 						string(compute.StorageAccountTypesStandardSSDLRS),
+						string(compute.StorageAccountTypesStandardSSDZRS),
 					}, false),
 				},
 
@@ -1813,8 +1937,12 @@ func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 				},
 			},
 		},
-		// TODO remove ConflictsWith in 4.0
-		ConflictsWith: []string{"terminate_notification"},
+		ConflictsWith: func() []string {
+			if !features.FourPointOhBeta() {
+				return []string{"terminate_notification"}
+			}
+			return []string{}
+		}(),
 	}
 }
 
@@ -1970,6 +2098,9 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsJSON,
 				},
 
+				// Need to check `protected_settings_from_key_vault` conflicting with `protected_settings` in iteration
+				"protected_settings_from_key_vault": protectedSettingsFromKeyVaultSchema(false),
+
 				"provision_after_extensions": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -2032,6 +2163,14 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 				}
 			}
 		}
+
+		if v, ok := m["protected_settings_from_key_vault"]; ok {
+			protectedSettingsFromKeyVault := v.([]interface{})
+			if len(protectedSettingsFromKeyVault) > 0 {
+				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["secret_url"].(string)))
+				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["source_vault_id"].(string)))
+			}
+		}
 	}
 
 	return pluginsdk.HashString(buf.String())
@@ -2076,7 +2215,14 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			extensionProps.Settings = settings
 		}
 
+		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVault(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
+		extensionProps.ProtectedSettingsFromKeyVault = protectedSettingsFromKeyVault
+
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
+			if protectedSettingsFromKeyVault != nil {
+				return nil, false, fmt.Errorf("`protected_settings_from_key_vault` cannot be used with `protected_settings`")
+			}
+
 			protectedSettings, err := pluginsdk.ExpandJsonFromString(val.(string))
 			if err != nil {
 				return nil, false, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
@@ -2123,6 +2269,7 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		forceUpdateTag := ""
 		provisionAfterExtension := make([]interface{}, 0)
 		protectedSettings := ""
+		var protectedSettingsFromKeyVault *compute.KeyVaultSecretReference
 		extPublisher := ""
 		extSettings := ""
 		extType := ""
@@ -2164,6 +2311,8 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 				}
 				extSettings = extSettingsRaw
 			}
+
+			protectedSettingsFromKeyVault = props.ProtectedSettingsFromKeyVault
 		}
 		// protected_settings isn't returned, so we attempt to get it from state otherwise set to empty string
 		if ext, ok := extensionsFromState[name]; ok {
@@ -2175,16 +2324,17 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 		}
 
 		result = append(result, map[string]interface{}{
-			"name":                       name,
-			"auto_upgrade_minor_version": autoUpgradeMinorVersion,
-			"automatic_upgrade_enabled":  enableAutomaticUpgrade,
-			"force_update_tag":           forceUpdateTag,
-			"provision_after_extensions": provisionAfterExtension,
-			"protected_settings":         protectedSettings,
-			"publisher":                  extPublisher,
-			"settings":                   extSettings,
-			"type":                       extType,
-			"type_handler_version":       extTypeVersion,
+			"name":                              name,
+			"auto_upgrade_minor_version":        autoUpgradeMinorVersion,
+			"automatic_upgrade_enabled":         enableAutomaticUpgrade,
+			"force_update_tag":                  forceUpdateTag,
+			"provision_after_extensions":        provisionAfterExtension,
+			"protected_settings":                protectedSettings,
+			"protected_settings_from_key_vault": flattenProtectedSettingsFromKeyVault(protectedSettingsFromKeyVault),
+			"publisher":                         extPublisher,
+			"settings":                          extSettings,
+			"type":                              extType,
+			"type_handler_version":              extTypeVersion,
 		})
 	}
 	return result, nil

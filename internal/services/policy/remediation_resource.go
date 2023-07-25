@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy
 
 import (
@@ -201,7 +204,7 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitRemediationToDelete(ctx,
+	if err := waitForRemediationToDelete(ctx,
 		existing.Model.Properties,
 		id.ID(),
 		d.Timeout(pluginsdk.TimeoutDelete),
@@ -236,14 +239,13 @@ func resourcePolicyRemediationCancellationRefreshFunc(ctx context.Context, clien
 	}
 }
 
-// waitRemediationToDelete waits for the remediation to a status that allow to delete
-func waitRemediationToDelete(ctx context.Context,
+// waitForRemediationToDelete waits for the remediation to a status that allow to delete
+func waitForRemediationToDelete(ctx context.Context,
 	prop *remediations.RemediationProperties,
 	id string,
 	timeout time.Duration,
 	cancelFunc func() error,
 	refresh pluginsdk.StateRefreshFunc) error {
-
 	if prop == nil {
 		return nil
 	}

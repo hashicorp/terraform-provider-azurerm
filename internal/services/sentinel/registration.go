@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sentinel
 
 import (
@@ -55,13 +58,29 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		AlertRuleAnomalyDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		AlertRuleThreatIntelligenceResource{},
 		WatchlistResource{},
 		WatchlistItemResource{},
 		DataConnectorAwsS3Resource{},
+		DataConnectorMicrosoftThreatProtectionResource{},
+		DataConnectorIOTResource{},
+		DataConnectorDynamics365Resource{},
+		DataConnectorOffice365ProjectResource{},
+		DataConnectorOfficePowerBIResource{},
+		DataConnectorOfficeIRMResource{},
+		LogAnalyticsWorkspaceOnboardResource{},
+		DataConnectorThreatIntelligenceTAXIIResource{},
+		DataConnectorMicrosoftThreatIntelligenceResource{},
+		AlertRuleAnomalyBuiltInResource{},
+		MetadataResource{},
+		AlertRuleAnomalyDuplicateResource{},
+		ThreatIntelligenceIndicator{},
 	}
 }

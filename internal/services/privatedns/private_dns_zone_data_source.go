@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package privatedns
 
 import (
@@ -5,11 +8,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -81,7 +84,7 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 	} else {
 		resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 
-		zone, err := findPrivateZone(ctx, client, resourcesClient, id.PrivateZoneName)
+		zone, err := findPrivateZone(ctx, client, resourcesClient, id.PrivateDnsZoneName)
 		if err != nil {
 			return err
 		}
@@ -96,7 +99,7 @@ func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.PrivateZoneName)
+	d.Set("name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props := resp.Properties; props != nil {

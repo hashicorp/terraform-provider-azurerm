@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2021-12-01-preview/loadtests"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -29,13 +29,13 @@ func (r LoadTestResource) ModelObject() interface{} {
 }
 
 type LoadTestResourceSchema struct {
-	DataPlaneURI      string                         `tfschema:"data_plane_uri"`
-	Description       string                         `tfschema:"description"`
-	Identity          []identity.ModelSystemAssigned `tfschema:"identity"`
-	Location          string                         `tfschema:"location"`
-	Name              string                         `tfschema:"name"`
-	ResourceGroupName string                         `tfschema:"resource_group_name"`
-	Tags              map[string]interface{}         `tfschema:"tags"`
+	DataPlaneURI      string                                     `tfschema:"data_plane_uri"`
+	Description       string                                     `tfschema:"description"`
+	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Location          string                                     `tfschema:"location"`
+	Name              string                                     `tfschema:"name"`
+	ResourceGroupName string                                     `tfschema:"resource_group_name"`
+	Tags              map[string]interface{}                     `tfschema:"tags"`
 }
 
 func (r LoadTestResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -58,7 +58,7 @@ func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Type:     pluginsdk.TypeString,
 		},
-		"identity": commonschema.SystemAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 		"tags":     commonschema.Tags(),
 	}
 }
@@ -74,7 +74,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.LoadTests
+			client := metadata.Client.LoadTestService.V20221201.LoadTests
 
 			var config LoadTestResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -82,6 +82,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			id := loadtests.NewLoadTestID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.Get(ctx, id)
@@ -99,7 +100,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -112,7 +113,7 @@ func (r LoadTestResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.LoadTests
+			client := metadata.Client.LoadTestService.V20221201.LoadTests
 			schema := LoadTestResourceSchema{}
 
 			id, err := loadtests.ParseLoadTestID(metadata.ResourceData.Id())
@@ -144,7 +145,7 @@ func (r LoadTestResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.LoadTests
+			client := metadata.Client.LoadTestService.V20221201.LoadTests
 
 			id, err := loadtests.ParseLoadTestID(metadata.ResourceData.Id())
 			if err != nil {
@@ -163,7 +164,7 @@ func (r LoadTestResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.LoadTestService.LoadTests
+			client := metadata.Client.LoadTestService.V20221201.LoadTests
 
 			id, err := loadtests.ParseLoadTestID(metadata.ResourceData.Id())
 			if err != nil {
@@ -180,7 +181,7 @@ func (r LoadTestResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
 			}
 
-			if _, err := client.Update(ctx, *id, payload); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -201,21 +202,11 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 	return nil
 }
 
-func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourcePatchRequestBodyProperties(input LoadTestResourceSchema, output *loadtests.LoadTestResourcePatchRequestBodyProperties) error {
-	output.Description = &input.Description
-	return nil
-}
-
-func (r LoadTestResource) mapLoadTestResourcePatchRequestBodyPropertiesToLoadTestResourceSchema(input loadtests.LoadTestResourcePatchRequestBodyProperties, output *LoadTestResourceSchema) error {
-	output.Description = pointer.From(input.Description)
-	return nil
-}
-
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResource(input LoadTestResourceSchema, output *loadtests.LoadTestResource) error {
 
-	identity, err := identity.ExpandSystemAssignedFromModel(input.Identity)
+	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
-		return fmt.Errorf("expanding SystemAssigned Identity: %+v", err)
+		return fmt.Errorf("expanding Legacy SystemAndUserAssigned Identity: %+v", err)
 	}
 	output.Identity = identity
 
@@ -234,7 +225,11 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResource(input Load
 
 func (r LoadTestResource) mapLoadTestResourceToLoadTestResourceSchema(input loadtests.LoadTestResource, output *LoadTestResourceSchema) error {
 
-	output.Identity = identity.FlattenSystemAssignedToModel(input.Identity)
+	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening Legacy SystemAndUserAssigned Identity: %+v", err)
+	}
+	output.Identity = identity
 
 	output.Location = location.Normalize(input.Location)
 	output.Tags = tags.Flatten(input.Tags)
@@ -251,36 +246,24 @@ func (r LoadTestResource) mapLoadTestResourceToLoadTestResourceSchema(input load
 
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourcePatchRequestBody(input LoadTestResourceSchema, output *loadtests.LoadTestResourcePatchRequestBody) error {
 
-	identity, err := identity.ExpandSystemAssignedFromModel(input.Identity)
+	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
-		return fmt.Errorf("expanding SystemAssigned Identity: %+v", err)
+		return fmt.Errorf("expanding Legacy SystemAndUserAssigned Identity: %+v", err)
 	}
 	output.Identity = identity
 
 	output.Tags = tags.Expand(input.Tags)
-
-	if output.Properties == nil {
-		output.Properties = &loadtests.LoadTestResourcePatchRequestBodyProperties{}
-	}
-	if err := r.mapLoadTestResourceSchemaToLoadTestResourcePatchRequestBodyProperties(input, output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "LoadTestResourcePatchRequestBodyProperties", "Properties", err)
-	}
-
 	return nil
 }
 
 func (r LoadTestResource) mapLoadTestResourcePatchRequestBodyToLoadTestResourceSchema(input loadtests.LoadTestResourcePatchRequestBody, output *LoadTestResourceSchema) error {
 
-	output.Identity = identity.FlattenSystemAssignedToModel(input.Identity)
+	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening Legacy SystemAndUserAssigned Identity: %+v", err)
+	}
+	output.Identity = identity
 
 	output.Tags = tags.Flatten(input.Tags)
-
-	if input.Properties == nil {
-		input.Properties = &loadtests.LoadTestResourcePatchRequestBodyProperties{}
-	}
-	if err := r.mapLoadTestResourcePatchRequestBodyPropertiesToLoadTestResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "LoadTestResourcePatchRequestBodyProperties", "Properties", err)
-	}
-
 	return nil
 }

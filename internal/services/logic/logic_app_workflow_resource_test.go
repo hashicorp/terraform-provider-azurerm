@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logic_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -118,6 +121,8 @@ func TestAccLogicAppWorkflow_integrationAccount(t *testing.T) {
 }
 
 func TestAccLogicAppWorkflow_integrationServiceEnvironment(t *testing.T) {
+	t.Skip("skip as Integration Service Environment is being deprecated")
+
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
 	r := LogicAppWorkflowResource{}
 
@@ -212,17 +217,17 @@ func TestAccLogicAppWorkflow_identity(t *testing.T) {
 }
 
 func (LogicAppWorkflowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WorkflowID(state.ID)
+	id, err := workflows.ParseWorkflowID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Logic.WorkflowClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Logic.WorkflowClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Logic App Workflow %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.WorkflowProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LogicAppWorkflowResource) empty(data acceptance.TestData) string {

@@ -1,19 +1,18 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2020-10-01/clusters"
+	"github.com/Azure/go-autorest/autorest"
+	azurestackhci_v2023_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-type Client struct {
-	ClusterClient *clusters.ClustersClient
-}
+func NewClient(o *common.ClientOptions) *azurestackhci_v2023_03_01.Client {
+	client := azurestackhci_v2023_03_01.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
+		o.ConfigureClient(c, o.ResourceManagerAuthorizer)
+	})
 
-func NewClient(o *common.ClientOptions) *Client {
-	clusterClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&clusterClient.Client, o.ResourceManagerAuthorizer)
-
-	return &Client{
-		ClusterClient: &clusterClient,
-	}
+	return &client
 }

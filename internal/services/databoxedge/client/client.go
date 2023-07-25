@@ -1,24 +1,36 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/orders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	DeviceClient *databoxedge.DevicesClient
-	OrderClient  *databoxedge.OrdersClient
+	DeviceClient *devices.DevicesClient
+	OrdersClient *orders.OrdersClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	deviceClient := databoxedge.NewDevicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&deviceClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	deviceClient, err := devices.NewDevicesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Devices client: %+v", err)
+	}
+	o.Configure(deviceClient.Client, o.Authorizers.ResourceManager)
 
-	orderClient := databoxedge.NewOrdersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&orderClient.Client, o.ResourceManagerAuthorizer)
+	ordersClient, err := orders.NewOrdersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Orders client: %+v", err)
+	}
+	o.Configure(ordersClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		DeviceClient: &deviceClient,
-		OrderClient:  &orderClient,
-	}
+		DeviceClient: deviceClient,
+		OrdersClient: ordersClient,
+	}, nil
 }

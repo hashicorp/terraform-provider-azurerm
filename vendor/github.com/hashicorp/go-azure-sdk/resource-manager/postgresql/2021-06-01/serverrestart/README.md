@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := serverrestart.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := serverrestart.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerValue")
 
 payload := serverrestart.RestartParameter{
 	// ...

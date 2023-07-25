@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -57,7 +60,7 @@ func (s ShareV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		shareName := parsedId[0]
 		accountName := parsedId[2]
 
-		environment := meta.(*clients.Client).Account.Environment
+		environment := meta.(*clients.Client).Account.AzureEnvironment
 		client := shares.NewWithEnvironment(environment)
 
 		newResourceId := client.GetResourceID(accountName, shareName)

@@ -1,15 +1,19 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package helpers
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type IpRestriction struct {
@@ -47,10 +51,8 @@ func (v IpRestriction) Validate() error {
 
 func IpRestrictionSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeList,
-		Optional:   true,
-		Computed:   true,
-		ConfigMode: pluginsdk.SchemaConfigModeAttr,
+		Type:     pluginsdk.TypeList,
+		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
@@ -70,7 +72,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 				"virtual_network_subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: networkValidate.SubnetID,
+					ValidateFunc: commonids.ValidateSubnetID,
 					Description:  "The Virtual Network Subnet ID used for this IP Restriction.",
 				},
 
@@ -272,7 +274,8 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"allowed_origins": {
 					Type:     pluginsdk.TypeSet,
-					Required: true,
+					Optional: true,
+					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -315,6 +318,34 @@ func CorsSettingsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
+func FlattenCorsSettings(input *web.CorsSettings) []CorsSetting {
+	if input == nil {
+		return []CorsSetting{}
+	}
+
+	cors := *input
+	if len(pointer.From(cors.AllowedOrigins)) == 0 && !pointer.From(cors.SupportCredentials) {
+		return []CorsSetting{}
+	}
+
+	return []CorsSetting{{
+		SupportCredentials: pointer.From(cors.SupportCredentials),
+		AllowedOrigins:     pointer.From(cors.AllowedOrigins),
+	}}
+}
+
+func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
+	if len(input) != 1 {
+		return &web.CorsSettings{}
+	}
+	cors := input[0]
+
+	return &web.CorsSettings{
+		AllowedOrigins:     pointer.To(cors.AllowedOrigins),
+		SupportCredentials: pointer.To(cors.SupportCredentials),
+	}
+}
+
 type SourceControl struct {
 	RepoURL           string `tfschema:"repo_url"`
 	Branch            string `tfschema:"branch"`
@@ -330,13 +361,15 @@ type SiteCredential struct {
 
 func SiteCredentialSchema() *pluginsdk.Schema { // TODO - This can apparently be disabled as a security option for the service?
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
+		Type:      pluginsdk.TypeList,
+		Computed:  true,
+		Sensitive: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
+					Sensitive:   true,
 					Description: "The Site Credentials Username used for publishing.",
 				},
 
@@ -373,7 +406,6 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1095,7 +1127,7 @@ func GithubAuthSettingsSchemaComputed() *pluginsdk.Schema {
 }
 
 func ExpandIpRestrictions(restrictions []IpRestriction) (*[]web.IPSecurityRestriction, error) {
-	var expanded []web.IPSecurityRestriction
+	expanded := make([]web.IPSecurityRestriction, 0)
 	if len(restrictions) == 0 {
 		return &expanded, nil
 	}
@@ -1157,23 +1189,6 @@ func expandIpRestrictionHeaders(headers []IpRestrictionHeaders) map[string][]str
 	}
 
 	return result
-}
-
-func ExpandCorsSettings(input []CorsSetting) *web.CorsSettings {
-	if len(input) == 0 {
-		return &web.CorsSettings{
-			AllowedOrigins: &[]string{},
-		}
-	}
-	var result web.CorsSettings
-	for _, v := range input {
-		if v.SupportCredentials {
-			result.SupportCredentials = utils.Bool(v.SupportCredentials)
-		}
-
-		result.AllowedOrigins = &v.AllowedOrigins
-	}
-	return &result
 }
 
 func ExpandAuthSettings(auth []AuthSettings) *web.SiteAuthSettings {
@@ -1277,8 +1292,8 @@ func ExpandAuthSettings(auth []AuthSettings) *web.SiteAuthSettings {
 }
 
 func FlattenAuthSettings(auth web.SiteAuthSettings) []AuthSettings {
-	if auth.SiteAuthSettingsProperties == nil {
-		return nil
+	if auth.SiteAuthSettingsProperties == nil || !pointer.From(auth.Enabled) || strings.ToLower(pointer.From(auth.ConfigVersion)) != "v1" {
+		return []AuthSettings{}
 	}
 
 	props := *auth.SiteAuthSettingsProperties
@@ -1442,7 +1457,7 @@ func FlattenAuthSettings(auth web.SiteAuthSettings) []AuthSettings {
 
 func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []IpRestriction {
 	if ipRestrictionsList == nil {
-		return nil
+		return []IpRestriction{}
 	}
 
 	var ipRestrictions []IpRestriction
@@ -1487,7 +1502,7 @@ func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []Ip
 
 func flattenIpRestrictionHeaders(headers map[string][]string) []IpRestrictionHeaders {
 	if len(headers) == 0 {
-		return nil
+		return []IpRestrictionHeaders{}
 	}
 	ipRestrictionHeader := IpRestrictionHeaders{}
 	if xForwardFor, ok := headers["x-forwarded-for"]; ok {

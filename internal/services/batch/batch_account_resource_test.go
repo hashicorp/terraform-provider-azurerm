@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package batch_test
 
 import (
@@ -6,10 +9,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -158,14 +161,30 @@ func TestAccBatchAccount_identity(t *testing.T) {
 	})
 }
 
-func TestAccBatchAccount_cmk(t *testing.T) {
+func TestAccBatchAccount_cmkVersionedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	r := BatchAccountResource{}
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cmk(data, tenantID),
+			Config: r.cmkVersionedKey(data, tenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
+			),
+		},
+	})
+}
+
+func TestAccBatchAccount_cmkVersionlessKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+	tenantID := os.Getenv("ARM_TENANT_ID")
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cmkVersionlessKey(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
@@ -240,7 +259,70 @@ func TestAccBatchAccount_autoStorageBatchAuthMode(t *testing.T) {
 	})
 }
 
-func TestAccBatchAccount_removeStorageAccount(t *testing.T) {
+func TestAccBatchAccount_networkProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithNetworkProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.account_access.0.default_action").HasValue("Deny"),
+				check.That(data.ResourceName).Key("network_profile.0.node_management_access.0.default_action").HasValue("Deny"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithNetworkProfileUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.account_access.0.ip_rule.0.action").HasValue("Allow"),
+				check.That(data.ResourceName).Key("network_profile.0.node_management_access.0.ip_rule.0.action").HasValue("Allow"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBatchAccount_publicNetworkAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithPublicNetWorkAccessDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBatchAccount_removeStorageAccountId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	r := BatchAccountResource{}
 
@@ -256,7 +338,7 @@ func TestAccBatchAccount_removeStorageAccount(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.removeStorageAccount(data),
+			Config: r.removeStorageAccountId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
@@ -279,17 +361,17 @@ func TestAccBatchAccount_removeStorageAccount(t *testing.T) {
 }
 
 func (t BatchAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AccountID(state.ID)
+	id, err := batchaccount.ParseBatchAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Batch.AccountClient.Get(ctx, id.ResourceGroup, id.BatchAccountName)
+	resp, err := clients.Batch.AccountClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Batch Application %q (Resource Group %q) does not exist", id.BatchAccountName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.AccountProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BatchAccountResource) basic(data acceptance.TestData) string {
@@ -543,7 +625,7 @@ resource "azurerm_batch_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (BatchAccountResource) cmk(data acceptance.TestData, tenantID string) string {
+func (BatchAccountResource) cmkVersionedKey(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -558,12 +640,12 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-batch-%d"
-  location = "%s"
+  name     = "testaccRG-batch-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "testaccsa%s"
+  name                     = "testaccsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -571,13 +653,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest%s"
+  name                = "acctest%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_batch_account" "test" {
-  name                                = "testaccbatch%s"
+  name                                = "testaccbatch%[3]s"
   resource_group_name                 = azurerm_resource_group.test.name
   location                            = azurerm_resource_group.test.location
   pool_allocation_mode                = "BatchService"
@@ -594,33 +676,35 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                            = "batchkv%s"
-  location                        = "${azurerm_resource_group.test.location}"
-  resource_group_name             = "${azurerm_resource_group.test.name}"
+  name                            = "batchkv%[3]s"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
-  tenant_id                       = "%s"
+  tenant_id                       = "%[4]s"
 
   sku_name = "standard"
 
   access_policy {
-    tenant_id = "%s"
-    object_id = "${data.azurerm_client_config.current.object_id}"
+    tenant_id = "%[4]s"
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "Get",
       "Create",
       "Delete",
       "WrapKey",
-      "UnwrapKey"
+      "UnwrapKey",
+      "GetRotationPolicy",
+      "SetRotationPolicy",
     ]
   }
 
   access_policy {
-    tenant_id = "%s"
-    object_id = "${azurerm_user_assigned_identity.test.principal_id}"
+    tenant_id = "%[4]s"
+    object_id = azurerm_user_assigned_identity.test.principal_id
 
     key_permissions = [
       "Get",
@@ -631,8 +715,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "enckey%d"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  name         = "enckey%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
 
@@ -646,10 +730,118 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, tenantID, tenantID, tenantID, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
 }
 
-func (BatchAccountResource) removeStorageAccount(data acceptance.TestData) string {
+func (BatchAccountResource) cmkVersionlessKey(data acceptance.TestData, tenantID string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_account" "test" {
+  name                                = "testaccbatch%[3]s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  encryption {
+    key_vault_key_id = azurerm_key_vault_key.test.versionless_id
+  }
+}
+
+resource "azurerm_key_vault" "test" {
+  name                            = "batchkv%[3]s"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  purge_protection_enabled        = true
+  tenant_id                       = "%[4]s"
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = "%[4]s"
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Get",
+      "Create",
+      "Delete",
+      "WrapKey",
+      "UnwrapKey",
+      "GetRotationPolicy",
+      "SetRotationPolicy",
+    ]
+  }
+
+  access_policy {
+    tenant_id = "%[4]s"
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get",
+      "WrapKey",
+      "UnwrapKey"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "enckey%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
+}
+
+func (BatchAccountResource) removeStorageAccountId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -658,6 +850,14 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-batch-%d"
   location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "test" {
@@ -672,7 +872,7 @@ resource "azurerm_batch_account" "test" {
     env = "test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (BatchAccountResource) authenticationModes(data acceptance.TestData) string {
@@ -818,4 +1018,99 @@ resource "azurerm_batch_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchAccountResource) basicWithNetworkProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+
+  network_profile {
+    account_access {
+    }
+
+    node_management_access {
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (BatchAccountResource) basicWithNetworkProfileUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+
+  network_profile {
+    account_access {
+      default_action = "Allow"
+      ip_rule {
+        ip_range = "10.0.1.0"
+      }
+
+      ip_rule {
+        ip_range = "10.0.3.0/24"
+      }
+    }
+
+    node_management_access {
+      default_action = "Allow"
+
+      ip_rule {
+        ip_range = "10.0.2.0"
+      }
+
+      ip_rule {
+        ip_range = "10.0.4.0/24"
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (BatchAccountResource) basicWithPublicNetWorkAccessDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+
+  public_network_access_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

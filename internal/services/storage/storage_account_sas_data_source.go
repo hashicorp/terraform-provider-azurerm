@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -222,8 +225,11 @@ func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) e
 		signedProtocol = "https"
 	}
 
+	// TODO: implement support for signedEncryptionScope
+	signedEncryptionScope := ""
+
 	sasToken, err := storage.ComputeAccountSASToken(accountName, accountKey, permissions, services, resourceTypes,
-		start, expiry, signedProtocol, ipAddresses, signedVersion)
+		start, expiry, signedProtocol, ipAddresses, signedVersion, signedEncryptionScope)
 	if err != nil {
 		return err
 	}

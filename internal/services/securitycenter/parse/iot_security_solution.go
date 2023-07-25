@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -33,12 +36,48 @@ func (id IotSecuritySolutionId) String() string {
 }
 
 func (id IotSecuritySolutionId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Security/IoTSecuritySolutions/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Security/iotSecuritySolutions/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 // IotSecuritySolutionID parses a IotSecuritySolution ID into an IotSecuritySolutionId struct
 func IotSecuritySolutionID(input string) (*IotSecuritySolutionId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q as an IotSecuritySolution ID: %+v", input, err)
+	}
+
+	resourceId := IotSecuritySolutionId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("iotSecuritySolutions"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// IotSecuritySolutionIDInsensitively parses an IotSecuritySolution ID into an IotSecuritySolutionId struct, insensitively
+// This should only be used to parse an ID for rewriting, the IotSecuritySolutionID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func IotSecuritySolutionIDInsensitively(input string) (*IotSecuritySolutionId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
@@ -57,7 +96,15 @@ func IotSecuritySolutionID(input string) (*IotSecuritySolutionId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.Name, err = id.PopSegment("IoTSecuritySolutions"); err != nil {
+	// find the correct casing for the 'iotSecuritySolutions' segment
+	iotSecuritySolutionsKey := "iotSecuritySolutions"
+	for key := range id.Path {
+		if strings.EqualFold(key, iotSecuritySolutionsKey) {
+			iotSecuritySolutionsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(iotSecuritySolutionsKey); err != nil {
 		return nil, err
 	}
 

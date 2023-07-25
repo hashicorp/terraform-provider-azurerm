@@ -58,7 +58,7 @@ output "sql_database_id" {
 
 * `requested_service_objective_id` - The ID pertaining to the performance level of the database.
 
-* `requested_service_objective_name` - The name pertaining to the performance level of the database. 
+* `requested_service_objective_name` - The name pertaining to the performance level of the database.
 
 * `resource_group_name` - The name of the resource group in which the database resides. This will always be the same resource group as the Database Server.
 

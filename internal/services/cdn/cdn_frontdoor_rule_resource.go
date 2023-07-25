@@ -1,10 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cdn
 
 import (
 	"fmt"
 	"time"
 
-	cdn "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	cdn "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdnFrontDoorRuleActions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleactions"
@@ -106,7 +109,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									},
 
 									// NOTE: it is valid for the destination path to be an empty string,
-									// Leave blank to preserve the incoming path.
+									// Leave blank to preserve the incoming path. Issue #18249
 									"destination_path": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
@@ -115,7 +118,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									},
 
 									// NOTE: it is valid for the destination hostname to be an empty string.
-									// Leave blank to preserve the incoming host.
+									// Leave blank to preserve the incoming host. Issue #18249
 									"destination_hostname": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -123,16 +126,17 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									},
 
 									// NOTE: it is valid for the query string to be an empty string.
-									// Leave blank to preserve the incoming query string.
+									// Leave blank to preserve the incoming query string. Issue #18249 & #19682
 									"query_string": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										Default:      "",
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  "",
+										// Update validation logic to match RP. Issue #19097
 										ValidateFunc: validate.CdnFrontDoorUrlRedirectActionQueryString,
 									},
 
 									// NOTE: it is valid for the destination fragment to be an empty string.
-									// Leave blank to preserve the incoming fragment.
+									// Leave blank to preserve the incoming fragment. Issue #18249
 									"destination_fragment": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
@@ -246,14 +250,14 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 									"cdn_frontdoor_origin_group_id": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validate.FrontDoorOriginGroupID,
 									},
 
+									// Removed Default value for issue #18889
 									"forwarding_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(cdn.ForwardingProtocolMatchRequest),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(cdn.ForwardingProtocolHTTPOnly),
 											string(cdn.ForwardingProtocolHTTPSOnly),
@@ -261,10 +265,10 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
+									// Removed Default value for issue #19008
 									"query_string_caching_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString),
 											string(cdn.RuleQueryStringCachingBehaviorUseQueryString),
@@ -273,7 +277,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
-									// NOTE: CSV implemented as a list, code alread written for the expaned and flatten to CSV
+									// NOTE: CSV implemented as a list, code already written for the expanded and flatten to CSV
 									// not valid when IncludeAll or ExcludeAll behavior is defined
 									"query_string_parameters": {
 										Type:     pluginsdk.TypeList,
@@ -288,23 +292,24 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									"compression_enabled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										Default:  false,
 									},
 
+									// Exposed Disabled for issue #19008
 									"cache_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(cdn.RuleCacheBehaviorHonorOrigin),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(cdn.RuleCacheBehaviorHonorOrigin),
 											string(cdn.RuleCacheBehaviorOverrideAlways),
 											string(cdn.RuleCacheBehaviorOverrideIfOriginMissing),
+											string(cdn.RuleIsCompressionEnabledDisabled),
 										}, false),
 									},
 
+									// Made Optional for issue #19008
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validate.CdnFrontDoorCacheDuration,
 									},
 								},
@@ -618,12 +623,12 @@ func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	ruleSetId, err := parse.FrontDoorRuleSetID(d.Get("cdn_frontdoor_rule_set_id").(string))
+	ruleSet, err := parse.FrontDoorRuleSetID(d.Get("cdn_frontdoor_rule_set_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorRuleID(ruleSetId.SubscriptionId, ruleSetId.ResourceGroup, ruleSetId.ProfileName, ruleSetId.RuleSetName, d.Get("name").(string))
+	id := parse.NewFrontDoorRuleID(ruleSet.SubscriptionId, ruleSet.ResourceGroup, ruleSet.ProfileName, ruleSet.RuleSetName, d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
 	if err != nil {
@@ -654,7 +659,7 @@ func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 			Actions:                 &actions,
 			Conditions:              &conditions,
 			MatchProcessingBehavior: matchProcessingBehaviorValue,
-			RuleSetName:             &ruleSetId.RuleSetName,
+			RuleSetName:             &ruleSet.RuleSetName,
 			Order:                   utils.Int32(int32(order)),
 		},
 	}
@@ -683,7 +688,7 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	ruleSetId := parse.NewFrontDoorRuleSetID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.RuleSetName)
+	ruleSet := parse.NewFrontDoorRuleSetID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.RuleSetName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
 	if err != nil {
@@ -695,7 +700,7 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", id.RuleName)
-	d.Set("cdn_frontdoor_rule_set_id", ruleSetId.ID())
+	d.Set("cdn_frontdoor_rule_set_id", ruleSet.ID())
 
 	if props := resp.RuleProperties; props != nil {
 		d.Set("behavior_on_match", props.MatchProcessingBehavior)
@@ -703,7 +708,7 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		// BUG: RuleSetName is not being returned by the API
 		// Tracking issue opened: https://github.com/Azure/azure-rest-api-specs/issues/20560
-		d.Set("cdn_frontdoor_rule_set_name", ruleSetId.RuleSetName)
+		d.Set("cdn_frontdoor_rule_set_name", ruleSet.RuleSetName)
 
 		actions, err := flattenFrontdoorDeliveryRuleActions(props.Actions)
 		if err != nil {
@@ -845,7 +850,7 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 	}
 
 	if len(results) > 5 {
-		return nil, fmt.Errorf("the 'actions' match block may only contain upto 5 match actions, got %d", len(results))
+		return nil, fmt.Errorf("the 'actions' match block may only contain up to 5 match actions, got %d", len(results))
 	}
 
 	if err := validate.CdnFrontDoorActionsBlock(results); err != nil {
@@ -857,7 +862,7 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 
 func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]cdn.BasicDeliveryRuleCondition, error) {
 	results := make([]cdn.BasicDeliveryRuleCondition, 0)
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return results, nil
 	}
 
@@ -903,7 +908,7 @@ func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]cdn.BasicDeli
 	}
 
 	if len(results) > 10 {
-		return nil, fmt.Errorf("the 'conditions' match block may only contain upto 10 match conditions, got %d", len(results))
+		return nil, fmt.Errorf("the 'conditions' match block may only contain up to 10 match conditions, got %d", len(results))
 	}
 
 	return results, nil
@@ -1180,7 +1185,11 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 
 	for _, item := range *input {
 		if action, ok := item.AsDeliveryRuleRouteConfigurationOverrideAction(); ok {
-			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorRouteConfigurationOverrideAction(*action)
+			flattened, err := cdnFrontDoorRuleActions.FlattenCdnFrontDoorRouteConfigurationOverrideAction(*action)
+			if err != nil {
+				return nil, fmt.Errorf("'route_configuration_override_action' unable to parse 'cdn_frontdoor_origin_group_id': %+v", err)
+			}
+
 			routeConfigOverrideActions = append(routeConfigOverrideActions, flattened)
 			continue
 		}

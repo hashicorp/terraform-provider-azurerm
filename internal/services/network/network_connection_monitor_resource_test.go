@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -6,10 +9,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectionmonitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -255,17 +258,17 @@ func testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel(t *
 }
 
 func (t NetworkConnectionMonitorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConnectionMonitorID(state.ID)
+	id, err := connectionmonitors.ParseConnectionMonitorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.ConnectionMonitorsClient.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
+	resp, err := clients.Network.ConnectionMonitorsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Network Connection Monitor (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (NetworkConnectionMonitorResource) baseConfig(data acceptance.TestData) string {
@@ -332,6 +335,8 @@ resource "azurerm_virtual_machine" "src" {
     managed_disk_type = "Standard_LRS"
   }
 
+  delete_os_disk_on_termination = true
+
   os_profile {
     computer_name  = "hostname%d"
     admin_username = "testadmin"
@@ -390,6 +395,8 @@ resource "azurerm_virtual_machine" "dest" {
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
+
+  delete_os_disk_on_termination = true
 
   os_profile {
     computer_name  = "hostname%d"

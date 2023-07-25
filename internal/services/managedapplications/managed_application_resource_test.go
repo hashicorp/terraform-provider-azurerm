@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package managedapplications_test
 
 import (
@@ -5,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagedApplicationResource struct{}
@@ -45,11 +48,32 @@ func TestAccManagedApplication_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccManagedApplication_complete(t *testing.T) {
+func TestAccManagedApplication_sequential(t *testing.T) {
+	testCases := map[string]map[string]func(t *testing.T){
+		"Resource": {
+			"complete": testAccManagedApplication_complete,
+			"update":   testAccManagedApplication_update,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccManagedApplication_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -60,11 +84,11 @@ func TestAccManagedApplication_complete(t *testing.T) {
 	})
 }
 
-func TestAccManagedApplication_update(t *testing.T) {
+func testAccManagedApplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -143,17 +167,17 @@ func TestAccManagedApplication_parameterValues(t *testing.T) {
 }
 
 func (ManagedApplicationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApplicationID(state.ID)
+	id, err := applications.ParseApplicationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ManagedApplication.ApplicationClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.ManagedApplication.ApplicationClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Managed Application %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.ApplicationProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagedApplicationResource) basic(data acceptance.TestData) string {
@@ -193,12 +217,19 @@ resource "azurerm_managed_application" "import" {
 
 func (r ManagedApplicationResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mapp-%d"
+  location = "%s"
+}
 
 resource "azurerm_marketplace_agreement" "test" {
   publisher = "cisco"
-  offer     = "meraki-vmx"
-  plan      = "meraki-vmx100"
+  offer     = "cisco-meraki-vmx"
+  plan      = "cisco-meraki-vmx"
 }
 
 resource "azurerm_managed_application" "test" {
@@ -212,11 +243,11 @@ resource "azurerm_managed_application" "test" {
     name      = azurerm_marketplace_agreement.test.plan
     product   = azurerm_marketplace_agreement.test.offer
     publisher = azurerm_marketplace_agreement.test.publisher
-    version   = "1.0.44"
+    version   = "15.37.1"
   }
 
   parameters = {
-    baseUrl                     = ""
+    zone                        = "0"
     location                    = azurerm_resource_group.test.location
     merakiAuthToken             = "f451adfb-d00b-4612-8799-b29294217d4a"
     subnetAddressPrefix         = "10.0.0.0/24"
@@ -233,7 +264,7 @@ resource "azurerm_managed_application" "test" {
     ENV = "Test"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r ManagedApplicationResource) parameterValues(data acceptance.TestData) string {

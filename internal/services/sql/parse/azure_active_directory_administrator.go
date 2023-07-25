@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -36,7 +39,7 @@ func (id AzureActiveDirectoryAdministratorId) String() string {
 }
 
 func (id AzureActiveDirectoryAdministratorId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SQL/servers/%s/administrators/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/administrators/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.AdministratorName)
 }
 
@@ -44,7 +47,7 @@ func (id AzureActiveDirectoryAdministratorId) ID() string {
 func AzureActiveDirectoryAdministratorID(input string) (*AzureActiveDirectoryAdministratorId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing %q as an AzureActiveDirectoryAdministrator ID: %+v", input, err)
 	}
 
 	resourceId := AzureActiveDirectoryAdministratorId{
@@ -64,6 +67,62 @@ func AzureActiveDirectoryAdministratorID(input string) (*AzureActiveDirectoryAdm
 		return nil, err
 	}
 	if resourceId.AdministratorName, err = id.PopSegment("administrators"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// AzureActiveDirectoryAdministratorIDInsensitively parses an AzureActiveDirectoryAdministrator ID into an AzureActiveDirectoryAdministratorId struct, insensitively
+// This should only be used to parse an ID for rewriting, the AzureActiveDirectoryAdministratorID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func AzureActiveDirectoryAdministratorIDInsensitively(input string) (*AzureActiveDirectoryAdministratorId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := AzureActiveDirectoryAdministratorId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'servers' segment
+	serversKey := "servers"
+	for key := range id.Path {
+		if strings.EqualFold(key, serversKey) {
+			serversKey = key
+			break
+		}
+	}
+	if resourceId.ServerName, err = id.PopSegment(serversKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'administrators' segment
+	administratorsKey := "administrators"
+	for key := range id.Path {
+		if strings.EqualFold(key, administratorsKey) {
+			administratorsKey = key
+			break
+		}
+	}
+	if resourceId.AdministratorName, err = id.PopSegment(administratorsKey); err != nil {
 		return nil, err
 	}
 

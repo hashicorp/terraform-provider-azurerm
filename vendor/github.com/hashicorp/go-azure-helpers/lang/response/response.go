@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package response
 
 import (
@@ -12,6 +15,11 @@ func WasBadRequest(resp *http.Response) bool {
 // WasConflict returns true if the HttpResponse is non-nil and has a status code of Conflict
 func WasConflict(resp *http.Response) bool {
 	return WasStatusCode(resp, http.StatusConflict)
+}
+
+// WasForbidden returns true if the HttpResponse is non-nil and has a status code of Forbidden
+func WasForbidden(resp *http.Response) bool {
+	return WasStatusCode(resp, http.StatusForbidden)
 }
 
 // WasNotFound returns true if the HttpResponse is non-nil and has a status code of NotFound

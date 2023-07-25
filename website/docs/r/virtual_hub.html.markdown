@@ -43,9 +43,12 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Virtual Hub should exist. Changing this forces a new resource to be created.
 
+* `address_prefix` - (Required) The Address Prefix which should be used for this Virtual Hub. Changing this forces a new resource to be created. [The address prefix subnet cannot be smaller than a `/24`. Azure recommends using a `/23`](https://docs.microsoft.com/azure/virtual-wan/virtual-wan-faq#what-is-the-recommended-hub-address-space-during-hub-creation).
+
 ---
 
-* `address_prefix` - (Optional) The Address Prefix which should be used for this Virtual Hub. Changing this forces a new resource to be created. [The address prefix subnet cannot be smaller than a `/24`. Azure recommends using a `/23`](https://docs.microsoft.com/azure/virtual-wan/virtual-wan-faq#what-is-the-recommended-hub-address-space-during-hub-creation).
+
+* `hub_routing_preference` - (Optional) The hub routing preference. Possible values are `ExpressRoute`, `ASPath` and `VpnGateway`. Defaults to `ExpressRoute`.
 
 * `route` - (Optional) One or more `route` blocks as defined below.
 
@@ -67,7 +70,7 @@ The `route` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Hub.
 
@@ -76,6 +79,8 @@ The following attributes are exported:
 * `virtual_router_asn` - The Autonomous System Number of the Virtual Hub BGP router.
 
 * `virtual_router_ips` - The IP addresses of the Virtual Hub BGP router.
+
+* `virtual_router_auto_scale_min_capacity` - Minimum instance capacity for the scaling configuration of the Virtual Hub Router.
 
 ## Timeouts
 
@@ -91,5 +96,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Virtual Hub's can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_virtual_hub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/hub1
+terraform import azurerm_virtual_hub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/hub1
 ```

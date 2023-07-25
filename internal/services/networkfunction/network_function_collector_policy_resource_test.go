@@ -17,17 +17,6 @@ import (
 
 type NetworkFunctionCollectorPolicyResource struct{}
 
-func TestAccNetworkFunctionCollectorPolicy(t *testing.T) {
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"Resource": {
-			//"basic": testAccNetworkFunctionCollectorPolicy_basic,
-			//"requiresImport": testAccNetworkFunctionCollectorPolicy_requiresImport,
-			//"complete":       testAccNetworkFunctionCollectorPolicy_complete,
-			//"update":         testAccNetworkFunctionCollectorPolicy_update,
-		},
-	})
-}
-
 func TestAccNetworkFunctionCollectorPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_function_collector_policy", "test")
 	r := NetworkFunctionCollectorPolicyResource{}

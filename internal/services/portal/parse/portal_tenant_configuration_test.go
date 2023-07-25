@@ -1,12 +1,9 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
-import (
-	"testing"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
-)
-
-var _ resourceid.Formatter = PortalTenantConfigurationId{}
+import "testing"
 
 func TestPortalTenantConfigurationIDFormatter(t *testing.T) {
 	actual := NewPortalTenantConfigurationID("default").ID()

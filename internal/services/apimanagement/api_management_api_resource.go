@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -6,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -43,7 +46,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"display_name": {
 				Type:         pluginsdk.TypeString,
@@ -419,11 +422,6 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
 
-		// `wsdl_selector` is necessary under format `wsdl`
-		if len(wsdlSelectorVs) == 0 && contentFormat == string(apimanagement.ContentFormatWsdl) {
-			return fmt.Errorf("`wsdl_selector` is required when content format is `wsdl` in API Management API %q", id.Name)
-		}
-
 		if len(wsdlSelectorVs) > 0 {
 			wsdlSelectorV := wsdlSelectorVs[0].(map[string]interface{})
 			wSvcName := wsdlSelectorV["service_name"].(string)
@@ -770,7 +768,7 @@ func flattenApiManagementOpenIDAuthentication(input *apimanagement.OpenIDAuthent
 }
 
 func expandApiManagementApiContact(input []interface{}) *apimanagement.APIContactInformation {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 

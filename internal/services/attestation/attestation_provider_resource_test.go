@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package attestation_test
 
 import (
@@ -8,13 +11,14 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"encoding/pem"
 	"fmt"
 	"math/big"
-	"strings"
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -23,16 +27,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AttestationProviderResource struct{}
+type AttestationProviderResource struct {
+	name string
+}
 
 func TestAccAttestationProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
-	r := AttestationProviderResource{}
-	randStr := strings.ToLower(acceptance.RandString(10))
+	r := AttestationProviderResource{
+		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, randStr),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -43,24 +50,26 @@ func TestAccAttestationProvider_basic(t *testing.T) {
 
 func TestAccAttestationProvider_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
-	r := AttestationProviderResource{}
-	randStr := strings.ToLower(acceptance.RandString(10))
+	r := AttestationProviderResource{
+		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, randStr),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(AttestationProviderResource{}.requiresImport),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAttestationProvider_completeString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
-	r := AttestationProviderResource{}
-	randStr := strings.ToLower(acceptance.RandString(10))
+	r := AttestationProviderResource{
+		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+	}
 	testCertificate, err := testGenerateTestCertificate("ENCOM")
 	if err != nil {
 		t.Fatalf("Test case failed: '%+v'", err)
@@ -68,24 +77,49 @@ func TestAccAttestationProvider_completeString(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeString(data, randStr, testCertificate),
+			Config: r.completeString(data, testCertificate),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// must ignore policy_signing_certificate since the API does not return these values
+		// must ignore policy_signing_certificate since the API does not return this value
 		data.ImportStep("policy_signing_certificate"),
 	})
 }
 
-func TestAccAttestationProvider_completeFile(t *testing.T) {
+func TestAccAttestationProvider_withPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
-	r := AttestationProviderResource{}
-	randStr := strings.ToLower(acceptance.RandString(10))
+	r := AttestationProviderResource{
+		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeFile(data, randStr),
+			Config: r.withPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAttestationProvider_withPolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
+	r := AttestationProviderResource{
+		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -97,26 +131,25 @@ func TestAccAttestationProvider_completeFile(t *testing.T) {
 
 func TestAccAttestationProvider_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
-	r := AttestationProviderResource{}
-	randStr := strings.ToLower(acceptance.RandString(10))
+	r := AttestationProviderResource{
+		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, randStr),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 		{
-			Config: r.update(data, randStr),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 		{
-			Config: r.basic(data, randStr),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -125,7 +158,7 @@ func TestAccAttestationProvider_update(t *testing.T) {
 	})
 }
 
-func (t AttestationProviderResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r AttestationProviderResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := attestationproviders.ParseAttestationProvidersID(state.ID)
 	if err != nil {
 		return nil, err
@@ -171,55 +204,72 @@ func testGenerateTestCertificate(organization string) (string, error) {
 	return encoded.String(), nil
 }
 
-// currently only supported in "East US 2", "West Central US" & "UK South"
 func (AttestationProviderResource) template(data acceptance.TestData) string {
+	// currently only supported in "East US 2", "West Central US" & "UK South"
+	data.Locations.Primary = "westus"
 	return fmt.Sprintf(`
-// TODO: switch to using regular regions when this is supported
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-attestation-%d"
   location = "%s"
 }
-`, data.RandomInteger, "uksouth")
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (AttestationProviderResource) basic(data acceptance.TestData, randStr string) string {
-	template := AttestationProviderResource{}.template(data)
+func (r AttestationProviderResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_attestation_provider" "test" {
-  name                = "acctestap%s"
+  name                = %q
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  lifecycle {
+    ignore_changes = [
+      "open_enclave_policy_base64",
+      "sgx_enclave_policy_base64",
+      "tpm_policy_base64",
+      "sev_snp_policy_base64",
+    ]
+  }
 }
-`, template, randStr)
+`, r.template(data), r.name)
 }
 
-func (AttestationProviderResource) update(data acceptance.TestData, randStr string) string {
-	template := AttestationProviderResource{}.template(data)
+func (r AttestationProviderResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_attestation_provider" "test" {
-  name                = "acctestap%s"
+  name                = %q
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  lifecycle {
+    ignore_changes = [
+      "open_enclave_policy_base64",
+      "sgx_enclave_policy_base64",
+      "tpm_policy_base64",
+      "sev_snp_policy_base64",
+    ]
+  }
 
   tags = {
     ENV = "Test"
   }
 }
-`, template, randStr)
+`, r.template(data), r.name)
 }
 
-func (AttestationProviderResource) requiresImport(data acceptance.TestData) string {
-	randStr := strings.ToLower(acceptance.RandString(10))
-	config := AttestationProviderResource{}.basic(data, randStr)
-
+func (r AttestationProviderResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -227,46 +277,99 @@ resource "azurerm_attestation_provider" "import" {
   name                = azurerm_attestation_provider.test.name
   resource_group_name = azurerm_attestation_provider.test.resource_group_name
   location            = azurerm_attestation_provider.test.location
+
+  lifecycle {
+    ignore_changes = [
+      "open_enclave_policy_base64",
+      "sgx_enclave_policy_base64",
+      "tpm_policy_base64",
+      "sev_snp_policy_base64",
+    ]
+  }
 }
-`, config)
+`, r.basic(data))
 }
 
-func (AttestationProviderResource) completeString(data acceptance.TestData, randStr string, testCertificate string) string {
-	template := AttestationProviderResource{}.template(data)
+func (r AttestationProviderResource) completeString(data acceptance.TestData, testCertificate string) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
 
 resource "azurerm_attestation_provider" "test" {
-  name                = "acctestap%s"
+  name                = %[2]q
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
   policy_signing_certificate_data = <<EOT
-%s
+%[3]s
 EOT
 
   tags = {
     ENV = "Test"
   }
+
+  lifecycle {
+    ignore_changes = [
+      "open_enclave_policy_base64",
+      "sgx_enclave_policy_base64",
+      "tpm_policy_base64",
+      "sev_snp_policy_base64",
+    ]
+  }
 }
-`, template, randStr, testCertificate)
+`, r.template(data), r.name, testCertificate)
 }
 
-func (AttestationProviderResource) completeFile(data acceptance.TestData, randStr string) string {
-	template := AttestationProviderResource{}.template(data)
+func (r AttestationProviderResource) withPolicy(data acceptance.TestData) string {
+	// do not set `policy_signing_certificate_data`, since the policies use `jwt.SigningMethodNone`
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
 
 resource "azurerm_attestation_provider" "test" {
-  name                = "acctestap%s"
+  name                = %[2]q
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  policy_signing_certificate_data = file("testdata/cert.pem")
+  open_enclave_policy_base64 = %[3]q
+  sgx_enclave_policy_base64  = %[3]q
+  tpm_policy_base64          = %[3]q
+  sev_snp_policy_base64      = %[3]q
 
-  tags = {
-    ENV = "Test"
+  lifecycle {
+    ignore_changes = [
+      "tpm_policy_base64",
+    ]
   }
 }
-`, template, randStr)
+`, r.template(data), r.name, r.genJWT())
+}
+
+func (r AttestationProviderResource) genJWT() string {
+	// document about create policy: https://learn.microsoft.com/en-us/azure/attestation/author-sign-policy
+	policyContent := `version=1.0;
+authorizationrules
+{
+[type=="secureBootEnabled", value==true, issuer=="AttestationService"]=>permit();
+};
+
+issuancerules
+{
+=> issue(type="SecurityLevelValue", value=100);
+};`
+	b64Encoded := base64.RawURLEncoding.EncodeToString([]byte(policyContent))
+	token := jwt.NewWithClaims(jwt.SigningMethodNone, jwt.MapClaims{
+		"AttestationPolicy": b64Encoded,
+	})
+	token.Header["jku"] = fmt.Sprintf("https://%s.uks.attest.azure.net/certs", r.name)
+	token.Header["kid"] = "xxx"
+
+	str, _ := token.SignedString(jwt.UnsafeAllowNoneSignatureType)
+	return str
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -10,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
 )
 
 func dataSourceStorageBlob() *pluginsdk.Resource {
@@ -97,9 +100,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	props, err := blobsClient.GetProperties(ctx, accountName, containerName, name, input)
 	if err != nil {
 		if utils.ResponseWasNotFound(props.Response) {
-			log.Printf("[INFO] Blob %q was not found in Container %q / Account %q - assuming removed & removing from state...", name, containerName, accountName)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("the Blob %q was not found in Container %q / Account %q", name, containerName, accountName)
 		}
 
 		return fmt.Errorf("retrieving properties for Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)

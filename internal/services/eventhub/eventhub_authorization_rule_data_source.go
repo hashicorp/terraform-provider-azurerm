@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package eventhub
 
 import (
@@ -93,11 +96,11 @@ func EventHubAuthorizationRuleDataSourceRead(d *pluginsdk.ResourceData, meta int
 
 	d.SetId(id.ID())
 	d.Set("name", id.AuthorizationRuleName)
-	d.Set("eventhub_name", id.EventHubName)
+	d.Set("eventhub_name", id.EventhubName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	localId := authorizationruleseventhubs.NewEventhubAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventHubName, id.AuthorizationRuleName)
+	localId := authorizationruleseventhubs.NewEventhubAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventhubName, id.AuthorizationRuleName)
 	keysResp, err := rulesClient.EventHubsListKeys(ctx, localId)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", id, err)

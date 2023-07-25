@@ -1,5 +1,5 @@
 ---
-subcategory: "Web PubSub"
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub_network_acl"
 description: |-
@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `web_pubsub_id` - (Required) The ID of the Web Pubsub service. Changing this forces a new resource to be created.
 
-* `default_action` - (Required) The default action to control the network access when no other rule matches. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+* `default_action` - (Optional) The default action to control the network access when no other rule matches. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
 
 * `public_network` - (Required) A `public_network` block as defined below.
 

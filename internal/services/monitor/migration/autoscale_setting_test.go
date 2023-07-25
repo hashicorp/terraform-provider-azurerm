@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -16,23 +19,23 @@ func TestAutoscaleSettingV0ToV1(t *testing.T) {
 		{
 			name: "old id",
 			input: map[string]interface{}{
-				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.insights/autoscalesettings/setting1",
+				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.insights/autoScaleSettings/setting1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/autoscaleSettings/setting1"),
+			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/autoScaleSettings/setting1"),
 		},
 		{
 			name: "old id - mixed case",
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.insights/AutoscaleSettings/setting1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/autoscaleSettings/setting1"),
+			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/autoScaleSettings/setting1"),
 		},
 		{
 			name: "new id",
 			input: map[string]interface{}{
-				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/autoscaleSettings/setting1",
+				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/autoScaleSettings/setting1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/autoscaleSettings/setting1"),
+			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/autoScaleSettings/setting1"),
 		},
 	}
 	for _, test := range testData {

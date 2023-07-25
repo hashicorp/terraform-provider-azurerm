@@ -64,8 +64,8 @@ resource "azurerm_monitor_activity_log_alert" "main" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the activity log alert. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the activity log alert instance.
-* `scopes` - (Required) The Scope at which the Activity Log should be applied, for example a the Resource ID of a Subscription or a Resource (such as a Storage Account).
+* `resource_group_name` - (Required) The name of the resource group in which to create the activity log alert instance. Changing this forces a new resource to be created.
+* `scopes` - (Required) The Scope at which the Activity Log should be applied. A list of strings which could be a resource group , or a subscription, or a resource ID (such as a Storage Account).
 * `criteria` - (Required) A `criteria` block as defined below.
 * `action` - (Optional) One or more `action` blocks as defined below.
 * `enabled` - (Optional) Should this Activity Log Alert be enabled? Defaults to `true`.
@@ -84,15 +84,43 @@ An `action` block supports the following:
 A `criteria` block supports the following:
 
 * `category` - (Required) The category of the operation. Possible values are `Administrative`, `Autoscale`, `Policy`, `Recommendation`, `ResourceHealth`, `Security` and `ServiceHealth`.
+* `caller` - (Optional) The email address or Azure Active Directory identifier of the user who performed the operation.
 * `operation_name` - (Optional) The Resource Manager Role-Based Access Control operation name. Supported operation should be of the form: `<resourceProvider>/<resourceType>/<operation>`.
 * `resource_provider` - (Optional) The name of the resource provider monitored by the activity log alert.
+* `resource_providers` - (Optional) A list of names of resource providers monitored by the activity log alert.
+
+~> **NOTE:** `resource_provider` and `resource_providers` are mutually exclusive.
+
 * `resource_type` - (Optional) The resource type monitored by the activity log alert.
+* `resource_types` - (Optional) A list of resource types monitored by the activity log alert.
+
+~> **NOTE:** `resource_type` and `resource_types` are mutually exclusive.
+
 * `resource_group` - (Optional) The name of resource group monitored by the activity log alert.
+* `resource_groups` - (Optional) A list of names of resource groups monitored by the activity log alert.
+
+~> **NOTE:** `resource_group` and `resource_groups` are mutually exclusive.
+
 * `resource_id` - (Optional) The specific resource monitored by the activity log alert. It should be within one of the `scopes`.
-* `caller` - (Optional) The email address or Azure Active Directory identifier of the user who performed the operation.
+* `resource_ids` - (Optional) A list of specific resources monitored by the activity log alert. It should be within one of the `scopes`.
+
+~> **NOTE:** `resource_id` and `resource_ids` are mutually exclusive.
+
 * `level` - (Optional) The severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`.
+* `levels` - (Optional) A list of severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`.
+
+~> **NOTE:** `level` and `levels` are mutually exclusive.
+
 * `status` - (Optional) The status of the event. For example, `Started`, `Failed`, or `Succeeded`.
+* `statuses` - (Optional) A list of status of the event. For example, `Started`, `Failed`, or `Succeeded`.
+
+~> **NOTE:** `status` and `statuses` are mutually exclusive.
+
 * `sub_status` - (Optional) The sub status of the event.
+* `sub_statuses` - (Optional) A list of sub status of the event.
+
+~> **NOTE:** `sub_status` and `sub_statuses` are mutually exclusive.
+ 
 * `recommendation_type` - (Optional) The recommendation type of the event. It is only allowed when `category` is `Recommendation`.
 * `recommendation_category` - (Optional) The recommendation category of the event. Possible values are `Cost`, `Reliability`, `OperationalExcellence` and `Performance`. It is only allowed when `category` is `Recommendation`.
 * `recommendation_impact` - (Optional) The recommendation impact of the event. Possible values are `High`, `Medium` and `Low`. It is only allowed when `category` is `Recommendation`.
@@ -103,25 +131,23 @@ A `criteria` block supports the following:
 
 A `resource_health` block supports the following:
 
-* `current` (Optional) The current resource health statuses that will log an alert. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
-* `previous` (Optional) The previous resource health statuses that will log an alert. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
-* `reason` (Optional)  The reason that will log an alert. Possible values are `PlatformInitiated` (such as a problem with the resource in an affected region of an Azure incident), `UserInitiated` (such as a shutdown request of a VM) and `Unknown`.
+* `current` - (Optional) The current resource health statuses that will log an alert. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
+* `previous` - (Optional) The previous resource health statuses that will log an alert. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
+* `reason` - (Optional) The reason that will log an alert. Possible values are `PlatformInitiated` (such as a problem with the resource in an affected region of an Azure incident), `UserInitiated` (such as a shutdown request of a VM) and `Unknown`.
 
 ---
 
 A `service_health` block supports the following:
 
-* `events` (Optional) Events this alert will monitor Possible values are `Incident`, `Maintenance`, `Informational`, `ActionRequired` and `Security`.
-* `locations` (Optional) Locations this alert will monitor. For example, `West Europe`. Defaults to `Global`.
-* `services` (Optional) Services this alert will monitor. For example, `Activity Logs & Alerts`, `Action Groups`. Defaults to all Services.
-
+* `events` - (Optional) Events this alert will monitor Possible values are `Incident`, `Maintenance`, `Informational`, `ActionRequired` and `Security`.
+* `locations` - (Optional) Locations this alert will monitor. For example, `West Europe`.
+* `services` - (Optional) Services this alert will monitor. For example, `Activity Logs & Alerts`, `Action Groups`. Defaults to all Services.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the activity log alert.
-
 
 ## Timeouts
 

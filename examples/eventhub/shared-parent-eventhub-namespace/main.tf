@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 provider "azurerm" {
   features {}
 }
@@ -20,7 +23,7 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "example" {
-  name                = "${var.prefix}-nsauth-rule"
+  name                = "${var.prefix}-ehnsauth-rule"
   namespace_name      = azurerm_eventhub_namespace.example.name
   resource_group_name = azurerm_resource_group.example.name
 
@@ -39,7 +42,7 @@ resource "azurerm_eventhub" "example" {
 }
 
 resource "azurerm_eventhub_authorization_rule" "test" {
-  name                = "${var.prefix}-enauth-rule"
+  name                = "${var.prefix}-ehauth-rule"
   namespace_name      = azurerm_eventhub_namespace.example.name
   eventhub_name       = azurerm_eventhub.example.name
   resource_group_name = azurerm_resource_group.example.name

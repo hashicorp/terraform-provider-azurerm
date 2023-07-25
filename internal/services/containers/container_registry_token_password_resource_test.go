@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 import (
@@ -6,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -23,10 +26,10 @@ func TestAccContainerRegistryTokenPassword_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{Expiry: time.Now().Add(time.Hour)}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -38,10 +41,10 @@ func TestAccContainerRegistryTokenPassword_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{Expiry: time.Now().Add(time.Hour)}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -53,24 +56,47 @@ func TestAccContainerRegistryTokenPassword_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{Expiry: time.Now().Add(time.Hour)}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("password1.0.value"),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("password1.0.value", "password2.0.value"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password1.0.value"),
+	})
+}
+
+// Regression test for https://github.com/hashicorp/terraform-provider-azurerm/issues/19138
+func TestAccContainerRegistryTokenPassword_updateExpiryReflectNewValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
+	r := ContainerRegistryTokenPasswordResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.expiryReflectValue(data, time.Now().Add(time.Hour).Format(time.RFC3339), "password1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password1.0.value"),
+		{
+			Config: r.expiryReflectValue(data, time.Now().Add(2*time.Hour).Format(time.RFC3339), "password2"),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -82,10 +108,10 @@ func TestAccContainerRegistryTokenPassword_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{Expiry: time.Now().Add(time.Hour)}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -93,19 +119,24 @@ func TestAccContainerRegistryTokenPassword_requiresImport(t *testing.T) {
 	})
 }
 
-func (r ContainerRegistryTokenPasswordResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	client := clients.Containers.TokensClient
+func (r ContainerRegistryTokenPasswordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	client := clients.Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
 
 	id, err := parse.ContainerRegistryTokenPasswordID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.RegistryName, id.TokenName)
+	tokenId := tokens.NewTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName)
+
+	resp, err := client.Get(ctx, tokenId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	props := resp.TokenProperties
+	if resp.Model == nil {
+		return nil, fmt.Errorf("checking for presence of existing %s: unexpected nil Model", id)
+	}
+	props := resp.Model.Properties
 	if props == nil {
 		return nil, fmt.Errorf("checking for presence of existing %s: unexpected nil tokenProperties", id)
 	}
@@ -131,6 +162,28 @@ resource "azurerm_container_registry_token_password" "test" {
   password1 {}
 }
 `, template)
+}
+
+func (r ContainerRegistryTokenPasswordResource) expiryReflectValue(data acceptance.TestData, expiry, tagName string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_token_password" "test" {
+  container_registry_token_id = azurerm_container_registry_token.test.id
+  password1 {
+    expiry = %q
+  }
+}
+
+resource "azurerm_resource_group" "consumer" {
+  name     = "acctestRG-acr-consumer-%d"
+  location = "%s"
+  tags = {
+    %s = azurerm_container_registry_token_password.test.password1.0.value
+  }
+}
+`, template, expiry, data.RandomInteger, data.Locations.Primary, tagName)
 }
 
 func (r ContainerRegistryTokenPasswordResource) complete(data acceptance.TestData) string {
@@ -178,6 +231,7 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
+  admin_enabled       = true
 }
 
 # use system wide scope map for tests

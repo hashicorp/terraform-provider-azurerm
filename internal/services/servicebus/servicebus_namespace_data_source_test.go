@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicebus_test
 
 import (
@@ -25,6 +28,7 @@ func TestAccDataSourceServiceBusNamespace_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("default_secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("default_primary_key").Exists(),
 				check.That(data.ResourceName).Key("default_secondary_key").Exists(),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
 			),
 		},
 	})
@@ -45,6 +49,7 @@ func TestAccDataSourceServiceBusNamespace_premium(t *testing.T) {
 				check.That(data.ResourceName).Key("default_secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("default_primary_key").Exists(),
 				check.That(data.ResourceName).Key("default_secondary_key").Exists(),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
 			),
 		},
 	})

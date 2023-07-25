@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Backup Vault should exist. Changing this forces a new Backup Vault to be created.
 
-* `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `SnapshotStore` and `VaultStore`.
+* `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `SnapshotStore` and `VaultStore`. Changing this forces a new resource to be created.
 
 * `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant` and `LocallyRedundant`. Changing this forces a new Backup Vault to be created.
 
@@ -55,7 +55,7 @@ An `identity` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Backup Vault.
 
@@ -63,7 +63,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-`identity` exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Backup Vault.
 

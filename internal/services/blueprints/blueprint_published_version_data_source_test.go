@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package blueprints_test
 
 import (
@@ -10,7 +13,7 @@ import (
 
 type BlueprintPublishedVersionDataSource struct{}
 
-//lintignore:AT001
+// lintignore:AT001
 func TestAccBlueprintPublishedVersionDataSource_atSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 	r := BlueprintPublishedVersionDataSource{}

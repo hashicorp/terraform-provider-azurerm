@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice
 
 import (
@@ -5,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces"
@@ -18,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type FunctionAppHybridConnectionResource struct{}
@@ -220,23 +223,18 @@ func (r FunctionAppHybridConnectionResource) Read() sdk.ResourceFunc {
 
 			if appHybridConn.ServiceBusNamespace != "" && appHybridConn.SendKeyName != "" {
 				relayNamespaceClient := metadata.Client.Relay.NamespacesClient
-				relayId, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
+				relayId, err := hybridconnections.ParseHybridConnectionIDInsensitively(appHybridConn.RelayId)
 				if err != nil {
 					return err
 				}
 
-				if keys, err := relayNamespaceClient.ListKeys(ctx, namespaces.NewAuthorizationRuleID(id.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, appHybridConn.SendKeyName)); err != nil && keys.Model != nil {
+				if keys, err := relayNamespaceClient.ListKeys(ctx, namespaces.NewAuthorizationRuleID(relayId.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, appHybridConn.SendKeyName)); err != nil && keys.Model != nil {
 					appHybridConn.SendKeyValue = utils.NormalizeNilableString(keys.Model.PrimaryKey)
 					return metadata.Encode(&appHybridConn)
 				}
 
 				hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
-				hybridConnectionID, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
-				if err != nil {
-					return err
-				}
-
-				ruleID := hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, hybridConnectionID.ResourceGroupName, appHybridConn.ServiceBusNamespace, *existing.Name, appHybridConn.SendKeyName)
+				ruleID := hybridconnections.NewHybridConnectionAuthorizationRuleID(relayId.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, *existing.Name, appHybridConn.SendKeyName)
 				keys, err := hybridConnectionsClient.ListKeys(ctx, ruleID)
 				if err != nil && keys.Model != nil {
 					appHybridConn.SendKeyValue = utils.NormalizeNilableString(keys.Model.PrimaryKey)

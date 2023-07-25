@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud_test
 
 import (
@@ -5,12 +8,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -19,10 +21,10 @@ type SpringCloudConfigurationServiceResource struct{}
 func TestAccSpringCloudConfigurationService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_configuration_service", "test")
 	r := SpringCloudConfigurationServiceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -33,10 +35,10 @@ func TestAccSpringCloudConfigurationService_basic(t *testing.T) {
 func TestAccSpringCloudConfigurationService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_configuration_service", "test")
 	r := SpringCloudConfigurationServiceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -47,10 +49,10 @@ func TestAccSpringCloudConfigurationService_requiresImport(t *testing.T) {
 func TestAccSpringCloudConfigurationService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_configuration_service", "test")
 	r := SpringCloudConfigurationServiceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -61,10 +63,10 @@ func TestAccSpringCloudConfigurationService_complete(t *testing.T) {
 func TestAccSpringCloudConfigurationService_sshAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_configuration_service", "test")
 	r := SpringCloudConfigurationServiceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sshAuth(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -75,24 +77,24 @@ func TestAccSpringCloudConfigurationService_sshAuth(t *testing.T) {
 func TestAccSpringCloudConfigurationService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_configuration_service", "test")
 	r := SpringCloudConfigurationServiceResource{}
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("repository.0.password", "repository.0.username"),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -100,7 +102,27 @@ func TestAccSpringCloudConfigurationService_update(t *testing.T) {
 	})
 }
 
-func (r SpringCloudConfigurationServiceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func TestAccSpringCloudConfigurationService_generation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_configuration_service", "test")
+	r := SpringCloudConfigurationServiceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.generation(data, "Gen1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(), {
+			Config: r.generation(data, "Gen2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r SpringCloudConfigurationServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SpringCloudConfigurationServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -202,4 +224,17 @@ resource "azurerm_spring_cloud_configuration_service" "test" {
   }
 }
 `, template)
+}
+
+func (r SpringCloudConfigurationServiceResource) generation(data acceptance.TestData, generation string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_configuration_service" "test" {
+  name                    = "default"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  generation              = "%s"
+}
+`, template, generation)
 }

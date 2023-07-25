@@ -1,11 +1,14 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -25,7 +28,7 @@ func (DevTestVirtualNetworkUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderF
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevTestLab/labs/{labName}/virtualNetworks/{virtualNetworkName}
 		oldId := rawState["id"].(string)
-		id, err := parse.DevTestVirtualNetworkIDInsensitively(oldId)
+		id, err := virtualnetworks.ParseVirtualNetworkIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}

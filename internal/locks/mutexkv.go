@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package locks
 
 import (
@@ -40,8 +43,8 @@ func (m *mutexKV) get(key string) *sync.Mutex {
 	return mutex
 }
 
-// Returns a properly initialized mutexKV
-func NewMutexKV() *mutexKV {
+// newMutexKV returns a properly initialized mutexKV
+func newMutexKV() *mutexKV {
 	return &mutexKV{
 		store: make(map[string]*sync.Mutex),
 	}

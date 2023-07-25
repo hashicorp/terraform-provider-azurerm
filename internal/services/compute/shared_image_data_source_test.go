@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -46,6 +49,9 @@ func TestAccDataSourceAzureRMSharedImage_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("hyper_v_generation").HasValue("V1"),
+				check.That(data.ResourceName).Key("purchase_plan.0.name").HasValue("AccTestPlan"),
+				check.That(data.ResourceName).Key("purchase_plan.0.publisher").HasValue("AccTestPlanPublisher"),
+				check.That(data.ResourceName).Key("purchase_plan.0.product").HasValue("AccTestPlanProduct"),
 			),
 		},
 	})

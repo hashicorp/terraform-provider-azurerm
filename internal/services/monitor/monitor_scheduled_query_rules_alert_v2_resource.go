@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -10,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -114,7 +117,8 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(scheduledqueryrules.ConditionOperatorEquals),
+							// see https://github.com/Azure/azure-rest-api-specs/issues/21794
+							"Equal",
 							string(scheduledqueryrules.ConditionOperatorGreaterThan),
 							string(scheduledqueryrules.ConditionOperatorGreaterThanOrEqual),
 							string(scheduledqueryrules.ConditionOperatorLessThan),
@@ -207,10 +211,27 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
+		// lintignore:S013
 		"evaluation_frequency": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: helperValidate.ISO8601Duration,
+			Type: pluginsdk.TypeString,
+			// this field is required, missing this field will get an error from service
+			Optional: !features.FourPointOhBeta(),
+			Required: features.FourPointOhBeta(),
+			ValidateFunc: validation.StringInSlice([]string{
+				"PT1M",
+				"PT5M",
+				"PT10M",
+				"PT15M",
+				"PT30M",
+				"PT45M",
+				"PT1H",
+				"PT2H",
+				"PT3H",
+				"PT4H",
+				"PT5H",
+				"PT6H",
+				"P1D",
+			}, false),
 		},
 
 		"scopes": {
@@ -232,9 +253,24 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"window_duration": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: helperValidate.ISO8601Duration,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"PT1M",
+				"PT5M",
+				"PT10M",
+				"PT15M",
+				"PT30M",
+				"PT45M",
+				"PT1H",
+				"PT2H",
+				"PT3H",
+				"PT4H",
+				"PT5H",
+				"PT6H",
+				"P1D",
+				"P2D",
+			}, false),
 		},
 
 		"action": {
@@ -293,15 +329,44 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"mute_actions_after_alert_duration": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: helperValidate.ISO8601Duration,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"PT5M",
+				"PT10M",
+				"PT15M",
+				"PT30M",
+				"PT45M",
+				"PT1H",
+				"PT2H",
+				"PT3H",
+				"PT4H",
+				"PT5H",
+				"PT6H",
+				"P1D",
+				"P2D",
+			}, false),
 		},
 
 		"query_time_range_override": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: helperValidate.ISO8601Duration,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"PT5M",
+				"PT10M",
+				"PT15M",
+				"PT20M",
+				"PT30M",
+				"PT45M",
+				"PT1H",
+				"PT2H",
+				"PT3H",
+				"PT4H",
+				"PT5H",
+				"PT6H",
+				"P1D",
+				"P2D",
+			}, false),
 		},
 
 		"skip_query_validation": {
@@ -377,19 +442,9 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			actionsValue, err := expandScheduledQueryRulesAlertV2ActionsModel(model.Actions)
-			if err != nil {
-				return err
-			}
+			properties.Properties.Actions = expandScheduledQueryRulesAlertV2ActionsModel(model.Actions)
 
-			properties.Properties.Actions = actionsValue
-
-			criteriaValue, err := expandScheduledQueryRulesAlertV2CriteriaModel(model.Criteria)
-			if err != nil {
-				return err
-			}
-
-			properties.Properties.Criteria = criteriaValue
+			properties.Properties.Criteria = expandScheduledQueryRulesAlertV2CriteriaModel(model.Criteria)
 
 			if model.Description != "" {
 				properties.Properties.Description = &model.Description
@@ -455,12 +510,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("action") {
-				actionsValue, err := expandScheduledQueryRulesAlertV2ActionsModel(resourceModel.Actions)
-				if err != nil {
-					return err
-				}
-
-				model.Properties.Actions = actionsValue
+				model.Properties.Actions = expandScheduledQueryRulesAlertV2ActionsModel(resourceModel.Actions)
 			}
 
 			if metadata.ResourceData.HasChange("auto_mitigation_enabled") {
@@ -472,12 +522,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("criteria") {
-				criteriaValue, err := expandScheduledQueryRulesAlertV2CriteriaModel(resourceModel.Criteria)
-				if err != nil {
-					return err
-				}
-
-				model.Properties.Criteria = criteriaValue
+				model.Properties.Criteria = expandScheduledQueryRulesAlertV2CriteriaModel(resourceModel.Criteria)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -539,8 +584,6 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			model.SystemData = nil
-
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = &resourceModel.Tags
 			}
@@ -580,18 +623,13 @@ func (r ScheduledQueryRulesAlertV2Resource) Read() sdk.ResourceFunc {
 			}
 
 			state := ScheduledQueryRulesAlertV2Model{
-				Name:              id.RuleName,
+				Name:              id.ScheduledQueryRuleName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
 			}
 
 			properties := &model.Properties
-			actionsValue, err := flattenScheduledQueryRulesAlertV2ActionsModel(properties.Actions)
-			if err != nil {
-				return err
-			}
-
-			state.Actions = actionsValue
+			state.Actions = flattenScheduledQueryRulesAlertV2ActionsModel(properties.Actions)
 
 			if properties.AutoMitigate != nil {
 				state.AutoMitigate = *properties.AutoMitigate
@@ -605,12 +643,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Read() sdk.ResourceFunc {
 				state.CreatedWithApiVersion = *properties.CreatedWithApiVersion
 			}
 
-			criteriaValue, err := flattenScheduledQueryRulesAlertV2CriteriaModel(properties.Criteria)
-			if err != nil {
-				return err
-			}
-
-			state.Criteria = criteriaValue
+			state.Criteria = flattenScheduledQueryRulesAlertV2CriteriaModel(properties.Criteria)
 
 			if properties.Description != nil {
 				state.Description = *properties.Description
@@ -692,9 +725,9 @@ func (r ScheduledQueryRulesAlertV2Resource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandScheduledQueryRulesAlertV2ActionsModel(inputList []ScheduledQueryRulesAlertV2ActionsModel) (*scheduledqueryrules.Actions, error) {
+func expandScheduledQueryRulesAlertV2ActionsModel(inputList []ScheduledQueryRulesAlertV2ActionsModel) *scheduledqueryrules.Actions {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -703,10 +736,10 @@ func expandScheduledQueryRulesAlertV2ActionsModel(inputList []ScheduledQueryRule
 		CustomProperties: &input.CustomProperties,
 	}
 
-	return &output, nil
+	return &output
 }
 
-func expandScheduledQueryRulesAlertV2CriteriaModel(inputList []ScheduledQueryRulesAlertV2CriteriaModel) (*scheduledqueryrules.ScheduledQueryRuleCriteria, error) {
+func expandScheduledQueryRulesAlertV2CriteriaModel(inputList []ScheduledQueryRulesAlertV2CriteriaModel) *scheduledqueryrules.ScheduledQueryRuleCriteria {
 	output := scheduledqueryrules.ScheduledQueryRuleCriteria{}
 	var outputList []scheduledqueryrules.Condition
 	for _, v := range inputList {
@@ -717,19 +750,8 @@ func expandScheduledQueryRulesAlertV2CriteriaModel(inputList []ScheduledQueryRul
 			TimeAggregation: &input.TimeAggregation,
 		}
 
-		dimensionsValue, err := expandScheduledQueryRulesAlertV2DimensionModel(input.Dimensions)
-		if err != nil {
-			return nil, err
-		}
-
-		condition.Dimensions = dimensionsValue
-
-		failingPeriodsValue, err := expandScheduledQueryRulesAlertV2FailingPeriodsModel(input.FailingPeriods)
-		if err != nil {
-			return nil, err
-		}
-
-		condition.FailingPeriods = failingPeriodsValue
+		condition.Dimensions = expandScheduledQueryRulesAlertV2DimensionModel(input.Dimensions)
+		condition.FailingPeriods = expandScheduledQueryRulesAlertV2FailingPeriodsModel(input.FailingPeriods)
 
 		if input.MetricMeasureColumn != "" {
 			condition.MetricMeasureColumn = &input.MetricMeasureColumn
@@ -746,10 +768,10 @@ func expandScheduledQueryRulesAlertV2CriteriaModel(inputList []ScheduledQueryRul
 		outputList = append(outputList, condition)
 	}
 	output.AllOf = &outputList
-	return &output, nil
+	return &output
 }
 
-func expandScheduledQueryRulesAlertV2DimensionModel(inputList []ScheduledQueryRulesAlertV2DimensionModel) (*[]scheduledqueryrules.Dimension, error) {
+func expandScheduledQueryRulesAlertV2DimensionModel(inputList []ScheduledQueryRulesAlertV2DimensionModel) *[]scheduledqueryrules.Dimension {
 	var outputList []scheduledqueryrules.Dimension
 	for _, v := range inputList {
 		input := v
@@ -762,12 +784,12 @@ func expandScheduledQueryRulesAlertV2DimensionModel(inputList []ScheduledQueryRu
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
-func expandScheduledQueryRulesAlertV2FailingPeriodsModel(inputList []ScheduledQueryRulesAlertV2FailingPeriodsModel) (*scheduledqueryrules.ConditionFailingPeriods, error) {
+func expandScheduledQueryRulesAlertV2FailingPeriodsModel(inputList []ScheduledQueryRulesAlertV2FailingPeriodsModel) *scheduledqueryrules.ConditionFailingPeriods {
 	if len(inputList) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := &inputList[0]
@@ -776,13 +798,13 @@ func expandScheduledQueryRulesAlertV2FailingPeriodsModel(inputList []ScheduledQu
 		NumberOfEvaluationPeriods: &input.NumberOfEvaluationPeriods,
 	}
 
-	return &output, nil
+	return &output
 }
 
-func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Actions) ([]ScheduledQueryRulesAlertV2ActionsModel, error) {
+func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Actions) []ScheduledQueryRulesAlertV2ActionsModel {
 	var outputList []ScheduledQueryRulesAlertV2ActionsModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := ScheduledQueryRulesAlertV2ActionsModel{}
@@ -795,36 +817,25 @@ func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Ac
 		output.CustomProperties = *input.CustomProperties
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }
 
-func flattenScheduledQueryRulesAlertV2CriteriaModel(input *scheduledqueryrules.ScheduledQueryRuleCriteria) ([]ScheduledQueryRulesAlertV2CriteriaModel, error) {
+func flattenScheduledQueryRulesAlertV2CriteriaModel(input *scheduledqueryrules.ScheduledQueryRuleCriteria) []ScheduledQueryRulesAlertV2CriteriaModel {
 	var outputList []ScheduledQueryRulesAlertV2CriteriaModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	inputList := input.AllOf
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, v := range *inputList {
 		output := ScheduledQueryRulesAlertV2CriteriaModel{}
 
-		dimensionsValue, err := flattenScheduledQueryRulesAlertV2DimensionModel(v.Dimensions)
-		if err != nil {
-			return nil, err
-		}
-
-		output.Dimensions = dimensionsValue
-
-		failingPeriodsValue, err := flattenScheduledQueryRulesAlertV2FailingPeriodsModel(v.FailingPeriods)
-		if err != nil {
-			return nil, err
-		}
-
-		output.FailingPeriods = failingPeriodsValue
+		output.Dimensions = flattenScheduledQueryRulesAlertV2DimensionModel(v.Dimensions)
+		output.FailingPeriods = flattenScheduledQueryRulesAlertV2FailingPeriodsModel(v.FailingPeriods)
 
 		if v.MetricMeasureColumn != nil {
 			output.MetricMeasureColumn = *v.MetricMeasureColumn
@@ -853,13 +864,13 @@ func flattenScheduledQueryRulesAlertV2CriteriaModel(input *scheduledqueryrules.S
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenScheduledQueryRulesAlertV2DimensionModel(inputList *[]scheduledqueryrules.Dimension) ([]ScheduledQueryRulesAlertV2DimensionModel, error) {
+func flattenScheduledQueryRulesAlertV2DimensionModel(inputList *[]scheduledqueryrules.Dimension) []ScheduledQueryRulesAlertV2DimensionModel {
 	var outputList []ScheduledQueryRulesAlertV2DimensionModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -872,13 +883,13 @@ func flattenScheduledQueryRulesAlertV2DimensionModel(inputList *[]scheduledquery
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
-func flattenScheduledQueryRulesAlertV2FailingPeriodsModel(input *scheduledqueryrules.ConditionFailingPeriods) ([]ScheduledQueryRulesAlertV2FailingPeriodsModel, error) {
+func flattenScheduledQueryRulesAlertV2FailingPeriodsModel(input *scheduledqueryrules.ConditionFailingPeriods) []ScheduledQueryRulesAlertV2FailingPeriodsModel {
 	var outputList []ScheduledQueryRulesAlertV2FailingPeriodsModel
 	if input == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	output := ScheduledQueryRulesAlertV2FailingPeriodsModel{}
@@ -891,5 +902,5 @@ func flattenScheduledQueryRulesAlertV2FailingPeriodsModel(input *scheduledqueryr
 		output.NumberOfEvaluationPeriods = *input.NumberOfEvaluationPeriods
 	}
 
-	return append(outputList, output), nil
+	return append(outputList, output)
 }

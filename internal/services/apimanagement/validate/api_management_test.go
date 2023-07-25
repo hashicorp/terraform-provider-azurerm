@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -128,6 +131,10 @@ func TestAzureRMApiManagementApiPath_validation(t *testing.T) {
 		},
 		{
 			Value:    ".well-known",
+			ErrCount: 0,
+		},
+		{
+			Value:    "api1:sub",
 			ErrCount: 0,
 		},
 		{

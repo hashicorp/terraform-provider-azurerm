@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -6,9 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionruleassociations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-04-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionruleassociations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,6 +39,7 @@ func (r DataCollectionRuleAssociationResource) Arguments() map[string]*pluginsdk
 		},
 
 		"name": {
+			// TODO: should this be hard-coded in the Create?
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -158,7 +162,7 @@ func (r DataCollectionRuleAssociationResource) Read() sdk.ResourceFunc {
 			}
 
 			return metadata.Encode(&DataCollectionRuleAssociationModel{
-				Name:                     id.AssociationName,
+				Name:                     id.DataCollectionRuleAssociationName,
 				TargetResourceId:         id.ResourceUri,
 				DataCollectionEndpointId: dataCollectionEndpointId,
 				DataCollectionRuleId:     dataCollectionRuleId,
@@ -215,8 +219,6 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("description") {
 				existing.Properties.Description = utils.String(model.Description)
 			}
-
-			existing.SystemData = nil
 
 			if _, err := client.Create(ctx, *id, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)

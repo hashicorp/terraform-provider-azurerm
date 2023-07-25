@@ -123,7 +123,7 @@ JSON
 
 * `linked_service` - (Required) A `linked_service` block as defined below.
 
-* `type` - (Required) The type of dataset that will be associated with Data Factory.
+* `type` - (Required) The type of dataset that will be associated with Data Factory. Changing this forces a new resource to be created.
 
 * `type_properties_json` - (Required) A JSON object that contains the properties of the Data Factory Dataset.
 
@@ -149,7 +149,7 @@ A `linked_service` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Factory Dataset.
 

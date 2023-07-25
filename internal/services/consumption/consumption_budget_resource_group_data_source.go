@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package consumption
 
 import (
@@ -220,21 +223,19 @@ func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
 
 func resourceArmConsumptionBudgetResourceGroupDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Consumption.BudgetsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := budgets.NewScopedBudgetID(d.Get("resource_group_id").(string), d.Get("name").(string))
-	d.SetId(id.ID())
-
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("making read request on %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
 	d.Set("name", id.BudgetName)
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package dns
 
 import (
@@ -77,13 +80,13 @@ func dataSourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		zone = resp.Model
 	} else {
-		result, resourceGroupName, err := findZone(ctx, client, id.SubscriptionId, id.ZoneName)
+		result, resourceGroupName, err := findZone(ctx, client, id.SubscriptionId, id.DnsZoneName)
 		if err != nil {
 			return err
 		}
 
 		if resourceGroupName == nil {
-			return fmt.Errorf("unable to locate the Resource Group for DNS Zone %q in Subscription %q", id.ResourceGroupName, subscriptionId)
+			return fmt.Errorf("unable to locate the Resource Group for DNS Zone %q in Subscription %q", id.DnsZoneName, subscriptionId)
 		}
 
 		zone = result
@@ -96,7 +99,7 @@ func dataSourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.ZoneName)
+	d.Set("name", id.DnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props := zone.Properties; props != nil {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package batch
 
 import (
@@ -5,14 +8,16 @@ import (
 	"fmt"
 	"time"
 
-	batchDataplane "github.com/Azure/azure-sdk-for-go/services/batch/2020-03-01.11.0/batch"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	batchDataplane "github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch"
 )
 
 type BatchJobResource struct{}
@@ -40,7 +45,7 @@ func (r BatchJobResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.PoolID,
+			ValidateFunc: pool.ValidatePoolID,
 		},
 		"display_name": {
 			Type:         pluginsdk.TypeString,
@@ -95,18 +100,18 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			poolId, err := parse.PoolID(model.BatchPoolId)
+			poolId, err := pool.ParsePoolID(model.BatchPoolId)
 			if err != nil {
 				return err
 			}
 
-			accountId := parse.NewAccountID(poolId.SubscriptionId, poolId.ResourceGroup, poolId.BatchAccountName)
+			accountId := batchaccount.NewBatchAccountID(poolId.SubscriptionId, poolId.ResourceGroupName, poolId.BatchAccountName)
 			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewJobID(poolId.SubscriptionId, poolId.ResourceGroup, poolId.BatchAccountName, poolId.Name, model.Name)
+			id := parse.NewJobID(poolId.SubscriptionId, poolId.ResourceGroupName, poolId.BatchAccountName, poolId.PoolName, model.Name)
 
 			existing, err := r.getJob(ctx, client, id)
 			if err != nil {
@@ -127,7 +132,7 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 				},
 				CommonEnvironmentSettings: r.expandEnvironmentSettings(model.CommonEnvironmentProperties),
 				PoolInfo: &batchDataplane.PoolInformation{
-					PoolID: &poolId.Name,
+					PoolID: &poolId.PoolName,
 				},
 			}
 
@@ -149,7 +154,7 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			accountId := parse.NewAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
+			accountId := batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
 			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err
@@ -165,7 +170,7 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 
 			model := BatchJobModel{
 				Name:             id.Name,
-				BatchPoolId:      parse.NewPoolID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.PoolName).ID(),
+				BatchPoolId:      pool.NewPoolID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.PoolName).ID(),
 				TaskRetryMaximum: 0,
 			}
 
@@ -216,7 +221,7 @@ func (r BatchJobResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			accountId := parse.NewAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
+			accountId := batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
 			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err
@@ -238,7 +243,7 @@ func (r BatchJobResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			accountId := parse.NewAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
+			accountId := batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
 			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
 			if err != nil {
 				return err

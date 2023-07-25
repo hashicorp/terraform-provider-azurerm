@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package frontdoor
 
 import (
@@ -7,23 +10,23 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceFrontDoorCustomHttpsConfiguration() *pluginsdk.Resource {
+func resourceFrontDoorCustomHTTPSConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFrontDoorCustomHttpsConfigurationCreateUpdate,
-		Read:   resourceFrontDoorCustomHttpsConfigurationRead,
-		Update: resourceFrontDoorCustomHttpsConfigurationCreateUpdate,
-		Delete: resourceFrontDoorCustomHttpsConfigurationDelete,
+		Create: resourceFrontDoorCustomHTTPSConfigurationCreateUpdate,
+		Read:   resourceFrontDoorCustomHTTPSConfigurationRead,
+		Update: resourceFrontDoorCustomHTTPSConfigurationCreateUpdate,
+		Delete: resourceFrontDoorCustomHTTPSConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.CustomHttpsConfigurationID(id)
@@ -91,7 +94,7 @@ func resourceFrontDoorCustomHttpsConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFrontDoorCustomHTTPSConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,17 +117,17 @@ func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *pluginsdk.Resource
 	props := *resp.Model.Properties
 
 	input := customHttpsConfigurationUpdateInput{
-		customHttpsConfigurationCurrent: props.CustomHttpsConfiguration,
+		customHttpsConfigurationCurrent: props.CustomHTTPSConfiguration,
 		customHttpsConfigurationNew:     d.Get("custom_https_configuration").([]interface{}),
 		customHttpsProvisioningEnabled:  d.Get("custom_https_provisioning_enabled").(bool),
 		frontendEndpointId:              *id,
 	}
 
-	if props.CustomHttpsProvisioningState != nil {
-		input.provisioningState = *props.CustomHttpsProvisioningState
+	if props.CustomHTTPSProvisioningState != nil {
+		input.provisioningState = *props.CustomHTTPSProvisioningState
 	}
 
-	if err := updateCustomHttpsConfiguration(ctx, client, input); err != nil {
+	if err := updateCustomHTTPSConfiguration(ctx, client, input); err != nil {
 		return fmt.Errorf("updating Custom HTTPS configuration for %s: %+v", id, err)
 	}
 
@@ -132,10 +135,10 @@ func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *pluginsdk.Resource
 		d.SetId(customHttpsConfigurationId.ID())
 	}
 
-	return resourceFrontDoorCustomHttpsConfigurationRead(d, meta)
+	return resourceFrontDoorCustomHTTPSConfigurationRead(d, meta)
 }
 
-func resourceFrontDoorCustomHttpsConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFrontDoorCustomHTTPSConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +174,7 @@ func resourceFrontDoorCustomHttpsConfigurationRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceFrontDoorCustomHttpsConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFrontDoorCustomHTTPSConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,16 +199,16 @@ func resourceFrontDoorCustomHttpsConfigurationDelete(d *pluginsdk.ResourceData, 
 		props := *model.Properties
 
 		input := customHttpsConfigurationUpdateInput{
-			customHttpsConfigurationCurrent: props.CustomHttpsConfiguration,
+			customHttpsConfigurationCurrent: props.CustomHTTPSConfiguration,
 			customHttpsConfigurationNew:     make([]interface{}, 0),
 			customHttpsProvisioningEnabled:  false,
 			frontendEndpointId:              *id,
 		}
 
-		if props.CustomHttpsProvisioningState != nil {
-			input.provisioningState = *props.CustomHttpsProvisioningState
+		if props.CustomHTTPSProvisioningState != nil {
+			input.provisioningState = *props.CustomHTTPSProvisioningState
 		}
-		if err := updateCustomHttpsConfiguration(ctx, client, input); err != nil {
+		if err := updateCustomHTTPSConfiguration(ctx, client, input); err != nil {
 			return fmt.Errorf("disabling Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", id.FrontendEndpointName, id.FrontDoorName, id.ResourceGroupName, err)
 		}
 	}
@@ -214,14 +217,14 @@ func resourceFrontDoorCustomHttpsConfigurationDelete(d *pluginsdk.ResourceData, 
 }
 
 type customHttpsConfigurationUpdateInput struct {
-	customHttpsConfigurationCurrent *frontdoors.CustomHttpsConfiguration
+	customHttpsConfigurationCurrent *frontdoors.CustomHTTPSConfiguration
 	customHttpsConfigurationNew     []interface{}
 	customHttpsProvisioningEnabled  bool
 	frontendEndpointId              frontdoors.FrontendEndpointId
-	provisioningState               frontdoors.CustomHttpsProvisioningState
+	provisioningState               frontdoors.CustomHTTPSProvisioningState
 }
 
-func updateCustomHttpsConfiguration(ctx context.Context, client *frontdoors.FrontDoorsClient, input customHttpsConfigurationUpdateInput) error {
+func updateCustomHTTPSConfiguration(ctx context.Context, client *frontdoors.FrontDoorsClient, input customHttpsConfigurationUpdateInput) error {
 	// Locking to prevent parallel changes causing issues
 	frontendEndpointResourceId := input.frontendEndpointId.ID()
 	locks.ByID(frontendEndpointResourceId)
@@ -246,17 +249,17 @@ func updateCustomHttpsConfiguration(ctx context.Context, client *frontdoors.Fron
 			if httpsConfig := input.customHttpsConfigurationCurrent; httpsConfig != nil {
 				minTLSVersion = httpsConfig.MinimumTlsVersion
 			}
-			customHTTPSConfigurationUpdate := makeCustomHttpsConfiguration(customHTTPSConfiguration, minTLSVersion)
-			if input.provisioningState == frontdoors.CustomHttpsProvisioningStateDisabled || customHTTPSConfigurationUpdate != *input.customHttpsConfigurationCurrent {
+			customHTTPSConfigurationUpdate := makeCustomHTTPSConfiguration(customHTTPSConfiguration, minTLSVersion)
+			if input.provisioningState == frontdoors.CustomHTTPSProvisioningStateDisabled || customHTTPSConfigurationUpdate != *input.customHttpsConfigurationCurrent {
 				// Enable Custom Domain HTTPS for the Frontend Endpoint
 				if err := resourceFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, client, input.frontendEndpointId, true, customHTTPSConfigurationUpdate); err != nil {
 					return fmt.Errorf("unable to enable/update Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", input.frontendEndpointId.FrontendEndpointName, input.frontendEndpointId.ResourceGroupName, err)
 				}
 			}
 		}
-	} else if !input.customHttpsProvisioningEnabled && input.provisioningState == frontdoors.CustomHttpsProvisioningStateEnabled {
+	} else if !input.customHttpsProvisioningEnabled && input.provisioningState == frontdoors.CustomHTTPSProvisioningStateEnabled {
 		// Disable Custom Domain HTTPS for the Frontend Endpoint
-		if err := resourceFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, client, input.frontendEndpointId, false, frontdoors.CustomHttpsConfiguration{}); err != nil {
+		if err := resourceFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, client, input.frontendEndpointId, false, frontdoors.CustomHTTPSConfiguration{}); err != nil {
 			return fmt.Errorf("unable to disable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", input.frontendEndpointId.FrontendEndpointName, input.frontendEndpointId.ResourceGroupName, err)
 		}
 	}
@@ -264,25 +267,25 @@ func updateCustomHttpsConfiguration(ctx context.Context, client *frontdoors.Fron
 	return nil
 }
 
-func resourceFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx context.Context, client *frontdoors.FrontDoorsClient, id frontdoors.FrontendEndpointId, enableCustomHttpsProvisioning bool, customHTTPSConfiguration frontdoors.CustomHttpsConfiguration) error {
-	if enableCustomHttpsProvisioning {
-		if err := client.FrontendEndpointsEnableHttpsThenPoll(ctx, id, customHTTPSConfiguration); err != nil {
+func resourceFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx context.Context, client *frontdoors.FrontDoorsClient, id frontdoors.FrontendEndpointId, enableCustomHTTPSProvisioning bool, customHTTPSConfiguration frontdoors.CustomHTTPSConfiguration) error {
+	if enableCustomHTTPSProvisioning {
+		if err := client.FrontendEndpointsEnableHTTPSThenPoll(ctx, id, customHTTPSConfiguration); err != nil {
 			return fmt.Errorf("enabling Custom Domain HTTPS for Frontend Endpoint: %+v", err)
 		}
 		return nil
 	}
 
-	if err := client.FrontendEndpointsDisableHttpsThenPoll(ctx, id); err != nil {
+	if err := client.FrontendEndpointsDisableHTTPSThenPoll(ctx, id); err != nil {
 		return fmt.Errorf("disabling Custom Domain HTTPS for Frontend Endpoint: %+v", err)
 	}
 
 	return nil
 }
 
-func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{}, minTLSVersion frontdoors.MinimumTLSVersion) frontdoors.CustomHttpsConfiguration {
+func makeCustomHTTPSConfiguration(customHttpsConfiguration map[string]interface{}, minTLSVersion frontdoors.MinimumTLSVersion) frontdoors.CustomHTTPSConfiguration {
 	// https://github.com/Azure/azure-sdk-for-go/issues/6882
 
-	customHTTPSConfigurationUpdate := frontdoors.CustomHttpsConfiguration{
+	customHTTPSConfigurationUpdate := frontdoors.CustomHTTPSConfiguration{
 		ProtocolType:      frontdoors.FrontDoorTlsProtocolType("ServerNameIndication"),
 		MinimumTlsVersion: minTLSVersion,
 	}

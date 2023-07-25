@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package pluginsdk
 
 import (
@@ -10,6 +13,7 @@ import (
 type (
 	CustomizeDiffFunc        = func(context.Context, *ResourceDiff, interface{}) error
 	ValueChangeConditionFunc = func(ctx context.Context, old, new, meta interface{}) bool
+	ResourceConditionFunc    = func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool
 )
 
 // CustomDiffWithAll returns a CustomizeDiffFunc that runs all of the given
@@ -63,6 +67,21 @@ func ForceNewIfChange(key string, f ValueChangeConditionFunc) CustomizeDiffFunc 
 	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 		old, new := d.GetChange(key)
 		if f(ctx, old, new, meta) {
+			d.ForceNew(key)
+		}
+		return nil
+	}
+}
+
+// ForceNewIf returns a CustomizeDiffFunc that flags the given key as
+// requiring a new resource if the given condition function returns true.
+//
+// The return value of the condition function is ignored if the old and new
+// values of the field compare equal, since no attribute diff is generated in
+// that case.
+func ForceNewIf(key string, f ResourceConditionFunc) CustomizeDiffFunc {
+	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+		if f(ctx, d, meta) {
 			d.ForceNew(key)
 		}
 		return nil

@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `create_option` - (Required) Indicates how the snapshot is to be created. Possible values are `Copy` or `Import`. Changing this forces a new resource to be created.
+* `create_option` - (Required) Indicates how the snapshot is to be created. Possible values are `Copy` or `Import`. 
 
 ~> **Note:** One of `source_uri`, `source_resource_id` or `storage_account_id` must be specified.
 
@@ -62,6 +62,8 @@ The following arguments are supported:
 * `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
 
 ~> **NOTE:** Removing `encryption_settings` forces a new resource to be created.
+
+* `incremental_enabled` - (Optional) Specifies if the Snapshot is incremental.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -91,11 +93,11 @@ The `key_encryption_key` block supports:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Snapshot ID.
 
-* `disk_size_gb` - The Size of the Snapshotted Disk in GB.
+* `disk_size_gb` - (Optional) The Size of the Snapshotted Disk in GB.
 
 * `trusted_launch_enabled` - Whether Trusted Launch is enabled for the Snapshot.
 

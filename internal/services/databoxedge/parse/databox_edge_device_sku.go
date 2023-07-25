@@ -1,10 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
 )
 
 // DataboxEdgeDeviceSku type
@@ -28,7 +31,7 @@ func DataboxEdgeDeviceSkuName(input string) (*DataboxEdgeDeviceSku, error) {
 	// There is only one possible Tier so always set value to Standard
 	databoxEdgeDeviceSku := DataboxEdgeDeviceSku{
 		Name: skuParts[0],
-		Tier: string(databoxedge.Standard),
+		Tier: string(devices.SkuTierStandard),
 	}
 
 	return &databoxEdgeDeviceSku, nil

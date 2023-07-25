@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy
 
 import (
@@ -47,6 +50,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_policy_definition":                               dataSourceArmPolicyDefinition(),
+		"azurerm_policy_definition_built_in":                      dataSourceArmPolicyDefinitionBuiltIn(),
 		"azurerm_policy_set_definition":                           dataSourceArmPolicySetDefinition(),
 		"azurerm_policy_virtual_machine_configuration_assignment": dataSourcePolicyVirtualMachineConfigurationAssignment(),
 	}

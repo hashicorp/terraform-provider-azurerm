@@ -73,7 +73,7 @@ The `record` block supports:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The DNS MX Record ID.
 
@@ -96,5 +96,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 MX records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_mx_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/MX/myrecord1
+terraform import azurerm_dns_mx_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/MX/myrecord1
 ```

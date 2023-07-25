@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appservice
 
 import (
@@ -6,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -26,18 +30,22 @@ type WindowsWebAppDataSourceModel struct {
 	ServicePlanId                 string                      `tfschema:"service_plan_id"`
 	AppSettings                   map[string]string           `tfschema:"app_settings"`
 	AuthSettings                  []helpers.AuthSettings      `tfschema:"auth_settings"`
+	AuthV2Settings                []helpers.AuthV2Settings    `tfschema:"auth_settings_v2"`
 	Backup                        []helpers.Backup            `tfschema:"backup"`
 	ClientAffinityEnabled         bool                        `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                        `tfschema:"client_certificate_enabled"`
 	ClientCertMode                string                      `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths      string                      `tfschema:"client_certificate_exclusion_paths"`
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
 	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
+	PublicNetworkAccess           bool                        `tfschema:"public_network_access_enabled"`
 	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
 	StickySettings                []helpers.StickySettings    `tfschema:"sticky_settings"`
 	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString  `tfschema:"connection_string"`
 	CustomDomainVerificationId    string                      `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                  string                      `tfschema:"hosting_environment_id"`
 	DefaultHostname               string                      `tfschema:"default_hostname"`
 	Kind                          string                      `tfschema:"kind"`
 	OutboundIPAddresses           string                      `tfschema:"outbound_ip_addresses"`
@@ -90,6 +98,8 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"auth_settings": helpers.AuthSettingsSchemaComputed(),
 
+		"auth_settings_v2": helpers.AuthV2SettingsComputedSchema(),
+
 		"backup": helpers.BackupSchemaComputed(),
 
 		"client_affinity_enabled": {
@@ -107,6 +117,12 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
+		},
+
 		"connection_string": helpers.ConnectionStringSchemaComputed(),
 
 		"custom_domain_verification_id": {
@@ -116,6 +132,11 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"default_hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hosting_environment_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -167,6 +188,11 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"site_credential": helpers.SiteCredentialSchema(),
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"site_config": helpers.SiteConfigSchemaWindowsComputed(),
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
@@ -212,6 +238,11 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
+			}
+
+			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading authV2 settings for Linux %s: %+v", id, err)
 			}
 
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
@@ -264,8 +295,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Site Metadata for Windows %s: %+v", id, err)
 			}
 
-			var healthCheckCount *int
-			webApp.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			webApp.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
 			webApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			webApp.Location = location.NormalizeNilable(existing.Location)
 			webApp.Tags = tags.ToTypedObject(existing.Tags)
@@ -277,6 +307,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 					webApp.ClientCertEnabled = *props.ClientCertEnabled
 				}
 				webApp.ClientCertMode = string(props.ClientCertMode)
+				webApp.ClientCertExclusionPaths = utils.NormalizeNilableString(props.ClientCertExclusionPaths)
 				webApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
 				webApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
 				if props.Enabled != nil {
@@ -291,9 +322,18 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
 				webApp.PossibleOutboundIPAddresses = utils.NormalizeNilableString(props.PossibleOutboundIPAddresses)
 				webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
+				if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+					webApp.VirtualNetworkSubnetID = subnetId
+				}
+				if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+					webApp.HostingEnvId = pointer.From(hostingEnv.ID)
+				}
+				webApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 			}
 
 			webApp.AuthSettings = helpers.FlattenAuthSettings(auth)
+
+			webApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 			webApp.Backup = helpers.FlattenBackupConfig(backup)
 
@@ -304,7 +344,19 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			if ok {
 				currentStack = *currentStackPtr
 			}
-			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+
+			siteConfig := helpers.SiteConfigWindows{}
+			err = siteConfig.Flatten(webAppSiteConfig.SiteConfig, currentStack)
+			if err != nil {
+				return err
+			}
+
+			webApp.AppSettings = siteConfig.ParseNodeVersion(webApp.AppSettings)
+
+			siteConfig.SetHealthCheckEvictionTime(webApp.AppSettings)
+			if helpers.FxStringHasPrefix(siteConfig.WindowsFxVersion, helpers.FxStringPrefixDocker) {
+				siteConfig.DecodeDockerAppStack(webApp.AppSettings)
+			}
 
 			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
 

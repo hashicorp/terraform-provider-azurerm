@@ -103,14 +103,14 @@ resource "azurerm_service_plan" "example" {
   sku_name            = "S1"
 }
 
-resource "azurerm_windows_function_app" "test" {
+resource "azurerm_windows_function_app" "example" {
   name                = "example-function-app"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  service_plan_id     = azurerm_service_plan.example.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
 
   site_config {
     application_stack {
@@ -121,7 +121,7 @@ resource "azurerm_windows_function_app" "test" {
 
 resource "azurerm_function_app_function" "example" {
   name            = "example-function-app-function"
-  function_app_id = azurerm_linux_function_app.example.id
+  function_app_id = azurerm_windows_function_app.example.id
   language        = "CSharp"
 
   file {
@@ -181,9 +181,9 @@ The following arguments are supported:
 
 A `file` block supports the following:
 
-* `name` - (Required) The filename of the file to be uploaded.
+* `name` - (Required) The filename of the file to be uploaded. Changing this forces a new resource to be created.
 
-* `content` - (Required) The content of the file.
+* `content` - (Required) The content of the file. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -204,7 +204,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `test_data_url` - The Test data URL.
 
 * `url` - The function URL.
-
 
 ## Timeouts
 

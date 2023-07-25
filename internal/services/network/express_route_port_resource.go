@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,12 +8,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -18,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var expressRoutePortSchema = &pluginsdk.Schema{
@@ -118,7 +122,7 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 				ValidateFunc: validate.ExpressRoutePortName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
 
@@ -147,6 +151,16 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.UserAssignedIdentityOptional(),
+
+			"billing_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.ExpressRoutePortsBillingTypeMeteredData),
+					string(network.ExpressRoutePortsBillingTypeUnlimitedData),
+				}, false),
+			},
 
 			"link1": expressRoutePortSchema,
 
@@ -213,6 +227,14 @@ func resourceArmExpressRoutePortCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if v, ok := d.GetOk("billing_type"); ok {
+		param.ExpressRoutePortPropertiesFormat.BillingType = network.ExpressRoutePortsBillingType(v.(string))
+	}
+
+	// a lock is needed here for subresource express_route_port_authorization needs a lock.
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	// The link properties can't be specified in first creation. It will result into either error (e.g. setting `adminState`) or being ignored (e.g. setting MACSec)
 	// Hence, if this is a new creation we will do a create-then-update here.
 	if d.IsNewResource() {
@@ -277,6 +299,7 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("peering_location", prop.PeeringLocation)
 		d.Set("bandwidth_in_gbps", prop.BandwidthInGbps)
 		d.Set("encapsulation", prop.Encapsulation)
+		d.Set("billing_type", prop.BillingType)
 		link1, link2, err := flattenExpressRoutePortLinks(resp.Links)
 		if err != nil {
 			return fmt.Errorf("flattening links: %v", err)
@@ -304,6 +327,10 @@ func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
+
+	// a lock is needed here for subresource express_route_port_authorization needs a lock.
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := edgemodules.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "edgeModuleValue")
+id := edgemodules.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue", "edgeModuleValue")
 
 payload := edgemodules.EdgeModuleEntity{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := edgemodules.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "edgeModuleValue")
+id := edgemodules.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue", "edgeModuleValue")
 
 read, err := client.EdgeModulesDelete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := edgemodules.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "edgeModuleValue")
+id := edgemodules.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue", "edgeModuleValue")
 
 read, err := client.EdgeModulesGet(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := edgemodules.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+id := edgemodules.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue")
 
 // alternatively `client.EdgeModulesList(ctx, id, edgemodules.DefaultEdgeModulesListOperationOptions())` can be used to do batched pagination
 items, err := client.EdgeModulesListComplete(ctx, id, edgemodules.DefaultEdgeModulesListOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := edgemodules.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "edgeModuleValue")
+id := edgemodules.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue", "edgeModuleValue")
 
 payload := edgemodules.ListProvisioningTokenInput{
 	// ...

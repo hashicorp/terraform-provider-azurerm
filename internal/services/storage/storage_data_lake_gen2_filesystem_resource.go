@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -15,8 +18,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/filesystems"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/paths"
 	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
 )
 
@@ -354,7 +357,7 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 			if err != nil {
 				return fmt.Errorf("parsing response ACL %q: %s", pathResponse.ACL, err)
 			}
-			ace = FlattenDataLakeGen2AceList(acl)
+			ace = FlattenDataLakeGen2AceList(d, acl)
 			owner = pathResponse.Owner
 			group = pathResponse.Group
 		}

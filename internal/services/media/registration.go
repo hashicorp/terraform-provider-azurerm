@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package media
 
 import (
@@ -7,7 +10,14 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
+
+const (
+	azureMediaRetirementMessage = "Azure Media Services will be retired June 30th, 2024. Please see https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement"
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/media"
@@ -44,5 +54,15 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_media_live_event":         resourceMediaLiveEvent(),
 		"azurerm_media_live_event_output":  resourceMediaLiveOutput(),
 		"azurerm_media_asset_filter":       resourceMediaAssetFilter(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		AccountFilterResource{},
 	}
 }

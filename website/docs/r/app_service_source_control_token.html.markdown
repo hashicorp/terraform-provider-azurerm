@@ -48,5 +48,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 App Service Source Control Token's can be imported using the `type`, e.g.
 
 ```shell
-terraform import azurerm_app_service_source_control_token.example /providers/Microsoft.Web/sourceControls/GitHub
+terraform import azurerm_app_service_source_control_token.example {type}
 ```

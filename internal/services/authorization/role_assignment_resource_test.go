@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package authorization_test
 
 import (
@@ -565,6 +568,7 @@ resource "azurerm_role_assignment" "test" {
 `, groupId)
 }
 
+// nolint: unused
 func (RoleAssignmentResource) subscriptionScoped(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

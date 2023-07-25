@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package dns
 
 import (
@@ -5,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -13,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -76,7 +81,7 @@ func resourceDnsZone() *pluginsdk.Resource {
 				MaxItems: 1,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
+				//ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"email": {
@@ -86,9 +91,9 @@ func resourceDnsZone() *pluginsdk.Resource {
 						},
 
 						"host_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Optional: !features.FourPointOhBeta(), // (@jackofallops) - This should not be set or updatable to meet API design, see https://learn.microsoft.com/en-us/azure/dns/dns-zones-records#soa-records
+							Computed: true,
 						},
 
 						"expire_time": {
@@ -182,19 +187,35 @@ func resourceDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if v, ok := d.GetOk("soa_record"); ok {
 		soaRecord := v.([]interface{})[0].(map[string]interface{})
+
+		soaRecordID := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
+		soaRecordResp, err := recordSetsClient.Get(ctx, soaRecordID)
+		if err != nil {
+			return fmt.Errorf("retrieving %s to update SOA: %+v", id, err)
+		}
+
+		props := soaRecordResp.Model.Properties
+		if props == nil || props.SOARecord == nil {
+			return fmt.Errorf("could not read SOA properties for %s", id)
+		}
+
+		inputSOARecord := expandArmDNSZoneSOARecord(soaRecord)
+
+		inputSOARecord.Host = props.SOARecord.Host
+
 		rsParameters := recordsets.RecordSet{
 			Properties: &recordsets.RecordSetProperties{
 				TTL:       utils.Int64(int64(soaRecord["ttl"].(int))),
 				Metadata:  tags.Expand(soaRecord["tags"].(map[string]interface{})),
-				SOARecord: expandArmDNSZoneSOARecord(soaRecord),
+				SOARecord: inputSOARecord,
 			},
 		}
 
-		if len(id.ZoneName+strings.TrimSuffix(*rsParameters.Properties.SOARecord.Email, ".")) > 253 {
+		if len(id.DnsZoneName+strings.TrimSuffix(*rsParameters.Properties.SOARecord.Email, ".")) > 253 {
 			return fmt.Errorf("`email` which is concatenated with DNS Zone `name` cannot exceed 253 characters excluding a trailing period")
 		}
 
-		soaRecordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.ZoneName, recordsets.RecordTypeSOA, "@")
+		soaRecordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
 		if _, err := recordSetsClient.CreateOrUpdate(ctx, soaRecordId, rsParameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("creating/updating %s: %+v", soaRecordId, err)
 		}
@@ -225,7 +246,7 @@ func resourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	soaRecord := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.ZoneName, recordsets.RecordTypeSOA, "@")
+	soaRecord := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.DnsZoneName, recordsets.RecordTypeSOA, "@")
 	soaRecordResp, err := recordSetsClient.Get(ctx, soaRecord)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -235,7 +256,7 @@ func resourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("setting `soa_record`: %+v", err)
 	}
 
-	d.Set("name", id.ZoneName)
+	d.Set("name", id.DnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -278,15 +299,20 @@ func resourceDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func expandArmDNSZoneSOARecord(input map[string]interface{}) *recordsets.SoaRecord {
-	return &recordsets.SoaRecord{
+	result := &recordsets.SoaRecord{
 		Email:        utils.String(input["email"].(string)),
-		Host:         utils.String(input["host_name"].(string)),
 		ExpireTime:   utils.Int64(int64(input["expire_time"].(int))),
 		MinimumTTL:   utils.Int64(int64(input["minimum_ttl"].(int))),
 		RefreshTime:  utils.Int64(int64(input["refresh_time"].(int))),
 		RetryTime:    utils.Int64(int64(input["retry_time"].(int))),
 		SerialNumber: utils.Int64(int64(input["serial_number"].(int))),
 	}
+
+	if !features.FourPointOhBeta() && input["host_name"].(string) != "" {
+		result.Host = pointer.To(input["host_name"].(string))
+	}
+
+	return result
 }
 
 func flattenArmDNSZoneSOARecord(input *recordsets.RecordSet) []interface{} {

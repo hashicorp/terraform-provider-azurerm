@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package desktopvirtualization
 
 import (
@@ -109,6 +112,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 		Properties: &workspace.WorkspacePatchProperties{
 			ApplicationGroupReferences: &applicationGroupAssociations,
 		},
+		Tags: model.Tags,
 	}
 	if _, err = client.Update(ctx, *workspaceId, payload); err != nil {
 		return fmt.Errorf("creating association between %s and %s: %+v", *workspaceId, *applicationGroupId, err)
@@ -200,6 +204,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *plugins
 		Properties: &workspace.WorkspacePatchProperties{
 			ApplicationGroupReferences: &applicationGroupReferences,
 		},
+		Tags: model.Tags,
 	}
 	if _, err = client.Update(ctx, id.Workspace, payload); err != nil {
 		return fmt.Errorf("removing association between %s and %s: %+v", id.Workspace, id.ApplicationGroup, err)

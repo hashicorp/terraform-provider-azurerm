@@ -1,15 +1,19 @@
-package validate
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package validate_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/validate"
 )
 
 /*
-	--Testing for Failure--
-	Validation Function Tests - Invalid Name Validations
+--Testing for Failure--
+Validation Function Tests - Invalid Name Validations
 */
 func TestVirtualNetworkRuleInvalidNameValidation(t *testing.T) {
 	cases := []struct {
@@ -74,7 +78,7 @@ func TestVirtualNetworkRuleInvalidNameValidation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := VirtualNetworkRuleName(tc.Value, "azurerm_sql_virtual_network_rule")
+		_, errors := validate.VirtualNetworkRuleName(tc.Value, "azurerm_sql_virtual_network_rule")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Bad: Expected the Azure RM SQL Virtual Network Rule Name to trigger a validation error.")
@@ -83,8 +87,8 @@ func TestVirtualNetworkRuleInvalidNameValidation(t *testing.T) {
 }
 
 /*
-	--Testing for Success--
-	Validation Function Tests - (Barely) Valid Name Validations
+--Testing for Success--
+Validation Function Tests - (Barely) Valid Name Validations
 */
 func TestVirtualNetworkRuleValidNameValidation(t *testing.T) {
 	cases := []struct {
@@ -169,7 +173,7 @@ func TestVirtualNetworkRuleValidNameValidation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := VirtualNetworkRuleName(tc.Value, "azurerm_sql_virtual_network_rule")
+		_, errors := validate.VirtualNetworkRuleName(tc.Value, "azurerm_sql_virtual_network_rule")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Bad: Expected the Azure RM SQL Virtual Network Rule Name pass name validation successfully but triggered a validation error.")

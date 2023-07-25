@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -31,6 +34,8 @@ func (r Registration) Resources() []sdk.Resource {
 		DataCollectionRuleAssociationResource{},
 		DataCollectionRuleResource{},
 		ScheduledQueryRulesAlertV2Resource{},
+		AlertPrometheusRuleGroupResource{},
+		WorkspaceResource{},
 	}
 }
 

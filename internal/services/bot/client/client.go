@@ -1,16 +1,20 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/healthbot/mgmt/2020-12-08/healthbot"
-	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2021-05-01-preview/botservice"
+	"github.com/Azure/go-autorest/autorest"
+	healthbot_2022_08_08 "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type Client struct {
 	BotClient        *botservice.BotsClient
 	ConnectionClient *botservice.BotConnectionClient
 	ChannelClient    *botservice.ChannelsClient
-	HealthbotClient  *healthbot.BotsClient
+	HealthBotClient  *healthbot_2022_08_08.Client
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -23,13 +27,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	channelClient := botservice.NewChannelsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&channelClient.Client, o.ResourceManagerAuthorizer)
 
-	healthBotClient := healthbot.NewBotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&healthBotClient.Client, o.ResourceManagerAuthorizer)
+	healthBotsClient := healthbot_2022_08_08.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
+		o.ConfigureClient(c, o.ResourceManagerAuthorizer)
+	})
 
 	return &Client{
 		BotClient:        &botClient,
 		ChannelClient:    &channelClient,
 		ConnectionClient: &connectionClient,
-		HealthbotClient:  &healthBotClient,
+		HealthBotClient:  &healthBotsClient,
 	}
 }

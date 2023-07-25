@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 var _ resourceids.ResourceId = ScopedRegistrationAssignmentId{}
 
 // ScopedRegistrationAssignmentId is a struct representing the Resource ID for a Scoped Registration Assignment
@@ -35,11 +38,11 @@ func ParseScopedRegistrationAssignmentID(input string) (*ScopedRegistrationAssig
 	id := ScopedRegistrationAssignmentId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.RegistrationAssignmentId, ok = parsed.Parsed["registrationAssignmentId"]; !ok {
-		return nil, fmt.Errorf("the segment 'registrationAssignmentId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registrationAssignmentId", *parsed)
 	}
 
 	return &id, nil
@@ -58,11 +61,11 @@ func ParseScopedRegistrationAssignmentIDInsensitively(input string) (*ScopedRegi
 	id := ScopedRegistrationAssignmentId{}
 
 	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, fmt.Errorf("the segment 'scope' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
 	}
 
 	if id.RegistrationAssignmentId, ok = parsed.Parsed["registrationAssignmentId"]; !ok {
-		return nil, fmt.Errorf("the segment 'registrationAssignmentId' was not found in the resource id %q", input)
+		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registrationAssignmentId", *parsed)
 	}
 
 	return &id, nil

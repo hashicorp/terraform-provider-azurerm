@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package loganalytics
 
 import (
@@ -72,7 +75,7 @@ func dataSourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 }
 
 func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	client := meta.(*clients.Client).LogAnalytics.SharedKeyWorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -98,7 +101,6 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("location", location.NormalizeNilable(&model.Location))
 
 		if props := model.Properties; props != nil {
-
 			customerId := ""
 			if props.CustomerId != nil {
 				customerId = *props.CustomerId

@@ -1,18 +1,23 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceLocalNetworkGateway() *pluginsdk.Resource {
@@ -40,9 +45,9 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"gateway_address": {
 				Type:         pluginsdk.TypeString,
@@ -60,7 +65,8 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -139,7 +145,6 @@ func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	// There is a bug in the provider where the address space ordering doesn't change as expected.
 	// In the UI we have to remove the current list of addresses in the address space and re-add them in the new order and we'll copy that here.
 	if !d.IsNewResource() && d.HasChange("address_space") {
-
 		// since the local network gateway cannot have both empty address prefix and empty BGP setting(confirmed with service team, it is by design),
 		// replace the empty address prefix with the first address prefix in the "address_space" list to avoid error.
 		if v := d.Get("address_space").([]interface{}); len(v) > 0 {

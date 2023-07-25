@@ -54,11 +54,11 @@ The following arguments are supported:
 
 * `function_parameters` - (Optional) The function parameters if the query serves as a function. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Logs Analytics Saved Search.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Logs Analytics Saved Search. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Log Analytics Saved Search ID.
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -755,10 +758,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherGalleryApplicationBasic(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplicationsBasic(data),
+			Config: r.otherGalleryApplicationBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_applications.0.order").HasValue("0"),
+				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -771,7 +774,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherGalleryApplicationComplete(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplicationsComplete(data),
+			Config: r.otherGalleryApplicationComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1065,12 +1068,32 @@ func (r LinuxVirtualMachineScaleSetResource) otherEdgeZone(data acceptance.TestD
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[3]d"
+  location = "%[2]s"
+}
+
 data "azurerm_extended_locations" "test" {
   location = azurerm_resource_group.test.location
 }
 
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[3]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
+  name                = "acctestvmss-%[3]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard_D2s_v3" # intentional for premium/edgezones
@@ -1104,7 +1127,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templatePublicKey(), data.Locations.Primary, data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherForceDelete(data acceptance.TestData) string {
@@ -1500,6 +1523,7 @@ resource "azurerm_key_vault" "test" {
 
     key_permissions = [
       "Create",
+      "GetRotationPolicy",
     ]
 
     secret_permissions = [
@@ -3067,7 +3091,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationsBasic(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -3105,14 +3129,14 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  gallery_applications {
-    package_reference_id = azurerm_gallery_application_version.test.id
+  gallery_application {
+    version_id = azurerm_gallery_application_version.test.id
   }
 }
-`, r.otherGalleryApplicationsTemplate(data), data.RandomInteger)
+`, r.otherGalleryApplicationTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationsComplete(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -3150,17 +3174,17 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  gallery_applications {
-    package_reference_id             = azurerm_gallery_application_version.test.id
-    configuration_reference_blob_uri = azurerm_storage_blob.test2.id
-    order                            = 1
-    tag                              = "app"
+  gallery_application {
+    version_id             = azurerm_gallery_application_version.test.id
+    configuration_blob_uri = azurerm_storage_blob.test2.id
+    order                  = 1
+    tag                    = "app"
   }
 }
-`, r.otherGalleryApplicationsTemplate(data), data.RandomInteger)
+`, r.otherGalleryApplicationTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationsTemplate(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -3182,16 +3206,16 @@ resource "azurerm_storage_blob" "test" {
   name                   = "script"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "script"
+  type                   = "Page"
+  size                   = 512
 }
 
 resource "azurerm_storage_blob" "test2" {
   name                   = "script2"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "script2"
+  type                   = "Page"
+  size                   = 512
 }
 
 resource "azurerm_shared_image_gallery" "test" {

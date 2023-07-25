@@ -1,16 +1,19 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package batch
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/application"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceBatchApplication() *pluginsdk.Resource {
@@ -60,11 +63,11 @@ func dataSourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := parse.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := application.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("reading %s: %+v", id, err)
@@ -72,14 +75,16 @@ func dataSourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ApplicationName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("account_name", id.BatchAccountName)
 
-	if applicationProperties := resp.ApplicationProperties; applicationProperties != nil {
-		d.Set("allow_updates", applicationProperties.AllowUpdates)
-		d.Set("default_version", applicationProperties.DefaultVersion)
-		d.Set("display_name", applicationProperties.DisplayName)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("allow_updates", props.AllowUpdates)
+			d.Set("default_version", props.DefaultVersion)
+			d.Set("display_name", props.DisplayName)
+		}
 	}
 
 	return nil

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -9,8 +12,6 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,7 +30,6 @@ type Output struct {
 }
 
 func resourceManagedDiskSasToken() *pluginsdk.Resource {
-
 	return &pluginsdk.Resource{
 		Create: resourceManagedDiskSasTokenCreate,
 		Read:   resourceManagedDiskSasTokenRead,
@@ -42,7 +42,7 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ManagedDiskID(id)
+			_, err := disks.ParseDiskID(id)
 			return err
 		}),
 
@@ -51,7 +51,7 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ManagedDiskID,
+				ValidateFunc: disks.ValidateDiskID,
 			},
 
 			// unable to provide upper value of 4294967295 as it's not comptabile with 32-bit (overflow errors)
@@ -79,7 +79,6 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 			},
 		},
 	}
-
 }
 
 func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -129,7 +128,7 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 			}
 
 			var result Result
-			err = json.Unmarshal([]byte(buf.String()), &result)
+			err = json.Unmarshal(buf.Bytes(), &result)
 			if err != nil {
 				return fmt.Errorf("retrieving SAS Token for Disk Access %s: %+v", *diskId, err)
 			}
@@ -144,7 +143,6 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return resourceManagedDiskSasTokenRead(d, meta)
-
 }
 
 func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {

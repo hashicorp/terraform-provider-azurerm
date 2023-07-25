@@ -1,13 +1,20 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package provider
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
 	"strings"
+	"time"
 
-	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -174,6 +181,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "The Client ID which should be used.",
 			},
 
+			"client_id_file_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID_FILE_PATH", ""),
+				Description: "The path to a file containing the Client ID which should be used.",
+			},
+
 			"tenant_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -205,6 +219,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			},
 
 			// Client Certificate specific fields
+			"client_certificate": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE", ""),
+				Description: "Base64 encoded PKCS#12 certificate bundle to use when authenticating as a Service Principal using a Client Certificate",
+			},
+
 			"client_certificate_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -225,6 +246,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
 				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
+			},
+
+			"client_secret_file_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET_FILE_PATH", ""),
+				Description: "The path to a file containing the Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
 			// OIDC specifc fields
@@ -267,13 +295,22 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
-				Description: "Allowed Managed Service Identity be used for Authentication.",
+				Description: "Allow Managed Service Identity to be used for Authentication.",
 			},
 			"msi_endpoint": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
 				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. ",
+			},
+
+			// Azure CLI specific fields
+			"use_cli": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_CLI", true),
+				Description: "Allow Azure CLI to be used for Authentication.",
 			},
 
 			// Managed Tracking GUID for User-agent
@@ -336,103 +373,207 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		if len(auxTenants) > 3 {
-			return nil, diag.Errorf("The provider only supports 3 auxiliary tenant IDs")
+			return nil, diag.Errorf("the provider only supports 3 auxiliary tenant IDs")
 		}
 
-		metadataHost := d.Get("metadata_host").(string)
-
-		builder := &authentication.Builder{
-			SubscriptionID:      d.Get("subscription_id").(string),
-			ClientID:            d.Get("client_id").(string),
-			ClientSecret:        d.Get("client_secret").(string),
-			TenantID:            d.Get("tenant_id").(string),
-			AuxiliaryTenantIDs:  auxTenants,
-			Environment:         d.Get("environment").(string),
-			MetadataHost:        metadataHost,
-			MsiEndpoint:         d.Get("msi_endpoint").(string),
-			ClientCertPassword:  d.Get("client_certificate_password").(string),
-			ClientCertPath:      d.Get("client_certificate_path").(string),
-			IDTokenRequestToken: d.Get("oidc_request_token").(string),
-			IDTokenRequestURL:   d.Get("oidc_request_url").(string),
-			IDToken:             d.Get("oidc_token").(string),
-			IDTokenFilePath:     d.Get("oidc_token_file_path").(string),
-
-			// Feature Toggles
-			SupportsClientCertAuth:         true,
-			SupportsClientSecretAuth:       true,
-			SupportsOIDCAuth:               d.Get("use_oidc").(bool),
-			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
-			SupportsAzureCliToken:          true,
-			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
-
-			// Doc Links
-			ClientSecretDocsLink: "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret",
-
-			// Use MSAL
-			UseMicrosoftGraph: true,
+		var clientCertificateData []byte
+		if encodedCert := d.Get("client_certificate").(string); encodedCert != "" {
+			var err error
+			clientCertificateData, err = decodeCertificate(encodedCert)
+			if err != nil {
+				return nil, diag.FromErr(err)
+			}
 		}
 
-		config, err := builder.Build()
-		if err != nil {
-			return nil, diag.Errorf("building AzureRM Client: %s", err)
-		}
-
-		terraformVersion := p.TerraformVersion
-		if terraformVersion == "" {
-			// Terraform 0.12 introduced this field to the protocol
-			// We can therefore assume that if it's missing it's 0.10 or 0.11
-			terraformVersion = "0.11+compatible"
-		}
-
-		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
-		clientBuilder := clients.ClientBuilder{
-			AuthConfig:                  config,
-			SkipProviderRegistration:    skipProviderRegistration,
-			TerraformVersion:            terraformVersion,
-			PartnerId:                   d.Get("partner_id").(string),
-			DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
-			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
-			Features:                    expandFeatures(d.Get("features").([]interface{})),
-			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
-
-			// this field is intentionally not exposed in the provider block, since it's only used for
-			// platform level tracing
-			CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
-		}
-
-		//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
-		stopCtx, ok := schema.StopContext(ctx) //nolint:staticcheck
-		if !ok {
-			stopCtx = ctx
-		}
-
-		client, err := clients.Build(stopCtx, clientBuilder)
+		oidcToken, err := getOidcToken(d)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
 
-		client.StopContext = stopCtx
-
-		if !skipProviderRegistration {
-			// List all the available providers and their registration state to avoid unnecessary
-			// requests. This also lets us check if the provider credentials are correct.
-			providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
-			if err != nil {
-				return nil, diag.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
-					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-					"error: %s", err)
-			}
-
-			availableResourceProviders := providerList.Values()
-			requiredResourceProviders := resourceproviders.Required()
-
-			if err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders); err != nil {
-				return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
-			}
+		clientSecret, err := getClientSecret(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
 		}
 
-		return client, nil
+		clientId, err := getClientId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		var (
+			env *environments.Environment
+
+			envName      = d.Get("environment").(string)
+			metadataHost = d.Get("metadata_host").(string)
+		)
+
+		if metadataHost != "" {
+			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+				return nil, diag.FromErr(err)
+			}
+		} else if env, err = environments.FromName(envName); err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		var (
+			enableAzureCli        = d.Get("use_cli").(bool)
+			enableManagedIdentity = d.Get("use_msi").(bool)
+			enableOidc            = d.Get("use_oidc").(bool)
+		)
+
+		authConfig := &auth.Credentials{
+			Environment:        *env,
+			ClientID:           *clientId,
+			TenantID:           d.Get("tenant_id").(string),
+			AuxiliaryTenantIDs: auxTenants,
+
+			ClientCertificateData:     clientCertificateData,
+			ClientCertificatePath:     d.Get("client_certificate_path").(string),
+			ClientCertificatePassword: d.Get("client_certificate_password").(string),
+			ClientSecret:              *clientSecret,
+
+			OIDCAssertionToken:          *oidcToken,
+			GitHubOIDCTokenRequestURL:   d.Get("oidc_request_url").(string),
+			GitHubOIDCTokenRequestToken: d.Get("oidc_request_token").(string),
+
+			CustomManagedIdentityEndpoint: d.Get("msi_endpoint").(string),
+
+			EnableAuthenticatingUsingClientCertificate: true,
+			EnableAuthenticatingUsingClientSecret:      true,
+			EnableAuthenticatingUsingAzureCLI:          enableAzureCli,
+			EnableAuthenticatingUsingManagedIdentity:   enableManagedIdentity,
+			EnableAuthenticationUsingOIDC:              enableOidc,
+			EnableAuthenticationUsingGitHubOIDC:        enableOidc,
+		}
+
+		return buildClient(ctx, p, d, authConfig)
 	}
+}
+
+func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials) (*clients.Client, diag.Diagnostics) {
+	skipProviderRegistration := d.Get("skip_provider_registration").(bool)
+
+	clientBuilder := clients.ClientBuilder{
+		AuthConfig:                  authConfig,
+		DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
+		DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
+		Features:                    expandFeatures(d.Get("features").([]interface{})),
+		MetadataHost:                d.Get("metadata_host").(string),
+		PartnerID:                   d.Get("partner_id").(string),
+		SkipProviderRegistration:    skipProviderRegistration,
+		StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
+		SubscriptionID:              d.Get("subscription_id").(string),
+		TerraformVersion:            p.TerraformVersion,
+
+		// this field is intentionally not exposed in the provider block, since it's only used for
+		// platform level tracing
+		CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
+	}
+
+	//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
+	stopCtx, ok := schema.StopContext(ctx) //nolint:staticcheck
+	if !ok {
+		stopCtx = ctx
+	}
+
+	client, err := clients.Build(stopCtx, clientBuilder)
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+
+	client.StopContext = stopCtx
+
+	if !skipProviderRegistration {
+		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
+		requiredResourceProviders := resourceproviders.Required()
+		ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+		defer cancel()
+
+		if err := resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
+			return nil, diag.Errorf(resourceProviderRegistrationErrorFmt, err)
+		}
+	}
+
+	return client, nil
+}
+
+func decodeCertificate(clientCertificate string) ([]byte, error) {
+	var pfx []byte
+	if clientCertificate != "" {
+		out := make([]byte, base64.StdEncoding.DecodedLen(len(clientCertificate)))
+		n, err := base64.StdEncoding.Decode(out, []byte(clientCertificate))
+		if err != nil {
+			return pfx, fmt.Errorf("could not decode client certificate data: %v", err)
+		}
+		pfx = out[:n]
+	}
+	return pfx, nil
+}
+
+func getOidcToken(d *schema.ResourceData) (*string, error) {
+	idToken := strings.TrimSpace(d.Get("oidc_token").(string))
+
+	if path := d.Get("oidc_token_file_path").(string); path != "" {
+		fileTokenRaw, err := os.ReadFile(path)
+
+		if err != nil {
+			return nil, fmt.Errorf("reading OIDC Token from file %q: %v", path, err)
+		}
+
+		fileToken := strings.TrimSpace(string(fileTokenRaw))
+
+		if idToken != "" && idToken != fileToken {
+			return nil, fmt.Errorf("mismatch between supplied OIDC token and supplied OIDC token file contents - please either remove one or ensure they match")
+		}
+
+		idToken = fileToken
+	}
+
+	return &idToken, nil
+}
+
+func getClientId(d *schema.ResourceData) (*string, error) {
+	clientId := strings.TrimSpace(d.Get("client_id").(string))
+
+	if path := d.Get("client_id_file_path").(string); path != "" {
+		fileClientIdRaw, err := os.ReadFile(path)
+
+		if err != nil {
+			return nil, fmt.Errorf("reading Client ID from file %q: %v", path, err)
+		}
+
+		fileClientId := strings.TrimSpace(string(fileClientIdRaw))
+
+		if clientId != "" && clientId != fileClientId {
+			return nil, fmt.Errorf("mismatch between supplied Client ID and supplied Client ID file contents - please either remove one or ensure they match")
+		}
+
+		clientId = fileClientId
+	}
+
+	return &clientId, nil
+}
+
+func getClientSecret(d *schema.ResourceData) (*string, error) {
+	clientSecret := strings.TrimSpace(d.Get("client_secret").(string))
+
+	if path := d.Get("client_secret_file_path").(string); path != "" {
+		fileSecretRaw, err := os.ReadFile(path)
+
+		if err != nil {
+			return nil, fmt.Errorf("reading Client Secret from file %q: %v", path, err)
+		}
+
+		fileSecret := strings.TrimSpace(string(fileSecretRaw))
+
+		if clientSecret != "" && clientSecret != fileSecret {
+			return nil, fmt.Errorf("mismatch between supplied Client Secret and supplied Client Secret file contents - please either remove one or ensure they match")
+		}
+
+		clientSecret = fileSecret
+	}
+
+	return &clientSecret, nil
 }
 
 const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.
