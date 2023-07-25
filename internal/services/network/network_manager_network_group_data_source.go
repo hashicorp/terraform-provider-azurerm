@@ -57,7 +57,7 @@ func (r ManagerNetworkGroupDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerNetworkGroupsClient
+			client := metadata.Client.Network.NetworkGroups
 
 			var model ManagerNetworkGroupModel
 			if err := metadata.Decode(&model); err != nil {

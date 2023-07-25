@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	network_2023_02_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routefilters"
@@ -41,7 +40,6 @@ type Client struct {
 	InterfacesClient                         *network.InterfacesClient
 	IPGroupsClient                           *network.IPGroupsClient
 	LocalNetworkGatewaysClient               *network.LocalNetworkGatewaysClient
-	ManagerNetworkGroupsClient               *networkgroups.NetworkGroupsClient
 	ManagerScopeConnectionsClient            *scopeconnections.ScopeConnectionsClient
 	ManagerSecurityAdminConfigurationsClient *securityadminconfigurations.SecurityAdminConfigurationsClient
 	ManagerStaticMembersClient               *staticmembers.StaticMembersClient
@@ -134,12 +132,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
-
-	ManagerNetworkGroupsClient, err := networkgroups.NewNetworkGroupsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building network manager network groups client: %+v", err)
-	}
-	o.Configure(ManagerNetworkGroupsClient.Client, o.Authorizers.ResourceManager)
 
 	ManagerScopeConnectionsClient, err := scopeconnections.NewScopeConnectionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -320,7 +312,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		InterfacesClient:                         &InterfacesClient,
 		IPGroupsClient:                           &IpGroupsClient,
 		LocalNetworkGatewaysClient:               &LocalNetworkGatewaysClient,
-		ManagerNetworkGroupsClient:               ManagerNetworkGroupsClient,
 		ManagerScopeConnectionsClient:            ManagerScopeConnectionsClient,
 		ManagerSecurityAdminConfigurationsClient: ManagerSecurityAdminConfigurationsClient,
 		ManagerStaticMembersClient:               ManagerStaticMembersClient,

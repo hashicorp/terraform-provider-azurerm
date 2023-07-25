@@ -88,7 +88,7 @@ func (r ManagerNetworkGroupResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	client := clients.Network.ManagerNetworkGroupsClient
+	client := clients.Network.NetworkGroups
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
