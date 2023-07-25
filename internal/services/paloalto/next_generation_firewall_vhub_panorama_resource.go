@@ -21,15 +21,14 @@ import (
 type NextGenerationFirewallVHubPanoramaResource struct{}
 
 type NextGenerationFirewallVHubPanoramaModel struct {
-	Name                 string `tfschema:"name"`
-	ResourceGroupName    string `tfschema:"resource_group_name"`
-	PanoramaBase64Config string `tfschema:"panorama_base64_config"`
-
-	Location       string                      `tfschema:"location"` // TODO RG Location only, or other OK?
-	NetworkProfile []schema.NetworkProfileVHub `tfschema:"network_profile"`
-	DNSSettings    []schema.DNSSettings        `tfschema:"dns_settings"`
-	FrontEnd       []schema.DestinationNAT     `tfschema:"destination_nat"`
-	PanoramaConfig []schema.Panorama           `tfschema:"panorama_config"`
+	Name                 string                      `tfschema:"name"`
+	ResourceGroupName    string                      `tfschema:"resource_group_name"`
+	PanoramaBase64Config string                      `tfschema:"panorama_base64_config"`
+	Location             string                      `tfschema:"location"`
+	NetworkProfile       []schema.NetworkProfileVHub `tfschema:"network_profile"`
+	DNSSettings          []schema.DNSSettings        `tfschema:"dns_settings"`
+	FrontEnd             []schema.DestinationNAT     `tfschema:"destination_nat"`
+	PanoramaConfig       []schema.Panorama           `tfschema:"panorama_config"`
 
 	// Computed
 	PlanData []schema.Plan `tfschema:"plan"`
