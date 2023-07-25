@@ -265,7 +265,7 @@ func expandEventSubscriptionDeliveryAttributeMappings(input []interface{}) []eve
 	return output
 }
 
-func flattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.EventSubscriptionDestination) []interface{} {
+func flattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.EventSubscriptionDestination, mappingsFromState []eventsubscriptions.DeliveryAttributeMapping) []interface{} {
 	mappings := make([]eventsubscriptions.DeliveryAttributeMapping, 0)
 
 	if v, ok := input.(eventsubscriptions.AzureFunctionEventSubscriptionDestination); ok && v.Properties != nil && v.Properties.DeliveryAttributeMappings != nil {
@@ -298,7 +298,15 @@ func flattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.
 					secret = *val.Properties.IsSecret
 				}
 				if val.Properties.Value != nil {
-					value = *val.Properties.Value
+					// If this is a secret, the Azure API just returns a value of 'Hidden',
+					// so we need to lookup the value that was provided from config to return
+					for _, v := range mappingsFromState {
+						mapping, ok := v.(eventsubscriptions.StaticDeliveryAttributeMapping)
+						if ok && mapping.Name != nil && val.Name != nil && *mapping.Name == *val.Name && mapping.Properties != nil && mapping.Properties.Value != nil {
+							value = *mapping.Properties.Value
+							break
+						}
+					}
 				}
 			}
 			output = append(output, map[string]interface{}{

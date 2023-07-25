@@ -304,7 +304,8 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("setting `delivery_identity` for %s: %+v", *id, err)
 			}
 
-			deliveryMappings := flattenEventSubscriptionDeliveryAttributeMappings(destination)
+			existingMappingsFromState := expandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]interface{}))
+			deliveryMappings := flattenEventSubscriptionDeliveryAttributeMappings(destination, existingMappingsFromState)
 			if err := d.Set("delivery_property", deliveryMappings); err != nil {
 				return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 			}
