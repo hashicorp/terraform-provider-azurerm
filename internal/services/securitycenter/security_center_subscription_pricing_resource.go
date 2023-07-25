@@ -180,7 +180,9 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 		if properties := resp.Model.Properties; properties != nil {
 			d.Set("tier", properties.PricingTier)
 			d.Set("subplan", properties.SubPlan)
-			d.Set("extensions", *(properties.Extensions))
+			if properties.Extensions != nil {
+				d.Set("extensions", *(properties.Extensions))
+			}
 		}
 	}
 
