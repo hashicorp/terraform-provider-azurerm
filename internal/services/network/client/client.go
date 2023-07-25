@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routefilters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routetables"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/scopeconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/securityadminconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/securityrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/staticmembers"
@@ -39,7 +38,6 @@ type Client struct {
 	InterfacesClient                         *network.InterfacesClient
 	IPGroupsClient                           *network.IPGroupsClient
 	LocalNetworkGatewaysClient               *network.LocalNetworkGatewaysClient
-	ManagerScopeConnectionsClient            *scopeconnections.ScopeConnectionsClient
 	ManagerSecurityAdminConfigurationsClient *securityadminconfigurations.SecurityAdminConfigurationsClient
 	ManagerStaticMembersClient               *staticmembers.StaticMembersClient
 	NatRuleClient                            *network.NatRulesClient
@@ -130,12 +128,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
-
-	ManagerScopeConnectionsClient, err := scopeconnections.NewScopeConnectionsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building network manager scope connections client: %+v", err)
-	}
-	o.Configure(ManagerScopeConnectionsClient.Client, o.Authorizers.ResourceManager)
 
 	ManagerSecurityAdminConfigurationsClient, err := securityadminconfigurations.NewSecurityAdminConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -304,7 +296,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		InterfacesClient:                         &InterfacesClient,
 		IPGroupsClient:                           &IpGroupsClient,
 		LocalNetworkGatewaysClient:               &LocalNetworkGatewaysClient,
-		ManagerScopeConnectionsClient:            ManagerScopeConnectionsClient,
 		ManagerSecurityAdminConfigurationsClient: ManagerSecurityAdminConfigurationsClient,
 		ManagerStaticMembersClient:               ManagerStaticMembersClient,
 		NatRuleClient:                            &NatRuleClient,
