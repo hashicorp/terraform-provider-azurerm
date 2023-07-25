@@ -437,7 +437,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 }
 
 func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
+	client := meta.(*clients.Client).Network.ConnectionMonitors
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -490,7 +490,7 @@ func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, met
 }
 
 func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
+	client := meta.(*clients.Client).Network.ConnectionMonitors
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -548,7 +548,7 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceNetworkConnectionMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
+	client := meta.(*clients.Client).Network.ConnectionMonitors
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

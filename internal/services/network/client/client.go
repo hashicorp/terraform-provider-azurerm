@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/adminrulecollections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/adminrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/bastionhosts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/connectionmonitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/connectivityconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/flowlogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkgroups"
@@ -36,7 +35,6 @@ type Client struct {
 	ApplicationGatewaysClient                *network.ApplicationGatewaysClient
 	BastionHostsClient                       *bastionhosts.BastionHostsClient
 	ConfigurationPolicyGroupClient           *network.ConfigurationPolicyGroupsClient
-	ConnectionMonitorsClient                 *connectionmonitors.ConnectionMonitorsClient
 	DDOSProtectionPlansClient                *network.DdosProtectionPlansClient
 	ExpressRouteAuthsClient                  *network.ExpressRouteCircuitAuthorizationsClient
 	ExpressRouteCircuitsClient               *network.ExpressRouteCircuitsClient
@@ -114,12 +112,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	configurationPolicyGroupClient := network.NewConfigurationPolicyGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configurationPolicyGroupClient.Client, o.ResourceManagerAuthorizer)
-
-	ConnectionMonitorsClient, err := connectionmonitors.NewConnectionMonitorsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building connection monitors client: %+v", err)
-	}
-	o.Configure(ConnectionMonitorsClient.Client, o.Authorizers.ResourceManager)
 
 	DDOSProtectionPlansClient := network.NewDdosProtectionPlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DDOSProtectionPlansClient.Client, o.ResourceManagerAuthorizer)
@@ -371,7 +363,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ApplicationGatewaysClient:                &ApplicationGatewaysClient,
 		BastionHostsClient:                       BastionHostsClient,
 		ConfigurationPolicyGroupClient:           &configurationPolicyGroupClient,
-		ConnectionMonitorsClient:                 ConnectionMonitorsClient,
 		DDOSProtectionPlansClient:                &DDOSProtectionPlansClient,
 		ExpressRouteAuthsClient:                  &ExpressRouteAuthsClient,
 		ExpressRouteCircuitsClient:               &ExpressRouteCircuitsClient,

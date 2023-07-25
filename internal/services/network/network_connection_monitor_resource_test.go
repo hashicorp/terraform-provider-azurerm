@@ -263,7 +263,7 @@ func (t NetworkConnectionMonitorResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.Network.ConnectionMonitorsClient.Get(ctx, *id)
+	resp, err := clients.Network.ConnectionMonitors.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Network Connection Monitor (%s): %+v", id, err)
 	}
