@@ -1,4 +1,4 @@
-package hpccache
+package amlfilesystem
 
 import (
 	"context"
@@ -13,14 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/amlfilesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/amlfilesystem/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type HPCCacheAMLFileSystemModel struct {
+type AMLFileSystemModel struct {
 	Name                string                       `tfschema:"name"`
 	ResourceGroupName   string                       `tfschema:"resource_group_name"`
 	Location            string                       `tfschema:"location"`
@@ -51,23 +51,23 @@ type MaintenanceWindow struct {
 	TimeOfDayInUTC string                                  `tfschema:"time_of_day_in_utc"`
 }
 
-type HPCCacheAMLFileSystemResource struct{}
+type AMLFileSystemResource struct{}
 
-var _ sdk.ResourceWithUpdate = HPCCacheAMLFileSystemResource{}
+var _ sdk.ResourceWithUpdate = AMLFileSystemResource{}
 
-func (r HPCCacheAMLFileSystemResource) ResourceType() string {
+func (r AMLFileSystemResource) ResourceType() string {
 	return "azurerm_hpc_cache_aml_file_system"
 }
 
-func (r HPCCacheAMLFileSystemResource) ModelObject() interface{} {
-	return &HPCCacheAMLFileSystemModel{}
+func (r AMLFileSystemResource) ModelObject() interface{} {
+	return &AMLFileSystemModel{}
 }
 
-func (r HPCCacheAMLFileSystemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r AMLFileSystemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return amlfilesystems.ValidateAmlFilesystemID
 }
 
-func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema {
+func (r AMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -186,20 +186,20 @@ func (r HPCCacheAMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema 
 	}
 }
 
-func (r HPCCacheAMLFileSystemResource) Attributes() map[string]*pluginsdk.Schema {
+func (r AMLFileSystemResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r HPCCacheAMLFileSystemResource) Create() sdk.ResourceFunc {
+func (r AMLFileSystemResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model HPCCacheAMLFileSystemModel
+			var model AMLFileSystemModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.HPCCache.AMLFileSystemsClient
+			client := metadata.Client.AMLFileSystem.AmlFilesystemsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := amlfilesystems.NewAmlFilesystemID(subscriptionId, model.ResourceGroupName, model.Name)
 
@@ -244,18 +244,18 @@ func (r HPCCacheAMLFileSystemResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r HPCCacheAMLFileSystemResource) Update() sdk.ResourceFunc {
+func (r AMLFileSystemResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.HPCCache.AMLFileSystemsClient
+			client := metadata.Client.AMLFileSystem.AmlFilesystemsClient
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var model HPCCacheAMLFileSystemModel
+			var model AMLFileSystemModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -285,11 +285,11 @@ func (r HPCCacheAMLFileSystemResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r HPCCacheAMLFileSystemResource) Read() sdk.ResourceFunc {
+func (r AMLFileSystemResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.HPCCache.AMLFileSystemsClient
+			client := metadata.Client.AMLFileSystem.AmlFilesystemsClient
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {
@@ -310,7 +310,7 @@ func (r HPCCacheAMLFileSystemResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := HPCCacheAMLFileSystemModel{
+			state := AMLFileSystemModel{
 				Name:              id.AmlFilesystemName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
@@ -338,11 +338,11 @@ func (r HPCCacheAMLFileSystemResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r HPCCacheAMLFileSystemResource) Delete() sdk.ResourceFunc {
+func (r AMLFileSystemResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.HPCCache.AMLFileSystemsClient
+			client := metadata.Client.AMLFileSystem.AmlFilesystemsClient
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {

@@ -1,4 +1,4 @@
-package hpccache_test
+package amlfilesystem_test
 
 import (
 	"context"
@@ -89,7 +89,7 @@ func (r HPCCacheAMLFileSystemResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	client := clients.HPCCache.AMLFileSystemsClient
+	client := clients.AMLFileSystem.AmlFilesystemsClient
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

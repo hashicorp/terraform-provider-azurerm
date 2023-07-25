@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
 	advisor "github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor/client"
+	amlFileSystem "github.com/hashicorp/terraform-provider-azurerm/internal/services/amlfilesystem/client"
 	analysisServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/client"
 	apiManagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	appConfiguration "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
@@ -149,6 +150,7 @@ type Client struct {
 
 	AadB2c                *aadb2c_v2021_04_01_preview.Client
 	Advisor               *advisor.Client
+	AMLFileSystem         *amlFileSystem.Client
 	AnalysisServices      *analysisservices_v2017_08_01.Client
 	ApiManagement         *apiManagement.Client
 	AppConfiguration      *appConfiguration.Client
@@ -285,6 +287,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for AadB2c: %+v", err)
 	}
 	client.Advisor = advisor.NewClient(o)
+	client.AMLFileSystem = amlFileSystem.NewClient(o)
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
 	if client.AppConfiguration, err = appConfiguration.NewClient(o); err != nil {
