@@ -12,29 +12,19 @@ import (
 type Client struct {
 	eventgrid_v2022_06_15.Client
 
-	EventSubscriptionsClient            *eventgrid.EventSubscriptionsClient
-	TopicsClient                        *eventgrid.TopicsClient
-	SystemTopicsClient                  *eventgrid.SystemTopicsClient
-	SystemTopicEventSubscriptionsClient *eventgrid.SystemTopicEventSubscriptionsClient
+	TopicsClient       *eventgrid.TopicsClient
+	SystemTopicsClient *eventgrid.SystemTopicsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	EventSubscriptionsClient := eventgrid.NewEventSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&EventSubscriptionsClient.Client, o.ResourceManagerAuthorizer)
-
 	TopicsClient := eventgrid.NewTopicsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&TopicsClient.Client, o.ResourceManagerAuthorizer)
 
 	SystemTopicsClient := eventgrid.NewSystemTopicsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SystemTopicsClient.Client, o.ResourceManagerAuthorizer)
 
-	SystemTopicEventSubscriptionsClient := eventgrid.NewSystemTopicEventSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&SystemTopicEventSubscriptionsClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
-		EventSubscriptionsClient:            &EventSubscriptionsClient,
-		TopicsClient:                        &TopicsClient,
-		SystemTopicsClient:                  &SystemTopicsClient,
-		SystemTopicEventSubscriptionsClient: &SystemTopicEventSubscriptionsClient,
+		TopicsClient:       &TopicsClient,
+		SystemTopicsClient: &SystemTopicsClient,
 	}
 }

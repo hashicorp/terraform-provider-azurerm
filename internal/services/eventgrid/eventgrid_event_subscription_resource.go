@@ -4,21 +4,23 @@
 package eventgrid
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func PossibleEventSubscriptionEndpointTypes() []string {
+func possibleEventSubscriptionEndpointTypes() []string {
 	return []string{
 		string(AzureFunctionEndpoint),
 		string(EventHubEndpointID),
@@ -44,10 +46,29 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(eventSubscriptionCustomizeDiffAdvancedFilter),
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			if filterRaw := d.Get("advanced_filter"); len(filterRaw.([]interface{})) == 1 {
+				filters := filterRaw.([]interface{})[0].(map[string]interface{})
+				valueCount := 0
+				for _, valRaw := range filters {
+					for _, val := range valRaw.([]interface{}) {
+						v := val.(map[string]interface{})
+						if values, ok := v["values"]; ok {
+							valueCount += len(values.([]interface{}))
+						} else if _, ok := v["value"]; ok {
+							valueCount++
+						}
+					}
+				}
+				if valueCount > 25 {
+					return fmt.Errorf("the total number of `advanced_filter` values allowed on a single event subscription is 25, but %d are configured", valueCount)
+				}
+			}
+			return nil
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.EventSubscriptionID(id)
+			_, err := eventsubscriptions.ParseScopedEventSubscriptionID(id)
 			return err
 		}),
 
@@ -67,21 +88,21 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					possibleEventSubscriptionEndpointTypes(),
 					string(AzureFunctionEndpoint),
 				),
 			),
 
 			"eventhub_endpoint_id": eventSubscriptionSchemaEventHubEndpointID(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					possibleEventSubscriptionEndpointTypes(),
 					string(EventHubEndpointID),
 				),
 			),
 
 			"hybrid_connection_endpoint_id": eventSubscriptionSchemaHybridConnectionEndpointID(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					possibleEventSubscriptionEndpointTypes(),
 					string(HybridConnectionEndpointID),
 				),
 			),
@@ -89,7 +110,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			// TODO: this can become `service_bus_queue_id` in 4.0
 			"service_bus_queue_endpoint_id": eventSubscriptionSchemaServiceBusQueueEndpointID(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					possibleEventSubscriptionEndpointTypes(),
 					string(ServiceBusQueueEndpointID),
 				),
 			),
@@ -97,21 +118,21 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			// TODO: this can become `service_bus_topic_id` in 4.0
 			"service_bus_topic_endpoint_id": eventSubscriptionSchemaServiceBusTopicEndpointID(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					possibleEventSubscriptionEndpointTypes(),
 					string(ServiceBusTopicEndpointID),
 				),
 			),
 
 			"storage_queue_endpoint": eventSubscriptionSchemaStorageQueueEndpoint(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					possibleEventSubscriptionEndpointTypes(),
 					string(StorageQueueEndpoint),
 				),
 			),
 
 			"webhook_endpoint": eventSubscriptionSchemaWebHookEndpoint(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					possibleEventSubscriptionEndpointTypes(),
 					string(WebHookEndpoint),
 				),
 			),
@@ -140,62 +161,57 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 }
 
 func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
+	client := meta.(*clients.Client).EventGrid.EventSubscriptions
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewEventSubscriptionID(d.Get("scope").(string), d.Get("name").(string))
+	id := eventsubscriptions.NewScopedEventSubscriptionID(d.Get("scope").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.Scope, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_eventgrid_event_subscription", id.ID())
 		}
 	}
 
-	destination := expandEventGridEventSubscriptionDestination(d)
+	destination := expandEventSubscriptionDestination(d)
 	if destination == nil {
-		return fmt.Errorf("One of the following endpoint types must be specificed to create an EventGrid Event Subscription: %q", PossibleEventSubscriptionEndpointTypes())
+		return fmt.Errorf("one of the following endpoint types must be specificed to create an EventGrid Event Subscription: %q", possibleEventSubscriptionEndpointTypes())
 	}
 
-	filter, err := expandEventGridEventSubscriptionFilter(d)
+	filter, err := expandEventSubscriptionFilter(d)
 	if err != nil {
 		return fmt.Errorf("expanding filters for %s: %+v", id, err)
 	}
 
-	expirationTime, err := expandEventGridExpirationTime(d)
-	if err != nil {
-		return fmt.Errorf("expanding `expiration_time` for %s: %+v", id, err)
-	}
+	deadLetterDestination := expandEventSubscriptionStorageBlobDeadLetterDestination(d)
 
-	deadLetterDestination := expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d)
-
-	eventSubscriptionProperties := eventgrid.EventSubscriptionProperties{
+	properties := eventsubscriptions.EventSubscriptionProperties{
+		ExpirationTimeUtc:   pointer.To(d.Get("expiration_time_utc").(string)),
+		EventDeliverySchema: pointer.To(eventsubscriptions.EventDeliverySchema(d.Get("event_delivery_schema").(string))),
 		Filter:              filter,
-		RetryPolicy:         expandEventGridEventSubscriptionRetryPolicy(d),
 		Labels:              utils.ExpandStringSlice(d.Get("labels").([]interface{})),
-		EventDeliverySchema: eventgrid.EventDeliverySchema(d.Get("event_delivery_schema").(string)),
-		ExpirationTimeUtc:   expirationTime,
+		RetryPolicy:         expandEventSubscriptionRetryPolicy(d),
 	}
 
 	if v, ok := d.GetOk("delivery_identity"); ok {
 		deliveryIdentityRaw := v.([]interface{})
-		deliveryIdentity, err := expandEventGridEventSubscriptionIdentity(deliveryIdentityRaw)
+		deliveryIdentity, err := expandEventSubscriptionIdentity(deliveryIdentityRaw)
 		if err != nil {
 			return fmt.Errorf("expanding `delivery_identity`: %+v", err)
 		}
 
-		eventSubscriptionProperties.DeliveryWithResourceIdentity = &eventgrid.DeliveryWithResourceIdentity{
+		properties.DeliveryWithResourceIdentity = &eventsubscriptions.DeliveryWithResourceIdentity{
 			Identity:    deliveryIdentity,
 			Destination: destination,
 		}
 	} else {
-		eventSubscriptionProperties.Destination = destination
+		properties.Destination = destination
 	}
 
 	if v, ok := d.GetOk("dead_letter_identity"); ok {
@@ -203,29 +219,25 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 			return fmt.Errorf("`dead_letter_identity`: `storage_blob_dead_letter_destination` must be specified")
 		}
 		deadLetterIdentityRaw := v.([]interface{})
-		deadLetterIdentity, err := expandEventGridEventSubscriptionIdentity(deadLetterIdentityRaw)
+		deadLetterIdentity, err := expandEventSubscriptionIdentity(deadLetterIdentityRaw)
 		if err != nil {
 			return fmt.Errorf("expanding `dead_letter_identity`: %+v", err)
 		}
 
-		eventSubscriptionProperties.DeadLetterWithResourceIdentity = &eventgrid.DeadLetterWithResourceIdentity{
+		properties.DeadLetterWithResourceIdentity = &eventsubscriptions.DeadLetterWithResourceIdentity{
 			Identity:              deadLetterIdentity,
 			DeadLetterDestination: deadLetterDestination,
 		}
 	} else {
-		eventSubscriptionProperties.DeadLetterDestination = deadLetterDestination
+		properties.DeadLetterDestination = deadLetterDestination
 	}
 
-	eventSubscription := eventgrid.EventSubscription{
-		EventSubscriptionProperties: &eventSubscriptionProperties,
+	payload := eventsubscriptions.EventSubscription{
+		Properties: &properties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.Scope, id.Name, eventSubscription)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -233,18 +245,18 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 }
 
 func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
+	client := meta.(*clients.Client).EventGrid.EventSubscriptions
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventSubscriptionID(d.Id())
+	id, err := eventsubscriptions.ParseScopedEventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Scope, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -253,140 +265,93 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	fullUrlResp, err := client.GetFullUrl(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving full url for %s: %+v", *id, err)
+	}
+
+	d.Set("name", id.EventSubscriptionName)
 	d.Set("scope", id.Scope)
 
-	if props := resp.EventSubscriptionProperties; props != nil {
-		if props.ExpirationTimeUtc != nil {
-			d.Set("expiration_time_utc", props.ExpirationTimeUtc.Format(time.RFC3339))
-		}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			expirationTimeUtc := ""
+			if props.ExpirationTimeUtc != nil {
+				t, err := props.GetExpirationTimeUtcAsTime()
+				if err == nil {
+					expirationTimeUtc = t.Format(time.RFC3339)
+				}
+			}
+			d.Set("expiration_time_utc", expirationTimeUtc)
 
-		d.Set("event_delivery_schema", string(props.EventDeliverySchema))
+			eventDeliverySchema := ""
+			if props.EventDeliverySchema != nil {
+				eventDeliverySchema = string(*props.EventDeliverySchema)
+			}
+			d.Set("event_delivery_schema", eventDeliverySchema)
 
-		destination := props.Destination
-		deliveryIdentityFlattened := make([]interface{}, 0)
-		if deliveryIdentity := props.DeliveryWithResourceIdentity; deliveryIdentity != nil {
-			destination = deliveryIdentity.Destination
-			deliveryIdentityFlattened = flattenEventGridEventSubscriptionIdentity(deliveryIdentity.Identity)
-		}
-		if err := d.Set("delivery_identity", deliveryIdentityFlattened); err != nil {
-			return fmt.Errorf("setting `delivery_identity` for %s: %+v", *id, err)
-		}
+			destination := props.Destination
+			deliveryIdentityFlattened := make([]interface{}, 0)
+			if deliveryIdentity := props.DeliveryWithResourceIdentity; deliveryIdentity != nil {
+				destination = deliveryIdentity.Destination
+				deliveryIdentityFlattened = flattenEventSubscriptionIdentity(deliveryIdentity.Identity)
+			}
+			if err := d.Set("delivery_identity", deliveryIdentityFlattened); err != nil {
+				return fmt.Errorf("setting `delivery_identity` for %s: %+v", *id, err)
+			}
 
-		if azureFunctionEndpoint, ok := destination.AsAzureFunctionEventSubscriptionDestination(); ok {
-			if err := d.Set("azure_function_endpoint", flattenEventGridEventSubscriptionAzureFunctionEndpoint(azureFunctionEndpoint)); err != nil {
+			deliveryMappings := flattenEventSubscriptionDeliveryAttributeMappings(destination)
+			if err := d.Set("delivery_property", deliveryMappings); err != nil {
+				return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
+			}
+
+			if err := d.Set("azure_function_endpoint", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
 				return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
 			}
 
-			if azureFunctionEndpoint.DeliveryAttributeMappings != nil {
-				if err := d.Set("delivery_property", flattenDeliveryProperties(d, azureFunctionEndpoint.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
-				}
-			}
-		}
-		if v, ok := destination.AsEventHubEventSubscriptionDestination(); ok {
-			if err := d.Set("eventhub_endpoint_id", v.ResourceID); err != nil {
-				return fmt.Errorf("setting `eventhub_endpoint_id` for %s: %+v", *id, err)
-			}
-
-			if v.DeliveryAttributeMappings != nil {
-				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
-				}
-			}
-		}
-		if v, ok := destination.AsHybridConnectionEventSubscriptionDestination(); ok {
-			if err := d.Set("hybrid_connection_endpoint_id", v.ResourceID); err != nil {
-				return fmt.Errorf("setting `hybrid_connection_endpoint_id` for %s: %+v", *id, err)
-			}
-
-			if v.DeliveryAttributeMappings != nil {
-				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
-				}
-			}
-		}
-		if serviceBusQueueEndpoint, ok := destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
-			if err := d.Set("service_bus_queue_endpoint_id", serviceBusQueueEndpoint.ResourceID); err != nil {
-				return fmt.Errorf("setting `service_bus_queue_endpoint_id` for %s: %+v", *id, err)
-			}
-		}
-		if serviceBusTopicEndpoint, ok := destination.AsServiceBusTopicEventSubscriptionDestination(); ok {
-			if err := d.Set("service_bus_topic_endpoint_id", serviceBusTopicEndpoint.ResourceID); err != nil {
-				return fmt.Errorf("setting `service_bus_topic_endpoint_id` for %s: %+v", *id, err)
-			}
-			if serviceBusTopicEndpoint.DeliveryAttributeMappings != nil {
-				if err := d.Set("delivery_property", flattenDeliveryProperties(d, serviceBusTopicEndpoint.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
-				}
-			}
-		}
-		if v, ok := destination.AsStorageQueueEventSubscriptionDestination(); ok {
-			if err := d.Set("storage_queue_endpoint", flattenEventGridEventSubscriptionStorageQueueEndpoint(v)); err != nil {
+			d.Set("eventhub_endpoint_id", flattenEventSubscriptionDestinationEventHub(destination))
+			d.Set("hybrid_connection_endpoint_id", flattenEventSubscriptionDestinationHybridConnection(destination))
+			d.Set("service_bus_queue_endpoint_id", flattenEventSubscriptionDestinationServiceBusQueueEndpoint(destination))
+			d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopicEndpoint(destination))
+			if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueueEndpoint(destination)); err != nil {
 				return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
 			}
-		}
-		if v, ok := destination.AsWebHookEventSubscriptionDestination(); ok {
-			fullURL, err := client.GetFullURL(ctx, id.Scope, id.Name)
-			if err != nil {
-				return fmt.Errorf("retrieving Full WebHook URL for %s: %+v", *id, err)
-			}
-			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(v, &fullURL)); err != nil {
+			if err := d.Set("webhook_endpoint", flattenEventSubscriptionWebhookEndpoint(destination, fullUrlResp.Model)); err != nil {
 				return fmt.Errorf("setting `webhook_endpoint` for %s: %+v", *id, err)
 			}
 
-			if v.DeliveryAttributeMappings != nil {
-				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
-				}
+			deadLetterDestination := props.DeadLetterDestination
+			deadLetterIdentityFlattened := make([]interface{}, 0)
+			if deadLetterIdentity := props.DeadLetterWithResourceIdentity; deadLetterIdentity != nil {
+				deadLetterDestination = deadLetterIdentity.DeadLetterDestination
+				deadLetterIdentityFlattened = flattenEventSubscriptionIdentity(deadLetterIdentity.Identity)
 			}
-		}
-
-		deadLetterDestination := props.DeadLetterDestination
-		deadLetterIdentityFlattened := make([]interface{}, 0)
-		if deadLetterIdentity := props.DeadLetterWithResourceIdentity; deadLetterIdentity != nil {
-			deadLetterDestination = deadLetterIdentity.DeadLetterDestination
-			deadLetterIdentityFlattened = flattenEventGridEventSubscriptionIdentity(deadLetterIdentity.Identity)
-		}
-		if err := d.Set("dead_letter_identity", deadLetterIdentityFlattened); err != nil {
-			return fmt.Errorf("setting `dead_letter_identity` for %s: %+v", *id, err)
-		}
-
-		if deadLetterDestination != nil {
-			if storageBlobDeadLetterDestination, ok := deadLetterDestination.AsStorageBlobDeadLetterDestination(); ok {
-				if err := d.Set("storage_blob_dead_letter_destination", flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(storageBlobDeadLetterDestination)); err != nil {
-					return fmt.Errorf("Error setting `storage_blob_dead_letter_destination` for %s: %+v", *id, err)
-				}
+			if err := d.Set("dead_letter_identity", deadLetterIdentityFlattened); err != nil {
+				return fmt.Errorf("setting `dead_letter_identity` for %s: %+v", *id, err)
 			}
-		}
-
-		if filter := props.Filter; filter != nil {
-			d.Set("included_event_types", filter.IncludedEventTypes)
-			d.Set("advanced_filtering_on_arrays_enabled", filter.EnableAdvancedFilteringOnArrays)
-			if err := d.Set("subject_filter", flattenEventGridEventSubscriptionSubjectFilter(filter)); err != nil {
-				return fmt.Errorf("setting `subject_filter` for %s: %+v", *id, err)
+			if err := d.Set("storage_blob_dead_letter_destination", flattenEventSubscriptionStorageBlobDeadLetterDestination(deadLetterDestination)); err != nil {
+				return fmt.Errorf("setting `storage_blob_dead_letter_destination` for %s: %+v", *id, err)
 			}
-			if err := d.Set("advanced_filter", flattenEventGridEventSubscriptionAdvancedFilter(filter)); err != nil {
+
+			enableAdvancedFilteringOnArrays := false
+			includedEventTypes := make([]string, 0)
+			if filter := props.Filter; filter != nil {
+				enableAdvancedFilteringOnArrays = pointer.From(filter.EnableAdvancedFilteringOnArrays)
+				includedEventTypes = pointer.From(filter.IncludedEventTypes)
+			}
+			d.Set("advanced_filtering_on_arrays_enabled", enableAdvancedFilteringOnArrays)
+			d.Set("included_event_types", includedEventTypes)
+			if err := d.Set("advanced_filter", flattenEventSubscriptionAdvancedFilter(props.Filter)); err != nil {
 				return fmt.Errorf("setting `advanced_filter` for %s: %+v", *id, err)
 			}
-		}
-
-		if props.DeadLetterDestination != nil {
-			if storageBlobDeadLetterDestination, ok := props.DeadLetterDestination.AsStorageBlobDeadLetterDestination(); ok {
-				if err := d.Set("storage_blob_dead_letter_destination", flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(storageBlobDeadLetterDestination)); err != nil {
-					return fmt.Errorf("setting `storage_blob_dead_letter_destination` for %s: %+v", *id, err)
-				}
-			}
-		}
-
-		if retryPolicy := props.RetryPolicy; retryPolicy != nil {
-			if err := d.Set("retry_policy", flattenEventGridEventSubscriptionRetryPolicy(retryPolicy)); err != nil {
+			if err := d.Set("retry_policy", flattenEventSubscriptionRetryPolicy(props.RetryPolicy)); err != nil {
 				return fmt.Errorf("setting `retry_policy` for %s: %+v", *id, err)
 			}
-		}
+			if err := d.Set("subject_filter", flattenEventSubscriptionSubjectFilter(props.Filter)); err != nil {
+				return fmt.Errorf("setting `subject_filter` for %s: %+v", *id, err)
+			}
 
-		if err := d.Set("labels", props.Labels); err != nil {
-			return fmt.Errorf("setting `labels` for %s: %+v", *id, err)
+			d.Set("labels", props.Labels)
 		}
 	}
 
@@ -394,22 +359,17 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceEventGridEventSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
+	client := meta.(*clients.Client).EventGrid.EventSubscriptions
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventSubscriptionID(d.Id())
+	id, err := eventsubscriptions.ParseScopedEventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.Scope, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
