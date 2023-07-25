@@ -104,7 +104,7 @@ func dataSourceBastionHost() *pluginsdk.Resource {
 }
 
 func dataSourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.BastionHostsClient
+	client := meta.(*clients.Client).Network.BastionHosts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

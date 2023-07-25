@@ -157,7 +157,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 }
 
 func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.BastionHostsClient
+	client := meta.(*clients.Client).Network.BastionHosts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,7 +234,7 @@ func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.BastionHostsClient
+	client := meta.(*clients.Client).Network.BastionHosts
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -293,7 +293,7 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 }
 
 func resourceBastionHostDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.BastionHostsClient
+	client := meta.(*clients.Client).Network.BastionHosts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

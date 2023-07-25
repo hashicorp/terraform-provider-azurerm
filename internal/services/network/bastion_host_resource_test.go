@@ -129,7 +129,7 @@ func (BastionHostResource) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, err
 	}
 
-	resp, err := clients.Network.BastionHostsClient.Get(ctx, *id)
+	resp, err := clients.Network.BastionHosts.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Bastion Host (%s): %+v", *id, err)
 	}
