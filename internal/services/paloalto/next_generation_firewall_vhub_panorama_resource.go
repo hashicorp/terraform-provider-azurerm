@@ -3,6 +3,7 @@ package paloalto
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"strconv"
 	"time"
 
@@ -119,6 +120,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Create() sdk.ResourceFunc {
 			}
 
 			firewall := firewalls.FirewallResource{
+				Location: location.Normalize(model.Location),
 				Properties: firewalls.FirewallDeploymentProperties{
 					PanoramaConfig: &firewalls.PanoramaConfig{
 						ConfigString: model.PanoramaBase64Config,

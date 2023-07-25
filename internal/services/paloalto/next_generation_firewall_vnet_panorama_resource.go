@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"time"
@@ -114,6 +115,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Create() sdk.ResourceFunc {
 			}
 
 			firewall := firewalls.FirewallResource{
+				Location: location.Normalize(model.Location),
 				Properties: firewalls.FirewallDeploymentProperties{
 					PanoramaConfig: &firewalls.PanoramaConfig{
 						ConfigString: model.PanoramaBase64Config,

@@ -32,6 +32,52 @@ func TestAccNextGenerationFirewallVNetPanoramaResource_basic(t *testing.T) {
 
 }
 
+func TestAccNextGenerationFirewallVNetPanoramaResource_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_panorama", "test")
+	r := NextGenerationFirewallVNetPanoramaResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+
+}
+
+func TestAccNextGenerationFirewallVNetPanoramaResource_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_panorama", "test")
+	r := NextGenerationFirewallVNetPanoramaResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+
+}
+
 func (r NextGenerationFirewallVNetPanoramaResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := firewalls.ParseFirewallID(state.ID)
 	if err != nil {
