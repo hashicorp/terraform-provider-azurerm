@@ -1307,6 +1307,18 @@ func TestAccCosmosDBAccount_ipRangeFilters(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_withoutMaxAgeInSeconds(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutMaxAgeInSeconds(data, documentdb.DatabaseAccountKindParse, documentdb.DefaultConsistencyLevelEventual),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosDBAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseAccountID(state.ID)
 	if err != nil {
@@ -1561,7 +1573,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*"]
     allowed_headers    = ["x-tempo-*"]
     allowed_methods    = ["GET", "PUT"]
-    max_age_in_seconds = "500"
+    max_age_in_seconds = 500
   }
 
   access_key_metadata_writes_enabled    = false
@@ -1619,7 +1631,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*"]
     allowed_headers    = ["x-tempo-*"]
     allowed_methods    = ["GET", "PUT"]
-    max_age_in_seconds = "500"
+    max_age_in_seconds = 500
   }
   access_key_metadata_writes_enabled    = false
   network_acl_bypass_for_azure_services = true
@@ -1684,7 +1696,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*"]
     allowed_headers    = ["x-tempo-*"]
     allowed_methods    = ["GET", "PUT"]
-    max_age_in_seconds = "500"
+    max_age_in_seconds = 500
   }
 
   access_key_metadata_writes_enabled    = false
@@ -1838,7 +1850,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*", "x-method-*"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
-    max_age_in_seconds = "2000000000"
+    max_age_in_seconds = 2147483647
   }
 
   access_key_metadata_writes_enabled = true
@@ -1903,7 +1915,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*", "x-method-*"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
-    max_age_in_seconds = "2000000000"
+    max_age_in_seconds = 2147483647
   }
 
   access_key_metadata_writes_enabled = true
@@ -1980,7 +1992,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*", "x-method-*"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
-    max_age_in_seconds = "2000000000"
+    max_age_in_seconds = 2147483647
   }
   access_key_metadata_writes_enabled = true
 }
@@ -2052,7 +2064,7 @@ resource "azurerm_cosmosdb_account" "test" {
     exposed_headers    = ["x-tempo-*", "x-method-*"]
     allowed_headers    = ["*"]
     allowed_methods    = ["GET"]
-    max_age_in_seconds = "2000000000"
+    max_age_in_seconds = 2147483647
   }
   access_key_metadata_writes_enabled = true
 }
@@ -4255,4 +4267,50 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, data.RandomInteger, tag)
+}
+
+func (r CosmosDBAccountResource) withoutMaxAgeInSeconds(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+  consistency_policy {
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 170000
+  }
+  is_virtual_network_filter_enabled = true
+  virtual_network_rule {
+    id = azurerm_subnet.subnet1.id
+  }
+  virtual_network_rule {
+    id = azurerm_subnet.subnet2.id
+  }
+  enable_multiple_write_locations = true
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 1
+  }
+  geo_location {
+    location          = "%[6]s"
+    failover_priority = 2
+  }
+  cors_rule {
+    allowed_origins = ["http://www.example.com"]
+    exposed_headers = ["x-tempo-*"]
+    allowed_headers = ["x-tempo-*"]
+    allowed_methods = ["GET", "PUT"]
+  }
+  access_key_metadata_writes_enabled    = false
+  network_acl_bypass_for_azure_services = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
