@@ -140,9 +140,17 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				},
 			},
 
-			"public_network_access_enabled": eventSubscriptionPublicNetworkAccessEnabled(),
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
-			"local_auth_enabled": localAuthEnabled(),
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
 			"auto_create_topic_with_first_subscription": {
 				Type:     pluginsdk.TypeBool,
@@ -156,7 +164,28 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"inbound_ip_rule": eventSubscriptionInboundIPRule(),
+			"inbound_ip_rule": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				MaxItems:   128,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"ip_mask": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(domains.IPActionTypeAllow),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(domains.IPActionTypeAllow),
+							}, false),
+						},
+					},
+				},
+			},
 
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
@@ -200,7 +229,7 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	inboundIPRules := expandInboundIPRules(d.Get("inbound_ip_rule").([]interface{}))
+	inboundIPRules := expandDomainInboundIPRules(d.Get("inbound_ip_rule").([]interface{}))
 	publicNetworkAccess := domains.PublicNetworkAccessDisabled
 	if v, ok := d.GetOk("public_network_access_enabled"); ok && v.(bool) {
 		publicNetworkAccess = domains.PublicNetworkAccessEnabled
@@ -214,7 +243,7 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 			DisableLocalAuth:                     utils.Bool(!d.Get("local_auth_enabled").(bool)),
 			InboundIPRules:                       inboundIPRules,
 			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
-			InputSchemaMapping:                   expandAzureRmEventgridDomainInputMapping(d),
+			InputSchemaMapping:                   expandDomainInputMapping(d),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -301,7 +330,7 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			inboundIPRules := flattenInboundIPRules(props.InboundIPRules)
+			inboundIPRules := flattenDomainInboundIPRules(props.InboundIPRules)
 			if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
 				return fmt.Errorf("setting `inbound_ip_rule`: %+v", err)
 			}
@@ -355,7 +384,7 @@ func resourceEventGridDomainDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandAzureRmEventgridDomainInputMapping(d *pluginsdk.ResourceData) *domains.JsonInputSchemaMapping {
+func expandDomainInputMapping(d *pluginsdk.ResourceData) *domains.JsonInputSchemaMapping {
 	imf, imfok := d.GetOk("input_mapping_fields")
 
 	imdv, imdvok := d.GetOk("input_mapping_default_values")
@@ -514,4 +543,40 @@ func flattenDomainInputMappingDefaultValues(input domains.InputSchemaMapping) []
 	}
 
 	return output
+}
+
+func expandDomainInboundIPRules(input []interface{}) *[]domains.InboundIPRule {
+	if len(input) == 0 {
+		return nil
+	}
+
+	rules := make([]domains.InboundIPRule, 0)
+	for _, item := range input {
+		rawRule := item.(map[string]interface{})
+		rules = append(rules, domains.InboundIPRule{
+			Action: pointer.To(domains.IPActionType(rawRule["action"].(string))),
+			IPMask: utils.String(rawRule["ip_mask"].(string)),
+		})
+	}
+	return &rules
+}
+
+func flattenDomainInboundIPRules(input *[]domains.InboundIPRule) []interface{} {
+	rules := make([]interface{}, 0)
+	if input == nil {
+		return rules
+	}
+
+	for _, r := range *input {
+		action := ""
+		if r.Action != nil {
+			action = string(*r.Action)
+		}
+
+		rules = append(rules, map[string]interface{}{
+			"action":  action,
+			"ip_mask": pointer.From(r.IPMask),
+		})
+	}
+	return rules
 }

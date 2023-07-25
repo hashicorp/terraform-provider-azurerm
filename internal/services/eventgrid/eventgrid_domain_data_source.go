@@ -198,7 +198,7 @@ func dataSourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			inboundIPRules := flattenInboundIPRules(props.InboundIPRules)
+			inboundIPRules := flattenDomainInboundIPRules(props.InboundIPRules)
 			if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
 				return fmt.Errorf("setting `inbound_ip_rule` in %s: %+v", id, err)
 			}
