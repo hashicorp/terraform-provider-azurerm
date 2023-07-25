@@ -62,21 +62,6 @@ func PossibleValuesForProtocolTypeVolumeGroupSapHana() []string {
 	}
 }
 
-// Diverging from the SDK volumegroups.SecurityStyle since it is defined as lower case
-// but the backend changes it to Pascal case on GET. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
-type SecurityStyle string
-
-const (
-	SecurityStyleUnix SecurityStyle = "unix"
-	SecurityStyleNtfs SecurityStyle = "ntfs"
-)
-
-func PossibleValuesForSecurityStyle() []string {
-	return []string{
-		string(SecurityStyleUnix),
-	}
-}
-
 func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGroupVolumeProperties) []error {
 	errors := make([]error, 0)
 	volumeSpecRepeatCount := make(map[string]int)
