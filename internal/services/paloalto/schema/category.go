@@ -29,9 +29,9 @@ func CategorySchema() *pluginsdk.Schema {
 					},
 				},
 
-				"custom_urls": { // TODO - This appears to need to be configured as another resource type in the RuleStack?
+				"custom_urls": { // TODO - Need a comprehensive list `hacking`, `social-media` etc...
 					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Required: true,
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
