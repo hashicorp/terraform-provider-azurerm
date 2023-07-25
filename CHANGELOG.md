@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New data Source:** `azurerm_eventhub_sas` [GH-22215]
 * **New Resource**: `azurerm_kubernetes_cluster_trusted_access_role_binding` [GH-22647]
 * **New Resource:** `azurerm_marketplace_role_assignment` [GH-22398]
 * **New Resource:** `azurerm_network_function_azure_traffic_collector` [GH-22274]
