@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 
+	network_2023_02_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/adminrulecollections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/adminrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/applicationsecuritygroups"
@@ -25,11 +26,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/securityadminconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/securityrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/staticmembers"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type Client struct {
+	*network_2023_02_01.Client
+
 	ApplicationGatewaysClient                *network.ApplicationGatewaysClient
 	ApplicationSecurityGroupsClient          *applicationsecuritygroups.ApplicationSecurityGroupsClient
 	BastionHostsClient                       *bastionhosts.BastionHostsClient
@@ -362,7 +366,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ResourceNavigationLinkClient := network.NewResourceNavigationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ResourceNavigationLinkClient.Client, o.ResourceManagerAuthorizer)
 
+	client, err := network_2023_02_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		o.Configure(c, o.Authorizers.ResourceManager)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("building clients for Network: %+v", err)
+	}
+
 	return &Client{
+		Client: client,
+
 		ApplicationGatewaysClient:                &ApplicationGatewaysClient,
 		ApplicationSecurityGroupsClient:          ApplicationSecurityGroupsClient,
 		BastionHostsClient:                       BastionHostsClient,
