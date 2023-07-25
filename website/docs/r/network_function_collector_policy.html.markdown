@@ -15,31 +15,75 @@ Manages a Network Function Collector Policy.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "West US 2"
+}
+
+resource "azurerm_express_route_port" "example" {
+  name                = "example-erp"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  peering_location    = "Equinix-Seattle-SE2"
+  bandwidth_in_gbps   = 10
+  encapsulation       = "Dot1Q"
+}
+
+resource "azurerm_express_route_circuit" "example" {
+  name                  = "example-erc"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  express_route_port_id = azurerm_express_route_port.example.id
+  bandwidth_in_gbps     = 1
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+}
+
+resource "azurerm_express_route_circuit_peering" "example" {
+  peering_type                  = "MicrosoftPeering"
+  express_route_circuit_name    = azurerm_express_route_circuit.example.name
+  resource_group_name           = azurerm_resource_group.example.name
+  peer_asn                      = 100
+  primary_peer_address_prefix   = "192.168.199.0/30"
+  secondary_peer_address_prefix = "192.168.200.0/30"
+  vlan_id                       = 300
+
+  microsoft_peering_config {
+    advertised_public_prefixes = ["123.6.0.0/24"]
+  }
 }
 
 resource "azurerm_network_function_azure_traffic_collector" "example" {
   name                = "example-nfatc"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+
+  depends_on = [
+    azurerm_express_route_circuit_peering.example
+  ]
 }
 
 resource "azurerm_network_function_collector_policy" "example" {
-  name                                        = "example-nfcp"
-  network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
-  location                                    = "West Europe"
+  name                 = "example-nfcp"
+  traffic_collector_id = azurerm_network_function_azure_traffic_collector.example.id
+  location             = azurerm_resource_group.example.location
+
   emission_policy {
-    emission_type = ""
+    emission_type = "IPFIX"
     emission_destination {
-      destination_type = ""
+      destination_type = "AzureMonitor"
     }
   }
+
   ingestion_policy {
-    ingestion_type = ""
+    ingestion_type = "IPFIX"
     ingestion_source {
-      resource_id = ""
-      source_type = ""
+      resource_id = azurerm_express_route_circuit.example.id
+      source_type = "Resource"
     }
   }
+
   tags = {
     key = "value"
   }
@@ -50,15 +94,15 @@ resource "azurerm_network_function_collector_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Network Function Collector Policy. It can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 80 characters, and it must begin with a letter or number and end with a letter, number or underscore. Changing this forces a new Network Function Collector Policy to be created.
+* `name` - (Required) Specifies the name which should be used for this Network Function Collector Policy. Changing this forces a new Network Function Collector Policy to be created.
 
-* `network_function_azure_traffic_collector_id` - (Required) Specifies the ID of the Network Function Collector Policy. Changing this forces a new Network Function Collector Policy to be created.
+* `traffic_collector_id` - (Required) Specifies the Azure Traffic Collector ID of the Network Function Collector Policy. Changing this forces a new Network Function Collector Policy to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Network Function Collector Policy should exist. Changing this forces a new Network Function Collector Policy to be created.
 
-* `emission_policy` - (Required) An `emission_policy` block as defined below.
+* `emission_policy` - (Required) An `emission_policy` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
 
-* `ingestion_policy` - (Required) An `ingestion_policy` block as defined below.
+* `ingestion_policy` - (Required) An `ingestion_policy` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Function Collector Policy.
 
@@ -66,23 +110,23 @@ The following arguments are supported:
 
 An `emission_policy` block supports the following:
 
-* `emission_destination` - (Required) An `emission_destination` block as defined below.
+* `emission_destination` - (Required) An `emission_destination` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
 
-* `emission_type` - (Optional) Emission format type. The only possible value is `IPFIX`. Defaults to `IPFIX`.
+* `emission_type` - (Required) Emission format type. The only possible value is `IPFIX`. Changing this forces a new Network Function Collector Policy to be created.
 
 ---
 
 An `emission_destination` block supports the following:
 
-* `destination_type` - (Required) Emission destination type. The only possible value is `AzureMonitor`.
+* `destination_type` - (Required) Emission destination type. The only possible value is `AzureMonitor`. Changing this forces a new Network Function Collector Policy to be created.
 
 ---
 
 An `ingestion_policy` block supports the following:
 
-* `ingestion_source` - (Required) An `ingestion_source` block as defined below.
+* `ingestion_source` - (Required) An `ingestion_source` block as defined below. Changing this forces a new Network Function Collector Policy to be created.
 
-* `ingestion_type` - (Optional) Specifies the ingestion type. The only possible value is `IPFIX`. Defaults to `IPFIX`.
+* `ingestion_type` - (Required) Specifies the ingestion type. The only possible value is `IPFIX`. Changing this forces a new Network Function Collector Policy to be created.
 
 ---
 

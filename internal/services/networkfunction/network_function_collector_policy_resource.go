@@ -6,13 +6,12 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/collectorpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -20,7 +19,7 @@ import (
 
 type NetworkFunctionCollectorPolicyModel struct {
 	Name                                   string                                  `tfschema:"name"`
-	NetworkFunctionAzureTrafficCollectorId string                                  `tfschema:"network_function_azure_traffic_collector_id"`
+	NetworkFunctionAzureTrafficCollectorId string                                  `tfschema:"traffic_collector_id"`
 	EmissionPolicies                       []EmissionPoliciesPropertiesFormatModel `tfschema:"emission_policy"`
 	IngestionPolicy                        []IngestionPolicyPropertiesFormatModel  `tfschema:"ingestion_policy"`
 	Location                               string                                  `tfschema:"location"`
@@ -74,7 +73,9 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 			),
 		},
 
-		"network_function_azure_traffic_collector_id": {
+		"location": commonschema.Location(),
+
+		"traffic_collector_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -84,17 +85,20 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 		"emission_policy": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"emission_destination": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
+						ForceNew: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"destination_type": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
+									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(collectorpolicies.DestinationTypeAzureMonitor),
 									}, false),
@@ -105,11 +109,11 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 
 					"emission_type": {
 						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Required: true,
+						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(collectorpolicies.EmissionTypeIPFIX),
 						}, false),
-						Default: string(collectorpolicies.EmissionTypeIPFIX),
 					},
 				},
 			},
@@ -118,24 +122,27 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 		"ingestion_policy": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MaxItems: 1,
+			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ingestion_source": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
+						ForceNew: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"resource_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
+									ForceNew:     true,
 									ValidateFunc: azure.ValidateResourceID,
 								},
 
 								"source_type": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
+									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(collectorpolicies.SourceTypeResource),
 									}, false),
@@ -146,17 +153,15 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 
 					"ingestion_type": {
 						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Required: true,
+						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(collectorpolicies.IngestionTypeIPFIX),
 						}, false),
-						Default: string(collectorpolicies.IngestionTypeIPFIX),
 					},
 				},
 			},
 		},
-
-		"location": commonschema.Location(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -233,7 +238,7 @@ func (r NetworkFunctionCollectorPolicyResource) Update() sdk.ResourceFunc {
 			}
 
 			var model NetworkFunctionCollectorPolicyModel
-			if err := metadata.Decode(&model); err != nil {
+			if err = metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -246,30 +251,6 @@ func (r NetworkFunctionCollectorPolicyResource) Update() sdk.ResourceFunc {
 			if properties == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
-
-			if metadata.ResourceData.HasChange("location") {
-				properties.Location = location.Normalize(model.Location)
-			}
-
-			if metadata.ResourceData.HasChange("emission_policy") {
-				emissionPoliciesValue, err := expandEmissionPoliciesPropertiesFormatModelArray(model.EmissionPolicies)
-				if err != nil {
-					return err
-				}
-
-				properties.Properties.EmissionPolicies = emissionPoliciesValue
-			}
-
-			if metadata.ResourceData.HasChange("ingestion_policy") {
-				ingestionPolicyValue, err := expandIngestionPolicyPropertiesFormatModel(model.IngestionPolicy)
-				if err != nil {
-					return err
-				}
-
-				properties.Properties.IngestionPolicy = ingestionPolicyValue
-			}
-
-			properties.SystemData = nil
 
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
@@ -304,35 +285,32 @@ func (r NetworkFunctionCollectorPolicyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			state := NetworkFunctionCollectorPolicyModel{
 				Name:                                   id.CollectorPolicyName,
 				NetworkFunctionAzureTrafficCollectorId: azuretrafficcollectors.NewAzureTrafficCollectorID(id.SubscriptionId, id.ResourceGroupName, id.AzureTrafficCollectorName).ID(),
-				Location:                               location.Normalize(model.Location),
 			}
 
-			if properties := model.Properties; properties != nil {
-				emissionPoliciesValue, err := flattenEmissionPoliciesPropertiesFormatModelArray(properties.EmissionPolicies)
-				if err != nil {
-					return err
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				if properties := model.Properties; properties != nil {
+					emissionPoliciesValue, err := flattenEmissionPoliciesPropertiesFormatModelArray(properties.EmissionPolicies)
+					if err != nil {
+						return err
+					}
+
+					state.EmissionPolicies = emissionPoliciesValue
+
+					ingestionPolicyValue, err := flattenIngestionPolicyPropertiesFormatModel(properties.IngestionPolicy)
+					if err != nil {
+						return err
+					}
+
+					state.IngestionPolicy = ingestionPolicyValue
 				}
 
-				state.EmissionPolicies = emissionPoliciesValue
-
-				ingestionPolicyValue, err := flattenIngestionPolicyPropertiesFormatModel(properties.IngestionPolicy)
-				if err != nil {
-					return err
+				if model.Tags != nil {
+					state.Tags = *model.Tags
 				}
-
-				state.IngestionPolicy = ingestionPolicyValue
-			}
-
-			if model.Tags != nil {
-				state.Tags = *model.Tags
 			}
 
 			return metadata.Encode(&state)

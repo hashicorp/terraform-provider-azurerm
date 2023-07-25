@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/collectorpolicies"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/collectorpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,10 +16,21 @@ import (
 
 type NetworkFunctionCollectorPolicyResource struct{}
 
-func TestAccNetworkFunctionCollectorPolicy_basic(t *testing.T) {
+func TestAccNetworkFunctionCollectorPolicy(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"Resource": {
+			"basic":          testAccNetworkFunctionCollectorPolicy_basic,
+			"requiresImport": testAccNetworkFunctionCollectorPolicy_requiresImport,
+			"complete":       testAccNetworkFunctionCollectorPolicy_complete,
+			"update":         testAccNetworkFunctionCollectorPolicy_update,
+		},
+	})
+}
+
+func testAccNetworkFunctionCollectorPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_function_collector_policy", "test")
 	r := NetworkFunctionCollectorPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -31,10 +41,10 @@ func TestAccNetworkFunctionCollectorPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccNetworkFunctionCollectorPolicy_requiresImport(t *testing.T) {
+func testAccNetworkFunctionCollectorPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_function_collector_policy", "test")
 	r := NetworkFunctionCollectorPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -45,10 +55,10 @@ func TestAccNetworkFunctionCollectorPolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccNetworkFunctionCollectorPolicy_complete(t *testing.T) {
+func testAccNetworkFunctionCollectorPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_function_collector_policy", "test")
 	r := NetworkFunctionCollectorPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -59,10 +69,10 @@ func TestAccNetworkFunctionCollectorPolicy_complete(t *testing.T) {
 	})
 }
 
-func TestAccNetworkFunctionCollectorPolicy_update(t *testing.T) {
+func testAccNetworkFunctionCollectorPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_function_collector_policy", "test")
 	r := NetworkFunctionCollectorPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -108,19 +118,11 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-law-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-
 resource "azurerm_express_route_port" "test" {
   name                = "acctest-erp-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Airtel-Chennai2-CLS"
+  peering_location    = "Equinix-Seattle-SE2"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }
@@ -156,6 +158,10 @@ resource "azurerm_network_function_azure_traffic_collector" "test" {
   name                = "acctest-nfatc-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  depends_on = [
+    azurerm_express_route_circuit_peering.test
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -166,15 +172,19 @@ func (r NetworkFunctionCollectorPolicyResource) basic(data acceptance.TestData) 
 				%s
 
 resource "azurerm_network_function_collector_policy" "test" {
-  name                                        = "acctest-nfcp-%d"
-  network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
-  location                                    = "%s"
+  name                 = "acctest-nfcp-%d"
+  location             = "%s"
+  traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
+
   emission_policy {
+    emission_type = "IPFIX"
     emission_destination {
       destination_type = "AzureMonitor"
     }
   }
+
   ingestion_policy {
+    ingestion_type = "IPFIX"
     ingestion_source {
       resource_id = azurerm_express_route_circuit.test.id
       source_type = "Resource"
@@ -190,15 +200,19 @@ func (r NetworkFunctionCollectorPolicyResource) requiresImport(data acceptance.T
 			%s
 
 resource "azurerm_network_function_collector_policy" "import" {
-  name                                        = azurerm_network_function_collector_policy.test.name
-  network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
-  location                                    = "%s"
+  name                 = azurerm_network_function_collector_policy.test.name
+  location             = "%s"
+  traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
+
   emission_policy {
+    emission_type = "IPFIX"
     emission_destination {
       destination_type = "AzureMonitor"
     }
   }
+
   ingestion_policy {
+    ingestion_type = "IPFIX"
     ingestion_source {
       resource_id = azurerm_express_route_circuit.test.id
       source_type = "Resource"
@@ -214,20 +228,25 @@ func (r NetworkFunctionCollectorPolicyResource) complete(data acceptance.TestDat
 			%s
 
 resource "azurerm_network_function_collector_policy" "test" {
-  name                                        = "acctest-nfcp-%d"
-  network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
-  location                                    = "%s"
+  name                 = "acctest-nfcp-%d"
+  location             = "%s"
+  traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
+
   emission_policy {
+    emission_type = "IPFIX"
     emission_destination {
       destination_type = "AzureMonitor"
     }
   }
+
   ingestion_policy {
+    ingestion_type = "IPFIX"
     ingestion_source {
       resource_id = azurerm_express_route_circuit.test.id
       source_type = "Resource"
     }
   }
+
   tags = {
     key = "value"
   }
@@ -241,20 +260,25 @@ func (r NetworkFunctionCollectorPolicyResource) update(data acceptance.TestData)
 			%s
 
 resource "azurerm_network_function_collector_policy" "test" {
-  name                                        = "acctest-nfcp-%d"
-  network_function_azure_traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
-  location                                    = "%s"
+  name                 = "acctest-nfcp-%d"
+  location             = "%s"
+  traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
+
   emission_policy {
+    emission_type = "IPFIX"
     emission_destination {
       destination_type = "AzureMonitor"
     }
   }
+
   ingestion_policy {
+    ingestion_type = "IPFIX"
     ingestion_source {
       resource_id = azurerm_express_route_circuit.test.id
       source_type = "Resource"
     }
   }
+
   tags = {
     key = "value2"
   }
