@@ -41,7 +41,7 @@ func dataSourceApplicationSecurityGroup() *pluginsdk.Resource {
 }
 
 func dataSourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
+	client := meta.(*clients.Client).Network.ApplicationSecurityGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

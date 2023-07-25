@@ -96,7 +96,7 @@ func (t ApplicationSecurityGroupResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.Network.ApplicationSecurityGroupsClient.Get(ctx, *id)
+	resp, err := clients.Network.ApplicationSecurityGroups.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}

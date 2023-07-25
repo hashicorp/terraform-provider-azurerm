@@ -76,7 +76,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			locks.ByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 			defer locks.UnlockByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 
-			ASGClient := metadata.Client.Network.ApplicationSecurityGroupsClient
+			ASGClient := metadata.Client.Network.ApplicationSecurityGroups
 			ASGId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(state.ApplicationSecurityGroupId)
 			if err != nil {
 				return err
@@ -173,7 +173,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 			locks.ByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 			defer locks.UnlockByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 
-			ASGClient := metadata.Client.Network.ApplicationSecurityGroupsClient
+			ASGClient := metadata.Client.Network.ApplicationSecurityGroups
 
 			ASGId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(resourceId.ApplicationSecurityGroupId.ID())
 			if err != nil {
@@ -251,7 +251,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 			locks.ByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 			defer locks.UnlockByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 
-			ASGClient := metadata.Client.Network.ApplicationSecurityGroupsClient
+			ASGClient := metadata.Client.Network.ApplicationSecurityGroups
 
 			ASGId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(state.ApplicationSecurityGroupId)
 			if err != nil {

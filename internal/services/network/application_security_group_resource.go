@@ -56,7 +56,7 @@ func resourceApplicationSecurityGroup() *pluginsdk.Resource {
 }
 
 func resourceApplicationSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
+	client := meta.(*clients.Client).Network.ApplicationSecurityGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -91,7 +91,7 @@ func resourceApplicationSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, met
 }
 
 func resourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
+	client := meta.(*clients.Client).Network.ApplicationSecurityGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -122,7 +122,7 @@ func resourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceApplicationSecurityGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationSecurityGroupsClient
+	client := meta.(*clients.Client).Network.ApplicationSecurityGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

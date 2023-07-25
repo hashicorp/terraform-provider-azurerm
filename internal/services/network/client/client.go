@@ -9,7 +9,6 @@ import (
 	network_2023_02_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/adminrulecollections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/adminrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/bastionhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/connectionmonitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/connectivityconfigurations"
@@ -35,7 +34,6 @@ type Client struct {
 	*network_2023_02_01.Client
 
 	ApplicationGatewaysClient                *network.ApplicationGatewaysClient
-	ApplicationSecurityGroupsClient          *applicationsecuritygroups.ApplicationSecurityGroupsClient
 	BastionHostsClient                       *bastionhosts.BastionHostsClient
 	ConfigurationPolicyGroupClient           *network.ConfigurationPolicyGroupsClient
 	ConnectionMonitorsClient                 *connectionmonitors.ConnectionMonitorsClient
@@ -107,12 +105,6 @@ type Client struct {
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	ApplicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ApplicationGatewaysClient.Client, o.ResourceManagerAuthorizer)
-
-	ApplicationSecurityGroupsClient, err := applicationsecuritygroups.NewApplicationSecurityGroupsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building application security groups client: %+v", err)
-	}
-	o.Configure(ApplicationSecurityGroupsClient.Client, o.Authorizers.ResourceManager)
 
 	BastionHostsClient, err := bastionhosts.NewBastionHostsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -377,7 +369,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		Client: client,
 
 		ApplicationGatewaysClient:                &ApplicationGatewaysClient,
-		ApplicationSecurityGroupsClient:          ApplicationSecurityGroupsClient,
 		BastionHostsClient:                       BastionHostsClient,
 		ConfigurationPolicyGroupClient:           &configurationPolicyGroupClient,
 		ConnectionMonitorsClient:                 ConnectionMonitorsClient,
