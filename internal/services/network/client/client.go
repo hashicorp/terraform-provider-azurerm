@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routefilters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routetables"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/securityadminconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/securityrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/staticmembers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -22,62 +21,61 @@ import (
 type Client struct {
 	*network_2023_02_01.Client
 
-	ApplicationGatewaysClient                *network.ApplicationGatewaysClient
-	ConfigurationPolicyGroupClient           *network.ConfigurationPolicyGroupsClient
-	DDOSProtectionPlansClient                *network.DdosProtectionPlansClient
-	ExpressRouteAuthsClient                  *network.ExpressRouteCircuitAuthorizationsClient
-	ExpressRouteCircuitsClient               *network.ExpressRouteCircuitsClient
-	ExpressRouteCircuitConnectionClient      *network.ExpressRouteCircuitConnectionsClient
-	ExpressRouteConnectionsClient            *network.ExpressRouteConnectionsClient
-	ExpressRouteGatewaysClient               *network.ExpressRouteGatewaysClient
-	ExpressRoutePeeringsClient               *network.ExpressRouteCircuitPeeringsClient
-	ExpressRoutePortsClient                  *network.ExpressRoutePortsClient
-	ExpressRoutePortAuthorizationsClient     *network.ExpressRoutePortAuthorizationsClient
-	HubRouteTableClient                      *network.HubRouteTablesClient
-	HubVirtualNetworkConnectionClient        *network.HubVirtualNetworkConnectionsClient
-	InterfacesClient                         *network.InterfacesClient
-	IPGroupsClient                           *network.IPGroupsClient
-	LocalNetworkGatewaysClient               *network.LocalNetworkGatewaysClient
-	ManagerSecurityAdminConfigurationsClient *securityadminconfigurations.SecurityAdminConfigurationsClient
-	ManagerStaticMembersClient               *staticmembers.StaticMembersClient
-	NatRuleClient                            *network.NatRulesClient
-	PointToSiteVpnGatewaysClient             *network.P2sVpnGatewaysClient
-	ProfileClient                            *network.ProfilesClient
-	PacketCapturesClient                     *network.PacketCapturesClient
-	PrivateEndpointClient                    *privateendpoints.PrivateEndpointsClient
-	PublicIPsClient                          *network.PublicIPAddressesClient
-	PublicIPPrefixesClient                   *network.PublicIPPrefixesClient
-	RouteMapsClient                          *network.RouteMapsClient
-	RoutesClient                             *routes.RoutesClient
-	RouteFiltersClient                       *routefilters.RouteFiltersClient
-	RouteTablesClient                        *routetables.RouteTablesClient
-	SecurityGroupClient                      *network.SecurityGroupsClient
-	SecurityPartnerProviderClient            *network.SecurityPartnerProvidersClient
-	SecurityRuleClient                       *securityrules.SecurityRulesClient
-	ServiceEndpointPoliciesClient            *network.ServiceEndpointPoliciesClient
-	ServiceEndpointPolicyDefinitionsClient   *network.ServiceEndpointPolicyDefinitionsClient
-	ServiceTagsClient                        *network.ServiceTagsClient
-	SubnetsClient                            *network.SubnetsClient
-	NatGatewayClient                         *network.NatGatewaysClient
-	VirtualHubBgpConnectionClient            *network.VirtualHubBgpConnectionClient
-	VirtualHubIPClient                       *network.VirtualHubIPConfigurationClient
-	VnetGatewayConnectionsClient             *network.VirtualNetworkGatewayConnectionsClient
-	VnetGatewayNatRuleClient                 *network.VirtualNetworkGatewayNatRulesClient
-	VnetGatewayClient                        *network.VirtualNetworkGatewaysClient
-	VnetClient                               *network.VirtualNetworksClient
-	VnetPeeringsClient                       *network.VirtualNetworkPeeringsClient
-	VirtualWanClient                         *network.VirtualWansClient
-	VirtualHubClient                         *network.VirtualHubsClient
-	VpnConnectionsClient                     *network.VpnConnectionsClient
-	VpnGatewaysClient                        *network.VpnGatewaysClient
-	VpnServerConfigurationsClient            *network.VpnServerConfigurationsClient
-	VpnSitesClient                           *network.VpnSitesClient
-	WatcherClient                            *network.WatchersClient
-	WebApplicationFirewallPoliciesClient     *network.WebApplicationFirewallPoliciesClient
-	PrivateDnsZoneGroupClient                *network.PrivateDNSZoneGroupsClient
-	PrivateLinkServiceClient                 *network.PrivateLinkServicesClient
-	ServiceAssociationLinkClient             *network.ServiceAssociationLinksClient
-	ResourceNavigationLinkClient             *network.ResourceNavigationLinksClient
+	ApplicationGatewaysClient              *network.ApplicationGatewaysClient
+	ConfigurationPolicyGroupClient         *network.ConfigurationPolicyGroupsClient
+	DDOSProtectionPlansClient              *network.DdosProtectionPlansClient
+	ExpressRouteAuthsClient                *network.ExpressRouteCircuitAuthorizationsClient
+	ExpressRouteCircuitsClient             *network.ExpressRouteCircuitsClient
+	ExpressRouteCircuitConnectionClient    *network.ExpressRouteCircuitConnectionsClient
+	ExpressRouteConnectionsClient          *network.ExpressRouteConnectionsClient
+	ExpressRouteGatewaysClient             *network.ExpressRouteGatewaysClient
+	ExpressRoutePeeringsClient             *network.ExpressRouteCircuitPeeringsClient
+	ExpressRoutePortsClient                *network.ExpressRoutePortsClient
+	ExpressRoutePortAuthorizationsClient   *network.ExpressRoutePortAuthorizationsClient
+	HubRouteTableClient                    *network.HubRouteTablesClient
+	HubVirtualNetworkConnectionClient      *network.HubVirtualNetworkConnectionsClient
+	InterfacesClient                       *network.InterfacesClient
+	IPGroupsClient                         *network.IPGroupsClient
+	LocalNetworkGatewaysClient             *network.LocalNetworkGatewaysClient
+	ManagerStaticMembersClient             *staticmembers.StaticMembersClient
+	NatRuleClient                          *network.NatRulesClient
+	PointToSiteVpnGatewaysClient           *network.P2sVpnGatewaysClient
+	ProfileClient                          *network.ProfilesClient
+	PacketCapturesClient                   *network.PacketCapturesClient
+	PrivateEndpointClient                  *privateendpoints.PrivateEndpointsClient
+	PublicIPsClient                        *network.PublicIPAddressesClient
+	PublicIPPrefixesClient                 *network.PublicIPPrefixesClient
+	RouteMapsClient                        *network.RouteMapsClient
+	RoutesClient                           *routes.RoutesClient
+	RouteFiltersClient                     *routefilters.RouteFiltersClient
+	RouteTablesClient                      *routetables.RouteTablesClient
+	SecurityGroupClient                    *network.SecurityGroupsClient
+	SecurityPartnerProviderClient          *network.SecurityPartnerProvidersClient
+	SecurityRuleClient                     *securityrules.SecurityRulesClient
+	ServiceEndpointPoliciesClient          *network.ServiceEndpointPoliciesClient
+	ServiceEndpointPolicyDefinitionsClient *network.ServiceEndpointPolicyDefinitionsClient
+	ServiceTagsClient                      *network.ServiceTagsClient
+	SubnetsClient                          *network.SubnetsClient
+	NatGatewayClient                       *network.NatGatewaysClient
+	VirtualHubBgpConnectionClient          *network.VirtualHubBgpConnectionClient
+	VirtualHubIPClient                     *network.VirtualHubIPConfigurationClient
+	VnetGatewayConnectionsClient           *network.VirtualNetworkGatewayConnectionsClient
+	VnetGatewayNatRuleClient               *network.VirtualNetworkGatewayNatRulesClient
+	VnetGatewayClient                      *network.VirtualNetworkGatewaysClient
+	VnetClient                             *network.VirtualNetworksClient
+	VnetPeeringsClient                     *network.VirtualNetworkPeeringsClient
+	VirtualWanClient                       *network.VirtualWansClient
+	VirtualHubClient                       *network.VirtualHubsClient
+	VpnConnectionsClient                   *network.VpnConnectionsClient
+	VpnGatewaysClient                      *network.VpnGatewaysClient
+	VpnServerConfigurationsClient          *network.VpnServerConfigurationsClient
+	VpnSitesClient                         *network.VpnSitesClient
+	WatcherClient                          *network.WatchersClient
+	WebApplicationFirewallPoliciesClient   *network.WebApplicationFirewallPoliciesClient
+	PrivateDnsZoneGroupClient              *network.PrivateDNSZoneGroupsClient
+	PrivateLinkServiceClient               *network.PrivateLinkServicesClient
+	ServiceAssociationLinkClient           *network.ServiceAssociationLinksClient
+	ResourceNavigationLinkClient           *network.ResourceNavigationLinksClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -128,12 +126,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
-
-	ManagerSecurityAdminConfigurationsClient, err := securityadminconfigurations.NewSecurityAdminConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building network manager security admin configurations client: %+v", err)
-	}
-	o.Configure(ManagerSecurityAdminConfigurationsClient.Client, o.Authorizers.ResourceManager)
 
 	ManagerStaticMembersClient, err := staticmembers.NewStaticMembersClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -280,61 +272,60 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		Client: client,
 
-		ApplicationGatewaysClient:                &ApplicationGatewaysClient,
-		ConfigurationPolicyGroupClient:           &configurationPolicyGroupClient,
-		DDOSProtectionPlansClient:                &DDOSProtectionPlansClient,
-		ExpressRouteAuthsClient:                  &ExpressRouteAuthsClient,
-		ExpressRouteCircuitsClient:               &ExpressRouteCircuitsClient,
-		ExpressRouteCircuitConnectionClient:      &ExpressRouteCircuitConnectionClient,
-		ExpressRouteConnectionsClient:            &ExpressRouteConnectionsClient,
-		ExpressRouteGatewaysClient:               &ExpressRouteGatewaysClient,
-		ExpressRoutePeeringsClient:               &ExpressRoutePeeringsClient,
-		ExpressRoutePortsClient:                  &ExpressRoutePortsClient,
-		ExpressRoutePortAuthorizationsClient:     &ExpressRoutePortAuthorizationsClient,
-		HubRouteTableClient:                      &HubRouteTableClient,
-		HubVirtualNetworkConnectionClient:        &HubVirtualNetworkConnectionClient,
-		InterfacesClient:                         &InterfacesClient,
-		IPGroupsClient:                           &IpGroupsClient,
-		LocalNetworkGatewaysClient:               &LocalNetworkGatewaysClient,
-		ManagerSecurityAdminConfigurationsClient: ManagerSecurityAdminConfigurationsClient,
-		ManagerStaticMembersClient:               ManagerStaticMembersClient,
-		NatRuleClient:                            &NatRuleClient,
-		PointToSiteVpnGatewaysClient:             &pointToSiteVpnGatewaysClient,
-		ProfileClient:                            &ProfileClient,
-		PacketCapturesClient:                     &PacketCapturesClient,
-		PrivateEndpointClient:                    PrivateEndpointClient,
-		PublicIPsClient:                          &PublicIPsClient,
-		PublicIPPrefixesClient:                   &PublicIPPrefixesClient,
-		RouteMapsClient:                          &RouteMapsClient,
-		RoutesClient:                             RoutesClient,
-		RouteFiltersClient:                       RouteFiltersClient,
-		RouteTablesClient:                        RouteTablesClient,
-		SecurityGroupClient:                      &SecurityGroupClient,
-		SecurityPartnerProviderClient:            &SecurityPartnerProviderClient,
-		SecurityRuleClient:                       SecurityRuleClient,
-		ServiceEndpointPoliciesClient:            &ServiceEndpointPoliciesClient,
-		ServiceEndpointPolicyDefinitionsClient:   &ServiceEndpointPolicyDefinitionsClient,
-		ServiceTagsClient:                        &ServiceTagsClient,
-		SubnetsClient:                            &SubnetsClient,
-		NatGatewayClient:                         &NatGatewayClient,
-		VirtualHubBgpConnectionClient:            &VirtualHubBgpConnectionClient,
-		VirtualHubIPClient:                       &VirtualHubIPClient,
-		VnetGatewayConnectionsClient:             &VnetGatewayConnectionsClient,
-		VnetGatewayNatRuleClient:                 &VnetGatewayNatRuleClient,
-		VnetGatewayClient:                        &VnetGatewayClient,
-		VnetClient:                               &VnetClient,
-		VnetPeeringsClient:                       &VnetPeeringsClient,
-		VirtualWanClient:                         &VirtualWanClient,
-		VirtualHubClient:                         &VirtualHubClient,
-		VpnConnectionsClient:                     &vpnConnectionsClient,
-		VpnGatewaysClient:                        &vpnGatewaysClient,
-		VpnServerConfigurationsClient:            &vpnServerConfigurationsClient,
-		VpnSitesClient:                           &vpnSitesClient,
-		WatcherClient:                            &WatcherClient,
-		WebApplicationFirewallPoliciesClient:     &WebApplicationFirewallPoliciesClient,
-		PrivateDnsZoneGroupClient:                &PrivateDnsZoneGroupClient,
-		PrivateLinkServiceClient:                 &PrivateLinkServiceClient,
-		ServiceAssociationLinkClient:             &ServiceAssociationLinkClient,
-		ResourceNavigationLinkClient:             &ResourceNavigationLinkClient,
+		ApplicationGatewaysClient:              &ApplicationGatewaysClient,
+		ConfigurationPolicyGroupClient:         &configurationPolicyGroupClient,
+		DDOSProtectionPlansClient:              &DDOSProtectionPlansClient,
+		ExpressRouteAuthsClient:                &ExpressRouteAuthsClient,
+		ExpressRouteCircuitsClient:             &ExpressRouteCircuitsClient,
+		ExpressRouteCircuitConnectionClient:    &ExpressRouteCircuitConnectionClient,
+		ExpressRouteConnectionsClient:          &ExpressRouteConnectionsClient,
+		ExpressRouteGatewaysClient:             &ExpressRouteGatewaysClient,
+		ExpressRoutePeeringsClient:             &ExpressRoutePeeringsClient,
+		ExpressRoutePortsClient:                &ExpressRoutePortsClient,
+		ExpressRoutePortAuthorizationsClient:   &ExpressRoutePortAuthorizationsClient,
+		HubRouteTableClient:                    &HubRouteTableClient,
+		HubVirtualNetworkConnectionClient:      &HubVirtualNetworkConnectionClient,
+		InterfacesClient:                       &InterfacesClient,
+		IPGroupsClient:                         &IpGroupsClient,
+		LocalNetworkGatewaysClient:             &LocalNetworkGatewaysClient,
+		ManagerStaticMembersClient:             ManagerStaticMembersClient,
+		NatRuleClient:                          &NatRuleClient,
+		PointToSiteVpnGatewaysClient:           &pointToSiteVpnGatewaysClient,
+		ProfileClient:                          &ProfileClient,
+		PacketCapturesClient:                   &PacketCapturesClient,
+		PrivateEndpointClient:                  PrivateEndpointClient,
+		PublicIPsClient:                        &PublicIPsClient,
+		PublicIPPrefixesClient:                 &PublicIPPrefixesClient,
+		RouteMapsClient:                        &RouteMapsClient,
+		RoutesClient:                           RoutesClient,
+		RouteFiltersClient:                     RouteFiltersClient,
+		RouteTablesClient:                      RouteTablesClient,
+		SecurityGroupClient:                    &SecurityGroupClient,
+		SecurityPartnerProviderClient:          &SecurityPartnerProviderClient,
+		SecurityRuleClient:                     SecurityRuleClient,
+		ServiceEndpointPoliciesClient:          &ServiceEndpointPoliciesClient,
+		ServiceEndpointPolicyDefinitionsClient: &ServiceEndpointPolicyDefinitionsClient,
+		ServiceTagsClient:                      &ServiceTagsClient,
+		SubnetsClient:                          &SubnetsClient,
+		NatGatewayClient:                       &NatGatewayClient,
+		VirtualHubBgpConnectionClient:          &VirtualHubBgpConnectionClient,
+		VirtualHubIPClient:                     &VirtualHubIPClient,
+		VnetGatewayConnectionsClient:           &VnetGatewayConnectionsClient,
+		VnetGatewayNatRuleClient:               &VnetGatewayNatRuleClient,
+		VnetGatewayClient:                      &VnetGatewayClient,
+		VnetClient:                             &VnetClient,
+		VnetPeeringsClient:                     &VnetPeeringsClient,
+		VirtualWanClient:                       &VirtualWanClient,
+		VirtualHubClient:                       &VirtualHubClient,
+		VpnConnectionsClient:                   &vpnConnectionsClient,
+		VpnGatewaysClient:                      &vpnGatewaysClient,
+		VpnServerConfigurationsClient:          &vpnServerConfigurationsClient,
+		VpnSitesClient:                         &vpnSitesClient,
+		WatcherClient:                          &WatcherClient,
+		WebApplicationFirewallPoliciesClient:   &WebApplicationFirewallPoliciesClient,
+		PrivateDnsZoneGroupClient:              &PrivateDnsZoneGroupClient,
+		PrivateLinkServiceClient:               &PrivateLinkServiceClient,
+		ServiceAssociationLinkClient:           &ServiceAssociationLinkClient,
+		ResourceNavigationLinkClient:           &ResourceNavigationLinkClient,
 	}, nil
 }
