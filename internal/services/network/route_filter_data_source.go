@@ -75,7 +75,7 @@ func dataSourceRouteFilter() *pluginsdk.Resource {
 }
 
 func dataSourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteFiltersClient
+	client := meta.(*clients.Client).Network.RouteFilters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
