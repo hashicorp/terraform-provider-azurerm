@@ -1,16 +1,14 @@
 ---
 subcategory: "Graph"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_graph_account"
+page_title: "Azure Resource Manager: azurerm_graph_services_account"
 description: |-
-  Manages a Account.
+  Manages a Graph Services Account.
 ---
 
-# azurerm_graph_account
+# azurerm_graph_services_account
 
-Manages a Graph Account.
-
-!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_graph_services_account`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/graph_services_account) resources instead.
+Manages a Graph Services Account.
 
 ## Example Usage
 
@@ -22,7 +20,7 @@ resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
-resource "azurerm_graph_account" "example" {
+resource "azurerm_graph_services_account" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   application_id      = azuread_application.example.application_id
@@ -39,7 +37,7 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of this Account. Changing this forces a new Account to be created.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Account should exist. Changing this forces a new Account to be created.
- 
+
 * `application_id` - (Required) Customer owned application ID. Changing this forces a new Account to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Account.
@@ -68,5 +66,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 An existing Account can be imported into Terraform using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_graph_account.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.GraphServices/accounts/account1
+terraform import azurerm_graph_services_account.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.GraphServices/accounts/account1
 ```

@@ -16,10 +16,26 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+var _ sdk.Resource = ServicesAccountResource{}
+var _ sdk.ResourceWithUpdate = ServicesAccountResource{}
+
+type ServicesAccountResource struct {
+	AccountResource
+}
+
+func (r ServicesAccountResource) ResourceType() string {
+	return "azurerm_graph_services_account"
+}
+
 var _ sdk.Resource = AccountResource{}
 var _ sdk.ResourceWithUpdate = AccountResource{}
+var _ sdk.ResourceWithDeprecationReplacedBy = AccountResource{}
 
 type AccountResource struct{}
+
+func (r AccountResource) DeprecatedInFavourOfResource() string {
+	return "azurerm_graph_services_account"
+}
 
 func (r AccountResource) ModelObject() interface{} {
 	return &AccountResourceSchema{}
@@ -90,7 +106,7 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				return metadata.ResourceRequiresImport("azurerm_graph_services_account", id)
 			}
 
 			payload := graphservicesprods.AccountResource{

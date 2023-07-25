@@ -30,7 +30,7 @@ func TestAccGraphAccount(t *testing.T) {
 type AccountTestResource struct{}
 
 func testAccGraphAccount_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
 	r := AccountTestResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -45,7 +45,7 @@ func testAccGraphAccount_basic(t *testing.T) {
 }
 
 func testAccGraphAccount_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
 
 	r := AccountTestResource{}
 
@@ -61,7 +61,7 @@ func testAccGraphAccount_requiresImport(t *testing.T) {
 }
 
 func testAccGraphAccount_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
 	r := AccountTestResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -76,7 +76,7 @@ func testAccGraphAccount_complete(t *testing.T) {
 }
 
 func testAccGraphAccount_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
 	r := AccountTestResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -120,7 +120,7 @@ func (r AccountTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_graph_account" "test" {
+resource "azurerm_graph_services_account" "test" {
   name                = "acctesta-%[2]d"
   application_id      = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -132,10 +132,10 @@ func (r AccountTestResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_graph_account" "import" {
-  application_id      = azurerm_graph_account.test.application_id
-  name                = azurerm_graph_account.test.name
-  resource_group_name = azurerm_graph_account.test.resource_group_name
+resource "azurerm_graph_services_account" "import" {
+  application_id      = azurerm_graph_services_account.test.application_id
+  name                = azurerm_graph_services_account.test.name
+  resource_group_name = azurerm_graph_services_account.test.resource_group_name
 }
 `, r.basic(data))
 }
@@ -144,7 +144,7 @@ func (r AccountTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_graph_account" "test" {
+resource "azurerm_graph_services_account" "test" {
   name                = "acctesta-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   application_id      = "%[3]s"
