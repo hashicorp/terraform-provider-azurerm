@@ -67,7 +67,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 				return err
 			}
 
-			privateEndpointClient := metadata.Client.Network.PrivateEndpointClient
+			privateEndpointClient := metadata.Client.Network.PrivateEndpoints
 			privateEndpointId, err := privateendpoints.ParsePrivateEndpointID(state.PrivateEndpointId)
 			if err != nil {
 				return err
@@ -163,7 +163,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 				return err
 			}
 
-			privateEndpointClient := metadata.Client.Network.PrivateEndpointClient
+			privateEndpointClient := metadata.Client.Network.PrivateEndpoints
 
 			privateEndpointId, err := privateendpoints.ParsePrivateEndpointID(resourceId.PrivateEndpointId.ID())
 			if err != nil {
@@ -241,7 +241,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 				return err
 			}
 
-			privateEndpointClient := metadata.Client.Network.PrivateEndpointClient
+			privateEndpointClient := metadata.Client.Network.PrivateEndpoints
 
 			privateEndpointId, err := privateendpoints.ParsePrivateEndpointID(state.PrivateEndpointId)
 			if err != nil {

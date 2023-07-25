@@ -93,7 +93,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) Exists(ctx c
 		return &exists, fmt.Errorf("parse error, both PrivateEndpointId and ApplicationSecurityGroupId should not be nil")
 	}
 
-	privateEndpointClient := client.Network.PrivateEndpointClient
+	privateEndpointClient := client.Network.PrivateEndpoints
 	existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, *endpointId, privateendpoints.DefaultGetOperationOptions())
 	if err != nil && !response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
 		return &exists, fmt.Errorf("checking for the presence of existing PrivateEndpoint %q: %+v", endpointId, err)
@@ -254,7 +254,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) destroy(ctx 
 		return err
 	}
 
-	privateEndpointClient := client.Network.PrivateEndpointClient
+	privateEndpointClient := client.Network.PrivateEndpoints
 
 	existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, *endpointId, privateendpoints.DefaultGetOperationOptions())
 	if err != nil && !response.WasNotFound(existingPrivateEndpoint.HttpResponse) {

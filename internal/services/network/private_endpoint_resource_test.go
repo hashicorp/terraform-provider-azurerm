@@ -303,7 +303,7 @@ func (t PrivateEndpointResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, err
 	}
 
-	resp, err := clients.Network.PrivateEndpointClient.Get(ctx, *id, privateendpoints.DefaultGetOperationOptions())
+	resp, err := clients.Network.PrivateEndpoints.Get(ctx, *id, privateendpoints.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Private Endpoint (%s): %+v", id.String(), err)
 	}

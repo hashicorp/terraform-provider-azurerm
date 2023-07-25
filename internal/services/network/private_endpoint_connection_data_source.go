@@ -84,7 +84,7 @@ func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
 }
 
 func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PrivateEndpointClient
+	client := meta.(*clients.Client).Network.PrivateEndpoints
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	nicsClient := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
