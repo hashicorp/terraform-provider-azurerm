@@ -84,7 +84,7 @@ func resourceRoute() *pluginsdk.Resource {
 }
 
 func resourceRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RoutesClient
+	client := meta.(*clients.Client).Network.Routes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,7 +130,7 @@ func resourceRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RoutesClient
+	client := meta.(*clients.Client).Network.Routes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -164,7 +164,7 @@ func resourceRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RoutesClient
+	client := meta.(*clients.Client).Network.Routes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	network_2023_02_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routetables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/securityrules"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -41,7 +40,6 @@ type Client struct {
 	PublicIPsClient                        *network.PublicIPAddressesClient
 	PublicIPPrefixesClient                 *network.PublicIPPrefixesClient
 	RouteMapsClient                        *network.RouteMapsClient
-	RoutesClient                           *routes.RoutesClient
 	RouteTablesClient                      *routetables.RouteTablesClient
 	SecurityGroupClient                    *network.SecurityGroupsClient
 	SecurityPartnerProviderClient          *network.SecurityPartnerProvidersClient
@@ -157,12 +155,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	RouteMapsClient := network.NewRouteMapsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RouteMapsClient.Client, o.ResourceManagerAuthorizer)
 
-	RoutesClient, err := routes.NewRoutesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building network routes client: %+v", err)
-	}
-	o.Configure(RoutesClient.Client, o.Authorizers.ResourceManager)
-
 	RouteTablesClient, err := routetables.NewRouteTablesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building network route tables client: %+v", err)
@@ -271,7 +263,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		PublicIPsClient:                        &PublicIPsClient,
 		PublicIPPrefixesClient:                 &PublicIPPrefixesClient,
 		RouteMapsClient:                        &RouteMapsClient,
-		RoutesClient:                           RoutesClient,
 		RouteTablesClient:                      RouteTablesClient,
 		SecurityGroupClient:                    &SecurityGroupClient,
 		SecurityPartnerProviderClient:          &SecurityPartnerProviderClient,

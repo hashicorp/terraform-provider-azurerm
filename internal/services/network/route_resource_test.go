@@ -122,7 +122,7 @@ func (t RouteResource) Exists(ctx context.Context, clients *clients.Client, stat
 		return nil, err
 	}
 
-	resp, err := clients.Network.RoutesClient.Get(ctx, *id)
+	resp, err := clients.Network.Routes.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Route (%s): %+v", *id, err)
 	}
@@ -136,7 +136,7 @@ func (r RouteResource) Destroy(ctx context.Context, client *clients.Client, stat
 		return nil, err
 	}
 
-	if err := client.Network.RoutesClient.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.Network.Routes.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting on routesClient: %+v", err)
 	}
 
