@@ -238,10 +238,9 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   applications  = ["any"]
   audit_comment = "test audit comment"
 
-  //category {
-  // // feeds = ["foo", "bar"] // Needs feeds defined on the LocalRuleStack?
-  // custom_urls = [azurerm_palo_alto_local_rule_stack_fqdn_list.test.name] // TODO - This is another resource type in PAN?
-  //}
+  category {
+    custom_urls = ["hacking"] // TODO - This is another resource type in PAN?
+  }
 
   decryption_rule_type = "SSLOutboundInspection"
   description          = "Acceptance Test Rule - dated %[2]d"
@@ -302,10 +301,9 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   applications  = ["any"]
   audit_comment = "test audit comment"
 
-  //category {
-  //  // feeds = ["foo", "bar"] // Needs feeds defined on the LocalRuleStack?
-  //  // custom_urls = ["https://microsoft.com"] // TODO - This is another resource type in PAN?
-  //}
+  category {
+   custom_urls = ["web-based-email", "social-media"]
+  }
 
   decryption_rule_type = "SSLOutboundInspection" 
   description          = "Acceptance Test Rule - dated %[2]d"
