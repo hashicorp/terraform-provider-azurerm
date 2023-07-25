@@ -187,7 +187,7 @@ func (r ManagerResource) Exists(ctx context.Context, clients *clients.Client, st
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.Network.ManagersClient.Get(ctx, *id)
+	resp, err := clients.Network.NetworkManagers.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

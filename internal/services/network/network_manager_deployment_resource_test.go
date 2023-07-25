@@ -120,7 +120,7 @@ func (r ManagerDeploymentResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	client := clients.Network.ManagersClient
+	client := clients.Network.NetworkManagers
 	listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
 		Regions:         &[]string{azure.NormalizeLocation(id.Location)},
 		DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(id.ScopeAccess)},

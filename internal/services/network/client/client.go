@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkmanagerconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkmanagers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routefilters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routes"
@@ -46,7 +45,6 @@ type Client struct {
 	InterfacesClient                         *network.InterfacesClient
 	IPGroupsClient                           *network.IPGroupsClient
 	LocalNetworkGatewaysClient               *network.LocalNetworkGatewaysClient
-	ManagersClient                           *networkmanagers.NetworkManagersClient
 	ManagerAdminRulesClient                  *adminrules.AdminRulesClient
 	ManagerAdminRuleCollectionsClient        *adminrulecollections.AdminRuleCollectionsClient
 	ManagerConnectivityConfigurationsClient  *connectivityconfigurations.ConnectivityConfigurationsClient
@@ -144,12 +142,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
-
-	ManagersClient, err := networkmanagers.NewNetworkManagersClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building network managers client: %+v", err)
-	}
-	o.Configure(ManagersClient.Client, o.Authorizers.ResourceManager)
 
 	ManagerAdminRulesClient, err := adminrules.NewAdminRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -360,7 +352,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		InterfacesClient:                         &InterfacesClient,
 		IPGroupsClient:                           &IpGroupsClient,
 		LocalNetworkGatewaysClient:               &LocalNetworkGatewaysClient,
-		ManagersClient:                           ManagersClient,
 		ManagerAdminRulesClient:                  ManagerAdminRulesClient,
 		ManagerAdminRuleCollectionsClient:        ManagerAdminRuleCollectionsClient,
 		ManagerConnectivityConfigurationsClient:  ManagerConnectivityConfigurationsClient,
