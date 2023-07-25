@@ -1,14 +1,14 @@
 ---
-subcategory: "Storage"
+subcategory: "AML File System"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_hpc_cache_aml_file_system"
+page_title: "Azure Resource Manager: azurerm_aml_file_system"
 description: |-
-  Manages a HPC Cache AML File System.
+  Manages an AML File System.
 ---
 
-# azurerm_hpc_cache_aml_file_system
+# azurerm_aml_file_system
 
-Manages a HPC Cache AML File System.
+Manages an AML File System.
 
 ## Example Usage
 
@@ -32,7 +32,7 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_hpc_cache_aml_file_system" "example" {
+resource "azurerm_aml_file_system" "example" {
   name                   = "example-amlfs"
   resource_group_name    = azurerm_resource_group.example.name
   location               = azurerm_resource_group.example.location
@@ -52,21 +52,21 @@ resource "azurerm_hpc_cache_aml_file_system" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this HPC Cache AML File System. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this AML File System. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the HPC Cache AML File System should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the AML File System should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the HPC Cache AML File System should exist. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure Region where the AML File System should exist. Changing this forces a new resource to be created.
 
 * `maintenance_window` - (Required) A `maintenance_window` block as defined below.
 
-* `sku_name` - (Required) The SKU name for the HPC Cache AML File System. Changing this forces a new resource to be created.
+* `sku_name` - (Required) The SKU name for the AML File System. Changing this forces a new resource to be created.
 
-* `storage_capacity_in_tb` - (Required) The size of the HPC Cache AML File System in TiB. Changing this forces a new resource to be created.
+* `storage_capacity_in_tb` - (Required) The size of the AML File System in TiB. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The subnet used for managing the AML file system and for client-facing operations. This subnet should have at least a /24 subnet mask within the VNET's address space. Changing this forces a new resource to be created.
 
-* `zones` - (Required) The availability zones for the HPC Cache AML File System. Changing this forces a new resource to be created.
+* `zones` - (Required) The availability zones for the AML File System. Changing this forces a new resource to be created.
 
 * `hsm_setting` - (Optional) A `hsm_setting` block as defined below. Changing this forces a new resource to be created.
 
@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the HPC Cache AML File System.
+* `tags` - (Optional) A mapping of tags which should be assigned to the AML File System.
 
 ---
 
@@ -98,9 +98,9 @@ A `hsm_setting` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Service Identity that should be configured on this HPC Cache AML File System. Only possible value is `UserAssigned`. Changing this forces a new resource to be created.
+* `type` - (Required) The type of Managed Service Identity that should be configured on this AML File System. Only possible value is `UserAssigned`. Changing this forces a new resource to be created.
 
-* `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this HPC Cache AML File System. Changing this forces a new resource to be created.
+* `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this AML File System. Changing this forces a new resource to be created.
 
 ---
 
@@ -114,21 +114,21 @@ A `key_encryption_key` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the HPC Cache AML File System.
+* `id` - The ID of the AML File System.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the HPC Cache AML File System.
-* `read` - (Defaults to 5 minutes) Used when retrieving the HPC Cache AML File System.
-* `update` - (Defaults to 30 minutes) Used when updating the HPC Cache AML File System.
-* `delete` - (Defaults to 30 minutes) Used when deleting the HPC Cache AML File System.
+* `create` - (Defaults to 30 minutes) Used when creating the AML File System.
+* `read` - (Defaults to 5 minutes) Used when retrieving the AML File System.
+* `update` - (Defaults to 30 minutes) Used when updating the AML File System.
+* `delete` - (Defaults to 30 minutes) Used when deleting the AML File System.
 
 ## Import
 
-HPC Cache AML File Systems can be imported using the `resource id`, e.g.
+AML File Systems can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hpc_cache_aml_file_system.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.StorageCache/amlFilesystems/amlFilesystem1
+terraform import azurerm_aml_file_system.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.StorageCache/amlFilesystems/amlFilesystem1
 ```
