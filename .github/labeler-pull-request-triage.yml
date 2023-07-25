@@ -13,6 +13,9 @@ service/aadb2c:
 service/advisor:
   - internal/services/advisor/**/*
 
+service/amlfilesystem:
+  - internal/services/amlfilesystem/**/*
+
 service/analysis:
   - internal/services/analysisservices/**/*
 

@@ -56,7 +56,7 @@ type AMLFileSystemResource struct{}
 var _ sdk.ResourceWithUpdate = AMLFileSystemResource{}
 
 func (r AMLFileSystemResource) ResourceType() string {
-	return "azurerm_hpc_cache_aml_file_system"
+	return "azurerm_aml_file_system"
 }
 
 func (r AMLFileSystemResource) ModelObject() interface{} {
