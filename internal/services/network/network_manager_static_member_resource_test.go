@@ -53,7 +53,7 @@ func (r ManagerStaticMemberResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	client := clients.Network.ManagerStaticMembersClient
+	client := clients.Network.StaticMembers
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
