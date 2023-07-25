@@ -119,7 +119,7 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(subscriptionId, kustoDatabaseId.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
+			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(subscriptionId, cosmosDbContainerId.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
 
 			id := dataconnections.NewDataConnectionID(subscriptionId, kustoDatabaseId.ResourceGroupName, kustoDatabaseId.ClusterName, kustoDatabaseId.DatabaseName, model.Name)
 
