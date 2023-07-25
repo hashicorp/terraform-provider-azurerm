@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	network_2023_02_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routefilters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routes"
@@ -44,7 +43,6 @@ type Client struct {
 	ManagerSecurityAdminConfigurationsClient *securityadminconfigurations.SecurityAdminConfigurationsClient
 	ManagerStaticMembersClient               *staticmembers.StaticMembersClient
 	NatRuleClient                            *network.NatRulesClient
-	NetworkInterfacesClient                  *networkinterfaces.NetworkInterfacesClient
 	PointToSiteVpnGatewaysClient             *network.P2sVpnGatewaysClient
 	ProfileClient                            *network.ProfilesClient
 	PacketCapturesClient                     *network.PacketCapturesClient
@@ -153,12 +151,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	NatRuleClient := network.NewNatRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&NatRuleClient.Client, o.ResourceManagerAuthorizer)
-
-	NetworkInterfacesClient, err := networkinterfaces.NewNetworkInterfacesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building network interface client: %+v", err)
-	}
-	o.Configure(NetworkInterfacesClient.Client, o.Authorizers.ResourceManager)
 
 	pointToSiteVpnGatewaysClient := network.NewP2sVpnGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&pointToSiteVpnGatewaysClient.Client, o.ResourceManagerAuthorizer)
@@ -316,7 +308,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ManagerSecurityAdminConfigurationsClient: ManagerSecurityAdminConfigurationsClient,
 		ManagerStaticMembersClient:               ManagerStaticMembersClient,
 		NatRuleClient:                            &NatRuleClient,
-		NetworkInterfacesClient:                  NetworkInterfacesClient,
 		PointToSiteVpnGatewaysClient:             &pointToSiteVpnGatewaysClient,
 		ProfileClient:                            &ProfileClient,
 		PacketCapturesClient:                     &PacketCapturesClient,

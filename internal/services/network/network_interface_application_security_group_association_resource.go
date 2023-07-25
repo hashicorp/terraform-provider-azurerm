@@ -70,7 +70,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Re
 }
 
 func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.NetworkInterfacesClient
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -131,7 +131,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 }
 
 func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.NetworkInterfacesClient
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,7 +186,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsd
 }
 
 func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.NetworkInterfacesClient
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
