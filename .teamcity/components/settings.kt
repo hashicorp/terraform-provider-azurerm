@@ -124,6 +124,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Orbital is only available in certain locations
         "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),
 
+        // Network Function is only available in certain locations
+        "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),
+
         "policy" to testConfiguration(useAltSubscription = true),
 
         // Private DNS Resolver is only available in certain locations
