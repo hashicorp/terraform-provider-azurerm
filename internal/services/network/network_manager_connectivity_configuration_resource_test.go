@@ -109,7 +109,7 @@ func (r ManagerConnectivityConfigurationResource) Exists(ctx context.Context, cl
 		return nil, err
 	}
 
-	client := clients.Network.ManagerConnectivityConfigurationsClient
+	client := clients.Network.ConnectivityConfigurations
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
