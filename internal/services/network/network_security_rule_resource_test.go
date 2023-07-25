@@ -117,7 +117,7 @@ func (t NetworkSecurityRuleResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	resp, err := clients.Network.SecurityRuleClient.Get(ctx, *id)
+	resp, err := clients.Network.SecurityRules.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -131,7 +131,7 @@ func (NetworkSecurityRuleResource) Destroy(ctx context.Context, client *clients.
 		return nil, err
 	}
 
-	if err = client.Network.SecurityRuleClient.DeleteThenPoll(ctx, *id); err != nil {
+	if err = client.Network.SecurityRules.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

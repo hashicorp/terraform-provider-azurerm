@@ -116,7 +116,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 }
 
 func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
+	client := meta.(*clients.Client).Network.RouteTables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,7 +160,7 @@ func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
+	client := meta.(*clients.Client).Network.RouteTables
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -202,7 +202,7 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
+	client := meta.(*clients.Client).Network.RouteTables
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

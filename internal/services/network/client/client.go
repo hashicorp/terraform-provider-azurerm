@@ -7,8 +7,6 @@ import (
 	"fmt"
 
 	network_2023_02_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/routetables"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/securityrules"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
@@ -39,11 +37,13 @@ type Client struct {
 	PacketCapturesClient                   *network.PacketCapturesClient
 	PublicIPsClient                        *network.PublicIPAddressesClient
 	PublicIPPrefixesClient                 *network.PublicIPPrefixesClient
+	PrivateDnsZoneGroupClient              *network.PrivateDNSZoneGroupsClient
+	PrivateLinkServiceClient               *network.PrivateLinkServicesClient
+	ResourceNavigationLinkClient           *network.ResourceNavigationLinksClient
 	RouteMapsClient                        *network.RouteMapsClient
-	RouteTablesClient                      *routetables.RouteTablesClient
 	SecurityGroupClient                    *network.SecurityGroupsClient
 	SecurityPartnerProviderClient          *network.SecurityPartnerProvidersClient
-	SecurityRuleClient                     *securityrules.SecurityRulesClient
+	ServiceAssociationLinkClient           *network.ServiceAssociationLinksClient
 	ServiceEndpointPoliciesClient          *network.ServiceEndpointPoliciesClient
 	ServiceEndpointPolicyDefinitionsClient *network.ServiceEndpointPolicyDefinitionsClient
 	ServiceTagsClient                      *network.ServiceTagsClient
@@ -64,10 +64,6 @@ type Client struct {
 	VpnSitesClient                         *network.VpnSitesClient
 	WatcherClient                          *network.WatchersClient
 	WebApplicationFirewallPoliciesClient   *network.WebApplicationFirewallPoliciesClient
-	PrivateDnsZoneGroupClient              *network.PrivateDNSZoneGroupsClient
-	PrivateLinkServiceClient               *network.PrivateLinkServicesClient
-	ServiceAssociationLinkClient           *network.ServiceAssociationLinksClient
-	ResourceNavigationLinkClient           *network.ResourceNavigationLinksClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -155,23 +151,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	RouteMapsClient := network.NewRouteMapsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RouteMapsClient.Client, o.ResourceManagerAuthorizer)
 
-	RouteTablesClient, err := routetables.NewRouteTablesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building network route tables client: %+v", err)
-	}
-	o.Configure(RouteTablesClient.Client, o.Authorizers.ResourceManager)
-
 	SecurityGroupClient := network.NewSecurityGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SecurityGroupClient.Client, o.ResourceManagerAuthorizer)
 
 	SecurityPartnerProviderClient := network.NewSecurityPartnerProvidersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SecurityPartnerProviderClient.Client, o.ResourceManagerAuthorizer)
-
-	SecurityRuleClient, err := securityrules.NewSecurityRulesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building network security rule client: %+v", err)
-	}
-	o.Configure(SecurityRuleClient.Client, o.Authorizers.ResourceManager)
 
 	ServiceEndpointPoliciesClient := network.NewServiceEndpointPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServiceEndpointPoliciesClient.Client, o.ResourceManagerAuthorizer)
@@ -263,10 +247,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		PublicIPsClient:                        &PublicIPsClient,
 		PublicIPPrefixesClient:                 &PublicIPPrefixesClient,
 		RouteMapsClient:                        &RouteMapsClient,
-		RouteTablesClient:                      RouteTablesClient,
 		SecurityGroupClient:                    &SecurityGroupClient,
 		SecurityPartnerProviderClient:          &SecurityPartnerProviderClient,
-		SecurityRuleClient:                     SecurityRuleClient,
 		ServiceEndpointPoliciesClient:          &ServiceEndpointPoliciesClient,
 		ServiceEndpointPolicyDefinitionsClient: &ServiceEndpointPolicyDefinitionsClient,
 		ServiceTagsClient:                      &ServiceTagsClient,

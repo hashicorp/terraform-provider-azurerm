@@ -84,7 +84,7 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 }
 
 func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
+	client := meta.(*clients.Client).Network.RouteTables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
