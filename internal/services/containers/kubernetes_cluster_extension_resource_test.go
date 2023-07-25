@@ -97,7 +97,7 @@ func TestAccKubernetesClusterExtension_plan(t *testing.T) {
 }
 
 func (r KubernetesClusterExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := extensions.ParseExtensionID(state.ID)
+	id, err := extensions.ParseScopedExtensionID(state.ID)
 	if err != nil {
 		return nil, err
 	}

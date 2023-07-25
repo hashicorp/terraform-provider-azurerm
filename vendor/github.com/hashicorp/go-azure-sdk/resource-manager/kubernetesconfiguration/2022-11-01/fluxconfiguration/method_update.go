@@ -21,7 +21,7 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c FluxConfigurationClient) Update(ctx context.Context, id FluxConfigurationId, input FluxConfigurationPatch) (result UpdateOperationResponse, err error) {
+func (c FluxConfigurationClient) Update(ctx context.Context, id ScopedFluxConfigurationId, input FluxConfigurationPatch) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
@@ -60,7 +60,7 @@ func (c FluxConfigurationClient) Update(ctx context.Context, id FluxConfiguratio
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c FluxConfigurationClient) UpdateThenPoll(ctx context.Context, id FluxConfigurationId, input FluxConfigurationPatch) error {
+func (c FluxConfigurationClient) UpdateThenPoll(ctx context.Context, id ScopedFluxConfigurationId, input FluxConfigurationPatch) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)

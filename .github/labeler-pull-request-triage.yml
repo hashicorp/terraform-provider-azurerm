@@ -141,6 +141,9 @@ service/fluid-relay:
 service/frontdoor:
   - internal/services/frontdoor/**/*
 
+service/graph:
+  - internal/services/graph/**/*
+
 service/hdinsight:
   - internal/services/hdinsight/**/*
 
@@ -236,6 +239,9 @@ service/netapp:
 
 service/network:
   - internal/services/network/**/*
+
+service/network-function:
+  - internal/services/networkfunction/**/*
 
 service/nginx:
   - internal/services/nginx/**/*

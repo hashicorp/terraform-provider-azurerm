@@ -171,7 +171,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"engine": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
+				Deprecated:   "This property has been deprecated as it will no longer be supported by the API. It will be removed in a future version of the provider.",
 				ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
 			},
 
@@ -241,7 +241,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 	}
 
 	if features.FourPointOhBeta() {
-		s.Schema["engine"].Default = string(clusters.EngineTypeVThree)
 		s.Schema["language_extensions"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
@@ -262,7 +261,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 		}
 	} else {
-		s.Schema["engine"].Default = string(clusters.EngineTypeVTwo)
 		s.Schema["language_extensions"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -328,8 +326,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	engine := clusters.EngineType(d.Get("engine").(string))
-
 	publicNetworkAccess := clusters.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = clusters.PublicNetworkAccessDisabled
@@ -344,7 +340,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
 		EnableStreamingIngest:  utils.Bool(d.Get("streaming_ingestion_enabled").(bool)),
 		EnablePurge:            utils.Bool(d.Get("purge_enabled").(bool)),
-		EngineType:             &engine,
 		PublicNetworkAccess:    &publicNetworkAccess,
 		PublicIPType:           &publicIPType,
 		TrustedExternalTenants: expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{})),
@@ -469,7 +464,6 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("virtual_network_configuration", flattenKustoClusterVNET(props.VirtualNetworkConfiguration))
 			d.Set("uri", props.Uri)
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
-			d.Set("engine", string(pointer.From(props.EngineType)))
 			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
 
 			if features.FourPointOhBeta() {
