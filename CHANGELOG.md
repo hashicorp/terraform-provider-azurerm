@@ -10,6 +10,14 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20230725.1205316` of `github.com/hashicorp/go-azure-sdk` [GH-22681]
+* `connections`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22681]
+* `iothub`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22681]
+* `mysql`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22681]
+* `orbital`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22681]
+* `powerbi`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22681]
+* `privatedns`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22681]
+* `purview`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22681]
+* `relay`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22681]
 * `azurerm_image` - support for the field `disk_encryption_set_id` within the `os_disk` block [GH-22642]
 * `azurerm_redis_enterprise_database` - support `redisSON` module for geo-replication [GH-22627]
 * `azurerm_network_interface` - updating to use `hashicorp/go-azure-sdk` and API Version `2023-02-01` [GH-22479]
