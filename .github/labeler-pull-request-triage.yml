@@ -336,3 +336,4 @@ service/virtual-desktops:
 
 service/vmware:
   - internal/services/vmware/**/*
+  
