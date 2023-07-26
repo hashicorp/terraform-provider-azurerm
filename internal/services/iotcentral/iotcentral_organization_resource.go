@@ -123,7 +123,7 @@ func resourceIotCentralOrganizationRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("sub_domain", id.SubDomain)
 	d.Set("display_name", org.DisplayName)
 	d.Set("parent", org.Parent)
-	d.Set("organization_id", *org.ID)
+	d.Set("organization_id", org.ID)
 
 	return nil
 }
