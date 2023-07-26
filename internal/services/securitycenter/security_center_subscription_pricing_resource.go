@@ -95,7 +95,6 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 						"additional_extension_properties": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
-							Default:  map[string]string{},
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -141,7 +140,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	// can not set extensions for free tier
 	if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
 		if vExt, okExt := d.GetOk("extension"); okExt {
-			var extensions = ConvertInputExtensionToSDKModel(vExt.([]interface{}))
+			var extensions = expandSecurityCenterSubscriptionPricingExtensions(vExt.([]interface{}))
 			pricing.Properties.Extensions = extensions
 		}
 	}
@@ -181,7 +180,7 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 			d.Set("tier", properties.PricingTier)
 			d.Set("subplan", properties.SubPlan)
 			if properties.Extensions != nil {
-				d.Set("extensions", *(properties.Extensions))
+				d.Set("extension", flattenExtensions(properties.Extensions))
 			}
 		}
 	}
@@ -213,7 +212,7 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func ConvertInputExtensionToSDKModel(inputList []interface{}) *[]pricings_v2023_01_01.Extension {
+func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}) *[]pricings_v2023_01_01.Extension {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -234,4 +233,26 @@ func ConvertInputExtensionToSDKModel(inputList []interface{}) *[]pricings_v2023_
 	}
 
 	return &outputList
+}
+
+func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{} {
+
+	if inputList == nil {
+		return nil
+	}
+
+	outputList := make([]interface{}, 0)
+
+	for _, input := range *inputList {
+		output := map[string]interface{}{
+			"enabled":                         input.IsEnabled,
+			"name":                            input.Name,
+			"additional_extension_properties": *input.AdditionalExtensionProperties,
+			"operation_status":                input.OperationStatus,
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return outputList
 }

@@ -21,28 +21,6 @@ resource "azurerm_security_center_subscription_pricing" "example" {
 }
 ```
 
-Example for extensions
-```hcl
-resource "azurerm_security_center_subscription_pricing" "test" {
-  tier= "Standard"
-  resource_type = "CloudPosture"
-  extension {
-    name= "SensitiveDataDiscovery"
-    enabled = "True"
-  }
-  extension {
-    name= "AgentlessDiscoveryForKubernetes"
-    enabled = "False"
-  }
-  extension {
-    name= "AgentlessVmScanning"
-    enabled = "True"
-    additional_extension_properties = {
-        ExclusionTags = "[]"
-    }
-  }
-}
-```
 ## Argument Reference
 
 The following arguments are supported:
@@ -50,7 +28,18 @@ The following arguments are supported:
 * `tier` - (Required) The pricing tier to use. Possible values are `Free` and `Standard`.
 * `resource_type` - (Optional) The resource type this setting affects. Possible values are `AppServices`, `ContainerRegistry`, `KeyVaults`, `KubernetesService`, `SqlServers`, `SqlServerVirtualMachines`, `StorageAccounts`, `VirtualMachines`, `Arm`, `Dns`, `OpenSourceRelationalDatabases`, `Containers`, `CosmosDbs` and `CloudPosture`. Defaults to `VirtualMachines`
 * `subplan` - (Optional) Resource type pricing subplan. Contact your MSFT representative for possible values.
-* `extension` - (Optional) Resource type pricing extensions. Contact your MSFT representative for possible values.
+* `extension` - (Optional) One or more `extension` blocks as defined below.
+
+---
+
+A `extension` block supports the following:
+
+* `name` - (Required) The name of extension.
+
+* `enabled` - (Required) enable or disable the extension.
+
+* `additional_extension_properties` - (Optional) Key/Value paris that are required for some extensions.
+
 
 ~> **NOTE:** Changing the pricing tier to `Standard` affects all resources of the given type in the subscription and could be quite costly.
 

@@ -110,6 +110,7 @@ func TestAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T
 				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("resource_type").HasValue("CloudPosture"),
 				check.That(data.ResourceName).Key("extension").IsNotEmpty(),
+				check.That(data.ResourceName).Key("extension").HasValue("AgentlessVmScanning"),
 			),
 		},
 		data.ImportStep(),
@@ -173,16 +174,11 @@ resource "azurerm_security_center_subscription_pricing" "test" {
     enabled = "True"
   }
   extension {
-    name= "AgentlessDiscoveryForKubernetes"
-    enabled = "False"
-  }
-  extension {
     name= "AgentlessVmScanning"
-    enabled = "True"
+    enabled = "False"
     additional_extension_properties = {
-ExclusionTags = "[]"
+		ExclusionTags = "[]"
     }
-
   }
 }
 `
