@@ -68,7 +68,7 @@ import (
 	firewall "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/client"
 	fluidrelay "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
 	frontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/client"
-	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graph/client"
+	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices/client"
 	hdinsight "github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	hpccache "github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/client"

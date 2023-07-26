@@ -1,4 +1,4 @@
-package graph
+package graphservices
 
 import (
 	"context"

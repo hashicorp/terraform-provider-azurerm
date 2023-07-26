@@ -1,14 +1,14 @@
 ---
-subcategory: "Graph"
+subcategory: "Graph Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_graph_services_account"
 description: |-
-  Manages a Graph Services Account.
+  Manages a Microsoft Graph Services Account.
 ---
 
 # azurerm_graph_services_account
 
-Manages a Graph Services Account.
+Manages a Microsoft Graph Services Account.
 
 ## Example Usage
 

@@ -1,4 +1,4 @@
-package graph_test
+package graphservices_test
 
 import (
 	"context"

@@ -52,7 +52,7 @@ var services = mapOf(
         "firewall" to "Firewall",
         "fluidrelay" to "Fluid Relay",
         "frontdoor" to "FrontDoor",
-        "graph" to "Graph",
+        "graph" to "Graph Services",
         "hdinsight" to "HDInsight",
         "hpccache" to "HPC Cache",
         "hsm" to "Hardware Security Module",
