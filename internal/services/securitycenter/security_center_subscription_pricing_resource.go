@@ -245,11 +245,13 @@ func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{
 
 	for _, input := range *inputList {
 		output := map[string]interface{}{
-			"enabled":                         input.IsEnabled,
-			"name":                            input.Name,
-			"additional_extension_properties": *input.AdditionalExtensionProperties,
-			"operation_status":                input.OperationStatus,
+			"enabled":          input.IsEnabled,
+			"name":             input.Name,
+			"operation_status": input.OperationStatus,
 		}
+		if input.AdditionalExtensionProperties != nil {
+			output["additional_extension_properties"] = *input.AdditionalExtensionProperties
+		}:wq
 
 		outputList = append(outputList, output)
 	}
