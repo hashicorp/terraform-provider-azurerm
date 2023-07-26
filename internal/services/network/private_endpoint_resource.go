@@ -702,15 +702,27 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	log.Printf("[DEBUG] Deleted the Private DNS Zone Group associated with %s.", id)
 
-	subnetId := d.Get("subnet_id").(string)
-	privateServiceConnections := d.Get("private_service_connection").([]interface{})
-	parameters := privateendpoints.PrivateEndpoint{
-		Properties: &privateendpoints.PrivateEndpointProperties{
-			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
-			ManualPrivateLinkServiceConnections: expandPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
-		},
+	existing, err := client.Get(ctx, *id, privateendpoints.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 	}
-	cosmosDbResIds := getCosmosDbResIdInPrivateServiceConnections(parameters.Properties)
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving existing %s: `model` was nil", *id)
+	}
+	subnetId := ""
+	if model := existing.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if subnet := props.Subnet; subnet != nil && subnet.Id != nil {
+				subnetId = *subnet.Id
+			}
+		}
+	}
+	if subnetId == "" {
+		// this also captures `model.Properties` being nil below, since otherwise we wouldn't get the Subnet
+		return fmt.Errorf("retrieving existing %s: `model.Properties.Subnet.Id` was nil", *id)
+	}
+
+	cosmosDbResIds := getCosmosDbResIdInPrivateServiceConnections(existing.Model.Properties)
 	for _, cosmosDbResId := range cosmosDbResIds {
 		locks.ByName(cosmosDbResId, "azurerm_private_endpoint")
 		//goland:noinspection GoDeferInLoop
