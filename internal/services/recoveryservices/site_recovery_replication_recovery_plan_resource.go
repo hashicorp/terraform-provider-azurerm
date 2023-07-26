@@ -543,18 +543,16 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("recovery_group") {
 				groupValue, err = expandRecoveryGroup(model.RecoveryGroup)
-				if err != nil {
-					return fmt.Errorf("expanding recovery group: %+v", err)
-				}
 			}
 
 			if metadata.ResourceData.HasChange("boot_recovery_group") ||
 				metadata.ResourceData.HasChange("failover_recovery_group") ||
 				metadata.ResourceData.HasChange("shutdown_recovery_group") {
 				groupValue, err = expandRecoveryGroupNew(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
-				if err != nil {
-					return fmt.Errorf("expanding recovery group: %+v", err)
-				}
+			}
+
+			if err != nil {
+				return fmt.Errorf("expanding recovery group: %+v", err)
 			}
 
 			parameters := replicationrecoveryplans.UpdateRecoveryPlanInput{
