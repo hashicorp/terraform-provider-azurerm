@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetworkInterfaceResource struct{}
@@ -342,35 +343,31 @@ func TestAccNetworkInterface_pointToGatewayLB(t *testing.T) {
 }
 
 func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NetworkInterfaceID(state.ID)
+	id, err := commonids.ParseNetworkInterfaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.InterfacesClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.NetworkInterfacesClient.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NetworkInterfaceResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NetworkInterfaceID(state.ID)
+	id, err := commonids.ParseNetworkInterfaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.Network.InterfacesClient.Delete(ctx, id.ResourceGroup, id.Name)
+	err = client.Network.NetworkInterfacesClient.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r NetworkInterfaceResource) basic(data acceptance.TestData) string {

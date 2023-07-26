@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_eventhub_sas` [GH-22215]
 * **New Resource**: `azurerm_kubernetes_cluster_trusted_access_role_binding` [GH-22647]
 * **New Resource:** `azurerm_marketplace_role_assignment` [GH-22398]
 * **New Resource:** `azurerm_network_function_azure_traffic_collector` [GH-22274]
@@ -9,6 +10,14 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_image` - support for the field `disk_encryption_set_id` within the `os_disk` block [GH-22642]
+* `azurerm_redis_enterprise_database` - support `redisSON` module for geo-replication [GH-22627]
+* `azurerm_network_interface` - updating to use `hashicorp/go-azure-sdk` and API Version `2023-02-01` [GH-22479]
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - `backup.0.type` is updated separately when set to `Continuous` [GH-22638]
+* `azurerm_redis_cache` - only update `patch_schedule` when it has changed in the config file [GH-22661]
+* `azurerm_cosmosdb_account` - `cors_rule.max_age_in_seconds` is now Optional and has new max `2147483647` [GH-22552]
 
 ## 3.66.0 (July 20, 2023)
 
