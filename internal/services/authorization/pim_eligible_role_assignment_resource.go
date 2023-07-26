@@ -202,12 +202,18 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 			}
 
 			requestId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(config.Scope, uuid)
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal error: context has no deadline")
+			}
+
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Missing"},
 				Target:     []string{"Created"},
 				Refresh:    createEligibilityRoleAssignment(ctx, clientRequest, requestId, &payload),
 				MinTimeout: 30 * time.Second,
-				Timeout:    waitTimeoutFromCtx(ctx, 10*time.Minute),
+				Timeout:    time.Until(deadline),
 			}
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
@@ -219,7 +225,7 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 				Target:     []string{"Found"},
 				Refresh:    waitForEligibleRoleAssignmentSchedule(ctx, clientInstances, config.Scope, config.PrincipalId, config.RoleDefinitionId, "Found"),
 				MinTimeout: 30 * time.Second,
-				Timeout:    waitTimeoutFromCtx(ctx, 10*time.Minute),
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -338,13 +344,18 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 			}
 			deleteId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(id.Scope, uuid)
 
+			deadline, ok := ctx.Deadline()
+			if ok {
+				return fmt.Errorf("internal error: context has no deadline")
+			}
+
 			// wait for resource to deleted
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Exist"},
 				Target:     []string{"Deleted"},
 				Refresh:    deleteEligibilityRoleAssignmentSchedule(ctx, clientRequest, deleteId, &payload),
 				MinTimeout: 1 * time.Minute,
-				Timeout:    waitTimeoutFromCtx(ctx, 5*time.Minute),
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -357,7 +368,7 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				Target:     []string{"Missing"},
 				Refresh:    waitForEligibleRoleAssignmentSchedule(ctx, clientInstances, id.Scope, id.PrincipalId, id.RoleDefinitionId, "Missing"),
 				MinTimeout: 30 * time.Second,
-				Timeout:    waitTimeoutFromCtx(ctx, 5*time.Minute),
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -652,11 +663,4 @@ func deleteEligibilityRoleAssignmentSchedule(ctx context.Context, client *roleel
 
 		return result, "Deleted", nil
 	}
-}
-
-func waitTimeoutFromCtx(ctx context.Context, defaultValue time.Duration) time.Duration {
-	if deadline, ok := ctx.Deadline(); ok {
-		defaultValue = time.Until(deadline)
-	}
-	return defaultValue
 }
