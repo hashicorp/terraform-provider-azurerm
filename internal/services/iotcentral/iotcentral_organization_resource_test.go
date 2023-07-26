@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -29,7 +30,7 @@ func TestAccIoTCentralOrganization_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("display_name").HasValue("Org basic"),
 			),
 		},
-		//data.ImportStep(),
+		data.ImportStep(),
 	})
 }
 
@@ -44,20 +45,22 @@ func TestAccIoTCentralOrganization_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		//data.ImportStep(),
+		data.ImportStep(),
 	})
 }
 
 func (IoTCentralOrganizationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id := state.ID
-	subDomain := state.Attributes["sub_domain"]
+	id, err := parse.ParseNestedItemID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	orgClient, err := clients.IoTCentral.OrganizationsClient(ctx, subDomain)
+	orgClient, err := clients.IoTCentral.OrganizationsClient(ctx, id.SubDomain)
 	if err != nil {
 		return nil, fmt.Errorf("creating organization client: %+v", err)
 	}
 
-	resp, err := orgClient.Get(ctx, id)
+	resp, err := orgClient.Get(ctx, id.Id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -74,9 +77,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_iotcentral_organization" "test" {
-	sub_domain      = azurerm_iotcentral_application.test.sub_domain
-	display_name    = "Org basic"
+  sub_domain   = azurerm_iotcentral_application.test.sub_domain
+  display_name = "Org basic"
 }
+
 
 `, r.template(data))
 }
@@ -90,15 +94,16 @@ provider "azurerm" {
 %s
 
 resource "azurerm_iotcentral_organization" "test_parent" {
-	sub_domain      = azurerm_iotcentral_application.test.sub_domain
-	display_name    = "Org parent"
+  sub_domain   = azurerm_iotcentral_application.test.sub_domain
+  display_name = "Org parent"
 }
 
 resource "azurerm_iotcentral_organization" "test" {
-	sub_domain      = azurerm_iotcentral_application.test.sub_domain
-	display_name    = "Org child"
-	parent          = azurerm_iotcentral_organization.test_parent.id
+  sub_domain   = azurerm_iotcentral_application.test.sub_domain
+  display_name = "Org child"
+  parent       = azurerm_iotcentral_organization.test_parent.organization_id
 }
+
 
 `, r.template(data))
 }
@@ -114,7 +119,7 @@ resource "azurerm_iotcentral_application" "test" {
   name                = "acctest-iotcentralapp-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sub_domain          = "subdomain2-%[1]d"
+  sub_domain          = "subdomain-%[1]d"
   display_name        = "some-display-name"
   sku                 = "ST0"
 }

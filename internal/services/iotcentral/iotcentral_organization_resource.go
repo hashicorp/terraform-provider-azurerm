@@ -6,9 +6,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	iotcentralDataplane "github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
+)
+
+const (
+	baseUrlTemplate = "https://%s.azureiotcentral.com"
 )
 
 func resourceIotCentralOrganization() *pluginsdk.Resource {
@@ -17,6 +22,11 @@ func resourceIotCentralOrganization() *pluginsdk.Resource {
 		Read:   resourceIotCentralOrganizationRead,
 		Update: resourceIotCentralOrganizationUpdate,
 		Delete: resourceIotCentralOrganizationDelete,
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ParseNestedItemID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -29,8 +39,9 @@ func resourceIotCentralOrganization() *pluginsdk.Resource {
 			"sub_domain": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
-			"id": {
+			"organization_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -74,7 +85,14 @@ func resourceIotCentralOrganizationCreate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(*org.ID)
+	baseUrl := fmt.Sprintf(baseUrlTemplate, d.Get("sub_domain").(string))
+
+	orgId, err := parse.NewNestedItemID(baseUrl, parse.NestedItemTypeOrganization, *org.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(orgId.ID())
 	return resourceIotCentralOrganizationRead(d, meta)
 }
 
@@ -83,14 +101,17 @@ func resourceIotCentralOrganizationRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := d.Get("id").(string)
+	id, err := parse.ParseNestedItemID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	orgClient, err := client.OrganizationsClient(ctx, d.Get("sub_domain").(string))
+	orgClient, err := client.OrganizationsClient(ctx, id.SubDomain)
 	if err != nil {
 		return fmt.Errorf("creating organization client: %+v", err)
 	}
 
-	org, err := orgClient.Get(ctx, id)
+	org, err := orgClient.Get(ctx, id.Id)
 	if err != nil {
 		if org.ID == nil || *org.ID == "" {
 			d.SetId("")
@@ -99,9 +120,10 @@ func resourceIotCentralOrganizationRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *org.ID, err)
 	}
 
-	d.SetId(*org.ID)
+	d.Set("sub_domain", id.SubDomain)
 	d.Set("display_name", org.DisplayName)
 	d.Set("parent", org.Parent)
+	d.Set("organization_id", *org.ID)
 
 	return nil
 }
@@ -111,14 +133,17 @@ func resourceIotCentralOrganizationUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := d.Get("id").(string)
+	id, err := parse.ParseNestedItemID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	orgClient, err := client.OrganizationsClient(ctx, d.Get("sub_domain").(string))
+	orgClient, err := client.OrganizationsClient(ctx, id.SubDomain)
 	if err != nil {
 		return fmt.Errorf("creating organization client: %+v", err)
 	}
 
-	existing, err := orgClient.Get(ctx, id)
+	existing, err := orgClient.Get(ctx, id.Id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -146,14 +171,17 @@ func resourceIotCentralOrganizationDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := d.Get("id").(string)
+	id, err := parse.ParseNestedItemID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	orgClient, err := client.OrganizationsClient(ctx, d.Get("sub_domain").(string))
+	orgClient, err := client.OrganizationsClient(ctx, id.SubDomain)
 	if err != nil {
 		return fmt.Errorf("creating organization client: %+v", err)
 	}
 
-	_, err = orgClient.Remove(ctx, id)
+	_, err = orgClient.Remove(ctx, id.Id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
