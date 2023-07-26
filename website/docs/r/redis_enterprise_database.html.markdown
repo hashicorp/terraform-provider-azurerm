@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `module` - (Optional) A `module` block as defined below. Changing this forces a new resource to be created.
 
--> **NOTE:** Only RediSearch module is allowed with geo-replication
+-> **NOTE:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication
 
 * `linked_database_id` - (Optional) A list of database resources to link with this database with a maximum of 5.
 
