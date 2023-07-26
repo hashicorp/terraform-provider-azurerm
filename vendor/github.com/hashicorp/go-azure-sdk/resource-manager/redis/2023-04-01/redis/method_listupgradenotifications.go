@@ -52,7 +52,7 @@ func (o ListUpgradeNotificationsOperationOptions) ToQuery() *client.QueryParams 
 // ListUpgradeNotifications ...
 func (c RedisClient) ListUpgradeNotifications(ctx context.Context, id RediId, options ListUpgradeNotificationsOperationOptions) (result ListUpgradeNotificationsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type StopProtectionOperationResponse struct {
 // StopProtection ...
 func (c BackupInstancesClient) StopProtection(ctx context.Context, id BackupInstanceId) (result StopProtectionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

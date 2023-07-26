@@ -20,7 +20,7 @@ type GetPrivateLinkResourcesOperationResponse struct {
 // GetPrivateLinkResources ...
 func (c IotDpsResourceClient) GetPrivateLinkResources(ctx context.Context, id PrivateLinkResourceId) (result GetPrivateLinkResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

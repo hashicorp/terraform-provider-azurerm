@@ -21,7 +21,7 @@ type ListSkusForCapacityOperationResponse struct {
 // ListSkusForCapacity ...
 func (c CapacitiesClient) ListSkusForCapacity(ctx context.Context, id CapacityId) (result ListSkusForCapacityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

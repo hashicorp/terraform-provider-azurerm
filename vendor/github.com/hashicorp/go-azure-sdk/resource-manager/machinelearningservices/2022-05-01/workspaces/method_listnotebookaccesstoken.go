@@ -21,7 +21,7 @@ type ListNotebookAccessTokenOperationResponse struct {
 // ListNotebookAccessToken ...
 func (c WorkspacesClient) ListNotebookAccessToken(ctx context.Context, id WorkspaceId) (result ListNotebookAccessTokenOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

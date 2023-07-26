@@ -20,7 +20,7 @@ type GetAuthorizationRuleOperationResponse struct {
 // GetAuthorizationRule ...
 func (c EventHubsClient) GetAuthorizationRule(ctx context.Context, id EventhubAuthorizationRuleId) (result GetAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

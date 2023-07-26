@@ -53,7 +53,7 @@ func (o ManagementGroupNetworkManagerConnectionsListOperationOptions) ToQuery() 
 // ManagementGroupNetworkManagerConnectionsList ...
 func (c NetworkManagerConnectionsClient) ManagementGroupNetworkManagerConnectionsList(ctx context.Context, id commonids.ManagementGroupId, options ManagementGroupNetworkManagerConnectionsListOperationOptions) (result ManagementGroupNetworkManagerConnectionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

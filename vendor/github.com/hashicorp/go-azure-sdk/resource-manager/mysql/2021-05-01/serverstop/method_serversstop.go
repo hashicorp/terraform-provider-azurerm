@@ -23,7 +23,7 @@ type ServersStopOperationResponse struct {
 // ServersStop ...
 func (c ServerStopClient) ServersStop(ctx context.Context, id FlexibleServerId) (result ServersStopOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

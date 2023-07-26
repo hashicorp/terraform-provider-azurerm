@@ -25,7 +25,7 @@ type DisconnectActiveSessionsCompleteResult struct {
 // DisconnectActiveSessions ...
 func (c BastionHostsClient) DisconnectActiveSessions(ctx context.Context, id BastionHostId, input SessionIds) (result DisconnectActiveSessionsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

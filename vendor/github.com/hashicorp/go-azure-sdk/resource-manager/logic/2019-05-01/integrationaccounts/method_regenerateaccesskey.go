@@ -21,7 +21,7 @@ type RegenerateAccessKeyOperationResponse struct {
 // RegenerateAccessKey ...
 func (c IntegrationAccountsClient) RegenerateAccessKey(ctx context.Context, id IntegrationAccountId, input RegenerateActionParameter) (result RegenerateAccessKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

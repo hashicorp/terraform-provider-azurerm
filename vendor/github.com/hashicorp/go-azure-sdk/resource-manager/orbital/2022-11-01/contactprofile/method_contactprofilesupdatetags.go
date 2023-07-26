@@ -23,7 +23,7 @@ type ContactProfilesUpdateTagsOperationResponse struct {
 // ContactProfilesUpdateTags ...
 func (c ContactProfileClient) ContactProfilesUpdateTags(ctx context.Context, id ContactProfileId, input TagsObject) (result ContactProfilesUpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

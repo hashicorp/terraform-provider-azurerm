@@ -26,7 +26,7 @@ type ContactProfilesListCompleteResult struct {
 // ContactProfilesList ...
 func (c ContactProfileClient) ContactProfilesList(ctx context.Context, id commonids.ResourceGroupId) (result ContactProfilesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

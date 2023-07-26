@@ -23,7 +23,7 @@ type InstancesCreateOperationResponse struct {
 // InstancesCreate ...
 func (c DeviceupdatesClient) InstancesCreate(ctx context.Context, id InstanceId, input Instance) (result InstancesCreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 		},

@@ -21,7 +21,7 @@ type ManagedApisListOperationResponse struct {
 // ManagedApisList ...
 func (c ManagedAPIsClient) ManagedApisList(ctx context.Context, id LocationId) (result ManagedApisListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -19,7 +19,7 @@ type SubscriptionNetworkManagerConnectionsDeleteOperationResponse struct {
 // SubscriptionNetworkManagerConnectionsDelete ...
 func (c NetworkManagerConnectionsClient) SubscriptionNetworkManagerConnectionsDelete(ctx context.Context, id NetworkManagerConnectionId) (result SubscriptionNetworkManagerConnectionsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

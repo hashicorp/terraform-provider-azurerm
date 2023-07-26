@@ -20,7 +20,7 @@ type PoolsGetOperationResponse struct {
 // PoolsGet ...
 func (c CapacityPoolsClient) PoolsGet(ctx context.Context, id CapacityPoolId) (result PoolsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

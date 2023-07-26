@@ -23,7 +23,7 @@ type ContactProfilesCreateOrUpdateOperationResponse struct {
 // ContactProfilesCreateOrUpdate ...
 func (c ContactProfileClient) ContactProfilesCreateOrUpdate(ctx context.Context, id ContactProfileId, input ContactProfile) (result ContactProfilesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

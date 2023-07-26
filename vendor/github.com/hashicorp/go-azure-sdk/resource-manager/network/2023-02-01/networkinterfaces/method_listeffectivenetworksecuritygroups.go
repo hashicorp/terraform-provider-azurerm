@@ -24,7 +24,7 @@ type ListEffectiveNetworkSecurityGroupsOperationResponse struct {
 // ListEffectiveNetworkSecurityGroups ...
 func (c NetworkInterfacesClient) ListEffectiveNetworkSecurityGroups(ctx context.Context, id commonids.NetworkInterfaceId) (result ListEffectiveNetworkSecurityGroupsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -20,7 +20,7 @@ type GrafanaGetOperationResponse struct {
 // GrafanaGet ...
 func (c GrafanaResourceClient) GrafanaGet(ctx context.Context, id GrafanaId) (result GrafanaGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

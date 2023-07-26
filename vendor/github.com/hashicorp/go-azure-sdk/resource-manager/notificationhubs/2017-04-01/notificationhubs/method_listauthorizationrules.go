@@ -25,7 +25,7 @@ type ListAuthorizationRulesCompleteResult struct {
 // ListAuthorizationRules ...
 func (c NotificationHubsClient) ListAuthorizationRules(ctx context.Context, id NotificationHubId) (result ListAuthorizationRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

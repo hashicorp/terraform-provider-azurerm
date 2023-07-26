@@ -25,7 +25,7 @@ type DefaultSecurityRulesListCompleteResult struct {
 // DefaultSecurityRulesList ...
 func (c SecurityRulesClient) DefaultSecurityRulesList(ctx context.Context, id NetworkSecurityGroupId) (result DefaultSecurityRulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

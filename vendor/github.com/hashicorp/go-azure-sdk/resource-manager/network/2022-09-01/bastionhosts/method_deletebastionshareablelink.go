@@ -23,7 +23,7 @@ type DeleteBastionShareableLinkOperationResponse struct {
 // DeleteBastionShareableLink ...
 func (c BastionHostsClient) DeleteBastionShareableLink(ctx context.Context, id BastionHostId, input BastionShareableLinkListRequest) (result DeleteBastionShareableLinkOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

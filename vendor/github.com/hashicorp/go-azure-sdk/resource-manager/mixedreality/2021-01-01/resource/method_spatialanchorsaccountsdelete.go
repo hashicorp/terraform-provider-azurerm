@@ -19,7 +19,7 @@ type SpatialAnchorsAccountsDeleteOperationResponse struct {
 // SpatialAnchorsAccountsDelete ...
 func (c ResourceClient) SpatialAnchorsAccountsDelete(ctx context.Context, id SpatialAnchorsAccountId) (result SpatialAnchorsAccountsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

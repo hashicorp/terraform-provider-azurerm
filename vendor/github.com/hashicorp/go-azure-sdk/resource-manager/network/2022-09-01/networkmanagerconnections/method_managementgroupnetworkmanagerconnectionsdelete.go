@@ -19,7 +19,7 @@ type ManagementGroupNetworkManagerConnectionsDeleteOperationResponse struct {
 // ManagementGroupNetworkManagerConnectionsDelete ...
 func (c NetworkManagerConnectionsClient) ManagementGroupNetworkManagerConnectionsDelete(ctx context.Context, id Providers2NetworkManagerConnectionId) (result ManagementGroupNetworkManagerConnectionsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

@@ -23,7 +23,7 @@ type ServersStartOperationResponse struct {
 // ServersStart ...
 func (c ServerStartClient) ServersStart(ctx context.Context, id FlexibleServerId) (result ServersStartOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

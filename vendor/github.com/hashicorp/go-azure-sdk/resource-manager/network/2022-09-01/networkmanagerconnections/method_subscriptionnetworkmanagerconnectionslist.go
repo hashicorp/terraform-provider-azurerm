@@ -53,7 +53,7 @@ func (o SubscriptionNetworkManagerConnectionsListOperationOptions) ToQuery() *cl
 // SubscriptionNetworkManagerConnectionsList ...
 func (c NetworkManagerConnectionsClient) SubscriptionNetworkManagerConnectionsList(ctx context.Context, id commonids.SubscriptionId, options SubscriptionNetworkManagerConnectionsListOperationOptions) (result SubscriptionNetworkManagerConnectionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

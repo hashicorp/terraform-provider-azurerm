@@ -21,7 +21,7 @@ type ListKeysForKeyNameOperationResponse struct {
 // ListKeysForKeyName ...
 func (c IotDpsResourceClient) ListKeysForKeyName(ctx context.Context, id KeyId) (result ListKeysForKeyNameOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

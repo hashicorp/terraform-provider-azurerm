@@ -23,7 +23,7 @@ type ServersRestartOperationResponse struct {
 // ServersRestart ...
 func (c ServerRestartClient) ServersRestart(ctx context.Context, id FlexibleServerId, input ServerRestartParameter) (result ServersRestartOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -23,7 +23,7 @@ type GenerateCredentialsOperationResponse struct {
 // GenerateCredentials ...
 func (c RegistriesClient) GenerateCredentials(ctx context.Context, id RegistryId, input GenerateCredentialsParameters) (result GenerateCredentialsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

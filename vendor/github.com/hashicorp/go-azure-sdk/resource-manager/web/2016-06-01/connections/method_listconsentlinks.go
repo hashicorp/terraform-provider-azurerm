@@ -21,7 +21,7 @@ type ListConsentLinksOperationResponse struct {
 // ListConsentLinks ...
 func (c ConnectionsClient) ListConsentLinks(ctx context.Context, id ConnectionId, input ListConsentLinksDefinition) (result ListConsentLinksOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

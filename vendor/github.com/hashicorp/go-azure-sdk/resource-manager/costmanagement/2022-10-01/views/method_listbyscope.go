@@ -26,7 +26,7 @@ type ListByScopeCompleteResult struct {
 // ListByScope ...
 func (c ViewsClient) ListByScope(ctx context.Context, id commonids.ScopeId) (result ListByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

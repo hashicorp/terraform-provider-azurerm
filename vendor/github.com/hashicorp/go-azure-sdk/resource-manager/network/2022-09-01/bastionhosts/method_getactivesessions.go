@@ -28,7 +28,7 @@ type GetActiveSessionsCompleteResult struct {
 // GetActiveSessions ...
 func (c BastionHostsClient) GetActiveSessions(ctx context.Context, id BastionHostId) (result GetActiveSessionsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -23,7 +23,7 @@ type RegenerateKeyOperationResponse struct {
 // RegenerateKey ...
 func (c DatabasesClient) RegenerateKey(ctx context.Context, id DatabaseId, input RegenerateKeyParameters) (result RegenerateKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

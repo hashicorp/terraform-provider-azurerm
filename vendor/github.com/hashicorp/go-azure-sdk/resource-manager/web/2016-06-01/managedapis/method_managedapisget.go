@@ -20,7 +20,7 @@ type ManagedApisGetOperationResponse struct {
 // ManagedApisGet ...
 func (c ManagedAPIsClient) ManagedApisGet(ctx context.Context, id ManagedApiId) (result ManagedApisGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

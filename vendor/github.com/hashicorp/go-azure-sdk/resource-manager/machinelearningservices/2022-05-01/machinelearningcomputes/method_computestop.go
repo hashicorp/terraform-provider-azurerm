@@ -23,7 +23,7 @@ type ComputeStopOperationResponse struct {
 // ComputeStop ...
 func (c MachineLearningComputesClient) ComputeStop(ctx context.Context, id ComputeId) (result ComputeStopOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},

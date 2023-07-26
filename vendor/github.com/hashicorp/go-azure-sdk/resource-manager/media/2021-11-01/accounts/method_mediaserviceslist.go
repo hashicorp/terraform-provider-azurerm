@@ -26,7 +26,7 @@ type MediaservicesListCompleteResult struct {
 // MediaservicesList ...
 func (c AccountsClient) MediaservicesList(ctx context.Context, id commonids.ResourceGroupId) (result MediaservicesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

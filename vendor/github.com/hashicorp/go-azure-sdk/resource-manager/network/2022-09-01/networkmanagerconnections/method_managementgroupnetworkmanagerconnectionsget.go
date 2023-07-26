@@ -20,7 +20,7 @@ type ManagementGroupNetworkManagerConnectionsGetOperationResponse struct {
 // ManagementGroupNetworkManagerConnectionsGet ...
 func (c NetworkManagerConnectionsClient) ManagementGroupNetworkManagerConnectionsGet(ctx context.Context, id Providers2NetworkManagerConnectionId) (result ManagementGroupNetworkManagerConnectionsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

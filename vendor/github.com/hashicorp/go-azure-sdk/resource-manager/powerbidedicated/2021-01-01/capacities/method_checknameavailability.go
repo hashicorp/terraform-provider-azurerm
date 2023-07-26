@@ -21,7 +21,7 @@ type CheckNameAvailabilityOperationResponse struct {
 // CheckNameAvailability ...
 func (c CapacitiesClient) CheckNameAvailability(ctx context.Context, id LocationId, input CheckCapacityNameAvailabilityParameters) (result CheckNameAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -25,7 +25,7 @@ type PoolsListCompleteResult struct {
 // PoolsList ...
 func (c CapacityPoolsClient) PoolsList(ctx context.Context, id NetAppAccountId) (result PoolsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

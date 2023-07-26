@@ -53,7 +53,7 @@ func (o ListBySubscriptionOperationOptions) ToQuery() *client.QueryParams {
 // ListBySubscription ...
 func (c IntegrationServiceEnvironmentsClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId, options ListBySubscriptionOperationOptions) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

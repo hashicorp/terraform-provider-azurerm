@@ -26,7 +26,7 @@ type AccountsListByResourceGroupCompleteResult struct {
 // AccountsListByResourceGroup ...
 func (c DeviceupdatesClient) AccountsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result AccountsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

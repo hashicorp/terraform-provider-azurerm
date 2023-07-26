@@ -24,7 +24,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c IotDpsResourceClient) Update(ctx context.Context, id commonids.ProvisioningServiceId, input TagsResource) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

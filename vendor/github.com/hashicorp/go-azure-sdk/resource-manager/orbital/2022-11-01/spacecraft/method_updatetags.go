@@ -23,7 +23,7 @@ type UpdateTagsOperationResponse struct {
 // UpdateTags ...
 func (c SpacecraftClient) UpdateTags(ctx context.Context, id SpacecraftId, input TagsObject) (result UpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

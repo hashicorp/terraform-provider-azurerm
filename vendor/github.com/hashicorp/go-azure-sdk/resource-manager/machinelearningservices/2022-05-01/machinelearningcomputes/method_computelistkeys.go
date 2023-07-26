@@ -22,7 +22,7 @@ type ComputeListKeysOperationResponse struct {
 // ComputeListKeys ...
 func (c MachineLearningComputesClient) ComputeListKeys(ctx context.Context, id ComputeId) (result ComputeListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

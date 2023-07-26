@@ -20,7 +20,7 @@ type MoveOperationResponse struct {
 // Move ...
 func (c HybridRunbookWorkerClient) Move(ctx context.Context, id HybridRunbookWorkerId, input HybridRunbookWorkerMoveParameters) (result MoveOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

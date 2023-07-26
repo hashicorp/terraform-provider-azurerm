@@ -28,7 +28,7 @@ type SpacecraftsListAvailableContactsCompleteResult struct {
 // SpacecraftsListAvailableContacts ...
 func (c ContactClient) SpacecraftsListAvailableContacts(ctx context.Context, id SpacecraftId, input ContactParameters) (result SpacecraftsListAvailableContactsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

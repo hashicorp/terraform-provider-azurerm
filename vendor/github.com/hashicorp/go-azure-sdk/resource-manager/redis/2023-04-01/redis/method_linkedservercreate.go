@@ -23,7 +23,7 @@ type LinkedServerCreateOperationResponse struct {
 // LinkedServerCreate ...
 func (c RedisClient) LinkedServerCreate(ctx context.Context, id LinkedServerId, input RedisLinkedServerCreateParameters) (result LinkedServerCreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

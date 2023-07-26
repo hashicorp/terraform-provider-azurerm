@@ -50,7 +50,7 @@ func (o ComputeDeleteOperationOptions) ToQuery() *client.QueryParams {
 // ComputeDelete ...
 func (c MachineLearningComputesClient) ComputeDelete(ctx context.Context, id ComputeId, options ComputeDeleteOperationOptions) (result ComputeDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

@@ -20,7 +20,7 @@ type ManagementGroupNetworkManagerConnectionsCreateOrUpdateOperationResponse str
 // ManagementGroupNetworkManagerConnectionsCreateOrUpdate ...
 func (c NetworkManagerConnectionsClient) ManagementGroupNetworkManagerConnectionsCreateOrUpdate(ctx context.Context, id Providers2NetworkManagerConnectionId, input NetworkManagerConnection) (result ManagementGroupNetworkManagerConnectionsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

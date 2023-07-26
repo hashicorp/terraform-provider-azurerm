@@ -21,7 +21,7 @@ type VolumesListReplicationsOperationResponse struct {
 // VolumesListReplications ...
 func (c VolumesReplicationClient) VolumesListReplications(ctx context.Context, id VolumeId) (result VolumesListReplicationsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

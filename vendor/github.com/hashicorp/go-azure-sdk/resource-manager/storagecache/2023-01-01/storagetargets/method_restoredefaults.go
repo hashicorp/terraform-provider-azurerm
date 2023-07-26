@@ -23,7 +23,7 @@ type RestoreDefaultsOperationResponse struct {
 // RestoreDefaults ...
 func (c StorageTargetsClient) RestoreDefaults(ctx context.Context, id StorageTargetId) (result RestoreDefaultsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

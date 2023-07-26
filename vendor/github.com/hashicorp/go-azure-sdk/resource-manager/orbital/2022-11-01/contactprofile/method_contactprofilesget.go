@@ -20,7 +20,7 @@ type ContactProfilesGetOperationResponse struct {
 // ContactProfilesGet ...
 func (c ContactProfileClient) ContactProfilesGet(ctx context.Context, id ContactProfileId) (result ContactProfilesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -20,7 +20,7 @@ type AddRootCollectionAdminOperationResponse struct {
 // AddRootCollectionAdmin ...
 func (c AccountClient) AddRootCollectionAdmin(ctx context.Context, id AccountId, input CollectionAdminUpdate) (result AddRootCollectionAdminOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

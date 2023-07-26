@@ -26,7 +26,7 @@ type GetResourcesInResourceGroupCompleteResult struct {
 // GetResourcesInResourceGroup ...
 func (c ResourceGuardsClient) GetResourcesInResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result GetResourcesInResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

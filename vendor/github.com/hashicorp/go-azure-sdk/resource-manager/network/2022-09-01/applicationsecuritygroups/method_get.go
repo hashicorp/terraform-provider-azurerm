@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c ApplicationSecurityGroupsClient) Get(ctx context.Context, id ApplicationSecurityGroupId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type SnapshotPoliciesUpdateOperationResponse struct {
 // SnapshotPoliciesUpdate ...
 func (c SnapshotPolicyClient) SnapshotPoliciesUpdate(ctx context.Context, id SnapshotPolicyId, input SnapshotPolicyPatch) (result SnapshotPoliciesUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

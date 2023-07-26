@@ -20,7 +20,7 @@ type AccountsGetOperationResponse struct {
 // AccountsGet ...
 func (c NetAppAccountsClient) AccountsGet(ctx context.Context, id NetAppAccountId) (result AccountsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

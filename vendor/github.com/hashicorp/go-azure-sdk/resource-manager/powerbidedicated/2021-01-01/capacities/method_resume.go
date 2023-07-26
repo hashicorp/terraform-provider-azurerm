@@ -23,7 +23,7 @@ type ResumeOperationResponse struct {
 // Resume ...
 func (c CapacitiesClient) Resume(ctx context.Context, id CapacityId) (result ResumeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

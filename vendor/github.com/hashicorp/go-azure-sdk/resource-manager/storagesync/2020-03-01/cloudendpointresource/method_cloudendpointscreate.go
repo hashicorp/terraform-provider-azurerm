@@ -23,7 +23,7 @@ type CloudEndpointsCreateOperationResponse struct {
 // CloudEndpointsCreate ...
 func (c CloudEndpointResourceClient) CloudEndpointsCreate(ctx context.Context, id CloudEndpointId, input CloudEndpointCreateParameters) (result CloudEndpointsCreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

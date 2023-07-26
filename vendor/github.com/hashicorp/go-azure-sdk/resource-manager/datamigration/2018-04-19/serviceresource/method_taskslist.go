@@ -52,7 +52,7 @@ func (o TasksListOperationOptions) ToQuery() *client.QueryParams {
 // TasksList ...
 func (c ServiceResourceClient) TasksList(ctx context.Context, id ProjectId, options TasksListOperationOptions) (result TasksListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

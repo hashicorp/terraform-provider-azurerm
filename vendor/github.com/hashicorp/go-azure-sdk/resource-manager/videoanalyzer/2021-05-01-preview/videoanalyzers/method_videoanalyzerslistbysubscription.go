@@ -22,7 +22,7 @@ type VideoAnalyzersListBySubscriptionOperationResponse struct {
 // VideoAnalyzersListBySubscription ...
 func (c VideoAnalyzersClient) VideoAnalyzersListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result VideoAnalyzersListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

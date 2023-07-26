@@ -19,7 +19,7 @@ type InstancesHeadOperationResponse struct {
 // InstancesHead ...
 func (c DeviceupdatesClient) InstancesHead(ctx context.Context, id InstanceId) (result InstancesHeadOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

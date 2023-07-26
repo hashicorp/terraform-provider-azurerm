@@ -53,7 +53,7 @@ func (o AvailableGroundStationsListByCapabilityOperationOptions) ToQuery() *clie
 // AvailableGroundStationsListByCapability ...
 func (c GroundStationClient) AvailableGroundStationsListByCapability(ctx context.Context, id commonids.SubscriptionId, options AvailableGroundStationsListByCapabilityOperationOptions) (result AvailableGroundStationsListByCapabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

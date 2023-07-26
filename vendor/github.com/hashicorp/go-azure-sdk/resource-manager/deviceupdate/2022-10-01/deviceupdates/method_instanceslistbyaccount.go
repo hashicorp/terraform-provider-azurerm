@@ -25,7 +25,7 @@ type InstancesListByAccountCompleteResult struct {
 // InstancesListByAccount ...
 func (c DeviceupdatesClient) InstancesListByAccount(ctx context.Context, id AccountId) (result InstancesListByAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -21,7 +21,7 @@ type ContentKeyPoliciesGetPolicyPropertiesWithSecretsOperationResponse struct {
 // ContentKeyPoliciesGetPolicyPropertiesWithSecrets ...
 func (c ContentKeyPoliciesClient) ContentKeyPoliciesGetPolicyPropertiesWithSecrets(ctx context.Context, id ContentKeyPolicyId) (result ContentKeyPoliciesGetPolicyPropertiesWithSecretsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

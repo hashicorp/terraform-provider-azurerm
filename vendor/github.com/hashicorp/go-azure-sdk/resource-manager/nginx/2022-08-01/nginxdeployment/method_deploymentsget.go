@@ -20,7 +20,7 @@ type DeploymentsGetOperationResponse struct {
 // DeploymentsGet ...
 func (c NginxDeploymentClient) DeploymentsGet(ctx context.Context, id NginxDeploymentId) (result DeploymentsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

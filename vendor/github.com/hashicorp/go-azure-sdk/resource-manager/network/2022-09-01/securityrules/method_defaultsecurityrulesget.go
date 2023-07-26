@@ -20,7 +20,7 @@ type DefaultSecurityRulesGetOperationResponse struct {
 // DefaultSecurityRulesGet ...
 func (c SecurityRulesClient) DefaultSecurityRulesGet(ctx context.Context, id DefaultSecurityRuleId) (result DefaultSecurityRulesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
