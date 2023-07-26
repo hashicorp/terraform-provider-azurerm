@@ -20,7 +20,7 @@ type SubscriptionNetworkManagerConnectionsCreateOrUpdateOperationResponse struct
 // SubscriptionNetworkManagerConnectionsCreateOrUpdate ...
 func (c NetworkManagerConnectionsClient) SubscriptionNetworkManagerConnectionsCreateOrUpdate(ctx context.Context, id NetworkManagerConnectionId, input NetworkManagerConnection) (result SubscriptionNetworkManagerConnectionsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -23,7 +23,7 @@ type AccountsCreateOperationResponse struct {
 // AccountsCreate ...
 func (c DeviceupdatesClient) AccountsCreate(ctx context.Context, id AccountId, input Account) (result AccountsCreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 		},

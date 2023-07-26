@@ -48,7 +48,7 @@ func (o DeleteOperationOptions) ToQuery() *client.QueryParams {
 // Delete ...
 func (c RoleAssignmentsClient) Delete(ctx context.Context, id ScopedRoleAssignmentId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

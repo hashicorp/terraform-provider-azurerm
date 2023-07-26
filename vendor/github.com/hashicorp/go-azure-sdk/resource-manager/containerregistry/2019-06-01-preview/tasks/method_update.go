@@ -23,7 +23,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c TasksClient) Update(ctx context.Context, id TaskId, input TaskUpdateParameters) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -24,7 +24,7 @@ type GetEffectiveRouteTableOperationResponse struct {
 // GetEffectiveRouteTable ...
 func (c NetworkInterfacesClient) GetEffectiveRouteTable(ctx context.Context, id commonids.NetworkInterfaceId) (result GetEffectiveRouteTableOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -20,7 +20,7 @@ type VideoAnalyzersSyncStorageKeysOperationResponse struct {
 // VideoAnalyzersSyncStorageKeys ...
 func (c VideoAnalyzersClient) VideoAnalyzersSyncStorageKeys(ctx context.Context, id VideoAnalyzerId, input SyncStorageKeysInput) (result VideoAnalyzersSyncStorageKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

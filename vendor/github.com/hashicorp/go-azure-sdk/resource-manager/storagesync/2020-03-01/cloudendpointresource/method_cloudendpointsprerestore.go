@@ -23,7 +23,7 @@ type CloudEndpointsPreRestoreOperationResponse struct {
 // CloudEndpointsPreRestore ...
 func (c CloudEndpointResourceClient) CloudEndpointsPreRestore(ctx context.Context, id CloudEndpointId, input PreRestoreRequest) (result CloudEndpointsPreRestoreOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

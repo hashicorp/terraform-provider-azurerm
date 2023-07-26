@@ -25,7 +25,7 @@ type TagRulesListCompleteResult struct {
 // TagRulesList ...
 func (c RulesClient) TagRulesList(ctx context.Context, id MonitorId) (result TagRulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

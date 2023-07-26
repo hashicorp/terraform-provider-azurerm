@@ -79,7 +79,7 @@ func (o GenerateVerificationCodeOperationOptions) ToQuery() *client.QueryParams 
 // GenerateVerificationCode ...
 func (c DpsCertificateClient) GenerateVerificationCode(ctx context.Context, id CertificateId, options GenerateVerificationCodeOperationOptions) (result GenerateVerificationCodeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

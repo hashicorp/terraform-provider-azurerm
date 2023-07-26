@@ -25,7 +25,7 @@ type ListByHostPoolCompleteResult struct {
 // ListByHostPool ...
 func (c ScalingPlanClient) ListByHostPool(ctx context.Context, id HostPoolId) (result ListByHostPoolOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

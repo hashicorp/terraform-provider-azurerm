@@ -79,7 +79,7 @@ func (o VerifyCertificateOperationOptions) ToQuery() *client.QueryParams {
 // VerifyCertificate ...
 func (c DpsCertificateClient) VerifyCertificate(ctx context.Context, id CertificateId, input VerificationCodeRequest, options VerifyCertificateOperationOptions) (result VerifyCertificateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

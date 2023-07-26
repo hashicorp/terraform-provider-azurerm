@@ -25,7 +25,7 @@ type ListByRedisResourceCompleteResult struct {
 // ListByRedisResource ...
 func (c PatchSchedulesClient) ListByRedisResource(ctx context.Context, id RediId) (result ListByRedisResourceOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

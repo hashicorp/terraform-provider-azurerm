@@ -20,7 +20,7 @@ type RunOperationResponse struct {
 // Run ...
 func (c WorkflowTriggersClient) Run(ctx context.Context, id TriggerId) (result RunOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

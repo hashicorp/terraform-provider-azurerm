@@ -23,7 +23,7 @@ type NetworkManagerCommitsPostOperationResponse struct {
 // NetworkManagerCommitsPost ...
 func (c NetworkManagersClient) NetworkManagerCommitsPost(ctx context.Context, id NetworkManagerId, input NetworkManagerCommit) (result NetworkManagerCommitsPostOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

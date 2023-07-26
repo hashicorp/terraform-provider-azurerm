@@ -20,7 +20,7 @@ type GetDetailsOperationResponse struct {
 // GetDetails ...
 func (c CapacitiesClient) GetDetails(ctx context.Context, id CapacityId) (result GetDetailsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

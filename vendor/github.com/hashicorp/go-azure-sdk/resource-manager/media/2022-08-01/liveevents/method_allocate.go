@@ -23,7 +23,7 @@ type AllocateOperationResponse struct {
 // Allocate ...
 func (c LiveEventsClient) Allocate(ctx context.Context, id LiveEventId) (result AllocateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

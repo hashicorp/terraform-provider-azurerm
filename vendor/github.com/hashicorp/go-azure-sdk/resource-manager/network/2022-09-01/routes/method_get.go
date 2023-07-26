@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c RoutesClient) Get(ctx context.Context, id RouteId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

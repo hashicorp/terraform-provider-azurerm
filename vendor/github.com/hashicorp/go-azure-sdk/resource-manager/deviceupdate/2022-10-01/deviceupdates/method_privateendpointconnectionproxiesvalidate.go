@@ -20,7 +20,7 @@ type PrivateEndpointConnectionProxiesValidateOperationResponse struct {
 // PrivateEndpointConnectionProxiesValidate ...
 func (c DeviceupdatesClient) PrivateEndpointConnectionProxiesValidate(ctx context.Context, id PrivateEndpointConnectionProxyId, input PrivateEndpointConnectionProxy) (result PrivateEndpointConnectionProxiesValidateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

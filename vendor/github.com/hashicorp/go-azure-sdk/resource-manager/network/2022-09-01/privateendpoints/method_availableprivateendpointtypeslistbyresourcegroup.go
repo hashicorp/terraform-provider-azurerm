@@ -25,7 +25,7 @@ type AvailablePrivateEndpointTypesListByResourceGroupCompleteResult struct {
 // AvailablePrivateEndpointTypesListByResourceGroup ...
 func (c PrivateEndpointsClient) AvailablePrivateEndpointTypesListByResourceGroup(ctx context.Context, id ProviderLocationId) (result AvailablePrivateEndpointTypesListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

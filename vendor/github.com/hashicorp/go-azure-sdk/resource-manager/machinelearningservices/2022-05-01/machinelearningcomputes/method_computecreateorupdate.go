@@ -23,7 +23,7 @@ type ComputeCreateOrUpdateOperationResponse struct {
 // ComputeCreateOrUpdate ...
 func (c MachineLearningComputesClient) ComputeCreateOrUpdate(ctx context.Context, id ComputeId, input ComputeResource) (result ComputeCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

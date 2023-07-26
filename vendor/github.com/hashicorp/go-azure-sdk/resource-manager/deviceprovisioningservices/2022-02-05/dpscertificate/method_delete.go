@@ -78,7 +78,7 @@ func (o DeleteOperationOptions) ToQuery() *client.QueryParams {
 // Delete ...
 func (c DpsCertificateClient) Delete(ctx context.Context, id CertificateId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

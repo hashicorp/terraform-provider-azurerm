@@ -23,7 +23,7 @@ type DatabasesExportOperationResponse struct {
 // DatabasesExport ...
 func (c RedisEnterpriseClient) DatabasesExport(ctx context.Context, id DatabaseId, input ExportClusterParameters) (result DatabasesExportOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

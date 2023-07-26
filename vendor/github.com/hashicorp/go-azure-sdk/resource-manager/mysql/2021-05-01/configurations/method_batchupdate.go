@@ -23,7 +23,7 @@ type BatchUpdateOperationResponse struct {
 // BatchUpdate ...
 func (c ConfigurationsClient) BatchUpdate(ctx context.Context, id FlexibleServerId, input ConfigurationListForBatchUpdate) (result BatchUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

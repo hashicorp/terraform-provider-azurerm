@@ -23,7 +23,7 @@ type DigitalTwinsUpdateOperationResponse struct {
 // DigitalTwinsUpdate ...
 func (c DigitalTwinsInstanceClient) DigitalTwinsUpdate(ctx context.Context, id DigitalTwinsInstanceId, input DigitalTwinsPatchDescription) (result DigitalTwinsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

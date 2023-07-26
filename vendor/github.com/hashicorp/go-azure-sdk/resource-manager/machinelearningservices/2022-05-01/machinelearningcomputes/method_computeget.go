@@ -20,7 +20,7 @@ type ComputeGetOperationResponse struct {
 // ComputeGet ...
 func (c MachineLearningComputesClient) ComputeGet(ctx context.Context, id ComputeId) (result ComputeGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

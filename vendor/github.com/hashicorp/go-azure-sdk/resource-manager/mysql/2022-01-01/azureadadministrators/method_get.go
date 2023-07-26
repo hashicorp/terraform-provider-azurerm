@@ -21,7 +21,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c AzureADAdministratorsClient) Get(ctx context.Context, id FlexibleServerId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

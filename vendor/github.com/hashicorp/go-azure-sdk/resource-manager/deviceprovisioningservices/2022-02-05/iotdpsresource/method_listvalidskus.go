@@ -26,7 +26,7 @@ type ListValidSkusCompleteResult struct {
 // ListValidSkus ...
 func (c IotDpsResourceClient) ListValidSkus(ctx context.Context, id commonids.ProvisioningServiceId) (result ListValidSkusOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

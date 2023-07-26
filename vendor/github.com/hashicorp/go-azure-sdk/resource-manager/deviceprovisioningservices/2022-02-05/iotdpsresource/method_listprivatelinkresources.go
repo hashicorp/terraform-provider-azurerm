@@ -22,7 +22,7 @@ type ListPrivateLinkResourcesOperationResponse struct {
 // ListPrivateLinkResources ...
 func (c IotDpsResourceClient) ListPrivateLinkResources(ctx context.Context, id commonids.ProvisioningServiceId) (result ListPrivateLinkResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

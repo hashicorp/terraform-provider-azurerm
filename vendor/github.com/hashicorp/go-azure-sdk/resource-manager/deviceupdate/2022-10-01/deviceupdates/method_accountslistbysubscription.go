@@ -26,7 +26,7 @@ type AccountsListBySubscriptionCompleteResult struct {
 // AccountsListBySubscription ...
 func (c DeviceupdatesClient) AccountsListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result AccountsListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

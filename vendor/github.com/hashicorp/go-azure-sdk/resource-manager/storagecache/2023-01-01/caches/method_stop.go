@@ -23,7 +23,7 @@ type StopOperationResponse struct {
 // Stop ...
 func (c CachesClient) Stop(ctx context.Context, id CacheId) (result StopOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

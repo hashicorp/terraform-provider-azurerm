@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c FirewallRulesClient) Get(ctx context.Context, id FirewallRuleId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

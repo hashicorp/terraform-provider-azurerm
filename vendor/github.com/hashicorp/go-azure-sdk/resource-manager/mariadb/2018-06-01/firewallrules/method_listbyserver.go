@@ -21,7 +21,7 @@ type ListByServerOperationResponse struct {
 // ListByServer ...
 func (c FirewallRulesClient) ListByServer(ctx context.Context, id ServerId) (result ListByServerOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

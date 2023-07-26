@@ -48,7 +48,7 @@ func (o GetOperationOptions) ToQuery() *client.QueryParams {
 // Get ...
 func (c ManagedPrivateEndpointsClient) Get(ctx context.Context, id ManagedPrivateEndpointId, options GetOperationOptions) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

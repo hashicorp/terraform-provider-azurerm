@@ -60,7 +60,7 @@ func (o EdgeModulesListOperationOptions) ToQuery() *client.QueryParams {
 // EdgeModulesList ...
 func (c EdgeModulesClient) EdgeModulesList(ctx context.Context, id VideoAnalyzerId, options EdgeModulesListOperationOptions) (result EdgeModulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

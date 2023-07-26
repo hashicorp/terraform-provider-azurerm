@@ -22,7 +22,7 @@ type CheckProvisioningServiceNameAvailabilityOperationResponse struct {
 // CheckProvisioningServiceNameAvailability ...
 func (c IotDpsResourceClient) CheckProvisioningServiceNameAvailability(ctx context.Context, id commonids.SubscriptionId, input OperationInputs) (result CheckProvisioningServiceNameAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c CapacitiesClient) Update(ctx context.Context, id CapacityId, input DedicatedCapacityUpdateParameters) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

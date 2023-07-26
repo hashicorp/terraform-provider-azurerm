@@ -20,7 +20,7 @@ type PrivateEndpointConnectionProxiesUpdatePrivateEndpointPropertiesOperationRes
 // PrivateEndpointConnectionProxiesUpdatePrivateEndpointProperties ...
 func (c DeviceupdatesClient) PrivateEndpointConnectionProxiesUpdatePrivateEndpointProperties(ctx context.Context, id PrivateEndpointConnectionProxyId, input PrivateEndpointUpdate) (result PrivateEndpointConnectionProxiesUpdatePrivateEndpointPropertiesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

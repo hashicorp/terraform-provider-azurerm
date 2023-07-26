@@ -21,7 +21,7 @@ type CreateByIdOperationResponse struct {
 // CreateById ...
 func (c RoleAssignmentsClient) CreateById(ctx context.Context, id commonids.ScopeId, input RoleAssignmentCreateParameters) (result CreateByIdOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

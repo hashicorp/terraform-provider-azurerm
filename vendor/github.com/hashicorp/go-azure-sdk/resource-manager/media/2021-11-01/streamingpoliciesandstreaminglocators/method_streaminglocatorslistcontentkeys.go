@@ -21,7 +21,7 @@ type StreamingLocatorsListContentKeysOperationResponse struct {
 // StreamingLocatorsListContentKeys ...
 func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingLocatorsListContentKeys(ctx context.Context, id StreamingLocatorId) (result StreamingLocatorsListContentKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -26,7 +26,7 @@ type ClustersListBySubscriptionCompleteResult struct {
 // ClustersListBySubscription ...
 func (c EventHubsClustersClient) ClustersListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ClustersListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

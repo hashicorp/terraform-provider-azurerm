@@ -23,7 +23,7 @@ type SpaceAllocationOperationResponse struct {
 // SpaceAllocation ...
 func (c CachesClient) SpaceAllocation(ctx context.Context, id CacheId, input []StorageTargetSpaceAllocation) (result SpaceAllocationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},

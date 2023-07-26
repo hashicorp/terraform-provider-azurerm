@@ -52,7 +52,7 @@ func (o ListByAutomationAccountOperationOptions) ToQuery() *client.QueryParams {
 // ListByAutomationAccount ...
 func (c JobScheduleClient) ListByAutomationAccount(ctx context.Context, id AutomationAccountId, options ListByAutomationAccountOperationOptions) (result ListByAutomationAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

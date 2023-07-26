@@ -23,7 +23,7 @@ type SuspendOperationResponse struct {
 // Suspend ...
 func (c CapacitiesClient) Suspend(ctx context.Context, id CapacityId) (result SuspendOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

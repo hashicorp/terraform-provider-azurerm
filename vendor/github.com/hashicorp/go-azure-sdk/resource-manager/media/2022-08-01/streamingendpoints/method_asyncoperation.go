@@ -20,7 +20,7 @@ type AsyncOperationOperationResponse struct {
 // AsyncOperation ...
 func (c StreamingEndpointsClient) AsyncOperation(ctx context.Context, id StreamingEndpointOperationId) (result AsyncOperationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

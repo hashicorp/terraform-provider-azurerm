@@ -19,7 +19,7 @@ type VideoAnalyzersDeleteOperationResponse struct {
 // VideoAnalyzersDelete ...
 func (c VideoAnalyzersClient) VideoAnalyzersDelete(ctx context.Context, id VideoAnalyzerId) (result VideoAnalyzersDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

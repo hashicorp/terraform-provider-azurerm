@@ -23,7 +23,7 @@ type ConfigurationsDeleteOperationResponse struct {
 // ConfigurationsDelete ...
 func (c NginxConfigurationClient) ConfigurationsDelete(ctx context.Context, id ConfigurationId) (result ConfigurationsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

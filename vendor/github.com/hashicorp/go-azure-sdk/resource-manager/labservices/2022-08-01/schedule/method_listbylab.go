@@ -25,7 +25,7 @@ type ListByLabCompleteResult struct {
 // ListByLab ...
 func (c ScheduleClient) ListByLab(ctx context.Context, id LabId) (result ListByLabOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

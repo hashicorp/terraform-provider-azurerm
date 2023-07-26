@@ -22,7 +22,7 @@ type WithoutLocationExecuteOperationResponse struct {
 // WithoutLocationExecute ...
 func (c CheckNameAvailabilityClient) WithoutLocationExecute(ctx context.Context, id commonids.SubscriptionId, input NameAvailabilityRequest) (result WithoutLocationExecuteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

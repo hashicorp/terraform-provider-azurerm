@@ -23,7 +23,7 @@ type GrafanaCreateOperationResponse struct {
 // GrafanaCreate ...
 func (c GrafanaResourceClient) GrafanaCreate(ctx context.Context, id GrafanaId, input ManagedGrafana) (result GrafanaCreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

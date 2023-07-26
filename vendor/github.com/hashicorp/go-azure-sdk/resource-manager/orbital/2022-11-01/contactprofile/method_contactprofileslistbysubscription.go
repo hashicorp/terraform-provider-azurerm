@@ -26,7 +26,7 @@ type ContactProfilesListBySubscriptionCompleteResult struct {
 // ContactProfilesListBySubscription ...
 func (c ContactProfileClient) ContactProfilesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ContactProfilesListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

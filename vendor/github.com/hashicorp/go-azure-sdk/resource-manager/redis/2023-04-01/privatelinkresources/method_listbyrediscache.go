@@ -21,7 +21,7 @@ type ListByRedisCacheOperationResponse struct {
 // ListByRedisCache ...
 func (c PrivateLinkResourcesClient) ListByRedisCache(ctx context.Context, id RediId) (result ListByRedisCacheOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

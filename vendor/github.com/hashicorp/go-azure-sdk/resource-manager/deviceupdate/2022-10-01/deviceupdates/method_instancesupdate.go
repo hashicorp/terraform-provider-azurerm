@@ -20,7 +20,7 @@ type InstancesUpdateOperationResponse struct {
 // InstancesUpdate ...
 func (c DeviceupdatesClient) InstancesUpdate(ctx context.Context, id InstanceId, input TagUpdate) (result InstancesUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type CreateOrUpdatePrivateEndpointConnectionOperationResponse struct {
 // CreateOrUpdatePrivateEndpointConnection ...
 func (c IotDpsResourceClient) CreateOrUpdatePrivateEndpointConnection(ctx context.Context, id PrivateEndpointConnectionId, input PrivateEndpointConnection) (result CreateOrUpdatePrivateEndpointConnectionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

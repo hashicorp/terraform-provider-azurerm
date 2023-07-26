@@ -21,7 +21,7 @@ type ConfirmConsentCodeOperationResponse struct {
 // ConfirmConsentCode ...
 func (c ConnectionsClient) ConfirmConsentCode(ctx context.Context, id ConnectionId, input ConfirmConsentCodeDefinition) (result ConfirmConsentCodeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

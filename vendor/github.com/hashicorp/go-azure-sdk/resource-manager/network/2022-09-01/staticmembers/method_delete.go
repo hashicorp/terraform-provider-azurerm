@@ -19,7 +19,7 @@ type DeleteOperationResponse struct {
 // Delete ...
 func (c StaticMembersClient) Delete(ctx context.Context, id StaticMemberId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

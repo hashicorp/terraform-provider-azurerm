@@ -23,7 +23,7 @@ type QueryOperationResponse struct {
 // Query ...
 func (c ConnectionMonitorsClient) Query(ctx context.Context, id ConnectionMonitorId) (result QueryOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

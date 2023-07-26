@@ -23,7 +23,7 @@ type UpgradeFirmwareOperationResponse struct {
 // UpgradeFirmware ...
 func (c CachesClient) UpgradeFirmware(ctx context.Context, id CacheId) (result UpgradeFirmwareOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusCreated,

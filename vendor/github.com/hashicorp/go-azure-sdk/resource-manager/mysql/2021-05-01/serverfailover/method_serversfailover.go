@@ -23,7 +23,7 @@ type ServersFailoverOperationResponse struct {
 // ServersFailover ...
 func (c ServerFailoverClient) ServersFailover(ctx context.Context, id FlexibleServerId) (result ServersFailoverOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -21,7 +21,7 @@ type GetExtendedInformationOperationResponse struct {
 // GetExtendedInformation ...
 func (c DevicesClient) GetExtendedInformation(ctx context.Context, id DataBoxEdgeDeviceId) (result GetExtendedInformationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

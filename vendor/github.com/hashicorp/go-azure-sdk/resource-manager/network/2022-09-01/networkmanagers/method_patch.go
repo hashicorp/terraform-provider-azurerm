@@ -20,7 +20,7 @@ type PatchOperationResponse struct {
 // Patch ...
 func (c NetworkManagersClient) Patch(ctx context.Context, id NetworkManagerId, input PatchObject) (result PatchOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

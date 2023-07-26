@@ -23,7 +23,7 @@ type PoolsUpdateOperationResponse struct {
 // PoolsUpdate ...
 func (c CapacityPoolsClient) PoolsUpdate(ctx context.Context, id CapacityPoolId, input CapacityPoolPatch) (result PoolsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,
