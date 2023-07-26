@@ -1,6 +1,10 @@
 package amlfilesystems
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForAmlFilesystemHealthStateType() []string {
 		string(AmlFilesystemHealthStateTypeTransitioning),
 		string(AmlFilesystemHealthStateTypeUnavailable),
 	}
+}
+
+func (s *AmlFilesystemHealthStateType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAmlFilesystemHealthStateType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAmlFilesystemHealthStateType(input string) (*AmlFilesystemHealthStateType, error) {
@@ -54,6 +71,19 @@ func PossibleValuesForAmlFilesystemIdentityType() []string {
 		string(AmlFilesystemIdentityTypeNone),
 		string(AmlFilesystemIdentityTypeUserAssigned),
 	}
+}
+
+func (s *AmlFilesystemIdentityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAmlFilesystemIdentityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAmlFilesystemIdentityType(input string) (*AmlFilesystemIdentityType, error) {
@@ -90,6 +120,19 @@ func PossibleValuesForAmlFilesystemProvisioningStateType() []string {
 		string(AmlFilesystemProvisioningStateTypeSucceeded),
 		string(AmlFilesystemProvisioningStateTypeUpdating),
 	}
+}
+
+func (s *AmlFilesystemProvisioningStateType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAmlFilesystemProvisioningStateType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAmlFilesystemProvisioningStateType(input string) (*AmlFilesystemProvisioningStateType, error) {
@@ -136,6 +179,19 @@ func PossibleValuesForArchiveStatusType() []string {
 	}
 }
 
+func (s *ArchiveStatusType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseArchiveStatusType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseArchiveStatusType(input string) (*ArchiveStatusType, error) {
 	vals := map[string]ArchiveStatusType{
 		"canceled":         ArchiveStatusTypeCanceled,
@@ -178,6 +234,19 @@ func PossibleValuesForMaintenanceDayOfWeekType() []string {
 		string(MaintenanceDayOfWeekTypeTuesday),
 		string(MaintenanceDayOfWeekTypeWednesday),
 	}
+}
+
+func (s *MaintenanceDayOfWeekType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMaintenanceDayOfWeekType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseMaintenanceDayOfWeekType(input string) (*MaintenanceDayOfWeekType, error) {
