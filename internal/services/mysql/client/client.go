@@ -34,7 +34,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
-		return nil, fmt.Errorf("building Flexible Servers Meta client: %+v", err)
+		return nil, fmt.Errorf("building Flexible Servers client: %+v", err)
 	}
 
 	azureADAdministratorsClient, err := azureadadministrators.NewAzureADAdministratorsClientWithBaseURI(o.Environment.ResourceManager)
