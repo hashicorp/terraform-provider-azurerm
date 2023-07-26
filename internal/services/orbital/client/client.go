@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contact"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/groundstation"
@@ -18,19 +20,28 @@ type Client struct {
 	GroundStationClient  *groundstation.GroundStationClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	spacecraftClient := spacecraft.NewSpacecraftClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&spacecraftClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	spacecraftClient, err := spacecraft.NewSpacecraftClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Orbital Spacecraft client: %+v", err)
+	}
+	o.Configure(spacecraftClient.Client, o.Authorizers.ResourceManager)
 
-	contactProfileClient := contactprofile.NewContactProfileClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&contactProfileClient.Client, o.ResourceManagerAuthorizer)
+	contactProfileClient, err := contactprofile.NewContactProfileClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Orbital Contact Profile client: %+v", err)
+	}
+	o.Configure(contactProfileClient.Client, o.Authorizers.ResourceManager)
 
-	contactClient := contact.NewContactClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&contactClient.Client, o.ResourceManagerAuthorizer)
+	contactClient, err := contact.NewContactClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Orbital Contact client: %+v", err)
+	}
+	o.Configure(contactClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		SpacecraftClient:     &spacecraftClient,
-		ContactProfileClient: &contactProfileClient,
-		ContactClient:        &contactClient,
-	}
+		SpacecraftClient:     spacecraftClient,
+		ContactProfileClient: contactProfileClient,
+		ContactClient:        contactClient,
+	}, nil
 }
