@@ -43,9 +43,32 @@ func TestAccIoTCentralOrganization_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue("Org child"),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccIoTCentralOrganization_updateDisplayName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_organization", "test")
+	r := IoTCentralOrganizationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue("Org basic"),
+			),
+		},
+		{
+			Config: r.basicUpdatedDisplayName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue("Org basic updated"),
+			),
+		},
 	})
 }
 
@@ -80,8 +103,6 @@ resource "azurerm_iotcentral_organization" "test" {
   sub_domain   = azurerm_iotcentral_application.test.sub_domain
   display_name = "Org basic"
 }
-
-
 `, r.template(data))
 }
 
@@ -103,8 +124,21 @@ resource "azurerm_iotcentral_organization" "test" {
   display_name = "Org child"
   parent       = azurerm_iotcentral_organization.test_parent.organization_id
 }
+`, r.template(data))
+}
 
+func (r IoTCentralOrganizationResource) basicUpdatedDisplayName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
+%s
+
+resource "azurerm_iotcentral_organization" "test" {
+  sub_domain   = azurerm_iotcentral_application.test.sub_domain
+  display_name = "Org basic updated"
+}
 `, r.template(data))
 }
 
