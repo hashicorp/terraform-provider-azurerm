@@ -243,6 +243,7 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 				ResourceId: pointer.To(v),
 			})
 		}
+
 		result.EgressNatIP = pointer.To(egressNatIPs)
 	}
 

@@ -302,7 +302,7 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   audit_comment = "test audit comment"
 
   category {
-   custom_urls = ["web-based-email", "social-media"]
+   custom_urls = ["web-based-email", "social-networking"]
   }
 
   decryption_rule_type = "SSLOutboundInspection" 
@@ -389,11 +389,6 @@ resource "azurerm_palo_alto_local_rule_stack_certificate" "untrust" {
   rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
 
   certificate_signer_id = "https://example.com/acctest-untrust-cert"
-
-  // TODO - This depends_on is a workaround for the etag serialisation bug - needs removing before merge
-  depends_on = [
-    azurerm_palo_alto_local_rule_stack_certificate.trust,
-  ]
 }
 
 resource "azurerm_local_rulestack_outbound_trust_certificate_association" "test" {

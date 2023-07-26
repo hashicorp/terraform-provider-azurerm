@@ -3,6 +3,7 @@ package paloalto_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,6 +18,10 @@ import (
 type NextGenerationFirewallVNetPanoramaResource struct{}
 
 func TestAccNextGenerationFirewallVNetPanoramaResource_basic(t *testing.T) {
+	if panorama := os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"); panorama == "" {
+		t.Skipf("skipping as Palo Alto Panorama config not set in `ARM_PALO_ALTO_PANORAMA_CONFIG`")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_panorama", "test")
 	r := NextGenerationFirewallVNetPanoramaResource{}
 
@@ -33,6 +38,10 @@ func TestAccNextGenerationFirewallVNetPanoramaResource_basic(t *testing.T) {
 }
 
 func TestAccNextGenerationFirewallVNetPanoramaResource_complete(t *testing.T) {
+	if panorama := os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"); panorama == "" {
+		t.Skipf("skipping as Palo Alto Panorama config not set in `ARM_PALO_ALTO_PANORAMA_CONFIG`")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_panorama", "test")
 	r := NextGenerationFirewallVNetPanoramaResource{}
 
@@ -49,6 +58,10 @@ func TestAccNextGenerationFirewallVNetPanoramaResource_complete(t *testing.T) {
 }
 
 func TestAccNextGenerationFirewallVNetPanoramaResource_update(t *testing.T) {
+	if panorama := os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"); panorama == "" {
+		t.Skipf("skipping as Palo Alto Panorama config not set in `ARM_PALO_ALTO_PANORAMA_CONFIG`")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_panorama", "test")
 	r := NextGenerationFirewallVNetPanoramaResource{}
 
