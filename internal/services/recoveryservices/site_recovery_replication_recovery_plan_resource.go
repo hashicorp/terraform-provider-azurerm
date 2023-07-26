@@ -517,14 +517,26 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("parse Site reocvery replication plan id: %+v", err)
 			}
 
-			recoveryPlanGroup, err := expandRecoveryGroup(model.RecoveryGroup)
 			if err != nil {
 				return fmt.Errorf("when expanding recovery group: %s", err)
 			}
 
+			var groupValue []replicationrecoveryplans.RecoveryPlanGroup
+			if len(model.RecoveryGroup) > 0 {
+				groupValue, err = expandRecoveryGroup(model.RecoveryGroup)
+				if err != nil {
+					return fmt.Errorf("expanding recovery group: %+v", err)
+				}
+			} else {
+				groupValue, err = expandRecoveryGroupNew(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
+				if err != nil {
+					return fmt.Errorf("expanding recovery group: %+v", err)
+				}
+			}
+
 			parameters := replicationrecoveryplans.UpdateRecoveryPlanInput{
 				Properties: &replicationrecoveryplans.UpdateRecoveryPlanInputProperties{
-					Groups: &recoveryPlanGroup,
+					Groups: &groupValue,
 				},
 			}
 
