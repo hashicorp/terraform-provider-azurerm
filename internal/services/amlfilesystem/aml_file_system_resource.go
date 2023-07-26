@@ -198,7 +198,7 @@ func (r AMLFileSystemResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AMLFileSystem.AMLFileSystemClient
+			client := metadata.Client.AMLFileSystem.AmlFilesystems
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := amlfilesystems.NewAmlFilesystemID(subscriptionId, model.ResourceGroupName, model.Name)
 
@@ -247,7 +247,7 @@ func (r AMLFileSystemResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AMLFileSystem.AMLFileSystemClient
+			client := metadata.Client.AMLFileSystem.AmlFilesystems
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {
@@ -288,7 +288,7 @@ func (r AMLFileSystemResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AMLFileSystem.AMLFileSystemClient
+			client := metadata.Client.AMLFileSystem.AmlFilesystems
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {
@@ -341,7 +341,7 @@ func (r AMLFileSystemResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AMLFileSystem.AMLFileSystemClient
+			client := metadata.Client.AMLFileSystem.AmlFilesystems
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {

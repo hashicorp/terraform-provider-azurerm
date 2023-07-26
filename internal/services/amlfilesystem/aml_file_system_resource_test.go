@@ -89,7 +89,7 @@ func (r AMLFileSystemResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, err
 	}
 
-	client := clients.AMLFileSystem.AMLFileSystemClient
+	client := clients.AMLFileSystem.AmlFilesystems
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
