@@ -152,7 +152,6 @@ func (r AMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						Default:      "/",
 						ValidateFunc: validate.ImportPrefix,
 					},
 				},

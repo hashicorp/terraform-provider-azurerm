@@ -224,6 +224,43 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "storagecontainer"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "test2" {
+  name                  = "storagecontainer2"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+data "azuread_service_principal" "test" {
+  display_name = "HPC Cache Resource Provider"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "test2" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
 resource "azurerm_aml_file_system" "test" {
   name                   = "acctest-amlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -251,11 +288,19 @@ resource "azurerm_aml_file_system" "test" {
      source_vault_id = azurerm_key_vault.test.id
   }
 
+  hsm_setting {
+    container_id         = azurerm_storage_container.test.resource_manager_id
+    logging_container_id = azurerm_storage_container.test2.resource_manager_id
+    import_prefix        = "/"
+  }
+
   tags = {
     Env = "Test"
   }
+
+  depends_on = [azurerm_role_assignment.test, azurerm_role_assignment.test2]
 }
-`, r.template(data), data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (r AMLFileSystemResource) update(data acceptance.TestData) string {
@@ -346,6 +391,43 @@ resource "azurerm_key_vault_key" "test2" {
   ]
 }
 
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "storagecontainer"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "test2" {
+  name                  = "storagecontainer2"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+data "azuread_service_principal" "test" {
+  display_name = "HPC Cache Resource Provider"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "test2" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
 resource "azurerm_aml_file_system" "test" {
   name                   = "acctest-amlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -373,9 +455,17 @@ resource "azurerm_aml_file_system" "test" {
      source_vault_id = azurerm_key_vault.test2.id
   }
 
+  hsm_setting {
+    container_id         = azurerm_storage_container.test.resource_manager_id
+    logging_container_id = azurerm_storage_container.test2.resource_manager_id
+    import_prefix        = "/"
+  }
+
   tags = {
     Env = "Test2"
   }
+
+  depends_on = [azurerm_role_assignment.test, azurerm_role_assignment.test2]
 }
-`, r.template(data), data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
 }

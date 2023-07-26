@@ -62,9 +62,9 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU name for the AML File System. Changing this forces a new resource to be created.
 
-* `storage_capacity_in_tb` - (Required) The size of the AML File System in TiB. Changing this forces a new resource to be created.
+* `storage_capacity_in_tb` - (Required) The size of the AML File System in TiB. Possible values are between 8 and 128. It could be divided by 8. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The subnet used for managing the AML file system and for client-facing operations. This subnet should have at least a /24 subnet mask within the VNET's address space. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The resource ID of the Subnet that is used for managing the AML file system and for client-facing operations. This subnet should have at least a /24 subnet mask within the VNET's address space. Changing this forces a new resource to be created.
 
 * `zones` - (Required) The availability zones for the AML File System. Changing this forces a new resource to be created.
 
@@ -80,7 +80,7 @@ The following arguments are supported:
 
 A `maintenance_window` block supports the following:
 
-* `day_of_week` - (Required) The day of the week on which the maintenance window will occur.
+* `day_of_week` - (Required) The day of the week on which the maintenance window will occur. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
 
 * `time_of_day_utc` - (Required) The time of day (in UTC) to start the maintenance window.
 
@@ -88,11 +88,13 @@ A `maintenance_window` block supports the following:
 
 A `hsm_setting` block supports the following:
 
-* `container_id` - (Required) The resource ID of storage container used for hydrating the namespace and archiving from the namespace. Changing this forces a new resource to be created.
+* `container_id` - (Required) The resource ID of storage container that is used for hydrating the namespace and archiving from the namespace. Changing this forces a new resource to be created.
 
-* `logging_container_id` - (Required) The resource ID of storage container used for logging events and errors. Changing this forces a new resource to be created.
+* `logging_container_id` - (Required) The resource ID of storage container that is used for logging events and errors. Changing this forces a new resource to be created.
 
-* `import_prefix` - (Optional) Only blobs in the non-logging container that start with this path/prefix get hydrated into the cluster namespace. Changing this forces a new resource to be created.
+* `import_prefix` - (Optional) The import prefix for the AML File System. Only blobs in the non-logging container that start with this path/prefix get hydrated into the cluster namespace. Changing this forces a new resource to be created.
+
+-> **NOTE:** It has to add roles `Contributor` and `Storage Blob Data Contributor` to the Service Principal `HPC Cache Resource Provider` for the Storage Account. See [official docs]( https://learn.microsoft.com/en-us/azure/azure-managed-lustre/amlfs-prerequisites#access-roles-for-blob-integration) for more information.
 
 ---
 
