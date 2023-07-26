@@ -17,7 +17,7 @@ import (
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
 	redis_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01"
-	amlfilesystem_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
+	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -153,7 +153,7 @@ type Client struct {
 
 	AadB2c                *aadb2c_v2021_04_01_preview.Client
 	Advisor               *advisor.Client
-	AMLFileSystem         *amlfilesystem_2023_05_01.Client
+	AMLFileSystem         *storagecache_2023_05_01.Client
 	AnalysisServices      *analysisservices_v2017_08_01.Client
 	ApiManagement         *apiManagement.Client
 	AppConfiguration      *appConfiguration.Client
