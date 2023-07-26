@@ -164,8 +164,6 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 						},
 					},
 
-					// Diverging from the SDK volumegroups.SecurityStyle since it is defined as lower case
-					// but the backend changes it to Pascal case on GET. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
 					"security_style": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
