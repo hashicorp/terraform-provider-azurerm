@@ -17,7 +17,7 @@ type Client struct {
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	accountsClient, err := account.NewAccountClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build purview account Client: %+v", err)
+		return nil, fmt.Errorf("building Purview Account client: %+v", err)
 	}
 	o.Configure(accountsClient.Client, o.Authorizers.ResourceManager)
 

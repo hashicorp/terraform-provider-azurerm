@@ -21,19 +21,19 @@ type Client struct {
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	recordSetsClient, err := recordsets.NewRecordSetsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build record sets Client: %v", err)
+		return nil, fmt.Errorf("building Record Sets Client: %v", err)
 	}
 	o.Configure(recordSetsClient.Client, o.Authorizers.ResourceManager)
 
 	privateZonesClient, err := privatezones.NewPrivateZonesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build private zones Client: %v", err)
+		return nil, fmt.Errorf("building Private Zones client: %v", err)
 	}
 	o.Configure(privateZonesClient.Client, o.Authorizers.ResourceManager)
 
 	virtualNetworkLinksClient, err := virtualnetworklinks.NewVirtualNetworkLinksClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build virtual network links Client: %v", err)
+		return nil, fmt.Errorf("building Virtual Network Links client: %v", err)
 	}
 	o.Configure(virtualNetworkLinksClient.Client, o.Authorizers.ResourceManager)
 

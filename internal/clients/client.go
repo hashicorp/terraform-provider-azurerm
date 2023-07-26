@@ -332,7 +332,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for ConfidentialLedger: %+v", err)
 	}
 	if client.Connections, err = connections.NewClient(o); err != nil {
-		return fmt.Errorf("building clinets for Connections: %+v", err)
+		return fmt.Errorf("building clients for Connections: %+v", err)
 	}
 	if client.Consumption, err = consumption.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Consumption: %+v", err)
@@ -412,7 +412,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for IoTCentral: %+v", err)
 	}
 	if client.IoTHub, err = iothub.NewClient(o); err != nil {
-		return fmt.Errorf("building clinets for IoTHub: %+v", err)
+		return fmt.Errorf("building clients for IoTHub: %+v", err)
 	}
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
@@ -457,7 +457,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.MSSQL = mssql.NewClient(o)
 	client.MSSQLManagedInstance = mssqlmanagedinstance.NewClient(o)
 	if client.MySQL, err = mysql.NewClient(o); err != nil {
-		return fmt.Errorf("building clinets for MySQL: %+v", err)
+		return fmt.Errorf("building clients for MySQL: %+v", err)
 	}
 	if client.NetApp, err = netapp.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for NetApp: %+v", err)
@@ -478,7 +478,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for NotificationHubs: %+v", err)
 	}
 	if client.Orbital, err = orbital.NewClient(o); err != nil {
-		return fmt.Errorf("building clinets for Orbital: %+v", err)
+		return fmt.Errorf("building clients for Orbital: %+v", err)
 	}
 	if client.Policy, err = policy.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Policy: %+v", err)
@@ -488,16 +488,16 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	client.Postgres = postgres.NewClient(o)
 	if client.PowerBI, err = powerBI.NewClient(o); err != nil {
-		return fmt.Errorf("building clinets for PowerBI: %+v", err)
+		return fmt.Errorf("building clients for PowerBI: %+v", err)
 	}
 	if client.PrivateDns, err = privatedns.NewClient(o); err != nil {
-		return fmt.Errorf("building clinets for PrivateDns: %+v", err)
+		return fmt.Errorf("building clients for PrivateDns: %+v", err)
 	}
 	if client.PrivateDnsResolver, err = dnsresolver.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for PrivateDnsResolver: %+v", err)
 	}
 	if client.Purview, err = purview.NewClient(o); err != nil {
-		return fmt.Errorf("building clinets for Purview: %+v", err)
+		return fmt.Errorf("building clients for Purview: %+v", err)
 	}
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	if client.Redis, err = redis.NewClient(o); err != nil {
@@ -507,7 +507,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for RedisEnterprise: %+v", err)
 	}
 	if client.Relay, err = relay.NewClient(o); err != nil {
-		return fmt.Errorf("building clinets for Relay: %+v", err)
+		return fmt.Errorf("building clients for Relay: %+v", err)
 	}
 	client.Resource = resource.NewClient(o)
 	if client.Search, err = search.NewClient(o); err != nil {

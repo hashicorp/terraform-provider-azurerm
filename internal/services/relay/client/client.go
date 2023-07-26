@@ -19,13 +19,13 @@ type Client struct {
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	hybridConnectionsClient, err := hybridconnections.NewHybridConnectionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build hybridConnections Client: %v", err)
+		return nil, fmt.Errorf("building Hybrid Connections client: %v", err)
 	}
 	o.Configure(hybridConnectionsClient.Client, o.Authorizers.ResourceManager)
 
 	namespacesClient, err := namespaces.NewNamespacesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build relay namespaces Client: %v", err)
+		return nil, fmt.Errorf("building Relay Namespaces client: %v", err)
 	}
 	o.Configure(namespacesClient.Client, o.Authorizers.ResourceManager)
 

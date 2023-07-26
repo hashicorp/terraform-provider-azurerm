@@ -19,13 +19,13 @@ type Client struct {
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	connectionsClient, err := connections.NewConnectionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build connections Client: %+v", err)
+		return nil, fmt.Errorf("building Connections client: %+v", err)
 	}
 	o.Configure(connectionsClient.Client, o.Authorizers.ResourceManager)
 
 	managedApisClient, err := managedapis.NewManagedAPIsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build connections managedApi Client: %+v", err)
+		return nil, fmt.Errorf("building Managed Api client: %+v", err)
 	}
 	o.Configure(managedApisClient.Client, o.Authorizers.ResourceManager)
 

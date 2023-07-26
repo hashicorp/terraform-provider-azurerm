@@ -23,19 +23,19 @@ type Client struct {
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	spacecraftClient, err := spacecraft.NewSpacecraftClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build orbital spacecraft Client: %+v", err)
+		return nil, fmt.Errorf("building Orbital Spacecraft client: %+v", err)
 	}
 	o.Configure(spacecraftClient.Client, o.Authorizers.ResourceManager)
 
 	contactProfileClient, err := contactprofile.NewContactProfileClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build orbital contact profile Client: %+v", err)
+		return nil, fmt.Errorf("building Orbital Contact Profile client: %+v", err)
 	}
 	o.Configure(contactProfileClient.Client, o.Authorizers.ResourceManager)
 
 	contactClient, err := contact.NewContactClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build orbital contact Client: %+v", err)
+		return nil, fmt.Errorf("building Orbital Contact client: %+v", err)
 	}
 	o.Configure(contactClient.Client, o.Authorizers.ResourceManager)
 

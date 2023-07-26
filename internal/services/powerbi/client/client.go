@@ -17,7 +17,7 @@ type Client struct {
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	capacityClient, err := capacities.NewCapacitiesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build powerbidedicated capacity Client: %+v", err)
+		return nil, fmt.Errorf("building PowerBI Dedicated Capacity client: %+v", err)
 	}
 	o.Configure(capacityClient.Client, o.Authorizers.ResourceManager)
 

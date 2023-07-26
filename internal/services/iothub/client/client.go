@@ -30,19 +30,19 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	DeviceUpdatesClient, err := deviceupdates.NewDeviceupdatesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build Device Updates Client: %+v", err)
+		return nil, fmt.Errorf("building Device Updates Client: %+v", err)
 	}
 	o.Configure(DeviceUpdatesClient.Client, o.Authorizers.ResourceManager)
 
 	DPSResourceClient, err := iotdpsresource.NewIotDpsResourceClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build DPS Resource Client: %+v", err)
+		return nil, fmt.Errorf("building DPS Resource Client: %+v", err)
 	}
 	o.Configure(DPSResourceClient.Client, o.Authorizers.ResourceManager)
 
 	DPSCertificateClient, err := dpscertificate.NewDpsCertificateClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("build DPS Certificate Client: %+v", err)
+		return nil, fmt.Errorf("building DPS Certificate Client: %+v", err)
 	}
 	o.Configure(DPSCertificateClient.Client, o.Authorizers.ResourceManager)
 
