@@ -16,10 +16,10 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-
 * `azurerm_cosmosdb_account` - `type` within the `backup` block is updated separately when set to `Continuous` [GH-22638]
 * `azurerm_cosmosdb_account` - `max_age_in_seconds` within the `cors_rule` block is now Optional and can now be configured up to `2147483647` [GH-22552]
 * `azurerm_maintenance_configuration` - fixing a bug where include and exclude were set incorrectly [GH-22671]
+* `azurerm_pim_eligible_role_assignment` - polling for the duration of the timeout, rather than using a hard-coded value [GH-22682]
 * `azurerm_redis_cache` - only updating `patch_schedule` when it has changed in the config file [GH-22661]
 
 ## 3.66.0 (July 20, 2023)
