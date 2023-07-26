@@ -126,6 +126,32 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			},
 
 			// Optional
+			"auxiliary_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeFloating),
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeNone),
+				}, false),
+				Default:      string(networkinterfaces.NetworkInterfaceAuxiliaryModeNone),
+				RequiredWith: []string{"auxiliary_sku"},
+			},
+
+			"auxiliary_sku": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAEight),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAFour),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAOne),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuATwo),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuNone),
+				}, false),
+				Default:      string(networkinterfaces.NetworkInterfaceAuxiliarySkuNone),
+				RequiredWith: []string{"auxiliary_mode"},
+			},
+
 			"dns_servers": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -232,6 +258,14 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
 	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
 
+	if auxiliaryMode, hasAuxiliaryMode := d.GetOk("auxiliary_mode"); hasAuxiliaryMode {
+		properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode.(string)))
+	}
+
+	if auxiliarySku, hasAuxiliarySku := d.GetOk("auxiliary_sku"); hasAuxiliarySku {
+		properties.AuxiliarySku = pointer.To(networkinterfaces.NetworkInterfaceAuxiliarySku(auxiliarySku.(string)))
+	}
+
 	dns, hasDns := d.GetOk("dns_servers")
 	nameLabel, hasNameLabel := d.GetOk("internal_dns_name_label")
 	if hasDns || hasNameLabel {
@@ -323,6 +357,22 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			EnableAcceleratedNetworking: utils.Bool(d.Get("enable_accelerated_networking").(bool)),
 			DnsSettings:                 &networkinterfaces.NetworkInterfaceDnsSettings{},
 		},
+	}
+
+	if d.HasChange("auxiliary_mode") {
+		if auxiliaryMode, hasAuxiliaryMode := d.GetOk("auxiliary_mode"); hasAuxiliaryMode {
+			update.Properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode.(string)))
+		}
+	} else {
+		update.Properties.AuxiliaryMode = existing.Model.Properties.AuxiliaryMode
+	}
+
+	if d.HasChange("auxiliary_sku") {
+		if auxiliarySku, hasAuxiliarySku := d.GetOk("auxiliary_sku"); hasAuxiliarySku {
+			update.Properties.AuxiliarySku = pointer.To(networkinterfaces.NetworkInterfaceAuxiliarySku(auxiliarySku.(string)))
+		}
+	} else {
+		update.Properties.AuxiliarySku = existing.Model.Properties.AuxiliarySku
 	}
 
 	if d.HasChange("dns_servers") {
@@ -462,6 +512,8 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("setting `applied_dns_servers`: %+v", err)
 			}
 
+			d.Set("auxiliary_mode", pointer.From(props.AuxiliaryMode))
+			d.Set("auxiliary_sku", pointer.From(props.AuxiliarySku))
 			d.Set("enable_ip_forwarding", props.EnableIPForwarding)
 			d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
 			d.Set("internal_dns_name_label", internalDnsNameLabel)
