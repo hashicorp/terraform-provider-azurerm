@@ -207,7 +207,7 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 				Target:     []string{"Created"},
 				Refresh:    createEligibilityRoleAssignment(ctx, clientRequest, requestId, &payload),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    waitTimeoutFromCtx(ctx, 10*time.Minute),
 			}
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
@@ -219,7 +219,7 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 				Target:     []string{"Found"},
 				Refresh:    waitForEligibleRoleAssignmentSchedule(ctx, clientInstances, config.Scope, config.PrincipalId, config.RoleDefinitionId, "Found"),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    waitTimeoutFromCtx(ctx, 10*time.Minute),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -344,7 +344,7 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				Target:     []string{"Deleted"},
 				Refresh:    deleteEligibilityRoleAssignmentSchedule(ctx, clientRequest, deleteId, &payload),
 				MinTimeout: 1 * time.Minute,
-				Timeout:    5 * time.Minute,
+				Timeout:    waitTimeoutFromCtx(ctx, 5*time.Minute),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -357,7 +357,7 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				Target:     []string{"Missing"},
 				Refresh:    waitForEligibleRoleAssignmentSchedule(ctx, clientInstances, id.Scope, id.PrincipalId, id.RoleDefinitionId, "Missing"),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    waitTimeoutFromCtx(ctx, 5*time.Minute),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -652,4 +652,11 @@ func deleteEligibilityRoleAssignmentSchedule(ctx context.Context, client *roleel
 
 		return result, "Deleted", nil
 	}
+}
+
+func waitTimeoutFromCtx(ctx context.Context, defaultValue time.Duration) time.Duration {
+	if deadline, ok := ctx.Deadline(); ok {
+		defaultValue = time.Until(deadline)
+	}
+	return defaultValue
 }
