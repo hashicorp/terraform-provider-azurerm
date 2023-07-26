@@ -9,7 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20230725.1205316` of `github.com/hashicorp/go-azure-sdk` [GH-22681]
+* dependencies: updating to `v0.20230726.1135558` of `github.com/hashicorp/go-azure-sdk` [GH-22698]
 * `connections`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22681]
 * `iothub`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22681]
 * `mysql`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22681]
