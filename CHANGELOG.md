@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_image` - support for the field `disk_encryption_set_id` within the `os_disk` block [GH-22642]
 * `azurerm_redis_enterprise_database` - support `redisSON` module for geo-replication [GH-22627]
 * `azurerm_network_interface` - updating to use `hashicorp/go-azure-sdk` and API Version `2023-02-01` [GH-22479]
+* `azurerm_cdn_endpoint_custom_domain` - pass nil as version when Certificate/Secret version is set to Latest [GH-22683]
 
 BUG FIXES:
 
