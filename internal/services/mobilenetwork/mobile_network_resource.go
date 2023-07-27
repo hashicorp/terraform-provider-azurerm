@@ -6,6 +6,7 @@ package mobilenetwork
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"time"
 
@@ -232,8 +233,37 @@ func (r MobileNetworkResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+			// also a workaround for https://github.com/Azure/azure-rest-api-specs/issues/22691
+			// as the children may block the delete of parent in seconds.
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Delay:   5 * time.Minute,
+				Pending: []string{"409"},
+				Target:  []string{"200", "202"},
+				Refresh: func() (result interface{}, state string, err error) {
+					resp, err := client.Delete(ctx, *id)
+					if err != nil {
+						if resp.HttpResponse.StatusCode == http.StatusConflict {
+							return nil, "409", nil
+						}
+						return nil, "", err
+					}
+					return resp, "200", nil
+				},
+				MinTimeout: 15 * time.Second,
+				Timeout:    time.Until(deadline),
+			}
+
+			if future, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for deleting of %s: %+v", id, err)
+			} else {
+				poller := future.(mobilenetwork.DeleteOperationResponse).Poller
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("deleting %s: %+v", id, err)
+				}
 			}
 
 			return nil
