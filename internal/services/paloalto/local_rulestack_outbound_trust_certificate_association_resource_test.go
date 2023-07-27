@@ -17,7 +17,7 @@ import (
 type LocalRulestackOutboundTrustCertificateResource struct{}
 
 func TestAccLocalRulestackOutboundTrustCertificateResource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_local_rulestack_outbound_trust_certificate_association", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association", "test")
 	r := LocalRulestackOutboundTrustCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -56,9 +56,8 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_local_rulestack_outbound_trust_certificate_association" "test" {
-  rulestack_id   = azurerm_palo_alto_local_rule_stack.test.id
-  certificate_id = azurerm_palo_alto_local_rule_stack_certificate.test.id
+resource "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association" "test" {
+  certificate_id = azurerm_palo_alto_local_rulestack_certificate.test.id
 }
 
 `, r.template(data))
@@ -71,15 +70,15 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_palo_alto_local_rule_stack" "test" {
+resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"
 }
 
-resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
+resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
   name          = "testacc-palc-%[1]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   certificate_signer_id = "https://example.com/not-a-real-url"
 }

@@ -18,7 +18,6 @@ import (
 type LocalRulestackOutboundTrustCertificateAssociationResource struct{}
 
 type LocalRulestackOutboundTrustCertificateResourceModel struct {
-	RulestackID   string `tfschema:"rulestack_id"`
 	CertificateID string `tfschema:"certificate_id"`
 }
 
@@ -33,18 +32,11 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) ModelObject()
 }
 
 func (l LocalRulestackOutboundTrustCertificateAssociationResource) ResourceType() string {
-	return "azurerm_local_rulestack_outbound_trust_certificate_association"
+	return "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association"
 }
 
 func (l LocalRulestackOutboundTrustCertificateAssociationResource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
-		"rulestack_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: localrulestacks.ValidateLocalRulestackID,
-		},
-
 		"certificate_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -70,14 +62,6 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) Create() sdk.
 				return err
 			}
 
-			rulestackId, err := localrulestacks.ParseLocalRulestackID(model.RulestackID)
-			if err != nil {
-				return err
-			}
-
-			locks.ByID(rulestackId.ID())
-			defer locks.UnlockByID(rulestackId.ID())
-
 			certificateId, err := certificates.ParseLocalRulestackCertificateID(model.CertificateID)
 			if err != nil {
 				return err
@@ -85,10 +69,14 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) Create() sdk.
 
 			locks.ByID(certificateId.ID())
 			defer locks.UnlockByID(certificateId.ID())
+			rulestackId := localrulestacks.NewLocalRulestackID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName)
 
-			existing, err := client.Get(ctx, *rulestackId)
+			locks.ByID(rulestackId.ID())
+			defer locks.UnlockByID(rulestackId.ID())
+
+			existing, err := client.Get(ctx, rulestackId)
 			if err != nil {
-				return fmt.Errorf("retrieving the local Rulestack to associate the Outbound Trust Certificate on %s: %+v", *rulestackId, err)
+				return fmt.Errorf("retrieving the local Rulestack to associate the Outbound Trust Certificate on %s: %+v", rulestackId, err)
 			}
 
 			rulestack := *existing.Model
@@ -101,11 +89,11 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) Create() sdk.
 
 			rulestack.Properties = props
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *rulestackId, rulestack); err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, rulestackId, rulestack); err != nil {
 				return fmt.Errorf("creating Outbound Trust Certificate Association for %s: %+v", rulestackId, err)
 			}
 
-			if err = client.CommitThenPoll(ctx, *rulestackId); err != nil {
+			if err = client.CommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack configurtion for UnTrust Certificate for %s: %+v", rulestackId, err)
 			}
 
@@ -142,7 +130,6 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) Read() sdk.Re
 			props := existing.Model.Properties
 			secServices := pointer.From(props.SecurityServices)
 
-			state.RulestackID = rulestackId.ID()
 			state.CertificateID = certificates.NewLocalRulestackCertificateID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName, pointer.From(secServices.OutboundTrustCertificate)).ID()
 
 			return metadata.Encode(&state)
