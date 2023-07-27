@@ -89,14 +89,32 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 							Required: true,
 						},
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotWhiteSpace,
 						},
 						"additional_extension_properties": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotWhiteSpace,
+							},
+						},
+						"operation_status": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"code": {
+										Computed: true,
+										Type:     pluginsdk.TypeString,
+									},
+									"message": {
+										Computed: true,
+										Type:     pluginsdk.TypeString,
+									},
+								},
 							},
 						},
 					},
@@ -129,7 +147,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 
 		if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree {
-			return fmt.Errorf("the princing tier of this subscription is not Free \r %+v", tf.ImportAsExistsError("azurerm_security_center_subscription_pricing", id.ID()))
+			return fmt.Errorf("the pricing tier of this subscription is not Free \r %+v", tf.ImportAsExistsError("azurerm_security_center_subscription_pricing", id.ID()))
 		}
 	}
 
@@ -180,7 +198,10 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 			d.Set("tier", properties.PricingTier)
 			d.Set("subplan", properties.SubPlan)
 			if properties.Extensions != nil {
-				d.Set("extension", flattenExtensions(properties.Extensions))
+				err = d.Set("extension", flattenExtensions(properties.Extensions))
+				if err != nil {
+					return fmt.Errorf("setting `extension`: %+v", err)
+				}
 			}
 		}
 	}
@@ -250,6 +271,13 @@ func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{
 		}
 		if input.AdditionalExtensionProperties != nil {
 			output["additional_extension_properties"] = *input.AdditionalExtensionProperties
+		}
+
+		if input.OperationStatus != nil {
+			status := make(map[string]interface{})
+			status["code"] = input.OperationStatus.Code
+			status["message"] = input.OperationStatus.Message
+			output["operation_status"] = &[]interface{}{status}
 		}
 
 		outputList = append(outputList, output)
