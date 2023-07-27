@@ -925,12 +925,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("hotpatching_enabled", patchSettings.EnableHotpatching)
 
 				if patchSettings.AutomaticByPlatformSettings != nil {
-					if v := patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule; v != nil {
-						bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(v)
-					}
-					if v := patchSettings.AutomaticByPlatformSettings.RebootSetting; v != "" {
-						rebootSetting = string(v)
-					}
+					bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule)
+					rebootSetting = string(patchSettings.AutomaticByPlatformSettings.RebootSetting)
 				}
 				if patchSettings.AssessmentMode != "" {
 					assessmentMode = string(patchSettings.AssessmentMode)

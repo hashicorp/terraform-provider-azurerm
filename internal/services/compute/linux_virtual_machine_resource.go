@@ -896,12 +896,8 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			bypassPlatformSafetyChecksOnUserScheduleEnabled := false
 			rebootSetting := ""
 			if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.AutomaticByPlatformSettings != nil {
-				if v := patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule; v != nil {
-					bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(v)
-				}
-				if v := patchSettings.AutomaticByPlatformSettings.RebootSetting; v != "" {
-					rebootSetting = string(v)
-				}
+				bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule)
+				rebootSetting = string(patchSettings.AutomaticByPlatformSettings.RebootSetting)
 			}
 			d.Set("bypass_platform_safety_checks_on_user_schedule_enabled", bypassPlatformSafetyChecksOnUserScheduleEnabled)
 			d.Set("reboot_setting", rebootSetting)
