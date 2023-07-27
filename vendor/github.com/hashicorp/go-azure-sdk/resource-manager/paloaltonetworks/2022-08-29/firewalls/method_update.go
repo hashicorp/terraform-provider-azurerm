@@ -20,7 +20,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c FirewallsClient) Update(ctx context.Context, id FirewallId, input FirewallResourceUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

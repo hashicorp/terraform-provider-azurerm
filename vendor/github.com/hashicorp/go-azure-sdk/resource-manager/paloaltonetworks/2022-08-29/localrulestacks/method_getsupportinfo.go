@@ -48,7 +48,7 @@ func (o GetSupportInfoOperationOptions) ToQuery() *client.QueryParams {
 // GetSupportInfo ...
 func (c LocalRulestacksClient) GetSupportInfo(ctx context.Context, id LocalRulestackId, options GetSupportInfoOperationOptions) (result GetSupportInfoOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

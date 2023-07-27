@@ -20,7 +20,7 @@ type AveLogProfileOperationResponse struct {
 // AveLogProfile ...
 func (c FirewallsClient) AveLogProfile(ctx context.Context, id FirewallId, input LogSettings) (result AveLogProfileOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 		},

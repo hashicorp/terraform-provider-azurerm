@@ -56,7 +56,7 @@ func (o ListAdvancedSecurityObjectsOperationOptions) ToQuery() *client.QueryPara
 // ListAdvancedSecurityObjects ...
 func (c LocalRulestacksClient) ListAdvancedSecurityObjects(ctx context.Context, id LocalRulestackId, options ListAdvancedSecurityObjectsOperationOptions) (result ListAdvancedSecurityObjectsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

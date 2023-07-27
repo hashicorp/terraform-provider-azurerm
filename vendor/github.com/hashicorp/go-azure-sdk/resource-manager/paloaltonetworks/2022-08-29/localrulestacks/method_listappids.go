@@ -60,7 +60,7 @@ func (o ListAppIdsOperationOptions) ToQuery() *client.QueryParams {
 // ListAppIds ...
 func (c LocalRulestacksClient) ListAppIds(ctx context.Context, id LocalRulestackId, options ListAppIdsOperationOptions) (result ListAppIdsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

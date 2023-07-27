@@ -25,7 +25,7 @@ type ListByLocalRulestacksCompleteResult struct {
 // ListByLocalRulestacks ...
 func (c PrefixListLocalRulestackClient) ListByLocalRulestacks(ctx context.Context, id LocalRulestackId) (result ListByLocalRulestacksOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c CertificateObjectLocalRulestackClient) Get(ctx context.Context, id LocalRulestackCertificateId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c PrefixListLocalRulestackClient) Get(ctx context.Context, id LocalRulestackPrefixListId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

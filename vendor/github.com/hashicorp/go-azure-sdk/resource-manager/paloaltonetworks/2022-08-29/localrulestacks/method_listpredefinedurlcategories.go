@@ -52,7 +52,7 @@ func (o ListPredefinedUrlCategoriesOperationOptions) ToQuery() *client.QueryPara
 // ListPredefinedUrlCategories ...
 func (c LocalRulestacksClient) ListPredefinedUrlCategories(ctx context.Context, id LocalRulestackId, options ListPredefinedUrlCategoriesOperationOptions) (result ListPredefinedUrlCategoriesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

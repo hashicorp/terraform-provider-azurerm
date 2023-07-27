@@ -52,7 +52,7 @@ func (o ListCountriesOperationOptions) ToQuery() *client.QueryParams {
 // ListCountries ...
 func (c LocalRulestacksClient) ListCountries(ctx context.Context, id LocalRulestackId, options ListCountriesOperationOptions) (result ListCountriesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

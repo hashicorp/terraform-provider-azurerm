@@ -48,7 +48,7 @@ func (o GetCountersOperationOptions) ToQuery() *client.QueryParams {
 // GetCounters ...
 func (c LocalRulesClient) GetCounters(ctx context.Context, id LocalRuleId, options GetCountersOperationOptions) (result GetCountersOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

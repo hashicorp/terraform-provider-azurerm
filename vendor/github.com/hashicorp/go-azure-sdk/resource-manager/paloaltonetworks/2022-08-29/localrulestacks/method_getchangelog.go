@@ -21,7 +21,7 @@ type GetChangeLogOperationResponse struct {
 // GetChangeLog ...
 func (c LocalRulestacksClient) GetChangeLog(ctx context.Context, id LocalRulestackId) (result GetChangeLogOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

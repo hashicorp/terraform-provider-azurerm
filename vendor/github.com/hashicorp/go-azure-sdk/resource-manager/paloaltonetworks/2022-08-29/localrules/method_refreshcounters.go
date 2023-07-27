@@ -47,7 +47,7 @@ func (o RefreshCountersOperationOptions) ToQuery() *client.QueryParams {
 // RefreshCounters ...
 func (c LocalRulesClient) RefreshCounters(ctx context.Context, id LocalRuleId, options RefreshCountersOperationOptions) (result RefreshCountersOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 		},

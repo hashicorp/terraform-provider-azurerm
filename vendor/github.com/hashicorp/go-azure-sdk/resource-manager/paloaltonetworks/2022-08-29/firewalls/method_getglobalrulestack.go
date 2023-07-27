@@ -21,7 +21,7 @@ type GetGlobalRulestackOperationResponse struct {
 // GetGlobalRulestack ...
 func (c FirewallsClient) GetGlobalRulestack(ctx context.Context, id FirewallId) (result GetGlobalRulestackOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
