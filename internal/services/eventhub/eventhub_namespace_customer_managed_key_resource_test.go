@@ -173,6 +173,7 @@ resource "azurerm_key_vault_key" "test2" {
 resource "azurerm_eventhub_namespace_customer_managed_key" "test" {
   eventhub_namespace_id = azurerm_eventhub_namespace.test.id
   key_vault_key_ids     = [azurerm_key_vault_key.test.id, azurerm_key_vault_key.test2.id]
+  infrastructure_encryption_enabled = true
 }
 `, r.template(data), data.RandomString)
 }
