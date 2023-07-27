@@ -6,6 +6,7 @@ package cognitive
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -220,6 +221,9 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Cognitive.DeploymentsClient
 			accountId, err := cognitiveservicesaccounts.ParseAccountID(model.CognitiveAccountId)
+
+			locks.ByID(accountId.ID())
+
 			if err != nil {
 				return err
 			}
@@ -249,6 +253,8 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
+			locks.UnlockByID(accountId.ID())
 
 			metadata.SetID(id)
 			return nil
