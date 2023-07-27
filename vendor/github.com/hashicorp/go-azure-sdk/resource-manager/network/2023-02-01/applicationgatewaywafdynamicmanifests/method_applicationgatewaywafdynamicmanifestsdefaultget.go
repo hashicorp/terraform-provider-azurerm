@@ -21,7 +21,7 @@ type ApplicationGatewayWafDynamicManifestsDefaultGetOperationResponse struct {
 // ApplicationGatewayWafDynamicManifestsDefaultGet ...
 func (c ApplicationGatewayWafDynamicManifestsClient) ApplicationGatewayWafDynamicManifestsDefaultGet(ctx context.Context, id LocationId) (result ApplicationGatewayWafDynamicManifestsDefaultGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

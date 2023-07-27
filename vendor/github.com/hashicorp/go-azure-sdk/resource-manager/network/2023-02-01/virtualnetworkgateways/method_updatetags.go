@@ -23,7 +23,7 @@ type UpdateTagsOperationResponse struct {
 // UpdateTags ...
 func (c VirtualNetworkGatewaysClient) UpdateTags(ctx context.Context, id VirtualNetworkGatewayId, input TagsObject) (result UpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

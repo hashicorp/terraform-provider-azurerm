@@ -25,7 +25,7 @@ type ListPrivateEndpointConnectionsCompleteResult struct {
 // ListPrivateEndpointConnections ...
 func (c PrivateLinkServicesClient) ListPrivateEndpointConnections(ctx context.Context, id PrivateLinkServiceId) (result ListPrivateEndpointConnectionsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

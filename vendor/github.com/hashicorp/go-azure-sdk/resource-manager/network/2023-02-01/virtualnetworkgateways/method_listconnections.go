@@ -25,7 +25,7 @@ type ListConnectionsCompleteResult struct {
 // ListConnections ...
 func (c VirtualNetworkGatewaysClient) ListConnections(ctx context.Context, id VirtualNetworkGatewayId) (result ListConnectionsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

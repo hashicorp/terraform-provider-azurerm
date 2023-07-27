@@ -22,7 +22,7 @@ type ExpressRouteCircuitsGetPeeringStatsOperationResponse struct {
 // ExpressRouteCircuitsGetPeeringStats ...
 func (c ExpressRouteCircuitStatsClient) ExpressRouteCircuitsGetPeeringStats(ctx context.Context, id commonids.ExpressRouteCircuitPeeringId) (result ExpressRouteCircuitsGetPeeringStatsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

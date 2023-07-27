@@ -23,7 +23,7 @@ type HubRouteTablesCreateOrUpdateOperationResponse struct {
 // HubRouteTablesCreateOrUpdate ...
 func (c VirtualWANsClient) HubRouteTablesCreateOrUpdate(ctx context.Context, id HubRouteTableId, input HubRouteTable) (result HubRouteTablesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

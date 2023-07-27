@@ -22,7 +22,7 @@ type ResourceNavigationLinksListOperationResponse struct {
 // ResourceNavigationLinksList ...
 func (c VirtualNetworksClient) ResourceNavigationLinksList(ctx context.Context, id commonids.SubnetId) (result ResourceNavigationLinksListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

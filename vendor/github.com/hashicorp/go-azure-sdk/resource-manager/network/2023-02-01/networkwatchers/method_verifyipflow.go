@@ -23,7 +23,7 @@ type VerifyIPFlowOperationResponse struct {
 // VerifyIPFlow ...
 func (c NetworkWatchersClient) VerifyIPFlow(ctx context.Context, id NetworkWatcherId, input VerificationIPFlowParameters) (result VerifyIPFlowOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

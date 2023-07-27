@@ -20,7 +20,7 @@ type VirtualHubRouteTableV2sGetOperationResponse struct {
 // VirtualHubRouteTableV2sGet ...
 func (c VirtualWANsClient) VirtualHubRouteTableV2sGet(ctx context.Context, id VirtualHubRouteTableId) (result VirtualHubRouteTableV2sGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

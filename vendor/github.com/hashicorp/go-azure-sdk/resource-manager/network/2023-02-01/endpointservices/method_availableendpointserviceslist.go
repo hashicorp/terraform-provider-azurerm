@@ -25,7 +25,7 @@ type AvailableEndpointServicesListCompleteResult struct {
 // AvailableEndpointServicesList ...
 func (c EndpointServicesClient) AvailableEndpointServicesList(ctx context.Context, id LocationId) (result AvailableEndpointServicesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

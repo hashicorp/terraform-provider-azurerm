@@ -23,7 +23,7 @@ type VpnServerConfigurationsDeleteOperationResponse struct {
 // VpnServerConfigurationsDelete ...
 func (c VirtualWANsClient) VpnServerConfigurationsDelete(ctx context.Context, id VpnServerConfigurationId) (result VpnServerConfigurationsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

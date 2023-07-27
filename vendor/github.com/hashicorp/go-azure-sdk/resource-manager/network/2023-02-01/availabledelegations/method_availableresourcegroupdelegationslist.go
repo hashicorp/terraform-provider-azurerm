@@ -25,7 +25,7 @@ type AvailableResourceGroupDelegationsListCompleteResult struct {
 // AvailableResourceGroupDelegationsList ...
 func (c AvailableDelegationsClient) AvailableResourceGroupDelegationsList(ctx context.Context, id ProviderLocationId) (result AvailableResourceGroupDelegationsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

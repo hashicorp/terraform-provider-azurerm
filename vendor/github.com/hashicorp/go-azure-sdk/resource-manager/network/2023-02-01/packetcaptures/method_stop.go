@@ -23,7 +23,7 @@ type StopOperationResponse struct {
 // Stop ...
 func (c PacketCapturesClient) Stop(ctx context.Context, id PacketCaptureId) (result StopOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

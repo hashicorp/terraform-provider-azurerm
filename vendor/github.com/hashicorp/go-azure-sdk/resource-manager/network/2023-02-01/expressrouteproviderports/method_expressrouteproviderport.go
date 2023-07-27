@@ -20,7 +20,7 @@ type ExpressRouteProviderPortOperationResponse struct {
 // ExpressRouteProviderPort ...
 func (c ExpressRouteProviderPortsClient) ExpressRouteProviderPort(ctx context.Context, id ExpressRouteProviderPortId) (result ExpressRouteProviderPortOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

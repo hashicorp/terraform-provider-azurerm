@@ -23,7 +23,7 @@ type CreateOperationResponse struct {
 // Create ...
 func (c PacketCapturesClient) Create(ctx context.Context, id PacketCaptureId, input PacketCapture) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 		},

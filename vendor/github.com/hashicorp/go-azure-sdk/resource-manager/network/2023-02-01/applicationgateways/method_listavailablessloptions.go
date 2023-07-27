@@ -22,7 +22,7 @@ type ListAvailableSslOptionsOperationResponse struct {
 // ListAvailableSslOptions ...
 func (c ApplicationGatewaysClient) ListAvailableSslOptions(ctx context.Context, id commonids.SubscriptionId) (result ListAvailableSslOptionsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

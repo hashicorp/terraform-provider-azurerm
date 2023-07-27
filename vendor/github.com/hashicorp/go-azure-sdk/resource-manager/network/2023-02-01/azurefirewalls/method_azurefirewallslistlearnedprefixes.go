@@ -23,7 +23,7 @@ type AzureFirewallsListLearnedPrefixesOperationResponse struct {
 // AzureFirewallsListLearnedPrefixes ...
 func (c AzureFirewallsClient) AzureFirewallsListLearnedPrefixes(ctx context.Context, id AzureFirewallId) (result AzureFirewallsListLearnedPrefixesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

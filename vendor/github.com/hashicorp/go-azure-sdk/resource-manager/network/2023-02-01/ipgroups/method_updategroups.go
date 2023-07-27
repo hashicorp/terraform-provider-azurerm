@@ -20,7 +20,7 @@ type UpdateGroupsOperationResponse struct {
 // UpdateGroups ...
 func (c IPGroupsClient) UpdateGroups(ctx context.Context, id IPGroupId, input TagsObject) (result UpdateGroupsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

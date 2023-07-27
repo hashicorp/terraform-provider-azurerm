@@ -20,7 +20,7 @@ type VirtualHubsUpdateTagsOperationResponse struct {
 // VirtualHubsUpdateTags ...
 func (c VirtualWANsClient) VirtualHubsUpdateTags(ctx context.Context, id VirtualHubId, input TagsObject) (result VirtualHubsUpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

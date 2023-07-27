@@ -24,7 +24,7 @@ type GetP2sVpnConnectionHealthOperationResponse struct {
 // GetP2sVpnConnectionHealth ...
 func (c P2sVpnGatewaysClient) GetP2sVpnConnectionHealth(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId) (result GetP2sVpnConnectionHealthOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

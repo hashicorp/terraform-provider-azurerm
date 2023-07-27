@@ -20,7 +20,7 @@ type NetworkVirtualApplianceConnectionsGetOperationResponse struct {
 // NetworkVirtualApplianceConnectionsGet ...
 func (c VirtualWANsClient) NetworkVirtualApplianceConnectionsGet(ctx context.Context, id NetworkVirtualApplianceConnectionId) (result NetworkVirtualApplianceConnectionsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

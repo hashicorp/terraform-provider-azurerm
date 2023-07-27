@@ -23,7 +23,7 @@ type ExpressRouteCircuitsListRoutesTableSummaryOperationResponse struct {
 // ExpressRouteCircuitsListRoutesTableSummary ...
 func (c ExpressRouteCircuitRoutesTableSummaryClient) ExpressRouteCircuitsListRoutesTableSummary(ctx context.Context, id RouteTablesSummaryId) (result ExpressRouteCircuitsListRoutesTableSummaryOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

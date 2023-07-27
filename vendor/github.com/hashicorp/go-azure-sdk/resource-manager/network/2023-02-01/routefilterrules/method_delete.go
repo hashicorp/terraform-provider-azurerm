@@ -23,7 +23,7 @@ type DeleteOperationResponse struct {
 // Delete ...
 func (c RouteFilterRulesClient) Delete(ctx context.Context, id RouteFilterRuleId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

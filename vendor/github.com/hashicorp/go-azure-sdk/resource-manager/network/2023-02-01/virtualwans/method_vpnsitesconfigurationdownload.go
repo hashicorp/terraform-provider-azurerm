@@ -23,7 +23,7 @@ type VpnSitesConfigurationDownloadOperationResponse struct {
 // VpnSitesConfigurationDownload ...
 func (c VirtualWANsClient) VpnSitesConfigurationDownload(ctx context.Context, id VirtualWANId, input GetVpnSitesConfigurationRequest) (result VpnSitesConfigurationDownloadOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

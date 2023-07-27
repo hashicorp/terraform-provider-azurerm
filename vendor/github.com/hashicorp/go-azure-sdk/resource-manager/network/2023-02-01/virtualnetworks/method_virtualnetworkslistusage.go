@@ -26,7 +26,7 @@ type VirtualNetworksListUsageCompleteResult struct {
 // VirtualNetworksListUsage ...
 func (c VirtualNetworksClient) VirtualNetworksListUsage(ctx context.Context, id commonids.VirtualNetworkId) (result VirtualNetworksListUsageOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -21,7 +21,7 @@ type FirewallPolicyIdpsSignaturesListOperationResponse struct {
 // FirewallPolicyIdpsSignaturesList ...
 func (c FirewallPoliciesClient) FirewallPolicyIdpsSignaturesList(ctx context.Context, id FirewallPolicyId, input IDPSQueryObject) (result FirewallPolicyIdpsSignaturesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

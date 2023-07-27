@@ -49,7 +49,7 @@ func (o LocationListOperationOptions) ToQuery() *client.QueryParams {
 // LocationList ...
 func (c ExpressRouteProviderPortsClient) LocationList(ctx context.Context, id commonids.SubscriptionId, options LocationListOperationOptions) (result LocationListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

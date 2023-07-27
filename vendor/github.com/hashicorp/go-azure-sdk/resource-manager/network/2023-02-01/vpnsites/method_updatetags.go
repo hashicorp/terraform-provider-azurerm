@@ -20,7 +20,7 @@ type UpdateTagsOperationResponse struct {
 // UpdateTags ...
 func (c VpnSitesClient) UpdateTags(ctx context.Context, id VpnSiteId, input TagsObject) (result UpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

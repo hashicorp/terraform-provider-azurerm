@@ -24,7 +24,7 @@ type UpdateTagsOperationResponse struct {
 // UpdateTags ...
 func (c P2sVpnGatewaysClient) UpdateTags(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId, input TagsObject) (result UpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

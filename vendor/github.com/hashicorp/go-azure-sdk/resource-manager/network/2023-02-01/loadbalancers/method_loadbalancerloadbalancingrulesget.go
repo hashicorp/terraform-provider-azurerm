@@ -20,7 +20,7 @@ type LoadBalancerLoadBalancingRulesGetOperationResponse struct {
 // LoadBalancerLoadBalancingRulesGet ...
 func (c LoadBalancersClient) LoadBalancerLoadBalancingRulesGet(ctx context.Context, id LoadBalancingRuleId) (result LoadBalancerLoadBalancingRulesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

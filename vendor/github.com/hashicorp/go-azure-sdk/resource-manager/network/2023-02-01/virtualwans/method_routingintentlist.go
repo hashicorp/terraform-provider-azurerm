@@ -25,7 +25,7 @@ type RoutingIntentListCompleteResult struct {
 // RoutingIntentList ...
 func (c VirtualWANsClient) RoutingIntentList(ctx context.Context, id VirtualHubId) (result RoutingIntentListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

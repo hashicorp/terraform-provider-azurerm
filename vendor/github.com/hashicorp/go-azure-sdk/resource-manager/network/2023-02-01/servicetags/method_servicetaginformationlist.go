@@ -56,7 +56,7 @@ func (o ServiceTagInformationListOperationOptions) ToQuery() *client.QueryParams
 // ServiceTagInformationList ...
 func (c ServiceTagsClient) ServiceTagInformationList(ctx context.Context, id LocationId, options ServiceTagInformationListOperationOptions) (result ServiceTagInformationListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

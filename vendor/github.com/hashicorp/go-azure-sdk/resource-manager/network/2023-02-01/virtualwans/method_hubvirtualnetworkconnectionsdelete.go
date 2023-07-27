@@ -23,7 +23,7 @@ type HubVirtualNetworkConnectionsDeleteOperationResponse struct {
 // HubVirtualNetworkConnectionsDelete ...
 func (c VirtualWANsClient) HubVirtualNetworkConnectionsDelete(ctx context.Context, id HubVirtualNetworkConnectionId) (result HubVirtualNetworkConnectionsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

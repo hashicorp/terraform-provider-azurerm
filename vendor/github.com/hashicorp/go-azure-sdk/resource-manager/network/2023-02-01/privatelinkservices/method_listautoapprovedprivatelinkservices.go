@@ -25,7 +25,7 @@ type ListAutoApprovedPrivateLinkServicesCompleteResult struct {
 // ListAutoApprovedPrivateLinkServices ...
 func (c PrivateLinkServicesClient) ListAutoApprovedPrivateLinkServices(ctx context.Context, id LocationId) (result ListAutoApprovedPrivateLinkServicesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

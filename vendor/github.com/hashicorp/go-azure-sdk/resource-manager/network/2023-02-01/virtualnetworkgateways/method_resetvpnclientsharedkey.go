@@ -23,7 +23,7 @@ type ResetVpnClientSharedKeyOperationResponse struct {
 // ResetVpnClientSharedKey ...
 func (c VirtualNetworkGatewaysClient) ResetVpnClientSharedKey(ctx context.Context, id VirtualNetworkGatewayId) (result ResetVpnClientSharedKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -24,7 +24,7 @@ type VirtualHubBgpConnectionDeleteOperationResponse struct {
 // VirtualHubBgpConnectionDelete ...
 func (c VirtualWANsClient) VirtualHubBgpConnectionDelete(ctx context.Context, id commonids.VirtualHubBGPConnectionId) (result VirtualHubBgpConnectionDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

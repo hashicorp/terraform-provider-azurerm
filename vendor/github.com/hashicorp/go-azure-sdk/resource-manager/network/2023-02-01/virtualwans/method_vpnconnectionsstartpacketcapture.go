@@ -24,7 +24,7 @@ type VpnConnectionsStartPacketCaptureOperationResponse struct {
 // VpnConnectionsStartPacketCapture ...
 func (c VirtualWANsClient) VpnConnectionsStartPacketCapture(ctx context.Context, id commonids.VPNConnectionId, input VpnConnectionPacketCaptureStartParameters) (result VpnConnectionsStartPacketCaptureOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

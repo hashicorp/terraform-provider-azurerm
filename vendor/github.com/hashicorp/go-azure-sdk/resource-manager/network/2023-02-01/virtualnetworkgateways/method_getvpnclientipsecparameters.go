@@ -23,7 +23,7 @@ type GetVpnclientIPsecParametersOperationResponse struct {
 // GetVpnclientIPsecParameters ...
 func (c VirtualNetworkGatewaysClient) GetVpnclientIPsecParameters(ctx context.Context, id VirtualNetworkGatewayId) (result GetVpnclientIPsecParametersOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

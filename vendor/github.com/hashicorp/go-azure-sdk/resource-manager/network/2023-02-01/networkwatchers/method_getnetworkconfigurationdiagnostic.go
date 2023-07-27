@@ -23,7 +23,7 @@ type GetNetworkConfigurationDiagnosticOperationResponse struct {
 // GetNetworkConfigurationDiagnostic ...
 func (c NetworkWatchersClient) GetNetworkConfigurationDiagnostic(ctx context.Context, id NetworkWatcherId, input NetworkConfigurationDiagnosticParameters) (result GetNetworkConfigurationDiagnosticOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

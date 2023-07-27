@@ -22,7 +22,7 @@ type ListNetworkManagerEffectiveSecurityAdminRulesOperationResponse struct {
 // ListNetworkManagerEffectiveSecurityAdminRules ...
 func (c NetworkManagerEffectiveSecurityAdminRulesClient) ListNetworkManagerEffectiveSecurityAdminRules(ctx context.Context, id commonids.VirtualNetworkId, input QueryRequestOptions) (result ListNetworkManagerEffectiveSecurityAdminRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

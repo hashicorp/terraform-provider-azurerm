@@ -23,7 +23,7 @@ type RouteMapsDeleteOperationResponse struct {
 // RouteMapsDelete ...
 func (c VirtualWANsClient) RouteMapsDelete(ctx context.Context, id RouteMapId) (result RouteMapsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

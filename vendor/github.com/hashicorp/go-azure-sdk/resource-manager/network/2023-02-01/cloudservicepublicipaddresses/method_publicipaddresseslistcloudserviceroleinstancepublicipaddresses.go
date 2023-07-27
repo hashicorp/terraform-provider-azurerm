@@ -26,7 +26,7 @@ type PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesCompleteResul
 // PublicIPAddressesListCloudServiceRoleInstancePublicIPAddresses ...
 func (c CloudServicePublicIPAddressesClient) PublicIPAddressesListCloudServiceRoleInstancePublicIPAddresses(ctx context.Context, id commonids.CloudServicesIPConfigurationId) (result PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

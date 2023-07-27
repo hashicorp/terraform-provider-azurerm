@@ -23,7 +23,7 @@ type NetworkVirtualApplianceConnectionsDeleteOperationResponse struct {
 // NetworkVirtualApplianceConnectionsDelete ...
 func (c VirtualWANsClient) NetworkVirtualApplianceConnectionsDelete(ctx context.Context, id NetworkVirtualApplianceConnectionId) (result NetworkVirtualApplianceConnectionsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

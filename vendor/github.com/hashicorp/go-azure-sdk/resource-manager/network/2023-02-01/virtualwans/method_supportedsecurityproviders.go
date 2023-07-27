@@ -21,7 +21,7 @@ type SupportedSecurityProvidersOperationResponse struct {
 // SupportedSecurityProviders ...
 func (c VirtualWANsClient) SupportedSecurityProviders(ctx context.Context, id VirtualWANId) (result SupportedSecurityProvidersOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type ConfigurationPolicyGroupsDeleteOperationResponse struct {
 // ConfigurationPolicyGroupsDelete ...
 func (c VirtualWANsClient) ConfigurationPolicyGroupsDelete(ctx context.Context, id ConfigurationPolicyGroupId) (result ConfigurationPolicyGroupsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

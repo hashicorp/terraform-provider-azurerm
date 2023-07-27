@@ -25,7 +25,7 @@ type LoadBalancerBackendAddressPoolsListCompleteResult struct {
 // LoadBalancerBackendAddressPoolsList ...
 func (c LoadBalancersClient) LoadBalancerBackendAddressPoolsList(ctx context.Context, id LoadBalancerId) (result LoadBalancerBackendAddressPoolsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

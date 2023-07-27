@@ -24,7 +24,7 @@ type CreateOrUpdateOperationResponse struct {
 // CreateOrUpdate ...
 func (c PublicIPAddressesClient) CreateOrUpdate(ctx context.Context, id commonids.PublicIPAddressId, input PublicIPAddress) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

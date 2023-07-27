@@ -22,7 +22,7 @@ type ListAvailableServerVariablesOperationResponse struct {
 // ListAvailableServerVariables ...
 func (c ApplicationGatewaysClient) ListAvailableServerVariables(ctx context.Context, id commonids.SubscriptionId) (result ListAvailableServerVariablesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

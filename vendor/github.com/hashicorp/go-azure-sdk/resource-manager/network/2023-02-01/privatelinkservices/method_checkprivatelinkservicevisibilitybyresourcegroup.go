@@ -23,7 +23,7 @@ type CheckPrivateLinkServiceVisibilityByResourceGroupOperationResponse struct {
 // CheckPrivateLinkServiceVisibilityByResourceGroup ...
 func (c PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResourceGroup(ctx context.Context, id ProviderLocationId, input CheckPrivateLinkServiceVisibilityRequest) (result CheckPrivateLinkServiceVisibilityByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

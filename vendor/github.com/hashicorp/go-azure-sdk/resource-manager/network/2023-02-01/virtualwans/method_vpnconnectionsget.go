@@ -21,7 +21,7 @@ type VpnConnectionsGetOperationResponse struct {
 // VpnConnectionsGet ...
 func (c VirtualWANsClient) VpnConnectionsGet(ctx context.Context, id commonids.VPNConnectionId) (result VpnConnectionsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

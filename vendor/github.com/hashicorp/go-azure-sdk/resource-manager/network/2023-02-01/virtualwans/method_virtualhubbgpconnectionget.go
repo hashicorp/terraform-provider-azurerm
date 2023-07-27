@@ -21,7 +21,7 @@ type VirtualHubBgpConnectionGetOperationResponse struct {
 // VirtualHubBgpConnectionGet ...
 func (c VirtualWANsClient) VirtualHubBgpConnectionGet(ctx context.Context, id commonids.VirtualHubBGPConnectionId) (result VirtualHubBgpConnectionGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

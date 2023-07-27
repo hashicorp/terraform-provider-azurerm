@@ -25,7 +25,7 @@ type VpnConnectionsListByVpnGatewayCompleteResult struct {
 // VpnConnectionsListByVpnGateway ...
 func (c VirtualWANsClient) VpnConnectionsListByVpnGateway(ctx context.Context, id VpnGatewayId) (result VpnConnectionsListByVpnGatewayOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

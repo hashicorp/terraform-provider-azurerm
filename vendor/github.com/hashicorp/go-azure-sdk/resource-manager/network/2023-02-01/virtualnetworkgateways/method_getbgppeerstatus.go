@@ -50,7 +50,7 @@ func (o GetBgpPeerStatusOperationOptions) ToQuery() *client.QueryParams {
 // GetBgpPeerStatus ...
 func (c VirtualNetworkGatewaysClient) GetBgpPeerStatus(ctx context.Context, id VirtualNetworkGatewayId, options GetBgpPeerStatusOperationOptions) (result GetBgpPeerStatusOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -21,7 +21,7 @@ type VpnDeviceConfigurationScriptOperationResponse struct {
 // VpnDeviceConfigurationScript ...
 func (c VirtualNetworkGatewaysClient) VpnDeviceConfigurationScript(ctx context.Context, id ConnectionId, input VpnDeviceScriptParameters) (result VpnDeviceConfigurationScriptOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

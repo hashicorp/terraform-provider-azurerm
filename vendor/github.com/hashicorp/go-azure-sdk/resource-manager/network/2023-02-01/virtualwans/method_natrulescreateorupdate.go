@@ -23,7 +23,7 @@ type NatRulesCreateOrUpdateOperationResponse struct {
 // NatRulesCreateOrUpdate ...
 func (c VirtualWANsClient) NatRulesCreateOrUpdate(ctx context.Context, id NatRuleId, input VpnGatewayNatRule) (result NatRulesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

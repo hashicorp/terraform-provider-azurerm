@@ -20,7 +20,7 @@ type NatRulesGetOperationResponse struct {
 // NatRulesGet ...
 func (c VirtualWANsClient) NatRulesGet(ctx context.Context, id NatRuleId) (result NatRulesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

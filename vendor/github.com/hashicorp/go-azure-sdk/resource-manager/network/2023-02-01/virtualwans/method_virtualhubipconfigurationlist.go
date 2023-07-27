@@ -25,7 +25,7 @@ type VirtualHubIPConfigurationListCompleteResult struct {
 // VirtualHubIPConfigurationList ...
 func (c VirtualWANsClient) VirtualHubIPConfigurationList(ctx context.Context, id VirtualHubId) (result VirtualHubIPConfigurationListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -24,7 +24,7 @@ type VirtualHubBgpConnectionsListLearnedRoutesOperationResponse struct {
 // VirtualHubBgpConnectionsListLearnedRoutes ...
 func (c VirtualWANsClient) VirtualHubBgpConnectionsListLearnedRoutes(ctx context.Context, id commonids.VirtualHubBGPConnectionId) (result VirtualHubBgpConnectionsListLearnedRoutesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

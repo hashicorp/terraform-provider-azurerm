@@ -23,7 +23,7 @@ type VirtualHubsGetInboundRoutesOperationResponse struct {
 // VirtualHubsGetInboundRoutes ...
 func (c VirtualWANsClient) VirtualHubsGetInboundRoutes(ctx context.Context, id VirtualHubId, input GetInboundRoutesParameters) (result VirtualHubsGetInboundRoutesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

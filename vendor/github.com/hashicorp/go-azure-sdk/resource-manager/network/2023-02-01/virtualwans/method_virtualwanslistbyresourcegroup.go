@@ -26,7 +26,7 @@ type VirtualWansListByResourceGroupCompleteResult struct {
 // VirtualWansListByResourceGroup ...
 func (c VirtualWANsClient) VirtualWansListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result VirtualWansListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

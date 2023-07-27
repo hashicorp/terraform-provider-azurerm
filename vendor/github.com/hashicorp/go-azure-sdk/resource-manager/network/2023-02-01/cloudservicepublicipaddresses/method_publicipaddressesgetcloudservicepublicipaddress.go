@@ -49,7 +49,7 @@ func (o PublicIPAddressesGetCloudServicePublicIPAddressOperationOptions) ToQuery
 // PublicIPAddressesGetCloudServicePublicIPAddress ...
 func (c CloudServicePublicIPAddressesClient) PublicIPAddressesGetCloudServicePublicIPAddress(ctx context.Context, id commonids.CloudServicesPublicIPAddressId, options PublicIPAddressesGetCloudServicePublicIPAddressOperationOptions) (result PublicIPAddressesGetCloudServicePublicIPAddressOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

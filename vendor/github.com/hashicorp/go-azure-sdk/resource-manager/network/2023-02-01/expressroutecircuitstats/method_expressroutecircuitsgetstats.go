@@ -21,7 +21,7 @@ type ExpressRouteCircuitsGetStatsOperationResponse struct {
 // ExpressRouteCircuitsGetStats ...
 func (c ExpressRouteCircuitStatsClient) ExpressRouteCircuitsGetStats(ctx context.Context, id ExpressRouteCircuitId) (result ExpressRouteCircuitsGetStatsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

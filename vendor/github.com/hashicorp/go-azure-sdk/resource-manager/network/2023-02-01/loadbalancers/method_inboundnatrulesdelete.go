@@ -23,7 +23,7 @@ type InboundNatRulesDeleteOperationResponse struct {
 // InboundNatRulesDelete ...
 func (c LoadBalancersClient) InboundNatRulesDelete(ctx context.Context, id InboundNatRuleId) (result InboundNatRulesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

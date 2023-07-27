@@ -23,7 +23,7 @@ type InboundSecurityRuleCreateOrUpdateOperationResponse struct {
 // InboundSecurityRuleCreateOrUpdate ...
 func (c NetworkVirtualAppliancesClient) InboundSecurityRuleCreateOrUpdate(ctx context.Context, id InboundSecurityRuleId, input InboundSecurityRule) (result InboundSecurityRuleCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

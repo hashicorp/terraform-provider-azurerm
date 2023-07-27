@@ -23,7 +23,7 @@ type DeleteOperationResponse struct {
 // Delete ...
 func (c NetworkVirtualAppliancesClient) Delete(ctx context.Context, id NetworkVirtualApplianceId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

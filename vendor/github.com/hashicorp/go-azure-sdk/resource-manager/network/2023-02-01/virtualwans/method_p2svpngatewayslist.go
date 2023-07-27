@@ -26,7 +26,7 @@ type P2sVpnGatewaysListCompleteResult struct {
 // P2sVpnGatewaysList ...
 func (c VirtualWANsClient) P2sVpnGatewaysList(ctx context.Context, id commonids.SubscriptionId) (result P2sVpnGatewaysListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

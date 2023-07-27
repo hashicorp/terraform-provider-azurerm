@@ -23,7 +23,7 @@ type DeleteOperationResponse struct {
 // Delete ...
 func (c PublicIPPrefixesClient) Delete(ctx context.Context, id PublicIPPrefixId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

@@ -24,7 +24,7 @@ type P2sVpnGatewaysDeleteOperationResponse struct {
 // P2sVpnGatewaysDelete ...
 func (c VirtualWANsClient) P2sVpnGatewaysDelete(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId) (result P2sVpnGatewaysDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

@@ -24,7 +24,7 @@ type DdosProtectionStatusOperationResponse struct {
 // DdosProtectionStatus ...
 func (c PublicIPAddressesClient) DdosProtectionStatus(ctx context.Context, id commonids.PublicIPAddressId) (result DdosProtectionStatusOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

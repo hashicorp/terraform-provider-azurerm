@@ -60,7 +60,7 @@ func (o VirtualNetworksListDdosProtectionStatusOperationOptions) ToQuery() *clie
 // VirtualNetworksListDdosProtectionStatus ...
 func (c VirtualNetworksClient) VirtualNetworksListDdosProtectionStatus(ctx context.Context, id commonids.VirtualNetworkId, options VirtualNetworksListDdosProtectionStatusOperationOptions) (result VirtualNetworksListDdosProtectionStatusOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

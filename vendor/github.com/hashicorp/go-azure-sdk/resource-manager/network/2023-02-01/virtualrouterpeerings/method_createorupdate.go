@@ -24,7 +24,7 @@ type CreateOrUpdateOperationResponse struct {
 // CreateOrUpdate ...
 func (c VirtualRouterPeeringsClient) CreateOrUpdate(ctx context.Context, id commonids.VirtualRouterPeeringId, input VirtualRouterPeering) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

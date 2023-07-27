@@ -23,7 +23,7 @@ type NetworkVirtualApplianceConnectionsCreateOrUpdateOperationResponse struct {
 // NetworkVirtualApplianceConnectionsCreateOrUpdate ...
 func (c VirtualWANsClient) NetworkVirtualApplianceConnectionsCreateOrUpdate(ctx context.Context, id NetworkVirtualApplianceConnectionId, input NetworkVirtualApplianceConnection) (result NetworkVirtualApplianceConnectionsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

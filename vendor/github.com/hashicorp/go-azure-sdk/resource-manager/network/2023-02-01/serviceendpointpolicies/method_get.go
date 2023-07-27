@@ -48,7 +48,7 @@ func (o GetOperationOptions) ToQuery() *client.QueryParams {
 // Get ...
 func (c ServiceEndpointPoliciesClient) Get(ctx context.Context, id ServiceEndpointPolicyId, options GetOperationOptions) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

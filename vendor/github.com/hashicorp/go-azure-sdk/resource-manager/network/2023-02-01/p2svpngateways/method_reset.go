@@ -24,7 +24,7 @@ type ResetOperationResponse struct {
 // Reset ...
 func (c P2sVpnGatewaysClient) Reset(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId) (result ResetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

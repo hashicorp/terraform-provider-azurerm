@@ -20,7 +20,7 @@ type LoadBalancerProbesGetOperationResponse struct {
 // LoadBalancerProbesGet ...
 func (c LoadBalancersClient) LoadBalancerProbesGet(ctx context.Context, id ProbeId) (result LoadBalancerProbesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -20,7 +20,7 @@ type RoutingIntentGetOperationResponse struct {
 // RoutingIntentGet ...
 func (c VirtualWANsClient) RoutingIntentGet(ctx context.Context, id RoutingIntentId) (result RoutingIntentGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

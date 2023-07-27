@@ -21,7 +21,7 @@ type GenerateLOAOperationResponse struct {
 // GenerateLOA ...
 func (c ExpressRoutePortsClient) GenerateLOA(ctx context.Context, id ExpressRoutePortId, input GenerateExpressRoutePortsLOARequest) (result GenerateLOAOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

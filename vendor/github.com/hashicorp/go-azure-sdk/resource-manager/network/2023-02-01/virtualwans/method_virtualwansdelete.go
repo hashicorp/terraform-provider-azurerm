@@ -23,7 +23,7 @@ type VirtualWansDeleteOperationResponse struct {
 // VirtualWansDelete ...
 func (c VirtualWANsClient) VirtualWansDelete(ctx context.Context, id VirtualWANId) (result VirtualWansDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

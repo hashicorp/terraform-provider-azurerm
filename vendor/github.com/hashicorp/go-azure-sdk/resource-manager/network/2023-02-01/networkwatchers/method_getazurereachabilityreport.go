@@ -23,7 +23,7 @@ type GetAzureReachabilityReportOperationResponse struct {
 // GetAzureReachabilityReport ...
 func (c NetworkWatchersClient) GetAzureReachabilityReport(ctx context.Context, id NetworkWatcherId, input AzureReachabilityReportParameters) (result GetAzureReachabilityReportOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

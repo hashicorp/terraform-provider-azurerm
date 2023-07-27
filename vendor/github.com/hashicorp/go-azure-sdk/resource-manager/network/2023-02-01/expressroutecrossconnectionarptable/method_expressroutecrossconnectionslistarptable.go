@@ -23,7 +23,7 @@ type ExpressRouteCrossConnectionsListArpTableOperationResponse struct {
 // ExpressRouteCrossConnectionsListArpTable ...
 func (c ExpressRouteCrossConnectionArpTableClient) ExpressRouteCrossConnectionsListArpTable(ctx context.Context, id PeeringArpTableId) (result ExpressRouteCrossConnectionsListArpTableOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

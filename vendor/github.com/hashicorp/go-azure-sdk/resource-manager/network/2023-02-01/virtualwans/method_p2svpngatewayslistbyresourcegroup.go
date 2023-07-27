@@ -26,7 +26,7 @@ type P2sVpnGatewaysListByResourceGroupCompleteResult struct {
 // P2sVpnGatewaysListByResourceGroup ...
 func (c VirtualWANsClient) P2sVpnGatewaysListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result P2sVpnGatewaysListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

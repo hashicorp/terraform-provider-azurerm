@@ -25,7 +25,7 @@ type ConfigurationPolicyGroupsListByVpnServerConfigurationCompleteResult struct 
 // ConfigurationPolicyGroupsListByVpnServerConfiguration ...
 func (c VirtualWANsClient) ConfigurationPolicyGroupsListByVpnServerConfiguration(ctx context.Context, id VpnServerConfigurationId) (result ConfigurationPolicyGroupsListByVpnServerConfigurationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

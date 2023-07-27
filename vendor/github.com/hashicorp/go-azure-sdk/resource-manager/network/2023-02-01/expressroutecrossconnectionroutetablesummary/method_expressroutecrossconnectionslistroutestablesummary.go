@@ -23,7 +23,7 @@ type ExpressRouteCrossConnectionsListRoutesTableSummaryOperationResponse struct 
 // ExpressRouteCrossConnectionsListRoutesTableSummary ...
 func (c ExpressRouteCrossConnectionRouteTableSummaryClient) ExpressRouteCrossConnectionsListRoutesTableSummary(ctx context.Context, id PeeringRouteTablesSummaryId) (result ExpressRouteCrossConnectionsListRoutesTableSummaryOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

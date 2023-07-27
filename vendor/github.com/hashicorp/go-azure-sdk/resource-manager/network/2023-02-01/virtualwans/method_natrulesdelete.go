@@ -23,7 +23,7 @@ type NatRulesDeleteOperationResponse struct {
 // NatRulesDelete ...
 func (c VirtualWANsClient) NatRulesDelete(ctx context.Context, id NatRuleId) (result NatRulesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

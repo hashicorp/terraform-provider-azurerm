@@ -26,7 +26,7 @@ type VpnGatewaysListCompleteResult struct {
 // VpnGatewaysList ...
 func (c VirtualWANsClient) VpnGatewaysList(ctx context.Context, id commonids.SubscriptionId) (result VpnGatewaysListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

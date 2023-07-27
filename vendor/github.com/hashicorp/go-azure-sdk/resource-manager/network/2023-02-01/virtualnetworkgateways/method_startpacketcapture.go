@@ -23,7 +23,7 @@ type StartPacketCaptureOperationResponse struct {
 // StartPacketCapture ...
 func (c VirtualNetworkGatewaysClient) StartPacketCapture(ctx context.Context, id VirtualNetworkGatewayId, input VpnPacketCaptureStartParameters) (result StartPacketCaptureOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

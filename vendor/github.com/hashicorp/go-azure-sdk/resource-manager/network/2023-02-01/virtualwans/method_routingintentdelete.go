@@ -23,7 +23,7 @@ type RoutingIntentDeleteOperationResponse struct {
 // RoutingIntentDelete ...
 func (c VirtualWANsClient) RoutingIntentDelete(ctx context.Context, id RoutingIntentId) (result RoutingIntentDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

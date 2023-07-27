@@ -23,7 +23,7 @@ type VpnSitesCreateOrUpdateOperationResponse struct {
 // VpnSitesCreateOrUpdate ...
 func (c VirtualWANsClient) VpnSitesCreateOrUpdate(ctx context.Context, id VpnSiteId, input VpnSite) (result VpnSitesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

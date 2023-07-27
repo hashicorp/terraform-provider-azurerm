@@ -23,7 +23,7 @@ type CheckConnectivityOperationResponse struct {
 // CheckConnectivity ...
 func (c NetworkWatchersClient) CheckConnectivity(ctx context.Context, id NetworkWatcherId, input ConnectivityParameters) (result CheckConnectivityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -23,7 +23,7 @@ type GeneratevpnclientpackageOperationResponse struct {
 // Generatevpnclientpackage ...
 func (c VirtualNetworkGatewaysClient) Generatevpnclientpackage(ctx context.Context, id VirtualNetworkGatewayId, input VpnClientParameters) (result GeneratevpnclientpackageOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -25,7 +25,7 @@ type AvailableServiceAliasesListByResourceGroupCompleteResult struct {
 // AvailableServiceAliasesListByResourceGroup ...
 func (c AvailableServiceAliasesClient) AvailableServiceAliasesListByResourceGroup(ctx context.Context, id ProviderLocationId) (result AvailableServiceAliasesListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type GetTroubleshootingResultOperationResponse struct {
 // GetTroubleshootingResult ...
 func (c NetworkWatchersClient) GetTroubleshootingResult(ctx context.Context, id NetworkWatcherId, input QueryTroubleshootingParameters) (result GetTroubleshootingResultOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

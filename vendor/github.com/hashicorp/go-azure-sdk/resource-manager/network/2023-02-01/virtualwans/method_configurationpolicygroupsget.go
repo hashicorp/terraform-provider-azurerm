@@ -20,7 +20,7 @@ type ConfigurationPolicyGroupsGetOperationResponse struct {
 // ConfigurationPolicyGroupsGet ...
 func (c VirtualWANsClient) ConfigurationPolicyGroupsGet(ctx context.Context, id ConfigurationPolicyGroupId) (result ConfigurationPolicyGroupsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

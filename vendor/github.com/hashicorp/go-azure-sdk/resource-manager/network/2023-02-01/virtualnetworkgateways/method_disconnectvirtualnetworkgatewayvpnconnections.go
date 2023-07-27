@@ -23,7 +23,7 @@ type DisconnectVirtualNetworkGatewayVpnConnectionsOperationResponse struct {
 // DisconnectVirtualNetworkGatewayVpnConnections ...
 func (c VirtualNetworkGatewaysClient) DisconnectVirtualNetworkGatewayVpnConnections(ctx context.Context, id VirtualNetworkGatewayId, input P2SVpnConnectionRequest) (result DisconnectVirtualNetworkGatewayVpnConnectionsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -22,7 +22,7 @@ type ListAvailableRequestHeadersOperationResponse struct {
 // ListAvailableRequestHeaders ...
 func (c ApplicationGatewaysClient) ListAvailableRequestHeaders(ctx context.Context, id commonids.SubscriptionId) (result ListAvailableRequestHeadersOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

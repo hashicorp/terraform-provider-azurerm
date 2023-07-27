@@ -25,7 +25,7 @@ type GetBastionShareableLinkCompleteResult struct {
 // GetBastionShareableLink ...
 func (c BastionShareableLinkClient) GetBastionShareableLink(ctx context.Context, id BastionHostId, input BastionShareableLinkListRequest) (result GetBastionShareableLinkOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

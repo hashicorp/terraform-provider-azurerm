@@ -26,7 +26,7 @@ type ListAvailableSslPredefinedPoliciesCompleteResult struct {
 // ListAvailableSslPredefinedPolicies ...
 func (c ApplicationGatewaysClient) ListAvailableSslPredefinedPolicies(ctx context.Context, id commonids.SubscriptionId) (result ListAvailableSslPredefinedPoliciesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

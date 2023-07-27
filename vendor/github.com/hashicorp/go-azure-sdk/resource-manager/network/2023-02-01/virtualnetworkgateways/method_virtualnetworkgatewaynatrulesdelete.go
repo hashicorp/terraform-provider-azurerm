@@ -23,7 +23,7 @@ type VirtualNetworkGatewayNatRulesDeleteOperationResponse struct {
 // VirtualNetworkGatewayNatRulesDelete ...
 func (c VirtualNetworkGatewaysClient) VirtualNetworkGatewayNatRulesDelete(ctx context.Context, id VirtualNetworkGatewayNatRuleId) (result VirtualNetworkGatewayNatRulesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

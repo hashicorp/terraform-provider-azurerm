@@ -23,7 +23,7 @@ type GetVpnProfilePackageUrlOperationResponse struct {
 // GetVpnProfilePackageUrl ...
 func (c VirtualNetworkGatewaysClient) GetVpnProfilePackageUrl(ctx context.Context, id VirtualNetworkGatewayId) (result GetVpnProfilePackageUrlOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

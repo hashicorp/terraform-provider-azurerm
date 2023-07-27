@@ -26,7 +26,7 @@ type DscpConfigurationListAllCompleteResult struct {
 // DscpConfigurationListAll ...
 func (c DscpConfigurationsClient) DscpConfigurationListAll(ctx context.Context, id commonids.SubscriptionId) (result DscpConfigurationListAllOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

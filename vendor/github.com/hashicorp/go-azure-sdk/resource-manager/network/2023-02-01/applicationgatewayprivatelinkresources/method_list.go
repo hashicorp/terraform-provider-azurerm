@@ -25,7 +25,7 @@ type ListCompleteResult struct {
 // List ...
 func (c ApplicationGatewayPrivateLinkResourcesClient) List(ctx context.Context, id ApplicationGatewayId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

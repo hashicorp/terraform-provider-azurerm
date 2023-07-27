@@ -21,7 +21,7 @@ type ListOperationResponse struct {
 // List ...
 func (c VipSwapClient) List(ctx context.Context, id CloudServiceId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -24,7 +24,7 @@ type VirtualHubIPConfigurationCreateOrUpdateOperationResponse struct {
 // VirtualHubIPConfigurationCreateOrUpdate ...
 func (c VirtualWANsClient) VirtualHubIPConfigurationCreateOrUpdate(ctx context.Context, id commonids.VirtualHubIPConfigurationId, input HubIPConfiguration) (result VirtualHubIPConfigurationCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

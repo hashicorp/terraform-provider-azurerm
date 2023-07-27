@@ -23,7 +23,7 @@ type SetSharedKeyOperationResponse struct {
 // SetSharedKey ...
 func (c VirtualNetworkGatewayConnectionsClient) SetSharedKey(ctx context.Context, id ConnectionId, input ConnectionSharedKey) (result SetSharedKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

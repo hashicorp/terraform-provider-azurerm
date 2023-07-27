@@ -23,7 +23,7 @@ type VirtualHubsDeleteOperationResponse struct {
 // VirtualHubsDelete ...
 func (c VirtualWANsClient) VirtualHubsDelete(ctx context.Context, id VirtualHubId) (result VirtualHubsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

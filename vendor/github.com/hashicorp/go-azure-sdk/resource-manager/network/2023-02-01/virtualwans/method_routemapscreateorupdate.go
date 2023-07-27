@@ -23,7 +23,7 @@ type RouteMapsCreateOrUpdateOperationResponse struct {
 // RouteMapsCreateOrUpdate ...
 func (c VirtualWANsClient) RouteMapsCreateOrUpdate(ctx context.Context, id RouteMapId, input RouteMap) (result RouteMapsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

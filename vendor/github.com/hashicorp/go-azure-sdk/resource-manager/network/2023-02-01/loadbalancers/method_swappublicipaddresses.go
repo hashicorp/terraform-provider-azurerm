@@ -23,7 +23,7 @@ type SwapPublicIPAddressesOperationResponse struct {
 // SwapPublicIPAddresses ...
 func (c LoadBalancersClient) SwapPublicIPAddresses(ctx context.Context, id LocationId, input LoadBalancerVipSwapRequest) (result SwapPublicIPAddressesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

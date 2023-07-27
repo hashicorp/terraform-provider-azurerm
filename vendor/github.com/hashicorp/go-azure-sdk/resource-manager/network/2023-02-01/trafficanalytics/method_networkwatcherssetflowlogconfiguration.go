@@ -23,7 +23,7 @@ type NetworkWatchersSetFlowLogConfigurationOperationResponse struct {
 // NetworkWatchersSetFlowLogConfiguration ...
 func (c TrafficAnalyticsClient) NetworkWatchersSetFlowLogConfiguration(ctx context.Context, id NetworkWatcherId, input FlowLogInformation) (result NetworkWatchersSetFlowLogConfigurationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

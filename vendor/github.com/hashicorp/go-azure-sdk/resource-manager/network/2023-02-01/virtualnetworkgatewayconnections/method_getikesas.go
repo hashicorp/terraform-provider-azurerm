@@ -23,7 +23,7 @@ type GetIkeSasOperationResponse struct {
 // GetIkeSas ...
 func (c VirtualNetworkGatewayConnectionsClient) GetIkeSas(ctx context.Context, id ConnectionId) (result GetIkeSasOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -22,7 +22,7 @@ type ListAvailableWafRuleSetsOperationResponse struct {
 // ListAvailableWafRuleSets ...
 func (c ApplicationGatewaysClient) ListAvailableWafRuleSets(ctx context.Context, id commonids.SubscriptionId) (result ListAvailableWafRuleSetsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

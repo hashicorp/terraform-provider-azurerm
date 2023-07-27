@@ -23,7 +23,7 @@ type ListInboundNatRulePortMappingsOperationResponse struct {
 // ListInboundNatRulePortMappings ...
 func (c LoadBalancersClient) ListInboundNatRulePortMappings(ctx context.Context, id BackendAddressPoolId, input QueryInboundNatRulePortMappingRequest) (result ListInboundNatRulePortMappingsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

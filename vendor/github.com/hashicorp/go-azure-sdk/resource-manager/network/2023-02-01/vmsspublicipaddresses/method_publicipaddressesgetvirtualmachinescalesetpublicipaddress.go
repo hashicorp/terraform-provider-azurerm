@@ -49,7 +49,7 @@ func (o PublicIPAddressesGetVirtualMachineScaleSetPublicIPAddressOperationOption
 // PublicIPAddressesGetVirtualMachineScaleSetPublicIPAddress ...
 func (c VMSSPublicIPAddressesClient) PublicIPAddressesGetVirtualMachineScaleSetPublicIPAddress(ctx context.Context, id commonids.VirtualMachineScaleSetPublicIPAddressId, options PublicIPAddressesGetVirtualMachineScaleSetPublicIPAddressOperationOptions) (result PublicIPAddressesGetVirtualMachineScaleSetPublicIPAddressOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

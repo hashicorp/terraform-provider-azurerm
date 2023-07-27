@@ -21,7 +21,7 @@ type ListActiveSecurityAdminRulesOperationResponse struct {
 // ListActiveSecurityAdminRules ...
 func (c NetworkManagerActiveConfigurationsClient) ListActiveSecurityAdminRules(ctx context.Context, id NetworkManagerId, input ActiveConfigurationParameter) (result ListActiveSecurityAdminRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

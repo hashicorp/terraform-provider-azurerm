@@ -23,7 +23,7 @@ type ResetConnectionOperationResponse struct {
 // ResetConnection ...
 func (c VirtualNetworkGatewayConnectionsClient) ResetConnection(ctx context.Context, id ConnectionId) (result ResetConnectionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},

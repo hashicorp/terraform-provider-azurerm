@@ -23,7 +23,7 @@ type GetNextHopOperationResponse struct {
 // GetNextHop ...
 func (c NetworkWatchersClient) GetNextHop(ctx context.Context, id NetworkWatcherId, input NextHopParameters) (result GetNextHopOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

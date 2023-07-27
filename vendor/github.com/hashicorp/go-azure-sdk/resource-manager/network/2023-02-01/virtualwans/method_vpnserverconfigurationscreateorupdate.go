@@ -23,7 +23,7 @@ type VpnServerConfigurationsCreateOrUpdateOperationResponse struct {
 // VpnServerConfigurationsCreateOrUpdate ...
 func (c VirtualWANsClient) VpnServerConfigurationsCreateOrUpdate(ctx context.Context, id VpnServerConfigurationId, input VpnServerConfiguration) (result VpnServerConfigurationsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

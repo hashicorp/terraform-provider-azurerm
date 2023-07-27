@@ -23,7 +23,7 @@ type VirtualNetworkGatewayNatRulesCreateOrUpdateOperationResponse struct {
 // VirtualNetworkGatewayNatRulesCreateOrUpdate ...
 func (c VirtualNetworkGatewaysClient) VirtualNetworkGatewayNatRulesCreateOrUpdate(ctx context.Context, id VirtualNetworkGatewayNatRuleId, input VirtualNetworkGatewayNatRule) (result VirtualNetworkGatewayNatRulesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

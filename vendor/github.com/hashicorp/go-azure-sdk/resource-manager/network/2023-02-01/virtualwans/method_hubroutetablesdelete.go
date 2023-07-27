@@ -23,7 +23,7 @@ type HubRouteTablesDeleteOperationResponse struct {
 // HubRouteTablesDelete ...
 func (c VirtualWANsClient) HubRouteTablesDelete(ctx context.Context, id HubRouteTableId) (result HubRouteTablesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

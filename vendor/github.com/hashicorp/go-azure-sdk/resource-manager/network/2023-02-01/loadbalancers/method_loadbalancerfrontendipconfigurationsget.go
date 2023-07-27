@@ -20,7 +20,7 @@ type LoadBalancerFrontendIPConfigurationsGetOperationResponse struct {
 // LoadBalancerFrontendIPConfigurationsGet ...
 func (c LoadBalancersClient) LoadBalancerFrontendIPConfigurationsGet(ctx context.Context, id FrontendIPConfigurationId) (result LoadBalancerFrontendIPConfigurationsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -25,7 +25,7 @@ type VirtualNetworkGatewayNatRulesListByVirtualNetworkGatewayCompleteResult stru
 // VirtualNetworkGatewayNatRulesListByVirtualNetworkGateway ...
 func (c VirtualNetworkGatewaysClient) VirtualNetworkGatewayNatRulesListByVirtualNetworkGateway(ctx context.Context, id VirtualNetworkGatewayId) (result VirtualNetworkGatewayNatRulesListByVirtualNetworkGatewayOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

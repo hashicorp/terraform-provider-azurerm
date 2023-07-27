@@ -26,7 +26,7 @@ type VpnServerConfigurationsListCompleteResult struct {
 // VpnServerConfigurationsList ...
 func (c VirtualWANsClient) VpnServerConfigurationsList(ctx context.Context, id commonids.SubscriptionId) (result VpnServerConfigurationsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

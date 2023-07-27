@@ -25,7 +25,7 @@ type HubVirtualNetworkConnectionsListCompleteResult struct {
 // HubVirtualNetworkConnectionsList ...
 func (c VirtualWANsClient) HubVirtualNetworkConnectionsList(ctx context.Context, id VirtualHubId) (result HubVirtualNetworkConnectionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

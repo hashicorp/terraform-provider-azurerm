@@ -21,7 +21,7 @@ type GetTopologyOperationResponse struct {
 // GetTopology ...
 func (c NetworkWatchersClient) GetTopology(ctx context.Context, id NetworkWatcherId, input TopologyParameters) (result GetTopologyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

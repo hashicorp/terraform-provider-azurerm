@@ -20,7 +20,7 @@ type VpnGatewaysGetOperationResponse struct {
 // VpnGatewaysGet ...
 func (c VirtualWANsClient) VpnGatewaysGet(ctx context.Context, id VpnGatewayId) (result VpnGatewaysGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

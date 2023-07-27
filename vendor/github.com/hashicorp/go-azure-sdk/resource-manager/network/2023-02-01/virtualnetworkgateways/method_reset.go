@@ -50,7 +50,7 @@ func (o ResetOperationOptions) ToQuery() *client.QueryParams {
 // Reset ...
 func (c VirtualNetworkGatewaysClient) Reset(ctx context.Context, id VirtualNetworkGatewayId, options ResetOperationOptions) (result ResetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

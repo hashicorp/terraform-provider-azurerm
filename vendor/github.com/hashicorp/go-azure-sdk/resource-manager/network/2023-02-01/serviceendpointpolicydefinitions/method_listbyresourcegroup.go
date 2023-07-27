@@ -25,7 +25,7 @@ type ListByResourceGroupCompleteResult struct {
 // ListByResourceGroup ...
 func (c ServiceEndpointPolicyDefinitionsClient) ListByResourceGroup(ctx context.Context, id ServiceEndpointPolicyId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -50,7 +50,7 @@ func (o BackendHealthOperationOptions) ToQuery() *client.QueryParams {
 // BackendHealth ...
 func (c ApplicationGatewaysClient) BackendHealth(ctx context.Context, id ApplicationGatewayId, options BackendHealthOperationOptions) (result BackendHealthOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

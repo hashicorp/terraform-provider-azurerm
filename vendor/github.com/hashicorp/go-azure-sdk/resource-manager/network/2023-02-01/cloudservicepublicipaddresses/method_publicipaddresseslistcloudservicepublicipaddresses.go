@@ -25,7 +25,7 @@ type PublicIPAddressesListCloudServicePublicIPAddressesCompleteResult struct {
 // PublicIPAddressesListCloudServicePublicIPAddresses ...
 func (c CloudServicePublicIPAddressesClient) PublicIPAddressesListCloudServicePublicIPAddresses(ctx context.Context, id ProviderCloudServiceId) (result PublicIPAddressesListCloudServicePublicIPAddressesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

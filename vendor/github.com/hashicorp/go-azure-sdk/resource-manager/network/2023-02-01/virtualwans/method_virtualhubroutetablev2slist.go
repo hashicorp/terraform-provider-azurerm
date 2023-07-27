@@ -25,7 +25,7 @@ type VirtualHubRouteTableV2sListCompleteResult struct {
 // VirtualHubRouteTableV2sList ...
 func (c VirtualWANsClient) VirtualHubRouteTableV2sList(ctx context.Context, id VirtualHubId) (result VirtualHubRouteTableV2sListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

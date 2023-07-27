@@ -20,7 +20,7 @@ type VirtualNetworkGatewayNatRulesGetOperationResponse struct {
 // VirtualNetworkGatewayNatRulesGet ...
 func (c VirtualNetworkGatewaysClient) VirtualNetworkGatewayNatRulesGet(ctx context.Context, id VirtualNetworkGatewayNatRuleId) (result VirtualNetworkGatewayNatRulesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

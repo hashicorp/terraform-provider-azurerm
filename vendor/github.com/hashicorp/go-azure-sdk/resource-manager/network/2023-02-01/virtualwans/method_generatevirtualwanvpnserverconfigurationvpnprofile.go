@@ -23,7 +23,7 @@ type GeneratevirtualwanvpnserverconfigurationvpnprofileOperationResponse struct 
 // Generatevirtualwanvpnserverconfigurationvpnprofile ...
 func (c VirtualWANsClient) Generatevirtualwanvpnserverconfigurationvpnprofile(ctx context.Context, id VirtualWANId, input VirtualWanVpnProfileParameters) (result GeneratevirtualwanvpnserverconfigurationvpnprofileOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

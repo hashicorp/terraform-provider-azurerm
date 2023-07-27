@@ -21,7 +21,7 @@ type ServiceTagsListOperationResponse struct {
 // ServiceTagsList ...
 func (c ServiceTagsClient) ServiceTagsList(ctx context.Context, id LocationId) (result ServiceTagsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -22,7 +22,7 @@ type ListBySubscriptionOperationResponse struct {
 // ListBySubscription ...
 func (c ExpressRouteGatewaysClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

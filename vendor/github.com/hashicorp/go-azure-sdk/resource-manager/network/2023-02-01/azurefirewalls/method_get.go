@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c AzureFirewallsClient) Get(ctx context.Context, id AzureFirewallId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

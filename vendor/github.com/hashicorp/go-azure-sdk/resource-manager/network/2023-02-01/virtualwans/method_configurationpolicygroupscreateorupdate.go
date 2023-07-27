@@ -23,7 +23,7 @@ type ConfigurationPolicyGroupsCreateOrUpdateOperationResponse struct {
 // ConfigurationPolicyGroupsCreateOrUpdate ...
 func (c VirtualWANsClient) ConfigurationPolicyGroupsCreateOrUpdate(ctx context.Context, id ConfigurationPolicyGroupId, input VpnServerConfigurationPolicyGroup) (result ConfigurationPolicyGroupsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

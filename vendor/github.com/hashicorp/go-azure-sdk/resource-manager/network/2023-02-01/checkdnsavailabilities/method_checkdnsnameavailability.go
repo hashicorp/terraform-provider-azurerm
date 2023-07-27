@@ -48,7 +48,7 @@ func (o CheckDnsNameAvailabilityOperationOptions) ToQuery() *client.QueryParams 
 // CheckDnsNameAvailability ...
 func (c CheckDnsAvailabilitiesClient) CheckDnsNameAvailability(ctx context.Context, id LocationId, options CheckDnsNameAvailabilityOperationOptions) (result CheckDnsNameAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -49,7 +49,7 @@ func (o VirtualNetworksCheckIPAddressAvailabilityOperationOptions) ToQuery() *cl
 // VirtualNetworksCheckIPAddressAvailability ...
 func (c VirtualNetworksClient) VirtualNetworksCheckIPAddressAvailability(ctx context.Context, id commonids.VirtualNetworkId, options VirtualNetworksCheckIPAddressAvailabilityOperationOptions) (result VirtualNetworksCheckIPAddressAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

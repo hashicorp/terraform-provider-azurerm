@@ -21,7 +21,7 @@ type SupportedVpnDevicesOperationResponse struct {
 // SupportedVpnDevices ...
 func (c VirtualNetworkGatewaysClient) SupportedVpnDevices(ctx context.Context, id VirtualNetworkGatewayId) (result SupportedVpnDevicesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

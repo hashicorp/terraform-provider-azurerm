@@ -48,7 +48,7 @@ func (o InboundNatRulesGetOperationOptions) ToQuery() *client.QueryParams {
 // InboundNatRulesGet ...
 func (c LoadBalancersClient) InboundNatRulesGet(ctx context.Context, id InboundNatRuleId, options InboundNatRulesGetOperationOptions) (result InboundNatRulesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

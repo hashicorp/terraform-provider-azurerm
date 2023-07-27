@@ -24,7 +24,7 @@ type GenerateVpnProfileOperationResponse struct {
 // GenerateVpnProfile ...
 func (c P2sVpnGatewaysClient) GenerateVpnProfile(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId, input P2SVpnProfileParameters) (result GenerateVpnProfileOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

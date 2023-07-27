@@ -24,7 +24,7 @@ type DeleteOperationResponse struct {
 // Delete ...
 func (c VirtualNetworksClient) Delete(ctx context.Context, id commonids.VirtualNetworkId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

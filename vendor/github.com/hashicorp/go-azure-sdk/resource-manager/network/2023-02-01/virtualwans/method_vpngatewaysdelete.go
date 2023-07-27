@@ -23,7 +23,7 @@ type VpnGatewaysDeleteOperationResponse struct {
 // VpnGatewaysDelete ...
 func (c VirtualWANsClient) VpnGatewaysDelete(ctx context.Context, id VpnGatewayId) (result VpnGatewaysDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

@@ -24,7 +24,7 @@ type P2sVpnGatewaysCreateOrUpdateOperationResponse struct {
 // P2sVpnGatewaysCreateOrUpdate ...
 func (c VirtualWANsClient) P2sVpnGatewaysCreateOrUpdate(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId, input P2SVpnGateway) (result P2sVpnGatewaysCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

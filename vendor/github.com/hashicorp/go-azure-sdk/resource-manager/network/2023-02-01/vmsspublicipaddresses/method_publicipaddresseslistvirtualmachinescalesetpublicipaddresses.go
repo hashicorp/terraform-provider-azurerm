@@ -25,7 +25,7 @@ type PublicIPAddressesListVirtualMachineScaleSetPublicIPAddressesCompleteResult 
 // PublicIPAddressesListVirtualMachineScaleSetPublicIPAddresses ...
 func (c VMSSPublicIPAddressesClient) PublicIPAddressesListVirtualMachineScaleSetPublicIPAddresses(ctx context.Context, id VirtualMachineScaleSetId) (result PublicIPAddressesListVirtualMachineScaleSetPublicIPAddressesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

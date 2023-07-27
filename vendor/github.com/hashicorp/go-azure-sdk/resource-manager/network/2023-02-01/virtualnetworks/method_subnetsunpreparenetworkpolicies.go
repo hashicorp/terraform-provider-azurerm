@@ -24,7 +24,7 @@ type SubnetsUnprepareNetworkPoliciesOperationResponse struct {
 // SubnetsUnprepareNetworkPolicies ...
 func (c VirtualNetworksClient) SubnetsUnprepareNetworkPolicies(ctx context.Context, id commonids.SubnetId, input UnprepareNetworkPoliciesRequest) (result SubnetsUnprepareNetworkPoliciesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

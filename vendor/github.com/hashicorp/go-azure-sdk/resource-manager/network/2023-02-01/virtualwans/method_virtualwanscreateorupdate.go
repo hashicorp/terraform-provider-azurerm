@@ -23,7 +23,7 @@ type VirtualWansCreateOrUpdateOperationResponse struct {
 // VirtualWansCreateOrUpdate ...
 func (c VirtualWANsClient) VirtualWansCreateOrUpdate(ctx context.Context, id VirtualWANId, input VirtualWAN) (result VirtualWansCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
