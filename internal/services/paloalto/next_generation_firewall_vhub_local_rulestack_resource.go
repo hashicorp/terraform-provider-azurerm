@@ -23,7 +23,7 @@ type NextGenerationFirewallVHubLocalRuleStackResource struct{}
 type NextGenerationFirewallVHubLocalRuleStackModel struct {
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
-	RuleStackId       string `tfschema:"rule_stack_id"`
+	RuleStackId       string `tfschema:"rulestack_id"`
 
 	NetworkProfile []schema.NetworkProfileVHub `tfschema:"network_profile"`
 	DNSSettings    []schema.DNSSettings        `tfschema:"dns_settings"`
@@ -61,7 +61,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Arguments() map[string
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"rule_stack_id": {
+		"rulestack_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: localrulestacks.ValidateLocalRulestackID,
@@ -258,7 +258,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceF
 			firewall := *existing.Model
 			props := firewall.Properties
 
-			if metadata.ResourceData.HasChange("rule_stack_id") {
+			if metadata.ResourceData.HasChange("rulestack_id") {
 				ruleStackID, err := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
 				if err != nil {
 					return err

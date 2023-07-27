@@ -11,7 +11,7 @@ import (
 type LocalRulestackDataSource struct{}
 
 func TestAccLocalRulestackDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack", "test")
 
 	d := LocalRulestackDataSource{}
 
@@ -29,10 +29,10 @@ func (d LocalRulestackDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_palo_alto_local_rule_stack" "test"{
-  name                = azurerm_palo_alto_local_rule_stack.test.name
-  resource_group_name = azurerm_palo_alto_local_rule_stack.test.resource_group_name
-  location            = azurerm_palo_alto_local_rule_stack.test.location
+data "azurerm_palo_alto_local_rulestack" "test"{
+  name                = azurerm_palo_alto_local_rulestack.test.name
+  resource_group_name = azurerm_palo_alto_local_rulestack.test.resource_group_name
+  location            = azurerm_palo_alto_local_rulestack.test.location
 }
 
 `, LocalRulestackResource{}.complete(data))

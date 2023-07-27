@@ -17,7 +17,7 @@ import (
 type LocalRulestackFQDNList struct{}
 
 func TestAccPaloAltoLocalRulestackFQDNList_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_fqdn_list", "test")
 
 	r := LocalRulestackFQDNList{}
 
@@ -33,7 +33,7 @@ func TestAccPaloAltoLocalRulestackFQDNList_basic(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRulestackFQDNList_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_fqdn_list", "test")
 
 	r := LocalRulestackFQDNList{}
 
@@ -49,7 +49,7 @@ func TestAccPaloAltoLocalRulestackFQDNList_complete(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRulestackFQDNList_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_fqdn_list", "test")
 
 	r := LocalRulestackFQDNList{}
 
@@ -72,7 +72,7 @@ func TestAccPaloAltoLocalRulestackFQDNList_update(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRulestackFQDNList_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_fqdn_list", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_fqdn_list", "test")
 
 	r := LocalRulestackFQDNList{}
 
@@ -112,9 +112,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_palo_alto_local_rule_stack_fqdn_list" "test" {
+resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
   name          = "testacc-pafqdn-%[2]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   fully_qualified_domain_names = ["contoso.com", "test.example.com"]
 }
@@ -130,9 +130,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_palo_alto_local_rule_stack_fqdn_list" "test" {
+resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
   name          = "testacc-pafqdn-%[2]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   fully_qualified_domain_names = ["contoso.com", "test.example.com", "anothertest.example.com"]
 
@@ -148,11 +148,11 @@ func (r LocalRulestackFQDNList) requiresImport(data acceptance.TestData) string 
 
 %s
 
-resource "azurerm_palo_alto_local_rule_stack_fqdn_list" "import" {
-  name          = azurerm_palo_alto_local_rule_stack_fqdn_list.test.name
-  rule_stack_id = azurerm_palo_alto_local_rule_stack_fqdn_list.test.rule_stack_id
+resource "azurerm_palo_alto_local_rulestack_fqdn_list" "import" {
+  name          = azurerm_palo_alto_local_rulestack_fqdn_list.test.name
+  rulestack_id = azurerm_palo_alto_local_rulestack_fqdn_list.test.rulestack_id
 
-  fully_qualified_domain_names = azurerm_palo_alto_local_rule_stack_fqdn_list.test.fully_qualified_domain_names
+  fully_qualified_domain_names = azurerm_palo_alto_local_rulestack_fqdn_list.test.fully_qualified_domain_names
 }
 
 `, r.basic(data))
@@ -165,7 +165,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_palo_alto_local_rule_stack" "test" {
+resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"

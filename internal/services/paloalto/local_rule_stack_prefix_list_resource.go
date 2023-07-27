@@ -23,7 +23,7 @@ var _ sdk.ResourceWithUpdate = LocalRuleStackPrefixList{}
 
 type LocalRuleStackPrefixListModel struct {
 	Name         string   `tfschema:"name"`
-	RuleStackID  string   `tfschema:"rule_stack_id"`
+	RuleStackID  string   `tfschema:"rulestack_id"`
 	PrefixList   []string `tfschema:"prefix_list"`
 	AuditComment string   `tfschema:"audit_comment"`
 	Description  string   `tfschema:"description"`
@@ -34,7 +34,7 @@ func (r LocalRuleStackPrefixList) IDValidationFunc() pluginsdk.SchemaValidateFun
 }
 
 func (r LocalRuleStackPrefixList) ResourceType() string {
-	return "azurerm_palo_alto_local_rule_stack_prefix_list"
+	return "azurerm_palo_alto_local_rulestack_prefix_list"
 }
 
 func (r LocalRuleStackPrefixList) ModelObject() interface{} {
@@ -49,7 +49,7 @@ func (r LocalRuleStackPrefixList) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validate.LocalRuleStackRuleName, // TODO - Check this
 		},
 
-		"rule_stack_id": {
+		"rulestack_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

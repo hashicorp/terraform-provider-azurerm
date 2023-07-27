@@ -23,7 +23,7 @@ var _ sdk.ResourceWithUpdate = LocalRulestackFQDNList{}
 
 type LocalRulestackFQDNListModel struct {
 	Name         string   `tfschema:"name"`
-	RuleStackID  string   `tfschema:"rule_stack_id"`
+	RuleStackID  string   `tfschema:"rulestack_id"`
 	FQDNList     []string `tfschema:"fully_qualified_domain_names"`
 	AuditComment string   `tfschema:"audit_comment"`
 	Description  string   `tfschema:"description"`
@@ -38,7 +38,7 @@ func (r LocalRulestackFQDNList) IDValidationFunc() pluginsdk.SchemaValidateFunc 
 }
 
 func (r LocalRulestackFQDNList) ResourceType() string {
-	return "azurerm_palo_alto_local_rule_stack_fqdn_list"
+	return "azurerm_palo_alto_local_rulestack_fqdn_list"
 }
 
 func (r LocalRulestackFQDNList) Arguments() map[string]*schema.Schema {
@@ -49,7 +49,7 @@ func (r LocalRulestackFQDNList) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validate.LocalRuleStackFQDNListName, // TODO - Check this
 		},
 
-		"rule_stack_id": {
+		"rulestack_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

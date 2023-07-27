@@ -129,7 +129,7 @@ provider "azurerm" {
 resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "test" {
   name                = "acctest-ngfwvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  rule_stack_id       = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
 
   network_profile {
     public_ip_ids = [azurerm_public_ip.test.id]
@@ -152,7 +152,7 @@ func (r NextGenerationFirewallVnetResource) requiresImport(data acceptance.TestD
 resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "import" {
   name                = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.name
   resource_group_name = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.resource_group_name
-  rule_stack_id       = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.rule_stack_id
+  rulestack_id       = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.rulestack_id
 
   network_profile {
     public_ip_ids = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_profile.0.public_ip_ids
@@ -187,7 +187,7 @@ resource "azurerm_public_ip" "egress" {
 resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "test" {
   name                = "acctest-ngfwvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  rule_stack_id       = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
 
   network_profile {
     public_ip_ids     = [azurerm_public_ip.test.id]
@@ -253,7 +253,7 @@ resource "azurerm_public_ip" "egress" {
 resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "test" {
   name                = "acctest-ngfwvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  rule_stack_id       = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
 
   network_profile {
     public_ip_ids     = [azurerm_public_ip.test.id]
@@ -366,15 +366,15 @@ resource "azurerm_subnet_network_security_group_association" "test2" {
 }
 
 
-resource "azurerm_palo_alto_local_rule_stack" "test" {
+resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"
 }
 
-resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name          = "testacc-palr-%[1]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority      = 1001
 
   applications = ["any"]

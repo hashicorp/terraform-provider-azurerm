@@ -45,7 +45,7 @@ func (r LocalRuleStack) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func (r LocalRuleStack) ResourceType() string {
-	return "azurerm_palo_alto_local_rule_stack"
+	return "azurerm_palo_alto_local_rulestack"
 }
 
 func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {

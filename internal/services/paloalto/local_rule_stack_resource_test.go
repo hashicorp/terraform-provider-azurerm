@@ -16,7 +16,7 @@ import (
 type LocalRulestackResource struct{}
 
 func TestAccPaloAltoLocalRulestack_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack", "test")
 
 	r := LocalRulestackResource{}
 
@@ -30,7 +30,7 @@ func TestAccPaloAltoLocalRulestack_basic(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRulestack_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack", "test")
 
 	r := LocalRulestackResource{}
 
@@ -44,7 +44,7 @@ func TestAccPaloAltoLocalRulestack_requiresImport(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRulestack_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack", "test")
 
 	r := LocalRulestackResource{}
 
@@ -58,7 +58,7 @@ func TestAccPaloAltoLocalRulestack_complete(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRulestack_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack", "test")
 
 	r := LocalRulestackResource{}
 
@@ -106,7 +106,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule_stack" "test" {
+resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
@@ -123,7 +123,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule_stack" "test" {
+resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
@@ -147,10 +147,10 @@ func (r LocalRulestackResource) requiresImport(data acceptance.TestData) string 
 
 %s
 
-resource "azurerm_palo_alto_local_rule_stack" "import" {
-  name                = azurerm_palo_alto_local_rule_stack.test.name
-  resource_group_name = azurerm_palo_alto_local_rule_stack.test.resource_group_name
-  location            = azurerm_palo_alto_local_rule_stack.test.location
+resource "azurerm_palo_alto_local_rulestack" "import" {
+  name                = azurerm_palo_alto_local_rulestack.test.name
+  resource_group_name = azurerm_palo_alto_local_rulestack.test.resource_group_name
+  location            = azurerm_palo_alto_local_rulestack.test.location
 }
 
 `, r.basic(data))

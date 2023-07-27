@@ -23,7 +23,7 @@ var _ sdk.ResourceWithUpdate = LocalRuleStackCertificate{}
 
 type LocalRuleStackCertificateModel struct {
 	Name                string `tfschema:"name"`
-	RuleStackID         string `tfschema:"rule_stack_id"`
+	RuleStackID         string `tfschema:"rulestack_id"`
 	AuditComment        string `tfschema:"audit_comment"`
 	CertificateSignerID string `tfschema:"certificate_signer_id"`
 	Description         string `tfschema:"description"`
@@ -35,7 +35,7 @@ func (r LocalRuleStackCertificate) IDValidationFunc() pluginsdk.SchemaValidateFu
 }
 
 func (r LocalRuleStackCertificate) ResourceType() string {
-	return "azurerm_palo_alto_local_rule_stack_certificate"
+	return "azurerm_palo_alto_local_rulestack_certificate"
 }
 
 func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
@@ -46,7 +46,7 @@ func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validate.LocalRuleStackCertificateName,
 		},
 
-		"rule_stack_id": {
+		"rulestack_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

@@ -29,7 +29,7 @@ var protocolApplicationDefault = "application-default"
 
 type LocalRuleModel struct {
 	Name        string `tfschema:"name"`
-	RuleStackID string `tfschema:"rule_stack_id"`
+	RuleStackID string `tfschema:"rulestack_id"`
 	Priority    int    `tfschema:"priority"`
 
 	Action                  string                 `tfschema:"action"`
@@ -58,7 +58,7 @@ func (r LocalRuleStackRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func (r LocalRuleStackRule) ResourceType() string {
-	return "azurerm_palo_alto_local_rule_stack_rule"
+	return "azurerm_palo_alto_local_rulestack_rule"
 }
 
 func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
@@ -69,7 +69,7 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.LocalRuleStackRuleName, // TODO - Check this
 		},
 
-		"rule_stack_id": {
+		"rulestack_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -94,7 +94,7 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 
 		"applications": {
 			Type:     pluginsdk.TypeList,
-			Required: true, // Service defaults to ["any"], since this is a security device users should specify this explicitly here
+			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,

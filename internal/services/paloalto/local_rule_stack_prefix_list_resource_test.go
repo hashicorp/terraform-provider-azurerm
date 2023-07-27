@@ -17,7 +17,7 @@ import (
 type LocalRuleStackPrefixList struct{}
 
 func TestAccLocalRulestackPrefixList_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_prefix_list", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_prefix_list", "test")
 
 	r := LocalRuleStackPrefixList{}
 
@@ -33,7 +33,7 @@ func TestAccLocalRulestackPrefixList_basic(t *testing.T) {
 }
 
 func TestAccLocalRulestackPrefixList_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_prefix_list", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_prefix_list", "test")
 
 	r := LocalRuleStackPrefixList{}
 
@@ -49,7 +49,7 @@ func TestAccLocalRulestackPrefixList_requiresImport(t *testing.T) {
 }
 
 func TestAccLocalRulestackPrefixList_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_prefix_list", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_prefix_list", "test")
 
 	r := LocalRuleStackPrefixList{}
 
@@ -65,7 +65,7 @@ func TestAccLocalRulestackPrefixList_complete(t *testing.T) {
 }
 
 func TestAccLocalRulestackPrefixList_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_prefix_list", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_prefix_list", "test")
 
 	r := LocalRuleStackPrefixList{}
 
@@ -119,9 +119,9 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule_stack_prefix_list" "test" {
+resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
   name          = "testacc-palr-%[2]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   prefix_list = ["10.0.0.0/8", "172.16.0.0/16"]
 }
@@ -133,11 +133,11 @@ func (r LocalRuleStackPrefixList) requiresImport(data acceptance.TestData) strin
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule_stack_prefix_list" "import" {
-  name          = azurerm_palo_alto_local_rule_stack_prefix_list.test.name
-  rule_stack_id = azurerm_palo_alto_local_rule_stack_prefix_list.test.rule_stack_id
+resource "azurerm_palo_alto_local_rulestack_prefix_list" "import" {
+  name          = azurerm_palo_alto_local_rulestack_prefix_list.test.name
+  rulestack_id = azurerm_palo_alto_local_rulestack_prefix_list.test.rulestack_id
 
-  prefix_list = azurerm_palo_alto_local_rule_stack_prefix_list.test.prefix_list
+  prefix_list = azurerm_palo_alto_local_rulestack_prefix_list.test.prefix_list
 }
 `, r.basic(data))
 }
@@ -150,9 +150,9 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule_stack_prefix_list" "test" {
+resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
   name          = "testacc-palr-%[2]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   prefix_list = ["10.0.0.0/8", "172.16.0.0/16"]
 
@@ -171,7 +171,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_palo_alto_local_rule_stack" "test" {
+resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"

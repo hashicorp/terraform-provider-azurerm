@@ -17,7 +17,7 @@ import (
 type LocalRuleResource struct{}
 
 func TestAccPaloAltoLocalRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 
 	r := LocalRuleResource{}
 
@@ -33,7 +33,7 @@ func TestAccPaloAltoLocalRule_basic(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRule_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 
 	r := LocalRuleResource{}
 
@@ -49,7 +49,7 @@ func TestAccPaloAltoLocalRule_requiresImport(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRule_withDestination(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 
 	r := LocalRuleResource{}
 
@@ -65,7 +65,7 @@ func TestAccPaloAltoLocalRule_withDestination(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRule_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 
 	r := LocalRuleResource{}
 
@@ -81,7 +81,7 @@ func TestAccPaloAltoLocalRule_complete(t *testing.T) {
 }
 
 func TestAccPaloAltoLocalRule_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rule_stack_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
 
 	r := LocalRuleResource{}
 
@@ -135,9 +135,9 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name          = "testacc-palr-%[2]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority      = 100
 
   applications = ["any"]
@@ -160,19 +160,19 @@ func (r LocalRuleResource) requiresImport(data acceptance.TestData) string {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule_stack_rule" "import" {
-  name          = azurerm_palo_alto_local_rule_stack_rule.test.name
-  rule_stack_id = azurerm_palo_alto_local_rule_stack_rule.test.rule_stack_id
-  priority      = azurerm_palo_alto_local_rule_stack_rule.test.priority
+resource "azurerm_palo_alto_local_rulestack_rule" "import" {
+  name          = azurerm_palo_alto_local_rulestack_rule.test.name
+  rulestack_id = azurerm_palo_alto_local_rulestack_rule.test.rulestack_id
+  priority      = azurerm_palo_alto_local_rulestack_rule.test.priority
 
-  applications = azurerm_palo_alto_local_rule_stack_rule.test.applications
+  applications = azurerm_palo_alto_local_rulestack_rule.test.applications
 
   destination {
-    cidrs = azurerm_palo_alto_local_rule_stack_rule.test.destination.0.cidrs
+    cidrs = azurerm_palo_alto_local_rulestack_rule.test.destination.0.cidrs
   }
 
   source {
-    cidrs = azurerm_palo_alto_local_rule_stack_rule.test.source.0.cidrs
+    cidrs = azurerm_palo_alto_local_rulestack_rule.test.source.0.cidrs
   }
 }
 `, r.basic(data), data.RandomInteger)
@@ -186,9 +186,9 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name          = "testacc-palr-%[2]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority      = 100
 
   applications = ["any"]
@@ -216,22 +216,22 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
+resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
   name          = "testacc-palc-%[2]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   self_signed   = true
 }
 
-resource "azurerm_palo_alto_local_rule_stack_fqdn_list" "test" {
+resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
   name          = "testacc-pafqdn-%[2]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   fully_qualified_domain_names = ["contoso.com", "test.example.com", "anothertest.example.com"]
 }
 
-resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name          = "testacc-palr-%[2]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority      = 100
 
   action        = "DenySilent"
@@ -251,7 +251,7 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
 
   logging_enabled = false
 
-  inspection_certificate_id = azurerm_palo_alto_local_rule_stack_certificate.test.id
+  inspection_certificate_id = azurerm_palo_alto_local_rulestack_certificate.test.id
 
   negate_destination = true
   negate_source      = true
@@ -285,16 +285,16 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rule_stack_certificate" "test" {
+resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
   name          = "testacc-palc-%[2]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   self_signed   = true
 }
 
 
-resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name          = "testacc-palr-%[2]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority      = 100
 
   action        = "DenySilent"
@@ -314,7 +314,7 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
 
   logging_enabled = false
 
-  inspection_certificate_id = azurerm_palo_alto_local_rule_stack_certificate.test.id
+  inspection_certificate_id = azurerm_palo_alto_local_rulestack_certificate.test.id
 
   negate_destination = true
   negate_source      = true
@@ -342,21 +342,21 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_palo_alto_local_rule_stack_certificate" "trust" {
+resource "azurerm_palo_alto_local_rulestack_certificate" "trust" {
   name          = "testacc-palcT-%[1]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   certificate_signer_id = "https://example.com/acctest-trust-cert"
 }
 
-resource "azurerm_palo_alto_local_rule_stack_certificate" "untrust" {
+resource "azurerm_palo_alto_local_rulestack_certificate" "untrust" {
   name          = "testacc-palcU-%[1]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   certificate_signer_id = "https://example.com/acctest-untrust-cert"
 }
 
-resource "azurerm_palo_alto_local_rule_stack" "test" {
+resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"
@@ -371,34 +371,34 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_palo_alto_local_rule_stack" "test" {
+resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"
 }
 
-resource "azurerm_palo_alto_local_rule_stack_certificate" "trust" {
+resource "azurerm_palo_alto_local_rulestack_certificate" "trust" {
   name          = "testacc-palcT-%[1]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   certificate_signer_id = "https://example.com/acctest-trust-cert"
 }
 
-resource "azurerm_palo_alto_local_rule_stack_certificate" "untrust" {
+resource "azurerm_palo_alto_local_rulestack_certificate" "untrust" {
   name          = "testacc-palcU-%[1]d"
-  rule_stack_id = azurerm_palo_alto_local_rule_stack.test.id
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   certificate_signer_id = "https://example.com/acctest-untrust-cert"
 }
 
 resource "azurerm_local_rulestack_outbound_trust_certificate_association" "test" {
-  rulestack_id   = azurerm_palo_alto_local_rule_stack.test.id
-  certificate_id = azurerm_palo_alto_local_rule_stack_certificate.trust.id
+  rulestack_id   = azurerm_palo_alto_local_rulestack.test.id
+  certificate_id = azurerm_palo_alto_local_rulestack_certificate.trust.id
 }
 
 resource "azurerm_local_rulestack_outbound_untrust_certificate_association" "test" {
-  rulestack_id   = azurerm_palo_alto_local_rule_stack.test.id
-  certificate_id = azurerm_palo_alto_local_rule_stack_certificate.untrust.id
+  rulestack_id   = azurerm_palo_alto_local_rulestack.test.id
+  certificate_id = azurerm_palo_alto_local_rulestack_certificate.untrust.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
