@@ -31,6 +31,7 @@ BUG FIXES:
 * `azurerm_pim_eligible_role_assignment` - polling for the duration of the timeout, rather than using a hard-coded value [GH-22682]
 * `azurerm_redis_cache` - only updating `patch_schedule` when it has changed in the config file [GH-22661]
 * `azurerm_logic_app_standard` - attribute `auto_swap_slot_name` is now under correct block `site_config` [GH-22712]
+* `azurerm_postgresql_flexible_server` - update the validation of `storage_mb` replacing `33554432` with `33553408` [GH-22706]
 
 ## 3.66.0 (July 20, 2023)
 
