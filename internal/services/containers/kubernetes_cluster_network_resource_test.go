@@ -845,6 +845,13 @@ func TestAccKubernetesCluster_networkPluginModeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.networkPluginBase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
