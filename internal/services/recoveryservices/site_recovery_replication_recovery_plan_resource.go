@@ -517,10 +517,6 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("parse Site reocvery replication plan id: %+v", err)
 			}
 
-			if err != nil {
-				return fmt.Errorf("when expanding recovery group: %s", err)
-			}
-
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
