@@ -12,6 +12,9 @@ type MobileNetworkAttachedDataNetworkDataSource struct{}
 
 func TestAccMobileNetworkAttachedDataNetworkDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
+	// Limited regional availability for Mobile Network
+	data.Locations.Primary = "eastus"
+
 	d := MobileNetworkAttachedDataNetworkDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
