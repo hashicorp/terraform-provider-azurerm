@@ -832,7 +832,7 @@ func TestAccKubernetesCluster_networkPluginModeUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkPluginModeBase(data),
+			Config: r.networkPluginBase(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -3543,7 +3543,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.Locations.Primary, data.RandomInteger, ebpfDataPlaneValue)
 }
 
-func (KubernetesClusterResource) networkPluginModeBase(data acceptance.TestData) string {
+func (KubernetesClusterResource) networkPluginBase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
