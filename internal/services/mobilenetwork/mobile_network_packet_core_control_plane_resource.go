@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -545,13 +544,6 @@ func (r PacketCoreControlPlaneResource) Delete() sdk.ResourceFunc {
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-
-			if err := resourceMobileNetworkChildWaitForDeletion(ctx, id.ID(), func() (*http.Response, error) {
-				resp, err := client.Get(ctx, *id)
-				return resp.HttpResponse, err
-			}); err != nil {
-				return err
 			}
 
 			return nil

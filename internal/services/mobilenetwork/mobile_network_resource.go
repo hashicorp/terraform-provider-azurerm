@@ -233,8 +233,9 @@ func (r MobileNetworkResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			// also a workaround for https://github.com/Azure/azure-rest-api-specs/issues/22691
-			// as the children may block the delete of parent in seconds.
+			// a workaround for that some child resources may still exist for seconds before it fully deleted.
+			// tracked on https://github.com/Azure/azure-rest-api-specs/issues/22691
+			// it will cause the error "Can not delete resource before nested resources are deleted."
 			deadline, ok := ctx.Deadline()
 			if !ok {
 				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
