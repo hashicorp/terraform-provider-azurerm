@@ -30,7 +30,7 @@ func CategorySchema() *pluginsdk.Schema {
 					},
 				},
 
-				"custom_urls": { // TODO - Need a comprehensive list `hacking`, `social-media` etc...
+				"custom_urls": {
 					Type:     pluginsdk.TypeList,
 					Required: true,
 					MinItems: 1,

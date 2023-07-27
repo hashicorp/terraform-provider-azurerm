@@ -38,8 +38,8 @@ func paloAltoNameValidation(input interface{}, k string) (warnings []string, err
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes, and must be between 1 and 128 characters in length", k))
 	}
 
-	if strings.HasSuffix(value, "-") || strings.HasSuffix(value, "-") {
-		errors = append(errors, fmt.Errorf("%q cannot start or end with a `-`"))
+	if strings.HasPrefix(value, "-") || strings.HasSuffix(value, "-") {
+		errors = append(errors, fmt.Errorf("%q cannot start or end with a `-`", k))
 	}
 
 	return

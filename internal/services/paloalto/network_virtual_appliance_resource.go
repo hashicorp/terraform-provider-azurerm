@@ -110,7 +110,7 @@ func (r NetworkVirtualApplianceResource) Create() sdk.ResourceFunc {
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, appliance); err != nil {
-				return fmt.Errorf("creating Virtual Netowrk Appliance for %s: %+v", id, err)
+				return fmt.Errorf("creating Virtual Network Appliance for %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)

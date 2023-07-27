@@ -268,7 +268,7 @@ func ISO3361CountryCode(input interface{}, k string) (warnings []string, errors 
 			return
 		}
 	}
-	errors = append(errors, fmt.Errorf("%s (%q) is not a valid ISO3361-1 Alpha-2 country code, see the official Palo Alto supported list at https://knowledgebase.paloaltonetworks.com/KCSArticleDetail?id=kA10g000000ClFFCA0 for more informtion", k, v))
+	errors = append(errors, fmt.Errorf("%s (%q) is not a valid ISO3361-1 Alpha-2 country code, see the official Palo Alto supported list at https://knowledgebase.paloaltonetworks.com/KCSArticleDetail?id=kA10g000000ClFFCA0 for more information", k, v))
 
 	return
 }
