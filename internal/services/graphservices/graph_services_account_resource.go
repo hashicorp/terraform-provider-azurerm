@@ -31,6 +31,7 @@ var _ sdk.Resource = AccountResource{}
 var _ sdk.ResourceWithUpdate = AccountResource{}
 var _ sdk.ResourceWithDeprecationReplacedBy = AccountResource{}
 
+// AccountResource remove this in 4.0
 type AccountResource struct{}
 
 func (r AccountResource) DeprecatedInFavourOfResource() string {
@@ -209,13 +210,13 @@ func (r AccountResource) Update() sdk.ResourceFunc {
 			if existing.Model == nil {
 				return fmt.Errorf("retrieving existing %s: model was nil", *id)
 			}
-			payload := *existing.Model
 
+			payload := graphservicesprods.TagUpdate{}
 			if metadata.ResourceData.HasChange("tags") {
 				payload.Tags = tags.Expand(config.Tags)
 			}
 
-			if err := client.AccountsCreateAndUpdateThenPoll(ctx, *id, payload); err != nil {
+			if _, err := client.AccountsUpdate(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 

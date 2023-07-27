@@ -142,7 +142,7 @@ service/frontdoor:
   - internal/services/frontdoor/**/*
 
 service/graph:
-  - internal/services/graph/**/*
+  - internal/services/graphservices/**/*
 
 service/hdinsight:
   - internal/services/hdinsight/**/*

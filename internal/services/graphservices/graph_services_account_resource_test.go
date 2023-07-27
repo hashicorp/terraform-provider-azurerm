@@ -18,6 +18,10 @@ func TestAccGraphAccount(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// the account need a pre-existing AD application, here we use the service principal.
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		// remove in 4.0
+		"legacyAccount": {
+			"basic": testAccGraphAccount_legacy,
+		},
 		"account": {
 			"basic":          testAccGraphAccount_basic,
 			"update":         testAccGraphAccount_update,
@@ -28,6 +32,21 @@ func TestAccGraphAccount(t *testing.T) {
 }
 
 type AccountTestResource struct{}
+
+func testAccGraphAccount_legacy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	r := AccountTestResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.legacy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func testAccGraphAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
@@ -116,6 +135,19 @@ func (r AccountTestResource) Exists(ctx context.Context, clients *clients.Client
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
+func (r AccountTestResource) legacy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_graph_account" "test" {
+  name                = "acctesta-%[2]d"
+  application_id      = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"))
+}
+
 func (r AccountTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
