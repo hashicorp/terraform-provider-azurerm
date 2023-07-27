@@ -65,7 +65,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_panorama" "test" {
   name                   = "acctest-ngfwvh-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  panorama_base64_config = "Ly8gVE9ETyAtIGdldCBhIHJlYWwgYSBwYW5vcmFtYSBjb25maWcuCg==" // TODO - get a real a panorama config.
+  panorama_base64_config = "%[3]s"
 
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
@@ -74,7 +74,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_panorama" "test" {
   }
 }
 
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) template(data acceptance.TestData) string {

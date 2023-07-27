@@ -120,7 +120,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vnet_panorama" "test" {
   name                   = "acctest-ngfwvnp-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  panorama_base64_config = "Ly8gVE9ETyAtIGdldCBhIHJlYWwgYSBwYW5vcmFtYSBjb25maWcuCg==" // TODO - get a real a panorama config.
+  panorama_base64_config = "%[3]s" 
 
   network_profile {
     public_ip_ids = [azurerm_public_ip.test.id]
@@ -132,7 +132,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vnet_panorama" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) complete(data acceptance.TestData) string {
@@ -156,7 +156,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vnet_panorama" "test" {
   name                   = "acctest-ngfwvn-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = "%[3]s"
-  panorama_base64_config = "Ly8gVE9ETyAtIGdldCBhIHJlYWwgYSBwYW5vcmFtYSBjb25maWcuCg==" // TODO - get a real a panorama config.
+  panorama_base64_config = "%[4]s"
 
   network_profile {
     public_ip_ids     = [azurerm_public_ip.test.id]
@@ -199,7 +199,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vnet_panorama" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) template(data acceptance.TestData) string {
