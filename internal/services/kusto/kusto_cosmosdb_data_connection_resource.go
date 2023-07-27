@@ -118,6 +118,7 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			// SubscriptionId and ResourceGroupName need to align with the CosmosDB container, and those could be different from the Kusto database
 			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(cosmosDbContainerId.SubscriptionId, cosmosDbContainerId.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
 
 			id := dataconnections.NewDataConnectionID(kustoDatabaseId.SubscriptionId, kustoDatabaseId.ResourceGroupName, kustoDatabaseId.ClusterName, kustoDatabaseId.DatabaseName, model.Name)
