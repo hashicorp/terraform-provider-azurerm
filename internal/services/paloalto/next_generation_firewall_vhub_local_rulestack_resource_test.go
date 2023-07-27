@@ -237,7 +237,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "test
     public_ip_ids                = [azurerm_public_ip.test.id]
   }
 
-   dns_settings {
+  dns_settings {
     use_azure_dns = true
   }
 

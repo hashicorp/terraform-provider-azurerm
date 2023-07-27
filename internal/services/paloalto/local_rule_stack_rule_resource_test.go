@@ -302,10 +302,10 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "test" {
   audit_comment = "test audit comment"
 
   category {
-   custom_urls = ["web-based-email", "social-networking"]
+    custom_urls = ["web-based-email", "social-networking"]
   }
 
-  decryption_rule_type = "SSLOutboundInspection" 
+  decryption_rule_type = "SSLOutboundInspection"
   description          = "Acceptance Test Rule - dated %[2]d"
 
   destination {

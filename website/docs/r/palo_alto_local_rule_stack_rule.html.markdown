@@ -17,15 +17,15 @@ resource "azurerm_palo_alto_local_rule_stack_rule" "example" {
   name = "example"
 
   source {
-    
+
   }
-  priority = 42
+  priority      = 42
   rule_stack_id = "TODO"
 
   destination {
-    
+
   }
-  applications = [ "example" ]
+  applications = ["example"]
 }
 ```
 
