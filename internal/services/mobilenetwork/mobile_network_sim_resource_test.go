@@ -18,6 +18,8 @@ type MobileNetworkSimResource struct{}
 
 func TestAccMobileNetworkSim_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
+	// Mobile Network is available in limited regions.
+	data.Locations.Primary = "eastus"
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,6 +34,8 @@ func TestAccMobileNetworkSim_basic(t *testing.T) {
 
 func TestAccMobileNetworkSim_withStaticIpConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
+	// Mobile Network is available in limited regions.
+	data.Locations.Primary = "eastus"
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,6 +50,8 @@ func TestAccMobileNetworkSim_withStaticIpConfiguration(t *testing.T) {
 
 func TestAccMobileNetworkSim_withSimPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
+	// Mobile Network is available in limited regions.
+	data.Locations.Primary = "eastus"
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,6 +66,8 @@ func TestAccMobileNetworkSim_withSimPolicy(t *testing.T) {
 
 func TestAccMobileNetworkSim_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
+	// Mobile Network is available in limited regions.
+	data.Locations.Primary = "eastus"
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,6 +82,8 @@ func TestAccMobileNetworkSim_requiresImport(t *testing.T) {
 
 func TestAccMobileNetworkSim_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
+	// Mobile Network is available in limited regions.
+	data.Locations.Primary = "eastus"
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,6 +98,8 @@ func TestAccMobileNetworkSim_complete(t *testing.T) {
 
 func TestAccMobileNetworkSim_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim", "test")
+	// Mobile Network is available in limited regions.
+	data.Locations.Primary = "eastus"
 	r := MobileNetworkSimResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
