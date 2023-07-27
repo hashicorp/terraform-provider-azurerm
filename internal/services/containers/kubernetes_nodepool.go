@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -251,6 +252,12 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(managedclusters.ScaleDownModeDeallocate),
 							string(managedclusters.ScaleDownModeDelete),
 						}, false),
+					},
+
+					"snapshot_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: snapshots.ValidateSnapshotID,
 					},
 
 					"host_group_id": {
@@ -884,6 +891,14 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		agentpool.Properties.WorkloadRuntime = utils.ToPtr(agentpools.WorkloadRuntime(string(*workloadRuntimeNodePool)))
 	}
 
+	if creationData := defaultCluster.CreationData; creationData != nil {
+		if creationData.SourceResourceId != nil {
+			agentpool.Properties.CreationData = &agentpools.CreationData{
+				SourceResourceId: creationData.SourceResourceId,
+			}
+		}
+	}
+
 	return agentpool
 }
 
@@ -978,6 +993,12 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	profile.ScaleDownMode = &scaleDownModeDelete
 	if scaleDownMode := raw["scale_down_mode"].(string); scaleDownMode != "" {
 		profile.ScaleDownMode = utils.ToPtr(managedclusters.ScaleDownMode(scaleDownMode))
+	}
+
+	if snapshotId := raw["snapshot_id"].(string); snapshotId != "" {
+		profile.CreationData = &managedclusters.CreationData{
+			SourceResourceId: utils.String(snapshotId),
+		}
 	}
 
 	if ultraSSDEnabled, ok := raw["ultra_ssd_enabled"]; ok {
@@ -1381,6 +1402,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		scaleDownMode = *agentPool.ScaleDownMode
 	}
 
+	snapshotId := ""
+	if agentPool.CreationData != nil && agentPool.CreationData.SourceResourceId != nil {
+		snapshotId = *agentPool.CreationData.SourceResourceId
+	}
+
 	vmSize := ""
 	if agentPool.VMSize != nil {
 		vmSize = *agentPool.VMSize
@@ -1440,6 +1466,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"os_disk_type":                  string(osDiskType),
 		"os_sku":                        osSKU,
 		"scale_down_mode":               string(scaleDownMode),
+		"snapshot_id":                   snapshotId,
 		"tags":                          tags.Flatten(agentPool.Tags),
 		"temporary_name_for_rotation":   temporaryName,
 		"type":                          agentPoolType,
