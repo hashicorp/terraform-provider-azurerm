@@ -3583,7 +3583,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
   network_profile {
-    network_plugin      = "azure"
+    network_plugin = "azure"
   }
 }
 `, "westcentralus", data.RandomInteger)
