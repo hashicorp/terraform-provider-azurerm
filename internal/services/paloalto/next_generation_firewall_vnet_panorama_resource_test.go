@@ -120,7 +120,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vnet_panorama" "test" {
   name                   = "acctest-ngfwvnp-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  panorama_base64_config = "%[3]s" 
+  panorama_base64_config = "%[3]s"
 
   network_profile {
     public_ip_ids = [azurerm_public_ip.test.id]
