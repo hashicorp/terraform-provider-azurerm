@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	appInsightsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -43,7 +42,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 		Delete: resourceMachineLearningWorkspaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WorkspaceID(id)
+			_, err := workspaces.ParseWorkspaceID(id)
 			return err
 		}),
 

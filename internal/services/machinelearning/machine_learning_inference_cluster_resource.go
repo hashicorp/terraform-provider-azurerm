@@ -18,8 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -34,7 +32,7 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 		Delete: resourceAksInferenceClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.InferenceClusterID(id)
+			_, err := machinelearningcomputes.ParseComputeID(id)
 			return err
 		}),
 
@@ -56,7 +54,7 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KubernetesClusterID,
+				ValidateFunc: managedclusters.ValidateLocationID,
 				// remove in 3.0 of the provider
 				DiffSuppressFunc: suppress.CaseDifference,
 			},

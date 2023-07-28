@@ -63,7 +63,7 @@ func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Sch
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.WorkspaceID,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 
 		"storage_fileshare_id": {

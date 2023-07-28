@@ -22,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -37,7 +35,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 		Delete: resourceComputeInstanceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ComputeID(id)
+			_, err := machinelearningcomputes.ParseComputeID(id)
 			return err
 		}),
 
@@ -61,7 +59,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"location": commonschema.Location(),

@@ -25,7 +25,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	loadBalancerParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
-	machineLearningValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -174,7 +173,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							ValidateFunc: machineLearningValidate.WorkspaceID,
+							ValidateFunc: workspaces.ValidateWorkspaceID,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 

@@ -67,7 +67,7 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.WorkspaceID,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 
 		"storage_container_id": {

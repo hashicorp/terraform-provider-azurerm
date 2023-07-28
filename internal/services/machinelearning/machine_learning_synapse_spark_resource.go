@@ -18,8 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	synapseValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -34,7 +32,7 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 		Delete: resourceSynapseSparkDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ComputeID(id)
+			_, err := machinelearningcomputes.ParseComputeID(id)
 			return err
 		}),
 
@@ -58,7 +56,7 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"location": commonschema.Location(),
@@ -164,7 +162,7 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", id.ComputeName)
-	workspaceId := parse.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
+	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
 	if location := resp.Model.Location; location != nil {
