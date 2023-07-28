@@ -70,7 +70,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_panorama" "test" {
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
     network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
-    public_ip_ids                = [azurerm_public_ip.test.id]
+    public_ip_address_ids                = [azurerm_public_ip.test.id]
   }
 }
 

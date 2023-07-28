@@ -32,7 +32,6 @@ type NextGenerationFirewallVHubPanoramaModel struct {
 
 	// Computed
 	PanoramaConfig []schema.Panorama `tfschema:"panorama_config"`
-	PanEtag        string            `tfschema:"pan_etag"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubPanoramaResource{}
@@ -82,11 +81,6 @@ func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*plug
 func (r NextGenerationFirewallVHubPanoramaResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"panorama_config": schema.PanoramaSchema(),
-
-		"pan_etag": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 	}
 }
 
@@ -137,7 +131,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Create() sdk.ResourceFunc {
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
-				return err
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -176,7 +170,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Read() sdk.ResourceFunc {
 
 				netProfile, err := schema.FlattenNetworkProfileVHub(props.NetworkProfile)
 				if err != nil {
-					return fmt.Errorf("parsing Network Profile for %s: %+v", *id, err)
+					return fmt.Errorf("flattening Network Profile for %s: %+v", *id, err)
 				}
 
 				state.NetworkProfile = []schema.NetworkProfileVHub{*netProfile}

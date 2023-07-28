@@ -139,6 +139,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name          = "testacc-palr-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority      = 100
+  action        = "Allow"
 
   applications = ["any"]
 
@@ -162,10 +163,10 @@ func (r LocalRuleResource) requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_palo_alto_local_rulestack_rule" "import" {
   name          = azurerm_palo_alto_local_rulestack_rule.test.name
-  rulestack_id = azurerm_palo_alto_local_rulestack_rule.test.rulestack_id
+  rulestack_id  = azurerm_palo_alto_local_rulestack_rule.test.rulestack_id
   priority      = azurerm_palo_alto_local_rulestack_rule.test.priority
-
-  applications = azurerm_palo_alto_local_rulestack_rule.test.applications
+  action        = "Allow"
+  applications  = azurerm_palo_alto_local_rulestack_rule.test.applications
 
   destination {
     cidrs = azurerm_palo_alto_local_rulestack_rule.test.destination.0.cidrs
@@ -190,6 +191,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name          = "testacc-palr-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority      = 100
+  action        = "Allow"
 
   applications = ["any"]
 

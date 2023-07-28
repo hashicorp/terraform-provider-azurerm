@@ -94,7 +94,7 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) Create() sdk.
 			}
 
 			if err = client.CommitThenPoll(ctx, rulestackId); err != nil {
-				return fmt.Errorf("committing Local Rulestack configurtion for UnTrust Certificate for %s: %+v", rulestackId, err)
+				return fmt.Errorf("committing Local Rulestack configurtion for Outbound Trust Certificate for %s: %+v", rulestackId, err)
 			}
 
 			metadata.SetID(certificateId)

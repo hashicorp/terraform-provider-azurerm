@@ -3,6 +3,7 @@ package paloalto
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"strconv"
 	"strings"
 	"time"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -80,14 +80,13 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(1, 10000),
 		},
 
-		// Optional
-
 		"action": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(localrules.ActionEnumAllow),
+			Required:     true,
 			ValidateFunc: validation.StringInSlice(localrules.PossibleValuesForActionEnum(), false),
 		},
+
+		// Optional
 
 		"applications": {
 			Type:     pluginsdk.TypeList,
@@ -171,7 +170,7 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 
 		"source": schema.SourceSchema(),
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 

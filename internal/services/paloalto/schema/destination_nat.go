@@ -139,7 +139,7 @@ func ExpandDestinationNAT(input []DestinationNAT) *[]firewalls.FrontendSetting {
 
 func FlattenDestinationNAT(input *[]firewalls.FrontendSetting) []DestinationNAT {
 	result := make([]DestinationNAT, 0)
-	if feSettings := pointer.From(input); len(feSettings) != 0 {
+	if feSettings := pointer.From(input); len(feSettings) > 0 {
 		for _, v := range feSettings {
 			bePort, _ := strconv.Atoi(v.BackendConfiguration.Port)
 			fePort, _ := strconv.Atoi(v.FrontendConfiguration.Port)

@@ -17,7 +17,7 @@ import (
 type NextGenerationFirewallVWanResource struct{}
 
 func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack", "test")
 
 	r := NextGenerationFirewallVWanResource{}
 
@@ -33,7 +33,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_basic(t *testing.T)
 }
 
 func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack", "test")
 
 	r := NextGenerationFirewallVWanResource{}
 
@@ -49,7 +49,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_requiresImport(t *t
 }
 
 func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack", "test")
 
 	r := NextGenerationFirewallVWanResource{}
 
@@ -65,7 +65,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_complete(t *testing
 }
 
 func TestAccPaloAltoNextGenerationFirewallVHubLocalRulestack_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack", "test")
 
 	r := NextGenerationFirewallVWanResource{}
 
@@ -133,7 +133,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "test" {
   name                = "acctest-ngfwvh-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
@@ -141,7 +141,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "test
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
     network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
-    public_ip_ids                = [azurerm_public_ip.test.id]
+    public_ip_address_ids                = [azurerm_public_ip.test.id]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -152,15 +152,15 @@ func (r NextGenerationFirewallVWanResource) requiresImport(data acceptance.TestD
 
 %[1]s
 
-resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "import" {
-  name                = azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack.test.name
-  resource_group_name = azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack.test.resource_group_name
-  rulestack_id       = azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack.test.rulestack_id
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "import" {
+  name                = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.name
+  resource_group_name = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.resource_group_name
+  rulestack_id       = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.rulestack_id
 
   network_profile {
-    virtual_hub_id               = azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack.test.network_profile.0.virtual_hub_id
-    network_virtual_appliance_id = azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack.test.network_profile.0.network_virtual_appliance_id
-    public_ip_ids                = azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack.test.network_profile.0.public_ip_ids
+    virtual_hub_id               = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile.0.virtual_hub_id
+    network_virtual_appliance_id = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile.0.network_virtual_appliance_id
+    public_ip_address_ids                = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile.0.public_ip_address_ids
   }
 }
 `, r.basic(data))
@@ -174,7 +174,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "test" {
   name                = "acctest-ngfwvh-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
@@ -182,7 +182,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "test
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
     network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
-    public_ip_ids                = [azurerm_public_ip.test.id]
+    public_ip_address_ids                = [azurerm_public_ip.test.id]
   }
 
   dns_settings {
@@ -226,7 +226,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "test" {
   name                = "acctest-ngfwvh-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
@@ -234,7 +234,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "test
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
     network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
-    public_ip_ids                = [azurerm_public_ip.test.id]
+    public_ip_address_ids                = [azurerm_public_ip.test.id]
   }
 
   dns_settings {

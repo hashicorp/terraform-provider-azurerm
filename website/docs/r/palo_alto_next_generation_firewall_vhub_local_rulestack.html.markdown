@@ -1,19 +1,19 @@
 ---
 subcategory: "Palo Alto"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack"
+page_title: "Azure Resource Manager: azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack"
 description: |-
   Manages a Palo Alto Next Generation Firewall VHub Local Rulestack.
 ---
 
-# azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack
+# azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
 
 Manages a Palo Alto Next Generation Firewall VHub Local Rulestack.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "example" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "example" {
   name                = "example"
   resource_group_name = "example"
   rulestack_id        = "TODO"
@@ -21,7 +21,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "exam
   network_profile {
     virtual_hub_id = "TODO"
     network_virtual_appliance_id = "TODO"
-    public_ip_ids = [ "example" ]
+    public_ip_address_ids = [ "example" ]
   }
 }
 ```
@@ -88,11 +88,11 @@ A `network_profile` block supports the following:
 
 * `network_virtual_appliance_id` - (Required) The ID of the Palo Alto Network Virtual Appliance in the VHub. Changing this forces a new Palo Alto Next Generation Firewall VHub Local Rulestack to be created.
 
-* `public_ip_ids` - (Required) Specifies a list of Public IP IDs to use for this Next Generation Firewall.
+* `public_ip_address_ids` - (Required) Specifies a list of Public IP IDs to use for this Next Generation Firewall.
 
 * `virtual_hub_id` - (Required) The ID of the Virtual Hub this Next generation Fireall will be deployed in. Changing this forces a new Palo Alto Next Generation Firewall VHub Local Rulestack to be created.
 
-* `egress_nat_ip_ids` - (Optional) Specifies a list of Public IP IDs to use for Egress NAT.
+* `egress_nat_ip_address_ids` - (Optional) Specifies a list of Public IP IDs to use for Egress NAT.
 
 ## Attributes Reference
 
@@ -120,5 +120,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Palo Alto Next Generation Firewall VHub Local Rulestacks can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/myVhubRulestackFW
+terraform import azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/myVhubRulestackFW
 ```

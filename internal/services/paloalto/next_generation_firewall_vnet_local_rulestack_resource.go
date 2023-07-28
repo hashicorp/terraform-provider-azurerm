@@ -27,12 +27,7 @@ type NextGenerationFirewallVnetLocalRulestackModel struct {
 	RuleStackId       string                      `tfschema:"rulestack_id"`
 	DNSSettings       []schema.DNSSettings        `tfschema:"dns_settings"`
 	FrontEnd          []schema.DestinationNAT     `tfschema:"destination_nat"`
-
-	// Computed
-	PlanData []schema.Plan `tfschema:"plan"`
-	PanEtag  string        `tfschema:"pan_etag"`
-
-	Tags map[string]interface{} `tfschema:"tags"`
+	Tags              map[string]interface{}      `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetLocalRulestackResource{}
@@ -70,18 +65,11 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Arguments() map[string
 }
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"plan": schema.PlanSchema(),
-
-		"pan_etag": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) ResourceType() string {
-	return "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack"
+	return "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack"
 }
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceFunc {
@@ -144,7 +132,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
-				return err
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -189,10 +177,6 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Read() sdk.ResourceFun
 				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 
 				state.RuleStackId = pointer.From(props.AssociatedRulestack.ResourceId)
-
-				state.PanEtag = pointer.From(props.PanEtag)
-
-				state.PlanData = schema.FlattenPlanData(props.PlanData)
 
 				state.Tags = tags.Flatten(existing.Model.Tags)
 			}

@@ -17,7 +17,7 @@ import (
 type NextGenerationFirewallVnetResource struct{}
 
 func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack", "test")
 
 	r := NextGenerationFirewallVnetResource{}
 
@@ -33,7 +33,7 @@ func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_basic(t *testing.T)
 }
 
 func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack", "test")
 
 	r := NextGenerationFirewallVnetResource{}
 
@@ -49,7 +49,7 @@ func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_requiresImport(t *t
 }
 
 func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack", "test")
 
 	r := NextGenerationFirewallVnetResource{}
 
@@ -65,7 +65,7 @@ func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_complete(t *testing
 }
 
 func TestAccPaloAltoNextGenerationFirewallLocalRulestackVNet_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack", "test")
 
 	r := NextGenerationFirewallVnetResource{}
 
@@ -126,13 +126,13 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
   name                = "acctest-ngfwvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
 
   network_profile {
-    public_ip_ids = [azurerm_public_ip.test.id]
+    public_ip_address_ids = [azurerm_public_ip.test.id]
 
     vnet_configuration {
       virtual_network_id  = azurerm_virtual_network.test.id
@@ -149,18 +149,18 @@ func (r NextGenerationFirewallVnetResource) requiresImport(data acceptance.TestD
 
 %[1]s
 
-resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "import" {
-  name                = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.name
-  resource_group_name = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.resource_group_name
-  rulestack_id       = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.rulestack_id
+resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "import" {
+  name                = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.name
+  resource_group_name = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.resource_group_name
+  rulestack_id       = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.rulestack_id
 
   network_profile {
-    public_ip_ids = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_profile.0.public_ip_ids
+    public_ip_address_ids = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.public_ip_address_ids
 
     vnet_configuration {
-      virtual_network_id  = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_profile.0.vnet_configuration.0.virtual_network_id
-      trusted_subnet_id   = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_profile.0.vnet_configuration.0.trusted_subnet_id
-      untrusted_subnet_id = azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack.test.network_profile.0.vnet_configuration.0.untrusted_subnet_id
+      virtual_network_id  = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.virtual_network_id
+      trusted_subnet_id   = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.trusted_subnet_id
+      untrusted_subnet_id = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.untrusted_subnet_id
     }
   }
 }
@@ -184,14 +184,14 @@ resource "azurerm_public_ip" "egress" {
 }
 
 
-resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
   name                = "acctest-ngfwvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
 
   network_profile {
-    public_ip_ids     = [azurerm_public_ip.test.id]
-    egress_nat_ip_ids = [azurerm_public_ip.egress.id]
+    public_ip_address_ids     = [azurerm_public_ip.test.id]
+    egress_nat_ip_address_ids = [azurerm_public_ip.egress.id]
 
     vnet_configuration {
       virtual_network_id  = azurerm_virtual_network.test.id
@@ -250,14 +250,14 @@ resource "azurerm_public_ip" "egress" {
 }
 
 
-resource "azurerm_palo_alto_next_generation_firewall_vnet_local_rulestack" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
   name                = "acctest-ngfwvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
 
   network_profile {
-    public_ip_ids     = [azurerm_public_ip.test.id]
-    egress_nat_ip_ids = [azurerm_public_ip.egress.id]
+    public_ip_address_ids     = [azurerm_public_ip.test.id]
+    egress_nat_ip_address_ids = [azurerm_public_ip.egress.id]
 
     vnet_configuration {
       virtual_network_id  = azurerm_virtual_network.test.id

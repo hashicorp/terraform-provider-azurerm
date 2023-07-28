@@ -10,28 +10,28 @@ import (
 
 type NetworkProfileVnet struct {
 	// Required
-	PublicIPIDs []string `tfschema:"public_ip_ids"`
+	PublicIPIDs []string `tfschema:"public_ip_address_ids"`
 
 	// Optional
-	EgressNatIPIDs    []string            `tfschema:"egress_nat_ip_ids"`
+	EgressNatIPIDs    []string            `tfschema:"egress_nat_ip_address_ids"`
 	VnetConfiguration []VnetConfiguration `tfschema:"vnet_configuration"`
 
 	// Computed
-	PublicIPs   []string `tfschema:"public_ips"`
-	EgressNatIP []string `tfschema:"egress_nat_ips"`
+	PublicIPs   []string `tfschema:"public_ip_addresses"`
+	EgressNatIP []string `tfschema:"egress_nat_ip_addresses"`
 }
 
 type NetworkProfileVHub struct {
 	VHubID      string   `tfschema:"virtual_hub_id"`
-	PublicIPIDs []string `tfschema:"public_ip_ids"`
+	PublicIPIDs []string `tfschema:"public_ip_address_ids"`
 
 	// Optional
-	EgressNatIPIDs []string `tfschema:"egress_nat_ip_ids"`
+	EgressNatIPIDs []string `tfschema:"egress_nat_ip_address_ids"`
 
 	// Computed
-	PublicIPs       []string `tfschema:"public_ips"`
-	EgressNatIP     []string `tfschema:"egress_nat_ips"`
-	IpOfTrust       string   `tfschema:"ip_of_trust_for_udr"`
+	PublicIPs       []string `tfschema:"public_ip_addresses"`
+	EgressNatIP     []string `tfschema:"egress_nat_ip_addresses"`
+	IpOfTrust       string   `tfschema:"ip_of_trust_for_user_defined_routes"`
 	TrustedSubnet   string   `tfschema:"trusted_subnet_id"`
 	UnTrustedSubnet string   `tfschema:"untrusted_subnet_id"`
 	ApplianceID     string   `tfschema:"network_virtual_appliance_id"`
@@ -44,7 +44,7 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"public_ip_ids": {
+				"public_ip_address_ids": {
 					Type:     pluginsdk.TypeList,
 					Required: true,
 					MinItems: 1,
@@ -54,7 +54,7 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"egress_nat_ip_ids": {
+				"egress_nat_ip_address_ids": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
@@ -67,7 +67,7 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 
 				// Computed
 
-				"public_ips": {
+				"public_ip_addresses": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
@@ -75,7 +75,7 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"egress_nat_ips": {
+				"egress_nat_ip_addresses": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
@@ -108,7 +108,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					ValidateFunc: networkvirtualappliances.ValidateNetworkVirtualApplianceID,
 				},
 
-				"public_ip_ids": {
+				"public_ip_address_ids": {
 					Type:     pluginsdk.TypeList,
 					Required: true,
 					MinItems: 1,
@@ -118,7 +118,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"egress_nat_ip_ids": {
+				"egress_nat_ip_address_ids": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
@@ -137,12 +137,12 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"ip_of_trust_for_udr": {
+				"ip_of_trust_for_user_defined_routes": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 
-				"public_ips": {
+				"public_ip_addresses": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
@@ -150,7 +150,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					},
 				},
 
-				"egress_nat_ips": {
+				"egress_nat_ip_addresses": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{

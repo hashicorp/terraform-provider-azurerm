@@ -94,7 +94,7 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Create() sd
 			}
 
 			if err = client.CommitThenPoll(ctx, rulestackId); err != nil {
-				return fmt.Errorf("committing rulestack config for UnTrust Certificate for %s: %+v", rulestackId, err)
+				return fmt.Errorf("committing rulestack config for Outbound UnTrust Certificate for %s: %+v", rulestackId, err)
 			}
 
 			metadata.SetID(certificateId)
@@ -173,7 +173,7 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Delete() sd
 			}
 
 			if err = client.CommitThenPoll(ctx, rulestackId); err != nil {
-				return fmt.Errorf("committing rulestack config for removing UnTrust Certificate for %s: %+v", rulestackId, err)
+				return fmt.Errorf("committing rulestack config for removing Outbound UnTrust Certificate for %s: %+v", rulestackId, err)
 			}
 
 			return nil

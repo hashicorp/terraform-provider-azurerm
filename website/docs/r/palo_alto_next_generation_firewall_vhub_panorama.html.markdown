@@ -58,7 +58,7 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_panorama" "example" {
   location            = azurerm_resource_group.example.location
 
   network_profile {
-    public_ip_ids                = [ azurerm_public_ip.example.id ]
+    public_ip_address_ids                = [ azurerm_public_ip.example.id ]
     virtual_hub_id               = azurerm_virtual_hub.example.id
     network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.example.id    
   }
@@ -131,11 +131,11 @@ A `network_profile` block supports the following:
 
 * `network_virtual_appliance_id` - (Required) The ID of the Palo Alto Network Virtual Appliance in the VHub. Changing this forces a new Palo Alto Next Generation Firewall VHub Panorama to be created.
 
-* `public_ip_ids` - (Required) Specifies a list of Public IP IDs to use for this Next Generation Firewall.
+* `public_ip_address_ids` - (Required) Specifies a list of Public IP IDs to use for this Next Generation Firewall.
 
 * `virtual_hub_id` - (Required) The ID of the Virtual Hub this Next generation Fireall will be deployed in. Changing this forces a new Palo Alto Next Generation Firewall VHub Local Rulestack to be created.
 
-* `egress_nat_ip_ids` - (Optional) Specifies a list of Public IP IDs to use for Egress NAT.
+* `egress_nat_ip_address_ids` - (Optional) Specifies a list of Public IP IDs to use for Egress NAT.
 
 ## Attributes Reference
 

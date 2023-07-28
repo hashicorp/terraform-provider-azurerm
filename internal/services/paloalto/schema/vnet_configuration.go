@@ -9,7 +9,7 @@ type VnetConfiguration struct {
 	VNetID            string `tfschema:"virtual_network_id"`
 	TrustedSubnetID   string `tfschema:"trusted_subnet_id"`
 	UntrustedSubnetID string `tfschema:"untrusted_subnet_id"`
-	IpOfTrust         string `tfschema:"ip_of_trust_for_udr"` // TODO - What is this?
+	IpOfTrust         string `tfschema:"ip_of_trust_for_user_defined_routes"` // TODO - What is this?
 }
 
 func VnetConfigurationSchema() *pluginsdk.Schema {
@@ -37,7 +37,7 @@ func VnetConfigurationSchema() *pluginsdk.Schema {
 					ValidateFunc: commonids.ValidateSubnetID,
 				},
 
-				"ip_of_trust_for_udr": {
+				"ip_of_trust_for_user_defined_routes": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},

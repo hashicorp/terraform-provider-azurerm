@@ -29,12 +29,7 @@ type NextGenerationFirewallVnetPanoramaModel struct {
 	DNSSettings          []schema.DNSSettings        `tfschema:"dns_settings"`
 	FrontEnd             []schema.DestinationNAT     `tfschema:"destination_nat"`
 	PanoramaConfig       []schema.Panorama           `tfschema:"panorama"`
-
-	// Computed
-	PlanData []schema.Plan `tfschema:"plan"`
-	PanEtag  string        `tfschema:"pan_etag"`
-
-	Tags map[string]interface{} `tfschema:"tags"`
+	Tags                 map[string]interface{}      `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetPanoramaResource{}
@@ -76,18 +71,11 @@ func (r NextGenerationFirewallVNetPanoramaResource) Arguments() map[string]*plug
 func (r NextGenerationFirewallVNetPanoramaResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"panorama": schema.PanoramaSchema(),
-
-		"plan": schema.PlanSchema(),
-
-		"pan_etag": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 	}
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) ResourceType() string {
-	return "azurerm_palo_alto_next_generation_firewall_vnet_panorama"
+	return "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama"
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) Create() sdk.ResourceFunc {
@@ -190,10 +178,6 @@ func (r NextGenerationFirewallVNetPanoramaResource) Read() sdk.ResourceFunc {
 						VMAuthKey:       pointer.From(panoramaConfig.VMAuthKey),
 					}}
 				}
-
-				state.PanEtag = pointer.From(props.PanEtag)
-
-				state.PlanData = schema.FlattenPlanData(props.PlanData)
 
 				state.Tags = tags.Flatten(model.Tags)
 			}

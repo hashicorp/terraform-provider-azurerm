@@ -42,7 +42,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) IDValidationFunc() plu
 }
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) ResourceType() string {
-	return "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack"
+	return "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack"
 }
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Arguments() map[string]*pluginsdk.Schema {
@@ -251,9 +251,8 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceF
 				}
 
 				ruleStack := &firewalls.RulestackDetails{
-					Location:    props.AssociatedRulestack.Location,
-					ResourceId:  nil,
-					RulestackId: pointer.To(ruleStackID.ID()),
+					Location:   props.AssociatedRulestack.Location,
+					ResourceId: pointer.To(ruleStackID.ID()),
 				}
 
 				props.AssociatedRulestack = ruleStack
@@ -278,7 +277,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceF
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
-				return err
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil

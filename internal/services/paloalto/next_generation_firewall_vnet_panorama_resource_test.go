@@ -22,7 +22,7 @@ func TestAccNextGenerationFirewallVNetPanoramaResource_basic(t *testing.T) {
 		t.Skipf("skipping as Palo Alto Panorama config not set in `ARM_PALO_ALTO_PANORAMA_CONFIG`")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_panorama", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama", "test")
 	r := NextGenerationFirewallVNetPanoramaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -42,7 +42,7 @@ func TestAccNextGenerationFirewallVNetPanoramaResource_complete(t *testing.T) {
 		t.Skipf("skipping as Palo Alto Panorama config not set in `ARM_PALO_ALTO_PANORAMA_CONFIG`")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_panorama", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama", "test")
 	r := NextGenerationFirewallVNetPanoramaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,7 +62,7 @@ func TestAccNextGenerationFirewallVNetPanoramaResource_update(t *testing.T) {
 		t.Skipf("skipping as Palo Alto Panorama config not set in `ARM_PALO_ALTO_PANORAMA_CONFIG`")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vnet_panorama", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama", "test")
 	r := NextGenerationFirewallVNetPanoramaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -116,14 +116,14 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_next_generation_firewall_vnet_panorama" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "test" {
   name                   = "acctest-ngfwvnp-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   panorama_base64_config = "%[3]s"
 
   network_profile {
-    public_ip_ids = [azurerm_public_ip.test.id]
+    public_ip_address_ids = [azurerm_public_ip.test.id]
 
     vnet_configuration {
       virtual_network_id  = azurerm_virtual_network.test.id
@@ -152,15 +152,15 @@ resource "azurerm_public_ip" "egress" {
 }
 
 
-resource "azurerm_palo_alto_next_generation_firewall_vnet_panorama" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "test" {
   name                   = "acctest-ngfwvn-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = "%[3]s"
   panorama_base64_config = "%[4]s"
 
   network_profile {
-    public_ip_ids     = [azurerm_public_ip.test.id]
-    egress_nat_ip_ids = [azurerm_public_ip.egress.id]
+    public_ip_address_ids     = [azurerm_public_ip.test.id]
+    egress_nat_ip_address_ids = [azurerm_public_ip.egress.id]
 
     vnet_configuration {
       virtual_network_id  = azurerm_virtual_network.test.id
