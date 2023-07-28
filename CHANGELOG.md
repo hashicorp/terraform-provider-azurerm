@@ -8,8 +8,8 @@ ENHANCEMENTS
 
 BUG FIXES
 
+* provider: only obtaining an authentication token for Managed HSM in environments where Managed HSM is available [GH-22400]
 * `azurerm_private_endpoint` - loading the subnet to lock from the API rather than the config during deletion [GH-22676]
-
 
 ## 3.67.0 (July 27, 2023)
 
