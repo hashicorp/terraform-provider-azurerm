@@ -1,0 +1,124 @@
+---
+subcategory: "Palo Alto"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack"
+description: |-
+  Manages a Palo Alto Next Generation Firewall VHub Local Rulestack.
+---
+
+# azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack
+
+Manages a Palo Alto Next Generation Firewall VHub Local Rulestack.
+
+## Example Usage
+
+```hcl
+resource "azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack" "example" {
+  name                = "example"
+  resource_group_name = "example"
+  rulestack_id        = "TODO"
+
+  network_profile {
+    virtual_hub_id = "TODO"
+    network_virtual_appliance_id = "TODO"
+    public_ip_ids = [ "example" ]
+  }
+}
+```
+
+## Arguments Reference
+
+The following arguments are supported:
+
+* `name` - (Required) The name which should be used for this Palo Alto Next Generation Firewall VHub Local Rulestack. Changing this forces a new Palo Alto Next Generation Firewall VHub Local Rulestack to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the Palo Alto Next Generation Firewall VHub Local Rulestack should exist. Changing this forces a new Palo Alto Next Generation Firewall VHub Local Rulestack to be created.
+
+* `rulestack_id` - (Required) The ID of the Local Rulestack to be used for this Next Generation Firewall.
+
+* `network_profile` - (Required) A `network_profile` block as defined below.
+
+---
+
+* `destination_nat` - (Optional) One or more `destination_nat` blocks as defined below.
+
+* `dns_settings` - (Optional) A `dns_settings` block as defined below.
+
+* `tags` - (Optional) A mapping of tags which should be assigned to the Palo Alto Next Generation Firewall VHub Local Rulestack.
+
+---
+
+A `back_end_config` block supports the following:
+
+* `port` - (Required) The port number to send traffic to.
+
+* `public_ip_address` - (Required) The Public IP Address to send the traffic to.
+
+---
+
+A `destination_nat` block supports the following:
+
+* `name` - (Required) The name which should be used for this NAT.
+
+* `protocol` - (Required) The protocol used for this Destination NAT. Possible values include `TCP` and `UDP`.
+
+* `back_end_config` - (Optional) A `back_end_config` block as defined above.
+
+* `front_end_config` - (Optional) A `front_end_config` block as defined below.
+
+---
+
+A `dns_settings` block supports the following:
+
+* `dns_servers` - (Optional) Specifies a list of DNS servers to proxy. Conflicts with `dns_settings.0.use_azure_dns`.
+
+* `use_azure_dns` - (Optional) Should Azure DNS servers be used? Conflicts with `dns_settings.0.dns_servers`. Defaults to `false`.
+
+---
+
+A `front_end_config` block supports the following:
+
+* `port` - (Required) The port on which traffic will be receiveed.
+
+* `public_ip_address_id` - (Required) The ID of the Public IP Address resource the traffic will be received on.
+
+---
+
+A `network_profile` block supports the following:
+
+* `network_virtual_appliance_id` - (Required) The ID of the Palo Alto Network Virtual Appliance in the VHub. Changing this forces a new Palo Alto Next Generation Firewall VHub Local Rulestack to be created.
+
+* `public_ip_ids` - (Required) Specifies a list of Public IP IDs to use for this Next Generation Firewall.
+
+* `virtual_hub_id` - (Required) The ID of the Virtual Hub this Next generation Fireall will be deployed in. Changing this forces a new Palo Alto Next Generation Firewall VHub Local Rulestack to be created.
+
+* `egress_nat_ip_ids` - (Optional) Specifies a list of Public IP IDs to use for Egress NAT.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported: 
+
+* `id` - The ID of the Palo Alto Next Generation Firewall VHub Local Rulestack.
+
+* `pan_etag` - The Etag value of the configuration.
+
+* `panorama_config` - A `panorama_config` block as defined below.
+
+---
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 2 hours) Used when creating the Palo Alto Next Generation Firewall VHub Local Rulestack.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Next Generation Firewall VHub Local Rulestack.
+* `update` - (Defaults to 2 hours) Used when updating the Palo Alto Next Generation Firewall VHub Local Rulestack.
+* `delete` - (Defaults to 2 hours) Used when deleting the Palo Alto Next Generation Firewall VHub Local Rulestack.
+
+## Import
+
+Palo Alto Next Generation Firewall VHub Local Rulestacks can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_palo_alto_next_generation_firewall_vhub_local_rulestack.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/myVhubRulestackFW
+```

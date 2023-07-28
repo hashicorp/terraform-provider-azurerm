@@ -9,8 +9,9 @@ import (
 )
 
 type DNSSettings struct {
-	DnsServers []string `tfschema:"dns_servers"`
-	AzureDNS   bool     `tfschema:"use_azure_dns"`
+	DnsServers      []string `tfschema:"dns_servers"`
+	AzureDNS        bool     `tfschema:"use_azure_dns"`
+	AzureDNSServers []string `tfschema:"azure_dns_servers"`
 }
 
 func DNSSettingsSchema() *pluginsdk.Schema {
@@ -39,6 +40,14 @@ func DNSSettingsSchema() *pluginsdk.Schema {
 					Default:  false,
 					ConflictsWith: []string{
 						"dns_settings.0.dns_servers",
+					},
+				},
+
+				"azure_dns_servers": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
 					},
 				},
 			},
@@ -79,13 +88,23 @@ func FlattenDNSSettings(input firewalls.DNSSettings) []DNSSettings {
 		return []DNSSettings{}
 	}
 
-	dnsServers := make([]string, 0)
-	for _, v := range pointer.From(input.DnsServers) {
-		dnsServers = append(dnsServers, pointer.From(v.Address))
-	}
-	result.DnsServers = dnsServers
+	useAzureDNS := pointer.From(input.EnabledDnsType) == firewalls.EnabledDNSTypeAZURE
 
-	result.AzureDNS = pointer.From(input.EnabledDnsType) == firewalls.EnabledDNSTypeAZURE
+	if !useAzureDNS {
+		dnsServers := make([]string, 0)
+		for _, v := range pointer.From(input.DnsServers) {
+			dnsServers = append(dnsServers, pointer.From(v.Address))
+		}
+		result.DnsServers = dnsServers
+	} else {
+		dnsServers := make([]string, 0)
+		for _, v := range pointer.From(input.DnsServers) {
+			dnsServers = append(dnsServers, pointer.From(v.Address))
+		}
+		result.AzureDNSServers = dnsServers
+	}
+
+	result.AzureDNS = useAzureDNS
 
 	return []DNSSettings{result}
 }

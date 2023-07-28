@@ -28,12 +28,10 @@ type NextGenerationFirewallVHubLocalRuleStackModel struct {
 	NetworkProfile []schema.NetworkProfileVHub `tfschema:"network_profile"`
 	DNSSettings    []schema.DNSSettings        `tfschema:"dns_settings"`
 	FrontEnd       []schema.DestinationNAT     `tfschema:"destination_nat"`
+	Tags           map[string]interface{}      `tfschema:"tags"`
 
 	// Computed
-	PlanData []schema.Plan `tfschema:"plan"`
-	PanEtag  string        `tfschema:"pan_etag"`
-
-	Tags map[string]interface{} `tfschema:"tags"`
+	PanEtag string `tfschema:"pan_etag"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubLocalRuleStackResource{}
@@ -80,8 +78,6 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Arguments() map[string
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"plan": schema.PlanSchema(),
-
 		"pan_etag": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -200,8 +196,6 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Read() sdk.ResourceFun
 			state.RuleStackId = pointer.From(props.AssociatedRulestack.ResourceId)
 
 			state.PanEtag = pointer.From(props.PanEtag)
-
-			state.PlanData = schema.FlattenPlanData(props.PlanData)
 
 			state.Tags = tags.Flatten(existing.Model.Tags)
 

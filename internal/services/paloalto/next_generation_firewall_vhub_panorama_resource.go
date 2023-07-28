@@ -3,7 +3,6 @@ package paloalto
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -29,13 +28,11 @@ type NextGenerationFirewallVHubPanoramaModel struct {
 	NetworkProfile       []schema.NetworkProfileVHub `tfschema:"network_profile"`
 	DNSSettings          []schema.DNSSettings        `tfschema:"dns_settings"`
 	FrontEnd             []schema.DestinationNAT     `tfschema:"destination_nat"`
-	PanoramaConfig       []schema.Panorama           `tfschema:"panorama_config"`
+	Tags                 map[string]interface{}      `tfschema:"tags"`
 
 	// Computed
-	PlanData []schema.Plan `tfschema:"plan"`
-	PanEtag  string        `tfschema:"pan_etag"`
-
-	Tags map[string]interface{} `tfschema:"tags"`
+	PanoramaConfig []schema.Panorama `tfschema:"panorama_config"`
+	PanEtag        string            `tfschema:"pan_etag"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubPanoramaResource{}
@@ -85,8 +82,6 @@ func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*plug
 func (r NextGenerationFirewallVHubPanoramaResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"panorama_config": schema.PanoramaSchema(),
-
-		"plan": schema.PlanSchema(),
 
 		"pan_etag": {
 			Type:     pluginsdk.TypeString,
@@ -186,28 +181,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Read() sdk.ResourceFunc {
 
 			state.NetworkProfile = []schema.NetworkProfileVHub{*netProfile}
 
-			if feSettings := pointer.From(props.FrontEndSettings); len(feSettings) != 0 {
-				fes := make([]schema.DestinationNAT, 0)
-				for _, v := range feSettings {
-					bePort, _ := strconv.Atoi(v.BackendConfiguration.Port)
-					fePort, _ := strconv.Atoi(v.FrontendConfiguration.Port)
-					fe := schema.DestinationNAT{
-						Name:     v.Name,
-						Protocol: string(v.Protocol),
-						BackendConfiguration: []schema.BackendEndpointConfiguration{{
-							PublicIP: pointer.From(v.BackendConfiguration.Address.Address),
-							Port:     bePort,
-						}},
-						FrontendConfiguration: []schema.FrontendEndpointConfiguration{{
-							PublicIPID: pointer.From(v.FrontendConfiguration.Address.ResourceId),
-							Port:       fePort,
-						}},
-					}
-
-					fes = append(fes, fe)
-				}
-				state.FrontEnd = fes
-			}
+			state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 
 			if panoramaConfig := props.PanoramaConfig; panoramaConfig != nil {
 				state.PanoramaBase64Config = panoramaConfig.ConfigString
@@ -223,8 +197,6 @@ func (r NextGenerationFirewallVHubPanoramaResource) Read() sdk.ResourceFunc {
 			}
 
 			state.PanEtag = pointer.From(props.PanEtag)
-
-			state.PlanData = schema.FlattenPlanData(props.PlanData)
 
 			state.Tags = tags.Flatten(existing.Model.Tags)
 

@@ -17,7 +17,7 @@ type NetworkProfileVnet struct {
 	VnetConfiguration []VnetConfiguration `tfschema:"vnet_configuration"`
 
 	// Computed
-	PublicIPs   []string `tfschema:"public_ip"`
+	PublicIPs   []string `tfschema:"public_ips"`
 	EgressNatIP []string `tfschema:"egress_nat_ips"`
 	// Inferred
 	// NetworkType string      `tfschema:"network_type"`
@@ -32,8 +32,8 @@ type NetworkProfileVHub struct {
 	EgressNatIPIDs []string `tfschema:"egress_nat_ip_ids"`
 
 	// Computed
-	PublicIPs       []string `tfschema:"public_ip"`
-	EgressNatIP     []string `tfschema:"egress_nat_ip_ids"`
+	PublicIPs       []string `tfschema:"public_ips"`
+	EgressNatIP     []string `tfschema:"egress_nat_ips"`
 	IpOfTrust       string   `tfschema:"ip_of_trust_for_udr"`
 	TrustedSubnet   string   `tfschema:"trusted_subnet_id"`
 	UnTrustedSubnet string   `tfschema:"untrusted_subnet_id"`
@@ -70,7 +70,7 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 
 				// Computed
 
-				"public_ip": {
+				"public_ips": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
@@ -145,7 +145,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"public_ip": {
+				"public_ips": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
