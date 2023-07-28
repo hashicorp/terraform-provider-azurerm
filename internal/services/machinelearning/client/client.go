@@ -6,40 +6,25 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/datastore"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+
+	v20230401 "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ComputeClient    *machinelearningcomputes.MachineLearningComputesClient
-	WorkspacesClient *workspaces.WorkspacesClient
-	DatastoreClient  *datastore.DatastoreClient
+	*v20230401.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	computeClient, err := machinelearningcomputes.NewMachineLearningComputesClientWithBaseURI(o.Environment.ResourceManager)
+	client, err := v20230401.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		o.Configure(c, o.Authorizers.ResourceManager)
+	})
 	if err != nil {
-		return nil, fmt.Errorf("building Compute Client: %+v", err)
+		return nil, fmt.Errorf("building Machine Learning Client: %+v", err)
 	}
-	o.Configure(computeClient.Client, o.Authorizers.ResourceManager)
-
-	workspacesClient, err := workspaces.NewWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Workspaces Client: %+v", err)
-	}
-	o.Configure(workspacesClient.Client, o.Authorizers.ResourceManager)
-
-	datastoreClient, err := datastore.NewDatastoreClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Datastore Client: %+v", err)
-	}
-	o.Configure(datastoreClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ComputeClient:    computeClient,
-		WorkspacesClient: workspacesClient,
-		DatastoreClient:  datastoreClient,
+		Client: client,
 	}, nil
 }
