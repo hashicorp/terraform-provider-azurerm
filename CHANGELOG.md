@@ -14,6 +14,7 @@ BUG FIXES
 * `azurerm_private_endpoint` - loading the subnet to lock from the API rather than the config during deletion [GH-22676]
 * `azurerm_netapp_volume_group_sap_hana` - update the validation of `security_style` to match proper casing after baselayer update [GH-22615]
 * `azurerm_cognitive_deployment` - add locks to parent resource to prevent 409 error [GH-22711]
+* `azurerm_site_recovery_replication_recovery_plan` - fix update for `boot_recovery_group`,`failover_recovery_group` and `shutdown_recovery_group` [GH-22687]
 
 ## 3.67.0 (July 27, 2023)
 
