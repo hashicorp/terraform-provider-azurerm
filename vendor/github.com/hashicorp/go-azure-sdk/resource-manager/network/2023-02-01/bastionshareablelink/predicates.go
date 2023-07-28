@@ -11,15 +11,15 @@ type BastionShareableLinkOperationPredicate struct {
 
 func (p BastionShareableLinkOperationPredicate) Matches(input BastionShareableLink) bool {
 
-	if p.Bsl != nil && (input.Bsl == nil && *p.Bsl != *input.Bsl) {
+	if p.Bsl != nil && (input.Bsl == nil || *p.Bsl != *input.Bsl) {
 		return false
 	}
 
-	if p.CreatedAt != nil && (input.CreatedAt == nil && *p.CreatedAt != *input.CreatedAt) {
+	if p.CreatedAt != nil && (input.CreatedAt == nil || *p.CreatedAt != *input.CreatedAt) {
 		return false
 	}
 
-	if p.Message != nil && (input.Message == nil && *p.Message != *input.Message) {
+	if p.Message != nil && (input.Message == nil || *p.Message != *input.Message) {
 		return false
 	}
 

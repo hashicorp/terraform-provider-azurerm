@@ -11,15 +11,15 @@ type ServiceTagInformationOperationPredicate struct {
 
 func (p ServiceTagInformationOperationPredicate) Matches(input ServiceTagInformation) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.ServiceTagChangeNumber != nil && (input.ServiceTagChangeNumber == nil && *p.ServiceTagChangeNumber != *input.ServiceTagChangeNumber) {
+	if p.ServiceTagChangeNumber != nil && (input.ServiceTagChangeNumber == nil || *p.ServiceTagChangeNumber != *input.ServiceTagChangeNumber) {
 		return false
 	}
 
