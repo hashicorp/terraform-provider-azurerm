@@ -168,12 +168,13 @@ func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
 
 			state.Name = id.PrefixListName
 			state.RuleStackID = prefixlistlocalrulestack.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
+			if model := existing.Model; model != nil {
+				props := model.Properties
 
-			props := existing.Model.Properties
-
-			state.PrefixList = props.PrefixList
-			state.AuditComment = pointer.From(props.AuditComment)
-			state.Description = pointer.From(props.Description)
+				state.PrefixList = props.PrefixList
+				state.AuditComment = pointer.From(props.AuditComment)
+				state.Description = pointer.From(props.Description)
+			}
 
 			return metadata.Encode(&state)
 		},

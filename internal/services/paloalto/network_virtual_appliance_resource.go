@@ -142,9 +142,11 @@ func (r NetworkVirtualApplianceResource) Read() sdk.ResourceFunc {
 			}
 
 			state.Name = id.NetworkVirtualApplianceName
-			if props := existing.Model.Properties; props != nil {
-				if props.VirtualHub != nil {
-					state.VirtualHubID = pointer.From(props.VirtualHub.Id)
+			if model := existing.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if props.VirtualHub != nil {
+						state.VirtualHubID = pointer.From(props.VirtualHub.Id)
+					}
 				}
 			}
 

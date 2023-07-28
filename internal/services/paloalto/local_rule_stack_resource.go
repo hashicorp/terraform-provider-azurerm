@@ -221,20 +221,22 @@ func (r LocalRuleStack) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			props := existing.Model.Properties
-
 			state.Name = id.LocalRulestackName
 			state.ResourceGroupName = id.ResourceGroupName
-			state.Description = pointer.From(props.Description)
-			state.Location = location.Normalize(existing.Model.Location)
+			if model := existing.Model; model != nil {
+				props := model.Properties
 
-			if secServices := props.SecurityServices; secServices != nil {
-				state.VulnerabilityProfile = pointer.From(secServices.VulnerabilityProfile)
-				state.AntiSpywareProfile = pointer.From(secServices.AntiSpywareProfile)
-				state.AntiVirusProfile = pointer.From(secServices.AntiVirusProfile)
-				state.FileBlockingProfile = pointer.From(secServices.FileBlockingProfile)
-				state.URLFilteringProfile = pointer.From(secServices.UrlFilteringProfile)
-				state.DNSSubscription = pointer.From(secServices.DnsSubscription)
+				state.Description = pointer.From(props.Description)
+				state.Location = location.Normalize(existing.Model.Location)
+
+				if secServices := props.SecurityServices; secServices != nil {
+					state.VulnerabilityProfile = pointer.From(secServices.VulnerabilityProfile)
+					state.AntiSpywareProfile = pointer.From(secServices.AntiSpywareProfile)
+					state.AntiVirusProfile = pointer.From(secServices.AntiVirusProfile)
+					state.FileBlockingProfile = pointer.From(secServices.FileBlockingProfile)
+					state.URLFilteringProfile = pointer.From(secServices.UrlFilteringProfile)
+					state.DNSSubscription = pointer.From(secServices.DnsSubscription)
+				}
 			}
 
 			return metadata.Encode(&state)

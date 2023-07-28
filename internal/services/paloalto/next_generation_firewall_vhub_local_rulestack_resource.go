@@ -29,9 +29,6 @@ type NextGenerationFirewallVHubLocalRuleStackModel struct {
 	DNSSettings    []schema.DNSSettings        `tfschema:"dns_settings"`
 	FrontEnd       []schema.DestinationNAT     `tfschema:"destination_nat"`
 	Tags           map[string]interface{}      `tfschema:"tags"`
-
-	// Computed
-	PanEtag string `tfschema:"pan_etag"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubLocalRuleStackResource{}
@@ -77,12 +74,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Arguments() map[string
 }
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"pan_etag": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceFunc {
@@ -180,24 +172,24 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Read() sdk.ResourceFun
 			state.Name = id.FirewallName
 			state.ResourceGroupName = id.ResourceGroupName
 
-			props := existing.Model.Properties
+			if model := existing.Model; model != nil {
+				props := model.Properties
 
-			state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
+				state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
 
-			netProfile, err := schema.FlattenNetworkProfileVHub(props.NetworkProfile)
-			if err != nil {
-				return fmt.Errorf("parsing Network Profile for %s: %+v", *id, err)
+				netProfile, err := schema.FlattenNetworkProfileVHub(props.NetworkProfile)
+				if err != nil {
+					return fmt.Errorf("parsing Network Profile for %s: %+v", *id, err)
+				}
+
+				state.NetworkProfile = []schema.NetworkProfileVHub{*netProfile}
+
+				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
+
+				state.RuleStackId = pointer.From(props.AssociatedRulestack.ResourceId)
+
+				state.Tags = tags.Flatten(model.Tags)
 			}
-
-			state.NetworkProfile = []schema.NetworkProfileVHub{*netProfile}
-
-			state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
-
-			state.RuleStackId = pointer.From(props.AssociatedRulestack.ResourceId)
-
-			state.PanEtag = pointer.From(props.PanEtag)
-
-			state.Tags = tags.Flatten(existing.Model.Tags)
 
 			return metadata.Encode(&state)
 		},

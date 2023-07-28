@@ -170,35 +170,34 @@ func (r NextGenerationFirewallVHubPanoramaResource) Read() sdk.ResourceFunc {
 
 			state.Name = id.FirewallName
 			state.ResourceGroupName = id.ResourceGroupName
+			if model := existing.Model; model != nil {
+				props := model.Properties
+				state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
 
-			props := existing.Model.Properties
-			state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
+				netProfile, err := schema.FlattenNetworkProfileVHub(props.NetworkProfile)
+				if err != nil {
+					return fmt.Errorf("parsing Network Profile for %s: %+v", *id, err)
+				}
 
-			netProfile, err := schema.FlattenNetworkProfileVHub(props.NetworkProfile)
-			if err != nil {
-				return fmt.Errorf("parsing Network Profile for %s: %+v", *id, err)
+				state.NetworkProfile = []schema.NetworkProfileVHub{*netProfile}
+
+				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
+
+				if panoramaConfig := props.PanoramaConfig; panoramaConfig != nil {
+					state.PanoramaBase64Config = panoramaConfig.ConfigString
+					state.PanoramaConfig = []schema.Panorama{{
+						Name:            pointer.From(panoramaConfig.CgName),
+						DeviceGroupName: pointer.From(panoramaConfig.DgName),
+						HostName:        pointer.From(panoramaConfig.HostName),
+						PanoramaServer:  pointer.From(panoramaConfig.PanoramaServer),
+						PanoramaServer2: pointer.From(panoramaConfig.PanoramaServer2),
+						TplName:         pointer.From(panoramaConfig.TplName),
+						VMAuthKey:       pointer.From(panoramaConfig.VMAuthKey),
+					}}
+				}
+
+				state.Tags = tags.Flatten(model.Tags)
 			}
-
-			state.NetworkProfile = []schema.NetworkProfileVHub{*netProfile}
-
-			state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
-
-			if panoramaConfig := props.PanoramaConfig; panoramaConfig != nil {
-				state.PanoramaBase64Config = panoramaConfig.ConfigString
-				state.PanoramaConfig = []schema.Panorama{{
-					Name:            pointer.From(panoramaConfig.CgName),
-					DeviceGroupName: pointer.From(panoramaConfig.DgName),
-					HostName:        pointer.From(panoramaConfig.HostName),
-					PanoramaServer:  pointer.From(panoramaConfig.PanoramaServer),
-					PanoramaServer2: pointer.From(panoramaConfig.PanoramaServer2),
-					TplName:         pointer.From(panoramaConfig.TplName),
-					VMAuthKey:       pointer.From(panoramaConfig.VMAuthKey),
-				}}
-			}
-
-			state.PanEtag = pointer.From(props.PanEtag)
-
-			state.Tags = tags.Flatten(existing.Model.Tags)
 
 			return metadata.Encode(&state)
 		},

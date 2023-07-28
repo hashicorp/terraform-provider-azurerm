@@ -48,9 +48,6 @@ type LocalRuleModel struct {
 	RuleEnabled             bool                   `tfschema:"enabled"`
 	Source                  []schema.Source        `tfschema:"source"`
 	Tags                    map[string]interface{} `tfschema:"tags"`
-
-	// Computed
-	Etag string `tfschema:"etag"` // TODO - Expose this here?
 }
 
 func (r LocalRuleStackRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -179,12 +176,7 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"etag": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r LocalRuleStackRule) ModelObject() interface{} {
@@ -319,33 +311,34 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 				return fmt.Errorf("parsing Rule Priortiy for %s: %+v", *id, err)
 			}
 			state.Priority = p
-
-			props := existing.Model.Properties
-			state.Name = props.RuleName
-			state.Action = string(pointer.From(props.ActionType))
-			state.Applications = pointer.From(props.Applications)
-			state.AuditComment = pointer.From(props.AuditComment)
-			state.Category = schema.FlattenCategory(props.Category)
-			state.DecryptionRuleType = string(pointer.From(props.DecryptionRuleType))
-			state.Description = pointer.From(props.Description)
-			state.Destination = schema.FlattenDestination(props.Destination)
-			state.LoggingEnabled = stateEnumAsBool(props.EnableLogging)
-			if certName := pointer.From(props.InboundInspectionCertificate); certName != "" {
-				state.InspectionCertificateID = certificates.NewLocalRulestackCertificateID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName, certName).ID()
-			} else {
-				state.InspectionCertificateID = certName
+			if model := existing.Model; model != nil {
+				props := model.Properties
+				state.Name = props.RuleName
+				state.Action = string(pointer.From(props.ActionType))
+				state.Applications = pointer.From(props.Applications)
+				state.AuditComment = pointer.From(props.AuditComment)
+				state.Category = schema.FlattenCategory(props.Category)
+				state.DecryptionRuleType = string(pointer.From(props.DecryptionRuleType))
+				state.Description = pointer.From(props.Description)
+				state.Destination = schema.FlattenDestination(props.Destination)
+				state.LoggingEnabled = stateEnumAsBool(props.EnableLogging)
+				if certName := pointer.From(props.InboundInspectionCertificate); certName != "" {
+					state.InspectionCertificateID = certificates.NewLocalRulestackCertificateID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName, certName).ID()
+				} else {
+					state.InspectionCertificateID = certName
+				}
+				state.NegateDestination = boolEnumAsBoolRule(props.NegateDestination)
+				state.NegateSource = boolEnumAsBoolRule(props.NegateSource)
+				if v := pointer.From(props.Protocol); !strings.EqualFold(v, protocolApplicationDefault) {
+					state.Protocol = pointer.From(props.Protocol)
+				} else {
+					state.Protocol = protocolApplicationDefault
+				}
+				state.ProtocolPorts = pointer.From(props.ProtocolPortList)
+				state.RuleEnabled = stateEnumAsBool(props.RuleState)
+				state.Source = schema.FlattenSource(props.Source)
+				state.Tags = flattenTagsFromRule(props.Tags)
 			}
-			state.NegateDestination = boolEnumAsBoolRule(props.NegateDestination)
-			state.NegateSource = boolEnumAsBoolRule(props.NegateSource)
-			if v := pointer.From(props.Protocol); !strings.EqualFold(v, protocolApplicationDefault) {
-				state.Protocol = pointer.From(props.Protocol)
-			} else {
-				state.Protocol = protocolApplicationDefault
-			}
-			state.ProtocolPorts = pointer.From(props.ProtocolPortList)
-			state.RuleEnabled = stateEnumAsBool(props.RuleState)
-			state.Source = schema.FlattenSource(props.Source)
-			state.Tags = flattenTagsFromRule(props.Tags)
 
 			return metadata.Encode(&state)
 		},
@@ -483,6 +476,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
+
 			return nil
 		},
 	}

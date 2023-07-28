@@ -126,11 +126,12 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) Read() sdk.Re
 				}
 				return fmt.Errorf("reading %s for Outbound Trust Association: %+v", rulestackId, err)
 			}
+			if model := existing.Model; model != nil {
+				props := model.Properties
+				secServices := pointer.From(props.SecurityServices)
 
-			props := existing.Model.Properties
-			secServices := pointer.From(props.SecurityServices)
-
-			state.CertificateID = certificates.NewLocalRulestackCertificateID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName, pointer.From(secServices.OutboundTrustCertificate)).ID()
+				state.CertificateID = certificates.NewLocalRulestackCertificateID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName, pointer.From(secServices.OutboundTrustCertificate)).ID()
+			}
 
 			return metadata.Encode(&state)
 		},

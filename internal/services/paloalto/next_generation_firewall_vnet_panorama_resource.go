@@ -170,32 +170,33 @@ func (r NextGenerationFirewallVNetPanoramaResource) Read() sdk.ResourceFunc {
 
 			state.Name = id.FirewallName
 			state.ResourceGroupName = id.ResourceGroupName
+			if model := existing.Model; model != nil {
+				props := model.Properties
 
-			props := existing.Model.Properties
+				state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
 
-			state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
+				state.NetworkProfile = schema.FlattenNetworkProfileVnet(props.NetworkProfile)
 
-			state.NetworkProfile = schema.FlattenNetworkProfileVnet(props.NetworkProfile)
+				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 
-			state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
+				if panoramaConfig := props.PanoramaConfig; panoramaConfig != nil {
+					state.PanoramaConfig = []schema.Panorama{{
+						Name:            pointer.From(panoramaConfig.CgName),
+						DeviceGroupName: pointer.From(panoramaConfig.DgName),
+						HostName:        pointer.From(panoramaConfig.HostName),
+						PanoramaServer:  pointer.From(panoramaConfig.PanoramaServer),
+						PanoramaServer2: pointer.From(panoramaConfig.PanoramaServer2),
+						TplName:         pointer.From(panoramaConfig.TplName),
+						VMAuthKey:       pointer.From(panoramaConfig.VMAuthKey),
+					}}
+				}
 
-			if panoramaConfig := props.PanoramaConfig; panoramaConfig != nil {
-				state.PanoramaConfig = []schema.Panorama{{
-					Name:            pointer.From(panoramaConfig.CgName),
-					DeviceGroupName: pointer.From(panoramaConfig.DgName),
-					HostName:        pointer.From(panoramaConfig.HostName),
-					PanoramaServer:  pointer.From(panoramaConfig.PanoramaServer),
-					PanoramaServer2: pointer.From(panoramaConfig.PanoramaServer2),
-					TplName:         pointer.From(panoramaConfig.TplName),
-					VMAuthKey:       pointer.From(panoramaConfig.VMAuthKey),
-				}}
+				state.PanEtag = pointer.From(props.PanEtag)
+
+				state.PlanData = schema.FlattenPlanData(props.PlanData)
+
+				state.Tags = tags.Flatten(model.Tags)
 			}
-
-			state.PanEtag = pointer.From(props.PanEtag)
-
-			state.PlanData = schema.FlattenPlanData(props.PlanData)
-
-			state.Tags = tags.Flatten(existing.Model.Tags)
 
 			return metadata.Encode(&state)
 		},

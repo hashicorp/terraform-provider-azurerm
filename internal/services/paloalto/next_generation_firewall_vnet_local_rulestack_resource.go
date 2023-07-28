@@ -179,21 +179,23 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Read() sdk.ResourceFun
 
 			state.ResourceGroupName = id.ResourceGroupName
 
-			props := existing.Model.Properties
+			if model := existing.Model; model != nil {
+				props := model.Properties
 
-			state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
+				state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
 
-			state.NetworkProfile = schema.FlattenNetworkProfileVnet(props.NetworkProfile)
+				state.NetworkProfile = schema.FlattenNetworkProfileVnet(props.NetworkProfile)
 
-			state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
+				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 
-			state.RuleStackId = pointer.From(props.AssociatedRulestack.ResourceId)
+				state.RuleStackId = pointer.From(props.AssociatedRulestack.ResourceId)
 
-			state.PanEtag = pointer.From(props.PanEtag)
+				state.PanEtag = pointer.From(props.PanEtag)
 
-			state.PlanData = schema.FlattenPlanData(props.PlanData)
+				state.PlanData = schema.FlattenPlanData(props.PlanData)
 
-			state.Tags = tags.Flatten(existing.Model.Tags)
+				state.Tags = tags.Flatten(existing.Model.Tags)
+			}
 
 			return metadata.Encode(&state)
 		},

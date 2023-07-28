@@ -169,11 +169,13 @@ func (r LocalRulestackFQDNList) Read() sdk.ResourceFunc {
 			state.Name = id.FqdnListName
 			state.RuleStackID = fqdnlistlocalrulestack.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
 
-			props := existing.Model.Properties
+			if model := existing.Model; model != nil {
+				props := model.Properties
 
-			state.FQDNList = props.FqdnList
-			state.AuditComment = pointer.From(props.AuditComment)
-			state.Description = pointer.From(props.Description)
+				state.FQDNList = props.FqdnList
+				state.AuditComment = pointer.From(props.AuditComment)
+				state.Description = pointer.From(props.Description)
+			}
 
 			return metadata.Encode(&state)
 		},

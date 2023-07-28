@@ -179,12 +179,14 @@ func (r LocalRuleStackCertificate) Read() sdk.ResourceFunc {
 			state.Name = id.CertificateName
 			state.RuleStackID = certificateobjectlocalrulestack.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
 
-			props := existing.Model.Properties
+			if model := existing.Model; model != nil {
+				props := model.Properties
 
-			state.AuditComment = pointer.From(props.AuditComment)
-			state.CertificateSignerID = pointer.From(props.CertificateSignerResourceId)
-			state.Description = pointer.From(props.Description)
-			state.SelfSigned = boolEnumAsBoolCert(props.CertificateSelfSigned)
+				state.AuditComment = pointer.From(props.AuditComment)
+				state.CertificateSignerID = pointer.From(props.CertificateSignerResourceId)
+				state.Description = pointer.From(props.Description)
+				state.SelfSigned = boolEnumAsBoolCert(props.CertificateSelfSigned)
+			}
 
 			return metadata.Encode(&state)
 		},
@@ -272,15 +274,11 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 }
 
 func boolAsBooleanEnumCert(input bool) certificateobjectlocalrulestack.BooleanEnum {
-	var result certificateobjectlocalrulestack.BooleanEnum
-
 	if input {
-		result = certificateobjectlocalrulestack.BooleanEnumTRUE
-	} else {
-		result = certificateobjectlocalrulestack.BooleanEnumFALSE
+		return certificateobjectlocalrulestack.BooleanEnumTRUE
 	}
 
-	return result
+	return certificateobjectlocalrulestack.BooleanEnumFALSE
 }
 
 func boolEnumAsBoolCert(input certificateobjectlocalrulestack.BooleanEnum) bool {
