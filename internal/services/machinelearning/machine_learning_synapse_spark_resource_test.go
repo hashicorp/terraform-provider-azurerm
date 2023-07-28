@@ -267,7 +267,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestvault%[3]d"
+  name                     = "acckv%[3]d"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
@@ -321,6 +321,6 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_count           = 3
 }
 `, data.RandomInteger, data.Locations.Primary,
-		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
+		data.RandomInteger, data.RandomIntOfLength(15), data.RandomIntOfLength(16),
 		data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
