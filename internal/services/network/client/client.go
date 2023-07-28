@@ -63,7 +63,6 @@ type Client struct {
 	VpnServerConfigurationsClient          *network.VpnServerConfigurationsClient
 	VpnSitesClient                         *network.VpnSitesClient
 	WatcherClient                          *network.WatchersClient
-	WebApplicationFirewallPoliciesClient   *network.WebApplicationFirewallPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -205,9 +204,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	WatcherClient := network.NewWatchersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WatcherClient.Client, o.ResourceManagerAuthorizer)
 
-	WebApplicationFirewallPoliciesClient := network.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&WebApplicationFirewallPoliciesClient.Client, o.ResourceManagerAuthorizer)
-
 	ServiceAssociationLinkClient := network.NewServiceAssociationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServiceAssociationLinkClient.Client, o.ResourceManagerAuthorizer)
 
@@ -268,7 +264,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VpnServerConfigurationsClient:          &vpnServerConfigurationsClient,
 		VpnSitesClient:                         &vpnSitesClient,
 		WatcherClient:                          &WatcherClient,
-		WebApplicationFirewallPoliciesClient:   &WebApplicationFirewallPoliciesClient,
 		PrivateDnsZoneGroupClient:              &PrivateDnsZoneGroupClient,
 		PrivateLinkServiceClient:               &PrivateLinkServiceClient,
 		ServiceAssociationLinkClient:           &ServiceAssociationLinkClient,
