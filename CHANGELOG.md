@@ -1,5 +1,12 @@
 ## 3.68.0 (Unreleased)
 
+ENHANCEMENTS
+
+* `network` - updating to use API Version `2023-02-01` [GH-22676]
+
+BUG FIXES
+
+* `azurerm_private_endpoint` - loading the subnet to lock from the API rather than the config during deletion [GH-22676]
 
 
 ## 3.67.0 (July 27, 2023)
