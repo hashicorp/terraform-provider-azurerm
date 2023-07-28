@@ -188,7 +188,7 @@ data "azurerm_role_definition" "builtin" {
 }
 
 resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_resource_group.test.id
+  scope                = azurerm_resource_group.test2.id
   role_definition_name = data.azurerm_role_definition.builtin.name
   principal_id         = azurerm_kusto_cluster.test.identity[0].principal_id
 }
