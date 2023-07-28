@@ -12,19 +12,19 @@ type BackendAddressPoolOperationPredicate struct {
 
 func (p BackendAddressPoolOperationPredicate) Matches(input BackendAddressPool) bool {
 
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
+	if p.Etag != nil && (input.Etag == nil || *p.Etag != *input.Etag) {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -40,19 +40,19 @@ type FrontendIPConfigurationOperationPredicate struct {
 
 func (p FrontendIPConfigurationOperationPredicate) Matches(input FrontendIPConfiguration) bool {
 
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
+	if p.Etag != nil && (input.Etag == nil || *p.Etag != *input.Etag) {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -68,19 +68,19 @@ type InboundNatRuleOperationPredicate struct {
 
 func (p InboundNatRuleOperationPredicate) Matches(input InboundNatRule) bool {
 
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
+	if p.Etag != nil && (input.Etag == nil || *p.Etag != *input.Etag) {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -97,23 +97,23 @@ type LoadBalancerOperationPredicate struct {
 
 func (p LoadBalancerOperationPredicate) Matches(input LoadBalancer) bool {
 
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
+	if p.Etag != nil && (input.Etag == nil || *p.Etag != *input.Etag) {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Location != nil && (input.Location == nil && *p.Location != *input.Location) {
+	if p.Location != nil && (input.Location == nil || *p.Location != *input.Location) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -129,19 +129,19 @@ type LoadBalancingRuleOperationPredicate struct {
 
 func (p LoadBalancingRuleOperationPredicate) Matches(input LoadBalancingRule) bool {
 
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
+	if p.Etag != nil && (input.Etag == nil || *p.Etag != *input.Etag) {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -158,23 +158,23 @@ type NetworkInterfaceOperationPredicate struct {
 
 func (p NetworkInterfaceOperationPredicate) Matches(input NetworkInterface) bool {
 
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
+	if p.Etag != nil && (input.Etag == nil || *p.Etag != *input.Etag) {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Location != nil && (input.Location == nil && *p.Location != *input.Location) {
+	if p.Location != nil && (input.Location == nil || *p.Location != *input.Location) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -190,19 +190,19 @@ type OutboundRuleOperationPredicate struct {
 
 func (p OutboundRuleOperationPredicate) Matches(input OutboundRule) bool {
 
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
+	if p.Etag != nil && (input.Etag == nil || *p.Etag != *input.Etag) {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -218,19 +218,19 @@ type ProbeOperationPredicate struct {
 
 func (p ProbeOperationPredicate) Matches(input Probe) bool {
 
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
+	if p.Etag != nil && (input.Etag == nil || *p.Etag != *input.Etag) {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 

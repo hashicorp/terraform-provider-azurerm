@@ -15,7 +15,7 @@ func (p UsageOperationPredicate) Matches(input Usage) bool {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
