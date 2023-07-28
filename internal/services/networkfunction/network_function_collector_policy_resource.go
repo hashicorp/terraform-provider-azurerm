@@ -343,15 +343,9 @@ func expandEmissionPoliciesPropertiesFormatModelArray(inputList []EmissionPolici
 	for _, v := range inputList {
 		input := v
 		output := collectorpolicies.EmissionPoliciesPropertiesFormat{
-			EmissionType: &input.EmissionType,
+			EmissionType:         &input.EmissionType,
+			EmissionDestinations: expandEmissionPolicyDestinationModelArray(input.EmissionDestinations),
 		}
-
-		emissionDestinationsValue, err := expandEmissionPolicyDestinationModelArray(input.EmissionDestinations)
-		if err != nil {
-			return nil, err
-		}
-
-		output.EmissionDestinations = emissionDestinationsValue
 
 		outputList = append(outputList, output)
 	}
@@ -359,7 +353,7 @@ func expandEmissionPoliciesPropertiesFormatModelArray(inputList []EmissionPolici
 	return &outputList, nil
 }
 
-func expandEmissionPolicyDestinationModelArray(inputList []EmissionPolicyDestinationModel) (*[]collectorpolicies.EmissionPolicyDestination, error) {
+func expandEmissionPolicyDestinationModelArray(inputList []EmissionPolicyDestinationModel) *[]collectorpolicies.EmissionPolicyDestination {
 	var outputList []collectorpolicies.EmissionPolicyDestination
 	for _, v := range inputList {
 		input := v
@@ -370,7 +364,7 @@ func expandEmissionPolicyDestinationModelArray(inputList []EmissionPolicyDestina
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
 func expandIngestionPolicyPropertiesFormatModel(inputList []IngestionPolicyPropertiesFormatModel) (*collectorpolicies.IngestionPolicyPropertiesFormat, error) {
@@ -380,20 +374,14 @@ func expandIngestionPolicyPropertiesFormatModel(inputList []IngestionPolicyPrope
 
 	input := &inputList[0]
 	output := collectorpolicies.IngestionPolicyPropertiesFormat{
-		IngestionType: &input.IngestionType,
+		IngestionType:    &input.IngestionType,
+		IngestionSources: expandIngestionSourcesPropertiesFormatModelArray(input.IngestionSources),
 	}
-
-	ingestionSourcesValue, err := expandIngestionSourcesPropertiesFormatModelArray(input.IngestionSources)
-	if err != nil {
-		return nil, err
-	}
-
-	output.IngestionSources = ingestionSourcesValue
 
 	return &output, nil
 }
 
-func expandIngestionSourcesPropertiesFormatModelArray(inputList []IngestionSourcesPropertiesFormatModel) (*[]collectorpolicies.IngestionSourcesPropertiesFormat, error) {
+func expandIngestionSourcesPropertiesFormatModelArray(inputList []IngestionSourcesPropertiesFormatModel) *[]collectorpolicies.IngestionSourcesPropertiesFormat {
 	var outputList []collectorpolicies.IngestionSourcesPropertiesFormat
 	for _, v := range inputList {
 		input := v
@@ -408,7 +396,7 @@ func expandIngestionSourcesPropertiesFormatModelArray(inputList []IngestionSourc
 		outputList = append(outputList, output)
 	}
 
-	return &outputList, nil
+	return &outputList
 }
 
 func flattenEmissionPoliciesPropertiesFormatModelArray(inputList *[]collectorpolicies.EmissionPoliciesPropertiesFormat) ([]EmissionPoliciesPropertiesFormatModel, error) {
@@ -418,14 +406,9 @@ func flattenEmissionPoliciesPropertiesFormatModelArray(inputList *[]collectorpol
 	}
 
 	for _, input := range *inputList {
-		output := EmissionPoliciesPropertiesFormatModel{}
-
-		emissionDestinationsValue, err := flattenEmissionPolicyDestinationModelArray(input.EmissionDestinations)
-		if err != nil {
-			return nil, err
+		output := EmissionPoliciesPropertiesFormatModel{
+			EmissionDestinations: flattenEmissionPolicyDestinationModelArray(input.EmissionDestinations),
 		}
-
-		output.EmissionDestinations = emissionDestinationsValue
 
 		if input.EmissionType != nil {
 			output.EmissionType = *input.EmissionType
@@ -437,10 +420,10 @@ func flattenEmissionPoliciesPropertiesFormatModelArray(inputList *[]collectorpol
 	return outputList, nil
 }
 
-func flattenEmissionPolicyDestinationModelArray(inputList *[]collectorpolicies.EmissionPolicyDestination) ([]EmissionPolicyDestinationModel, error) {
+func flattenEmissionPolicyDestinationModelArray(inputList *[]collectorpolicies.EmissionPolicyDestination) []EmissionPolicyDestinationModel {
 	var outputList []EmissionPolicyDestinationModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -453,7 +436,7 @@ func flattenEmissionPolicyDestinationModelArray(inputList *[]collectorpolicies.E
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
 
 func flattenIngestionPolicyPropertiesFormatModel(input *collectorpolicies.IngestionPolicyPropertiesFormat) ([]IngestionPolicyPropertiesFormatModel, error) {
@@ -462,14 +445,9 @@ func flattenIngestionPolicyPropertiesFormatModel(input *collectorpolicies.Ingest
 		return outputList, nil
 	}
 
-	output := IngestionPolicyPropertiesFormatModel{}
-
-	ingestionSourcesValue, err := flattenIngestionSourcesPropertiesFormatModelArray(input.IngestionSources)
-	if err != nil {
-		return nil, err
+	output := IngestionPolicyPropertiesFormatModel{
+		IngestionSources: flattenIngestionSourcesPropertiesFormatModelArray(input.IngestionSources),
 	}
-
-	output.IngestionSources = ingestionSourcesValue
 
 	if input.IngestionType != nil {
 		output.IngestionType = *input.IngestionType
@@ -478,10 +456,10 @@ func flattenIngestionPolicyPropertiesFormatModel(input *collectorpolicies.Ingest
 	return append(outputList, output), nil
 }
 
-func flattenIngestionSourcesPropertiesFormatModelArray(inputList *[]collectorpolicies.IngestionSourcesPropertiesFormat) ([]IngestionSourcesPropertiesFormatModel, error) {
+func flattenIngestionSourcesPropertiesFormatModelArray(inputList *[]collectorpolicies.IngestionSourcesPropertiesFormat) []IngestionSourcesPropertiesFormatModel {
 	var outputList []IngestionSourcesPropertiesFormatModel
 	if inputList == nil {
-		return outputList, nil
+		return outputList
 	}
 
 	for _, input := range *inputList {
@@ -498,5 +476,5 @@ func flattenIngestionSourcesPropertiesFormatModelArray(inputList *[]collectorpol
 		outputList = append(outputList, output)
 	}
 
-	return outputList, nil
+	return outputList
 }
