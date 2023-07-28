@@ -54,7 +54,7 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: managedclusters.ValidateLocationID,
+				ValidateFunc: commonids.ValidateKubernetesClusterID,
 				// remove in 3.0 of the provider
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
