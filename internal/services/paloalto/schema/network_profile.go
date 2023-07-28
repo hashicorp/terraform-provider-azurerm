@@ -19,9 +19,6 @@ type NetworkProfileVnet struct {
 	// Computed
 	PublicIPs   []string `tfschema:"public_ips"`
 	EgressNatIP []string `tfschema:"egress_nat_ips"`
-	// Inferred
-	// NetworkType string      `tfschema:"network_type"`
-	// EnableEgressNat bool
 }
 
 type NetworkProfileVHub struct {
@@ -168,6 +165,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfile {
 	result := firewalls.NetworkProfile{
 		EnableEgressNat: firewalls.EgressNatDISABLED,
+		EgressNatIP:     &[]firewalls.IPAddress{},
 	}
 
 	if len(input) == 0 {
@@ -267,11 +265,9 @@ func FlattenNetworkProfileVnet(input firewalls.NetworkProfile) []NetworkProfileV
 		result.PublicIPs = append(result.PublicIPs, pointer.From(v.ResourceId))
 	}
 
-	if egressIPS := pointer.From(input.EgressNatIP); len(egressIPS) > 0 {
-		for _, v := range egressIPS {
-			result.EgressNatIPIDs = append(result.EgressNatIPIDs, pointer.From(v.ResourceId))
-			result.EgressNatIP = append(result.EgressNatIP, pointer.From(v.Address))
-		}
+	for _, v := range pointer.From(input.EgressNatIP) {
+		result.EgressNatIPIDs = append(result.EgressNatIPIDs, pointer.From(v.ResourceId))
+		result.EgressNatIP = append(result.EgressNatIP, pointer.From(v.Address))
 	}
 
 	if v := input.VnetConfiguration; v != nil {

@@ -176,6 +176,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Read() sdk.ResourceFun
 			}
 
 			state.Name = id.FirewallName
+
 			state.ResourceGroupName = id.ResourceGroupName
 
 			props := existing.Model.Properties

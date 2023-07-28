@@ -359,12 +359,10 @@ resource "azurerm_subnet" "test2" {
   }
 }
 
-
 resource "azurerm_subnet_network_security_group_association" "test2" {
   subnet_id                 = azurerm_subnet.test2.id
   network_security_group_id = azurerm_network_security_group.test.id
 }
-
 
 resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[1]d"
@@ -387,7 +385,5 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
     cidrs = ["any"]
   }
 }
-
-
 `, data.RandomInteger, data.Locations.Primary)
 }
