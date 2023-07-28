@@ -3,6 +3,7 @@
 ENHANCEMENTS
 
 * `network` - updating to use API Version `2023-02-01` [GH-22676]
+* `relay`: updating to use API Version `2021-11-01` [GH-22725]
 
 BUG FIXES
 
