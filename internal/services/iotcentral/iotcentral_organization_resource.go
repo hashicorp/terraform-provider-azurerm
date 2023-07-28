@@ -12,10 +12,6 @@ import (
 	iotcentralDataplane "github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
-const (
-	baseUrlTemplate = "https://%s.azureiotcentral.com"
-)
-
 func resourceIotCentralOrganization() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceIotCentralOrganizationCreate,
@@ -85,7 +81,10 @@ func resourceIotCentralOrganizationCreate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	baseUrl := fmt.Sprintf(baseUrlTemplate, d.Get("sub_domain").(string))
+	baseUrl, err := parse.ParseBaseUrl(d.Get("sub_domain").(string))
+	if err != nil {
+		return err
+	}
 
 	orgId, err := parse.NewNestedItemID(baseUrl, parse.NestedItemTypeOrganization, *org.ID)
 	if err != nil {

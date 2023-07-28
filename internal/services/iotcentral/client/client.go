@@ -62,3 +62,16 @@ func (c *Client) RolesClient(ctx context.Context, subdomain string) (*iotcentral
 
 	return &client, nil
 }
+
+func (c *Client) UsersClient(ctx context.Context, subdomain string) (*iotcentralDataplane.UsersClient, error) {
+	api := environments.NewApiEndpoint("IotCentral", c.endpoint, nil)
+	iotCentralAuth, err := c.authorizerFunc(api)
+	if err != nil {
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", c.endpoint, err)
+	}
+
+	client := iotcentralDataplane.NewUsersClient(subdomain)
+	c.configureClientFunc(&client.Client, authWrapper.AutorestAuthorizer(iotCentralAuth))
+
+	return &client, nil
+}

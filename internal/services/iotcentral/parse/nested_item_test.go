@@ -99,6 +99,15 @@ func TestParseNestedItemID(t *testing.T) {
 				SubDomain:         "subdomain",
 			},
 		},
+		{
+			Input:       "https://subdomain.baseDomain/api/users/fdf067c93bbb4b22bff4d8b7a9a56217",
+			ExpectError: false,
+			Expected: NestedItemId{
+				Id:                "fdf067c93bbb4b22bff4d8b7a9a56217",
+				IotcentralBaseUrl: "https://subdomain.baseDomain/",
+				SubDomain:         "subdomain",
+			},
+		},
 	}
 
 	for _, tc := range cases {

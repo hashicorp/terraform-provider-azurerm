@@ -15,12 +15,14 @@ import (
 type NestedItemObjectType string
 
 const (
+	baseUrlTemplate                                 = "https://%s.azureiotcentral.com"
 	NestedItemTypeOrganization NestedItemObjectType = "organizations"
+	NestedItemTypeUser         NestedItemObjectType = "users"
 )
 
 // PossibleNestedItemObjectTypeValues returns a string slice of possible "NestedItemObjectType" values.
 func PossibleNestedItemObjectTypeValues() []string {
-	return []string{string(NestedItemTypeOrganization)}
+	return []string{string(NestedItemTypeOrganization), string(NestedItemTypeUser)}
 }
 
 var _ resourceids.Id = NestedItemId{}
@@ -57,7 +59,7 @@ func NewNestedItemID(iotcentralBaseUrl string, nestedItemType NestedItemObjectTy
 }
 
 func (id NestedItemId) ID() string {
-	// example: https://subdomain.baseDomain/api/organizations/fdf067c93bbb4b22bff4d8b7a9a56217
+	// example: https://subdomain.baseDomain/api/type/fdf067c93bbb4b22bff4d8b7a9a56217
 	segments := []string{
 		strings.TrimSuffix(id.IotcentralBaseUrl, "/"),
 		"api",
@@ -136,4 +138,12 @@ func parseSubDomain(iotcentralBaseUrl string) (string, error) {
 	subDomain := strings.Split(iotcentralUrl.Host, ".")[0]
 
 	return subDomain, nil
+}
+
+func ParseBaseUrl(subDomain string) (string, error) {
+	if subDomain == "" {
+		return "", fmt.Errorf("subdomain cannot be empty")
+	}
+
+	return fmt.Sprintf(baseUrlTemplate, subDomain), nil
 }

@@ -33,6 +33,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_iotcentral_application":  resourceIotCentralApplication(),
 		"azurerm_iotcentral_organization": resourceIotCentralOrganization(),
+		"azurerm_iotcentral_email_user":   resourceIotCentralEmailUser(),
 	}
 }
 
