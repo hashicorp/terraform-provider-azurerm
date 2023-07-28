@@ -292,7 +292,7 @@ func (t WebApplicationFirewallResource) Exists(ctx context.Context, clients *cli
 		return nil, err
 	}
 
-	resp, err := clients.Network.WebApplicationFirewallPoliciesClient.Get(ctx, *id)
+	resp, err := clients.Network.WebApplicationFirewallPolicies.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}

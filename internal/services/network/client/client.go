@@ -6,10 +6,8 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-
 	network_2023_02_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
@@ -65,7 +63,6 @@ type Client struct {
 	VpnServerConfigurationsClient          *network.VpnServerConfigurationsClient
 	VpnSitesClient                         *network.VpnSitesClient
 	WatcherClient                          *network.WatchersClient
-	WebApplicationFirewallPoliciesClient   *webapplicationfirewallpolicies.WebApplicationFirewallPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -207,12 +204,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	WatcherClient := network.NewWatchersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WatcherClient.Client, o.ResourceManagerAuthorizer)
 
-	WebApplicationFirewallPoliciesClient, err := webapplicationfirewallpolicies.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building network web application firewall policies client: %+v", err)
-	}
-	o.Configure(WebApplicationFirewallPoliciesClient.Client, o.Authorizers.ResourceManager)
-
 	ServiceAssociationLinkClient := network.NewServiceAssociationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServiceAssociationLinkClient.Client, o.ResourceManagerAuthorizer)
 
@@ -273,7 +264,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VpnServerConfigurationsClient:          &vpnServerConfigurationsClient,
 		VpnSitesClient:                         &vpnSitesClient,
 		WatcherClient:                          &WatcherClient,
-		WebApplicationFirewallPoliciesClient:   WebApplicationFirewallPoliciesClient,
 		PrivateDnsZoneGroupClient:              &PrivateDnsZoneGroupClient,
 		PrivateLinkServiceClient:               &PrivateLinkServiceClient,
 		ServiceAssociationLinkClient:           &ServiceAssociationLinkClient,
