@@ -1,17 +1,22 @@
-package namespaces
+package hybridconnections
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AuthorizationRuleOperationPredicate struct {
-	Id   *string
-	Name *string
-	Type *string
+	Id       *string
+	Location *string
+	Name     *string
+	Type     *string
 }
 
 func (p AuthorizationRuleOperationPredicate) Matches(input AuthorizationRule) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+		return false
+	}
+
+	if p.Location != nil && (input.Location == nil && *p.Location != *input.Location) {
 		return false
 	}
 
@@ -26,20 +31,20 @@ func (p AuthorizationRuleOperationPredicate) Matches(input AuthorizationRule) bo
 	return true
 }
 
-type RelayNamespaceOperationPredicate struct {
+type HybridConnectionOperationPredicate struct {
 	Id       *string
 	Location *string
 	Name     *string
 	Type     *string
 }
 
-func (p RelayNamespaceOperationPredicate) Matches(input RelayNamespace) bool {
+func (p HybridConnectionOperationPredicate) Matches(input HybridConnection) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Location != nil && *p.Location != input.Location {
+	if p.Location != nil && (input.Location == nil && *p.Location != *input.Location) {
 		return false
 	}
 

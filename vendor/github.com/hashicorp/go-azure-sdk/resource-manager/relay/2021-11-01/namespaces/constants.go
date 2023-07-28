@@ -53,6 +53,100 @@ func parseAccessRights(input string) (*AccessRights, error) {
 	return &out, nil
 }
 
+type DefaultAction string
+
+const (
+	DefaultActionAllow DefaultAction = "Allow"
+	DefaultActionDeny  DefaultAction = "Deny"
+)
+
+func PossibleValuesForDefaultAction() []string {
+	return []string{
+		string(DefaultActionAllow),
+		string(DefaultActionDeny),
+	}
+}
+
+func (s *DefaultAction) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDefaultAction(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseDefaultAction(input string) (*DefaultAction, error) {
+	vals := map[string]DefaultAction{
+		"allow": DefaultActionAllow,
+		"deny":  DefaultActionDeny,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DefaultAction(input)
+	return &out, nil
+}
+
+type EndPointProvisioningState string
+
+const (
+	EndPointProvisioningStateCanceled  EndPointProvisioningState = "Canceled"
+	EndPointProvisioningStateCreating  EndPointProvisioningState = "Creating"
+	EndPointProvisioningStateDeleting  EndPointProvisioningState = "Deleting"
+	EndPointProvisioningStateFailed    EndPointProvisioningState = "Failed"
+	EndPointProvisioningStateSucceeded EndPointProvisioningState = "Succeeded"
+	EndPointProvisioningStateUpdating  EndPointProvisioningState = "Updating"
+)
+
+func PossibleValuesForEndPointProvisioningState() []string {
+	return []string{
+		string(EndPointProvisioningStateCanceled),
+		string(EndPointProvisioningStateCreating),
+		string(EndPointProvisioningStateDeleting),
+		string(EndPointProvisioningStateFailed),
+		string(EndPointProvisioningStateSucceeded),
+		string(EndPointProvisioningStateUpdating),
+	}
+}
+
+func (s *EndPointProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEndPointProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseEndPointProvisioningState(input string) (*EndPointProvisioningState, error) {
+	vals := map[string]EndPointProvisioningState{
+		"canceled":  EndPointProvisioningStateCanceled,
+		"creating":  EndPointProvisioningStateCreating,
+		"deleting":  EndPointProvisioningStateDeleting,
+		"failed":    EndPointProvisioningStateFailed,
+		"succeeded": EndPointProvisioningStateSucceeded,
+		"updating":  EndPointProvisioningStateUpdating,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := EndPointProvisioningState(input)
+	return &out, nil
+}
+
 type KeyType string
 
 const (
@@ -94,34 +188,24 @@ func parseKeyType(input string) (*KeyType, error) {
 	return &out, nil
 }
 
-type ProvisioningStateEnum string
+type NetworkRuleIPAction string
 
 const (
-	ProvisioningStateEnumCreated   ProvisioningStateEnum = "Created"
-	ProvisioningStateEnumDeleted   ProvisioningStateEnum = "Deleted"
-	ProvisioningStateEnumFailed    ProvisioningStateEnum = "Failed"
-	ProvisioningStateEnumSucceeded ProvisioningStateEnum = "Succeeded"
-	ProvisioningStateEnumUnknown   ProvisioningStateEnum = "Unknown"
-	ProvisioningStateEnumUpdating  ProvisioningStateEnum = "Updating"
+	NetworkRuleIPActionAllow NetworkRuleIPAction = "Allow"
 )
 
-func PossibleValuesForProvisioningStateEnum() []string {
+func PossibleValuesForNetworkRuleIPAction() []string {
 	return []string{
-		string(ProvisioningStateEnumCreated),
-		string(ProvisioningStateEnumDeleted),
-		string(ProvisioningStateEnumFailed),
-		string(ProvisioningStateEnumSucceeded),
-		string(ProvisioningStateEnumUnknown),
-		string(ProvisioningStateEnumUpdating),
+		string(NetworkRuleIPActionAllow),
 	}
 }
 
-func (s *ProvisioningStateEnum) UnmarshalJSON(bytes []byte) error {
+func (s *NetworkRuleIPAction) UnmarshalJSON(bytes []byte) error {
 	var decoded string
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parseProvisioningStateEnum(decoded)
+	out, err := parseNetworkRuleIPAction(decoded)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %+v", decoded, err)
 	}
@@ -129,21 +213,107 @@ func (s *ProvisioningStateEnum) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func parseProvisioningStateEnum(input string) (*ProvisioningStateEnum, error) {
-	vals := map[string]ProvisioningStateEnum{
-		"created":   ProvisioningStateEnumCreated,
-		"deleted":   ProvisioningStateEnumDeleted,
-		"failed":    ProvisioningStateEnumFailed,
-		"succeeded": ProvisioningStateEnumSucceeded,
-		"unknown":   ProvisioningStateEnumUnknown,
-		"updating":  ProvisioningStateEnumUpdating,
+func parseNetworkRuleIPAction(input string) (*NetworkRuleIPAction, error) {
+	vals := map[string]NetworkRuleIPAction{
+		"allow": NetworkRuleIPActionAllow,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := ProvisioningStateEnum(input)
+	out := NetworkRuleIPAction(input)
+	return &out, nil
+}
+
+type PrivateLinkConnectionStatus string
+
+const (
+	PrivateLinkConnectionStatusApproved     PrivateLinkConnectionStatus = "Approved"
+	PrivateLinkConnectionStatusDisconnected PrivateLinkConnectionStatus = "Disconnected"
+	PrivateLinkConnectionStatusPending      PrivateLinkConnectionStatus = "Pending"
+	PrivateLinkConnectionStatusRejected     PrivateLinkConnectionStatus = "Rejected"
+)
+
+func PossibleValuesForPrivateLinkConnectionStatus() []string {
+	return []string{
+		string(PrivateLinkConnectionStatusApproved),
+		string(PrivateLinkConnectionStatusDisconnected),
+		string(PrivateLinkConnectionStatusPending),
+		string(PrivateLinkConnectionStatusRejected),
+	}
+}
+
+func (s *PrivateLinkConnectionStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateLinkConnectionStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePrivateLinkConnectionStatus(input string) (*PrivateLinkConnectionStatus, error) {
+	vals := map[string]PrivateLinkConnectionStatus{
+		"approved":     PrivateLinkConnectionStatusApproved,
+		"disconnected": PrivateLinkConnectionStatusDisconnected,
+		"pending":      PrivateLinkConnectionStatusPending,
+		"rejected":     PrivateLinkConnectionStatusRejected,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateLinkConnectionStatus(input)
+	return &out, nil
+}
+
+type PublicNetworkAccess string
+
+const (
+	PublicNetworkAccessDisabled           PublicNetworkAccess = "Disabled"
+	PublicNetworkAccessEnabled            PublicNetworkAccess = "Enabled"
+	PublicNetworkAccessSecuredByPerimeter PublicNetworkAccess = "SecuredByPerimeter"
+)
+
+func PossibleValuesForPublicNetworkAccess() []string {
+	return []string{
+		string(PublicNetworkAccessDisabled),
+		string(PublicNetworkAccessEnabled),
+		string(PublicNetworkAccessSecuredByPerimeter),
+	}
+}
+
+func (s *PublicNetworkAccess) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePublicNetworkAccess(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
+	vals := map[string]PublicNetworkAccess{
+		"disabled":           PublicNetworkAccessDisabled,
+		"enabled":            PublicNetworkAccessEnabled,
+		"securedbyperimeter": PublicNetworkAccessSecuredByPerimeter,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PublicNetworkAccess(input)
 	return &out, nil
 }
 

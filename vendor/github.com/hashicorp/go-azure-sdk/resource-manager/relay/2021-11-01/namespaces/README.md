@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces` Documentation
 
-The `namespaces` SDK allows for interaction with the Azure Resource Manager Service `relay` (API Version `2017-04-01`).
+The `namespaces` SDK allows for interaction with the Azure Resource Manager Service `relay` (API Version `2021-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
 ```
 
 
@@ -79,6 +79,27 @@ if model := read.Model; model != nil {
 ```
 
 
+### Example Usage: `NamespacesClient.CreateOrUpdateNetworkRuleSet`
+
+```go
+ctx := context.TODO()
+id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+
+payload := namespaces.NetworkRuleSet{
+	// ...
+}
+
+
+read, err := client.CreateOrUpdateNetworkRuleSet(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
 ### Example Usage: `NamespacesClient.Delete`
 
 ```go
@@ -130,6 +151,22 @@ ctx := context.TODO()
 id := namespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "authorizationRuleValue")
 
 read, err := client.GetAuthorizationRule(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `NamespacesClient.GetNetworkRuleSet`
+
+```go
+ctx := context.TODO()
+id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+
+read, err := client.GetNetworkRuleSet(ctx, id)
 if err != nil {
 	// handle the error
 }
