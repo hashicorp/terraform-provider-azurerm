@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Container App Environment is to exist. Changing this forces a new resource to be created.
 
-* `log_analytics_workspace_id` - (Required) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
+* `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
 
 ---
 
