@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections` Documentation
 
-The `hybridconnections` SDK allows for interaction with the Azure Resource Manager Service `relay` (API Version `2017-04-01`).
+The `hybridconnections` SDK allows for interaction with the Azure Resource Manager Service `relay` (API Version `2021-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 ```
 
 
