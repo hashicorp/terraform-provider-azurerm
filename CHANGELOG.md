@@ -12,6 +12,7 @@ BUG FIXES
 * provider: only obtaining an authentication token for Managed HSM in environments where Managed HSM is available [GH-22400]
 * `azurerm_private_endpoint` - loading the subnet to lock from the API rather than the config during deletion [GH-22676]
 * `azurerm_netapp_volume_group_sap_hana` - update the validation of `security_style` to match proper casing after baselayer update [GH-22615]
+* `azurerm_cognitive_deployment` - add locks to parent resource to prevent 409 error [GH-22711]
 
 ## 3.67.0 (July 27, 2023)
 
