@@ -87,7 +87,7 @@ func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.Res
 
 	parameters := hybridconnections.AuthorizationRule{
 		Name: utils.String(resourceId.AuthorizationRuleName),
-		Properties: hybridconnections.AuthorizationRuleProperties{
+		Properties: &hybridconnections.AuthorizationRuleProperties{
 			Rights: expandHybridConnectionAuthorizationRuleRights(d),
 		},
 	}

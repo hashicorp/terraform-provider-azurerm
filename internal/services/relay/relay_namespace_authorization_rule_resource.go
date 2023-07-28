@@ -81,7 +81,7 @@ func resourceRelayNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceDa
 
 	parameters := namespaces.AuthorizationRule{
 		Name: utils.String(resourceId.AuthorizationRuleName),
-		Properties: namespaces.AuthorizationRuleProperties{
+		Properties: &namespaces.AuthorizationRuleProperties{
 			Rights: expandAuthorizationRuleRights(d),
 		},
 	}
