@@ -58,14 +58,15 @@ func dataSourceWebApplicationFirewallPolicy(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	d.Set("name", id.ApplicationGatewayWebApplicationFirewallPolicyName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("name", model.Name)
-		d.Set("resource_group_name", id.ResourceGroupName)
-
 		d.Set("location", location.NormalizeNilable(model.Location))
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
