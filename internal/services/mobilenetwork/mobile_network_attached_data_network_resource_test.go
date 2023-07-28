@@ -18,8 +18,6 @@ type MobileNetworkAttachedDataNetworkResource struct{}
 
 func TestAccMobileNetworkAttachedDataNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
 	r := MobileNetworkAttachedDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -34,8 +32,6 @@ func TestAccMobileNetworkAttachedDataNetwork_basic(t *testing.T) {
 
 func TestAccMobileNetworkAttachedDataNetwork_withDataAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
 	r := MobileNetworkAttachedDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,9 +46,6 @@ func TestAccMobileNetworkAttachedDataNetwork_withDataAccess(t *testing.T) {
 
 func TestAccMobileNetworkAttachedDataNetwork_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkAttachedDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,8 +60,6 @@ func TestAccMobileNetworkAttachedDataNetwork_requiresImport(t *testing.T) {
 
 func TestAccMobileNetworkAttachedDataNetwork_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
 	r := MobileNetworkAttachedDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,8 +74,6 @@ func TestAccMobileNetworkAttachedDataNetwork_complete(t *testing.T) {
 
 func TestAccMobileNetworkAttachedDataNetwork_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_attached_data_network", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
 	r := MobileNetworkAttachedDataNetworkResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
