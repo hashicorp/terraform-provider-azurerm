@@ -158,11 +158,6 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
 data "azurerm_role_definition" "builtin" {
   role_definition_id = "fbdf93bf-df7d-467e-a4d2-9458aa1360c8"
 }
@@ -175,8 +170,8 @@ resource "azurerm_role_assignment" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca-%d"
-  location            = azurerm_resource_group.test2.location
-  resource_group_name = azurerm_resource_group.test2.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
 
@@ -187,7 +182,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = azurerm_resource_group.test2.location
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }
@@ -209,13 +204,13 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 
 data "azurerm_cosmosdb_sql_role_definition" "test" {
   role_definition_id  = "00000000-0000-0000-0000-000000000001"
-  resource_group_name = azurerm_resource_group.test2.name
+  resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
 }
 
 
 resource "azurerm_cosmosdb_sql_role_assignment" "test" {
-  resource_group_name = azurerm_resource_group.test2.name
+  resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_cosmosdb_account.test.name
   role_definition_id  = data.azurerm_cosmosdb_sql_role_definition.test.id
   principal_id        = azurerm_kusto_cluster.test.identity[0].principal_id
@@ -258,5 +253,5 @@ resource "azurerm_kusto_script" "test" {
 .alter table TestTable policy ingestionbatching "{'MaximumBatchingTimeSpan': '0:0:10', 'MaximumNumberOfItems': 10000}"
 SCRIPT
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
