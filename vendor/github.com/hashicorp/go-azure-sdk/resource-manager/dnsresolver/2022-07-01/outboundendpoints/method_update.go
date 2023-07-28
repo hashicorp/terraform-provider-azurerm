@@ -50,7 +50,7 @@ func (o UpdateOperationOptions) ToQuery() *client.QueryParams {
 // Update ...
 func (c OutboundEndpointsClient) Update(ctx context.Context, id OutboundEndpointId, input OutboundEndpointPatch, options UpdateOperationOptions) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

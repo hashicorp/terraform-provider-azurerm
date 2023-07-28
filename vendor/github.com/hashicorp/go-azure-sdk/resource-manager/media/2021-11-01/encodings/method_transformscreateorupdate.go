@@ -20,7 +20,7 @@ type TransformsCreateOrUpdateOperationResponse struct {
 // TransformsCreateOrUpdate ...
 func (c EncodingsClient) TransformsCreateOrUpdate(ctx context.Context, id TransformId, input Transform) (result TransformsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

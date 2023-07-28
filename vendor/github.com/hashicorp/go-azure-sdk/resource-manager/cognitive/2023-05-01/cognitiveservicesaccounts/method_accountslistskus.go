@@ -21,7 +21,7 @@ type AccountsListSkusOperationResponse struct {
 // AccountsListSkus ...
 func (c CognitiveServicesAccountsClient) AccountsListSkus(ctx context.Context, id AccountId) (result AccountsListSkusOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

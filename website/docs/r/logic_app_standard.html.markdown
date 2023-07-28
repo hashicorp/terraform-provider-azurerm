@@ -298,8 +298,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Logic App
 
-* `auto_swap_slot_name` - The Auto-swap slot name.
-
 * `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_hostname` - The default hostname associated with the Logic App - such as `mysite.azurewebsites.net`
@@ -331,6 +329,12 @@ The `site_credential` block exports the following:
 * `username` - The username which can be used to publish to this App Service
 
 * `password` - The password associated with the username, which can be used to publish to this App Service.
+
+---
+
+The `site_config` block exports the following:
+
+* `auto_swap_slot_name` - The Auto-swap slot name.
 
 ## Timeouts
 

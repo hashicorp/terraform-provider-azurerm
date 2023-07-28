@@ -23,7 +23,7 @@ type AdhocBackupOperationResponse struct {
 // AdhocBackup ...
 func (c BackupInstancesClient) AdhocBackup(ctx context.Context, id BackupInstanceId, input TriggerBackupRequest) (result AdhocBackupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

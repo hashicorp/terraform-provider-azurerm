@@ -57,7 +57,7 @@ func (o ListForSubscriptionOperationOptions) ToQuery() *client.QueryParams {
 // ListForSubscription ...
 func (c RoleAssignmentsClient) ListForSubscription(ctx context.Context, id commonids.SubscriptionId, options ListForSubscriptionOperationOptions) (result ListForSubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

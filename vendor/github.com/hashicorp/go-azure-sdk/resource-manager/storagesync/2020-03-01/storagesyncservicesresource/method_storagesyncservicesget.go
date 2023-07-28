@@ -20,7 +20,7 @@ type StorageSyncServicesGetOperationResponse struct {
 // StorageSyncServicesGet ...
 func (c StorageSyncServicesResourceClient) StorageSyncServicesGet(ctx context.Context, id StorageSyncServiceId) (result StorageSyncServicesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

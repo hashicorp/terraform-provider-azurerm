@@ -23,7 +23,7 @@ type ImportDataOperationResponse struct {
 // ImportData ...
 func (c RedisClient) ImportData(ctx context.Context, id RediId, input ImportRDBParameters) (result ImportDataOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

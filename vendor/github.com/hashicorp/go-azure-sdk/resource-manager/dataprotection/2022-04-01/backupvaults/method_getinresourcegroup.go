@@ -26,7 +26,7 @@ type GetInResourceGroupCompleteResult struct {
 // GetInResourceGroup ...
 func (c BackupVaultsClient) GetInResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result GetInResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

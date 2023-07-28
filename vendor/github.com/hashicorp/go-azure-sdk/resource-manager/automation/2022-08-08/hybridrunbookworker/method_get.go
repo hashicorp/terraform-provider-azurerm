@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c HybridRunbookWorkerClient) Get(ctx context.Context, id HybridRunbookWorkerId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

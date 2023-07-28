@@ -21,7 +21,7 @@ type CheckNotificationHubAvailabilityOperationResponse struct {
 // CheckNotificationHubAvailability ...
 func (c NotificationHubsClient) CheckNotificationHubAvailability(ctx context.Context, id NamespaceId, input CheckAvailabilityParameters) (result CheckNotificationHubAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

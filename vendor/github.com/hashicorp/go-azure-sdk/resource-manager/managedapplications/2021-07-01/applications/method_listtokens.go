@@ -21,7 +21,7 @@ type ListTokensOperationResponse struct {
 // ListTokens ...
 func (c ApplicationsClient) ListTokens(ctx context.Context, id ApplicationId, input ListTokenRequest) (result ListTokensOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

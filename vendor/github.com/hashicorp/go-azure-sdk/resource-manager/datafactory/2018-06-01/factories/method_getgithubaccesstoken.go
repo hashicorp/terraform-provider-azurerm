@@ -21,7 +21,7 @@ type GetGitHubAccessTokenOperationResponse struct {
 // GetGitHubAccessToken ...
 func (c FactoriesClient) GetGitHubAccessToken(ctx context.Context, id FactoryId, input GitHubAccessTokenRequest) (result GetGitHubAccessTokenOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

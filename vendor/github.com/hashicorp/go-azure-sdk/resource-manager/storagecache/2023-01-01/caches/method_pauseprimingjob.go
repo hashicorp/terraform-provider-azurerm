@@ -23,7 +23,7 @@ type PausePrimingJobOperationResponse struct {
 // PausePrimingJob ...
 func (c CachesClient) PausePrimingJob(ctx context.Context, id CacheId, input PrimingJobIdParameter) (result PausePrimingJobOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

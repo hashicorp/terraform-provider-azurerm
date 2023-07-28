@@ -48,7 +48,7 @@ func (o AccountsListUsagesOperationOptions) ToQuery() *client.QueryParams {
 // AccountsListUsages ...
 func (c CognitiveServicesAccountsClient) AccountsListUsages(ctx context.Context, id AccountId, options AccountsListUsagesOperationOptions) (result AccountsListUsagesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

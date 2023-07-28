@@ -23,7 +23,7 @@ type LedgerUpdateOperationResponse struct {
 // LedgerUpdate ...
 func (c ConfidentialLedgerClient) LedgerUpdate(ctx context.Context, id LedgerId, input ConfidentialLedger) (result LedgerUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

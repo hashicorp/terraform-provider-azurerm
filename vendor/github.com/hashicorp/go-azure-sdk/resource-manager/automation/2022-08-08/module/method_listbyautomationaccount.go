@@ -25,7 +25,7 @@ type ListByAutomationAccountCompleteResult struct {
 // ListByAutomationAccount ...
 func (c ModuleClient) ListByAutomationAccount(ctx context.Context, id AutomationAccountId) (result ListByAutomationAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -52,7 +52,7 @@ func (o ComputeListOperationOptions) ToQuery() *client.QueryParams {
 // ComputeList ...
 func (c MachineLearningComputesClient) ComputeList(ctx context.Context, id WorkspaceId, options ComputeListOperationOptions) (result ComputeListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

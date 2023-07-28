@@ -119,6 +119,10 @@ The following arguments are supported:
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
+* `bypass_platform_safety_checks_on_user_schedule_enabled` - (Optional) Specifies whether to skip platform scheduled patching when a user schedule is associated with the VM. Defaults to `false`.
+
+~> **NOTE:** `bypass_platform_safety_checks_on_user_schedule_enabled` can only be set to `true` when `patch_mode` is set to `AutomaticByPlatform`.
+
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine should be allocated to.
 
 ~> **NOTE:** `capacity_reservation_group_id` cannot be used with `availability_set_id` or `proximity_placement_group_id`
@@ -176,6 +180,10 @@ The following arguments are supported:
 ~> **NOTE:** If `provision_vm_agent` is set to `false` then `allow_extension_operations` must also be set to `false`.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Virtual Machine should be assigned to.
+
+* `reboot_setting` - (Optional) Specifies the reboot setting for platform scheduled patching. Possible values are `Always`, `IfRequired` and `Never`.
+
+~> **NOTE:** `reboot_setting` can only be set when `patch_mode` is set to `AutomaticByPlatform`.
 
 * `secret` - (Optional) One or more `secret` blocks as defined below.
 

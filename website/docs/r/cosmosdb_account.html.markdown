@@ -259,7 +259,7 @@ A `cors_rule` block supports the following:
 
 * `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients.
 
-* `max_age_in_seconds` - (Required) The number of seconds the client should cache a preflight response.
+* `max_age_in_seconds` - (Optional) The number of seconds the client should cache a preflight response. Possible values are between `1` and `2147483647`.
 
 ---
 

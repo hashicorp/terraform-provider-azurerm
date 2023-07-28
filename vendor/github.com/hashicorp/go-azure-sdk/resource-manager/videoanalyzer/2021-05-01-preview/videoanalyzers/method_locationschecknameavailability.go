@@ -21,7 +21,7 @@ type LocationsCheckNameAvailabilityOperationResponse struct {
 // LocationsCheckNameAvailability ...
 func (c VideoAnalyzersClient) LocationsCheckNameAvailability(ctx context.Context, id LocationId, input CheckNameAvailabilityRequest) (result LocationsCheckNameAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

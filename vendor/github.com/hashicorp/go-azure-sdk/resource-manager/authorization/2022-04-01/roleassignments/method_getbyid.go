@@ -49,7 +49,7 @@ func (o GetByIdOperationOptions) ToQuery() *client.QueryParams {
 // GetById ...
 func (c RoleAssignmentsClient) GetById(ctx context.Context, id commonids.ScopeId, options GetByIdOperationOptions) (result GetByIdOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

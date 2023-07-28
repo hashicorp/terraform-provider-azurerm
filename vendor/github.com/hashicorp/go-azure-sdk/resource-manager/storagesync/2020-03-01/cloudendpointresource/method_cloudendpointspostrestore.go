@@ -23,7 +23,7 @@ type CloudEndpointsPostRestoreOperationResponse struct {
 // CloudEndpointsPostRestore ...
 func (c CloudEndpointResourceClient) CloudEndpointsPostRestore(ctx context.Context, id CloudEndpointId, input PostRestoreRequest) (result CloudEndpointsPostRestoreOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

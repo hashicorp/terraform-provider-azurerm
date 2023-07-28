@@ -25,7 +25,7 @@ type ListOutboundNetworkDependenciesEndpointsCompleteResult struct {
 // ListOutboundNetworkDependenciesEndpoints ...
 func (c DiskPoolsClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Context, id DiskPoolId) (result ListOutboundNetworkDependenciesEndpointsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

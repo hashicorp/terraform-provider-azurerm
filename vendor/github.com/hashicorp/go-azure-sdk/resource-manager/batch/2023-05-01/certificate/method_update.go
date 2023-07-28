@@ -48,7 +48,7 @@ func (o UpdateOperationOptions) ToQuery() *client.QueryParams {
 // Update ...
 func (c CertificateClient) Update(ctx context.Context, id CertificateId, input CertificateCreateOrUpdateParameters, options UpdateOperationOptions) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

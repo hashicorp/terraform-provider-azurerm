@@ -23,7 +23,7 @@ type ResyncKeysOperationResponse struct {
 // ResyncKeys ...
 func (c WorkspacesClient) ResyncKeys(ctx context.Context, id WorkspaceId) (result ResyncKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

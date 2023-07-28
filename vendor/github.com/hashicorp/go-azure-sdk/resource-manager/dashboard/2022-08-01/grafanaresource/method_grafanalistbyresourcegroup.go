@@ -26,7 +26,7 @@ type GrafanaListByResourceGroupCompleteResult struct {
 // GrafanaListByResourceGroup ...
 func (c GrafanaResourceClient) GrafanaListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result GrafanaListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

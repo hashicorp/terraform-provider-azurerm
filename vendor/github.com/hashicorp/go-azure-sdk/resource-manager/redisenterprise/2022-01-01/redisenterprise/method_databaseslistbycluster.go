@@ -25,7 +25,7 @@ type DatabasesListByClusterCompleteResult struct {
 // DatabasesListByCluster ...
 func (c RedisEnterpriseClient) DatabasesListByCluster(ctx context.Context, id RedisEnterpriseId) (result DatabasesListByClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

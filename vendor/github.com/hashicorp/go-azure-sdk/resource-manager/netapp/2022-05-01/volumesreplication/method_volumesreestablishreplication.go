@@ -23,7 +23,7 @@ type VolumesReestablishReplicationOperationResponse struct {
 // VolumesReestablishReplication ...
 func (c VolumesReplicationClient) VolumesReestablishReplication(ctx context.Context, id VolumeId, input ReestablishReplicationRequest) (result VolumesReestablishReplicationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},
