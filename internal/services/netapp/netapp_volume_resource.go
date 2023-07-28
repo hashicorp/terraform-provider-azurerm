@@ -153,9 +153,10 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"throughput_in_mibps": {
-				Type:     pluginsdk.TypeFloat,
-				Optional: true,
-				Computed: true,
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.FloatAtLeast(1.0),
 			},
 
 			"export_policy_rule": {
