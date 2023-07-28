@@ -36,7 +36,7 @@ func CdnFrontDoorCacheDuration(i interface{}, k string) (_ []string, errors []er
 	if len(durationParts) > 1 {
 		days, err := strconv.Atoi(durationParts[0])
 		if err != nil {
-			return nil, []error{fmt.Errorf(`%q 'days' segment must be a valid number and have a value that is be between 1 and 365, got %q`, k, v)}
+			return nil, []error{fmt.Errorf(`%q 'days' segment is invalid, the 'days' segment must be a valid number and have a value that is between 1 and 365, got %q`, k, v)}
 		}
 
 		if days > 365 {
