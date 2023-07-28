@@ -195,8 +195,8 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulesClient
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
+			client := metadata.Client.PaloAlto.Client.LocalRules
+			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
 
 			model := LocalRuleModel{}
 
@@ -296,7 +296,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulesClient
+			client := metadata.Client.PaloAlto.Client.LocalRules
 
 			id, err := localrules.ParseLocalRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -356,7 +356,7 @@ func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulesClient
+			client := metadata.Client.PaloAlto.Client.LocalRules
 
 			id, err := localrules.ParseLocalRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -380,7 +380,8 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulesClient
+			client := metadata.Client.PaloAlto.Client.LocalRules
+			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
 
 			model := LocalRuleModel{}
 
@@ -395,6 +396,10 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
+
+			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			locks.ByID(rulestackId.ID())
+			defer locks.UnlockByID(rulestackId.ID())
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -475,6 +480,9 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
+			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
+			}
 			return nil
 		},
 	}

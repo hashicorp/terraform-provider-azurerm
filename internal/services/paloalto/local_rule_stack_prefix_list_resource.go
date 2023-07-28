@@ -86,8 +86,8 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListClient
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
+			client := metadata.Client.PaloAlto.Client.PrefixListLocalRulestack
+			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
 			model := LocalRuleStackPrefixListModel{}
 
 			if err := metadata.Decode(&model); err != nil {
@@ -149,7 +149,7 @@ func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListClient
+			client := metadata.Client.PaloAlto.Client.PrefixListLocalRulestack
 
 			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
@@ -184,7 +184,7 @@ func (r LocalRuleStackPrefixList) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListClient
+			client := metadata.Client.PaloAlto.Client.PrefixListLocalRulestack
 
 			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
@@ -208,8 +208,8 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListClient
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
+			client := metadata.Client.PaloAlto.Client.PrefixListLocalRulestack
+			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
 
 			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {

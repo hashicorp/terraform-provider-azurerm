@@ -107,7 +107,7 @@ func (r NextGenerationFirewallVnetResource) Exists(ctx context.Context, client *
 		return nil, err
 	}
 
-	resp, err := client.PaloAlto.FirewallClient.Get(ctx, *id)
+	resp, err := client.PaloAlto.Client.Firewalls.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

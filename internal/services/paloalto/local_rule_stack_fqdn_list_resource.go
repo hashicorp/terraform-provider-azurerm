@@ -86,8 +86,8 @@ func (r LocalRulestackFQDNList) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FQDNListsClient
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
+			client := metadata.Client.PaloAlto.Client.FqdnListLocalRulestack
+			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
 
 			model := LocalRulestackFQDNListModel{}
 
@@ -149,7 +149,7 @@ func (r LocalRulestackFQDNList) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FQDNListsClient
+			client := metadata.Client.PaloAlto.Client.FqdnListLocalRulestack
 
 			id, err := fqdnlistlocalrulestack.ParseLocalRulestackFqdnListID(metadata.ResourceData.Id())
 			if err != nil {
@@ -184,7 +184,7 @@ func (r LocalRulestackFQDNList) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FQDNListsClient
+			client := metadata.Client.PaloAlto.Client.FqdnListLocalRulestack
 
 			id, err := fqdnlistlocalrulestack.ParseLocalRulestackFqdnListID(metadata.ResourceData.Id())
 			if err != nil {
@@ -208,8 +208,8 @@ func (r LocalRulestackFQDNList) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FQDNListsClient
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
+			client := metadata.Client.PaloAlto.Client.FqdnListLocalRulestack
+			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
 
 			model := LocalRulestackFQDNListModel{}
 

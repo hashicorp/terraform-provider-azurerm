@@ -92,9 +92,9 @@ func (r NextGenerationFirewallVNetPanoramaResource) ResourceType() string {
 
 func (r NextGenerationFirewallVNetPanoramaResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FirewallClient
+			client := metadata.Client.PaloAlto.Client.Firewalls
 
 			var model NextGenerationFirewallVnetPanoramaModel
 
@@ -151,7 +151,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FirewallClient
+			client := metadata.Client.PaloAlto.Client.Firewalls
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
@@ -204,9 +204,9 @@ func (r NextGenerationFirewallVNetPanoramaResource) Read() sdk.ResourceFunc {
 
 func (r NextGenerationFirewallVNetPanoramaResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FirewallClient
+			client := metadata.Client.PaloAlto.Client.Firewalls
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
@@ -228,7 +228,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) IDValidationFunc() pluginsdk
 
 func (r NextGenerationFirewallVNetPanoramaResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 
 			return nil

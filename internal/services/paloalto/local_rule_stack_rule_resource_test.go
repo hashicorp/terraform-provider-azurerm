@@ -116,7 +116,7 @@ func (r LocalRuleResource) Exists(ctx context.Context, client *clients.Client, s
 		return nil, err
 	}
 
-	resp, err := client.PaloAlto.LocalRulesClient.Get(ctx, *id)
+	resp, err := client.PaloAlto.Client.LocalRules.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

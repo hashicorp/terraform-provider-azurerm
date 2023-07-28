@@ -87,7 +87,7 @@ func (r LocalRulestackResource) Exists(ctx context.Context, client *clients.Clie
 		return nil, err
 	}
 
-	resp, err := client.PaloAlto.LocalRulestacksClient.Get(ctx, *id)
+	resp, err := client.PaloAlto.Client.LocalRulestacks.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

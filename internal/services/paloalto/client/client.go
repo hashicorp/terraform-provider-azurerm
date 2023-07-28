@@ -1,69 +1,15 @@
 package client
 
 import (
-	"fmt"
-
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectlocalrulestack"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistlocalrulestack"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/prefixlistlocalrulestack"
+	paloalto_2022_08_29 "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	CertificatesClient    *certificateobjectlocalrulestack.CertificateObjectLocalRulestackClient
-	FirewallClient        *firewalls.FirewallsClient
-	FQDNListsClient       *fqdnlistlocalrulestack.FqdnListLocalRulestackClient
-	LocalRulesClient      *localrules.LocalRulesClient
-	LocalRulestacksClient *localrulestacks.LocalRulestacksClient
-	PrefixListClient      *prefixlistlocalrulestack.PrefixListLocalRulestackClient
+	*paloalto_2022_08_29.Client
 }
 
-func NewClient(o *common.ClientOptions) (*Client, error) {
-	certificatesClient, err := certificateobjectlocalrulestack.NewCertificateObjectLocalRulestackClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Firewall client: %+v", err)
-	}
-	o.Configure(certificatesClient.Client, o.Authorizers.ResourceManager)
+func NewClient(_ *common.ClientOptions) (*Client, error) {
 
-	firewallClient, err := firewalls.NewFirewallsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Firewall client: %+v", err)
-	}
-	o.Configure(firewallClient.Client, o.Authorizers.ResourceManager)
-
-	fqdnListsClient, err := fqdnlistlocalrulestack.NewFqdnListLocalRulestackClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Firewall client: %+v", err)
-	}
-	o.Configure(fqdnListsClient.Client, o.Authorizers.ResourceManager)
-
-	localRulestackClient, err := localrulestacks.NewLocalRulestacksClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building LocalRulestacks client: %+v", err)
-	}
-	o.Configure(localRulestackClient.Client, o.Authorizers.ResourceManager)
-
-	localRuleClient, err := localrules.NewLocalRulesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building LocalRules client: %+v", err)
-	}
-	o.Configure(localRuleClient.Client, o.Authorizers.ResourceManager)
-
-	prefixListClient, err := prefixlistlocalrulestack.NewPrefixListLocalRulestackClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building LocalRules client: %+v", err)
-	}
-	o.Configure(prefixListClient.Client, o.Authorizers.ResourceManager)
-
-	return &Client{
-		CertificatesClient:    certificatesClient,
-		FirewallClient:        firewallClient,
-		FQDNListsClient:       fqdnListsClient,
-		LocalRulesClient:      localRuleClient,
-		LocalRulestacksClient: localRulestackClient,
-		PrefixListClient:      prefixListClient,
-	}, nil
+	return &Client{}, nil
 }

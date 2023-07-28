@@ -63,7 +63,7 @@ func (r NetworkVirtualApplianceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.VirtualAppliancesClient
+			client := metadata.Client.Network.Client.NetworkVirtualAppliances
 
 			model := NetworkVirtualApplianceResourceModel{}
 
@@ -124,7 +124,7 @@ func (r NetworkVirtualApplianceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.VirtualAppliancesClient
+			client := metadata.Client.Network.Client.NetworkVirtualAppliances
 
 			var state NetworkVirtualApplianceResourceModel
 
@@ -157,7 +157,7 @@ func (r NetworkVirtualApplianceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.VirtualAppliancesClient
+			client := metadata.Client.Network.Client.NetworkVirtualAppliances
 
 			id, err := networkvirtualappliances.ParseNetworkVirtualApplianceID(metadata.ResourceData.Id())
 			if err != nil {

@@ -93,8 +93,8 @@ func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.CertificatesClient
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
+			client := metadata.Client.PaloAlto.Client.CertificateObjectLocalRulestack
+			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
 
 			model := LocalRuleStackCertificateModel{}
 			if err := metadata.Decode(&model); err != nil {
@@ -159,7 +159,7 @@ func (r LocalRuleStackCertificate) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.CertificatesClient
+			client := metadata.Client.PaloAlto.Client.CertificateObjectLocalRulestack
 
 			id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
@@ -195,7 +195,7 @@ func (r LocalRuleStackCertificate) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.CertificatesClient
+			client := metadata.Client.PaloAlto.Client.CertificateObjectLocalRulestack
 
 			id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
@@ -222,8 +222,8 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.CertificatesClient
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacksClient
+			client := metadata.Client.PaloAlto.Client.CertificateObjectLocalRulestack
+			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
 			model := LocalRuleStackCertificateModel{}
 
 			if err := metadata.Decode(&model); err != nil {
