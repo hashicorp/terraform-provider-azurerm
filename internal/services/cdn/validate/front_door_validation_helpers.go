@@ -36,18 +36,18 @@ func CdnFrontDoorCacheDuration(i interface{}, k string) (_ []string, errors []er
 	if len(durationParts) > 1 {
 		days, err := strconv.Atoi(durationParts[0])
 		if err != nil {
-			return nil, []error{fmt.Errorf(`%q 'days' element must be a valid number and have a value that is be between 1 and 365, got %q`, k, v)}
+			return nil, []error{fmt.Errorf(`%q 'days' segment must be a valid number and have a value that is be between 1 and 365, got %q`, k, v)}
 		}
 
 		if days > 365 {
-			return nil, []error{fmt.Errorf(`%q must be between in the d.HH:MM:SS or HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
+			return nil, []error{fmt.Errorf(`%q must be in the d.HH:MM:SS or HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
 		}
 	}
 
 	// the old regular expersion was broken because it wouldn't allow the value in the tens
 	// position to be greater than 6 and the ones position greater than 5
 	if m, _ := validate.RegExHelper(i, k, `^([1-9]|([1-9][0-9])|([1-3][0-9][0-9])).((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$|^((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$`); !m {
-		return nil, []error{fmt.Errorf(`%q must be between in the d.HH:MM:SS or HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
+		return nil, []error{fmt.Errorf(`%q must be in the d.HH:MM:SS or HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
 	}
 
 	if v == "00:00:00" {
