@@ -1326,7 +1326,7 @@ resource "azurerm_container_app" "test" {
 }
 
 func (ContainerAppResource) template(data acceptance.TestData) string {
-	return ContainerAppEnvironmentResource{}.basic(data)
+	return ContainerAppEnvironmentResource{}.basic(data, true)
 }
 
 func (ContainerAppResource) templateWithVnet(data acceptance.TestData) string {
