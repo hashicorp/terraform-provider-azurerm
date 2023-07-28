@@ -5,6 +5,7 @@ ENHANCEMENTS
 * dependencies: updating to `v0.20230727.1144132` of `github.com/hashicorp/go-azure-sdk` [GH-22726]
 * `network`: updating to use API Version `2023-02-01` [GH-22676]
 * `relay`: updating to use API Version `2021-11-01` [GH-22725]
+* `azurerm_web_application_firewall_policy` - updating to use API Version `2023-02-01` [GH-22455]
 
 BUG FIXES
 
