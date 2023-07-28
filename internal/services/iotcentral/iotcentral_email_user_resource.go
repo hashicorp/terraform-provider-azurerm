@@ -113,6 +113,9 @@ func resourceIotCentralEmailUserRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	resp, err := userClient.Get(ctx, id.Id)
+	if err != nil {
+		return err
+	}
 
 	user, isEmailUser := resp.Value.AsEmailUser()
 	if !isEmailUser {
