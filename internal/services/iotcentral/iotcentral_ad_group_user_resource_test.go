@@ -85,8 +85,8 @@ provider "azuread" {}
 data "azurerm_client_config" "current" {}
 
 resource "azuread_group" "test" {
-	display_name     = "acctest-iotcentraladgroup-%d"
-	security_enabled = true
+  display_name     = "acctest-iotcentraladgroup-%d"
+  security_enabled = true
 }
 
 %s
@@ -114,8 +114,8 @@ provider "azuread" {}
 data "azurerm_client_config" "current" {}
 
 resource "azuread_group" "test" {
-	display_name     = "acctest-iotcentraladgroup-%d"
-	security_enabled = true
+  display_name     = "acctest-iotcentraladgroup-%d"
+  security_enabled = true
 }
 
 %s

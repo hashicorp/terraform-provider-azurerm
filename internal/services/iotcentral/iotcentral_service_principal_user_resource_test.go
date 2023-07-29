@@ -85,11 +85,11 @@ provider "azuread" {}
 data "azurerm_client_config" "current" {}
 
 resource "azuread_application" "test" {
-	display_name     = "acctest-iotcentralsp-%d"
+  display_name = "acctest-iotcentralsp-%d"
 }
-  
+
 resource "azuread_service_principal" "test" {
-	application_id               = azuread_application.test.application_id
+  application_id = azuread_application.test.application_id
 }
 
 %s
@@ -117,11 +117,11 @@ provider "azuread" {}
 data "azurerm_client_config" "current" {}
 
 resource "azuread_application" "test" {
-	display_name     = "acctest-iotcentralsp-%d"
+  display_name = "acctest-iotcentralsp-%d"
 }
-  
+
 resource "azuread_service_principal" "test" {
-	application_id               = azuread_application.test.application_id
+  application_id = azuread_application.test.application_id
 }
 
 %s
