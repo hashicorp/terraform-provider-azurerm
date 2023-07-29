@@ -15,13 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-const (
-	appAdminRoleDisplayName = "App Administrator"
-	appAdminRoleId          = "ca310b8d-2f4a-44e0-a36e-957c202cd8d4"
-	orgAdminRoleDisplayName = "Org Administrator"
-	orgAdminRoleId          = "c495eb57-eb18-489e-9802-62c474e5645c"
-)
-
 type IoTCentralEmailUserResource struct{}
 
 func TestAccIoTCentralEmailUser_basic(t *testing.T) {
@@ -55,6 +48,28 @@ func TestAccIoTCentralEmailUser_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccIoTCentralEmailUser_basicUpdateRole(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_email_user", "test")
+	r := IoTCentralEmailUserResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("roles.0.role").HasValue(appAdminRoleId),
+			),
+		},
+		{
+			Config: r.basicUpdateRole(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("roles.0.role").HasValue(appBuilderRoleId),
+			),
+		},
 	})
 }
 
@@ -116,6 +131,30 @@ resource "azurerm_iotcentral_email_user" "test" {
   }
 }
 `, r.templateComplete(data), data.RandomInteger)
+}
+
+func (r IoTCentralEmailUserResource) basicUpdateRole(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_iotcentral_role" "app_builder" {
+  sub_domain   = azurerm_iotcentral_application.test.sub_domain
+  display_name = "%s"
+}
+
+resource "azurerm_iotcentral_email_user" "test" {
+  sub_domain = azurerm_iotcentral_application.test.sub_domain
+  email      = "basic%d@example.ex"
+
+  roles {
+    role = data.azurerm_iotcentral_role.app_builder.id
+  }
+}
+`, r.templateBasic(data), appBuilderRoleDisplayName, data.RandomInteger)
 }
 
 func (IoTCentralEmailUserResource) templateBasic(data acceptance.TestData) string {

@@ -53,6 +53,28 @@ func TestAccIoTCentralServicePrincipalUser_complete(t *testing.T) {
 	})
 }
 
+func TestAccIoTCentralServicePrincipalUser_basicUpdateRole(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_service_principal_user", "test")
+	r := IoTCentralServicePrincipalUserResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("roles.0.role").HasValue(appAdminRoleId),
+			),
+		},
+		{
+			Config: r.basicUpdateRole(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("roles.0.role").HasValue(appBuilderRoleId),
+			),
+		},
+	})
+}
+
 func (IoTCentralServicePrincipalUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
@@ -137,6 +159,43 @@ resource "azurerm_iotcentral_service_principal_user" "test" {
   }
 }
 `, data.RandomInteger, r.templateComplete(data))
+}
+
+func (r IoTCentralServicePrincipalUserResource) basicUpdateRole(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
+
+data "azurerm_client_config" "current" {}
+
+resource "azuread_application" "test" {
+  display_name = "acctest-iotcentralsp-%d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+%s
+
+data "azurerm_iotcentral_role" "app_builder" {
+  sub_domain   = azurerm_iotcentral_application.test.sub_domain
+  display_name = "%s"
+}
+
+resource "azurerm_iotcentral_service_principal_user" "test" {
+  sub_domain = azurerm_iotcentral_application.test.sub_domain
+  object_id  = azuread_service_principal.test.object_id
+  tenant_id  = data.azurerm_client_config.current.tenant_id
+
+  roles {
+    role = data.azurerm_iotcentral_role.app_builder.id
+  }
+}
+`, data.RandomInteger, r.templateBasic(data), appBuilderRoleDisplayName)
 }
 
 func (IoTCentralServicePrincipalUserResource) templateBasic(data acceptance.TestData) string {

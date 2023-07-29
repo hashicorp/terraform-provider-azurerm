@@ -53,6 +53,28 @@ func TestAccIoTCentralADGroupUser_complete(t *testing.T) {
 	})
 }
 
+func TestAccIoTCentralADGroupUser_basicUpdateRole(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_ad_group_user", "test")
+	r := IoTCentralADGroupUserResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("roles.0.role").HasValue(appAdminRoleId),
+			),
+		},
+		{
+			Config: r.basicUpdateRole(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("roles.0.role").HasValue(appBuilderRoleId),
+			),
+		},
+	})
+}
+
 func (IoTCentralADGroupUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
@@ -122,7 +144,7 @@ resource "azuread_group" "test" {
 
 resource "azurerm_iotcentral_ad_group_user" "test" {
   sub_domain = azurerm_iotcentral_application.test.sub_domain
-  object_id  = data.azurerm_client_config.current.object_id
+  object_id  = azuread_group.test.object_id
   tenant_id  = data.azurerm_client_config.current.tenant_id
 
   roles {
@@ -131,6 +153,40 @@ resource "azurerm_iotcentral_ad_group_user" "test" {
   }
 }
 `, data.RandomInteger, r.templateComplete(data))
+}
+
+func (r IoTCentralADGroupUserResource) basicUpdateRole(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
+
+data "azurerm_client_config" "current" {}
+
+resource "azuread_group" "test" {
+  display_name     = "acctest-iotcentraladgroup-%d"
+  security_enabled = true
+}
+
+%s
+
+data "azurerm_iotcentral_role" "app_builder" {
+  sub_domain   = azurerm_iotcentral_application.test.sub_domain
+  display_name = "%s"
+}
+
+resource "azurerm_iotcentral_ad_group_user" "test" {
+  sub_domain = azurerm_iotcentral_application.test.sub_domain
+  object_id  = azuread_group.test.object_id
+  tenant_id  = data.azurerm_client_config.current.tenant_id
+
+  roles {
+    role = data.azurerm_iotcentral_role.app_builder.id
+  }
+}
+`, data.RandomInteger, r.templateBasic(data), appBuilderRoleDisplayName)
 }
 
 func (IoTCentralADGroupUserResource) templateBasic(data acceptance.TestData) string {
