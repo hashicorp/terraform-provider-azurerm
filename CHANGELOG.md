@@ -3,10 +3,10 @@
 ENHANCEMENTS
 
 * dependencies: updating to `v0.20230728.1082317` of `github.com/hashicorp/go-azure-sdk` [GH-22731]
-* `network`: updating to use API Version `2023-02-01` [GH-22676]
+* `network`: updating to use API Version `2023-04-01` [GH-22727]
 * `relay`: updating to use API Version `2021-11-01` [GH-22725]
+* Data Source: `azurerm_images` - support for `disk_encryption_set_id` [GH-22690]
 * `azurerm_web_application_firewall_policy` - updating to use API Version `2023-02-01` [GH-22455]
-* `data azurerm_images` - support for `disk_encryption_set_id` and updating to use separate flatten functions [GH-22690]
   
 BUG FIXES
 
