@@ -19,7 +19,7 @@ type DeleteAuthorizationRuleOperationResponse struct {
 // DeleteAuthorizationRule ...
 func (c NotificationHubsClient) DeleteAuthorizationRule(ctx context.Context, id NotificationHubAuthorizationRuleId) (result DeleteAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

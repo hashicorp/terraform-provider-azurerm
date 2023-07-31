@@ -21,7 +21,7 @@ type WorkflowVersionTriggersListCallbackUrlOperationResponse struct {
 // WorkflowVersionTriggersListCallbackUrl ...
 func (c WorkflowTriggersClient) WorkflowVersionTriggersListCallbackUrl(ctx context.Context, id VersionTriggerId, input GetCallbackUrlParameters) (result WorkflowVersionTriggersListCallbackUrlOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

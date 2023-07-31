@@ -26,7 +26,7 @@ type GetInSubscriptionCompleteResult struct {
 // GetInSubscription ...
 func (c BackupVaultsClient) GetInSubscription(ctx context.Context, id commonids.SubscriptionId) (result GetInSubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

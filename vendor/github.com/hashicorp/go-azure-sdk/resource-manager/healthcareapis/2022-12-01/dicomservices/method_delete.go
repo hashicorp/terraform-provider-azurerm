@@ -23,7 +23,7 @@ type DeleteOperationResponse struct {
 // Delete ...
 func (c DicomServicesClient) Delete(ctx context.Context, id DicomServiceId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

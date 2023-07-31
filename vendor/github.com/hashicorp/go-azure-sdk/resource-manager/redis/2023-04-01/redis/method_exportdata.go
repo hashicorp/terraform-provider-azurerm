@@ -23,7 +23,7 @@ type ExportDataOperationResponse struct {
 // ExportData ...
 func (c RedisClient) ExportData(ctx context.Context, id RediId, input ExportRDBParameters) (result ExportDataOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

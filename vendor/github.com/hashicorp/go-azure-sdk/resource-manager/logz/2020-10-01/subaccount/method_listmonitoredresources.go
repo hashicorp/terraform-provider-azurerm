@@ -25,7 +25,7 @@ type ListMonitoredResourcesCompleteResult struct {
 // ListMonitoredResources ...
 func (c SubAccountClient) ListMonitoredResources(ctx context.Context, id AccountId) (result ListMonitoredResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

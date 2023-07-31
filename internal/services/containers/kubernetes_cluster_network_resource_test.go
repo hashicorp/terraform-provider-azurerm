@@ -3486,7 +3486,7 @@ func (KubernetesClusterResource) publicNetworkAccess(data acceptance.TestData, e
 	authorizedIPConfig := ""
 	if !enabled {
 		authorizedIPConfig = `api_server_access_profile {
-	authorized_ip_ranges = ["0.0.0.0/32"]
+	authorized_ip_ranges = ["0.0.0.0/0"]
   }`
 	}
 	return fmt.Sprintf(`

@@ -143,6 +143,34 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"marketplace": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"plan": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"publisher": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"product": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"network": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -408,8 +436,9 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	resource := appplatform.ServiceResource{
 		Location: utils.String(location),
 		Properties: &appplatform.ClusterResourceProperties{
-			NetworkProfile: expandSpringCloudNetwork(d.Get("network").([]interface{})),
-			ZoneRedundant:  utils.Bool(d.Get("zone_redundant").(bool)),
+			NetworkProfile:      expandSpringCloudNetwork(d.Get("network").([]interface{})),
+			ZoneRedundant:       utils.Bool(d.Get("zone_redundant").(bool)),
+			MarketplaceResource: expandSpringCloudMarketplaceResource(d.Get("marketplace").([]interface{})),
 		},
 		Sku: &appplatform.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
@@ -759,6 +788,10 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `required_network_traffic_rules`: %+v", err)
 		}
 
+		if err := d.Set("marketplace", flattenSpringCloudMarketplaceResource(props.MarketplaceResource)); err != nil {
+			return fmt.Errorf("setting `marketplace`: %+v", err)
+		}
+
 		if vnetAddons := props.VnetAddons; vnetAddons != nil {
 			if err := d.Set("log_stream_public_endpoint_enabled", utils.Bool(*vnetAddons.LogStreamPublicEndpoint)); err != nil {
 				return fmt.Errorf("setting `log_stream_public_endpoint_enabled`: %+v", err)
@@ -1034,6 +1067,18 @@ func expandSpringCloudBuildService(input []interface{}, springId parse.SpringClo
 		out.ContainerRegistry = utils.String(parse.NewSpringCloudContainerRegistryID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, value).ID())
 	}
 	return out
+}
+
+func expandSpringCloudMarketplaceResource(input []interface{}) *appplatform.MarketplaceResource {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &appplatform.MarketplaceResource{
+		Plan:      utils.String(v["plan"].(string)),
+		Publisher: utils.String(v["publisher"].(string)),
+		Product:   utils.String(v["product"].(string)),
+	}
 }
 
 func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerProperties, d *pluginsdk.ResourceData) []interface{} {
@@ -1417,4 +1462,29 @@ func flattenSpringCloudBuildService(input *appplatform.BuildServiceProperties) [
 		}
 	}
 	return []interface{}{}
+}
+
+func flattenSpringCloudMarketplaceResource(input *appplatform.MarketplaceResource) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	plan := ""
+	publisher := ""
+	product := ""
+	if input.Plan != nil {
+		plan = *input.Plan
+	}
+	if input.Publisher != nil {
+		publisher = *input.Publisher
+	}
+	if input.Product != nil {
+		product = *input.Product
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"plan":      plan,
+			"publisher": publisher,
+			"product":   product,
+		},
+	}
 }

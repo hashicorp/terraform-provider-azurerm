@@ -20,7 +20,7 @@ type LinkedServerGetOperationResponse struct {
 // LinkedServerGet ...
 func (c RedisClient) LinkedServerGet(ctx context.Context, id LinkedServerId) (result LinkedServerGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

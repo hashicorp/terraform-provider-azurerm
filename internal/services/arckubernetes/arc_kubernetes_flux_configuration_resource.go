@@ -113,7 +113,27 @@ func (r ArcKubernetesFluxConfigurationResource) ModelObject() interface{} {
 }
 
 func (r ArcKubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return fluxconfiguration.ValidateFluxConfigurationID
+	return func(val interface{}, key string) (warns []string, errs []error) {
+		idRaw, ok := val.(string)
+		if !ok {
+			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
+			return
+		}
+
+		id, err := fluxconfiguration.ParseScopedFluxConfigurationID(idRaw)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q: %+v", idRaw, err))
+			return
+		}
+
+		// validate the scope is a connected cluster id
+		if _, err := arckubernetes.ParseConnectedClusterID(id.Scope); err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", idRaw, err))
+			return
+		}
+
+		return
+	}
 }
 
 func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -518,7 +538,8 @@ func (r ArcKubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
-			id := fluxconfiguration.NewFluxConfigurationID(subscriptionId, clusterID.ResourceGroupName, "Microsoft.Kubernetes", "connectedClusters", clusterID.ConnectedClusterName, model.Name)
+			connectedClusterId := arckubernetes.NewConnectedClusterID(subscriptionId, clusterID.ResourceGroupName, clusterID.ConnectedClusterName)
+			id := fluxconfiguration.NewScopedFluxConfigurationID(connectedClusterId.ID(), model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -578,7 +599,7 @@ func (r ArcKubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.FluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -660,7 +681,7 @@ func (r ArcKubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.FluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -679,9 +700,14 @@ func (r ArcKubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			connectedClusterId, err := arckubernetes.ParseConnectedClusterID(id.Scope)
+			if err != nil {
+				return fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", id.Scope, err)
+			}
+
 			state := ArcKubernetesFluxConfigurationModel{
 				Name:      id.FluxConfigurationName,
-				ClusterID: arckubernetes.NewConnectedClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
+				ClusterID: connectedClusterId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -717,7 +743,7 @@ func (r ArcKubernetesFluxConfigurationResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.FluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

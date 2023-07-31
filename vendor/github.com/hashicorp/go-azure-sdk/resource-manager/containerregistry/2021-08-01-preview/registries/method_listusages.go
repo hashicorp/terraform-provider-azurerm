@@ -21,7 +21,7 @@ type ListUsagesOperationResponse struct {
 // ListUsages ...
 func (c RegistriesClient) ListUsages(ctx context.Context, id RegistryId) (result ListUsagesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

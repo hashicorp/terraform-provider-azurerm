@@ -26,7 +26,7 @@ type RemoteRenderingAccountsListBySubscriptionCompleteResult struct {
 // RemoteRenderingAccountsListBySubscription ...
 func (c ResourceClient) RemoteRenderingAccountsListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result RemoteRenderingAccountsListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

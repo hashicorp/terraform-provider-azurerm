@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -67,7 +68,7 @@ func (o ListForResourceOperationOptions) toQueryString() map[string]interface{} 
 }
 
 // ListForResource ...
-func (c PolicyAssignmentsClient) ListForResource(ctx context.Context, id ResourceId, options ListForResourceOperationOptions) (resp ListForResourceOperationResponse, err error) {
+func (c PolicyAssignmentsClient) ListForResource(ctx context.Context, id commonids.ScopeId, options ListForResourceOperationOptions) (resp ListForResourceOperationResponse, err error) {
 	req, err := c.preparerForListForResource(ctx, id, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyassignments.PolicyAssignmentsClient", "ListForResource", nil, "Failure preparing request")
@@ -89,7 +90,7 @@ func (c PolicyAssignmentsClient) ListForResource(ctx context.Context, id Resourc
 }
 
 // preparerForListForResource prepares the ListForResource request.
-func (c PolicyAssignmentsClient) preparerForListForResource(ctx context.Context, id ResourceId, options ListForResourceOperationOptions) (*http.Request, error) {
+func (c PolicyAssignmentsClient) preparerForListForResource(ctx context.Context, id commonids.ScopeId, options ListForResourceOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -176,12 +177,12 @@ func (c PolicyAssignmentsClient) responderForListForResource(resp *http.Response
 }
 
 // ListForResourceComplete retrieves all of the results into a single object
-func (c PolicyAssignmentsClient) ListForResourceComplete(ctx context.Context, id ResourceId, options ListForResourceOperationOptions) (ListForResourceCompleteResult, error) {
+func (c PolicyAssignmentsClient) ListForResourceComplete(ctx context.Context, id commonids.ScopeId, options ListForResourceOperationOptions) (ListForResourceCompleteResult, error) {
 	return c.ListForResourceCompleteMatchingPredicate(ctx, id, options, PolicyAssignmentOperationPredicate{})
 }
 
 // ListForResourceCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c PolicyAssignmentsClient) ListForResourceCompleteMatchingPredicate(ctx context.Context, id ResourceId, options ListForResourceOperationOptions, predicate PolicyAssignmentOperationPredicate) (resp ListForResourceCompleteResult, err error) {
+func (c PolicyAssignmentsClient) ListForResourceCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, options ListForResourceOperationOptions, predicate PolicyAssignmentOperationPredicate) (resp ListForResourceCompleteResult, err error) {
 	items := make([]PolicyAssignment, 0)
 
 	page, err := c.ListForResource(ctx, id, options)

@@ -21,7 +21,7 @@ type RegenerateCredentialOperationResponse struct {
 // RegenerateCredential ...
 func (c RegistriesClient) RegenerateCredential(ctx context.Context, id RegistryId, input RegenerateCredentialParameters) (result RegenerateCredentialOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

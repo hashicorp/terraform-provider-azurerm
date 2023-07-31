@@ -21,7 +21,7 @@ type AssetsListContainerSasOperationResponse struct {
 // AssetsListContainerSas ...
 func (c AssetsAndAssetFiltersClient) AssetsListContainerSas(ctx context.Context, id AssetId, input ListContainerSasInput) (result AssetsListContainerSasOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

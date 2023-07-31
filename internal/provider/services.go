@@ -88,6 +88,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkfunction"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub"
@@ -136,9 +137,9 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		applicationinsights.Registration{},
 		appservice.Registration{},
 		arckubernetes.Registration{},
+		authorization.Registration{},
 		automanage.Registration{},
 		automation.Registration{},
-		authorization.Registration{},
 		batch.Registration{},
 		bot.Registration{},
 		cognitive.Registration{},
@@ -174,6 +175,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		mysql.Registration{},
 		network.Registration{},
 		netapp.Registration{},
+		networkfunction.Registration{},
 		newrelic.Registration{},
 		nginx.Registration{},
 		policy.Registration{},

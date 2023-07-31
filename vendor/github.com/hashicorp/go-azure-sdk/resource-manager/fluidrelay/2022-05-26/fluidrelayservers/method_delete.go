@@ -19,7 +19,7 @@ type DeleteOperationResponse struct {
 // Delete ...
 func (c FluidRelayServersClient) Delete(ctx context.Context, id FluidRelayServerId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

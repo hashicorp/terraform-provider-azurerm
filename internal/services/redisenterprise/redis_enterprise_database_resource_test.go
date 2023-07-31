@@ -103,6 +103,20 @@ func TestRedisEnterpriseDatabase_geoDatabaseModule(t *testing.T) {
 	})
 }
 
+func TestRedisEnterpriseDatabase_geoDatabaseWithRedisJsonModule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
+	r := RedisenterpriseDatabaseResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoDatabasewithRedisJsonModuleEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestRedisEnterpriseDatabase_unlinkDatabase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisenterpriseDatabaseResource{}
@@ -319,6 +333,31 @@ resource "azurerm_redis_enterprise_database" "test" {
   eviction_policy   = "NoEviction"
   module {
     name = "RediSearch"
+    args = ""
+  }
+  linked_database_id = [
+    "${azurerm_redis_enterprise_cluster.test.id}/databases/default",
+    "${azurerm_redis_enterprise_cluster.test1.id}/databases/default",
+    "${azurerm_redis_enterprise_cluster.test2.id}/databases/default"
+  ]
+
+  linked_database_group_nickname = "tftestGeoGroup"
+}
+`, r.template(data))
+}
+
+func (r RedisenterpriseDatabaseResource) geoDatabasewithRedisJsonModuleEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_redis_enterprise_database" "test" {
+  cluster_id          = azurerm_redis_enterprise_cluster.test.id
+  resource_group_name = azurerm_resource_group.test.name
+
+  client_protocol   = "Encrypted"
+  clustering_policy = "EnterpriseCluster"
+  eviction_policy   = "NoEviction"
+  module {
+    name = "RedisJSON"
     args = ""
   }
   linked_database_id = [

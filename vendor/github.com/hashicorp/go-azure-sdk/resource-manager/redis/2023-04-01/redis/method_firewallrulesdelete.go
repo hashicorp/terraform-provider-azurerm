@@ -19,7 +19,7 @@ type FirewallRulesDeleteOperationResponse struct {
 // FirewallRulesDelete ...
 func (c RedisClient) FirewallRulesDelete(ctx context.Context, id FirewallRuleId) (result FirewallRulesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

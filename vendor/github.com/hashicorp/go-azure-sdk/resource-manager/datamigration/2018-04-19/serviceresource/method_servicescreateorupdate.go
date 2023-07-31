@@ -23,7 +23,7 @@ type ServicesCreateOrUpdateOperationResponse struct {
 // ServicesCreateOrUpdate ...
 func (c ServiceResourceClient) ServicesCreateOrUpdate(ctx context.Context, id ServiceId, input DataMigrationService) (result ServicesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusCreated,
