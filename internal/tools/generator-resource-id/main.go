@@ -14,8 +14,6 @@ import (
 	"sort"
 	"strings"
 	"unicode"
-
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 var packagesUsingAlias = map[string]struct{}{
@@ -217,7 +215,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			toCamelCase := func(input string) string {
 				// lazy but it works
 				out := make([]rune, 0)
-				for i, char := range azure.TitleCase(input) {
+				for i, char := range titleCase(input) {
 					if i == 0 {
 						out = append(out, unicode.ToLower(char))
 						continue
@@ -230,7 +228,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 
 			rewritten := fmt.Sprintf("%sName", key)
 			segment := ResourceIdSegment{
-				FieldName:    azure.TitleCase(rewritten),
+				FieldName:    titleCase(rewritten),
 				ArgumentName: toCamelCase(rewritten),
 				SegmentKey:   key,
 				SegmentValue: value,
@@ -275,7 +273,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				} else {
 					// remove {Thing}s and make that {Thing}Name
 					rewritten = fmt.Sprintf("%sName", key)
-					segment.FieldName = azure.TitleCase(rewritten)
+					segment.FieldName = titleCase(rewritten)
 					segment.ArgumentName = toCamelCase(rewritten)
 				}
 			}
@@ -1116,4 +1114,9 @@ func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) 
 
 	contents := string(data)
 	return &contents, nil
+}
+
+func titleCase(input string) string {
+	//lint:ignore SA1019
+	return strings.Title(input) //nolint:staticcheck
 }
