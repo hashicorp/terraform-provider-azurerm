@@ -1170,6 +1170,12 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ServiceName)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	location := location.NormalizeNilable(existing.Location)
+
 	log.Printf("[DEBUG] Deleting %s", *id)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName)
 	if err != nil {
@@ -1185,19 +1191,18 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	// Purge the soft deleted Api Management permanently if the feature flag is enabled
 	if meta.(*clients.Client).Features.ApiManagement.PurgeSoftDeleteOnDestroy {
 		log.Printf("[DEBUG] %s marked for purge - executing purge", *id)
-		_, err := deletedServicesClient.GetByName(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
-		if err != nil {
-			return err
+		if _, err := deletedServicesClient.GetByName(ctx, id.ServiceName, location); err != nil {
+			return fmt.Errorf("retrieving the deleted %s to be able to purge it: %+v", *id, err)
 		}
-		future, err := deletedServicesClient.Purge(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
+		future, err := deletedServicesClient.Purge(ctx, id.ServiceName, location)
 		if err != nil {
-			return err
+			return fmt.Errorf("purging the deleted %s: %+v", *id, err)
 		}
 
 		log.Printf("[DEBUG] Waiting for purge of %s..", *id)
 		err = future.WaitForCompletionRef(ctx, deletedServicesClient.Client)
 		if err != nil {
-			return fmt.Errorf("purging %s: %+v", *id, err)
+			return fmt.Errorf("waiting for the purge of deleted %s: %+v", *id, err)
 		}
 		log.Printf("[DEBUG] Purged %s.", *id)
 		return nil
