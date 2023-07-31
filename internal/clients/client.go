@@ -291,7 +291,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Advisor, err = advisor.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Advisor: %+v", err)
 	}
-	client.AnalysisServices = analysisServices.NewClient(o)
+	if client.AnalysisServices, err = analysisServices.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AnalysisServices: %+v", err)
+	}
 	client.ApiManagement = apiManagement.NewClient(o)
 	if client.AppConfiguration, err = appConfiguration.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AppConfiguration: %+v", err)
