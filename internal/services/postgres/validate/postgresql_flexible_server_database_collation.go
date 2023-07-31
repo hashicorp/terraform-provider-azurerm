@@ -508,7 +508,7 @@ func PostgresqlFlexibleServerDatabaseCollation(v interface{}, k string) (warning
 		"zh_TW.euctw":            true,
 		"zh_TW.utf8":             true,
 		"zu_ZA":                  true,
-		"zu_ZA.utf8 ":            true,
+		"zu_ZA.utf8":             true,
 		"bhb_IN":                 true,
 		"de_LI":                  true,
 		"en_SC":                  true,
