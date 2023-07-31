@@ -316,7 +316,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Automation, err = automation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Automation: %+v", err)
 	}
-	client.AzureStackHCI = azureStackHCI.NewClient(o)
+	if client.AzureStackHCI, err = azureStackHCI.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AzureStackHCI: %+v", err)
+	}
 	if client.Batch, err = batch.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Batch: %+v", err)
 	}
