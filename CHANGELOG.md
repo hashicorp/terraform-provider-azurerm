@@ -6,7 +6,7 @@ FEATURES:
 
 ENHANCEMENTS
 
-* dependencies: updating to `v0.20230728.1082317` of `github.com/hashicorp/go-azure-sdk` [GH-22731]
+* dependencies: updating to use `v0.20230731.1122530` of `github.com/hashicorp/go-azure-sdk` [GH-22750]
 * `network`: updating to use API Version `2023-04-01` [GH-22727]
 * `relay`: updating to use API Version `2021-11-01` [GH-22725]
 * Data Source: `azurerm_images` - support for `disk_encryption_set_id` [GH-22690]
