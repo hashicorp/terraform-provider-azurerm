@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -97,6 +98,26 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					"enable": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
+					},
+				},
+			},
+		},
+
+		"encryption": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+
+					"unencrypted_allowed": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 				},
 			},
@@ -282,6 +303,10 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `ddos_protection_plan`: %+v", err)
 		}
 
+		if err := d.Set("encryption", flattenVirtualNetworkEncryption(props.Encryption)); err != nil {
+			return fmt.Errorf("setting `encryption`: %+v", err)
+		}
+
 		if err := d.Set("subnet", flattenVirtualNetworkSubnets(props.Subnets)); err != nil {
 			return fmt.Errorf("setting `subnets`: %+v", err)
 		}
@@ -406,6 +431,18 @@ func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceDa
 		}
 	}
 
+	if v := d.Get("encryption").([]interface{}); len(v) > 0 && v[0] != nil {
+		encryptionConf := v[0].(map[string]interface{})
+		properties.Encryption = &network.VirtualNetworkEncryption{
+			Enabled:     pointer.To(encryptionConf["enabled"].(bool)),
+			Enforcement: network.VirtualNetworkEncryptionEnforcementDropUnencrypted,
+		}
+		if encryptionConf["unencrypted_allowed"].(bool) {
+			properties.Encryption.Enforcement = network.VirtualNetworkEncryptionEnforcementAllowUnencrypted
+		}
+
+	}
+
 	if v, ok := d.GetOk("bgp_community"); ok {
 		properties.BgpCommunities = &network.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: utils.String(v.(string))}
 	}
@@ -426,6 +463,21 @@ func flattenVirtualNetworkDDoSProtectionPlan(input *network.VirtualNetworkProper
 		map[string]interface{}{
 			"id":     *input.DdosProtectionPlan.ID,
 			"enable": *input.EnableDdosProtection,
+		},
+	}
+}
+
+func flattenVirtualNetworkEncryption(encryption *network.VirtualNetworkEncryption) interface{} {
+	if encryption == nil {
+		return nil
+	}
+
+	allow := encryption.Enforcement == network.VirtualNetworkEncryptionEnforcementAllowUnencrypted
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":             encryption.Enabled,
+			"unencrypted_allowed": allow,
 		},
 	}
 }
