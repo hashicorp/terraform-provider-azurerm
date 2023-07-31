@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestPublicIpPrefixID(t *testing.T) {
+func TestCustomIpPrefixID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -51,25 +51,25 @@ func TestPublicIpPrefixID(t *testing.T) {
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/publicIPPrefixes/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIPPrefixes/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/publicIPPrefixes/publicIpPrefix1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIPPrefixes/prefix1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/PUBLICIPPREFIXES/PUBLICIPPREFIX1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/CUSTOMIPPREFIXES/PREFIX1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := PublicIpPrefixID(tc.Input, "test")
+		_, errors := CustomIpPrefixID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

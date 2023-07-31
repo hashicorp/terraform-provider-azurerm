@@ -11,21 +11,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = PublicIpPrefixId{}
+var _ resourceids.Id = CustomIpPrefixId{}
 
-func TestPublicIpPrefixIDFormatter(t *testing.T) {
-	actual := NewPublicIpPrefixID("12345678-1234-9876-4563-123456789012", "resGroup1", "publicIpPrefix1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/publicIPPrefixes/publicIpPrefix1"
+func TestCustomIpPrefixIDFormatter(t *testing.T) {
+	actual := NewCustomIpPrefixID("12345678-1234-9876-4563-123456789012", "resGroup1", "prefix1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIPPrefixes/prefix1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestPublicIpPrefixID(t *testing.T) {
+func TestCustomIpPrefixID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *PublicIpPrefixId
+		Expected *CustomIpPrefixId
 	}{
 
 		{
@@ -66,23 +66,23 @@ func TestPublicIpPrefixID(t *testing.T) {
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/publicIPPrefixes/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIPPrefixes/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/publicIPPrefixes/publicIpPrefix1",
-			Expected: &PublicIpPrefixId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIPPrefixes/prefix1",
+			Expected: &CustomIpPrefixId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				Name:           "publicIpPrefix1",
+				Name:           "prefix1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/PUBLICIPPREFIXES/PUBLICIPPREFIX1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/CUSTOMIPPREFIXES/PREFIX1",
 			Error: true,
 		},
 	}
@@ -90,7 +90,7 @@ func TestPublicIpPrefixID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := PublicIpPrefixID(v.Input)
+		actual, err := CustomIpPrefixID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

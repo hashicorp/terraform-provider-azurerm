@@ -12,42 +12,42 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type PublicIpPrefixId struct {
+type CustomIpPrefixId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	Name           string
 }
 
-func NewPublicIpPrefixID(subscriptionId, resourceGroup, name string) PublicIpPrefixId {
-	return PublicIpPrefixId{
+func NewCustomIpPrefixID(subscriptionId, resourceGroup, name string) CustomIpPrefixId {
+	return CustomIpPrefixId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		Name:           name,
 	}
 }
 
-func (id PublicIpPrefixId) String() string {
+func (id CustomIpPrefixId) String() string {
 	segments := []string{
 		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Public Ip Prefix", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Custom Ip Prefix", segmentsStr)
 }
 
-func (id PublicIpPrefixId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/publicIPPrefixes/%s"
+func (id CustomIpPrefixId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/customIPPrefixes/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// PublicIpPrefixID parses a PublicIpPrefix ID into an PublicIpPrefixId struct
-func PublicIpPrefixID(input string) (*PublicIpPrefixId, error) {
+// CustomIpPrefixID parses a CustomIpPrefix ID into an CustomIpPrefixId struct
+func CustomIpPrefixID(input string) (*CustomIpPrefixId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as an PublicIpPrefix ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as an CustomIpPrefix ID: %+v", input, err)
 	}
 
-	resourceId := PublicIpPrefixId{
+	resourceId := CustomIpPrefixId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -60,7 +60,7 @@ func PublicIpPrefixID(input string) (*PublicIpPrefixId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.Name, err = id.PopSegment("publicIPPrefixes"); err != nil {
+	if resourceId.Name, err = id.PopSegment("customIPPrefixes"); err != nil {
 		return nil, err
 	}
 

@@ -1,13 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package validate
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import "testing"
 
-func TestPublicIpPrefixID(t *testing.T) {
+func TestCustomIpv4PrefixID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -44,32 +41,32 @@ func TestPublicIpPrefixID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing CustomIpPrefixeName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Valid: false,
 		},
 
 		{
-			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/publicIPPrefixes/",
+			// missing value for CustomIpPrefixeName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIpPrefixes/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/publicIPPrefixes/publicIpPrefix1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIpPrefixes/prefix1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/PUBLICIPPREFIXES/PUBLICIPPREFIX1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/CUSTOMIPPREFIXES/PREFIX1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := PublicIpPrefixID(tc.Input, "test")
+		_, errors := CustomIpv4PrefixID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
