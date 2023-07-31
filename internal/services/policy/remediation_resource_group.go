@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
@@ -77,13 +76,13 @@ func resourceArmResourceGroupPolicyRemediation() *pluginsdk.Resource {
 			"parallel_deployments": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validate2.IntegerPositive,
+				ValidateFunc: validation.IntPositive,
 			},
 
 			"resource_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validate2.IntegerPositive,
+				ValidateFunc: validation.IntPositive,
 			},
 
 			"location_filters": {
