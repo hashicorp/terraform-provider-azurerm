@@ -77,7 +77,7 @@ resource "azurerm_palo_alto_local_rulestack" "test" {
 }
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
-  name          = "testacc-palc-%[1]d"
+  name         = "testacc-palc-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   certificate_signer_id = "https://example.com/not-a-real-url"

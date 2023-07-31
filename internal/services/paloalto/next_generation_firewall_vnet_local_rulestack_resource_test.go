@@ -129,7 +129,7 @@ provider "azurerm" {
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
   name                = "acctest-ngfwvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
+  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
 
   network_profile {
     public_ip_address_ids = [azurerm_public_ip.test.id]
@@ -147,12 +147,13 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
 func (r NextGenerationFirewallVnetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "import" {
   name                = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.name
   resource_group_name = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.resource_group_name
-  rulestack_id       = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.rulestack_id
+  rulestack_id        = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.rulestack_id
 
   network_profile {
     public_ip_address_ids = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.public_ip_address_ids
@@ -187,7 +188,7 @@ resource "azurerm_public_ip" "egress" {
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
   name                = "acctest-ngfwvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
+  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
 
   network_profile {
     public_ip_address_ids     = [azurerm_public_ip.test.id]
@@ -253,7 +254,7 @@ resource "azurerm_public_ip" "egress" {
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
   name                = "acctest-ngfwvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  rulestack_id       = azurerm_palo_alto_local_rulestack.test.id
+  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
 
   network_profile {
     public_ip_address_ids     = [azurerm_public_ip.test.id]
@@ -371,9 +372,9 @@ resource "azurerm_palo_alto_local_rulestack" "test" {
 }
 
 resource "azurerm_palo_alto_local_rulestack_rule" "test" {
-  name          = "testacc-palr-%[1]d"
+  name         = "testacc-palr-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
-  priority      = 1001
+  priority     = 1001
 
   applications = ["any"]
 

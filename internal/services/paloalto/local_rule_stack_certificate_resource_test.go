@@ -136,10 +136,11 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
-  name          = "testacc-palc-%[2]d"
+  name         = "testacc-palc-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
-  self_signed   = true
+  self_signed  = true
 }
+
 
 `, r.template(data), data.RandomInteger)
 }
@@ -147,13 +148,15 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
 func (r LocalRulestackCertificateResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "import" {
-  name          = azurerm_palo_alto_local_rulestack_certificate.test.name
+  name         = azurerm_palo_alto_local_rulestack_certificate.test.name
   rulestack_id = azurerm_palo_alto_local_rulestack_certificate.test.rulestack_id
-  self_signed   = azurerm_palo_alto_local_rulestack_certificate.test.self_signed
+  self_signed  = azurerm_palo_alto_local_rulestack_certificate.test.self_signed
 }
+
 
 `, r.basic(data))
 }
@@ -167,13 +170,14 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
-  name          = "testacc-palc-%[2]d"
+  name         = "testacc-palc-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
-  self_signed   = true
+  self_signed  = true
 
   audit_comment = "Acceptance test audit comment - %[2]d"
   description   = "Acceptance test Desc - %[2]d"
 }
+
 
 `, r.template(data), data.RandomInteger)
 }
@@ -187,13 +191,14 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
-  name          = "testacc-palc-%[2]d"
+  name         = "testacc-palc-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
-  self_signed   = true
+  self_signed  = true
 
   audit_comment = "Updated acceptance test audit comment - %[2]d"
   description   = "Updated acceptance test Desc - %[2]d"
 }
+
 
 `, r.template(data), data.RandomInteger)
 }
@@ -207,7 +212,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
-  name          = "testacc-palc-%[2]d"
+  name         = "testacc-palc-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   certificate_signer_id = "https://example.com/not-a-real-url"
@@ -215,6 +220,8 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
   audit_comment = "Acceptance test audit comment - %[2]d"
   description   = "Acceptance test Desc - %[2]d"
 }
+
+
 
 
 `, r.template(data), data.RandomInteger)

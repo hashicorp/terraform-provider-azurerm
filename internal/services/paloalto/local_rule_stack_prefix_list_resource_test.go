@@ -120,7 +120,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
-  name          = "testacc-palr-%[2]d"
+  name         = "testacc-palr-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   prefix_list = ["10.0.0.0/8", "172.16.0.0/16"]
@@ -131,10 +131,11 @@ resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
 func (r LocalRuleStackPrefixList) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_palo_alto_local_rulestack_prefix_list" "import" {
-  name          = azurerm_palo_alto_local_rulestack_prefix_list.test.name
+  name         = azurerm_palo_alto_local_rulestack_prefix_list.test.name
   rulestack_id = azurerm_palo_alto_local_rulestack_prefix_list.test.rulestack_id
 
   prefix_list = azurerm_palo_alto_local_rulestack_prefix_list.test.prefix_list
@@ -151,7 +152,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_local_rulestack_prefix_list" "test" {
-  name          = "testacc-palr-%[2]d"
+  name         = "testacc-palr-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   prefix_list = ["10.0.0.0/8", "172.16.0.0/16"]

@@ -113,11 +113,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
-  name          = "testacc-pafqdn-%[2]d"
+  name         = "testacc-pafqdn-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   fully_qualified_domain_names = ["contoso.com", "test.example.com"]
 }
+
 
 `, r.template(data), data.RandomInteger)
 }
@@ -131,7 +132,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
-  name          = "testacc-pafqdn-%[2]d"
+  name         = "testacc-pafqdn-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
   fully_qualified_domain_names = ["contoso.com", "test.example.com", "anothertest.example.com"]
@@ -140,20 +141,23 @@ resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
   description   = "Acc Test Description - %[2]d"
 }
 
+
 `, r.template(data), data.RandomInteger)
 }
 
 func (r LocalRulestackFQDNList) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_palo_alto_local_rulestack_fqdn_list" "import" {
-  name          = azurerm_palo_alto_local_rulestack_fqdn_list.test.name
+  name         = azurerm_palo_alto_local_rulestack_fqdn_list.test.name
   rulestack_id = azurerm_palo_alto_local_rulestack_fqdn_list.test.rulestack_id
 
   fully_qualified_domain_names = azurerm_palo_alto_local_rulestack_fqdn_list.test.fully_qualified_domain_names
 }
+
 
 `, r.basic(data))
 }
