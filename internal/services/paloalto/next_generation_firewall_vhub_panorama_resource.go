@@ -20,7 +20,7 @@ import (
 
 type NextGenerationFirewallVHubPanoramaResource struct{}
 
-type NextGenerationFirewallVHubPanoramaModel struct {
+type NextGenerationFirewallVHubPanoramaResourceModel struct {
 	Name                 string                      `tfschema:"name"`
 	ResourceGroupName    string                      `tfschema:"resource_group_name"`
 	PanoramaBase64Config string                      `tfschema:"panorama_base64_config"`
@@ -37,7 +37,7 @@ type NextGenerationFirewallVHubPanoramaModel struct {
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubPanoramaResource{}
 
 func (r NextGenerationFirewallVHubPanoramaResource) ModelObject() interface{} {
-	return &NextGenerationFirewallVHubPanoramaModel{}
+	return &NextGenerationFirewallVHubPanoramaResourceModel{}
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -90,7 +90,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.Client.Firewalls
 
-			var model NextGenerationFirewallVHubPanoramaModel
+			var model NextGenerationFirewallVHubPanoramaResourceModel
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -152,7 +152,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var state NextGenerationFirewallVHubPanoramaModel
+			var state NextGenerationFirewallVHubPanoramaResourceModel
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -222,6 +222,52 @@ func (r NextGenerationFirewallVHubPanoramaResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.PaloAlto.Client.Firewalls
+
+			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			model := NextGenerationFirewallVHubPanoramaResourceModel{}
+
+			if err = metadata.Decode(&model); err != nil {
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retreiving %s: %+v", *id, err)
+			}
+
+			firewall := *existing.Model
+			props := firewall.Properties
+
+			if metadata.ResourceData.HasChange("panorama_base64_config") {
+				props.PanoramaConfig.ConfigString = model.PanoramaBase64Config
+			}
+
+			if metadata.ResourceData.HasChange("network_profile") {
+				props.NetworkProfile = schema.ExpandNetworkProfileVHub(model.NetworkProfile)
+			}
+
+			if metadata.ResourceData.HasChange("dns_settings") {
+				props.DnsSettings = schema.ExpandDNSSettings(model.DNSSettings)
+			}
+
+			if metadata.ResourceData.HasChange("destination_nat") {
+				props.FrontEndSettings = schema.ExpandDestinationNAT(model.FrontEnd)
+			}
+
+			firewall.Properties = props
+
+			if metadata.ResourceData.HasChange("tags") {
+				firewall.Tags = tags.Expand(model.Tags)
+			}
+
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
+				return err
+			}
 
 			return nil
 		},

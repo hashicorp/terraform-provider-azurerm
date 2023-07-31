@@ -215,6 +215,52 @@ func (r NextGenerationFirewallVNetPanoramaResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.PaloAlto.Client.Firewalls
+
+			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			model := NextGenerationFirewallVnetPanoramaModel{}
+
+			if err = metadata.Decode(&model); err != nil {
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retreiving %s: %+v", *id, err)
+			}
+
+			firewall := *existing.Model
+			props := firewall.Properties
+
+			if metadata.ResourceData.HasChange("panorama_base64_config") {
+				props.PanoramaConfig.ConfigString = model.PanoramaBase64Config
+			}
+
+			if metadata.ResourceData.HasChange("network_profile") {
+				props.NetworkProfile = schema.ExpandNetworkProfileVnet(model.NetworkProfile)
+			}
+
+			if metadata.ResourceData.HasChange("dns_settings") {
+				props.DnsSettings = schema.ExpandDNSSettings(model.DNSSettings)
+			}
+
+			if metadata.ResourceData.HasChange("destination_nat") {
+				props.FrontEndSettings = schema.ExpandDestinationNAT(model.FrontEnd)
+			}
+
+			firewall.Properties = props
+
+			if metadata.ResourceData.HasChange("tags") {
+				firewall.Tags = tags.Expand(model.Tags)
+			}
+
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
+				return err
+			}
 
 			return nil
 		},
