@@ -21,7 +21,7 @@ type ListAdminCredentialsOperationResponse struct {
 // ListAdminCredentials ...
 func (c PrivateCloudsClient) ListAdminCredentials(ctx context.Context, id PrivateCloudId) (result ListAdminCredentialsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

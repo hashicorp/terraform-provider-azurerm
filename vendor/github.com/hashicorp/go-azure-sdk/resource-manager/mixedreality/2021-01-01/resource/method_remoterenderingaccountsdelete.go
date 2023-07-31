@@ -19,7 +19,7 @@ type RemoteRenderingAccountsDeleteOperationResponse struct {
 // RemoteRenderingAccountsDelete ...
 func (c ResourceClient) RemoteRenderingAccountsDelete(ctx context.Context, id RemoteRenderingAccountId) (result RemoteRenderingAccountsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

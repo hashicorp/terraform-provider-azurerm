@@ -20,7 +20,7 @@ type EdgeModulesCreateOrUpdateOperationResponse struct {
 // EdgeModulesCreateOrUpdate ...
 func (c EdgeModulesClient) EdgeModulesCreateOrUpdate(ctx context.Context, id EdgeModuleId, input EdgeModuleEntity) (result EdgeModulesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

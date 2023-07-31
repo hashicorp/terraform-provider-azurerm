@@ -52,7 +52,7 @@ func (o ListByHybridRunbookWorkerGroupOperationOptions) ToQuery() *client.QueryP
 // ListByHybridRunbookWorkerGroup ...
 func (c HybridRunbookWorkerClient) ListByHybridRunbookWorkerGroup(ctx context.Context, id HybridRunbookWorkerGroupId, options ListByHybridRunbookWorkerGroupOperationOptions) (result ListByHybridRunbookWorkerGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

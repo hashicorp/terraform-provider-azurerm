@@ -348,7 +348,7 @@ func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	resp, err := clients.Network.NetworkInterfacesClient.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
+	resp, err := clients.Network.NetworkInterfaces.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -362,7 +362,7 @@ func (NetworkInterfaceResource) Destroy(ctx context.Context, client *clients.Cli
 		return nil, err
 	}
 
-	err = client.Network.NetworkInterfacesClient.DeleteThenPoll(ctx, *id)
+	err = client.Network.NetworkInterfaces.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}

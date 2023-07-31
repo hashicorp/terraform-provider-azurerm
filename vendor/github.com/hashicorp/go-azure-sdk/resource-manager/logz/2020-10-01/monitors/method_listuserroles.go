@@ -25,7 +25,7 @@ type ListUserRolesCompleteResult struct {
 // ListUserRoles ...
 func (c MonitorsClient) ListUserRoles(ctx context.Context, id MonitorId, input UserRoleRequest) (result ListUserRolesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

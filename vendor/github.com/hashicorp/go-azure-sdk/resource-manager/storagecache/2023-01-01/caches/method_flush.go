@@ -23,7 +23,7 @@ type FlushOperationResponse struct {
 // Flush ...
 func (c CachesClient) Flush(ctx context.Context, id CacheId) (result FlushOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

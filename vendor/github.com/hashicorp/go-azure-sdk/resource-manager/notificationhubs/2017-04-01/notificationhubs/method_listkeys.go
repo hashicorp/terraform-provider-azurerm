@@ -21,7 +21,7 @@ type ListKeysOperationResponse struct {
 // ListKeys ...
 func (c NotificationHubsClient) ListKeys(ctx context.Context, id NotificationHubAuthorizationRuleId) (result ListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

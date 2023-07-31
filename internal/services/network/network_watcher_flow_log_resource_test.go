@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/flowlogs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/flowlogs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -240,7 +240,7 @@ func (t NetworkWatcherFlowLogResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.Network.FlowLogsClient.Get(ctx, *id)
+	resp, err := clients.Network.FlowLogs.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Network Watcher Flow Log (%s): %+v", id, err)
 	}

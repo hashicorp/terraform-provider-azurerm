@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectionmonitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/connectionmonitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -437,7 +437,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 }
 
 func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
+	client := meta.(*clients.Client).Network.ConnectionMonitors
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -490,7 +490,7 @@ func resourceNetworkConnectionMonitorCreateUpdate(d *pluginsdk.ResourceData, met
 }
 
 func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
+	client := meta.(*clients.Client).Network.ConnectionMonitors
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -548,7 +548,7 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceNetworkConnectionMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
+	client := meta.(*clients.Client).Network.ConnectionMonitors
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

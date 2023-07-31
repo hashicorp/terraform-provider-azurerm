@@ -23,7 +23,7 @@ type ComputeUpdateOperationResponse struct {
 // ComputeUpdate ...
 func (c MachineLearningComputesClient) ComputeUpdate(ctx context.Context, id ComputeId, input ClusterUpdateParameters) (result ComputeUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

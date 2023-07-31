@@ -23,7 +23,7 @@ type RotateVcenterPasswordOperationResponse struct {
 // RotateVcenterPassword ...
 func (c PrivateCloudsClient) RotateVcenterPassword(ctx context.Context, id PrivateCloudId) (result RotateVcenterPasswordOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

@@ -20,7 +20,7 @@ type AccountFiltersCreateOrUpdateOperationResponse struct {
 // AccountFiltersCreateOrUpdate ...
 func (c AccountFiltersClient) AccountFiltersCreateOrUpdate(ctx context.Context, id AccountFilterId, input AccountFilter) (result AccountFiltersCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -168,7 +168,7 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice(netAppValidate.PossibleValuesForSecurityStyle(), false),
+						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForSecurityStyle(), false),
 					},
 
 					"storage_quota_in_gb": {

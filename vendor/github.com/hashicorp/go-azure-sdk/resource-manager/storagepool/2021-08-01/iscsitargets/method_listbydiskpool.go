@@ -25,7 +25,7 @@ type ListByDiskPoolCompleteResult struct {
 // ListByDiskPool ...
 func (c IscsiTargetsClient) ListByDiskPool(ctx context.Context, id DiskPoolId) (result ListByDiskPoolOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

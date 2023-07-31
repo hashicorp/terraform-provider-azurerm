@@ -20,7 +20,7 @@ type CustomDomainsGetOperationResponse struct {
 // CustomDomainsGet ...
 func (c SignalRClient) CustomDomainsGet(ctx context.Context, id CustomDomainId) (result CustomDomainsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

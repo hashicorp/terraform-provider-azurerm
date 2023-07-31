@@ -25,7 +25,7 @@ type ListByCommunicationsGatewayCompleteResult struct {
 // ListByCommunicationsGateway ...
 func (c TestLinesClient) ListByCommunicationsGateway(ctx context.Context, id CommunicationsGatewayId) (result ListByCommunicationsGatewayOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

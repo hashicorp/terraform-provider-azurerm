@@ -20,7 +20,7 @@ type RunByScopeOperationResponse struct {
 // RunByScope ...
 func (c ScheduledActionsClient) RunByScope(ctx context.Context, id ScopedScheduledActionId) (result RunByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

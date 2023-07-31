@@ -20,7 +20,7 @@ type NetworkInterfaceTapConfigurationsGetOperationResponse struct {
 // NetworkInterfaceTapConfigurationsGet ...
 func (c NetworkInterfacesClient) NetworkInterfaceTapConfigurationsGet(ctx context.Context, id TapConfigurationId) (result NetworkInterfaceTapConfigurationsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

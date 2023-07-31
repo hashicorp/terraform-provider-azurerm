@@ -6,8 +6,8 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/privateendpoints"
 )
 
 func TestPrivateEndpointApplicationSecurityGroupAssociationID(t *testing.T) {

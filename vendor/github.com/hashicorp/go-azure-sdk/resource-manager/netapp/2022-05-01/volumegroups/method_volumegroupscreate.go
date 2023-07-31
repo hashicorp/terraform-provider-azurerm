@@ -23,7 +23,7 @@ type VolumeGroupsCreateOperationResponse struct {
 // VolumeGroupsCreate ...
 func (c VolumeGroupsClient) VolumeGroupsCreate(ctx context.Context, id VolumeGroupId, input VolumeGroupDetails) (result VolumeGroupsCreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 		},

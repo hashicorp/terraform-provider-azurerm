@@ -25,7 +25,7 @@ type GetDisableSoftDeleteRequestsObjectsCompleteResult struct {
 // GetDisableSoftDeleteRequestsObjects ...
 func (c ResourceGuardsClient) GetDisableSoftDeleteRequestsObjects(ctx context.Context, id ResourceGuardId) (result GetDisableSoftDeleteRequestsObjectsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -20,7 +20,7 @@ type VideoAnalyzersGetOperationResponse struct {
 // VideoAnalyzersGet ...
 func (c VideoAnalyzersClient) VideoAnalyzersGet(ctx context.Context, id VideoAnalyzerId) (result VideoAnalyzersGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

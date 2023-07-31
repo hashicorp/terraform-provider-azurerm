@@ -21,7 +21,7 @@ type GetDataPlaneAccessOperationResponse struct {
 // GetDataPlaneAccess ...
 func (c FactoriesClient) GetDataPlaneAccess(ctx context.Context, id FactoryId, input UserAccessPolicy) (result GetDataPlaneAccessOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

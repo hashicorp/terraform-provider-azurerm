@@ -26,7 +26,7 @@ type NetworkInterfaceIPConfigurationsListCompleteResult struct {
 // NetworkInterfaceIPConfigurationsList ...
 func (c NetworkInterfacesClient) NetworkInterfaceIPConfigurationsList(ctx context.Context, id commonids.NetworkInterfaceId) (result NetworkInterfaceIPConfigurationsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

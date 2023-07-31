@@ -229,11 +229,6 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: commonids.ValidateSubnetID,
 			},
-
-			"auto_swap_slot_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -870,6 +865,11 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"vnet_route_all_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Computed: true,
+				},
+
+				"auto_swap_slot_name": {
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},

@@ -23,7 +23,7 @@ type TracksUpdateTrackDataOperationResponse struct {
 // TracksUpdateTrackData ...
 func (c AssetsAndAssetFiltersClient) TracksUpdateTrackData(ctx context.Context, id TrackId) (result TracksUpdateTrackDataOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},

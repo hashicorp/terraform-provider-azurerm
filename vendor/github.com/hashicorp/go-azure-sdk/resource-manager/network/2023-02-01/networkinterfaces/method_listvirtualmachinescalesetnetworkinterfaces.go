@@ -25,7 +25,7 @@ type ListVirtualMachineScaleSetNetworkInterfacesCompleteResult struct {
 // ListVirtualMachineScaleSetNetworkInterfaces ...
 func (c NetworkInterfacesClient) ListVirtualMachineScaleSetNetworkInterfaces(ctx context.Context, id VirtualMachineScaleSetId) (result ListVirtualMachineScaleSetNetworkInterfacesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

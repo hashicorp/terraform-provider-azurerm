@@ -49,7 +49,7 @@ func (o DeleteByIdOperationOptions) ToQuery() *client.QueryParams {
 // DeleteById ...
 func (c RoleAssignmentsClient) DeleteById(ctx context.Context, id commonids.ScopeId, options DeleteByIdOperationOptions) (result DeleteByIdOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

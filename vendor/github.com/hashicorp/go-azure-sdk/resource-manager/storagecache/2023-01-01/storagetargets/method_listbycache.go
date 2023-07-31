@@ -25,7 +25,7 @@ type ListByCacheCompleteResult struct {
 // ListByCache ...
 func (c StorageTargetsClient) ListByCache(ctx context.Context, id CacheId) (result ListByCacheOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

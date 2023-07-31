@@ -25,7 +25,7 @@ type ListAppServicesCompleteResult struct {
 // ListAppServices ...
 func (c MonitorsClient) ListAppServices(ctx context.Context, id MonitorId, input AppServicesGetRequest) (result ListAppServicesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
