@@ -20,7 +20,7 @@ type ArchiveOperationResponse struct {
 // Archive ...
 func (c AmlFilesystemsClient) Archive(ctx context.Context, id AmlFilesystemId, input AmlFilesystemArchiveInfo) (result ArchiveOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

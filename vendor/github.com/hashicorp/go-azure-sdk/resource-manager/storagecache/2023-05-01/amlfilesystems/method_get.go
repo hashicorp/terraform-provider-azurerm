@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c AmlFilesystemsClient) Get(ctx context.Context, id AmlFilesystemId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

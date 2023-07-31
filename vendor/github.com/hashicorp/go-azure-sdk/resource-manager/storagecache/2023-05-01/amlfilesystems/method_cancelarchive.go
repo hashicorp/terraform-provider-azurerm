@@ -20,7 +20,7 @@ type CancelArchiveOperationResponse struct {
 // CancelArchive ...
 func (c AmlFilesystemsClient) CancelArchive(ctx context.Context, id AmlFilesystemId) (result CancelArchiveOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
