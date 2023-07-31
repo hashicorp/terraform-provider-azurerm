@@ -69,7 +69,6 @@ func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*plug
 
 		"network_profile": schema.VHubNetworkProfileSchema(),
 
-		// Optional
 		"dns_settings": schema.DNSSettingsSchema(),
 
 		"destination_nat": schema.DestinationNATSchema(),

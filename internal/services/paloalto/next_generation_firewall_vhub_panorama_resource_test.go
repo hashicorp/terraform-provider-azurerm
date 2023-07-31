@@ -32,6 +32,61 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_basic(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
+	})
+
+}
+
+func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_complete(t *testing.T) {
+	if panorama := os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"); panorama == "" {
+		t.Skipf("skipping as Palo Alto Panorama config not set in `ARM_PALO_ALTO_PANORAMA_CONFIG`")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vhub_panorama", "test")
+	r := NextGenerationFirewallVHubPanoramaResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+
+}
+
+func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_update(t *testing.T) {
+	if panorama := os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"); panorama == "" {
+		t.Skipf("skipping as Palo Alto Panorama config not set in `ARM_PALO_ALTO_PANORAMA_CONFIG`")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vhub_panorama", "test")
+	r := NextGenerationFirewallVHubPanoramaResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 
 }
@@ -73,8 +128,68 @@ resource "azurerm_palo_alto_next_generation_firewall_vhub_panorama" "test" {
     public_ip_address_ids        = [azurerm_public_ip.test.id]
   }
 }
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
+}
 
+func (r NextGenerationFirewallVHubPanoramaResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
+%[1]s
+
+resource "azurerm_public_ip" "egress" {
+  name                = "acctestpublicip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_palo_alto_next_generation_firewall_vhub_panorama" "test" {
+  name                   = "acctest-ngfwvh-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  panorama_base64_config = "%[3]s"
+
+  network_profile {
+    virtual_hub_id               = azurerm_virtual_hub.test.id
+    network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
+    public_ip_address_ids        = [azurerm_public_ip.test.id]
+    egress_nat_ip_address_ids    = [azurerm_public_ip.egress.id]
+  }
+
+  dns_settings {
+    dns_servers = ["8.8.8.8", "8.8.4.4"]
+  }
+
+  destination_nat {
+    name     = "testDNAT-1"
+    protocol = "TCP"
+    front_end_config {
+      public_ip_address_id = azurerm_public_ip.test.id
+      port                 = 8081
+    }
+    back_end_config {
+      public_ip_address = "10.0.1.101"
+      port              = 18081
+    }
+  }
+
+  destination_nat {
+    name     = "testDNAT-2"
+    protocol = "UDP"
+    front_end_config {
+      public_ip_address_id = azurerm_public_ip.test.id
+      port                 = 8082
+    }
+    back_end_config {
+      public_ip_address = "10.0.1.102"
+      port              = 18082
+    }
+  }
+}
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
 }
 
