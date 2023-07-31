@@ -125,7 +125,7 @@ func (PostgresqlFlexibleServerDatabaseResource) basic(data acceptance.TestData) 
 resource "azurerm_postgresql_flexible_server_database" "test" {
   name      = "acctest-fsd-%d"
   server_id = azurerm_postgresql_flexible_server.test.id
-  collation = "en_US.UTF8"
+  collation = "en_US.utf8"
   charset   = "UTF8"
 }
 `, PostgresqlFlexibleServerResource{}.basic(data), data.RandomInteger)
