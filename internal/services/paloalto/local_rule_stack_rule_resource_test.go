@@ -401,12 +401,10 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "untrust" {
 }
 
 resource "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association" "test" {
-  rulestack_id   = azurerm_palo_alto_local_rulestack.test.id
   certificate_id = azurerm_palo_alto_local_rulestack_certificate.trust.id
 }
 
 resource "azurerm_palo_alto_local_rulestack_outbound_untrust_certificate_association" "test" {
-  rulestack_id   = azurerm_palo_alto_local_rulestack.test.id
   certificate_id = azurerm_palo_alto_local_rulestack_certificate.untrust.id
 }
 `, data.RandomInteger, data.Locations.Primary)
