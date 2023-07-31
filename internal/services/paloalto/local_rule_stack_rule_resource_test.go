@@ -400,12 +400,12 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "untrust" {
   certificate_signer_id = "https://example.com/acctest-untrust-cert"
 }
 
-resource "azurerm_local_rulestack_outbound_trust_certificate_association" "test" {
+resource "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association" "test" {
   rulestack_id   = azurerm_palo_alto_local_rulestack.test.id
   certificate_id = azurerm_palo_alto_local_rulestack_certificate.trust.id
 }
 
-resource "azurerm_local_rulestack_outbound_untrust_certificate_association" "test" {
+resource "azurerm_palo_alto_local_rulestack_outbound_untrust_certificate_association" "test" {
   rulestack_id   = azurerm_palo_alto_local_rulestack.test.id
   certificate_id = azurerm_palo_alto_local_rulestack_certificate.untrust.id
 }

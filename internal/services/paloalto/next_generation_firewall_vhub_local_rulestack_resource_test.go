@@ -301,6 +301,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name         = "testacc-palr-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority     = 1001
+  action       = "DenySilent"
 
   applications = ["any"]
 
