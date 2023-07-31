@@ -27,7 +27,7 @@ func TestAccPostgresqlFlexibleServerDatabase_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("charset").HasValue("UTF8"),
-				check.That(data.ResourceName).Key("collation").HasValue("en_US.UTF8"),
+				check.That(data.ResourceName).Key("collation").HasValue("en_US.utf8"),
 			),
 		},
 		data.ImportStep(),
