@@ -105,7 +105,7 @@ A `encryption` block supports the following:
 
 * `enabled` - (Required) Enable/disable encryption on Virtual Network.
 
-* `unencrypted_allowed` - (Optional) Whether ths virtual network allos VM that does not support encryption. Defaults to `false`.
+* `unencrypted_allowed` - (Optional) Whether ths virtual network allos VM that does not support encryption. value `false` for `DropUnencrypted`. value `true` for `AllowUnencrypted`. Defaults to `false`.
 
 ---
 
