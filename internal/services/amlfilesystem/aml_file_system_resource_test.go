@@ -132,6 +132,48 @@ resource "azurerm_subnet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (r AMLFileSystemResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_aml_file_system" "test" {
+  name                   = "acctest-amlfs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  sku_name               = "AMLFS-Durable-Premium-250"
+  subnet_id              = azurerm_subnet.test.id
+  storage_capacity_in_tb = 8
+  zones                  = ["2"]
+
+  maintenance_window {
+    day_of_week        = "Friday"
+    time_of_day_in_utc = "22:00"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r AMLFileSystemResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_aml_file_system" "import" {
+  name                   = azurerm_aml_file_system.test.name
+  resource_group_name    = azurerm_aml_file_system.test.resource_group_name
+  location               = azurerm_aml_file_system.test.location
+  sku_name               = azurerm_aml_file_system.test.sku_name
+  subnet_id              = azurerm_aml_file_system.test.subnet_id
+  storage_capacity_in_tb = azurerm_aml_file_system.test.storage_capacity_in_tb
+  zones                  = azurerm_aml_file_system.test.zones
+
+  maintenance_window {
+    day_of_week        = "Friday"
+    time_of_day_in_utc = "22:00"
+  }
+}
+`, r.basic(data))
+}
+
 func (r AMLFileSystemResource) templateForComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -219,48 +261,6 @@ resource "azurerm_role_assignment" "test2" {
   principal_id         = data.azuread_service_principal.test.object_id
 }
 `, r.template(data), data.RandomInteger, data.RandomString, data.RandomString)
-}
-
-func (r AMLFileSystemResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_aml_file_system" "test" {
-  name                   = "acctest-amlfs-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  sku_name               = "AMLFS-Durable-Premium-250"
-  subnet_id              = azurerm_subnet.test.id
-  storage_capacity_in_tb = 8
-  zones                  = ["2"]
-
-  maintenance_window {
-    day_of_week        = "Friday"
-    time_of_day_in_utc = "22:00"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r AMLFileSystemResource) requiresImport(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_aml_file_system" "import" {
-  name                   = azurerm_aml_file_system.test.name
-  resource_group_name    = azurerm_aml_file_system.test.resource_group_name
-  location               = azurerm_aml_file_system.test.location
-  sku_name               = azurerm_aml_file_system.test.sku_name
-  subnet_id              = azurerm_aml_file_system.test.subnet_id
-  storage_capacity_in_tb = azurerm_aml_file_system.test.storage_capacity_in_tb
-  zones                  = azurerm_aml_file_system.test.zones
-
-  maintenance_window {
-    day_of_week        = "Friday"
-    time_of_day_in_utc = "22:00"
-  }
-}
-`, r.basic(data))
 }
 
 func (r AMLFileSystemResource) complete(data acceptance.TestData) string {
