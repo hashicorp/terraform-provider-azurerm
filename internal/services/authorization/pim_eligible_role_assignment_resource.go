@@ -345,7 +345,7 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 			deleteId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(id.Scope, uuid)
 
 			deadline, ok := ctx.Deadline()
-			if ok {
+			if !ok {
 				return fmt.Errorf("internal error: context has no deadline")
 			}
 
