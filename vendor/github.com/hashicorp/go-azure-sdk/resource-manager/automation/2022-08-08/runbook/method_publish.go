@@ -23,7 +23,7 @@ type PublishOperationResponse struct {
 // Publish ...
 func (c RunbookClient) Publish(ctx context.Context, id RunbookId) (result PublishOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},

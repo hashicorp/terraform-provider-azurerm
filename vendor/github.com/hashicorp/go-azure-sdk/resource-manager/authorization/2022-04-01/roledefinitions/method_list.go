@@ -53,7 +53,7 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 // List ...
 func (c RoleDefinitionsClient) List(ctx context.Context, id commonids.ScopeId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

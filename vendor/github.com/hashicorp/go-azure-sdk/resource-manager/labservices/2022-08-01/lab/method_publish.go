@@ -23,7 +23,7 @@ type PublishOperationResponse struct {
 // Publish ...
 func (c LabClient) Publish(ctx context.Context, id LabId) (result PublishOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

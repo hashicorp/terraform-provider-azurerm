@@ -49,7 +49,7 @@ func (o GetOperationOptions) ToQuery() *client.QueryParams {
 // Get ...
 func (c NetworkInterfacesClient) Get(ctx context.Context, id commonids.NetworkInterfaceId, options GetOperationOptions) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

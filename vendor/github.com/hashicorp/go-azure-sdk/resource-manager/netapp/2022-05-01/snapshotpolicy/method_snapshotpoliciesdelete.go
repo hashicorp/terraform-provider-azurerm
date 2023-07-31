@@ -23,7 +23,7 @@ type SnapshotPoliciesDeleteOperationResponse struct {
 // SnapshotPoliciesDelete ...
 func (c SnapshotPolicyClient) SnapshotPoliciesDelete(ctx context.Context, id SnapshotPolicyId) (result SnapshotPoliciesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

@@ -23,7 +23,7 @@ type DiagnoseOperationResponse struct {
 // Diagnose ...
 func (c WorkspacesClient) Diagnose(ctx context.Context, id WorkspaceId, input DiagnoseWorkspaceParameters) (result DiagnoseOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

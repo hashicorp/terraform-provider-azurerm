@@ -53,11 +53,6 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				},
 			},
 
-			"auto_swap_slot_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"use_extension_bundle": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,

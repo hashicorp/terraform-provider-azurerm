@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/configurations"
@@ -113,7 +114,9 @@ func (t MySQLFlexibleServerConfigurationResource) Exists(ctx context.Context, cl
 		return nil, err
 	}
 
-	resp, err := clients.MySQL.FlexibleServers.Configurations.Get(ctx, *id)
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+	resp, err := clients.MySQL.FlexibleServers.Configurations.Get(ctx2, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %+v", id, err)
 	}
@@ -129,7 +132,9 @@ func (r MySQLFlexibleServerConfigurationResource) checkReset(configurationName s
 		}
 
 		configId := configurations.NewConfigurationID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, configurationName)
-		resp, err := clients.MySQL.FlexibleServers.Configurations.Get(ctx, configId)
+		ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+		resp, err := clients.MySQL.FlexibleServers.Configurations.Get(ctx2, configId)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("%q does not exist", configId)
@@ -155,7 +160,9 @@ func (r MySQLFlexibleServerConfigurationResource) checkValue(value string) accep
 			return err
 		}
 
-		resp, err := clients.MySQL.FlexibleServers.Configurations.Get(ctx, *id)
+		ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+		resp, err := clients.MySQL.FlexibleServers.Configurations.Get(ctx2, *id)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("%q does not exist", id.ConfigurationName)

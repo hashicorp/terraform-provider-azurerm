@@ -25,7 +25,7 @@ type TopicsListAuthorizationRulesCompleteResult struct {
 // TopicsListAuthorizationRules ...
 func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRules(ctx context.Context, id TopicId) (result TopicsListAuthorizationRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

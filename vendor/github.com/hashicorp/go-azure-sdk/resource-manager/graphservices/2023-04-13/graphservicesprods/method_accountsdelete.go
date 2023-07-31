@@ -19,7 +19,7 @@ type AccountsDeleteOperationResponse struct {
 // AccountsDelete ...
 func (c GraphservicesprodsClient) AccountsDelete(ctx context.Context, id AccountId) (result AccountsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

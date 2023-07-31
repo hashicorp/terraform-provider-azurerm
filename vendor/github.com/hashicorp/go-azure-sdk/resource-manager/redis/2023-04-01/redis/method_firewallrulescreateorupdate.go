@@ -20,7 +20,7 @@ type FirewallRulesCreateOrUpdateOperationResponse struct {
 // FirewallRulesCreateOrUpdate ...
 func (c RedisClient) FirewallRulesCreateOrUpdate(ctx context.Context, id FirewallRuleId, input RedisFirewallRule) (result FirewallRulesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

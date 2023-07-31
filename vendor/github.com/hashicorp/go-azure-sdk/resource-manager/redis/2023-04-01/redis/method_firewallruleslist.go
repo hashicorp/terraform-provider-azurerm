@@ -25,7 +25,7 @@ type FirewallRulesListCompleteResult struct {
 // FirewallRulesList ...
 func (c RedisClient) FirewallRulesList(ctx context.Context, id RediId) (result FirewallRulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

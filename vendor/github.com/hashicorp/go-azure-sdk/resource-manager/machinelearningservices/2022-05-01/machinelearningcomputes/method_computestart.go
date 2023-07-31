@@ -23,7 +23,7 @@ type ComputeStartOperationResponse struct {
 // ComputeStart ...
 func (c MachineLearningComputesClient) ComputeStart(ctx context.Context, id ComputeId) (result ComputeStartOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},

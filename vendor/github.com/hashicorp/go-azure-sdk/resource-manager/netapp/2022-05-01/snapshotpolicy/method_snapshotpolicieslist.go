@@ -21,7 +21,7 @@ type SnapshotPoliciesListOperationResponse struct {
 // SnapshotPoliciesList ...
 func (c SnapshotPolicyClient) SnapshotPoliciesList(ctx context.Context, id NetAppAccountId) (result SnapshotPoliciesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

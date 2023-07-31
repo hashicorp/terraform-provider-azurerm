@@ -23,7 +23,7 @@ type UpgradeOperationResponse struct {
 // Upgrade ...
 func (c DiskPoolsClient) Upgrade(ctx context.Context, id DiskPoolId) (result UpgradeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

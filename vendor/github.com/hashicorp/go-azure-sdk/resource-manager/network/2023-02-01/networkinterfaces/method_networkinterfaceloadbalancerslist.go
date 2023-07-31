@@ -26,7 +26,7 @@ type NetworkInterfaceLoadBalancersListCompleteResult struct {
 // NetworkInterfaceLoadBalancersList ...
 func (c NetworkInterfacesClient) NetworkInterfaceLoadBalancersList(ctx context.Context, id commonids.NetworkInterfaceId) (result NetworkInterfaceLoadBalancersListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

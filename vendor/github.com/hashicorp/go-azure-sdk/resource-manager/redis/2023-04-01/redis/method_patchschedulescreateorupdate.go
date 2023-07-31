@@ -21,7 +21,7 @@ type PatchSchedulesCreateOrUpdateOperationResponse struct {
 // PatchSchedulesCreateOrUpdate ...
 func (c RedisClient) PatchSchedulesCreateOrUpdate(ctx context.Context, id RediId, input RedisPatchSchedule) (result PatchSchedulesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

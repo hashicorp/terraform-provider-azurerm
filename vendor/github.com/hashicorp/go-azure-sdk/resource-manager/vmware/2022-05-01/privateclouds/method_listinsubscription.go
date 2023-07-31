@@ -26,7 +26,7 @@ type ListInSubscriptionCompleteResult struct {
 // ListInSubscription ...
 func (c PrivateCloudsClient) ListInSubscription(ctx context.Context, id commonids.SubscriptionId) (result ListInSubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

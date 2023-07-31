@@ -53,7 +53,7 @@ func (o ListVirtualMachineScaleSetIPConfigurationsOperationOptions) ToQuery() *c
 // ListVirtualMachineScaleSetIPConfigurations ...
 func (c NetworkInterfacesClient) ListVirtualMachineScaleSetIPConfigurations(ctx context.Context, id commonids.VirtualMachineScaleSetNetworkInterfaceId, options ListVirtualMachineScaleSetIPConfigurationsOperationOptions) (result ListVirtualMachineScaleSetIPConfigurationsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

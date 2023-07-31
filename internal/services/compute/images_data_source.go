@@ -77,6 +77,11 @@ func dataSourceImages() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeInt,
 										Computed: true,
 									},
+
+									"disk_encryption_set_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
 								},
 							},
 						},
@@ -215,8 +220,8 @@ func flattenImage(input images.Image) map[string]interface{} {
 	osDisk := make([]interface{}, 0)
 	dataDisks := make([]interface{}, 0)
 	if props := input.Properties; props != nil {
-		osDisk = flattenImageOSDisk(props.StorageProfile)
-		dataDisks = flattenImageDataDisks(props.StorageProfile)
+		osDisk = flattenImagesOSDisk(props.StorageProfile)
+		dataDisks = flattenImagesDataDisks(props.StorageProfile)
 
 		if props.StorageProfile != nil && props.StorageProfile.ZoneResilient != nil {
 			zoneResilient = *props.StorageProfile.ZoneResilient
@@ -231,4 +236,80 @@ func flattenImage(input images.Image) map[string]interface{} {
 		"tags":           tags.Flatten(input.Tags),
 		"zone_resilient": zoneResilient,
 	}
+}
+
+func flattenImagesOSDisk(input *images.ImageStorageProfile) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil {
+		if v := input.OsDisk; v != nil {
+			blobUri := ""
+			if uri := v.BlobUri; uri != nil {
+				blobUri = *uri
+			}
+			caching := ""
+			if v.Caching != nil {
+				caching = string(*v.Caching)
+			}
+			diskSizeGB := 0
+			if v.DiskSizeGB != nil {
+				diskSizeGB = int(*v.DiskSizeGB)
+			}
+			managedDiskId := ""
+			if disk := v.ManagedDisk; disk != nil && disk.Id != nil {
+				managedDiskId = *disk.Id
+			}
+			diskEncryptionSetId := ""
+			if set := v.DiskEncryptionSet; set != nil && set.Id != nil {
+				diskEncryptionSetId = *set.Id
+			}
+			output = append(output, map[string]interface{}{
+				"blob_uri":               blobUri,
+				"caching":                caching,
+				"managed_disk_id":        managedDiskId,
+				"os_type":                string(v.OsType),
+				"os_state":               string(v.OsState),
+				"size_gb":                diskSizeGB,
+				"disk_encryption_set_id": diskEncryptionSetId,
+			})
+		}
+	}
+
+	return output
+}
+
+func flattenImagesDataDisks(input *images.ImageStorageProfile) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil {
+		if v := input.DataDisks; v != nil {
+			for _, disk := range *input.DataDisks {
+				blobUri := ""
+				if disk.BlobUri != nil {
+					blobUri = *disk.BlobUri
+				}
+				caching := ""
+				if disk.Caching != nil {
+					caching = string(*disk.Caching)
+				}
+				diskSizeGb := 0
+				if disk.DiskSizeGB != nil {
+					diskSizeGb = int(*disk.DiskSizeGB)
+				}
+				managedDiskId := ""
+				if disk.ManagedDisk != nil && disk.ManagedDisk.Id != nil {
+					managedDiskId = *disk.ManagedDisk.Id
+				}
+				output = append(output, map[string]interface{}{
+					"blob_uri":        blobUri,
+					"caching":         caching,
+					"lun":             int(disk.Lun),
+					"managed_disk_id": managedDiskId,
+					"size_gb":         diskSizeGb,
+				})
+			}
+		}
+	}
+
+	return output
 }

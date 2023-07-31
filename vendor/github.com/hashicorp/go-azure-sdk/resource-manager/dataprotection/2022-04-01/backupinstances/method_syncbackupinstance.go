@@ -23,7 +23,7 @@ type SyncBackupInstanceOperationResponse struct {
 // SyncBackupInstance ...
 func (c BackupInstancesClient) SyncBackupInstance(ctx context.Context, id BackupInstanceId, input SyncBackupInstanceRequest) (result SyncBackupInstanceOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -25,7 +25,7 @@ type ListCloudServiceNetworkInterfacesCompleteResult struct {
 // ListCloudServiceNetworkInterfaces ...
 func (c NetworkInterfacesClient) ListCloudServiceNetworkInterfaces(ctx context.Context, id ProviderCloudServiceId) (result ListCloudServiceNetworkInterfacesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

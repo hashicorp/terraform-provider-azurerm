@@ -1,23 +1,57 @@
-## 3.67.0 (Unreleased)
+## 3.68.0 (Unreleased)
+
+ENHANCEMENTS
+
+* dependencies: updating to `v0.20230728.1082317` of `github.com/hashicorp/go-azure-sdk` [GH-22731]
+* `network`: updating to use API Version `2023-02-01` [GH-22676]
+* `relay`: updating to use API Version `2021-11-01` [GH-22725]
+* `azurerm_web_application_firewall_policy` - updating to use API Version `2023-02-01` [GH-22455]
+* `data azurerm_images` - support for `disk_encryption_set_id` and updating to use separate flatten functions [GH-22690]
+  
+BUG FIXES
+
+* provider: only obtaining an authentication token for Managed HSM in environments where Managed HSM is available [GH-22400]
+* `azurerm_private_endpoint` - loading the subnet to lock from the API rather than the config during deletion [GH-22676]
+* `azurerm_netapp_volume_group_sap_hana` - update the validation of `security_style` to match proper casing after baselayer update [GH-22615]
+* `azurerm_cognitive_deployment` - add locks to parent resource to prevent 409 error [GH-22711]
+* `azurerm_site_recovery_replication_recovery_plan` - fix update for `boot_recovery_group`,`failover_recovery_group` and `shutdown_recovery_group` [GH-22687]
+
+## 3.67.0 (July 27, 2023)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_eventhub_sas` [GH-22215]
-* **New Resource**: `azurerm_kubernetes_cluster_trusted_access_role_binding` [GH-22647]
-* **New Resource:** `azurerm_marketplace_role_assignment` [GH-22398]
-* **New Resource:** `azurerm_network_function_azure_traffic_collector` [GH-22274]
+* **New Data Source:** `azurerm_eventhub_sas` ([#22215](https://github.com/hashicorp/terraform-provider-azurerm/issues/22215))
+* **New Resource**: `azurerm_kubernetes_cluster_trusted_access_role_binding` ([#22647](https://github.com/hashicorp/terraform-provider-azurerm/issues/22647))
+* **New Resource:** `azurerm_marketplace_role_assignment` ([#22398](https://github.com/hashicorp/terraform-provider-azurerm/issues/22398))
+* **New Resource:** `azurerm_network_function_azure_traffic_collector` ([#22274](https://github.com/hashicorp/terraform-provider-azurerm/issues/22274))
 
 ENHANCEMENTS:
 
-* `azurerm_image` - support for the field `disk_encryption_set_id` within the `os_disk` block [GH-22642]
-* `azurerm_redis_enterprise_database` - support `redisSON` module for geo-replication [GH-22627]
-* `azurerm_network_interface` - updating to use `hashicorp/go-azure-sdk` and API Version `2023-02-01` [GH-22479]
+* dependencies: updating to `v0.20230726.1135558` of `github.com/hashicorp/go-azure-sdk` ([#22698](https://github.com/hashicorp/terraform-provider-azurerm/issues/22698))
+* `connections`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22681](https://github.com/hashicorp/terraform-provider-azurerm/issues/22681))
+* `iothub`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22681](https://github.com/hashicorp/terraform-provider-azurerm/issues/22681))
+* `mysql`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22681](https://github.com/hashicorp/terraform-provider-azurerm/issues/22681))
+* `orbital`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22681](https://github.com/hashicorp/terraform-provider-azurerm/issues/22681))
+* `powerbi`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22681](https://github.com/hashicorp/terraform-provider-azurerm/issues/22681))
+* `privatedns`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22681](https://github.com/hashicorp/terraform-provider-azurerm/issues/22681))
+* `purview`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22681](https://github.com/hashicorp/terraform-provider-azurerm/issues/22681))
+* `relay`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22681](https://github.com/hashicorp/terraform-provider-azurerm/issues/22681))
+* `azurerm_cdn_endpoint_custom_domain` - pass nil as version when Certificate/Secret version is set to Latest ([#22683](https://github.com/hashicorp/terraform-provider-azurerm/issues/22683))
+* `azurerm_image` - support for the field `disk_encryption_set_id` within the `os_disk` block ([#22642](https://github.com/hashicorp/terraform-provider-azurerm/issues/22642))
+* `azurerm_linux_virtual_machine` - add support for the `bypass_platform_safety_checks_on_user_schedule_enabled` and `reboot_setting` properties ([#22349](https://github.com/hashicorp/terraform-provider-azurerm/issues/22349))
+* `azurerm_network_interface` - updating to use `hashicorp/go-azure-sdk` and API Version `2023-02-01` ([#22479](https://github.com/hashicorp/terraform-provider-azurerm/issues/22479))
+* `azurerm_redis_enterprise_database` - support `redisSON` module for geo-replication ([#22627](https://github.com/hashicorp/terraform-provider-azurerm/issues/22627))
+* `azurerm_windows_virtual_machine` - add support for the `bypass_platform_safety_checks_on_user_schedule_enabled` and `reboot_setting` properties ([#22349](https://github.com/hashicorp/terraform-provider-azurerm/issues/22349))
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_account` - `backup.0.type` is updated separately when set to `Continuous` [GH-22638]
-* `azurerm_redis_cache` - only update `patch_schedule` when it has changed in the config file [GH-22661]
-* `azurerm_cosmosdb_account` - `cors_rule.max_age_in_seconds` is now Optional and has new max `2147483647` [GH-22552]
+* `azurerm_cosmosdb_account` - `type` within the `backup` block is updated separately when set to `Continuous` ([#22638](https://github.com/hashicorp/terraform-provider-azurerm/issues/22638))
+* `azurerm_cosmosdb_account` - `max_age_in_seconds` within the `cors_rule` block is now Optional and can now be configured up to `2147483647` ([#22552](https://github.com/hashicorp/terraform-provider-azurerm/issues/22552))
+* `azurerm_maintenance_configuration` - fixing a bug where include and exclude were set incorrectly ([#22671](https://github.com/hashicorp/terraform-provider-azurerm/issues/22671))
+* `azurerm_pim_eligible_role_assignment` - polling for the duration of the timeout, rather than using a hard-coded value ([#22682](https://github.com/hashicorp/terraform-provider-azurerm/issues/22682))
+* `azurerm_redis_cache` - only updating `patch_schedule` when it has changed in the config file ([#22661](https://github.com/hashicorp/terraform-provider-azurerm/issues/22661))
+* `azurerm_logic_app_standard` - attribute `auto_swap_slot_name` is now under correct block `site_config` ([#22712](https://github.com/hashicorp/terraform-provider-azurerm/issues/22712))
+* `azurerm_postgresql_flexible_server` - update the validation of `storage_mb` replacing `33554432` with `33553408` ([#22706](https://github.com/hashicorp/terraform-provider-azurerm/issues/22706))
 
 ## 3.66.0 (July 20, 2023)
 

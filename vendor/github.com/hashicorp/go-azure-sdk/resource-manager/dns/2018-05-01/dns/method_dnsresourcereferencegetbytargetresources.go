@@ -22,7 +22,7 @@ type DnsResourceReferenceGetByTargetResourcesOperationResponse struct {
 // DnsResourceReferenceGetByTargetResources ...
 func (c DnsClient) DnsResourceReferenceGetByTargetResources(ctx context.Context, id commonids.SubscriptionId, input DnsResourceReferenceRequest) (result DnsResourceReferenceGetByTargetResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

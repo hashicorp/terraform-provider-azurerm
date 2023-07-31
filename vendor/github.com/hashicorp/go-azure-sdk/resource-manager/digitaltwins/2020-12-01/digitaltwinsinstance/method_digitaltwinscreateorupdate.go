@@ -23,7 +23,7 @@ type DigitalTwinsCreateOrUpdateOperationResponse struct {
 // DigitalTwinsCreateOrUpdate ...
 func (c DigitalTwinsInstanceClient) DigitalTwinsCreateOrUpdate(ctx context.Context, id DigitalTwinsInstanceId, input DigitalTwinsDescription) (result DigitalTwinsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

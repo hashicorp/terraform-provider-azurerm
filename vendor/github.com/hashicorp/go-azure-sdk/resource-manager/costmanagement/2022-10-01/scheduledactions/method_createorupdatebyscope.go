@@ -48,7 +48,7 @@ func (o CreateOrUpdateByScopeOperationOptions) ToQuery() *client.QueryParams {
 // CreateOrUpdateByScope ...
 func (c ScheduledActionsClient) CreateOrUpdateByScope(ctx context.Context, id ScopedScheduledActionId, input ScheduledAction, options CreateOrUpdateByScopeOperationOptions) (result CreateOrUpdateByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -26,7 +26,7 @@ type ConfigurationStoresListDeletedCompleteResult struct {
 // ConfigurationStoresListDeleted ...
 func (c DeletedConfigurationStoresClient) ConfigurationStoresListDeleted(ctx context.Context, id commonids.SubscriptionId) (result ConfigurationStoresListDeletedOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

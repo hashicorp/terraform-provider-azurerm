@@ -23,7 +23,7 @@ type VolumesAuthorizeReplicationOperationResponse struct {
 // VolumesAuthorizeReplication ...
 func (c VolumesReplicationClient) VolumesAuthorizeReplication(ctx context.Context, id VolumeId, input AuthorizeRequest) (result VolumesAuthorizeReplicationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

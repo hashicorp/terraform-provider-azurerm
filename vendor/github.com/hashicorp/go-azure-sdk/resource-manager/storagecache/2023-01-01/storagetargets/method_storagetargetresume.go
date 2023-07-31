@@ -23,7 +23,7 @@ type StorageTargetResumeOperationResponse struct {
 // StorageTargetResume ...
 func (c StorageTargetsClient) StorageTargetResume(ctx context.Context, id StorageTargetId) (result StorageTargetResumeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

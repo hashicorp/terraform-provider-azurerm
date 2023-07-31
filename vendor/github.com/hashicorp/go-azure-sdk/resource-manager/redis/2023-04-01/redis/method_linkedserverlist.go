@@ -25,7 +25,7 @@ type LinkedServerListCompleteResult struct {
 // LinkedServerList ...
 func (c RedisClient) LinkedServerList(ctx context.Context, id RediId) (result LinkedServerListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

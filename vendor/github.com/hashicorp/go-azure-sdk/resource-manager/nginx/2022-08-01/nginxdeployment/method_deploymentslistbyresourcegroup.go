@@ -26,7 +26,7 @@ type DeploymentsListByResourceGroupCompleteResult struct {
 // DeploymentsListByResourceGroup ...
 func (c NginxDeploymentClient) DeploymentsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result DeploymentsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

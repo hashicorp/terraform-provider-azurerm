@@ -56,7 +56,7 @@ func (o TransformsListOperationOptions) ToQuery() *client.QueryParams {
 // TransformsList ...
 func (c EncodingsClient) TransformsList(ctx context.Context, id MediaServiceId, options TransformsListOperationOptions) (result TransformsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

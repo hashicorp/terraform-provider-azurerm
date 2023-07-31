@@ -21,7 +21,7 @@ type GetDefaultByLocationOperationResponse struct {
 // GetDefaultByLocation ...
 func (c AttestationProvidersClient) GetDefaultByLocation(ctx context.Context, id LocationId) (result GetDefaultByLocationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

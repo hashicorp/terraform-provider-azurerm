@@ -21,7 +21,7 @@ type SwitchBillingOperationResponse struct {
 // SwitchBilling ...
 func (c MonitorsClient) SwitchBilling(ctx context.Context, id MonitorId, input SwitchBillingRequest) (result SwitchBillingOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

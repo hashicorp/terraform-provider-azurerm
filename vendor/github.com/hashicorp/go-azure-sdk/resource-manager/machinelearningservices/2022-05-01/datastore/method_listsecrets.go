@@ -22,7 +22,7 @@ type ListSecretsOperationResponse struct {
 // ListSecrets ...
 func (c DatastoreClient) ListSecrets(ctx context.Context, id DataStoreId) (result ListSecretsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

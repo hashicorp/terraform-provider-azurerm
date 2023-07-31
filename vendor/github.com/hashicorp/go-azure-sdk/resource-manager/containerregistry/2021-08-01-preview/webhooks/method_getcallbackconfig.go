@@ -21,7 +21,7 @@ type GetCallbackConfigOperationResponse struct {
 // GetCallbackConfig ...
 func (c WebHooksClient) GetCallbackConfig(ctx context.Context, id WebHookId) (result GetCallbackConfigOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type MonitorsCreateOperationResponse struct {
 // MonitorsCreate ...
 func (c MonitorsResourceClient) MonitorsCreate(ctx context.Context, id MonitorId, input ElasticMonitorResource) (result MonitorsCreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

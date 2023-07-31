@@ -517,14 +517,43 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("parse Site reocvery replication plan id: %+v", err)
 			}
 
-			recoveryPlanGroup, err := expandRecoveryGroup(model.RecoveryGroup)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("when expanding recovery group: %s", err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			var groupValue []replicationrecoveryplans.RecoveryPlanGroup
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model is nil", *id)
+			}
+
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: properties is nil", *id)
+			}
+
+			if resp.Model.Properties.Groups == nil {
+				return fmt.Errorf("retrieving %s: groups is nil", *id)
+			}
+
+			groupValue = *resp.Model.Properties.Groups
+
+			if metadata.ResourceData.HasChange("recovery_group") {
+				groupValue, err = expandRecoveryGroup(model.RecoveryGroup)
+			}
+
+			if metadata.ResourceData.HasChange("boot_recovery_group") ||
+				metadata.ResourceData.HasChange("failover_recovery_group") ||
+				metadata.ResourceData.HasChange("shutdown_recovery_group") {
+				groupValue, err = expandRecoveryGroupNew(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
+			}
+
+			if err != nil {
+				return fmt.Errorf("expanding recovery group: %+v", err)
 			}
 
 			parameters := replicationrecoveryplans.UpdateRecoveryPlanInput{
 				Properties: &replicationrecoveryplans.UpdateRecoveryPlanInputProperties{
-					Groups: &recoveryPlanGroup,
+					Groups: &groupValue,
 				},
 			}
 

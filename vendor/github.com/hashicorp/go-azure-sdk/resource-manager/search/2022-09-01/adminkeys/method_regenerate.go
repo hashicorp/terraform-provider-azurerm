@@ -48,7 +48,7 @@ func (o RegenerateOperationOptions) ToQuery() *client.QueryParams {
 // Regenerate ...
 func (c AdminKeysClient) Regenerate(ctx context.Context, id KeyKindId, options RegenerateOperationOptions) (result RegenerateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

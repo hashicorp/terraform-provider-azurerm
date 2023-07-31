@@ -25,7 +25,7 @@ type ListByFactoryCompleteResult struct {
 // ListByFactory ...
 func (c ManagedVirtualNetworksClient) ListByFactory(ctx context.Context, id FactoryId) (result ListByFactoryOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

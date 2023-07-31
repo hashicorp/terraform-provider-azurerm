@@ -22,7 +22,7 @@ type RegistriesCheckNameAvailabilityOperationResponse struct {
 // RegistriesCheckNameAvailability ...
 func (c OperationClient) RegistriesCheckNameAvailability(ctx context.Context, id commonids.SubscriptionId, input RegistryNameCheckRequest) (result RegistriesCheckNameAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

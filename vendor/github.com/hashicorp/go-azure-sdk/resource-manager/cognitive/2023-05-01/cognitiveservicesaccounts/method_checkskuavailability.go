@@ -21,7 +21,7 @@ type CheckSkuAvailabilityOperationResponse struct {
 // CheckSkuAvailability ...
 func (c CognitiveServicesAccountsClient) CheckSkuAvailability(ctx context.Context, id LocationId, input CheckSkuAvailabilityParameter) (result CheckSkuAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

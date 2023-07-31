@@ -20,7 +20,7 @@ type SimPoliciesUpdateTagsOperationResponse struct {
 // SimPoliciesUpdateTags ...
 func (c SIMPolicyClient) SimPoliciesUpdateTags(ctx context.Context, id SimPolicyId, input TagsObject) (result SimPoliciesUpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type AccountsRenewCredentialsOperationResponse struct {
 // AccountsRenewCredentials ...
 func (c NetAppAccountsClient) AccountsRenewCredentials(ctx context.Context, id NetAppAccountId) (result AccountsRenewCredentialsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,
