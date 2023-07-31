@@ -669,7 +669,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	sku := expandAzureRmApiManagementSkuName(d)
+	sku := expandAzureRmApiManagementSkuName(d.Get("sku_name").(string))
 
 	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
@@ -768,8 +768,8 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 			CustomProperties:    customProperties,
 			Certificates:        certificates,
 		},
+		Sku:  &sku,
 		Tags: tags.Expand(t),
-		Sku:  sku,
 	}
 
 	if _, ok := d.GetOk("hostname_configuration"); ok {
@@ -786,7 +786,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	if _, ok := d.GetOk("additional_location"); ok {
 		var err error
-		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, *sku)
+		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
 		if err != nil {
 			return err
 		}
@@ -1609,21 +1609,14 @@ func flattenIdentity(input *apimanagement.ServiceIdentity) (*[]interface{}, erro
 	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
-func expandAzureRmApiManagementSkuName(d *pluginsdk.ResourceData) *apimanagement.ServiceSkuProperties {
-	vs := d.Get("sku_name").(string)
-
-	if len(vs) == 0 {
-		return nil
-	}
-
-	name, capacity, err := azure.SplitSku(vs)
-	if err != nil {
-		return nil
-	}
-
-	return &apimanagement.ServiceSkuProperties{
+func expandAzureRmApiManagementSkuName(input string) apimanagement.ServiceSkuProperties {
+	// "sku_name" is validated to be in this format above, and is required
+	skuParts := strings.Split(input, "_")
+	name := skuParts[0]
+	capacity, _ := strconv.Atoi(skuParts[1])
+	return apimanagement.ServiceSkuProperties{
 		Name:     apimanagement.SkuType(name),
-		Capacity: utils.Int32(capacity),
+		Capacity: pointer.To(int32(capacity)),
 	}
 }
 
