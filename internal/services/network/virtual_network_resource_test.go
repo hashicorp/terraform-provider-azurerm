@@ -386,8 +386,7 @@ resource "azurerm_virtual_network" "test" {
   dns_servers         = ["10.7.7.2", "10.7.7.7", "10.7.7.1", ]
 
   encryption {
-    enabled     = true
-    unencrypted_allowed = true
+    enforcement = "AllowUnencrypted"
   }
 
   subnet {

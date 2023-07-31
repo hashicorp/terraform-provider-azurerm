@@ -109,15 +109,13 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
+					"enforcement": {
+						Type:     pluginsdk.TypeString,
 						Required: true,
-					},
-
-					"unencrypted_allowed": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						ValidateFunc: validation.StringInSlice([]string{
+							string((network.VirtualNetworkEncryptionEnforcementDropUnencrypted)),
+							string(network.VirtualNetworkEncryptionEnforcementAllowUnencrypted),
+						}, false),
 					},
 				},
 			},
@@ -431,16 +429,14 @@ func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceDa
 		}
 	}
 
-	if v := d.Get("encryption").([]interface{}); len(v) > 0 && v[0] != nil {
-		encryptionConf := v[0].(map[string]interface{})
-		properties.Encryption = &network.VirtualNetworkEncryption{
-			Enabled:     pointer.To(encryptionConf["enabled"].(bool)),
-			Enforcement: network.VirtualNetworkEncryptionEnforcementDropUnencrypted,
+	if v, ok := d.GetOk("encryption"); ok {
+		if vList := v.([]interface{}); len(vList) > 0 && vList[0] != nil {
+			encryptionConf := vList[0].(map[string]interface{})
+			properties.Encryption = &network.VirtualNetworkEncryption{
+				Enabled:     pointer.To(true),
+				Enforcement: network.VirtualNetworkEncryptionEnforcement(encryptionConf["enforcement"].(string)),
+			}
 		}
-		if encryptionConf["unencrypted_allowed"].(bool) {
-			properties.Encryption.Enforcement = network.VirtualNetworkEncryptionEnforcementAllowUnencrypted
-		}
-
 	}
 
 	if v, ok := d.GetOk("bgp_community"); ok {
@@ -468,16 +464,13 @@ func flattenVirtualNetworkDDoSProtectionPlan(input *network.VirtualNetworkProper
 }
 
 func flattenVirtualNetworkEncryption(encryption *network.VirtualNetworkEncryption) interface{} {
-	if encryption == nil {
-		return nil
+	if encryption == nil || encryption.Enabled == nil || *encryption.Enabled == false {
+		return make([]interface{}, 0)
 	}
-
-	allow := encryption.Enforcement == network.VirtualNetworkEncryptionEnforcementAllowUnencrypted
 
 	return []interface{}{
 		map[string]interface{}{
-			"enabled":             encryption.Enabled,
-			"unencrypted_allowed": allow,
+			"enforcement": encryption.Enforcement,
 		},
 	}
 }

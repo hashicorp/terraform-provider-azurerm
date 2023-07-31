@@ -103,9 +103,7 @@ A `ddos_protection_plan` block supports the following:
 
 A `encryption` block supports the following:
 
-* `enabled` - (Required) Enable/disable encryption on Virtual Network.
-
-* `unencrypted_allowed` - (Optional) Whether ths virtual network allos VM that does not support encryption. value `false` for `DropUnencrypted`. value `true` for `AllowUnencrypted`. Defaults to `false`.
+* `enforcement` - (Required) Specifies if the encrypted Virtual Network allows VM that does not support encryption. Possible values are `DropUnencrypted` and `AllowUnencrypted`.
 
 ---
 
