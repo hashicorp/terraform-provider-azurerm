@@ -140,7 +140,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_public_ip" "egress" {
-  name                = "acctestpublicip-%[1]d"
+  name                = "acctestpublicip-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
