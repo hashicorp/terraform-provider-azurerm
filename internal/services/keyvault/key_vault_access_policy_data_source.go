@@ -140,15 +140,23 @@ func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}
 
 	d.SetId(name)
 
-	if strings.Contains(name, "Key") {
-		d.Set("key_permissions", templateManagementPermissions["key"])
-	}
-	if strings.Contains(name, "Secret") {
-		d.Set("secret_permissions", templateManagementPermissions["secret"])
-	}
+	permissionsCertificate := make([]string, 0)
 	if strings.Contains(name, "Certificate") {
-		d.Set("certificate_permissions", templateManagementPermissions["certificate"])
+		permissionsCertificate = templateManagementPermissions["certificate"]
 	}
+	d.Set("certificate_permissions", permissionsCertificate)
+
+	permissionsKeys := make([]string, 0)
+	if strings.Contains(name, "Key") {
+		permissionsKeys = templateManagementPermissions["key"]
+	}
+	d.Set("key_permissions", permissionsKeys)
+
+	permissionsSecret := make([]string, 0)
+	if strings.Contains(name, "Secret") {
+		permissionsSecret = templateManagementPermissions["secret"]
+	}
+	d.Set("secret_permissions", permissionsSecret)
 
 	return nil
 }
