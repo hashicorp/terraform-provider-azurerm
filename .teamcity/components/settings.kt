@@ -9,7 +9,7 @@ var defaultStartHour = 0
 // specifies the default level of parallelism per-service-package
 var defaultParallelism = 20
 
-// specifies the default test timeout in hours
+// specifies the default build timeout in hours
 var defaultTimeout = 12
 
 // specifies the default version of Terraform Core which should be used for testing
