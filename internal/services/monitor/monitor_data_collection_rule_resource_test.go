@@ -734,5 +734,5 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "westeurope")
 }
