@@ -29,16 +29,37 @@ func Any(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc { //
 	return validation.Any(validators...)
 }
 
+// FloatAtLeast returns a SchemaValidateFunc which tests if the provided value
+// is of type float and is at least min (inclusive)
+func FloatAtLeast(min float64) func(interface{}, string) ([]string, []error) {
+	return validation.FloatAtLeast(min)
+}
+
 // FloatBetween returns a SchemaValidateFunc which tests if the provided value
 // is of type float64 and is between min and max (inclusive).
 func FloatBetween(min, max float64) func(interface{}, string) ([]string, []error) {
 	return validation.FloatBetween(min, max)
 }
 
-// FloatAtLeast returns a SchemaValidateFunc which tests if the provided value
-// is of type float and is at least min (inclusive)
-func FloatAtLeast(min float64) func(interface{}, string) ([]string, []error) {
-	return validation.FloatAtLeast(min)
+// FloatInSlice returns a SchemaValidateFunc which tests if the provided value
+// is of type float64 and matches the value of an element in the valid slice
+func FloatInSlice(valid []float64) func(interface{}, string) ([]string, []error) {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
+		v, ok := i.(float64)
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected type of %s to be float", i))
+			return warnings, errors
+		}
+
+		for _, validFloat := range valid {
+			if v == validFloat {
+				return warnings, errors
+			}
+		}
+
+		errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %f", k, valid, v))
+		return warnings, errors
+	}
 }
 
 // IntNotInSlice returns a SchemaValidateFunc which tests if the provided value

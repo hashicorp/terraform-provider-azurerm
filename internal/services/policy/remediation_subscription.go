@@ -70,7 +70,7 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 			"failure_percentage": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				ValidateFunc: validate2.FloatInRange(0, 1.0),
+				ValidateFunc: validation.FloatBetween(0, 1.0),
 			},
 
 			"parallel_deployments": {
