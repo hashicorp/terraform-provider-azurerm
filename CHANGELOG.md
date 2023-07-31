@@ -1,5 +1,9 @@
 ## 3.68.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_custom_ip_prefix` [GH-21322]
+
 ENHANCEMENTS
 
 * dependencies: updating to `v0.20230728.1082317` of `github.com/hashicorp/go-azure-sdk` [GH-22731]
