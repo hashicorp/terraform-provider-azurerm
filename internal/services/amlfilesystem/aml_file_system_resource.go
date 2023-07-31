@@ -327,9 +327,12 @@ func (r AMLFileSystemResource) Read() sdk.ResourceFunc {
 				state.StorageCapacityInTb = int64(properties.StorageCapacityTiB)
 				state.MaintenanceWindow = flattenAMLFileSystemMaintenanceWindow(properties.MaintenanceWindow)
 				state.HsmSetting = flattenAMLFileSystemHsmSetting(properties.Hsm)
-				state.SkuName = pointer.From(model.Sku.Name)
 				state.Zones = pointer.From(model.Zones)
 				state.KeyEncryptionKey = flattenAMLFileSystemKeyEncryptionKey(properties.EncryptionSettings)
+
+				if v := model.Sku; v != nil {
+					state.SkuName = pointer.From(v.Name)
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -508,10 +511,7 @@ func flattenAMLFileSystemHsmSetting(input *amlfilesystems.AmlFilesystemPropertie
 	if v := input.Settings; v != nil {
 		hsmSetting.ContainerId = v.Container
 		hsmSetting.LoggingContainerId = v.LoggingContainer
-
-		if v.ImportPrefix != nil {
-			hsmSetting.ImportPrefix = pointer.From(v.ImportPrefix)
-		}
+		hsmSetting.ImportPrefix = pointer.From(v.ImportPrefix)
 	}
 
 	return append(result, hsmSetting)

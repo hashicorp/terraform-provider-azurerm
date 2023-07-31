@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The resource ID of the Subnet that is used for managing the AML file system and for client-facing operations. This subnet should have at least a /24 subnet mask within the VNET's address space. Changing this forces a new resource to be created.
 
-* `zones` - (Required) The availability zones for the AML File System. Changing this forces a new resource to be created.
+* `zones` - (Required) A list of availability zones for the AML File System. Changing this forces a new resource to be created.
 
 * `hsm_setting` - (Optional) A `hsm_setting` block as defined below. Changing this forces a new resource to be created.
 

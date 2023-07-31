@@ -132,6 +132,95 @@ resource "azurerm_subnet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (r AMLFileSystemResource) templateForComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestmi%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault" "test" {
+  name                     = "acctestkv%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "standard"
+  purge_protection_enabled = true
+}
+
+resource "azurerm_key_vault_access_policy" "server" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+
+  key_permissions = ["Get", "List", "WrapKey", "UnwrapKey", "GetRotationPolicy", "SetRotationPolicy"]
+}
+
+resource "azurerm_key_vault_access_policy" "client" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy", "SetRotationPolicy"]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "test"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.client,
+    azurerm_key_vault_access_policy.server,
+  ]
+}
+
+resource "azurerm_storage_account" "test" {
+  name                            = "acctestsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "storagecontainer"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "test2" {
+  name                  = "storagecontainer2"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+data "azuread_service_principal" "test" {
+  display_name = "HPC Cache Resource Provider"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "test2" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+`, r.template(data), data.RandomInteger, data.RandomString, data.RandomString)
+}
+
 func (r AMLFileSystemResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -178,89 +267,6 @@ func (r AMLFileSystemResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestmi%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
-}
-
-resource "azurerm_key_vault_access_policy" "server" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_user_assigned_identity.test.principal_id
-
-  key_permissions = ["Get", "List", "WrapKey", "UnwrapKey", "GetRotationPolicy", "SetRotationPolicy"]
-}
-
-resource "azurerm_key_vault_access_policy" "client" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy", "SetRotationPolicy"]
-}
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "test"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
-
-  depends_on = [
-    azurerm_key_vault_access_policy.client,
-    azurerm_key_vault_access_policy.server,
-  ]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                            = "acctestsa%s"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "storagecontainer"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_container" "test2" {
-  name                  = "storagecontainer2"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
-data "azuread_service_principal" "test" {
-  display_name = "HPC Cache Resource Provider"
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_storage_account.test.id
-  role_definition_name = "Contributor"
-  principal_id         = data.azuread_service_principal.test.object_id
-}
-
-resource "azurerm_role_assignment" "test2" {
-  scope                = azurerm_storage_account.test.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = data.azuread_service_principal.test.object_id
-}
-
 resource "azurerm_aml_file_system" "test" {
   name                   = "acctest-amlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -300,58 +306,12 @@ resource "azurerm_aml_file_system" "test" {
 
   depends_on = [azurerm_role_assignment.test, azurerm_role_assignment.test2]
 }
-`, r.template(data), data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger)
+`, r.templateForComplete(data), data.RandomInteger)
 }
 
 func (r AMLFileSystemResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestmi%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
-}
-
-resource "azurerm_key_vault_access_policy" "server" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_user_assigned_identity.test.principal_id
-
-  key_permissions = ["Get", "List", "WrapKey", "UnwrapKey", "GetRotationPolicy", "SetRotationPolicy"]
-}
-
-resource "azurerm_key_vault_access_policy" "client" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy", "SetRotationPolicy"]
-}
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "test"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
-
-  depends_on = [
-    azurerm_key_vault_access_policy.client,
-    azurerm_key_vault_access_policy.server,
-  ]
-}
 
 resource "azurerm_key_vault" "test2" {
   name                     = "acctestkv2%s"
@@ -389,43 +349,6 @@ resource "azurerm_key_vault_key" "test2" {
     azurerm_key_vault_access_policy.client2,
     azurerm_key_vault_access_policy.server2,
   ]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                            = "acctestsa%s"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "storagecontainer"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_container" "test2" {
-  name                  = "storagecontainer2"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
-data "azuread_service_principal" "test" {
-  display_name = "HPC Cache Resource Provider"
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_storage_account.test.id
-  role_definition_name = "Contributor"
-  principal_id         = data.azuread_service_principal.test.object_id
-}
-
-resource "azurerm_role_assignment" "test2" {
-  scope                = azurerm_storage_account.test.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = data.azuread_service_principal.test.object_id
 }
 
 resource "azurerm_aml_file_system" "test" {
@@ -467,5 +390,5 @@ resource "azurerm_aml_file_system" "test" {
 
   depends_on = [azurerm_role_assignment.test, azurerm_role_assignment.test2]
 }
-`, r.template(data), data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+`, r.templateForComplete(data), data.RandomString, data.RandomInteger)
 }
