@@ -421,12 +421,11 @@ func expandAMLFileSystemMaintenanceWindowForUpdate(input []MaintenanceWindow) *a
 	}
 
 	maintenanceWindow := &input[0]
-	result := amlfilesystems.AmlFilesystemUpdatePropertiesMaintenanceWindow{
+
+	return &amlfilesystems.AmlFilesystemUpdatePropertiesMaintenanceWindow{
 		DayOfWeek:    pointer.To(maintenanceWindow.DayOfWeek),
 		TimeOfDayUTC: pointer.To(maintenanceWindow.TimeOfDayInUTC),
 	}
-
-	return &result
 }
 
 func flattenAMLFileSystemMaintenanceWindow(input amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow) []MaintenanceWindow {
