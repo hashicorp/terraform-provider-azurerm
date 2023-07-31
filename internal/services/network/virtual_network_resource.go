@@ -464,7 +464,7 @@ func flattenVirtualNetworkDDoSProtectionPlan(input *network.VirtualNetworkProper
 }
 
 func flattenVirtualNetworkEncryption(encryption *network.VirtualNetworkEncryption) interface{} {
-	if encryption == nil || encryption.Enabled == nil || *encryption.Enabled == false {
+	if encryption == nil || encryption.Enabled == nil || !*encryption.Enabled {
 		return make([]interface{}, 0)
 	}
 
