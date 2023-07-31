@@ -167,6 +167,14 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			"Running": pollers.PollingStatusInProgress,
 			// KubernetesConfiguration@2022-11-01 returns `Updating` rather than `InProgress` during update
 			"Updating": pollers.PollingStatusInProgress,
+			// StorageSync@2020-03-01 returns `validateInput`, `newPrivateDnsEntries`, `finishNewStorageSyncService` rather than `InProgress` during creation/update
+			// See: https://github.com/hashicorp/go-azure-sdk/issues/565
+			"validateInput":               pollers.PollingStatusInProgress,
+			"newPrivateDnsEntries":        pollers.PollingStatusInProgress,
+			"finishNewStorageSyncService": pollers.PollingStatusInProgress,
+			// StorageSync@2020-03-01 (CloudEndpoints) returns `newReplicaGroup` rather than `InProgress` during creation/update
+			// See: https://github.com/hashicorp/go-azure-sdk/issues/565
+			"newReplicaGroup": pollers.PollingStatusInProgress,
 		}
 		for k, v := range statuses {
 			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {
