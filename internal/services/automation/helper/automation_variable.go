@@ -48,7 +48,6 @@ type ObjectVariable struct {
 	Description string `tfschema:"description"`
 	IsEncrypted bool   `tfschema:"encrypted"`
 	Value       string `tfschema:"value"`
-	// Value       map[string]interface{} `tfschema:"value"`
 }
 
 type StringVariable struct {
