@@ -56,7 +56,7 @@ type AMLFileSystemResource struct{}
 var _ sdk.ResourceWithUpdate = AMLFileSystemResource{}
 
 func (r AMLFileSystemResource) ResourceType() string {
-	return "azurerm_aml_file_system"
+	return "azurerm_machine_learning_file_system"
 }
 
 func (r AMLFileSystemResource) ModelObject() interface{} {
@@ -309,34 +309,30 @@ func (r AMLFileSystemResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
+			state := AMLFileSystemModel{}
+			if model := resp.Model; model != nil {
+				state.Name = id.AmlFilesystemName
+				state.ResourceGroupName = id.ResourceGroupName
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
 
-			state := AMLFileSystemModel{
-				Name:              id.AmlFilesystemName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-				Tags:              pointer.From(model.Tags),
-			}
+				identity, err := flattenAMLFileSystemIdentity(model.Identity)
+				if err != nil {
+					return err
+				}
+				state.Identity = identity
 
-			identity, err := flattenAMLFileSystemIdentity(model.Identity)
-			if err != nil {
-				return err
-			}
-			state.Identity = identity
+				if properties := model.Properties; properties != nil {
+					state.SubnetId = properties.FilesystemSubnet
+					state.StorageCapacityInTb = int64(properties.StorageCapacityTiB)
+					state.MaintenanceWindow = flattenAMLFileSystemMaintenanceWindow(properties.MaintenanceWindow)
+					state.HsmSetting = flattenAMLFileSystemHsmSetting(properties.Hsm)
+					state.Zones = pointer.From(model.Zones)
+					state.KeyEncryptionKey = flattenAMLFileSystemKeyEncryptionKey(properties.EncryptionSettings)
 
-			if properties := model.Properties; properties != nil {
-				state.SubnetId = properties.FilesystemSubnet
-				state.StorageCapacityInTb = int64(properties.StorageCapacityTiB)
-				state.MaintenanceWindow = flattenAMLFileSystemMaintenanceWindow(properties.MaintenanceWindow)
-				state.HsmSetting = flattenAMLFileSystemHsmSetting(properties.Hsm)
-				state.Zones = pointer.From(model.Zones)
-				state.KeyEncryptionKey = flattenAMLFileSystemKeyEncryptionKey(properties.EncryptionSettings)
-
-				if v := model.Sku; v != nil {
-					state.SkuName = pointer.From(v.Name)
+					if v := model.Sku; v != nil {
+						state.SkuName = pointer.From(v.Name)
+					}
 				}
 			}
 

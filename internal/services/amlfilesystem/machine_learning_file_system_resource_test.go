@@ -17,7 +17,7 @@ import (
 type AMLFileSystemResource struct{}
 
 func TestAccAMLFileSystem_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_aml_file_system", "test")
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_file_system", "test")
 	r := AMLFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -32,7 +32,7 @@ func TestAccAMLFileSystem_basic(t *testing.T) {
 }
 
 func TestAccAMLFileSystem_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_aml_file_system", "test")
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_file_system", "test")
 	r := AMLFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -47,7 +47,7 @@ func TestAccAMLFileSystem_requiresImport(t *testing.T) {
 }
 
 func TestAccAMLFileSystem_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_aml_file_system", "test")
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_file_system", "test")
 	r := AMLFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,7 +62,7 @@ func TestAccAMLFileSystem_complete(t *testing.T) {
 }
 
 func TestAccAMLFileSystem_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_aml_file_system", "test")
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_file_system", "test")
 	r := AMLFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -136,7 +136,7 @@ func (r AMLFileSystemResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_aml_file_system" "test" {
+resource "azurerm_machine_learning_file_system" "test" {
   name                   = "acctest-amlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
@@ -157,14 +157,14 @@ func (r AMLFileSystemResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_aml_file_system" "import" {
-  name                   = azurerm_aml_file_system.test.name
-  resource_group_name    = azurerm_aml_file_system.test.resource_group_name
-  location               = azurerm_aml_file_system.test.location
-  sku_name               = azurerm_aml_file_system.test.sku_name
-  subnet_id              = azurerm_aml_file_system.test.subnet_id
-  storage_capacity_in_tb = azurerm_aml_file_system.test.storage_capacity_in_tb
-  zones                  = azurerm_aml_file_system.test.zones
+resource "azurerm_machine_learning_file_system" "import" {
+  name                   = azurerm_machine_learning_file_system.test.name
+  resource_group_name    = azurerm_machine_learning_file_system.test.resource_group_name
+  location               = azurerm_machine_learning_file_system.test.location
+  sku_name               = azurerm_machine_learning_file_system.test.sku_name
+  subnet_id              = azurerm_machine_learning_file_system.test.subnet_id
+  storage_capacity_in_tb = azurerm_machine_learning_file_system.test.storage_capacity_in_tb
+  zones                  = azurerm_machine_learning_file_system.test.zones
 
   maintenance_window {
     day_of_week        = "Friday"
@@ -267,7 +267,7 @@ func (r AMLFileSystemResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_aml_file_system" "test" {
+resource "azurerm_machine_learning_file_system" "test" {
   name                   = "acctest-amlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
@@ -351,7 +351,7 @@ resource "azurerm_key_vault_key" "test2" {
   ]
 }
 
-resource "azurerm_aml_file_system" "test" {
+resource "azurerm_machine_learning_file_system" "test" {
   name                   = "acctest-amlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
