@@ -93,7 +93,7 @@ func updateImportsWithinDirectory(serviceName string, oldApiVersion string, newA
 		return fmt.Errorf("parsing files within %q: %+v", workingDirectory, err)
 	}
 	for pkgName, pkg := range files {
-		fmt.Printf("Package %q", pkgName)
+		logger.Debug("Processing Go Package %q", pkgName)
 		for fileName, file := range pkg.Files {
 			logger.Info(fmt.Sprintf("Updating imports for File %q..", fileName))
 			updateImportsForFile(fileSet, file, serviceName, oldApiVersion, newApiVersion)
@@ -112,7 +112,9 @@ func updateImportsForFile(fileSet *token.FileSet, file *ast.File, serviceName st
 	importLineForPreviousApiVersion := fmt.Sprintf("github.com/hashicorp/go-azure-sdk/resource-manager/%s/%s", serviceName, oldApiVersion)
 	importLineForNewApiVersion := fmt.Sprintf("github.com/hashicorp/go-azure-sdk/resource-manager/%s/%s", serviceName, newApiVersion)
 
+	// first update the imports themselves
 	existingImports := astutil.Imports(fileSet, file)
+	aliasesToReplace := make(map[string]string, 0)
 	for _, val := range existingImports {
 		for _, item := range val {
 			logger.Debug(fmt.Sprintf("Processing Import %q", item.Path.Value))
@@ -126,11 +128,13 @@ func updateImportsForFile(fileSet *token.FileSet, file *ast.File, serviceName st
 			item.Path.Value = updatedImportLine
 
 			// if we're importing the meta client (e.g. the api version directly) then we also need to update the alias
-			importsMetaClient := existingImportLine == importLineForPreviousApiVersion
+			importsMetaClient := strings.ReplaceAll(existingImportLine, "\"", "") == importLineForPreviousApiVersion
 			if importsMetaClient && item.Name != nil {
 				if existingAlias := item.Name.Name; existingAlias != "" {
 					updatedAlias := strings.ToLower(fmt.Sprintf("%s_%s", serviceName, strings.ReplaceAll(newApiVersion, "-", "_")))
+
 					logger.Debug(fmt.Sprintf("Updating Import Alias from %q to %q", existingAlias, updatedAlias))
+					aliasesToReplace[existingAlias] = updatedAlias
 					item.Name.Name = updatedAlias
 				}
 			}
@@ -141,4 +145,18 @@ func updateImportsForFile(fileSet *token.FileSet, file *ast.File, serviceName st
 			}
 		}
 	}
+
+	// then update any references to the aliases we've updated
+	ast.Inspect(file, func(n ast.Node) bool {
+		v, ok := n.(*ast.Ident)
+		if ok {
+			for alias, replacement := range aliasesToReplace {
+				if v.Name == alias {
+					v.Name = replacement
+				}
+			}
+		}
+
+		return true
+	})
 }

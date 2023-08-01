@@ -5,7 +5,7 @@ This tool automatically updates import references from one API version to anothe
 This works against a Service and takes both the old and the new API versions, for example:
 
 ```sh
-./update-api-version -service=advisor -old-api-version=2020-01-01 -new-api-version=2022-01-01
+./update-api-version -service="advisor" -old-api-version="2020-01-01" -new-api-version="2022-01-01"
 ```
 
 The arguments are:
