@@ -14,16 +14,22 @@ import (
 )
 
 type SimDataSourceModel struct {
-	Name                                  string                       `tfschema:"name"`
-	MobileNetworkSimGroupId               string                       `tfschema:"mobile_network_sim_group_id"`
-	DeviceType                            string                       `tfschema:"device_type"`
-	IntegratedCircuitCardIdentifier       string                       `tfschema:"integrated_circuit_card_identifier"`
-	InternationalMobileSubscriberIdentity string                       `tfschema:"international_mobile_subscriber_identity"`
-	SimPolicyId                           string                       `tfschema:"sim_policy_id"`
-	StaticIPConfiguration                 []SimStaticIPPropertiesModel `tfschema:"static_ip_configuration"`
-	SimState                              string                       `tfschema:"sim_state"`
-	VendorKeyFingerprint                  string                       `tfschema:"vendor_key_fingerprint"`
-	VendorName                            string                       `tfschema:"vendor_name"`
+	Name                                  string                                 `tfschema:"name"`
+	MobileNetworkSimGroupId               string                                 `tfschema:"mobile_network_sim_group_id"`
+	DeviceType                            string                                 `tfschema:"device_type"`
+	IntegratedCircuitCardIdentifier       string                                 `tfschema:"integrated_circuit_card_identifier"`
+	InternationalMobileSubscriberIdentity string                                 `tfschema:"international_mobile_subscriber_identity"`
+	SimPolicyId                           string                                 `tfschema:"sim_policy_id"`
+	StaticIPConfiguration                 []SimStaticIPPropertiesDataSourceModel `tfschema:"static_ip_configuration"`
+	SimState                              string                                 `tfschema:"sim_state"`
+	VendorKeyFingerprint                  string                                 `tfschema:"vendor_key_fingerprint"`
+	VendorName                            string                                 `tfschema:"vendor_name"`
+}
+
+type SimStaticIPPropertiesDataSourceModel struct {
+	AttachedDataNetworkId string `tfschema:"attached_data_network_id"`
+	SliceId               string `tfschema:"slice_id"`
+	StaticIP              string `tfschema:"static_ipv4_address"`
 }
 
 type SimDataSource struct{}
@@ -124,7 +130,7 @@ func (r SimDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var metaModel SimModel
+			var metaModel SimResourceModel
 			if err := metadata.Decode(&metaModel); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -160,7 +166,7 @@ func (r SimDataSource) Read() sdk.ResourceFunc {
 					state.SimPolicyId = simPolicy.Id
 				}
 
-				state.StaticIPConfiguration = flattenSimStaticIPPropertiesModel(prop.StaticIPConfiguration)
+				state.StaticIPConfiguration = flattenSimStaticIPPropertiesDataSource(prop.StaticIPConfiguration)
 			}
 
 			metadata.SetID(id)
@@ -168,4 +174,31 @@ func (r SimDataSource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
+}
+
+func flattenSimStaticIPPropertiesDataSource(inputList *[]sim.SimStaticIPProperties) []SimStaticIPPropertiesDataSourceModel {
+	outputList := make([]SimStaticIPPropertiesDataSourceModel, 0)
+	if inputList == nil {
+		return outputList
+	}
+
+	for _, input := range *inputList {
+		output := SimStaticIPPropertiesDataSourceModel{}
+
+		if input.AttachedDataNetwork != nil {
+			output.AttachedDataNetworkId = input.AttachedDataNetwork.Id
+		}
+
+		if input.Slice != nil {
+			output.SliceId = input.Slice.Id
+		}
+
+		if input.StaticIP != nil && input.StaticIP.IPv4Address != nil {
+			output.StaticIP = *input.StaticIP.IPv4Address
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return outputList
 }

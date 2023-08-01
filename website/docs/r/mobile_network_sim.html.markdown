@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Mobile Network Sim. Changing this forces a new Mobile Network Sim to be created.
 
-* `mobile_network_sim_group_id` - (Required) The ID of the Mobile Network which the Mobile Network Sim belongs to.
+* `mobile_network_sim_group_id` - (Required) The ID of the Mobile Network which the Mobile Network Sim belongs to. Changing this forces a new Mobile Network Sim to be created.
 
 * `authentication_key` - (Required) The Ki value for the SIM.
 

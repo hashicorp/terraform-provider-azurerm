@@ -3,7 +3,6 @@ package mobilenetwork
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type SimModel struct {
+type SimResourceModel struct {
 	Name                                  string                       `tfschema:"name"`
 	MobileNetworkSimGroupId               string                       `tfschema:"mobile_network_sim_group_id"`
 	AuthenticationKey                     string                       `tfschema:"authentication_key"`
@@ -51,7 +50,7 @@ func (r SimResource) ResourceType() string {
 }
 
 func (r SimResource) ModelObject() interface{} {
-	return &SimModel{}
+	return &SimResourceModel{}
 }
 
 func (r SimResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -157,7 +156,7 @@ func (r SimResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r SimResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		var plan SimModel
+		var plan SimResourceModel
 		if err := metadata.Decode(&plan); err != nil {
 			return fmt.Errorf("decoding: %+v", err)
 		}
@@ -188,9 +187,9 @@ func (r SimResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r SimResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model SimModel
+			var model SimResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -254,7 +253,7 @@ func (r SimResource) Create() sdk.ResourceFunc {
 
 func (r SimResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.SIMClient
 
@@ -263,7 +262,7 @@ func (r SimResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model SimModel
+			var model SimResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -292,12 +291,6 @@ func (r SimResource) Update() sdk.ResourceFunc {
 				} else {
 					properties.Properties.IntegratedCircuitCardIdentifier = nil
 				}
-			}
-
-			if model.OperatorKeyCode != "" {
-				properties.Properties.OperatorKeyCode = &model.OperatorKeyCode
-			} else {
-				properties.Properties.OperatorKeyCode = nil
 			}
 
 			if metadata.ResourceData.HasChange("sim_policy_id") {
@@ -334,7 +327,7 @@ func (r SimResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.SIMClient
 
-			var plan SimModel
+			var plan SimResourceModel
 			if err := metadata.Decode(&plan); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -353,7 +346,7 @@ func (r SimResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := SimModel{
+			state := SimResourceModel{
 				Name:                    id.SimName,
 				MobileNetworkSimGroupId: simgroup.NewSimGroupID(id.SubscriptionId, id.ResourceGroupName, id.SimGroupName).ID(),
 			}
@@ -371,7 +364,7 @@ func (r SimResource) Read() sdk.ResourceFunc {
 					state.SimPolicyId = simPolicy.Id
 				}
 
-				state.StaticIPConfiguration = flattenSimStaticIPPropertiesModel(prop.StaticIPConfiguration)
+				state.StaticIPConfiguration = flattenSimStaticIPProperties(prop.StaticIPConfiguration)
 			}
 
 			// these fields are not returned from API, so we just set whatever from the config.
@@ -385,7 +378,7 @@ func (r SimResource) Read() sdk.ResourceFunc {
 
 func (r SimResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 180 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MobileNetwork.SIMClient
 
@@ -398,20 +391,13 @@ func (r SimResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			if err := resourceMobileNetworkChildWaitForDeletion(ctx, id.ID(), func() (*http.Response, error) {
-				resp, err := client.Get(ctx, *id)
-				return resp.HttpResponse, err
-			}); err != nil {
-				return err
-			}
-
 			return nil
 		},
 	}
 }
 
 func expandSimStaticIPPropertiesModel(inputList []SimStaticIPPropertiesModel) *[]sim.SimStaticIPProperties {
-	var outputList []sim.SimStaticIPProperties
+	outputList := make([]sim.SimStaticIPProperties, 0)
 	for _, v := range inputList {
 		input := v
 		output := sim.SimStaticIPProperties{
@@ -431,8 +417,8 @@ func expandSimStaticIPPropertiesModel(inputList []SimStaticIPPropertiesModel) *[
 	return &outputList
 }
 
-func flattenSimStaticIPPropertiesModel(inputList *[]sim.SimStaticIPProperties) []SimStaticIPPropertiesModel {
-	var outputList []SimStaticIPPropertiesModel
+func flattenSimStaticIPProperties(inputList *[]sim.SimStaticIPProperties) []SimStaticIPPropertiesModel {
+	outputList := make([]SimStaticIPPropertiesModel, 0)
 	if inputList == nil {
 		return outputList
 	}
