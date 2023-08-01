@@ -6,8 +6,9 @@ FEATURES:
 
 ENHANCEMENTS
 
-* dependencies: updating to use `v0.20230731.1122530` of `github.com/hashicorp/go-azure-sdk` [GH-22750]
+* dependencies: updating to `v0.20230801.1071415` of `github.com/hashicorp/go-azure-sdk` [GH-22759]
 * `advisor`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
+* `apimanagement`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22759]
 * `analysisservices`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
 * `azurestackhci`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
 * `domainservices`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
