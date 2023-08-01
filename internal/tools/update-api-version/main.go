@@ -30,10 +30,20 @@ func main() {
 	serviceName := f.String("service", "", "-service=compute")
 	oldApiVersion := f.String("old-api-version", "", "-old-api-version=2019-01-01")
 	newApiVersion := f.String("new-api-version", "", "-new-api-version=2023-06-01")
-	_ = f.Parse(os.Args[1:])
-
-	if err := f.Parse(os.Args); err != nil {
+	if len(os.Args) == 1 { // 0 is the app name
+		log.Fatalf("expected multiple arguments but didn't get any")
+	}
+	if err := f.Parse(os.Args[1:]); err != nil {
 		log.Fatalf("parsing arguments: %+v", err)
+	}
+	if serviceName == nil || *serviceName == "" {
+		log.Fatalf("missing `-service`")
+	}
+	if oldApiVersion == nil || *oldApiVersion == "" {
+		log.Fatalf("missing `-old-api-version`")
+	}
+	if newApiVersion == nil || *newApiVersion == "" {
+		log.Fatalf("missing `-new-api-version`")
 	}
 
 	workingDirectory := fmt.Sprintf("../../services/%s", *serviceName)
