@@ -26,9 +26,10 @@ func (c ConfigurationHCIAssignmentResource) Arguments() map[string]*schema.Schem
 	return map[string]*schema.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Default:      "default",
+			ValidateFunc: validation.StringInSlice([]string{"default"}, false),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -126,14 +127,14 @@ func (c ConfigurationHCIAssignmentResource) Read() sdk.ResourceFunc {
 			}
 
 			if existing.Properties != nil && existing.Properties.ConfigurationProfile != nil {
-				profileId, err := parse.AutomanageConfigurationHCIAssignmentID(*existing.Properties.ConfigurationProfile)
+				profileId, err := parse.AutomanageConfigurationID(*existing.Properties.ConfigurationProfile)
 				if err != nil {
 					return err
 				}
-				state.ConfigurationProfileID = profileId.String()
+				state.ConfigurationProfileID = profileId.ID()
 			}
 
-			return metadata.Encode(state)
+			return metadata.Encode(&state)
 		},
 	}
 }

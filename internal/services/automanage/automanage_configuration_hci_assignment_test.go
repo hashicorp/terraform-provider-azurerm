@@ -16,7 +16,7 @@ import (
 type AutoManageConfigurationHCIAssignmentResource struct{}
 
 func TestAccAutoManageProfileHCIAssignment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automanage_profile_hci_assignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration_hci_assignment", "test")
 	r := AutoManageConfigurationHCIAssignmentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,13 +52,7 @@ provider "azurerm" {
   features {}
 }
 
-provider "azuread" {}
-
 data "azurerm_client_config" "current" {}
-
-resource "azuread_application" "test" {
-  display_name = "acctestspa-%d"
-}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%d"
@@ -75,15 +69,15 @@ resource "azurerm_stack_hci_cluster" "test" {
   name                = "acctest-StackHCICluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  client_id           = azuread_application.test.application_id
+  client_id           = data.azurerm_client_config.current.client_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 }
 
 resource "azurerm_automanage_configuration_hci_assignment" "test" {
-	  name                          = "acctest-amcp-%d"
-	  resource_group_name           = azurerm_resource_group.test.name
-	  configuration_id			  = azurerm_automanage_configuration.test.id
-	  cluster_name                  = azurerm_stack_hci_cluster.test.name
+  name                = "default"
+  resource_group_name = azurerm_resource_group.test.name
+  configuration_id    = azurerm_automanage_configuration.test.id
+  cluster_name        = azurerm_stack_hci_cluster.test.name
 }
-`, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
