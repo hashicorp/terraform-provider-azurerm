@@ -461,7 +461,7 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("rapid"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("node_os_channel_upgrade"),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "patch"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -470,7 +470,7 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("patch"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("node_os_channel_upgrade"),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "node-image"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -479,7 +479,7 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("node-image"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("node_os_channel_upgrade"),
 		{
 			// unset = none
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, ""),
@@ -489,7 +489,7 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue(""),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("node_os_channel_upgrade"),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "stable"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -498,7 +498,7 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("stable"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("node_os_channel_upgrade"),
 	})
 }
 
