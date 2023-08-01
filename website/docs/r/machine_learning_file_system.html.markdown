@@ -74,6 +74,8 @@ The following arguments are supported:
 
 * `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
 
+-> **NOTE:** Removing `key_encryption_key` forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Machine Learning File System.
 
 ---

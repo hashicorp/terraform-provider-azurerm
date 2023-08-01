@@ -55,6 +55,8 @@ type AMLFileSystemResource struct{}
 
 var _ sdk.ResourceWithUpdate = AMLFileSystemResource{}
 
+var _ sdk.ResourceWithCustomizeDiff = AMLFileSystemResource{}
+
 func (r AMLFileSystemResource) ResourceType() string {
 	return "azurerm_machine_learning_file_system"
 }
@@ -192,6 +194,19 @@ func (r AMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r AMLFileSystemResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r AMLFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			pluginsdk.ForceNewIfChange("key_encryption_key", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			})
+
+			return nil
+		},
+	}
 }
 
 func (r AMLFileSystemResource) Create() sdk.ResourceFunc {
