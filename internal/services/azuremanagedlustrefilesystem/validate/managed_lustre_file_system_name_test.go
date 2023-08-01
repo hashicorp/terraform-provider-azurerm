@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestAMLFileSystemName(t *testing.T) {
+func TestManagedLustreFileSystemName(t *testing.T) {
 	testCases := []struct {
 		Input    string
 		Expected bool
@@ -49,7 +49,7 @@ func TestAMLFileSystemName(t *testing.T) {
 	}
 
 	for _, v := range testCases {
-		_, errors := AMLFileSystemName(v.Input, "name")
+		_, errors := ManagedLustreFileSystemName(v.Input, "name")
 		result := len(errors) == 0
 		if result != v.Expected {
 			t.Fatalf("Expected the result to be %t but got %t (and %d errors)", v.Expected, result, len(errors))

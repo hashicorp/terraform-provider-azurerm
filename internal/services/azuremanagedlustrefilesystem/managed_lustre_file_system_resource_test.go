@@ -1,4 +1,4 @@
-package amlfilesystem_test
+package azuremanagedlustrefilesystem_test
 
 import (
 	"context"
@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AMLFileSystemResource struct{}
+type ManagedLustreFileSystemResource struct{}
 
-func TestAccAMLFileSystem_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_file_system", "test")
-	r := AMLFileSystemResource{}
+func TestAccManagedLustreFileSystem_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_lustre_file_system", "test")
+	r := ManagedLustreFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +31,9 @@ func TestAccAMLFileSystem_basic(t *testing.T) {
 	})
 }
 
-func TestAccAMLFileSystem_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_file_system", "test")
-	r := AMLFileSystemResource{}
+func TestAccManagedLustreFileSystem_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_lustre_file_system", "test")
+	r := ManagedLustreFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,9 +46,9 @@ func TestAccAMLFileSystem_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAMLFileSystem_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_file_system", "test")
-	r := AMLFileSystemResource{}
+func TestAccManagedLustreFileSystem_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_lustre_file_system", "test")
+	r := ManagedLustreFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -61,9 +61,9 @@ func TestAccAMLFileSystem_complete(t *testing.T) {
 	})
 }
 
-func TestAccAMLFileSystem_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_file_system", "test")
-	r := AMLFileSystemResource{}
+func TestAccManagedLustreFileSystem_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_lustre_file_system", "test")
+	r := ManagedLustreFileSystemResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,13 +83,13 @@ func TestAccAMLFileSystem_update(t *testing.T) {
 	})
 }
 
-func (r AMLFileSystemResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ManagedLustreFileSystemResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := amlfilesystems.ParseAmlFilesystemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.AMLFileSystem.AmlFilesystems
+	client := clients.AzureManagedLustreFileSystem.AmlFilesystems
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -100,7 +100,7 @@ func (r AMLFileSystemResource) Exists(ctx context.Context, clients *clients.Clie
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r AMLFileSystemResource) template(data acceptance.TestData) string {
+func (r ManagedLustreFileSystemResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -132,11 +132,11 @@ resource "azurerm_subnet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r AMLFileSystemResource) basic(data acceptance.TestData) string {
+func (r ManagedLustreFileSystemResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_machine_learning_file_system" "test" {
+resource "azurerm_managed_lustre_file_system" "test" {
   name                   = "acctest-amlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
@@ -153,18 +153,18 @@ resource "azurerm_machine_learning_file_system" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r AMLFileSystemResource) requiresImport(data acceptance.TestData) string {
+func (r ManagedLustreFileSystemResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_machine_learning_file_system" "import" {
-  name                   = azurerm_machine_learning_file_system.test.name
-  resource_group_name    = azurerm_machine_learning_file_system.test.resource_group_name
-  location               = azurerm_machine_learning_file_system.test.location
-  sku_name               = azurerm_machine_learning_file_system.test.sku_name
-  subnet_id              = azurerm_machine_learning_file_system.test.subnet_id
-  storage_capacity_in_tb = azurerm_machine_learning_file_system.test.storage_capacity_in_tb
-  zones                  = azurerm_machine_learning_file_system.test.zones
+resource "azurerm_managed_lustre_file_system" "import" {
+  name                   = azurerm_managed_lustre_file_system.test.name
+  resource_group_name    = azurerm_managed_lustre_file_system.test.resource_group_name
+  location               = azurerm_managed_lustre_file_system.test.location
+  sku_name               = azurerm_managed_lustre_file_system.test.sku_name
+  subnet_id              = azurerm_managed_lustre_file_system.test.subnet_id
+  storage_capacity_in_tb = azurerm_managed_lustre_file_system.test.storage_capacity_in_tb
+  zones                  = azurerm_managed_lustre_file_system.test.zones
 
   maintenance_window {
     day_of_week        = "Friday"
@@ -174,7 +174,7 @@ resource "azurerm_machine_learning_file_system" "import" {
 `, r.basic(data))
 }
 
-func (r AMLFileSystemResource) templateForComplete(data acceptance.TestData) string {
+func (r ManagedLustreFileSystemResource) templateForComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -263,11 +263,11 @@ resource "azurerm_role_assignment" "test2" {
 `, r.template(data), data.RandomInteger, data.RandomString, data.RandomString)
 }
 
-func (r AMLFileSystemResource) complete(data acceptance.TestData) string {
+func (r ManagedLustreFileSystemResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_machine_learning_file_system" "test" {
+resource "azurerm_managed_lustre_file_system" "test" {
   name                   = "acctest-amlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
@@ -309,7 +309,7 @@ resource "azurerm_machine_learning_file_system" "test" {
 `, r.templateForComplete(data), data.RandomInteger)
 }
 
-func (r AMLFileSystemResource) update(data acceptance.TestData) string {
+func (r ManagedLustreFileSystemResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -351,7 +351,7 @@ resource "azurerm_key_vault_key" "test2" {
   ]
 }
 
-resource "azurerm_machine_learning_file_system" "test" {
+resource "azurerm_managed_lustre_file_system" "test" {
   name                   = "acctest-amlfs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location

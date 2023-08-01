@@ -13,7 +13,7 @@ func NewClient(o *common.ClientOptions) (*storagecache_2023_05_01.Client, error)
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
-		return nil, fmt.Errorf("building AML File System client: %+v", err)
+		return nil, fmt.Errorf("building Azure Managed Lustre File System client: %+v", err)
 	}
 
 	return client, nil

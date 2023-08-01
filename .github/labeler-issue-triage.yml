@@ -15,9 +15,6 @@ service/aadb2c:
 service/advisor:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_advisor_recommendations((.|\n)*)###'
 
-service/amlfilesystem:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_machine_learning_file_system((.|\n)*)###'
-
 service/analysis:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_analysis_services_server((.|\n)*)###'
 
@@ -47,6 +44,9 @@ service/automation:
 
 service/azure-stack-hci:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stack_hci_cluster((.|\n)*)###'
+
+service/azuremanagedlustrefilesystem:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_managed_lustre_file_system((.|\n)*)###'
 
 service/batch:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_batch_((.|\n)*)###'
@@ -199,7 +199,7 @@ service/logz:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_logz_((.|\n)*)###'
 
 service/machine-learning:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(machine_learning_compute_cluster\W+|machine_learning_compute_instance\W+|machine_learning_datastore_blobstorage\W+|machine_learning_datastore_datalake_gen2\W+|machine_learning_datastore_fileshare\W+|machine_learning_inference_cluster\W+|machine_learning_synapse_spark\W+|machine_learning_workspace\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_machine_learning_((.|\n)*)###'
 
 service/maintenance:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(maintenance_|public_maintenance_configurations)((.|\n)*)###'

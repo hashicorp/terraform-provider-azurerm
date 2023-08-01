@@ -13,9 +13,6 @@ service/aadb2c:
 service/advisor:
   - internal/services/advisor/**/*
 
-service/amlfilesystem:
-  - internal/services/amlfilesystem/**/*
-
 service/analysis:
   - internal/services/analysisservices/**/*
 
@@ -46,6 +43,9 @@ service/automation:
 
 service/azure-stack-hci:
   - internal/services/azurestackhci/**/*
+
+service/azuremanagedlustrefilesystem:
+  - internal/services/azuremanagedlustrefilesystem/**/*
 
 service/batch:
   - internal/services/batch/**/*

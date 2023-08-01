@@ -1,4 +1,4 @@
-package amlfilesystem
+package azuremanagedlustrefilesystem
 
 import (
 	"context"
@@ -13,14 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/amlfilesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/amlfilesystem/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azuremanagedlustrefilesystem/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type AMLFileSystemModel struct {
+type ManagedLustreFileSystemModel struct {
 	Name                string                       `tfschema:"name"`
 	ResourceGroupName   string                       `tfschema:"resource_group_name"`
 	Location            string                       `tfschema:"location"`
@@ -51,31 +51,31 @@ type MaintenanceWindow struct {
 	TimeOfDayInUTC string                                  `tfschema:"time_of_day_in_utc"`
 }
 
-type AMLFileSystemResource struct{}
+type ManagedLustreFileSystemResource struct{}
 
-var _ sdk.ResourceWithUpdate = AMLFileSystemResource{}
+var _ sdk.ResourceWithUpdate = ManagedLustreFileSystemResource{}
 
-var _ sdk.ResourceWithCustomizeDiff = AMLFileSystemResource{}
+var _ sdk.ResourceWithCustomizeDiff = ManagedLustreFileSystemResource{}
 
-func (r AMLFileSystemResource) ResourceType() string {
-	return "azurerm_machine_learning_file_system"
+func (r ManagedLustreFileSystemResource) ResourceType() string {
+	return "azurerm_managed_lustre_file_system"
 }
 
-func (r AMLFileSystemResource) ModelObject() interface{} {
-	return &AMLFileSystemModel{}
+func (r ManagedLustreFileSystemResource) ModelObject() interface{} {
+	return &ManagedLustreFileSystemModel{}
 }
 
-func (r AMLFileSystemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ManagedLustreFileSystemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return amlfilesystems.ValidateAmlFilesystemID
 }
 
-func (r AMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema {
+func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.AMLFileSystemName,
+			ValidateFunc: validate.ManagedLustreFileSystemName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -192,11 +192,11 @@ func (r AMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AMLFileSystemResource) Attributes() map[string]*pluginsdk.Schema {
+func (r ManagedLustreFileSystemResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AMLFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
+func (r ManagedLustreFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -209,16 +209,16 @@ func (r AMLFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (r AMLFileSystemResource) Create() sdk.ResourceFunc {
+func (r ManagedLustreFileSystemResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model AMLFileSystemModel
+			var model ManagedLustreFileSystemModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AMLFileSystem.AmlFilesystems
+			client := metadata.Client.AzureManagedLustreFileSystem.AmlFilesystems
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := amlfilesystems.NewAmlFilesystemID(subscriptionId, model.ResourceGroupName, model.Name)
 
@@ -231,7 +231,7 @@ func (r AMLFileSystemResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			identity, err := expandAMLFileSystemIdentity(model.Identity)
+			identity, err := expandManagedLustreFileSystemIdentity(model.Identity)
 			if err != nil {
 				return err
 			}
@@ -240,9 +240,9 @@ func (r AMLFileSystemResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Identity: identity,
 				Properties: &amlfilesystems.AmlFilesystemProperties{
-					Hsm:                expandAMLFileSystemHsmSetting(model.HsmSetting),
-					EncryptionSettings: expandAMLFileSystemKeyEncryptionKey(model.KeyEncryptionKey),
-					MaintenanceWindow:  expandAMLFileSystemMaintenanceWindowForCreate(model.MaintenanceWindow),
+					Hsm:                expandManagedLustreFileSystemHsmSetting(model.HsmSetting),
+					EncryptionSettings: expandManagedLustreFileSystemKeyEncryptionKey(model.KeyEncryptionKey),
+					MaintenanceWindow:  expandManagedLustreFileSystemMaintenanceWindowForCreate(model.MaintenanceWindow),
 					FilesystemSubnet:   model.SubnetId,
 					StorageCapacityTiB: float64(model.StorageCapacityInTb),
 				},
@@ -263,18 +263,18 @@ func (r AMLFileSystemResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AMLFileSystemResource) Update() sdk.ResourceFunc {
+func (r ManagedLustreFileSystemResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AMLFileSystem.AmlFilesystems
+			client := metadata.Client.AzureManagedLustreFileSystem.AmlFilesystems
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var model AMLFileSystemModel
+			var model ManagedLustreFileSystemModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -284,11 +284,11 @@ func (r AMLFileSystemResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("maintenance_window") {
-				properties.Properties.MaintenanceWindow = expandAMLFileSystemMaintenanceWindowForUpdate(model.MaintenanceWindow)
+				properties.Properties.MaintenanceWindow = expandManagedLustreFileSystemMaintenanceWindowForUpdate(model.MaintenanceWindow)
 			}
 
 			if metadata.ResourceData.HasChange("key_encryption_key") {
-				properties.Properties.EncryptionSettings = expandAMLFileSystemKeyEncryptionKey(model.KeyEncryptionKey)
+				properties.Properties.EncryptionSettings = expandManagedLustreFileSystemKeyEncryptionKey(model.KeyEncryptionKey)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -304,11 +304,11 @@ func (r AMLFileSystemResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r AMLFileSystemResource) Read() sdk.ResourceFunc {
+func (r ManagedLustreFileSystemResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AMLFileSystem.AmlFilesystems
+			client := metadata.Client.AzureManagedLustreFileSystem.AmlFilesystems
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {
@@ -324,14 +324,14 @@ func (r AMLFileSystemResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := AMLFileSystemModel{}
+			state := ManagedLustreFileSystemModel{}
 			if model := resp.Model; model != nil {
 				state.Name = id.AmlFilesystemName
 				state.ResourceGroupName = id.ResourceGroupName
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
-				identity, err := flattenAMLFileSystemIdentity(model.Identity)
+				identity, err := flattenManagedLustreFileSystemIdentity(model.Identity)
 				if err != nil {
 					return err
 				}
@@ -340,10 +340,10 @@ func (r AMLFileSystemResource) Read() sdk.ResourceFunc {
 				if properties := model.Properties; properties != nil {
 					state.SubnetId = properties.FilesystemSubnet
 					state.StorageCapacityInTb = int64(properties.StorageCapacityTiB)
-					state.MaintenanceWindow = flattenAMLFileSystemMaintenanceWindow(properties.MaintenanceWindow)
-					state.HsmSetting = flattenAMLFileSystemHsmSetting(properties.Hsm)
+					state.MaintenanceWindow = flattenManagedLustreFileSystemMaintenanceWindow(properties.MaintenanceWindow)
+					state.HsmSetting = flattenManagedLustreFileSystemHsmSetting(properties.Hsm)
 					state.Zones = pointer.From(model.Zones)
-					state.KeyEncryptionKey = flattenAMLFileSystemKeyEncryptionKey(properties.EncryptionSettings)
+					state.KeyEncryptionKey = flattenManagedLustreFileSystemKeyEncryptionKey(properties.EncryptionSettings)
 
 					if v := model.Sku; v != nil {
 						state.SkuName = pointer.From(v.Name)
@@ -356,11 +356,11 @@ func (r AMLFileSystemResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r AMLFileSystemResource) Delete() sdk.ResourceFunc {
+func (r ManagedLustreFileSystemResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AMLFileSystem.AmlFilesystems
+			client := metadata.Client.AzureManagedLustreFileSystem.AmlFilesystems
 
 			id, err := amlfilesystems.ParseAmlFilesystemID(metadata.ResourceData.Id())
 			if err != nil {
@@ -376,7 +376,7 @@ func (r AMLFileSystemResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandAMLFileSystemIdentity(input []identity.ModelUserAssigned) (*amlfilesystems.AmlFilesystemIdentity, error) {
+func expandManagedLustreFileSystemIdentity(input []identity.ModelUserAssigned) (*amlfilesystems.AmlFilesystemIdentity, error) {
 	identityValue, err := identity.ExpandUserAssignedMapFromModel(input)
 	if err != nil {
 		return nil, fmt.Errorf("expanding `identity`: %+v", err)
@@ -396,7 +396,7 @@ func expandAMLFileSystemIdentity(input []identity.ModelUserAssigned) (*amlfilesy
 	return &output, nil
 }
 
-func flattenAMLFileSystemIdentity(input *amlfilesystems.AmlFilesystemIdentity) ([]identity.ModelUserAssigned, error) {
+func flattenManagedLustreFileSystemIdentity(input *amlfilesystems.AmlFilesystemIdentity) ([]identity.ModelUserAssigned, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -422,7 +422,7 @@ func flattenAMLFileSystemIdentity(input *amlfilesystems.AmlFilesystemIdentity) (
 	return *output, nil
 }
 
-func expandAMLFileSystemMaintenanceWindowForCreate(input []MaintenanceWindow) amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow {
+func expandManagedLustreFileSystemMaintenanceWindowForCreate(input []MaintenanceWindow) amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow {
 	maintenanceWindow := &input[0]
 
 	return amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow{
@@ -431,7 +431,7 @@ func expandAMLFileSystemMaintenanceWindowForCreate(input []MaintenanceWindow) am
 	}
 }
 
-func expandAMLFileSystemMaintenanceWindowForUpdate(input []MaintenanceWindow) *amlfilesystems.AmlFilesystemUpdatePropertiesMaintenanceWindow {
+func expandManagedLustreFileSystemMaintenanceWindowForUpdate(input []MaintenanceWindow) *amlfilesystems.AmlFilesystemUpdatePropertiesMaintenanceWindow {
 	if len(input) == 0 {
 		return nil
 	}
@@ -444,7 +444,7 @@ func expandAMLFileSystemMaintenanceWindowForUpdate(input []MaintenanceWindow) *a
 	}
 }
 
-func flattenAMLFileSystemMaintenanceWindow(input amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow) []MaintenanceWindow {
+func flattenManagedLustreFileSystemMaintenanceWindow(input amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow) []MaintenanceWindow {
 	var result []MaintenanceWindow
 
 	maintenanceWindow := MaintenanceWindow{
@@ -455,7 +455,7 @@ func flattenAMLFileSystemMaintenanceWindow(input amlfilesystems.AmlFilesystemPro
 	return append(result, maintenanceWindow)
 }
 
-func expandAMLFileSystemKeyEncryptionKey(input []KeyEncryptionKey) *amlfilesystems.AmlFilesystemEncryptionSettings {
+func expandManagedLustreFileSystemKeyEncryptionKey(input []KeyEncryptionKey) *amlfilesystems.AmlFilesystemEncryptionSettings {
 	if len(input) == 0 {
 		return nil
 	}
@@ -474,7 +474,7 @@ func expandAMLFileSystemKeyEncryptionKey(input []KeyEncryptionKey) *amlfilesyste
 	}
 }
 
-func flattenAMLFileSystemKeyEncryptionKey(input *amlfilesystems.AmlFilesystemEncryptionSettings) []KeyEncryptionKey {
+func flattenManagedLustreFileSystemKeyEncryptionKey(input *amlfilesystems.AmlFilesystemEncryptionSettings) []KeyEncryptionKey {
 	if input == nil || input.KeyEncryptionKey == nil {
 		return nil
 	}
@@ -489,7 +489,7 @@ func flattenAMLFileSystemKeyEncryptionKey(input *amlfilesystems.AmlFilesystemEnc
 	return []KeyEncryptionKey{result}
 }
 
-func expandAMLFileSystemHsmSetting(input []HsmSetting) *amlfilesystems.AmlFilesystemPropertiesHsm {
+func expandManagedLustreFileSystemHsmSetting(input []HsmSetting) *amlfilesystems.AmlFilesystemPropertiesHsm {
 	if len(input) == 0 {
 		return nil
 	}
@@ -510,7 +510,7 @@ func expandAMLFileSystemHsmSetting(input []HsmSetting) *amlfilesystems.AmlFilesy
 	}
 }
 
-func flattenAMLFileSystemHsmSetting(input *amlfilesystems.AmlFilesystemPropertiesHsm) []HsmSetting {
+func flattenManagedLustreFileSystemHsmSetting(input *amlfilesystems.AmlFilesystemPropertiesHsm) []HsmSetting {
 	if input == nil || input.Settings == nil {
 		return nil
 	}
