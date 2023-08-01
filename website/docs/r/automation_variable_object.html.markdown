@@ -3,12 +3,12 @@ subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_variable_object"
 description: |-
-  Manages a string variable in Azure Automation.
+  Manages an object variable in Azure Automation.
 ---
 
 # azurerm_automation_variable_object
 
-Manages a string variable in Azure Automation
+Manages an object variable in Azure Automation
 
 ## Example Usage
 
