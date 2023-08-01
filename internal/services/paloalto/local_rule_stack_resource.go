@@ -191,10 +191,6 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			if err = client.CommitThenPoll(ctx, id); err != nil {
-				return fmt.Errorf("committing config for %s: %+v", id, err)
-			}
-
 			return nil
 		},
 	}
