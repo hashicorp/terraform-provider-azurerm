@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/group"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceApiManagementGroup() *pluginsdk.Resource {
@@ -63,31 +64,27 @@ func dataSourceApiManagementGroupRead(d *pluginsdk.ResourceData, meta interface{
 	serviceName := d.Get("api_management_name").(string)
 	name := d.Get("name").(string)
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
+	id := group.NewGroupID(meta.(*clients.Client).Account.SubscriptionId, resourceGroup, serviceName, name)
+
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Group %q (Resource Group %q / API Management Service %q) was not found", name, resourceGroup, serviceName)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s does not exist", id)
 		}
-
-		return fmt.Errorf("making Read request for Group %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
-	}
-
-	id, err := parse.GroupID(*resp.ID)
-	if err != nil {
-		return fmt.Errorf("parsing Group ID %q", *resp.ID)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.GroupId)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_name", serviceName)
 
-	if properties := resp.GroupContractProperties; properties != nil {
-		d.Set("display_name", properties.DisplayName)
-		d.Set("description", properties.Description)
-		d.Set("external_id", properties.ExternalID)
-		d.Set("type", string(properties.Type))
+	if model := resp.Model; model != nil && model.Properties != nil {
+		d.Set("display_name", model.Properties.DisplayName)
+		d.Set("description", pointer.From(model.Properties.Description))
+		d.Set("external_id", pointer.From(model.Properties.ExternalId))
+		d.Set("type", string(pointer.From(model.Properties.Type)))
 	}
 
 	return nil

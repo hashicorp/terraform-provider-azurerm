@@ -9,13 +9,15 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/product"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiManagementResource struct{}
@@ -600,19 +602,17 @@ func TestAccApiManagement_softDeleteRecoveryDisabled(t *testing.T) {
 }
 
 func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApiManagementID(state.ID)
+	id, err := apimanagementservice.ParseServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.ServiceName
 
-	resp, err := clients.ApiManagement.ServiceClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.ApiManagement.ServiceClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (ApiManagementResource) testCheckHasNoProductsOrApis(resourceName string) pluginsdk.TestCheckFunc {
@@ -628,32 +628,31 @@ func (ApiManagementResource) testCheckHasNoProductsOrApis(resourceName string) p
 			return fmt.Errorf("%q was not found in the state", resourceName)
 		}
 
-		id, err := parse.ApiManagementID(rs.Primary.ID)
+		id, err := apimanagementservice.ParseServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		for apis, err := client.ApiManagement.ApiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apis.NotDone(); err = apis.NextWithContext(ctx) {
-			if err != nil {
-				return fmt.Errorf("listing APIs for %s: %+v", id, err)
-			}
-			if apis.Response().IsEmpty() {
-				break
-			}
-			if count := len(apis.Values()); count > 0 {
-				return fmt.Errorf("%s has %d unexpected associated APIs", id, count)
+		apiServiceId := api.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
+		listResp, err := client.ApiManagement.ApiClient.ListByService(ctx, apiServiceId, api.ListByServiceOperationOptions{})
+		if err != nil {
+			return fmt.Errorf("listing APIs after creation of %s: %+v", *id, err)
+		}
+
+		if model := listResp.Model; model != nil {
+			if count := len(*model); count > 0 {
+				return fmt.Errorf("%s has %d unexpected associated APIs", *id, count)
 			}
 		}
 
-		for products, err := client.ApiManagement.ProductsClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, nil, ""); products.NotDone(); err = products.NextWithContext(ctx) {
-			if err != nil {
-				return fmt.Errorf("listing APIs for %s: %+v", id, err)
-			}
-			if products.Response().IsEmpty() {
-				break
-			}
-			if count := len(products.Values()); count > 0 {
-				return fmt.Errorf("%s has %d unexpected associated Products", id, count)
+		produceServiceId := product.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
+		proListResp, err := client.ApiManagement.ProductsClient.ListByService(ctx, produceServiceId, product.ListByServiceOperationOptions{})
+		if err != nil {
+			return fmt.Errorf("listing products after creation of %s: %+v", *id, err)
+		}
+		if model := proListResp.Model; model != nil {
+			if count := len(*model); count > 0 {
+				return fmt.Errorf("%s has %d unexpected associated Products", *id, count)
 			}
 		}
 

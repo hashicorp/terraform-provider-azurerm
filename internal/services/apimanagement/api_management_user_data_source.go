@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/user"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceApiManagementUser() *pluginsdk.Resource {
@@ -65,11 +66,11 @@ func dataSourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewUserID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("user_id").(string))
+	id := user.NewUserID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("user_id").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -78,12 +79,12 @@ func dataSourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.SetId(id.ID())
 
-	if props := resp.UserContractProperties; props != nil {
-		d.Set("first_name", props.FirstName)
-		d.Set("last_name", props.LastName)
-		d.Set("email", props.Email)
-		d.Set("note", props.Note)
-		d.Set("state", string(props.State))
+	if model := resp.Model; model != nil && model.Properties != nil {
+		d.Set("first_name", pointer.From(model.Properties.FirstName))
+		d.Set("last_name", pointer.From(model.Properties.LastName))
+		d.Set("email", pointer.From(model.Properties.Email))
+		d.Set("note", pointer.From(model.Properties.Note))
+		d.Set("state", string(pointer.From(model.Properties.State)))
 	}
 
 	return nil
