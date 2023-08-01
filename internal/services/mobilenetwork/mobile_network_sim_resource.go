@@ -397,6 +397,10 @@ func (r SimResource) Delete() sdk.ResourceFunc {
 }
 
 func expandSimStaticIPPropertiesModel(inputList []SimStaticIPPropertiesModel) *[]sim.SimStaticIPProperties {
+	if len(inputList) == 0 {
+		// the service does not accept empty array, it has to be nil if it's not specified.
+		return nil
+	}
 	outputList := make([]sim.SimStaticIPProperties, 0)
 	for _, v := range inputList {
 		input := v

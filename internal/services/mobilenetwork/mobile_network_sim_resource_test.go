@@ -274,10 +274,10 @@ func (r MobileNetworkSimResource) basic(data acceptance.TestData) string {
 resource "azurerm_mobile_network_sim" "test" {
   name                                     = "acctest-mns-%[2]d"
   mobile_network_sim_group_id              = azurerm_mobile_network_sim_group.test.id
-  authentication_key                       = "00000000000000000000000000000000"
+  authentication_key                       = "d3c97eed4e5a00726ad8a26d5918aa2f"
   integrated_circuit_card_identifier       = "8900000000000000000"
   international_mobile_subscriber_identity = "000000000000000"
-  operator_key_code                        = "00000000000000000000000000000000"
+  operator_key_code                        = "d3c97eed4e5a00726ad8a26d5918aa2f"
 }
 `, r.template(data), data.RandomInteger)
 }
