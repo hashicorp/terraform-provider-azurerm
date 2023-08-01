@@ -98,7 +98,16 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 		status = string(result.Properties.ProvisioningState)
 	}
 	if status == "" {
-		return nil, fmt.Errorf("API didn't return either `provisioningState` or `status`")
+		// Some Operations support both an LRO and immediate completion, but _don't_ return a provisioningState field
+		// since we're checking for a 200 OK, if we didn't get a provisioningState field, for the moment we have to
+		// assume that we're done.
+		// Examples: `APIManagement` API Versions `2021-08-01` and `2022-08-01` - `Services.GlobalSchemaCreateOrUpdate`.
+		// Examples: `Automation` API Versions `2020-01-13-preview` - `DscNodeConfiguration.CreateOrUpdate`.
+		// https://github.com/hashicorp/go-azure-sdk/issues/542
+		return &pollers.PollResult{
+			PollInterval: p.initialRetryDuration,
+			Status:       pollers.PollingStatusSucceeded,
+		}, nil
 	}
 
 	if strings.EqualFold(status, string(statusCanceled)) || strings.EqualFold(status, string(statusCancelled)) {
