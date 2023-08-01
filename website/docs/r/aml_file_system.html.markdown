@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU name for the AML File System. Changing this forces a new resource to be created.
 
+-> **NOTE:** All supported SKU names could be retrieved using [GET SKUS API](https://learn.microsoft.com/en-us/rest/api/storagecache/skus).
+
 * `storage_capacity_in_tb` - (Required) The size of the AML File System in TiB. Possible values are between 8 and 128. It could be divided by 8. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The resource ID of the Subnet that is used for managing the AML file system and for client-facing operations. This subnet should have at least a /24 subnet mask within the VNET's address space. Changing this forces a new resource to be created.
