@@ -2,6 +2,7 @@ package migration
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -322,7 +323,7 @@ func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (ApiV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		rawState["id"] = rawState["id"].(string) + ";rev=" + rawState["revision"].(string)
+		rawState["id"] = fmt.Sprintf("%s;rev=%s", rawState["id"].(string), rawState["revision"].(string))
 		return rawState, nil
 	}
 }
