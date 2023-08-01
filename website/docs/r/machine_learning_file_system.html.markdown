@@ -1,5 +1,5 @@
 ---
-subcategory: "AML File System"
+subcategory: "Azure Machine Learning File System"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_machine_learning_file_system"
 description: |-

@@ -295,7 +295,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Advisor: %+v", err)
 	}
 	if client.AMLFileSystem, err = amlFileSystem.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for AML File System: %+v", err)
+		return fmt.Errorf("building clients for Azure Machine Learning File System: %+v", err)
 	}
 	if client.AnalysisServices, err = analysisServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AnalysisServices: %+v", err)

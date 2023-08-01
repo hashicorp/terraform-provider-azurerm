@@ -4,7 +4,6 @@
 //       to re-generate this file, run 'make generate' in the root of the repository
 var services = mapOf(
         "aadb2c" to "AAD B2C",
-        "amlfilesystem" to "AML File System",
         "apimanagement" to "API Management",
         "advisor" to "Advisor",
         "analysisservices" to "Analysis Services",
@@ -16,6 +15,7 @@ var services = mapOf(
         "authorization" to "Authorization",
         "automanage" to "Automanage",
         "automation" to "Automation",
+        "amlfilesystem" to "Azure Machine Learning File System",
         "azurestackhci" to "Azure Stack HCI",
         "batch" to "Batch",
         "billing" to "Billing",

@@ -14,13 +14,13 @@ func (r Registration) AssociatedGitHubLabel() string {
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "AML File System"
+	return "Azure Machine Learning File System"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"AML File System",
+		"Azure Machine Learning File System",
 	}
 }
 
