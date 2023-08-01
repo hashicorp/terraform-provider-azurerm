@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type SignalRClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewSignalRClientWithBaseURI(api environments.Api) (*SignalRClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "signalr", defaultApiVersion)
+func NewSignalRClientWithBaseURI(sdkApi sdkEnv.Api) (*SignalRClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "signalr", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SignalRClient: %+v", err)
 	}

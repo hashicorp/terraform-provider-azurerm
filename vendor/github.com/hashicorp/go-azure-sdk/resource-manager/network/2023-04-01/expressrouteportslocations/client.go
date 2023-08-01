@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type ExpressRoutePortsLocationsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewExpressRoutePortsLocationsClientWithBaseURI(api environments.Api) (*ExpressRoutePortsLocationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "expressrouteportslocations", defaultApiVersion)
+func NewExpressRoutePortsLocationsClientWithBaseURI(sdkApi sdkEnv.Api) (*ExpressRoutePortsLocationsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "expressrouteportslocations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExpressRoutePortsLocationsClient: %+v", err)
 	}

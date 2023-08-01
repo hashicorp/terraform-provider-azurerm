@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type SIMPolicyClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewSIMPolicyClientWithBaseURI(api environments.Api) (*SIMPolicyClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "simpolicy", defaultApiVersion)
+func NewSIMPolicyClientWithBaseURI(sdkApi sdkEnv.Api) (*SIMPolicyClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "simpolicy", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SIMPolicyClient: %+v", err)
 	}

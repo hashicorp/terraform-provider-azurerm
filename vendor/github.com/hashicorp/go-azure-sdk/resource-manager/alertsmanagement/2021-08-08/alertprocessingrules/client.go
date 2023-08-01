@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type AlertProcessingRulesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewAlertProcessingRulesClientWithBaseURI(api environments.Api) (*AlertProcessingRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "alertprocessingrules", defaultApiVersion)
+func NewAlertProcessingRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*AlertProcessingRulesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "alertprocessingrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AlertProcessingRulesClient: %+v", err)
 	}

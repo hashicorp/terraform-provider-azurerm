@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type BackupsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewBackupsClientWithBaseURI(api environments.Api) (*BackupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "backups", defaultApiVersion)
+func NewBackupsClientWithBaseURI(sdkApi sdkEnv.Api) (*BackupsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "backups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BackupsClient: %+v", err)
 	}

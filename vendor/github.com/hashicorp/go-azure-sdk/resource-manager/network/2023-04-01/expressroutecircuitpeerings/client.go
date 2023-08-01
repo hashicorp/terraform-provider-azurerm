@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type ExpressRouteCircuitPeeringsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewExpressRouteCircuitPeeringsClientWithBaseURI(api environments.Api) (*ExpressRouteCircuitPeeringsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "expressroutecircuitpeerings", defaultApiVersion)
+func NewExpressRouteCircuitPeeringsClientWithBaseURI(sdkApi sdkEnv.Api) (*ExpressRouteCircuitPeeringsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "expressroutecircuitpeerings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExpressRouteCircuitPeeringsClient: %+v", err)
 	}
