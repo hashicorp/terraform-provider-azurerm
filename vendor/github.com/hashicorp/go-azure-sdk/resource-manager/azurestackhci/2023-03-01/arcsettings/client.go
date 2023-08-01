@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type ArcSettingsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewArcSettingsClientWithBaseURI(api environments.Api) (*ArcSettingsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "arcsettings", defaultApiVersion)
+func NewArcSettingsClientWithBaseURI(sdkApi sdkEnv.Api) (*ArcSettingsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "arcsettings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ArcSettingsClient: %+v", err)
 	}

@@ -114,7 +114,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/webcategories"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -227,644 +227,644 @@ type Client struct {
 	WebCategories                                    *webcategories.WebCategoriesClient
 }
 
-func NewClientWithBaseURI(api environments.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
-	adminRuleCollectionsClient, err := adminrulecollections.NewAdminRuleCollectionsClientWithBaseURI(api)
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	adminRuleCollectionsClient, err := adminrulecollections.NewAdminRuleCollectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building AdminRuleCollections client: %+v", err)
 	}
 	configureFunc(adminRuleCollectionsClient.Client)
 
-	adminRulesClient, err := adminrules.NewAdminRulesClientWithBaseURI(api)
+	adminRulesClient, err := adminrules.NewAdminRulesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building AdminRules client: %+v", err)
 	}
 	configureFunc(adminRulesClient.Client)
 
-	applicationGatewayPrivateEndpointConnectionsClient, err := applicationgatewayprivateendpointconnections.NewApplicationGatewayPrivateEndpointConnectionsClientWithBaseURI(api)
+	applicationGatewayPrivateEndpointConnectionsClient, err := applicationgatewayprivateendpointconnections.NewApplicationGatewayPrivateEndpointConnectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ApplicationGatewayPrivateEndpointConnections client: %+v", err)
 	}
 	configureFunc(applicationGatewayPrivateEndpointConnectionsClient.Client)
 
-	applicationGatewayPrivateLinkResourcesClient, err := applicationgatewayprivatelinkresources.NewApplicationGatewayPrivateLinkResourcesClientWithBaseURI(api)
+	applicationGatewayPrivateLinkResourcesClient, err := applicationgatewayprivatelinkresources.NewApplicationGatewayPrivateLinkResourcesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ApplicationGatewayPrivateLinkResources client: %+v", err)
 	}
 	configureFunc(applicationGatewayPrivateLinkResourcesClient.Client)
 
-	applicationGatewayWafDynamicManifestsClient, err := applicationgatewaywafdynamicmanifests.NewApplicationGatewayWafDynamicManifestsClientWithBaseURI(api)
+	applicationGatewayWafDynamicManifestsClient, err := applicationgatewaywafdynamicmanifests.NewApplicationGatewayWafDynamicManifestsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ApplicationGatewayWafDynamicManifests client: %+v", err)
 	}
 	configureFunc(applicationGatewayWafDynamicManifestsClient.Client)
 
-	applicationGatewaysClient, err := applicationgateways.NewApplicationGatewaysClientWithBaseURI(api)
+	applicationGatewaysClient, err := applicationgateways.NewApplicationGatewaysClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ApplicationGateways client: %+v", err)
 	}
 	configureFunc(applicationGatewaysClient.Client)
 
-	applicationSecurityGroupsClient, err := applicationsecuritygroups.NewApplicationSecurityGroupsClientWithBaseURI(api)
+	applicationSecurityGroupsClient, err := applicationsecuritygroups.NewApplicationSecurityGroupsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ApplicationSecurityGroups client: %+v", err)
 	}
 	configureFunc(applicationSecurityGroupsClient.Client)
 
-	availableDelegationsClient, err := availabledelegations.NewAvailableDelegationsClientWithBaseURI(api)
+	availableDelegationsClient, err := availabledelegations.NewAvailableDelegationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building AvailableDelegations client: %+v", err)
 	}
 	configureFunc(availableDelegationsClient.Client)
 
-	availableServiceAliasesClient, err := availableservicealiases.NewAvailableServiceAliasesClientWithBaseURI(api)
+	availableServiceAliasesClient, err := availableservicealiases.NewAvailableServiceAliasesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building AvailableServiceAliases client: %+v", err)
 	}
 	configureFunc(availableServiceAliasesClient.Client)
 
-	azureFirewallsClient, err := azurefirewalls.NewAzureFirewallsClientWithBaseURI(api)
+	azureFirewallsClient, err := azurefirewalls.NewAzureFirewallsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building AzureFirewalls client: %+v", err)
 	}
 	configureFunc(azureFirewallsClient.Client)
 
-	bastionHostsClient, err := bastionhosts.NewBastionHostsClientWithBaseURI(api)
+	bastionHostsClient, err := bastionhosts.NewBastionHostsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building BastionHosts client: %+v", err)
 	}
 	configureFunc(bastionHostsClient.Client)
 
-	bastionShareableLinkClient, err := bastionshareablelink.NewBastionShareableLinkClientWithBaseURI(api)
+	bastionShareableLinkClient, err := bastionshareablelink.NewBastionShareableLinkClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building BastionShareableLink client: %+v", err)
 	}
 	configureFunc(bastionShareableLinkClient.Client)
 
-	bgpServiceCommunitiesClient, err := bgpservicecommunities.NewBgpServiceCommunitiesClientWithBaseURI(api)
+	bgpServiceCommunitiesClient, err := bgpservicecommunities.NewBgpServiceCommunitiesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building BgpServiceCommunities client: %+v", err)
 	}
 	configureFunc(bgpServiceCommunitiesClient.Client)
 
-	checkDnsAvailabilitiesClient, err := checkdnsavailabilities.NewCheckDnsAvailabilitiesClientWithBaseURI(api)
+	checkDnsAvailabilitiesClient, err := checkdnsavailabilities.NewCheckDnsAvailabilitiesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building CheckDnsAvailabilities client: %+v", err)
 	}
 	configureFunc(checkDnsAvailabilitiesClient.Client)
 
-	cloudServicePublicIPAddressesClient, err := cloudservicepublicipaddresses.NewCloudServicePublicIPAddressesClientWithBaseURI(api)
+	cloudServicePublicIPAddressesClient, err := cloudservicepublicipaddresses.NewCloudServicePublicIPAddressesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building CloudServicePublicIPAddresses client: %+v", err)
 	}
 	configureFunc(cloudServicePublicIPAddressesClient.Client)
 
-	connectionMonitorsClient, err := connectionmonitors.NewConnectionMonitorsClientWithBaseURI(api)
+	connectionMonitorsClient, err := connectionmonitors.NewConnectionMonitorsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ConnectionMonitors client: %+v", err)
 	}
 	configureFunc(connectionMonitorsClient.Client)
 
-	connectivityConfigurationsClient, err := connectivityconfigurations.NewConnectivityConfigurationsClientWithBaseURI(api)
+	connectivityConfigurationsClient, err := connectivityconfigurations.NewConnectivityConfigurationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ConnectivityConfigurations client: %+v", err)
 	}
 	configureFunc(connectivityConfigurationsClient.Client)
 
-	customIPPrefixesClient, err := customipprefixes.NewCustomIPPrefixesClientWithBaseURI(api)
+	customIPPrefixesClient, err := customipprefixes.NewCustomIPPrefixesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building CustomIPPrefixes client: %+v", err)
 	}
 	configureFunc(customIPPrefixesClient.Client)
 
-	ddosCustomPoliciesClient, err := ddoscustompolicies.NewDdosCustomPoliciesClientWithBaseURI(api)
+	ddosCustomPoliciesClient, err := ddoscustompolicies.NewDdosCustomPoliciesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building DdosCustomPolicies client: %+v", err)
 	}
 	configureFunc(ddosCustomPoliciesClient.Client)
 
-	ddosProtectionPlansClient, err := ddosprotectionplans.NewDdosProtectionPlansClientWithBaseURI(api)
+	ddosProtectionPlansClient, err := ddosprotectionplans.NewDdosProtectionPlansClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building DdosProtectionPlans client: %+v", err)
 	}
 	configureFunc(ddosProtectionPlansClient.Client)
 
-	dscpConfigurationClient, err := dscpconfiguration.NewDscpConfigurationClientWithBaseURI(api)
+	dscpConfigurationClient, err := dscpconfiguration.NewDscpConfigurationClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building DscpConfiguration client: %+v", err)
 	}
 	configureFunc(dscpConfigurationClient.Client)
 
-	dscpConfigurationsClient, err := dscpconfigurations.NewDscpConfigurationsClientWithBaseURI(api)
+	dscpConfigurationsClient, err := dscpconfigurations.NewDscpConfigurationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building DscpConfigurations client: %+v", err)
 	}
 	configureFunc(dscpConfigurationsClient.Client)
 
-	endpointServicesClient, err := endpointservices.NewEndpointServicesClientWithBaseURI(api)
+	endpointServicesClient, err := endpointservices.NewEndpointServicesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building EndpointServices client: %+v", err)
 	}
 	configureFunc(endpointServicesClient.Client)
 
-	expressRouteCircuitArpTableClient, err := expressroutecircuitarptable.NewExpressRouteCircuitArpTableClientWithBaseURI(api)
+	expressRouteCircuitArpTableClient, err := expressroutecircuitarptable.NewExpressRouteCircuitArpTableClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCircuitArpTable client: %+v", err)
 	}
 	configureFunc(expressRouteCircuitArpTableClient.Client)
 
-	expressRouteCircuitAuthorizationsClient, err := expressroutecircuitauthorizations.NewExpressRouteCircuitAuthorizationsClientWithBaseURI(api)
+	expressRouteCircuitAuthorizationsClient, err := expressroutecircuitauthorizations.NewExpressRouteCircuitAuthorizationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCircuitAuthorizations client: %+v", err)
 	}
 	configureFunc(expressRouteCircuitAuthorizationsClient.Client)
 
-	expressRouteCircuitConnectionsClient, err := expressroutecircuitconnections.NewExpressRouteCircuitConnectionsClientWithBaseURI(api)
+	expressRouteCircuitConnectionsClient, err := expressroutecircuitconnections.NewExpressRouteCircuitConnectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCircuitConnections client: %+v", err)
 	}
 	configureFunc(expressRouteCircuitConnectionsClient.Client)
 
-	expressRouteCircuitPeeringsClient, err := expressroutecircuitpeerings.NewExpressRouteCircuitPeeringsClientWithBaseURI(api)
+	expressRouteCircuitPeeringsClient, err := expressroutecircuitpeerings.NewExpressRouteCircuitPeeringsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCircuitPeerings client: %+v", err)
 	}
 	configureFunc(expressRouteCircuitPeeringsClient.Client)
 
-	expressRouteCircuitRoutesTableClient, err := expressroutecircuitroutestable.NewExpressRouteCircuitRoutesTableClientWithBaseURI(api)
+	expressRouteCircuitRoutesTableClient, err := expressroutecircuitroutestable.NewExpressRouteCircuitRoutesTableClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCircuitRoutesTable client: %+v", err)
 	}
 	configureFunc(expressRouteCircuitRoutesTableClient.Client)
 
-	expressRouteCircuitRoutesTableSummaryClient, err := expressroutecircuitroutestablesummary.NewExpressRouteCircuitRoutesTableSummaryClientWithBaseURI(api)
+	expressRouteCircuitRoutesTableSummaryClient, err := expressroutecircuitroutestablesummary.NewExpressRouteCircuitRoutesTableSummaryClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCircuitRoutesTableSummary client: %+v", err)
 	}
 	configureFunc(expressRouteCircuitRoutesTableSummaryClient.Client)
 
-	expressRouteCircuitStatsClient, err := expressroutecircuitstats.NewExpressRouteCircuitStatsClientWithBaseURI(api)
+	expressRouteCircuitStatsClient, err := expressroutecircuitstats.NewExpressRouteCircuitStatsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCircuitStats client: %+v", err)
 	}
 	configureFunc(expressRouteCircuitStatsClient.Client)
 
-	expressRouteCircuitsClient, err := expressroutecircuits.NewExpressRouteCircuitsClientWithBaseURI(api)
+	expressRouteCircuitsClient, err := expressroutecircuits.NewExpressRouteCircuitsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCircuits client: %+v", err)
 	}
 	configureFunc(expressRouteCircuitsClient.Client)
 
-	expressRouteConnectionsClient, err := expressrouteconnections.NewExpressRouteConnectionsClientWithBaseURI(api)
+	expressRouteConnectionsClient, err := expressrouteconnections.NewExpressRouteConnectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteConnections client: %+v", err)
 	}
 	configureFunc(expressRouteConnectionsClient.Client)
 
-	expressRouteCrossConnectionArpTableClient, err := expressroutecrossconnectionarptable.NewExpressRouteCrossConnectionArpTableClientWithBaseURI(api)
+	expressRouteCrossConnectionArpTableClient, err := expressroutecrossconnectionarptable.NewExpressRouteCrossConnectionArpTableClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCrossConnectionArpTable client: %+v", err)
 	}
 	configureFunc(expressRouteCrossConnectionArpTableClient.Client)
 
-	expressRouteCrossConnectionPeeringsClient, err := expressroutecrossconnectionpeerings.NewExpressRouteCrossConnectionPeeringsClientWithBaseURI(api)
+	expressRouteCrossConnectionPeeringsClient, err := expressroutecrossconnectionpeerings.NewExpressRouteCrossConnectionPeeringsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCrossConnectionPeerings client: %+v", err)
 	}
 	configureFunc(expressRouteCrossConnectionPeeringsClient.Client)
 
-	expressRouteCrossConnectionRouteTableClient, err := expressroutecrossconnectionroutetable.NewExpressRouteCrossConnectionRouteTableClientWithBaseURI(api)
+	expressRouteCrossConnectionRouteTableClient, err := expressroutecrossconnectionroutetable.NewExpressRouteCrossConnectionRouteTableClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCrossConnectionRouteTable client: %+v", err)
 	}
 	configureFunc(expressRouteCrossConnectionRouteTableClient.Client)
 
-	expressRouteCrossConnectionRouteTableSummaryClient, err := expressroutecrossconnectionroutetablesummary.NewExpressRouteCrossConnectionRouteTableSummaryClientWithBaseURI(api)
+	expressRouteCrossConnectionRouteTableSummaryClient, err := expressroutecrossconnectionroutetablesummary.NewExpressRouteCrossConnectionRouteTableSummaryClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCrossConnectionRouteTableSummary client: %+v", err)
 	}
 	configureFunc(expressRouteCrossConnectionRouteTableSummaryClient.Client)
 
-	expressRouteCrossConnectionsClient, err := expressroutecrossconnections.NewExpressRouteCrossConnectionsClientWithBaseURI(api)
+	expressRouteCrossConnectionsClient, err := expressroutecrossconnections.NewExpressRouteCrossConnectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteCrossConnections client: %+v", err)
 	}
 	configureFunc(expressRouteCrossConnectionsClient.Client)
 
-	expressRouteGatewaysClient, err := expressroutegateways.NewExpressRouteGatewaysClientWithBaseURI(api)
+	expressRouteGatewaysClient, err := expressroutegateways.NewExpressRouteGatewaysClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteGateways client: %+v", err)
 	}
 	configureFunc(expressRouteGatewaysClient.Client)
 
-	expressRouteLinksClient, err := expressroutelinks.NewExpressRouteLinksClientWithBaseURI(api)
+	expressRouteLinksClient, err := expressroutelinks.NewExpressRouteLinksClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteLinks client: %+v", err)
 	}
 	configureFunc(expressRouteLinksClient.Client)
 
-	expressRoutePortAuthorizationsClient, err := expressrouteportauthorizations.NewExpressRoutePortAuthorizationsClientWithBaseURI(api)
+	expressRoutePortAuthorizationsClient, err := expressrouteportauthorizations.NewExpressRoutePortAuthorizationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRoutePortAuthorizations client: %+v", err)
 	}
 	configureFunc(expressRoutePortAuthorizationsClient.Client)
 
-	expressRoutePortsClient, err := expressrouteports.NewExpressRoutePortsClientWithBaseURI(api)
+	expressRoutePortsClient, err := expressrouteports.NewExpressRoutePortsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRoutePorts client: %+v", err)
 	}
 	configureFunc(expressRoutePortsClient.Client)
 
-	expressRoutePortsLocationsClient, err := expressrouteportslocations.NewExpressRoutePortsLocationsClientWithBaseURI(api)
+	expressRoutePortsLocationsClient, err := expressrouteportslocations.NewExpressRoutePortsLocationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRoutePortsLocations client: %+v", err)
 	}
 	configureFunc(expressRoutePortsLocationsClient.Client)
 
-	expressRouteProviderPortsClient, err := expressrouteproviderports.NewExpressRouteProviderPortsClientWithBaseURI(api)
+	expressRouteProviderPortsClient, err := expressrouteproviderports.NewExpressRouteProviderPortsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteProviderPorts client: %+v", err)
 	}
 	configureFunc(expressRouteProviderPortsClient.Client)
 
-	expressRouteServiceProvidersClient, err := expressrouteserviceproviders.NewExpressRouteServiceProvidersClientWithBaseURI(api)
+	expressRouteServiceProvidersClient, err := expressrouteserviceproviders.NewExpressRouteServiceProvidersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExpressRouteServiceProviders client: %+v", err)
 	}
 	configureFunc(expressRouteServiceProvidersClient.Client)
 
-	firewallPoliciesClient, err := firewallpolicies.NewFirewallPoliciesClientWithBaseURI(api)
+	firewallPoliciesClient, err := firewallpolicies.NewFirewallPoliciesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building FirewallPolicies client: %+v", err)
 	}
 	configureFunc(firewallPoliciesClient.Client)
 
-	firewallPolicyRuleCollectionGroupsClient, err := firewallpolicyrulecollectiongroups.NewFirewallPolicyRuleCollectionGroupsClientWithBaseURI(api)
+	firewallPolicyRuleCollectionGroupsClient, err := firewallpolicyrulecollectiongroups.NewFirewallPolicyRuleCollectionGroupsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building FirewallPolicyRuleCollectionGroups client: %+v", err)
 	}
 	configureFunc(firewallPolicyRuleCollectionGroupsClient.Client)
 
-	flowLogsClient, err := flowlogs.NewFlowLogsClientWithBaseURI(api)
+	flowLogsClient, err := flowlogs.NewFlowLogsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building FlowLogs client: %+v", err)
 	}
 	configureFunc(flowLogsClient.Client)
 
-	iPAllocationsClient, err := ipallocations.NewIPAllocationsClientWithBaseURI(api)
+	iPAllocationsClient, err := ipallocations.NewIPAllocationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building IPAllocations client: %+v", err)
 	}
 	configureFunc(iPAllocationsClient.Client)
 
-	iPGroupsClient, err := ipgroups.NewIPGroupsClientWithBaseURI(api)
+	iPGroupsClient, err := ipgroups.NewIPGroupsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building IPGroups client: %+v", err)
 	}
 	configureFunc(iPGroupsClient.Client)
 
-	loadBalancersClient, err := loadbalancers.NewLoadBalancersClientWithBaseURI(api)
+	loadBalancersClient, err := loadbalancers.NewLoadBalancersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building LoadBalancers client: %+v", err)
 	}
 	configureFunc(loadBalancersClient.Client)
 
-	localNetworkGatewaysClient, err := localnetworkgateways.NewLocalNetworkGatewaysClientWithBaseURI(api)
+	localNetworkGatewaysClient, err := localnetworkgateways.NewLocalNetworkGatewaysClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building LocalNetworkGateways client: %+v", err)
 	}
 	configureFunc(localNetworkGatewaysClient.Client)
 
-	natGatewaysClient, err := natgateways.NewNatGatewaysClientWithBaseURI(api)
+	natGatewaysClient, err := natgateways.NewNatGatewaysClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NatGateways client: %+v", err)
 	}
 	configureFunc(natGatewaysClient.Client)
 
-	networkGroupsClient, err := networkgroups.NewNetworkGroupsClientWithBaseURI(api)
+	networkGroupsClient, err := networkgroups.NewNetworkGroupsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkGroups client: %+v", err)
 	}
 	configureFunc(networkGroupsClient.Client)
 
-	networkInterfacesClient, err := networkinterfaces.NewNetworkInterfacesClientWithBaseURI(api)
+	networkInterfacesClient, err := networkinterfaces.NewNetworkInterfacesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkInterfaces client: %+v", err)
 	}
 	configureFunc(networkInterfacesClient.Client)
 
-	networkManagerActiveConfigurationsClient, err := networkmanageractiveconfigurations.NewNetworkManagerActiveConfigurationsClientWithBaseURI(api)
+	networkManagerActiveConfigurationsClient, err := networkmanageractiveconfigurations.NewNetworkManagerActiveConfigurationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkManagerActiveConfigurations client: %+v", err)
 	}
 	configureFunc(networkManagerActiveConfigurationsClient.Client)
 
-	networkManagerActiveConnectivityConfigurationsClient, err := networkmanageractiveconnectivityconfigurations.NewNetworkManagerActiveConnectivityConfigurationsClientWithBaseURI(api)
+	networkManagerActiveConnectivityConfigurationsClient, err := networkmanageractiveconnectivityconfigurations.NewNetworkManagerActiveConnectivityConfigurationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkManagerActiveConnectivityConfigurations client: %+v", err)
 	}
 	configureFunc(networkManagerActiveConnectivityConfigurationsClient.Client)
 
-	networkManagerConnectionsClient, err := networkmanagerconnections.NewNetworkManagerConnectionsClientWithBaseURI(api)
+	networkManagerConnectionsClient, err := networkmanagerconnections.NewNetworkManagerConnectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkManagerConnections client: %+v", err)
 	}
 	configureFunc(networkManagerConnectionsClient.Client)
 
-	networkManagerEffectiveConnectivityConfigurationClient, err := networkmanagereffectiveconnectivityconfiguration.NewNetworkManagerEffectiveConnectivityConfigurationClientWithBaseURI(api)
+	networkManagerEffectiveConnectivityConfigurationClient, err := networkmanagereffectiveconnectivityconfiguration.NewNetworkManagerEffectiveConnectivityConfigurationClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkManagerEffectiveConnectivityConfiguration client: %+v", err)
 	}
 	configureFunc(networkManagerEffectiveConnectivityConfigurationClient.Client)
 
-	networkManagerEffectiveSecurityAdminRulesClient, err := networkmanagereffectivesecurityadminrules.NewNetworkManagerEffectiveSecurityAdminRulesClientWithBaseURI(api)
+	networkManagerEffectiveSecurityAdminRulesClient, err := networkmanagereffectivesecurityadminrules.NewNetworkManagerEffectiveSecurityAdminRulesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkManagerEffectiveSecurityAdminRules client: %+v", err)
 	}
 	configureFunc(networkManagerEffectiveSecurityAdminRulesClient.Client)
 
-	networkManagersClient, err := networkmanagers.NewNetworkManagersClientWithBaseURI(api)
+	networkManagersClient, err := networkmanagers.NewNetworkManagersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkManagers client: %+v", err)
 	}
 	configureFunc(networkManagersClient.Client)
 
-	networkProfilesClient, err := networkprofiles.NewNetworkProfilesClientWithBaseURI(api)
+	networkProfilesClient, err := networkprofiles.NewNetworkProfilesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkProfiles client: %+v", err)
 	}
 	configureFunc(networkProfilesClient.Client)
 
-	networkSecurityGroupsClient, err := networksecuritygroups.NewNetworkSecurityGroupsClientWithBaseURI(api)
+	networkSecurityGroupsClient, err := networksecuritygroups.NewNetworkSecurityGroupsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkSecurityGroups client: %+v", err)
 	}
 	configureFunc(networkSecurityGroupsClient.Client)
 
-	networkVirtualAppliancesClient, err := networkvirtualappliances.NewNetworkVirtualAppliancesClientWithBaseURI(api)
+	networkVirtualAppliancesClient, err := networkvirtualappliances.NewNetworkVirtualAppliancesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkVirtualAppliances client: %+v", err)
 	}
 	configureFunc(networkVirtualAppliancesClient.Client)
 
-	networkWatchersClient, err := networkwatchers.NewNetworkWatchersClientWithBaseURI(api)
+	networkWatchersClient, err := networkwatchers.NewNetworkWatchersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building NetworkWatchers client: %+v", err)
 	}
 	configureFunc(networkWatchersClient.Client)
 
-	p2sVpnGatewaysClient, err := p2svpngateways.NewP2sVpnGatewaysClientWithBaseURI(api)
+	p2sVpnGatewaysClient, err := p2svpngateways.NewP2sVpnGatewaysClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building P2sVpnGateways client: %+v", err)
 	}
 	configureFunc(p2sVpnGatewaysClient.Client)
 
-	packetCapturesClient, err := packetcaptures.NewPacketCapturesClientWithBaseURI(api)
+	packetCapturesClient, err := packetcaptures.NewPacketCapturesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PacketCaptures client: %+v", err)
 	}
 	configureFunc(packetCapturesClient.Client)
 
-	peerExpressRouteCircuitConnectionsClient, err := peerexpressroutecircuitconnections.NewPeerExpressRouteCircuitConnectionsClientWithBaseURI(api)
+	peerExpressRouteCircuitConnectionsClient, err := peerexpressroutecircuitconnections.NewPeerExpressRouteCircuitConnectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PeerExpressRouteCircuitConnections client: %+v", err)
 	}
 	configureFunc(peerExpressRouteCircuitConnectionsClient.Client)
 
-	privateDnsZoneGroupsClient, err := privatednszonegroups.NewPrivateDnsZoneGroupsClientWithBaseURI(api)
+	privateDnsZoneGroupsClient, err := privatednszonegroups.NewPrivateDnsZoneGroupsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PrivateDnsZoneGroups client: %+v", err)
 	}
 	configureFunc(privateDnsZoneGroupsClient.Client)
 
-	privateEndpointsClient, err := privateendpoints.NewPrivateEndpointsClientWithBaseURI(api)
+	privateEndpointsClient, err := privateendpoints.NewPrivateEndpointsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PrivateEndpoints client: %+v", err)
 	}
 	configureFunc(privateEndpointsClient.Client)
 
-	privateLinkServiceClient, err := privatelinkservice.NewPrivateLinkServiceClientWithBaseURI(api)
+	privateLinkServiceClient, err := privatelinkservice.NewPrivateLinkServiceClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PrivateLinkService client: %+v", err)
 	}
 	configureFunc(privateLinkServiceClient.Client)
 
-	privateLinkServicesClient, err := privatelinkservices.NewPrivateLinkServicesClientWithBaseURI(api)
+	privateLinkServicesClient, err := privatelinkservices.NewPrivateLinkServicesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PrivateLinkServices client: %+v", err)
 	}
 	configureFunc(privateLinkServicesClient.Client)
 
-	publicIPAddressesClient, err := publicipaddresses.NewPublicIPAddressesClientWithBaseURI(api)
+	publicIPAddressesClient, err := publicipaddresses.NewPublicIPAddressesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PublicIPAddresses client: %+v", err)
 	}
 	configureFunc(publicIPAddressesClient.Client)
 
-	publicIPPrefixesClient, err := publicipprefixes.NewPublicIPPrefixesClientWithBaseURI(api)
+	publicIPPrefixesClient, err := publicipprefixes.NewPublicIPPrefixesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PublicIPPrefixes client: %+v", err)
 	}
 	configureFunc(publicIPPrefixesClient.Client)
 
-	routeFilterRulesClient, err := routefilterrules.NewRouteFilterRulesClientWithBaseURI(api)
+	routeFilterRulesClient, err := routefilterrules.NewRouteFilterRulesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building RouteFilterRules client: %+v", err)
 	}
 	configureFunc(routeFilterRulesClient.Client)
 
-	routeFiltersClient, err := routefilters.NewRouteFiltersClientWithBaseURI(api)
+	routeFiltersClient, err := routefilters.NewRouteFiltersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building RouteFilters client: %+v", err)
 	}
 	configureFunc(routeFiltersClient.Client)
 
-	routeTablesClient, err := routetables.NewRouteTablesClientWithBaseURI(api)
+	routeTablesClient, err := routetables.NewRouteTablesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building RouteTables client: %+v", err)
 	}
 	configureFunc(routeTablesClient.Client)
 
-	routesClient, err := routes.NewRoutesClientWithBaseURI(api)
+	routesClient, err := routes.NewRoutesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Routes client: %+v", err)
 	}
 	configureFunc(routesClient.Client)
 
-	scopeConnectionsClient, err := scopeconnections.NewScopeConnectionsClientWithBaseURI(api)
+	scopeConnectionsClient, err := scopeconnections.NewScopeConnectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ScopeConnections client: %+v", err)
 	}
 	configureFunc(scopeConnectionsClient.Client)
 
-	securityAdminConfigurationsClient, err := securityadminconfigurations.NewSecurityAdminConfigurationsClientWithBaseURI(api)
+	securityAdminConfigurationsClient, err := securityadminconfigurations.NewSecurityAdminConfigurationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SecurityAdminConfigurations client: %+v", err)
 	}
 	configureFunc(securityAdminConfigurationsClient.Client)
 
-	securityPartnerProvidersClient, err := securitypartnerproviders.NewSecurityPartnerProvidersClientWithBaseURI(api)
+	securityPartnerProvidersClient, err := securitypartnerproviders.NewSecurityPartnerProvidersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SecurityPartnerProviders client: %+v", err)
 	}
 	configureFunc(securityPartnerProvidersClient.Client)
 
-	securityRulesClient, err := securityrules.NewSecurityRulesClientWithBaseURI(api)
+	securityRulesClient, err := securityrules.NewSecurityRulesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SecurityRules client: %+v", err)
 	}
 	configureFunc(securityRulesClient.Client)
 
-	serviceEndpointPoliciesClient, err := serviceendpointpolicies.NewServiceEndpointPoliciesClientWithBaseURI(api)
+	serviceEndpointPoliciesClient, err := serviceendpointpolicies.NewServiceEndpointPoliciesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ServiceEndpointPolicies client: %+v", err)
 	}
 	configureFunc(serviceEndpointPoliciesClient.Client)
 
-	serviceEndpointPolicyDefinitionsClient, err := serviceendpointpolicydefinitions.NewServiceEndpointPolicyDefinitionsClientWithBaseURI(api)
+	serviceEndpointPolicyDefinitionsClient, err := serviceendpointpolicydefinitions.NewServiceEndpointPolicyDefinitionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ServiceEndpointPolicyDefinitions client: %+v", err)
 	}
 	configureFunc(serviceEndpointPolicyDefinitionsClient.Client)
 
-	serviceTagsClient, err := servicetags.NewServiceTagsClientWithBaseURI(api)
+	serviceTagsClient, err := servicetags.NewServiceTagsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ServiceTags client: %+v", err)
 	}
 	configureFunc(serviceTagsClient.Client)
 
-	staticMembersClient, err := staticmembers.NewStaticMembersClientWithBaseURI(api)
+	staticMembersClient, err := staticmembers.NewStaticMembersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building StaticMembers client: %+v", err)
 	}
 	configureFunc(staticMembersClient.Client)
 
-	subnetsClient, err := subnets.NewSubnetsClientWithBaseURI(api)
+	subnetsClient, err := subnets.NewSubnetsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Subnets client: %+v", err)
 	}
 	configureFunc(subnetsClient.Client)
 
-	trafficAnalyticsClient, err := trafficanalytics.NewTrafficAnalyticsClientWithBaseURI(api)
+	trafficAnalyticsClient, err := trafficanalytics.NewTrafficAnalyticsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building TrafficAnalytics client: %+v", err)
 	}
 	configureFunc(trafficAnalyticsClient.Client)
 
-	usagesClient, err := usages.NewUsagesClientWithBaseURI(api)
+	usagesClient, err := usages.NewUsagesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Usages client: %+v", err)
 	}
 	configureFunc(usagesClient.Client)
 
-	vMSSPublicIPAddressesClient, err := vmsspublicipaddresses.NewVMSSPublicIPAddressesClientWithBaseURI(api)
+	vMSSPublicIPAddressesClient, err := vmsspublicipaddresses.NewVMSSPublicIPAddressesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VMSSPublicIPAddresses client: %+v", err)
 	}
 	configureFunc(vMSSPublicIPAddressesClient.Client)
 
-	vipSwapClient, err := vipswap.NewVipSwapClientWithBaseURI(api)
+	vipSwapClient, err := vipswap.NewVipSwapClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VipSwap client: %+v", err)
 	}
 	configureFunc(vipSwapClient.Client)
 
-	virtualApplianceSitesClient, err := virtualappliancesites.NewVirtualApplianceSitesClientWithBaseURI(api)
+	virtualApplianceSitesClient, err := virtualappliancesites.NewVirtualApplianceSitesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualApplianceSites client: %+v", err)
 	}
 	configureFunc(virtualApplianceSitesClient.Client)
 
-	virtualApplianceSkusClient, err := virtualapplianceskus.NewVirtualApplianceSkusClientWithBaseURI(api)
+	virtualApplianceSkusClient, err := virtualapplianceskus.NewVirtualApplianceSkusClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualApplianceSkus client: %+v", err)
 	}
 	configureFunc(virtualApplianceSkusClient.Client)
 
-	virtualNetworkGatewayConnectionsClient, err := virtualnetworkgatewayconnections.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(api)
+	virtualNetworkGatewayConnectionsClient, err := virtualnetworkgatewayconnections.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualNetworkGatewayConnections client: %+v", err)
 	}
 	configureFunc(virtualNetworkGatewayConnectionsClient.Client)
 
-	virtualNetworkGatewaysClient, err := virtualnetworkgateways.NewVirtualNetworkGatewaysClientWithBaseURI(api)
+	virtualNetworkGatewaysClient, err := virtualnetworkgateways.NewVirtualNetworkGatewaysClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualNetworkGateways client: %+v", err)
 	}
 	configureFunc(virtualNetworkGatewaysClient.Client)
 
-	virtualNetworkPeeringsClient, err := virtualnetworkpeerings.NewVirtualNetworkPeeringsClientWithBaseURI(api)
+	virtualNetworkPeeringsClient, err := virtualnetworkpeerings.NewVirtualNetworkPeeringsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualNetworkPeerings client: %+v", err)
 	}
 	configureFunc(virtualNetworkPeeringsClient.Client)
 
-	virtualNetworkTapClient, err := virtualnetworktap.NewVirtualNetworkTapClientWithBaseURI(api)
+	virtualNetworkTapClient, err := virtualnetworktap.NewVirtualNetworkTapClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualNetworkTap client: %+v", err)
 	}
 	configureFunc(virtualNetworkTapClient.Client)
 
-	virtualNetworkTapsClient, err := virtualnetworktaps.NewVirtualNetworkTapsClientWithBaseURI(api)
+	virtualNetworkTapsClient, err := virtualnetworktaps.NewVirtualNetworkTapsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualNetworkTaps client: %+v", err)
 	}
 	configureFunc(virtualNetworkTapsClient.Client)
 
-	virtualNetworksClient, err := virtualnetworks.NewVirtualNetworksClientWithBaseURI(api)
+	virtualNetworksClient, err := virtualnetworks.NewVirtualNetworksClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualNetworks client: %+v", err)
 	}
 	configureFunc(virtualNetworksClient.Client)
 
-	virtualRouterPeeringsClient, err := virtualrouterpeerings.NewVirtualRouterPeeringsClientWithBaseURI(api)
+	virtualRouterPeeringsClient, err := virtualrouterpeerings.NewVirtualRouterPeeringsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualRouterPeerings client: %+v", err)
 	}
 	configureFunc(virtualRouterPeeringsClient.Client)
 
-	virtualRoutersClient, err := virtualrouters.NewVirtualRoutersClientWithBaseURI(api)
+	virtualRoutersClient, err := virtualrouters.NewVirtualRoutersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualRouters client: %+v", err)
 	}
 	configureFunc(virtualRoutersClient.Client)
 
-	virtualWANsClient, err := virtualwans.NewVirtualWANsClientWithBaseURI(api)
+	virtualWANsClient, err := virtualwans.NewVirtualWANsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualWANs client: %+v", err)
 	}
 	configureFunc(virtualWANsClient.Client)
 
-	vpnGatewaysClient, err := vpngateways.NewVpnGatewaysClientWithBaseURI(api)
+	vpnGatewaysClient, err := vpngateways.NewVpnGatewaysClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VpnGateways client: %+v", err)
 	}
 	configureFunc(vpnGatewaysClient.Client)
 
-	vpnLinkConnectionsClient, err := vpnlinkconnections.NewVpnLinkConnectionsClientWithBaseURI(api)
+	vpnLinkConnectionsClient, err := vpnlinkconnections.NewVpnLinkConnectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VpnLinkConnections client: %+v", err)
 	}
 	configureFunc(vpnLinkConnectionsClient.Client)
 
-	vpnServerConfigurationsClient, err := vpnserverconfigurations.NewVpnServerConfigurationsClientWithBaseURI(api)
+	vpnServerConfigurationsClient, err := vpnserverconfigurations.NewVpnServerConfigurationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VpnServerConfigurations client: %+v", err)
 	}
 	configureFunc(vpnServerConfigurationsClient.Client)
 
-	vpnSitesClient, err := vpnsites.NewVpnSitesClientWithBaseURI(api)
+	vpnSitesClient, err := vpnsites.NewVpnSitesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VpnSites client: %+v", err)
 	}
 	configureFunc(vpnSitesClient.Client)
 
-	webApplicationFirewallPoliciesClient, err := webapplicationfirewallpolicies.NewWebApplicationFirewallPoliciesClientWithBaseURI(api)
+	webApplicationFirewallPoliciesClient, err := webapplicationfirewallpolicies.NewWebApplicationFirewallPoliciesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building WebApplicationFirewallPolicies client: %+v", err)
 	}
 	configureFunc(webApplicationFirewallPoliciesClient.Client)
 
-	webCategoriesClient, err := webcategories.NewWebCategoriesClientWithBaseURI(api)
+	webCategoriesClient, err := webcategories.NewWebCategoriesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building WebCategories client: %+v", err)
 	}

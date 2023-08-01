@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type MachineLearningComputesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewMachineLearningComputesClientWithBaseURI(api environments.Api) (*MachineLearningComputesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "machinelearningcomputes", defaultApiVersion)
+func NewMachineLearningComputesClientWithBaseURI(sdkApi sdkEnv.Api) (*MachineLearningComputesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "machinelearningcomputes", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating MachineLearningComputesClient: %+v", err)
 	}

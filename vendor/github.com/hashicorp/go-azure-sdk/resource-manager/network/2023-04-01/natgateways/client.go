@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type NatGatewaysClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewNatGatewaysClientWithBaseURI(api environments.Api) (*NatGatewaysClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "natgateways", defaultApiVersion)
+func NewNatGatewaysClientWithBaseURI(sdkApi sdkEnv.Api) (*NatGatewaysClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "natgateways", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NatGatewaysClient: %+v", err)
 	}

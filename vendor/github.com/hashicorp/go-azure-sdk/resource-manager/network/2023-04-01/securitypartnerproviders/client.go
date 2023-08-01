@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type SecurityPartnerProvidersClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewSecurityPartnerProvidersClientWithBaseURI(api environments.Api) (*SecurityPartnerProvidersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "securitypartnerproviders", defaultApiVersion)
+func NewSecurityPartnerProvidersClientWithBaseURI(sdkApi sdkEnv.Api) (*SecurityPartnerProvidersClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "securitypartnerproviders", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SecurityPartnerProvidersClient: %+v", err)
 	}

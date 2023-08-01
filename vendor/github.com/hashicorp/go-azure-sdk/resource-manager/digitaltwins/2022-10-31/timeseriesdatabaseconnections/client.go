@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type TimeSeriesDatabaseConnectionsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewTimeSeriesDatabaseConnectionsClientWithBaseURI(api environments.Api) (*TimeSeriesDatabaseConnectionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "timeseriesdatabaseconnections", defaultApiVersion)
+func NewTimeSeriesDatabaseConnectionsClientWithBaseURI(sdkApi sdkEnv.Api) (*TimeSeriesDatabaseConnectionsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "timeseriesdatabaseconnections", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TimeSeriesDatabaseConnectionsClient: %+v", err)
 	}
