@@ -10,11 +10,13 @@ type ComputeInstanceProperties struct {
 	ConnectivityEndpoints            *ComputeInstanceConnectivityEndpoints `json:"connectivityEndpoints,omitempty"`
 	Containers                       *[]ComputeInstanceContainer           `json:"containers,omitempty"`
 	CreatedBy                        *ComputeInstanceCreatedBy             `json:"createdBy,omitempty"`
+	CustomServices                   *[]CustomService                      `json:"customServices,omitempty"`
 	DataDisks                        *[]ComputeInstanceDataDisk            `json:"dataDisks,omitempty"`
 	DataMounts                       *[]ComputeInstanceDataMount           `json:"dataMounts,omitempty"`
 	EnableNodePublicIP               *bool                                 `json:"enableNodePublicIp,omitempty"`
 	Errors                           *[]ErrorResponse                      `json:"errors,omitempty"`
 	LastOperation                    *ComputeInstanceLastOperation         `json:"lastOperation,omitempty"`
+	OsImageMetadata                  *ImageMetadata                        `json:"osImageMetadata,omitempty"`
 	PersonalComputeInstanceSettings  *PersonalComputeInstanceSettings      `json:"personalComputeInstanceSettings,omitempty"`
 	Schedules                        *ComputeSchedules                     `json:"schedules,omitempty"`
 	SetupScripts                     *SetupScripts                         `json:"setupScripts,omitempty"`
