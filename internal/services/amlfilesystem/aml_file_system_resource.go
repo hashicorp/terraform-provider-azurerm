@@ -102,10 +102,15 @@ func (r AMLFileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"AMLFS-Durable-Premium-40",
+				"AMLFS-Durable-Premium-125",
+				"AMLFS-Durable-Premium-250",
+				"AMLFS-Durable-Premium-500",
+			}, false),
 		},
 
 		"storage_capacity_in_tb": {

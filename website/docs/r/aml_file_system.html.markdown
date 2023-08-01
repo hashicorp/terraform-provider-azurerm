@@ -60,9 +60,7 @@ The following arguments are supported:
 
 * `maintenance_window` - (Required) A `maintenance_window` block as defined below.
 
-* `sku_name` - (Required) The SKU name for the AML File System. Changing this forces a new resource to be created.
-
--> **NOTE:** All supported SKU names could be retrieved using [GET SKUS API](https://learn.microsoft.com/en-us/rest/api/storagecache/skus).
+* `sku_name` - (Required) The SKU name for the AML File System. Possible values are `AMLFS-Durable-Premium-40`, `AMLFS-Durable-Premium-125`, `AMLFS-Durable-Premium-250` and `AMLFS-Durable-Premium-500`. Changing this forces a new resource to be created.
 
 * `storage_capacity_in_tb` - (Required) The size of the AML File System in TiB. Possible values are between 8 and 128. It could be divided by 8. Changing this forces a new resource to be created.
 
