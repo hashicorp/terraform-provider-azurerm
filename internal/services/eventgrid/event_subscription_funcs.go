@@ -298,6 +298,9 @@ func flattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.
 					secret = *val.Properties.IsSecret
 				}
 				if val.Properties.Value != nil {
+					value = *val.Properties.Value
+				}
+				if secret {
 					// If this is a secret, the Azure API just returns a value of 'Hidden',
 					// so we need to lookup the value that was provided from config to return
 					for _, v := range mappingsFromState {
