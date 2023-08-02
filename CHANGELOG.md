@@ -3,6 +3,8 @@
 FEATURES:
 
 * **New Resource:** `azurerm_custom_ip_prefix` [GH-21322]
+* **New Resource:**: `azurerm_mobile_network_sim` [GH-22628]
+* **New Data Source:** `azurerm_mobile_network_sim` [GH-22628]
 
 ENHANCEMENTS
 
