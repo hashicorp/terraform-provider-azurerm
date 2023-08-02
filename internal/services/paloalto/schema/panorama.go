@@ -5,9 +5,7 @@ import (
 )
 
 type Panorama struct {
-	Name string `tfschema:"name,omitempty"`
-
-	// Computed
+	Name            string `tfschema:"name"`
 	DeviceGroupName string `tfschema:"device_group_name"`
 	HostName        string `tfschema:"host_name"`
 	PanoramaServer  string `tfschema:"panorama_server_1"`
@@ -22,11 +20,9 @@ func PanoramaSchema() *pluginsdk.Schema {
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-
-				// Computed - Parsed out from the b64 config string
 				"name": {
 					Type:     pluginsdk.TypeString,
-					Computed: true, // TODO - Check this contained in the b64 config?
+					Computed: true,
 				},
 
 				"device_group_name": {

@@ -31,7 +31,7 @@ type NextGenerationFirewallVHubPanoramaResourceModel struct {
 	Tags                 map[string]interface{}      `tfschema:"tags"`
 
 	// Computed
-	PanoramaConfig []schema.Panorama `tfschema:"panorama_config"`
+	PanoramaConfig []schema.Panorama `tfschema:"panorama"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubPanoramaResource{}
@@ -79,7 +79,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*plug
 
 func (r NextGenerationFirewallVHubPanoramaResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"panorama_config": schema.PanoramaSchema(),
+		"panorama": schema.PanoramaSchema(),
 	}
 }
 

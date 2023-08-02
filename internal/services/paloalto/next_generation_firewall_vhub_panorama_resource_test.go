@@ -34,7 +34,6 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_basic(t *testing.
 		},
 		data.ImportStep(),
 	})
-
 }
 
 func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_complete(t *testing.T) {

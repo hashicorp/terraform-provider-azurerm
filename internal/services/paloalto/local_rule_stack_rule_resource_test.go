@@ -279,8 +279,8 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   }
 
   depends_on = [
-    azurerm_local_rulestack_outbound_trust_certificate_association.test,
-    azurerm_local_rulestack_outbound_untrust_certificate_association.test
+    azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association.test,
+    azurerm_palo_alto_local_rulestack_outbound_untrust_certificate_association.test
   ]
 }
 `, r.templateWithCertsEnabled(data), data.RandomInteger)
