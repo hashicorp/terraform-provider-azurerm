@@ -1,6 +1,5 @@
 # github.com/Azure/azure-sdk-for-go v66.0.0+incompatible
 ## explicit
-github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
@@ -178,6 +177,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbook
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/schedule
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/sourcecontrol
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/variable
+github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01/arcsettings
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01/cluster
