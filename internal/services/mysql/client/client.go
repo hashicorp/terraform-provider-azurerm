@@ -20,7 +20,6 @@ type Client struct {
 	MySqlClient      *servers_v2017_12_01.Client
 	ServerKeysClient *servers_v2020_01_01.Client
 
-	VirtualNetworkRulesClient  *mysql.VirtualNetworkRulesClient
 	ServerAdministratorsClient *mysql.ServerAdministratorsClient
 
 	// TODO: port over to using the Meta Client (which involves bumping the API Version)
@@ -53,10 +52,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building Azure AD Administrators client: %+v", err)
 	}
-	o.Configure(azureADAdministgratorsClient.Client, o.Authorizers.ResourceManager)
-
-	VirtualNetworkRulesClient := mysql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
+	o.Configure(azureADAdministratorsClient.Client, o.Authorizers.ResourceManager)
 
 	serverAdministratorsClient := mysql.NewServerAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverAdministratorsClient.Client, o.ResourceManagerAuthorizer)
@@ -68,7 +64,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 		// TODO: switch to using the Meta Clients
 		AzureADAdministratorsClient: azureADAdministratorsClient,
-		VirtualNetworkRulesClient:   &VirtualNetworkRulesClient,
 		ServerAdministratorsClient:  &serverAdministratorsClient,
 	}, nil
 }
