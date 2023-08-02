@@ -154,7 +154,11 @@ func resourceIotCentralOrganizationUpdate(d *pluginsdk.ResourceData, meta interf
 
 	parent := d.Get("parent").(string)
 	if d.HasChange("parent") {
-		existing.Parent = &parent
+		if parent != "" {
+			// A bug in the Client, currently doesn't allow you to unset the parent
+			// autorest/azure: Service returned an error. Status=422 Code="InvalidBody" Message="ID exceeds maximum character limit of 48 ..."
+			existing.Parent = &parent
+		}
 	}
 
 	_, err = orgClient.Update(ctx, *existing.ID, existing, "*")

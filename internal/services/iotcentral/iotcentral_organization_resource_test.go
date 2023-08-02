@@ -73,7 +73,7 @@ func TestAccIoTCentralOrganization_updateDisplayName(t *testing.T) {
 	})
 }
 
-func TestAccIoTCentralOrganization_updateParent(t *testing.T) {
+func TestAccIoTCentralOrganization_setParent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_organization", "test")
 	r := IoTCentralOrganizationResource{}
 
@@ -86,7 +86,29 @@ func TestAccIoTCentralOrganization_updateParent(t *testing.T) {
 			),
 		},
 		{
-			Config: r.basicUpdatedParent(data),
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parent").IsNotEmpty(),
+			),
+		},
+	})
+}
+
+func TestAccIoTCentralOrganization_updateParent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_organization", "test")
+	r := IoTCentralOrganizationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parent").IsNotEmpty(),
+			),
+		},
+		{
+			Config: r.completeUpdateParent(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("parent").IsNotEmpty(),
@@ -165,7 +187,7 @@ resource "azurerm_iotcentral_organization" "test" {
 `, r.template(data))
 }
 
-func (r IoTCentralOrganizationResource) basicUpdatedParent(data acceptance.TestData) string {
+func (r IoTCentralOrganizationResource) completeUpdateParent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -178,10 +200,15 @@ resource "azurerm_iotcentral_organization" "test_parent" {
   display_name = "Org parent"
 }
 
+resource "azurerm_iotcentral_organization" "test_parent_2" {
+  sub_domain   = azurerm_iotcentral_application.test.sub_domain
+  display_name = "Org parent 2"
+}
+
 resource "azurerm_iotcentral_organization" "test" {
   sub_domain   = azurerm_iotcentral_application.test.sub_domain
-  display_name = "Org basic"
-  parent       = azurerm_iotcentral_organization.test_parent.organization_id
+  display_name = "Org child"
+  parent       = azurerm_iotcentral_organization.test_parent_2.organization_id
 }
 `, r.template(data))
 }
