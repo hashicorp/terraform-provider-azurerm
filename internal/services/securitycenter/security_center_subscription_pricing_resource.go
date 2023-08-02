@@ -101,22 +101,6 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 								ValidateFunc: validation.StringIsNotWhiteSpace,
 							},
 						},
-						"operation_status": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"code": {
-										Computed: true,
-										Type:     pluginsdk.TypeString,
-									},
-									"message": {
-										Computed: true,
-										Type:     pluginsdk.TypeString,
-									},
-								},
-							},
-						},
 					},
 				},
 			},
@@ -272,13 +256,6 @@ func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{
 		}
 		if input.AdditionalExtensionProperties != nil {
 			output["additional_extension_properties"] = *input.AdditionalExtensionProperties
-		}
-
-		if input.OperationStatus != nil {
-			status := make(map[string]interface{})
-			status["code"] = input.OperationStatus.Code
-			status["message"] = input.OperationStatus.Message
-			output["operation_status"] = &[]interface{}{status}
 		}
 
 		outputList = append(outputList, output)
