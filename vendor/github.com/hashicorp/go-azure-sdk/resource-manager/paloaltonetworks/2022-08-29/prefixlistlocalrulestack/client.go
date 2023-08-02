@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type PrefixListLocalRulestackClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewPrefixListLocalRulestackClientWithBaseURI(api environments.Api) (*PrefixListLocalRulestackClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "prefixlistlocalrulestack", defaultApiVersion)
+func NewPrefixListLocalRulestackClientWithBaseURI(sdkApi sdkEnv.Api) (*PrefixListLocalRulestackClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "prefixlistlocalrulestack", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PrefixListLocalRulestackClient: %+v", err)
 	}

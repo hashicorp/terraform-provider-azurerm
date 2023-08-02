@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type GlobalRulestackClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewGlobalRulestackClientWithBaseURI(api environments.Api) (*GlobalRulestackClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "globalrulestack", defaultApiVersion)
+func NewGlobalRulestackClientWithBaseURI(sdkApi sdkEnv.Api) (*GlobalRulestackClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "globalrulestack", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GlobalRulestackClient: %+v", err)
 	}

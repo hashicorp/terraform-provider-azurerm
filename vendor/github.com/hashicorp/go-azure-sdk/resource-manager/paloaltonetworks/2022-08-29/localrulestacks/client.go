@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type LocalRulestacksClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewLocalRulestacksClientWithBaseURI(api environments.Api) (*LocalRulestacksClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "localrulestacks", defaultApiVersion)
+func NewLocalRulestacksClientWithBaseURI(sdkApi sdkEnv.Api) (*LocalRulestacksClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "localrulestacks", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LocalRulestacksClient: %+v", err)
 	}
