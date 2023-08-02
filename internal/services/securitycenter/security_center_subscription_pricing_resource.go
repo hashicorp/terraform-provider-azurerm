@@ -249,8 +249,7 @@ func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{
 		}
 
 		output := map[string]interface{}{
-			"enabled": input.IsEnabled,
-			"name":    input.Name,
+			"name": input.Name,
 		}
 		if input.AdditionalExtensionProperties != nil {
 			output["additional_extension_properties"] = *input.AdditionalExtensionProperties
