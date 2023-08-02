@@ -159,6 +159,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Read() sdk.ResourceFunc {
 			state.Name = id.FirewallName
 			state.ResourceGroupName = id.ResourceGroupName
 			if model := existing.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
 				props := model.Properties
 
 				state.DNSSettings = schema.FlattenDNSSettings(props.DnsSettings)
