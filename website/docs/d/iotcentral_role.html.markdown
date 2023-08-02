@@ -3,12 +3,12 @@ subcategory: "IoT Central"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iotcentral_role"
 description: |-
-  Gets information about an existing IotCentral Role.
+  Gets information about an existing Iot Central Role.
 ---
 
 # Data Source: azurerm_iotcentral_role
 
-Use this data source to access information about an existing IotCentral Role.
+Use this data source to access information about an existing Iot Central Role.
 
 ## Example Usage
 
@@ -51,10 +51,10 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the IoTCentral Role.
+* `id` - The ID of the Iot Central Role.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the IoTCentral Role.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Iot Central Role.
