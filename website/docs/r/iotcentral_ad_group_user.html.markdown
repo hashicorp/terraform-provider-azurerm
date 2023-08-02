@@ -41,7 +41,7 @@ resource "azuread_group" "example" {
 }
 
 data "azurerm_iotcentral_role" "app_admin" {
-  sub_domain   = azurerm_iotcentral_application.test.sub_domain
+  sub_domain   = azurerm_iotcentral_application.example.sub_domain
   display_name = "App Administrator"
 }
 

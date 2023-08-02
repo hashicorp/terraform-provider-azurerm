@@ -44,13 +44,13 @@ resource "azuread_service_principal" "example" {
 }
 
 data "azurerm_iotcentral_role" "app_admin" {
-  sub_domain   = azurerm_iotcentral_application.test.sub_domain
+  sub_domain   = azurerm_iotcentral_application.example.sub_domain
   display_name = "App Administrator"
 }
 
 resource "azurerm_iotcentral_service_principal_user" "example" {
   sub_domain = azurerm_iotcentral_application.example.sub_domain
-  object_id  = azuread_service_principal.test.object_id
+  object_id  = azuread_service_principal.example.object_id
   tenant_id  = data.azurerm_client_config.current.tenant_id
 
   roles {
