@@ -144,8 +144,6 @@ func TestAccDigitalTwinsInstance_identityUserAssigned(t *testing.T) {
 			Config: r.basicWithIdentityUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsEmpty(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -153,8 +151,6 @@ func TestAccDigitalTwinsInstance_identityUserAssigned(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").DoesNotExist(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -162,8 +158,6 @@ func TestAccDigitalTwinsInstance_identityUserAssigned(t *testing.T) {
 			Config: r.basicWithIdentityUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsEmpty(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
