@@ -14,6 +14,7 @@ ENHANCEMENTS
 * `analysisservices`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
 * `azurestackhci`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
 * `domainservices`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
+* `eventgrid`: refactoring to use `hashicorp/go-azure-sdk` [GH-22673]
 * `machinelearningservice`: updating to use API Version `2023-04-01` [GH-22729]
 * `monitor`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
 * `network`: updating to use API Version `2023-04-01` [GH-22727]
