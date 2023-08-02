@@ -84,10 +84,6 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -142,7 +138,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	// can not set extensions for free tier
 	if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
 		if d.HasChange("extension") {
-			var extensions = expandSecurityCenterSubscriptionPricingExtensions(vExt.([]interface{}))
+			var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").([]interface{}))
 			pricing.Properties.Extensions = extensions
 		}
 	}
@@ -227,12 +223,10 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}) 
 		input := v.(map[string]interface{})
 		output := pricings_v2023_01_01.Extension{
 			Name:      input["name"].(string),
-			IsEnabled: pricings_v2023_01_01.IsEnabled(input["enabled"].(string)),
+			IsEnabled: "True",
 		}
-		if output.IsEnabled == "True" {
-			if vAdditional, ok := input["additional_extension_properties"]; ok {
-				output.AdditionalExtensionProperties = &vAdditional
-			}
+		if vAdditional, ok := input["additional_extension_properties"]; ok {
+			output.AdditionalExtensionProperties = &vAdditional
 		}
 		outputList = append(outputList, output)
 	}
@@ -242,14 +236,18 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}) 
 
 func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{} {
 
-        outputList := make([]interface{}, 0)
-        
+	outputList := make([]interface{}, 0)
+
 	if inputList == nil {
 		return outputList
 	}
 
-
 	for _, input := range *inputList {
+		// only keep enabled extensions
+		if input.IsEnabled == "False" {
+			continue
+		}
+
 		output := map[string]interface{}{
 			"enabled": input.IsEnabled,
 			"name":    input.Name,
