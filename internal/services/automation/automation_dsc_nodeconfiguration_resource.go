@@ -118,7 +118,7 @@ func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceDat
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating %q: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -143,7 +143,7 @@ func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta 
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.NodeConfigurationName)
@@ -175,12 +175,7 @@ func resourceAutomationDscNodeConfigurationDelete(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	resp, err := client.Delete(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return nil
-		}
-
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
