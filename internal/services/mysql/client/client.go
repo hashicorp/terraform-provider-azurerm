@@ -18,7 +18,6 @@ type Client struct {
 	FlexibleServers *flexibleServers_v2021_05_01.Client
 	MySqlClient     *servers_v2017_12_01.Client
 
-	FirewallRulesClient               *mysql.FirewallRulesClient
 	ServersClient                     *mysql.ServersClient
 	ServerKeysClient                  *mysql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient *mysql.ServerSecurityAlertPoliciesClient
@@ -50,9 +49,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(azureADAdministratorsClient.Client, o.Authorizers.ResourceManager)
 
-	FirewallRulesClient := mysql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
-
 	ServersClient := mysql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
 
@@ -74,7 +70,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 		// TODO: switch to using the Meta Clients
 		AzureADAdministratorsClient:       azureADAdministratorsClient,
-		FirewallRulesClient:               &FirewallRulesClient,
 		ServersClient:                     &ServersClient,
 		ServerKeysClient:                  &ServerKeysClient,
 		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,
