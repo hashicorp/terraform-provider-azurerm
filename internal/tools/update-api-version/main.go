@@ -11,6 +11,7 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -46,22 +47,29 @@ func main() {
 		log.Fatalf("missing `-new-api-version`")
 	}
 
-	workingDirectory := fmt.Sprintf("../../services/%s", *serviceName)
+	workingDirectory := "../.." // path to the `internal` folder
 	if err := run(*serviceName, *oldApiVersion, *newApiVersion, workingDirectory); err != nil {
 		log.Fatalf("error: %+v", err)
 	}
 }
 
 func run(serviceName string, oldApiVersion string, newApiVersion string, workingDirectory string) error {
-	logger.Debug(fmt.Sprintf("Updating Imports in the top-level directory %q..", workingDirectory))
-	if err := updateImportsWithinDirectory(serviceName, oldApiVersion, newApiVersion, workingDirectory); err != nil {
-		return fmt.Errorf("updating the imports within the top-level directory %q: %+v", workingDirectory, err)
+	configDirectory := path.Join(workingDirectory, "clients")
+	logger.Debug(fmt.Sprintf("Updating Imports in the 'config' directory %q..", configDirectory))
+	if err := updateImportsWithinDirectory(serviceName, oldApiVersion, newApiVersion, configDirectory); err != nil {
+		return fmt.Errorf("updating the imports within the config directory %q: %+v", configDirectory, err)
 	}
 
-	logger.Debug(fmt.Sprintf("Updating Imports in the directories within directory %q..", workingDirectory))
-	entries, err := os.ReadDir(workingDirectory)
+	serviceDirectory := path.Join(workingDirectory, "services", serviceName)
+	logger.Debug(fmt.Sprintf("Updating Imports in the top-level directory %q..", serviceDirectory))
+	if err := updateImportsWithinDirectory(serviceName, oldApiVersion, newApiVersion, serviceDirectory); err != nil {
+		return fmt.Errorf("updating the imports within the top-level directory %q: %+v", serviceDirectory, err)
+	}
+
+	logger.Debug(fmt.Sprintf("Updating Imports in the directories within directory %q..", serviceDirectory))
+	entries, err := os.ReadDir(serviceDirectory)
 	if err != nil {
-		return fmt.Errorf("opening the working directory at %q: %+v", workingDirectory, err)
+		return fmt.Errorf("opening the working directory at %q: %+v", serviceDirectory, err)
 	}
 	directories := make([]string, 0)
 	for _, entry := range entries {
@@ -74,7 +82,7 @@ func run(serviceName string, oldApiVersion string, newApiVersion string, working
 		}
 	}
 	for _, directory := range directories {
-		path := filepath.Join(workingDirectory, directory)
+		path := filepath.Join(serviceDirectory, directory)
 		logger.Debug(fmt.Sprintf("Updating Imports within the nested directory %q..", path))
 		if err := updateImportsWithinDirectory(serviceName, oldApiVersion, newApiVersion, path); err != nil {
 			return fmt.Errorf("updating the imports within %q: %+v", path, err)
