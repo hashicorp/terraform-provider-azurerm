@@ -56,7 +56,7 @@ func (o ListRegionalByResourceGroupForTopicTypeOperationOptions) ToQuery() *clie
 // ListRegionalByResourceGroupForTopicType ...
 func (c EventSubscriptionsClient) ListRegionalByResourceGroupForTopicType(ctx context.Context, id ProviderLocationTopicTypeId, options ListRegionalByResourceGroupForTopicTypeOperationOptions) (result ListRegionalByResourceGroupForTopicTypeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

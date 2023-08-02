@@ -20,7 +20,7 @@ type DomainEventSubscriptionsGetOperationResponse struct {
 // DomainEventSubscriptionsGet ...
 func (c EventSubscriptionsClient) DomainEventSubscriptionsGet(ctx context.Context, id DomainEventSubscriptionId) (result DomainEventSubscriptionsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

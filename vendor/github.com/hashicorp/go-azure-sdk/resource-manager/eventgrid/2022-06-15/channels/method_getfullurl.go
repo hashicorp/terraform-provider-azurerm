@@ -21,7 +21,7 @@ type GetFullUrlOperationResponse struct {
 // GetFullUrl ...
 func (c ChannelsClient) GetFullUrl(ctx context.Context, id ChannelId) (result GetFullUrlOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

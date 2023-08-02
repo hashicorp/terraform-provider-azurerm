@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topictypes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/verifiedpartners"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -41,86 +41,86 @@ type Client struct {
 	VerifiedPartners           *verifiedpartners.VerifiedPartnersClient
 }
 
-func NewClientWithBaseURI(api environments.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
-	channelsClient, err := channels.NewChannelsClientWithBaseURI(api)
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	channelsClient, err := channels.NewChannelsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Channels client: %+v", err)
 	}
 	configureFunc(channelsClient.Client)
 
-	domainTopicsClient, err := domaintopics.NewDomainTopicsClientWithBaseURI(api)
+	domainTopicsClient, err := domaintopics.NewDomainTopicsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building DomainTopics client: %+v", err)
 	}
 	configureFunc(domainTopicsClient.Client)
 
-	domainsClient, err := domains.NewDomainsClientWithBaseURI(api)
+	domainsClient, err := domains.NewDomainsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Domains client: %+v", err)
 	}
 	configureFunc(domainsClient.Client)
 
-	eventSubscriptionsClient, err := eventsubscriptions.NewEventSubscriptionsClientWithBaseURI(api)
+	eventSubscriptionsClient, err := eventsubscriptions.NewEventSubscriptionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building EventSubscriptions client: %+v", err)
 	}
 	configureFunc(eventSubscriptionsClient.Client)
 
-	partnerConfigurationsClient, err := partnerconfigurations.NewPartnerConfigurationsClientWithBaseURI(api)
+	partnerConfigurationsClient, err := partnerconfigurations.NewPartnerConfigurationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PartnerConfigurations client: %+v", err)
 	}
 	configureFunc(partnerConfigurationsClient.Client)
 
-	partnerNamespacesClient, err := partnernamespaces.NewPartnerNamespacesClientWithBaseURI(api)
+	partnerNamespacesClient, err := partnernamespaces.NewPartnerNamespacesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PartnerNamespaces client: %+v", err)
 	}
 	configureFunc(partnerNamespacesClient.Client)
 
-	partnerRegistrationsClient, err := partnerregistrations.NewPartnerRegistrationsClientWithBaseURI(api)
+	partnerRegistrationsClient, err := partnerregistrations.NewPartnerRegistrationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PartnerRegistrations client: %+v", err)
 	}
 	configureFunc(partnerRegistrationsClient.Client)
 
-	partnerTopicsClient, err := partnertopics.NewPartnerTopicsClientWithBaseURI(api)
+	partnerTopicsClient, err := partnertopics.NewPartnerTopicsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PartnerTopics client: %+v", err)
 	}
 	configureFunc(partnerTopicsClient.Client)
 
-	privateEndpointConnectionsClient, err := privateendpointconnections.NewPrivateEndpointConnectionsClientWithBaseURI(api)
+	privateEndpointConnectionsClient, err := privateendpointconnections.NewPrivateEndpointConnectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PrivateEndpointConnections client: %+v", err)
 	}
 	configureFunc(privateEndpointConnectionsClient.Client)
 
-	privateLinkResourcesClient, err := privatelinkresources.NewPrivateLinkResourcesClientWithBaseURI(api)
+	privateLinkResourcesClient, err := privatelinkresources.NewPrivateLinkResourcesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PrivateLinkResources client: %+v", err)
 	}
 	configureFunc(privateLinkResourcesClient.Client)
 
-	systemTopicsClient, err := systemtopics.NewSystemTopicsClientWithBaseURI(api)
+	systemTopicsClient, err := systemtopics.NewSystemTopicsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SystemTopics client: %+v", err)
 	}
 	configureFunc(systemTopicsClient.Client)
 
-	topicTypesClient, err := topictypes.NewTopicTypesClientWithBaseURI(api)
+	topicTypesClient, err := topictypes.NewTopicTypesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building TopicTypes client: %+v", err)
 	}
 	configureFunc(topicTypesClient.Client)
 
-	topicsClient, err := topics.NewTopicsClientWithBaseURI(api)
+	topicsClient, err := topics.NewTopicsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Topics client: %+v", err)
 	}
 	configureFunc(topicsClient.Client)
 
-	verifiedPartnersClient, err := verifiedpartners.NewVerifiedPartnersClientWithBaseURI(api)
+	verifiedPartnersClient, err := verifiedpartners.NewVerifiedPartnersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building VerifiedPartners client: %+v", err)
 	}

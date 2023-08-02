@@ -22,7 +22,7 @@ type UnauthorizePartnerOperationResponse struct {
 // UnauthorizePartner ...
 func (c PartnerConfigurationsClient) UnauthorizePartner(ctx context.Context, id commonids.ResourceGroupId, input Partner) (result UnauthorizePartnerOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

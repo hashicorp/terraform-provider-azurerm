@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type SystemTopicsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewSystemTopicsClientWithBaseURI(api environments.Api) (*SystemTopicsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "systemtopics", defaultApiVersion)
+func NewSystemTopicsClientWithBaseURI(sdkApi sdkEnv.Api) (*SystemTopicsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "systemtopics", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SystemTopicsClient: %+v", err)
 	}

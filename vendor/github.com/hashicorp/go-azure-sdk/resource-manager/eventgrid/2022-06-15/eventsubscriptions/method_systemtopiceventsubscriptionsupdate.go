@@ -23,7 +23,7 @@ type SystemTopicEventSubscriptionsUpdateOperationResponse struct {
 // SystemTopicEventSubscriptionsUpdate ...
 func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsUpdate(ctx context.Context, id SystemTopicEventSubscriptionId, input EventSubscriptionUpdateParameters) (result SystemTopicEventSubscriptionsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 		},

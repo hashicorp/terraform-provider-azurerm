@@ -21,7 +21,7 @@ type DeactivateOperationResponse struct {
 // Deactivate ...
 func (c PartnerTopicsClient) Deactivate(ctx context.Context, id PartnerTopicId) (result DeactivateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

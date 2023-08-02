@@ -21,7 +21,7 @@ type RegenerateKeyOperationResponse struct {
 // RegenerateKey ...
 func (c DomainsClient) RegenerateKey(ctx context.Context, id DomainId, input DomainRegenerateKeyRequest) (result RegenerateKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

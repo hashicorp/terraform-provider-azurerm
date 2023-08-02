@@ -22,7 +22,7 @@ type ListEventTypesOperationResponse struct {
 // ListEventTypes ...
 func (c TopicsClient) ListEventTypes(ctx context.Context, id commonids.ScopeId) (result ListEventTypesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

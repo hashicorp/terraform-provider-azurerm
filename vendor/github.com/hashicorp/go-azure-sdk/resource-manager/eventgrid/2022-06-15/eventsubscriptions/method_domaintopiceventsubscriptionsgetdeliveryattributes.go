@@ -21,7 +21,7 @@ type DomainTopicEventSubscriptionsGetDeliveryAttributesOperationResponse struct 
 // DomainTopicEventSubscriptionsGetDeliveryAttributes ...
 func (c EventSubscriptionsClient) DomainTopicEventSubscriptionsGetDeliveryAttributes(ctx context.Context, id TopicEventSubscriptionId) (result DomainTopicEventSubscriptionsGetDeliveryAttributesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

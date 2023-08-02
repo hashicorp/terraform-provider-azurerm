@@ -23,7 +23,7 @@ type PartnerTopicEventSubscriptionsDeleteOperationResponse struct {
 // PartnerTopicEventSubscriptionsDelete ...
 func (c EventSubscriptionsClient) PartnerTopicEventSubscriptionsDelete(ctx context.Context, id PartnerTopicEventSubscriptionId) (result PartnerTopicEventSubscriptionsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

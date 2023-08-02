@@ -20,7 +20,7 @@ type PartnerTopicEventSubscriptionsGetOperationResponse struct {
 // PartnerTopicEventSubscriptionsGet ...
 func (c EventSubscriptionsClient) PartnerTopicEventSubscriptionsGet(ctx context.Context, id PartnerTopicEventSubscriptionId) (result PartnerTopicEventSubscriptionsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

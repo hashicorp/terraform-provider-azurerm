@@ -56,7 +56,7 @@ func (o ListRegionalBySubscriptionOperationOptions) ToQuery() *client.QueryParam
 // ListRegionalBySubscription ...
 func (c EventSubscriptionsClient) ListRegionalBySubscription(ctx context.Context, id LocationId, options ListRegionalBySubscriptionOperationOptions) (result ListRegionalBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -24,7 +24,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c PartnerConfigurationsClient) Update(ctx context.Context, id commonids.ResourceGroupId, input PartnerConfigurationUpdateParameters) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

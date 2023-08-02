@@ -21,7 +21,7 @@ type ListSharedAccessKeysOperationResponse struct {
 // ListSharedAccessKeys ...
 func (c TopicsClient) ListSharedAccessKeys(ctx context.Context, id TopicId) (result ListSharedAccessKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

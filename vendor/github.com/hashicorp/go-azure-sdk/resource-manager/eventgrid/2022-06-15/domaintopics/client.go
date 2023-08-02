@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type DomainTopicsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewDomainTopicsClientWithBaseURI(api environments.Api) (*DomainTopicsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "domaintopics", defaultApiVersion)
+func NewDomainTopicsClientWithBaseURI(sdkApi sdkEnv.Api) (*DomainTopicsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "domaintopics", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DomainTopicsClient: %+v", err)
 	}

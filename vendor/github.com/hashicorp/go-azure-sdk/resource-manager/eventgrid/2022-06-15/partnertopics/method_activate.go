@@ -21,7 +21,7 @@ type ActivateOperationResponse struct {
 // Activate ...
 func (c PartnerTopicsClient) Activate(ctx context.Context, id PartnerTopicId) (result ActivateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

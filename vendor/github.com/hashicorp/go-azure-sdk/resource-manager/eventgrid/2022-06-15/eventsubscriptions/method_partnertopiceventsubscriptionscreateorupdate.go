@@ -23,7 +23,7 @@ type PartnerTopicEventSubscriptionsCreateOrUpdateOperationResponse struct {
 // PartnerTopicEventSubscriptionsCreateOrUpdate ...
 func (c EventSubscriptionsClient) PartnerTopicEventSubscriptionsCreateOrUpdate(ctx context.Context, id PartnerTopicEventSubscriptionId, input EventSubscription) (result PartnerTopicEventSubscriptionsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

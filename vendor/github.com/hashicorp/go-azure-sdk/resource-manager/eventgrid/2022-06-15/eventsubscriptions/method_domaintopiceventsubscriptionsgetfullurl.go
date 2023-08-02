@@ -21,7 +21,7 @@ type DomainTopicEventSubscriptionsGetFullUrlOperationResponse struct {
 // DomainTopicEventSubscriptionsGetFullUrl ...
 func (c EventSubscriptionsClient) DomainTopicEventSubscriptionsGetFullUrl(ctx context.Context, id TopicEventSubscriptionId) (result DomainTopicEventSubscriptionsGetFullUrlOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -21,7 +21,7 @@ type GetDeliveryAttributesOperationResponse struct {
 // GetDeliveryAttributes ...
 func (c EventSubscriptionsClient) GetDeliveryAttributes(ctx context.Context, id ScopedEventSubscriptionId) (result GetDeliveryAttributesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

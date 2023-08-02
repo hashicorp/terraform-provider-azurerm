@@ -56,7 +56,7 @@ func (o ListByDomainOperationOptions) ToQuery() *client.QueryParams {
 // ListByDomain ...
 func (c DomainTopicsClient) ListByDomain(ctx context.Context, id DomainId, options ListByDomainOperationOptions) (result ListByDomainOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

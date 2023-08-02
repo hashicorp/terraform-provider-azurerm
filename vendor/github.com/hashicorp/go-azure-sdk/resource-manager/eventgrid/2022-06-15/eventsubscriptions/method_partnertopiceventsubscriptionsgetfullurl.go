@@ -21,7 +21,7 @@ type PartnerTopicEventSubscriptionsGetFullUrlOperationResponse struct {
 // PartnerTopicEventSubscriptionsGetFullUrl ...
 func (c EventSubscriptionsClient) PartnerTopicEventSubscriptionsGetFullUrl(ctx context.Context, id PartnerTopicEventSubscriptionId) (result PartnerTopicEventSubscriptionsGetFullUrlOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

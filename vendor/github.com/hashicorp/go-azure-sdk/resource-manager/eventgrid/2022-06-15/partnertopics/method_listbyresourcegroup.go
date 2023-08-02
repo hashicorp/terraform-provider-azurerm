@@ -57,7 +57,7 @@ func (o ListByResourceGroupOperationOptions) ToQuery() *client.QueryParams {
 // ListByResourceGroup ...
 func (c PartnerTopicsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options ListByResourceGroupOperationOptions) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

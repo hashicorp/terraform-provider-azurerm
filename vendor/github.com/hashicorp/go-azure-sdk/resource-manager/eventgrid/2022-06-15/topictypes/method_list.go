@@ -20,7 +20,7 @@ type ListOperationResponse struct {
 // List ...
 func (c TopicTypesClient) List(ctx context.Context) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

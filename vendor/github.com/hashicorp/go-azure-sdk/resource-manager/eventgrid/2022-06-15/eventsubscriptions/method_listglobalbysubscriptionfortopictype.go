@@ -56,7 +56,7 @@ func (o ListGlobalBySubscriptionForTopicTypeOperationOptions) ToQuery() *client.
 // ListGlobalBySubscriptionForTopicType ...
 func (c EventSubscriptionsClient) ListGlobalBySubscriptionForTopicType(ctx context.Context, id ProviderTopicTypeId, options ListGlobalBySubscriptionForTopicTypeOperationOptions) (result ListGlobalBySubscriptionForTopicTypeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

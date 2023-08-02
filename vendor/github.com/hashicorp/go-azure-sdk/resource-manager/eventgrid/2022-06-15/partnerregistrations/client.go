@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type PartnerRegistrationsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewPartnerRegistrationsClientWithBaseURI(api environments.Api) (*PartnerRegistrationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "partnerregistrations", defaultApiVersion)
+func NewPartnerRegistrationsClientWithBaseURI(sdkApi sdkEnv.Api) (*PartnerRegistrationsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "partnerregistrations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PartnerRegistrationsClient: %+v", err)
 	}

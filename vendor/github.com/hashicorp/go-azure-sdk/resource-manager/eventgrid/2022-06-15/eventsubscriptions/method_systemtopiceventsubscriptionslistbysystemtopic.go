@@ -56,7 +56,7 @@ func (o SystemTopicEventSubscriptionsListBySystemTopicOperationOptions) ToQuery(
 // SystemTopicEventSubscriptionsListBySystemTopic ...
 func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsListBySystemTopic(ctx context.Context, id SystemTopicId, options SystemTopicEventSubscriptionsListBySystemTopicOperationOptions) (result SystemTopicEventSubscriptionsListBySystemTopicOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

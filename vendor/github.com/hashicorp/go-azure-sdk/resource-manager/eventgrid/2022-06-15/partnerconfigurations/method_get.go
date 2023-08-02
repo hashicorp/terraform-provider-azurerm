@@ -22,7 +22,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c PartnerConfigurationsClient) Get(ctx context.Context, id commonids.ResourceGroupId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

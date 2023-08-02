@@ -56,7 +56,7 @@ func (o DomainEventSubscriptionsListOperationOptions) ToQuery() *client.QueryPar
 // DomainEventSubscriptionsList ...
 func (c EventSubscriptionsClient) DomainEventSubscriptionsList(ctx context.Context, id DomainId, options DomainEventSubscriptionsListOperationOptions) (result DomainEventSubscriptionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
