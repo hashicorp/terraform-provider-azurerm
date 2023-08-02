@@ -6,7 +6,6 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql" // nolint: staticcheck
 	servers_v2017_12_01 "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01"
 	servers_v2020_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2020-01-01"
 	flexibleServers_v2021_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01"
@@ -19,8 +18,6 @@ type Client struct {
 	FlexibleServers  *flexibleServers_v2021_05_01.Client
 	MySqlClient      *servers_v2017_12_01.Client
 	ServerKeysClient *servers_v2020_01_01.Client
-
-	ServerAdministratorsClient *mysql.ServerAdministratorsClient
 
 	// TODO: port over to using the Meta Client (which involves bumping the API Version)
 	AzureADAdministratorsClient *azureadadministrators.AzureADAdministratorsClient
@@ -54,9 +51,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(azureADAdministratorsClient.Client, o.Authorizers.ResourceManager)
 
-	serverAdministratorsClient := mysql.NewServerAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&serverAdministratorsClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
 		FlexibleServers:  flexibleServersMetaClient,
 		MySqlClient:      mySqlMetaClient,
@@ -64,6 +58,5 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 		// TODO: switch to using the Meta Clients
 		AzureADAdministratorsClient: azureADAdministratorsClient,
-		ServerAdministratorsClient:  &serverAdministratorsClient,
 	}, nil
 }
