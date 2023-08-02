@@ -1,0 +1,81 @@
+---
+subcategory: "IoT Central"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_iotcentral_organization"
+description: |-
+  Manages an IotCentral Organization
+---
+
+# azurerm_iotcentral_organization
+
+Manages an IoT Central Organization
+
+## Example Usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resource"
+  location = "West Europe"
+}
+
+resource "azurerm_iotcentral_application" "example" {
+  name                = "example-iotcentral-app"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sub_domain          = "example-iotcentral-app-subdomain"
+
+  display_name = "example-iotcentral-app-display-name"
+  sku          = "ST1"
+  template     = "iotc-default@1.0.0"
+
+  tags = {
+    Foo = "Bar"
+  }
+}
+
+resource "azurerm_iotcentral_organization" "example_parent" {
+  sub_domain   = azurerm_iotcentral_application.example.sub_domain
+  display_name = "Org example parent"
+}
+
+resource "azurerm_iotcentral_organization" "example" {
+  sub_domain   = azurerm_iotcentral_application.example.sub_domain
+  display_name = "Org example"
+  parent       = azurerm_iotcentral_organization.example_parent.organization_id
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `sub_domain` - (Required) The application `sub_domain`. Changing this forces a new resource to be created.
+
+* `display_name` - (Required) Custom `display_name` for the organization.
+
+* `parent` - (Optional) The `organization_id` of the parent organization.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID reference of the organization, formated as `{subdomain}.{baseDomain}/api/organizations/{organizationId}`.
+
+* `organization_id` - The ID of the organization.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IoT Central Application.
+* `update` - (Defaults to 30 minutes) Used when updating the IoT Central Application.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IoT Central Application.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IoT Central Application.
+
+## Import
+
+The IoT Central Organization can be imported using the `id`, e.g.
+
+```shell
+terraform import azurerm_iotcentral_organization.example {subdomain}.{baseDomain}/api/organizations/{organizationId}
+```
