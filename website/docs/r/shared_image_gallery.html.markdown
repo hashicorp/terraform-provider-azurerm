@@ -54,6 +54,8 @@ A `sharing` block supports the following:
 
 * `permission` - (Required) The permission of the Shared Image Gallery when sharing. The only possible value now is `Community`. Changing this forces a new resource to be created.
 
+-> **Note:** This requires that the Preview Feature `Microsoft.Compute/CommunityGalleries` is enabled, see [the documentation](https://learn.microsoft.com/azure/virtual-machines/share-gallery-community?tabs=cli) for more information.
+
 * `community_gallery` - (Optional) A `community_gallery` block as defined below. Changing this forces a new resource to be created.
 
 ~> **NOTE:** `community_gallery` must be set when `permission` is set to `Community`.
