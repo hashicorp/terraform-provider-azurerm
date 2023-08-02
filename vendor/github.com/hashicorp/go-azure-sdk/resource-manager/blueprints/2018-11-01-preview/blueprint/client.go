@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type BlueprintClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewBlueprintClientWithBaseURI(api environments.Api) (*BlueprintClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "blueprint", defaultApiVersion)
+func NewBlueprintClientWithBaseURI(sdkApi sdkEnv.Api) (*BlueprintClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "blueprint", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BlueprintClient: %+v", err)
 	}

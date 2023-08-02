@@ -20,7 +20,7 @@ type DeleteOperationResponse struct {
 // Delete ...
 func (c BlueprintClient) Delete(ctx context.Context, id ScopedBlueprintId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,
