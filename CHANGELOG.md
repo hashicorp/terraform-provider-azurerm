@@ -17,6 +17,7 @@ ENHANCEMENTS
 * `network`: updating to use API Version `2023-04-01` [GH-22727]
 * `relay`: updating to use API Version `2021-11-01` [GH-22725]
 * Data Source: `azurerm_images` - support for `disk_encryption_set_id` [GH-22690]
+* `azurerm_monitor_aad_diagnostic_setting` - updating to use `hashicorp/go-azure-sdk` [GH-22778]
 * `azurerm_web_application_firewall_policy` - updating to use API Version `2023-02-01` [GH-22455]
   
 BUG FIXES
