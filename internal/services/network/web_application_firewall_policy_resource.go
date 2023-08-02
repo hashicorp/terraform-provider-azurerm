@@ -381,6 +381,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										Optional: true,
 										Default:  true,
 									},
+
 									"rule": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -391,6 +392,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 													Optional: true,
 													Default:  true,
 												},
+
 												"match_variable": {
 													Type:     pluginsdk.TypeString,
 													Required: true,
@@ -398,6 +400,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 														webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchVariable(),
 														false),
 												},
+
 												"selector_match_operator": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
@@ -406,6 +409,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 														webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchOperator(),
 														false),
 												},
+
 												"selector": {
 													Type:        pluginsdk.TypeString,
 													Optional:    true,
