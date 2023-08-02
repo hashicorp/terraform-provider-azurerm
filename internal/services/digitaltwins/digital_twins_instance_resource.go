@@ -57,7 +57,7 @@ func resourceDigitalTwinsInstance() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": commonschema.Tags(),
 		},
@@ -81,7 +81,7 @@ func resourceDigitalTwinsInstanceCreate(d *pluginsdk.ResourceData, meta interfac
 		return tf.ImportAsExistsError("azurerm_digital_twins_instance", id.ID())
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -130,7 +130,11 @@ func resourceDigitalTwinsInstanceRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("host_name", props.HostName)
 		}
 
-		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
@@ -155,7 +159,7 @@ func resourceDigitalTwinsInstanceUpdate(d *pluginsdk.ResourceData, meta interfac
 	props := digitaltwinsinstance.DigitalTwinsPatchDescription{}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}

@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDigitalTwinsEndpointEventGrid() *pluginsdk.Resource {
@@ -114,10 +113,10 @@ func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData
 	payload := endpoints.DigitalTwinsEndpointResource{
 		Properties: &endpoints.EventGrid{
 			AuthenticationType: pointer.To(endpoints.AuthenticationTypeKeyBased),
-			TopicEndpoint:      utils.String(d.Get("eventgrid_topic_endpoint").(string)),
-			AccessKey1:         utils.String(d.Get("eventgrid_topic_primary_access_key").(string)),
-			AccessKey2:         utils.String(d.Get("eventgrid_topic_secondary_access_key").(string)),
-			DeadLetterSecret:   utils.String(d.Get("dead_letter_storage_secret").(string)),
+			TopicEndpoint:      d.Get("eventgrid_topic_endpoint").(string),
+			AccessKey1:         d.Get("eventgrid_topic_primary_access_key").(string),
+			AccessKey2:         pointer.To(d.Get("eventgrid_topic_secondary_access_key").(string)),
+			DeadLetterSecret:   pointer.To(d.Get("dead_letter_storage_secret").(string)),
 		},
 	}
 

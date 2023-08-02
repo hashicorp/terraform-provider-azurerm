@@ -253,7 +253,7 @@ func (m TimeSeriesDatabaseConnectionResource) Delete() sdk.ResourceFunc {
 			}
 
 			client := meta.Client.DigitalTwins.TimeSeriesDatabaseConnectionsClient
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+			if err = client.DeleteThenPoll(ctx, *id, timeseriesdatabaseconnections.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 			return nil

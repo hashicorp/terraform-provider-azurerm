@@ -102,12 +102,12 @@ func TestAccDigitalTwinsInstance_update(t *testing.T) {
 	})
 }
 
-func TestAccDigitalTwinsInstance_identity(t *testing.T) {
+func TestAccDigitalTwinsInstance_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_instance", "test")
 	r := DigitalTwinsInstanceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithIdentity(data),
+			Config: r.basicWithIdentitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
@@ -125,11 +125,45 @@ func TestAccDigitalTwinsInstance_identity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithIdentity(data),
+			Config: r.basicWithIdentitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDigitalTwinsInstance_identityUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_digital_twins_instance", "test")
+	r := DigitalTwinsInstanceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithIdentityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsEmpty(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").DoesNotExist(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithIdentityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsEmpty(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -219,7 +253,7 @@ resource "azurerm_digital_twins_instance" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DigitalTwinsInstanceResource) basicWithIdentity(data acceptance.TestData) string {
+func (r DigitalTwinsInstanceResource) basicWithIdentitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -229,6 +263,30 @@ resource "azurerm_digital_twins_instance" "test" {
   location            = azurerm_resource_group.test.location
   identity {
     type = "SystemAssigned"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r DigitalTwinsInstanceResource) basicWithIdentityUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_digital_twins_instance" "test" {
+  name                = "acctest-DT-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
   }
 }
 `, r.template(data), data.RandomInteger)
