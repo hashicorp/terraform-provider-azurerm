@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mysql_test
 
 import (
@@ -507,7 +510,7 @@ func (MySqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	resp, err := clients.MySQL.FlexibleServerClient.Get(ctx, *id)
+	resp, err := clients.MySQL.FlexibleServers.Servers.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 	}

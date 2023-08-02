@@ -25,7 +25,7 @@ type MonitorsListLinkedResourcesCompleteResult struct {
 // MonitorsListLinkedResources ...
 func (c LinkedResourcesClient) MonitorsListLinkedResources(ctx context.Context, id MonitorId) (result MonitorsListLinkedResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -20,7 +20,7 @@ type MediaservicesSyncStorageKeysOperationResponse struct {
 // MediaservicesSyncStorageKeys ...
 func (c AccountsClient) MediaservicesSyncStorageKeys(ctx context.Context, id MediaServiceId, input SyncStorageKeysInput) (result MediaservicesSyncStorageKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

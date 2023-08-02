@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -41,13 +44,13 @@ func TestPublicIpPrefixID(t *testing.T) {
 		},
 
 		{
-			// missing PublicIPPrefixeName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Valid: false,
 		},
 
 		{
-			// missing value for PublicIPPrefixeName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/publicIPPrefixes/",
 			Valid: false,
 		},

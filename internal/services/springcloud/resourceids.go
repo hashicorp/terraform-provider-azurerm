@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud
 
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SpringCloudApp -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/apps/app1 -rewrite=true
@@ -8,6 +11,7 @@ package springcloud
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SpringCloudBuildPackBinding -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/buildServices/buildService1/builders/builder1/buildPackBindings/buildPackBinding1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SpringCloudDeployment -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/apps/app1/deployments/deploy1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SpringCloudCertificate -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/certificates/cert1 -rewrite=true
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SpringCloudContainerRegistry -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/containerRegistries/containerRegistry1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SpringCloudCustomDomain -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/apps/app1/domains/domain.com -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SpringCloudConfigurationService -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/configurationServices/configurationService1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SpringCloudGateway -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/gateways/gateway1 -rewrite=true

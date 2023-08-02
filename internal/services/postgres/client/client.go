@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -15,7 +18,7 @@ import (
 	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/administrators"
 	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databases"
 	flexibleserverfirewallrules "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/firewallrules"
-	flexibleservers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/servers"
+	flexibleservers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-03-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

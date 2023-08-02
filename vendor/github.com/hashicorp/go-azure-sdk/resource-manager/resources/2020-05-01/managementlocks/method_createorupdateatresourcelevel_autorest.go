@@ -17,7 +17,7 @@ type CreateOrUpdateAtResourceLevelOperationResponse struct {
 }
 
 // CreateOrUpdateAtResourceLevel ...
-func (c ManagementLocksClient) CreateOrUpdateAtResourceLevel(ctx context.Context, id ResourceLockId, input ManagementLockObject) (result CreateOrUpdateAtResourceLevelOperationResponse, err error) {
+func (c ManagementLocksClient) CreateOrUpdateAtResourceLevel(ctx context.Context, id ScopedLockId, input ManagementLockObject) (result CreateOrUpdateAtResourceLevelOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdateAtResourceLevel(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementlocks.ManagementLocksClient", "CreateOrUpdateAtResourceLevel", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c ManagementLocksClient) CreateOrUpdateAtResourceLevel(ctx context.Context
 }
 
 // preparerForCreateOrUpdateAtResourceLevel prepares the CreateOrUpdateAtResourceLevel request.
-func (c ManagementLocksClient) preparerForCreateOrUpdateAtResourceLevel(ctx context.Context, id ResourceLockId, input ManagementLockObject) (*http.Request, error) {
+func (c ManagementLocksClient) preparerForCreateOrUpdateAtResourceLevel(ctx context.Context, id ScopedLockId, input ManagementLockObject) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

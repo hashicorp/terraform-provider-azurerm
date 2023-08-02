@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -6,6 +9,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/automationrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlistitems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlists"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
@@ -15,8 +20,8 @@ type Client struct {
 	AlertRuleTemplatesClient *alertruletemplates.AlertRuleTemplatesClient
 	AutomationRulesClient    *automationrules.AutomationRulesClient
 	DataConnectorsClient     *securityinsight.DataConnectorsClient
-	WatchlistsClient         *securityinsight.WatchlistsClient
-	WatchlistItemsClient     *securityinsight.WatchlistItemsClient
+	WatchlistsClient         *watchlists.WatchlistsClient
+	WatchlistItemsClient     *watchlistitems.WatchlistItemsClient
 	OnboardingStatesClient   *sentinelonboardingstates.SentinelOnboardingStatesClient
 	AnalyticsSettingsClient  *securityinsight.SecurityMLAnalyticsSettingsClient
 	ThreatIntelligenceClient *securityinsight.ThreatIntelligenceIndicatorClient
@@ -36,10 +41,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	dataConnectorsClient := securityinsight.NewDataConnectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&dataConnectorsClient.Client, o.ResourceManagerAuthorizer)
 
-	watchListsClient := securityinsight.NewWatchlistsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	watchListsClient := watchlists.NewWatchlistsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&watchListsClient.Client, o.ResourceManagerAuthorizer)
 
-	watchListItemsClient := securityinsight.NewWatchlistItemsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	watchListItemsClient := watchlistitems.NewWatchlistItemsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&watchListItemsClient.Client, o.ResourceManagerAuthorizer)
 
 	onboardingStatesClient := sentinelonboardingstates.NewSentinelOnboardingStatesClientWithBaseURI(o.ResourceManagerEndpoint)

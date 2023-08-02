@@ -1,17 +1,21 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceNetworkInterface() *pluginsdk.Resource {
@@ -170,21 +174,21 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.InterfacesClient
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewNetworkInterfaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	id := commonids.NewNetworkInterfaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("Error: %s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -192,27 +196,33 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
+	d.Set("name", id.NetworkInterfaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if location := model.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if props := resp.InterfacePropertiesFormat; props != nil {
+	if props := model.Properties; props != nil {
 		d.Set("mac_address", props.MacAddress)
 
 		privateIpAddress := ""
 		privateIpAddresses := make([]interface{}, 0)
 		if configs := props.IPConfigurations; configs != nil {
 			for _, config := range *configs {
-				if config.InterfaceIPConfigurationPropertiesFormat == nil {
+				if config.Properties == nil {
 					continue
 				}
-				if config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress == nil {
+				if config.Properties.PrivateIPAddress == nil {
 					continue
 				}
 
-				ipAddress := *config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
+				ipAddress := *config.Properties.PrivateIPAddress
 				if privateIpAddress == "" {
 					privateIpAddress = ipAddress
 				}
@@ -230,28 +240,28 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		virtualMachineId := ""
-		if props.VirtualMachine != nil && props.VirtualMachine.ID != nil {
-			virtualMachineId = *props.VirtualMachine.ID
+		if props.VirtualMachine != nil && props.VirtualMachine.Id != nil {
+			virtualMachineId = *props.VirtualMachine.Id
 		}
 		d.Set("virtual_machine_id", virtualMachineId)
 
 		var appliedDNSServers []string
 		var dnsServers []string
-		if dnsSettings := props.DNSSettings; dnsSettings != nil {
-			if s := dnsSettings.AppliedDNSServers; s != nil {
+		if dnsSettings := props.DnsSettings; dnsSettings != nil {
+			if s := dnsSettings.AppliedDnsServers; s != nil {
 				appliedDNSServers = *s
 			}
 
-			if s := dnsSettings.DNSServers; s != nil {
+			if s := dnsSettings.DnsServers; s != nil {
 				dnsServers = *s
 			}
 
-			d.Set("internal_dns_name_label", dnsSettings.InternalDNSNameLabel)
+			d.Set("internal_dns_name_label", dnsSettings.InternalDnsNameLabel)
 		}
 
 		networkSecurityGroupId := ""
-		if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.ID != nil {
-			networkSecurityGroupId = *props.NetworkSecurityGroup.ID
+		if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
+			networkSecurityGroupId = *props.NetworkSecurityGroup.Id
 		}
 		d.Set("network_security_group_id", networkSecurityGroupId)
 
@@ -261,5 +271,5 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return tags.FlattenAndSet(d, model.Tags)
 }

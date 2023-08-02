@@ -25,7 +25,7 @@ type ListByAccountCompleteResult struct {
 // ListByAccount ...
 func (c CreatorsClient) ListByAccount(ctx context.Context, id AccountId) (result ListByAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

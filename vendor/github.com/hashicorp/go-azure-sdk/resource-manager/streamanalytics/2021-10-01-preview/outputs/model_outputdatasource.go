@@ -27,6 +27,14 @@ func unmarshalOutputDataSourceImplementation(input []byte) (OutputDataSource, er
 		return nil, nil
 	}
 
+	if strings.EqualFold(value, "Microsoft.Kusto/clusters/databases") {
+		var out AzureDataExplorerOutputDataSource
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into AzureDataExplorerOutputDataSource: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "Microsoft.DataLake/Accounts") {
 		var out AzureDataLakeStoreOutputDataSource
 		if err := json.Unmarshal(input, &out); err != nil {

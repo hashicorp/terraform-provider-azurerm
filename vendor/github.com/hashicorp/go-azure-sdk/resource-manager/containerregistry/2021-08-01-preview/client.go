@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/webhooks"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -35,68 +35,68 @@ type Client struct {
 	WebHooks                   *webhooks.WebHooksClient
 }
 
-func NewClientWithBaseURI(api environments.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
-	connectedRegistriesClient, err := connectedregistries.NewConnectedRegistriesClientWithBaseURI(api)
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	connectedRegistriesClient, err := connectedregistries.NewConnectedRegistriesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ConnectedRegistries client: %+v", err)
 	}
 	configureFunc(connectedRegistriesClient.Client)
 
-	exportPipelinesClient, err := exportpipelines.NewExportPipelinesClientWithBaseURI(api)
+	exportPipelinesClient, err := exportpipelines.NewExportPipelinesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ExportPipelines client: %+v", err)
 	}
 	configureFunc(exportPipelinesClient.Client)
 
-	importPipelinesClient, err := importpipelines.NewImportPipelinesClientWithBaseURI(api)
+	importPipelinesClient, err := importpipelines.NewImportPipelinesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ImportPipelines client: %+v", err)
 	}
 	configureFunc(importPipelinesClient.Client)
 
-	operationClient, err := operation.NewOperationClientWithBaseURI(api)
+	operationClient, err := operation.NewOperationClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Operation client: %+v", err)
 	}
 	configureFunc(operationClient.Client)
 
-	pipelineRunsClient, err := pipelineruns.NewPipelineRunsClientWithBaseURI(api)
+	pipelineRunsClient, err := pipelineruns.NewPipelineRunsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PipelineRuns client: %+v", err)
 	}
 	configureFunc(pipelineRunsClient.Client)
 
-	privateEndpointConnectionsClient, err := privateendpointconnections.NewPrivateEndpointConnectionsClientWithBaseURI(api)
+	privateEndpointConnectionsClient, err := privateendpointconnections.NewPrivateEndpointConnectionsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building PrivateEndpointConnections client: %+v", err)
 	}
 	configureFunc(privateEndpointConnectionsClient.Client)
 
-	registriesClient, err := registries.NewRegistriesClientWithBaseURI(api)
+	registriesClient, err := registries.NewRegistriesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Registries client: %+v", err)
 	}
 	configureFunc(registriesClient.Client)
 
-	replicationsClient, err := replications.NewReplicationsClientWithBaseURI(api)
+	replicationsClient, err := replications.NewReplicationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Replications client: %+v", err)
 	}
 	configureFunc(replicationsClient.Client)
 
-	scopeMapsClient, err := scopemaps.NewScopeMapsClientWithBaseURI(api)
+	scopeMapsClient, err := scopemaps.NewScopeMapsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ScopeMaps client: %+v", err)
 	}
 	configureFunc(scopeMapsClient.Client)
 
-	tokensClient, err := tokens.NewTokensClientWithBaseURI(api)
+	tokensClient, err := tokens.NewTokensClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Tokens client: %+v", err)
 	}
 	configureFunc(tokensClient.Client)
 
-	webHooksClient, err := webhooks.NewWebHooksClientWithBaseURI(api)
+	webHooksClient, err := webhooks.NewWebHooksClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building WebHooks client: %+v", err)
 	}

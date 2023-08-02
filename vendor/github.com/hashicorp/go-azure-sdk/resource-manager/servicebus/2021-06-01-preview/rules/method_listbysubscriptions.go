@@ -56,7 +56,7 @@ func (o ListBySubscriptionsOperationOptions) ToQuery() *client.QueryParams {
 // ListBySubscriptions ...
 func (c RulesClient) ListBySubscriptions(ctx context.Context, id Subscriptions2Id, options ListBySubscriptionsOperationOptions) (result ListBySubscriptionsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

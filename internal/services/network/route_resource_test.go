@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -5,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/routes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -114,32 +117,27 @@ func TestAccRoute_multipleRoutes(t *testing.T) {
 }
 
 func (t RouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.RouteID(state.ID)
+	id, err := routes.ParseRouteID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.RoutesClient.Get(ctx, id.ResourceGroup, id.RouteTableName, id.Name)
+	resp, err := clients.Network.Routes.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Route (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r RouteResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.RouteID(state.ID)
+	id, err := routes.ParseRouteID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.Network.RoutesClient.Delete(ctx, id.ResourceGroup, id.RouteTableName, id.Name)
-	if err != nil {
+	if err := client.Network.Routes.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting on routesClient: %+v", err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Network.RoutesClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of Route %q: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil

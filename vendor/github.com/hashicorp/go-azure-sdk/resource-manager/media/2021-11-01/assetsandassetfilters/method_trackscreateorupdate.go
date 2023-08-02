@@ -23,7 +23,7 @@ type TracksCreateOrUpdateOperationResponse struct {
 // TracksCreateOrUpdate ...
 func (c AssetsAndAssetFiltersClient) TracksCreateOrUpdate(ctx context.Context, id TrackId, input AssetTrack) (result TracksCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

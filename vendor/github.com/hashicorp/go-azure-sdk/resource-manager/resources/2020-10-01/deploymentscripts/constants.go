@@ -36,31 +36,6 @@ func parseCleanupOptions(input string) (*CleanupOptions, error) {
 	return &out, nil
 }
 
-type ManagedServiceIdentityType string
-
-const (
-	ManagedServiceIdentityTypeUserAssigned ManagedServiceIdentityType = "UserAssigned"
-)
-
-func PossibleValuesForManagedServiceIdentityType() []string {
-	return []string{
-		string(ManagedServiceIdentityTypeUserAssigned),
-	}
-}
-
-func parseManagedServiceIdentityType(input string) (*ManagedServiceIdentityType, error) {
-	vals := map[string]ManagedServiceIdentityType{
-		"userassigned": ManagedServiceIdentityTypeUserAssigned,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := ManagedServiceIdentityType(input)
-	return &out, nil
-}
-
 type ScriptProvisioningState string
 
 const (

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
@@ -15,7 +18,7 @@ func IssuerID(id string) (*IssuerId, error) {
 	// example: https://example-keyvault.vault.azure.net/certificates/issuers/ExampleIssuer
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot parse Azure KeyVault Certificate Issuer Id: %s", err)
+		return nil, fmt.Errorf("cannot parse key vault certificate issuer ID: %s", err)
 	}
 
 	path := idURL.Path
@@ -26,10 +29,10 @@ func IssuerID(id string) (*IssuerId, error) {
 	components := strings.Split(path, "/")
 
 	if len(components) != 3 {
-		return nil, fmt.Errorf("Azure KeyVault Certificate Issuer Id should have 3 segments, got %d: '%s'", len(components), path)
+		return nil, fmt.Errorf("key vault certificate issuer ID should have 3 segments, got %d: '%s'", len(components), path)
 	}
 	if components[0] != "certificates" || components[1] != "issuers" {
-		return nil, fmt.Errorf("Key Vault Certificate Issuer ID path must begin with %q", "/certificates/issuers")
+		return nil, fmt.Errorf("key vault certificate issuer ID path must begin with %q", "/certificates/issuers")
 	}
 
 	issuerId := IssuerId{

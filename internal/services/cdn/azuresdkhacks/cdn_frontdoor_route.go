@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package azuresdkhacks
 
 import (
@@ -137,9 +140,10 @@ func (rupp RouteUpdatePropertiesParameters) MarshalJSON() ([]byte, error) {
 	if rupp.OriginGroup != nil {
 		objectMap["originGroup"] = rupp.OriginGroup
 	}
-	if rupp.OriginPath != nil {
-		objectMap["originPath"] = rupp.OriginPath
-	}
+
+	// OriginPath must be set to nil to be removed
+	objectMap["originPath"] = rupp.OriginPath
+
 	if rupp.RuleSets != nil {
 		objectMap["ruleSets"] = rupp.RuleSets
 	}

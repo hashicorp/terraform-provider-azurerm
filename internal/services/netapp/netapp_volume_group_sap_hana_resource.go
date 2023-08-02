@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package netapp
 
 import (
@@ -18,7 +21,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -122,7 +124,7 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice(validate.PossibleValuesForVolumeSpecNameSapHana(), false),
+						ValidateFunc: validation.StringInSlice(netAppValidate.PossibleValuesForVolumeSpecNameSapHana(), false),
 					},
 
 					"volume_path": {
@@ -158,7 +160,7 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 						MaxItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(validate.PossibleValuesForProtocolTypeVolumeGroupSapHana(), false),
+							ValidateFunc: validation.StringInSlice(netAppValidate.PossibleValuesForProtocolTypeVolumeGroupSapHana(), false),
 						},
 					},
 
@@ -166,7 +168,7 @@ func (r NetAppVolumeGroupSapHanaResource) Arguments() map[string]*pluginsdk.Sche
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice(validate.PossibleValuesForSecurityStyle(), false),
+						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForSecurityStyle(), false),
 					},
 
 					"storage_quota_in_gb": {
@@ -334,7 +336,7 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 			}
 
 			// Performing some basic validations that are not possible in the schema
-			if errorList := validate.ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList); len(errorList) > 0 {
+			if errorList := netAppValidate.ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList); len(errorList) > 0 {
 				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
 			}
 
@@ -490,7 +492,7 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 									rule.Nfsv3 = utils.Bool(v["nfsv3_enabled"].(bool))
 									rule.Nfsv41 = utils.Bool(v["nfsv41_enabled"].(bool))
 
-									errors = append(errors, validate.ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(rule, volumeProtocol)...)
+									errors = append(errors, netAppValidate.ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(rule, volumeProtocol)...)
 								}
 							}
 

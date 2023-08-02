@@ -34,7 +34,7 @@ resource "azurerm_container_registry_task" "example" {
   }
   docker_step {
     dockerfile_path      = "Dockerfile"
-    context_path         = "https://github.com/<user name>/acr-build-helloworld-node#main"
+    context_path         = "https://github.com/<username>/<repository>#<branch>:<folder>"
     context_access_token = "<github personal access token>"
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
@@ -141,7 +141,7 @@ A `docker_step` block supports the following:
 
 * `context_access_token` - (Required) The token (Git PAT or SAS token of storage account blob) associated with the context for this step.
 
-* `context_path` - (Required) The URL (absolute or relative) of the source context for this step.
+* `context_path` - (Required) The URL (absolute or relative) of the source context for this step. If the context is an url you can reference a specific branch or folder via `#branch:folder`.
 
 * `dockerfile_path` - (Required) The Dockerfile path relative to the source context.
 

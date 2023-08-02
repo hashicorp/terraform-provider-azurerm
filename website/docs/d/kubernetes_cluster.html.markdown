@@ -112,6 +112,8 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to this resource.
 
+* `custom_ca_trust_certificates_base64` - A list of custom base64 encoded CAs used by this Managed Kubernetes Cluster.
+
 ---
 
 An `aci_connector_linux` block exports the following:
@@ -368,6 +370,20 @@ The `kubelet_identity` block exports the following:
 A `ssh_key` block exports the following:
 
 * `key_data` - The Public SSH Key used to access the cluster.
+
+---
+
+A `service_mesh_profile` block exports the following:
+
+* `mode` - The mode of the service mesh.
+
+* `internal_ingress_gateway_enabled` - Is Istio Internal Ingress Gateway enabled?
+
+* `external_ingress_gateway_enabled` - Is Istio External Ingress Gateway enabled?
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureServiceMeshPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-addon#register-the-azureservicemeshpreview-feature-flag) for more information.
+
+---
 
 ## Timeouts
 

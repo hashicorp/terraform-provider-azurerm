@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 locals {
   api_token_var = "AZURE_STATIC_WEB_APPS_API_TOKEN"
 }

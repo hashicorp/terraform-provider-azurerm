@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -6,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -138,9 +142,9 @@ func dataSourceflattenPrivateLinkServicePrivateEndpointConnections(input *[]netw
 				if id := p.ID; id != nil {
 					v["private_endpoint_id"] = *id
 
-					id, _ := parse.PrivateEndpointID(*id)
-					if id.Name != "" {
-						v["private_endpoint_name"] = id.Name
+					id, _ := privateendpoints.ParsePrivateEndpointID(*id)
+					if id.PrivateEndpointName != "" {
+						v["private_endpoint_name"] = id.PrivateEndpointName
 					}
 				}
 			}

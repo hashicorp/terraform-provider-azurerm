@@ -20,7 +20,7 @@ type PutOperationResponse struct {
 // Put ...
 func (c ResourceGuardsClient) Put(ctx context.Context, id ResourceGuardId, input ResourceGuardResource) (result PutOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

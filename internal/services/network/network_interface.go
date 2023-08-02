@@ -1,8 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type networkInterfaceUpdateInformation struct {
@@ -13,10 +16,10 @@ type networkInterfaceUpdateInformation struct {
 	networkSecurityGroupID                  string
 }
 
-func parseFieldsFromNetworkInterface(input network.InterfacePropertiesFormat) networkInterfaceUpdateInformation {
+func parseFieldsFromNetworkInterface(input networkinterfaces.NetworkInterfacePropertiesFormat) networkInterfaceUpdateInformation {
 	networkSecurityGroupId := ""
-	if input.NetworkSecurityGroup != nil && input.NetworkSecurityGroup.ID != nil {
-		networkSecurityGroupId = *input.NetworkSecurityGroup.ID
+	if input.NetworkSecurityGroup != nil && input.NetworkSecurityGroup.Id != nil {
+		networkSecurityGroupId = *input.NetworkSecurityGroup.Id
 	}
 
 	mapToSlice := func(input map[string]struct{}) []string {
@@ -36,39 +39,39 @@ func parseFieldsFromNetworkInterface(input network.InterfacePropertiesFormat) ne
 
 	if input.IPConfigurations != nil {
 		for _, v := range *input.IPConfigurations {
-			if v.InterfaceIPConfigurationPropertiesFormat == nil {
+			if v.Properties == nil {
 				continue
 			}
 
-			props := *v.InterfaceIPConfigurationPropertiesFormat
+			props := *v.Properties
 			if props.ApplicationSecurityGroups != nil {
 				for _, asg := range *props.ApplicationSecurityGroups {
-					if asg.ID != nil {
-						applicationSecurityGroupIds[*asg.ID] = struct{}{}
+					if asg.Id != nil {
+						applicationSecurityGroupIds[*asg.Id] = struct{}{}
 					}
 				}
 			}
 
 			if props.ApplicationGatewayBackendAddressPools != nil {
 				for _, pool := range *props.ApplicationGatewayBackendAddressPools {
-					if pool.ID != nil {
-						applicationGatewayBackendAddressPoolIds[*pool.ID] = struct{}{}
+					if pool.Id != nil {
+						applicationGatewayBackendAddressPoolIds[*pool.Id] = struct{}{}
 					}
 				}
 			}
 
 			if props.LoadBalancerBackendAddressPools != nil {
 				for _, pool := range *props.LoadBalancerBackendAddressPools {
-					if pool.ID != nil {
-						loadBalancerBackendAddressPoolIds[*pool.ID] = struct{}{}
+					if pool.Id != nil {
+						loadBalancerBackendAddressPoolIds[*pool.Id] = struct{}{}
 					}
 				}
 			}
 
 			if props.LoadBalancerInboundNatRules != nil {
 				for _, rule := range *props.LoadBalancerInboundNatRules {
-					if rule.ID != nil {
-						loadBalancerInboundNatRuleIds[*rule.ID] = struct{}{}
+					if rule.Id != nil {
+						loadBalancerInboundNatRuleIds[*rule.Id] = struct{}{}
 					}
 				}
 			}
@@ -84,50 +87,46 @@ func parseFieldsFromNetworkInterface(input network.InterfacePropertiesFormat) ne
 	}
 }
 
-func mapFieldsToNetworkInterface(input *[]network.InterfaceIPConfiguration, info networkInterfaceUpdateInformation) *[]network.InterfaceIPConfiguration {
+func mapFieldsToNetworkInterface(input *[]networkinterfaces.NetworkInterfaceIPConfiguration, info networkInterfaceUpdateInformation) *[]networkinterfaces.NetworkInterfaceIPConfiguration {
 	output := input
 
-	applicationSecurityGroups := make([]network.ApplicationSecurityGroup, 0)
+	applicationSecurityGroups := make([]networkinterfaces.ApplicationSecurityGroup, 0)
 	for _, id := range info.applicationSecurityGroupIDs {
-		applicationSecurityGroups = append(applicationSecurityGroups, network.ApplicationSecurityGroup{
-			ID: utils.String(id),
+		applicationSecurityGroups = append(applicationSecurityGroups, networkinterfaces.ApplicationSecurityGroup{
+			Id: utils.String(id),
 		})
 	}
 
-	applicationGatewayBackendAddressPools := make([]network.ApplicationGatewayBackendAddressPool, 0)
+	applicationGatewayBackendAddressPools := make([]networkinterfaces.ApplicationGatewayBackendAddressPool, 0)
 	for _, id := range info.applicationGatewayBackendAddressPoolIDs {
-		applicationGatewayBackendAddressPools = append(applicationGatewayBackendAddressPools, network.ApplicationGatewayBackendAddressPool{
-			ID: utils.String(id),
+		applicationGatewayBackendAddressPools = append(applicationGatewayBackendAddressPools, networkinterfaces.ApplicationGatewayBackendAddressPool{
+			Id: utils.String(id),
 		})
 	}
 
-	loadBalancerBackendAddressPools := make([]network.BackendAddressPool, 0)
+	loadBalancerBackendAddressPools := make([]networkinterfaces.BackendAddressPool, 0)
 	for _, id := range info.loadBalancerBackendAddressPoolIDs {
-		loadBalancerBackendAddressPools = append(loadBalancerBackendAddressPools, network.BackendAddressPool{
-			ID: utils.String(id),
+		loadBalancerBackendAddressPools = append(loadBalancerBackendAddressPools, networkinterfaces.BackendAddressPool{
+			Id: utils.String(id),
 		})
 	}
 
-	loadBalancerInboundNatRules := make([]network.InboundNatRule, 0)
+	loadBalancerInboundNatRules := make([]networkinterfaces.InboundNatRule, 0)
 	for _, id := range info.loadBalancerInboundNatRuleIDs {
-		loadBalancerInboundNatRules = append(loadBalancerInboundNatRules, network.InboundNatRule{
-			ID: utils.String(id),
+		loadBalancerInboundNatRules = append(loadBalancerInboundNatRules, networkinterfaces.InboundNatRule{
+			Id: utils.String(id),
 		})
 	}
 
 	for _, config := range *output {
-		if config.InterfaceIPConfigurationPropertiesFormat == nil {
+		if config.Properties == nil || config.Properties.PrivateIPAddressVersion == nil || *config.Properties.PrivateIPAddressVersion != networkinterfaces.IPVersionIPvFour {
 			continue
 		}
 
-		if config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddressVersion != network.IPVersionIPv4 {
-			continue
-		}
-
-		config.ApplicationSecurityGroups = &applicationSecurityGroups
-		config.ApplicationGatewayBackendAddressPools = &applicationGatewayBackendAddressPools
-		config.LoadBalancerBackendAddressPools = &loadBalancerBackendAddressPools
-		config.LoadBalancerInboundNatRules = &loadBalancerInboundNatRules
+		config.Properties.ApplicationSecurityGroups = &applicationSecurityGroups
+		config.Properties.ApplicationGatewayBackendAddressPools = &applicationGatewayBackendAddressPools
+		config.Properties.LoadBalancerBackendAddressPools = &loadBalancerBackendAddressPools
+		config.Properties.LoadBalancerInboundNatRules = &loadBalancerInboundNatRules
 	}
 
 	return output

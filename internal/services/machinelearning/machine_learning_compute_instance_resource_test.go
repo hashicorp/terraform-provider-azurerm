@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -104,7 +107,7 @@ func TestAccComputeInstance_identity(t *testing.T) {
 }
 
 func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	computeClient := client.MachineLearning.ComputeClient
+	computeClient := client.MachineLearning.MachineLearningComputes
 	id, err := machinelearningcomputes.ParseComputeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -180,12 +183,42 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   network_security_group_id = azurerm_network_security_group.test.id
 }
 
+resource "azurerm_private_dns_zone" "test" {
+  name                = "privatelink.api.azureml.ms"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                  = "test-vlink"
+  resource_group_name   = azurerm_resource_group.test.name
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "test-pe-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+  private_service_connection {
+    name                           = "test-mlworkspace-%d"
+    private_connection_resource_id = azurerm_machine_learning_workspace.test.id
+    subresource_names              = ["amlworkspace"]
+    is_manual_connection           = false
+  }
+  private_dns_zone_group {
+    name                 = "test"
+    private_dns_zone_ids = [azurerm_private_dns_zone.test.id]
+  }
+}
+
 resource "azurerm_machine_learning_compute_instance" "test" {
   name                          = "acctest%d"
   location                      = azurerm_resource_group.test.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
+  node_public_ip_enabled        = false
   ssh {
     public_key = var.ssh_key
   }
@@ -195,10 +228,11 @@ resource "azurerm_machine_learning_compute_instance" "test" {
     Label1 = "Value1"
   }
   depends_on = [
-    azurerm_subnet_network_security_group_association.test
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_private_endpoint.test
   ]
 }
-`, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
+`, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 
 func (r ComputeInstanceResource) requiresImport(data acceptance.TestData) string {
@@ -287,7 +321,11 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 func (r ComputeInstanceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -308,7 +346,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestvault%[3]d"
+  name                     = "acckv%[3]d"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
@@ -336,7 +374,6 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary,
-		data.RandomIntOfLength(12), data.RandomIntOfLength(15), data.RandomIntOfLength(16),
-		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger,
+		data.RandomIntOfLength(15), data.RandomIntOfLength(16))
 }

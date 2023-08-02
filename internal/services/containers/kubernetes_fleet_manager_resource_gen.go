@@ -82,7 +82,7 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.Fleets
+			client := metadata.Client.ContainerService.V20220902Preview.Fleets
 
 			var config KubernetesFleetManagerResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -90,6 +90,7 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			id := fleets.NewFleetID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.Get(ctx, id)
@@ -120,7 +121,7 @@ func (r KubernetesFleetManagerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.Fleets
+			client := metadata.Client.ContainerService.V20220902Preview.Fleets
 			schema := KubernetesFleetManagerResourceSchema{}
 
 			id, err := fleets.ParseFleetID(metadata.ResourceData.Id())
@@ -152,7 +153,7 @@ func (r KubernetesFleetManagerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.Fleets
+			client := metadata.Client.ContainerService.V20220902Preview.Fleets
 
 			id, err := fleets.ParseFleetID(metadata.ResourceData.Id())
 			if err != nil {
@@ -171,7 +172,7 @@ func (r KubernetesFleetManagerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.Fleets
+			client := metadata.Client.ContainerService.V20220902Preview.Fleets
 
 			id, err := fleets.ParseFleetID(metadata.ResourceData.Id())
 			if err != nil {

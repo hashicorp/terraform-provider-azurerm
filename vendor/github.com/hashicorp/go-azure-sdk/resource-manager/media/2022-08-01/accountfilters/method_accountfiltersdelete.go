@@ -19,7 +19,7 @@ type AccountFiltersDeleteOperationResponse struct {
 // AccountFiltersDelete ...
 func (c AccountFiltersClient) AccountFiltersDelete(ctx context.Context, id AccountFilterId) (result AccountFiltersDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

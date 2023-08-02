@@ -23,7 +23,7 @@ type ServicesDeleteOperationResponse struct {
 // ServicesDelete ...
 func (c ResourceClient) ServicesDelete(ctx context.Context, id ServiceId) (result ServicesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

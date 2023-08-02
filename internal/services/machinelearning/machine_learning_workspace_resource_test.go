@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -260,7 +263,7 @@ func TestAccMachineLearningWorkspace_systemAssignedAndCustomManagedKey(t *testin
 }
 
 func (r WorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	workspacesClient := client.MachineLearning.WorkspacesClient
+	workspacesClient := client.MachineLearning.Workspaces
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -476,6 +479,9 @@ provider "azurerm" {
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
     }
   }
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package hpccache
 
 import (
@@ -22,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -733,7 +735,7 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SubnetID,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
 		"sku_name": {
@@ -999,7 +1001,7 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
-		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
 
 		"key_vault_key_id": {
 			Type:         pluginsdk.TypeString,

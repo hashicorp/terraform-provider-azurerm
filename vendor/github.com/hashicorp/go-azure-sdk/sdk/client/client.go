@@ -6,6 +6,7 @@ package client
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -15,7 +16,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -163,6 +163,11 @@ func (r *Response) Unmarshal(model interface{}) error {
 			contentType = strings.ToLower(r.Request.Header.Get("Content-Type"))
 		}
 	}
+	// the maintenance API returns a 200 for a delete with no content-type and no content length so we should skip
+	// trying to unmarshal this
+	if r.ContentLength == 0 && (r.Body == nil || r.Body == http.NoBody) {
+		return nil
+	}
 	if strings.Contains(contentType, "application/json") {
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
@@ -206,8 +211,9 @@ func (r *Response) Unmarshal(model interface{}) error {
 	}
 
 	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
-		if _, ok := model.(**[]byte); !ok {
-			return fmt.Errorf("internal-error: `model` must be **[]byte but got %+v", model)
+		ptr, ok := model.(**[]byte)
+		if !ok || ptr == nil {
+			return fmt.Errorf("internal-error: `model` must be a non-nil `**[]byte` but got %+v", model)
 		}
 
 		// Read the response body and close it
@@ -221,7 +227,7 @@ func (r *Response) Unmarshal(model interface{}) error {
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
 
 		// copy the byte stream across
-		reflect.ValueOf(model).Elem().Elem().SetBytes(respBody)
+		*ptr = &respBody
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
@@ -320,12 +326,6 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 	var err error
 
-	// Ensure the Content-Lenght header is set for methods that define a meaning for enclosed content, i.e. POST and PUT.
-	// https://www.rfc-editor.org/rfc/rfc9110#section-8.6-5
-	if req.Method == "POST" || req.Method == "PUT" {
-		req.Header.Set("Content-Length", fmt.Sprintf("%d", req.ContentLength))
-	}
-
 	// Check we can read the request body and set a default empty body
 	var reqBody []byte
 	if req.Body != nil {
@@ -352,10 +352,9 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 				return true, nil
 			}
 
-			o, err := odata.FromResponse(r)
-			if err != nil {
-				return false, err
-			}
+			// Extract OData from response, intentionally ignoring any errors as it's not crucial to extract
+			// valid OData at this point (valid json can still error here, such as any non-object literal)
+			o, _ := odata.FromResponse(r)
 
 			if f := req.RetryFunc; f != nil {
 				shouldRetry, err := f(r, o)
@@ -547,6 +546,9 @@ func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retrya
 	r.ErrorHandler = RetryableErrorHandler
 	r.Logger = log.Default()
 
+	tlsConfig := tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 	r.HTTPClient = &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
@@ -554,6 +556,7 @@ func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retrya
 				d := &net.Dialer{Resolver: &net.Resolver{}}
 				return d.DialContext(ctx, network, addr)
 			},
+			TLSClientConfig:       &tlsConfig,
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,

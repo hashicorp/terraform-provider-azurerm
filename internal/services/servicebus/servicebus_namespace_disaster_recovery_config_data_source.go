@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicebus
 
 import (
@@ -37,18 +40,22 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
 			},
 
+			// TODO Remove in 4.0
 			"namespace_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.NamespaceName,
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+				Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
+			// TODO Remove in 4.0
 			"resource_group_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: resourcegroups.ValidateName,
 				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+				Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
 			"alias_authorization_rule_id": {
@@ -100,7 +107,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
 		namespaceId, err := disasterrecoveryconfigs.ParseNamespaceID(v)
 		if err != nil {
-			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
+			return fmt.Errorf("parsing namespace ID %q: %+v", v, err)
 		}
 		resourceGroup = namespaceId.ResourceGroupName
 		namespaceName = namespaceId.NamespaceName
@@ -131,9 +138,9 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	d.SetId(id.ID())
 
 	// the auth rule cannot be retrieved by dr config name, the shared access policy should either be specified by user or using the default one which is `RootManageSharedAccessKey`
-	authRuleId := disasterrecoveryconfigs.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, serviceBusNamespaceDefaultAuthorizationRule)
+	authRuleId := disasterrecoveryconfigs.NewDisasterRecoveryConfigAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.DisasterRecoveryConfigName, serviceBusNamespaceDefaultAuthorizationRule)
 	if input := d.Get("alias_authorization_rule_id").(string); input != "" {
-		ruleId, err := disasterrecoveryconfigs.ParseAuthorizationRuleID(input)
+		ruleId, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigAuthorizationRuleID(input)
 		if err != nil {
 			return fmt.Errorf("parsing primary namespace auth rule id error: %+v", err)
 		}

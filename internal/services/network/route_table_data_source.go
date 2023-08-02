@@ -1,19 +1,22 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceRouteTable() *pluginsdk.Resource {
@@ -32,6 +35,11 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"bgp_route_propagation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
 			"location": commonschema.LocationComputed(),
 
@@ -70,22 +78,22 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 				Set:      pluginsdk.HashString,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
+	client := meta.(*clients.Client).Network.RouteTables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewRouteTableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := routetables.NewRouteTableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id, routetables.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
@@ -93,25 +101,31 @@ func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.RouteTableName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if props := resp.RouteTablePropertiesFormat; props != nil {
-		if err := d.Set("route", flattenRouteTableDataSourceRoutes(props.Routes)); err != nil {
-			return err
+		if props := model.Properties; props != nil {
+			if err := d.Set("route", flattenRouteTableDataSourceRoutes(props.Routes)); err != nil {
+				return err
+			}
+
+			if err := d.Set("subnets", flattenRouteTableDataSourceSubnets(props.Subnets)); err != nil {
+				return err
+			}
+
+			if err := d.Set("bgp_route_propagation_enabled", !pointer.From(props.DisableBgpRoutePropagation)); err != nil {
+				return err
+			}
 		}
-
-		if err := d.Set("subnets", flattenRouteTableDataSourceSubnets(props.Subnets)); err != nil {
-			return err
-		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func flattenRouteTableDataSourceRoutes(input *[]network.Route) []interface{} {
+func flattenRouteTableDataSourceRoutes(input *[]routetables.Route) []interface{} {
 	results := make([]interface{}, 0)
 
 	if routes := input; routes != nil {
@@ -120,7 +134,7 @@ func flattenRouteTableDataSourceRoutes(input *[]network.Route) []interface{} {
 
 			r["name"] = *route.Name
 
-			if props := route.RoutePropertiesFormat; props != nil {
+			if props := route.Properties; props != nil {
 				r["address_prefix"] = *props.AddressPrefix
 				r["next_hop_type"] = string(props.NextHopType)
 				if ip := props.NextHopIPAddress; ip != nil {
@@ -135,12 +149,12 @@ func flattenRouteTableDataSourceRoutes(input *[]network.Route) []interface{} {
 	return results
 }
 
-func flattenRouteTableDataSourceSubnets(subnets *[]network.Subnet) []string {
+func flattenRouteTableDataSourceSubnets(subnets *[]routetables.Subnet) []string {
 	output := make([]string, 0)
 
 	if subnets != nil {
 		for _, subnet := range *subnets {
-			output = append(output, *subnet.ID)
+			output = append(output, *subnet.Id)
 		}
 	}
 

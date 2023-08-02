@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cosmos
 
 import (
@@ -60,6 +63,8 @@ const (
 	databaseAccountCapabilitiesEnableMongoRetryableWrites        databaseAccountCapabilities = "EnableMongoRetryableWrites"
 	databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl databaseAccountCapabilities = "EnableMongoRoleBasedAccessControl"
 	databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs    databaseAccountCapabilities = "EnableUniqueCompoundNestedDocs"
+	databaseAccountCapabilitiesEnableTtlOnCustomPath             databaseAccountCapabilities = "EnableTtlOnCustomPath"
+	databaseAccountCapabilitiesEnablePartialUniqueIndex          databaseAccountCapabilities = "EnablePartialUniqueIndex"
 )
 
 /*
@@ -78,22 +83,26 @@ AllowSelfServeUpgradeToMongo36 : 	GlobalDocumentDB, MongoDB, Parse
 EnableMongoRetryableWrites :		MongoDB
 EnableMongoRoleBasedAccessControl : MongoDB
 EnableUniqueCompoundNestedDocs : 	MongoDB
+EnableTtlOnCustomPath:              MongoDB
+EnablePartialUniqueIndex:           MongoDB
 */
 var capabilitiesToKindMap = map[string]interface{}{
-	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo)):                    []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)):     []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)):     []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableCassandra)):                []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableGremlin)):                  []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableTable)):                    []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableServerless)):               []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesEnableAggregationPipeline)):      []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesMongoDBv34)):                     []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesMongoEnableDocLevelTTL)):         []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)):   []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
-	strings.ToLower(string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo)):                       []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport)):    []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl)): []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)):        []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)):    []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableTtlOnCustomPath)):             []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnablePartialUniqueIndex)):          []string{strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableCassandra)):                   []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableGremlin)):                     []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableTable)):                       []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableServerless)):                  []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesEnableAggregationPipeline)):         []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesMongoDBv34)):                        []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesMongoEnableDocLevelTTL)):            []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)):      []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36)):    []string{strings.ToLower(string(documentdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(documentdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(documentdb.DatabaseAccountKindParse))},
 }
 
 // If the consistency policy of the Cosmos DB Database Account is not bounded staleness,
@@ -411,6 +420,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								string(databaseAccountCapabilitiesEnableMongoRetryableWrites),
 								string(databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl),
 								string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs),
+								string(databaseAccountCapabilitiesEnableTtlOnCustomPath),
+								string(databaseAccountCapabilitiesEnablePartialUniqueIndex),
 							}, false),
 						},
 					},
@@ -914,6 +925,38 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
+	// backup must be updated independently
+	var backup documentdb.BasicBackupPolicy
+	if existing.DatabaseAccountGetProperties.BackupPolicy != nil {
+		backup = existing.DatabaseAccountGetProperties.BackupPolicy
+		if d.HasChange("backup") {
+			if v, ok := d.GetOk("backup"); ok {
+				newBackup, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), string(existing.DatabaseAccountGetProperties.CreateMode))
+				if err != nil {
+					return fmt.Errorf("expanding `backup`: %+v", err)
+				}
+				updateParameters := documentdb.DatabaseAccountUpdateParameters{
+					DatabaseAccountUpdateProperties: &documentdb.DatabaseAccountUpdateProperties{
+						BackupPolicy: newBackup,
+					},
+				}
+
+				// Update Database 'backup'...
+				future, err := client.Update(ctx, id.ResourceGroup, id.Name, updateParameters)
+				if err != nil {
+					return fmt.Errorf("updating CosmosDB Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to finish updating: %+v", id.Name, id.ResourceGroup, err)
+				}
+				backup = newBackup
+			} else if string(existing.CreateMode) != "" {
+				return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+			}
+		}
+	}
+
 	updateRequired := false
 	if props := existing.DatabaseAccountGetProperties; props != nil {
 		location := azure.NormalizeLocation(pointer.From(existing.Location))
@@ -949,7 +992,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		// later, however we need to know if they changed or not...
 		if d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
 			"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
-			"capacity", "create_mode", "restore", "key_vault_key_id", "mongo_server_version", "backup",
+			"capacity", "create_mode", "restore", "key_vault_key_id", "mongo_server_version",
 			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
 			"kind", "tags", "enable_free_tier", "enable_automatic_failover", "analytical_storage_enabled",
 			"local_authentication_disabled") {
@@ -998,6 +1041,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				NetworkACLBypass:                   networkByPass,
 				NetworkACLBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 				DisableLocalAuth:                   disableLocalAuthentication,
+				BackupPolicy:                       backup,
 			},
 			Tags: t,
 		}
@@ -1018,6 +1062,12 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		updateDefaultIdentity := false
 		if d.HasChange("default_identity_type") {
 			updateDefaultIdentity = true
+		}
+
+		// adding 'DefaultIdentity' to avoid causing it to fallback
+		// to "FirstPartyIdentity" on update(s), issue #22466
+		if v, ok := d.GetOk("default_identity_type"); ok {
+			accountProps.DefaultIdentity = pointer.To(v.(string))
 		}
 
 		// we need the following in the accountProps even if they have not changed...
@@ -1043,16 +1093,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			accountProps.APIProperties = &documentdb.APIProperties{
 				ServerVersion: documentdb.ServerVersion(v.(string)),
 			}
-		}
-
-		if v, ok := d.GetOk("backup"); ok {
-			policy, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), createMode)
-			if err != nil {
-				return fmt.Errorf("expanding `backup`: %+v", err)
-			}
-			accountProps.BackupPolicy = policy
-		} else if createMode != "" {
-			return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
 		}
 
 		// Only do this update if a value has changed above...
@@ -1195,7 +1235,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			if identityChanged {
 				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q because the 'Identity' was changed to %q", configDefaultIdentity, expandedIdentity.Type)
 			} else {
-				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q", configDefaultIdentity)
+				log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DefaultIdentity' to %q because 'default_identity_type' was changed", configDefaultIdentity)
 			}
 
 			// PATCH instead of PUT...
@@ -1210,6 +1250,8 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			if err != nil {
 				return fmt.Errorf("updating 'default_identity_type' %q: %+v", id, err)
 			}
+		} else {
+			log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Updating 'DefaultIdentity' [NO CHANGE]")
 		}
 	}
 
@@ -2097,6 +2139,8 @@ func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]documentdb.Ca
 		strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRetryableWrites)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnableMongoRoleBasedAccessControl)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnableUniqueCompoundNestedDocs)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnableTtlOnCustomPath)),
+		strings.ToLower(string(databaseAccountCapabilitiesEnablePartialUniqueIndex)),
 	}
 
 	// The feedback from service team: capabilities that can be removed from an existing account

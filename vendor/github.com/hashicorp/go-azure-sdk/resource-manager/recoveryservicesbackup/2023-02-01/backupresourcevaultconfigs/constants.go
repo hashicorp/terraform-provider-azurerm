@@ -39,6 +39,7 @@ func parseEnhancedSecurityState(input string) (*EnhancedSecurityState, error) {
 type SoftDeleteFeatureState string
 
 const (
+	SoftDeleteFeatureStateAlwaysON SoftDeleteFeatureState = "AlwaysON"
 	SoftDeleteFeatureStateDisabled SoftDeleteFeatureState = "Disabled"
 	SoftDeleteFeatureStateEnabled  SoftDeleteFeatureState = "Enabled"
 	SoftDeleteFeatureStateInvalid  SoftDeleteFeatureState = "Invalid"
@@ -46,6 +47,7 @@ const (
 
 func PossibleValuesForSoftDeleteFeatureState() []string {
 	return []string{
+		string(SoftDeleteFeatureStateAlwaysON),
 		string(SoftDeleteFeatureStateDisabled),
 		string(SoftDeleteFeatureStateEnabled),
 		string(SoftDeleteFeatureStateInvalid),
@@ -54,6 +56,7 @@ func PossibleValuesForSoftDeleteFeatureState() []string {
 
 func parseSoftDeleteFeatureState(input string) (*SoftDeleteFeatureState, error) {
 	vals := map[string]SoftDeleteFeatureState{
+		"alwayson": SoftDeleteFeatureStateAlwaysON,
 		"disabled": SoftDeleteFeatureStateDisabled,
 		"enabled":  SoftDeleteFeatureStateEnabled,
 		"invalid":  SoftDeleteFeatureStateInvalid,

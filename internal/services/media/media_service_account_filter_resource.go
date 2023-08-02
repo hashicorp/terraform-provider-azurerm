@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package media
 
 import (
@@ -13,6 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var _ sdk.ResourceWithUpdate = AccountFilterResource{}
+var _ sdk.ResourceWithDeprecationAndNoReplacement = AccountFilterResource{}
 
 type AccountFilterModel struct {
 	Name                     string                  `tfschema:"name"`
@@ -43,6 +49,10 @@ type Condition struct {
 }
 
 type AccountFilterResource struct{}
+
+func (r AccountFilterResource) DeprecationMessage() string {
+	return azureMediaRetirementMessage
+}
 
 func (r AccountFilterResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

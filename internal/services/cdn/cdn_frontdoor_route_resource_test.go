@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cdn_test
 
 import (
@@ -197,6 +200,7 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
   cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.test.id]
+  cdn_frontdoor_origin_path     = "/example"
 
   enabled                = true
   forwarding_protocol    = "HttpsOnly"

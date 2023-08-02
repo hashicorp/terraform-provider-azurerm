@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor_test
 
 import (
@@ -633,7 +636,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
 
     windows_firewall_log {
-      streams = ["Microsoft-Event"]
+      streams = ["Microsoft-ASimNetworkSessionLogs-WindowsFirewall"]
       name    = "test-datasource-windowsfirewall"
     }
 
