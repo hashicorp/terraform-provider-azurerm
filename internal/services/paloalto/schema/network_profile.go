@@ -260,14 +260,24 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 func FlattenNetworkProfileVnet(input firewalls.NetworkProfile) []NetworkProfileVnet {
 	result := NetworkProfileVnet{}
 
+	publicIPIDs := make([]string, 0)
+	publicIPs := make([]string, 0)
 	for _, v := range input.PublicIPs {
-		result.PublicIPIDs = append(result.PublicIPIDs, pointer.From(v.ResourceId))
-		result.PublicIPs = append(result.PublicIPs, pointer.From(v.ResourceId))
+		publicIPIDs = append(publicIPIDs, pointer.From(v.ResourceId))
+		publicIPs = append(publicIPs, pointer.From(v.ResourceId))
 	}
+	result.PublicIPIDs = publicIPIDs
+	result.PublicIPs = publicIPs
 
-	for _, v := range pointer.From(input.EgressNatIP) {
-		result.EgressNatIPIDs = append(result.EgressNatIPIDs, pointer.From(v.ResourceId))
-		result.EgressNatIP = append(result.EgressNatIP, pointer.From(v.Address))
+	if input.EgressNatIP != nil {
+		egressIds := make([]string, 0)
+		egressIPs := make([]string, 0)
+		for _, v := range pointer.From(input.EgressNatIP) {
+			egressIds = append(egressIds, pointer.From(v.ResourceId))
+			egressIPs = append(egressIPs, pointer.From(v.Address))
+		}
+		result.EgressNatIPIDs = egressIds
+		result.EgressNatIP = egressIPs
 	}
 
 	if v := input.VnetConfiguration; v != nil {

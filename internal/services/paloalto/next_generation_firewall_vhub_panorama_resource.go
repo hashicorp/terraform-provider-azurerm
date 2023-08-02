@@ -116,7 +116,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Create() sdk.ResourceFunc {
 					IsPanoramaManaged: pointer.To(firewalls.BooleanEnumTRUE),
 					DnsSettings:       schema.ExpandDNSSettings(model.DNSSettings),
 					MarketplaceDetails: firewalls.MarketplaceDetails{
-						OfferId:     "pan_swfw_cloud_ngfw", // TODO - Will just supplying the offer ID `panw-cloud-ngfw-payg` work?
+						OfferId:     "pan_swfw_cloud_ngfw",
 						PublisherId: "paloaltonetworks",
 					},
 					NetworkProfile: schema.ExpandNetworkProfileVHub(model.NetworkProfile),
