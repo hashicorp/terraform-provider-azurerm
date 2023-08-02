@@ -20,8 +20,35 @@ type DeleteOperationResponse struct {
 	OData        *odata.OData
 }
 
+type DeleteOperationOptions struct {
+	CleanupConnectionArtifacts *CleanupConnectionArtifacts
+}
+
+func DefaultDeleteOperationOptions() DeleteOperationOptions {
+	return DeleteOperationOptions{}
+}
+
+func (o DeleteOperationOptions) ToHeaders() *client.Headers {
+	out := client.Headers{}
+
+	return &out
+}
+
+func (o DeleteOperationOptions) ToOData() *odata.Query {
+	out := odata.Query{}
+	return &out
+}
+
+func (o DeleteOperationOptions) ToQuery() *client.QueryParams {
+	out := client.QueryParams{}
+	if o.CleanupConnectionArtifacts != nil {
+		out.Append("cleanupConnectionArtifacts", fmt.Sprintf("%v", *o.CleanupConnectionArtifacts))
+	}
+	return &out
+}
+
 // Delete ...
-func (c TimeSeriesDatabaseConnectionsClient) Delete(ctx context.Context, id TimeSeriesDatabaseConnectionId) (result DeleteOperationResponse, err error) {
+func (c TimeSeriesDatabaseConnectionsClient) Delete(ctx context.Context, id TimeSeriesDatabaseConnectionId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -29,8 +56,9 @@ func (c TimeSeriesDatabaseConnectionsClient) Delete(ctx context.Context, id Time
 			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodDelete,
-		Path:       id.ID(),
+		HttpMethod:    http.MethodDelete,
+		Path:          id.ID(),
+		OptionsObject: options,
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -57,8 +85,8 @@ func (c TimeSeriesDatabaseConnectionsClient) Delete(ctx context.Context, id Time
 }
 
 // DeleteThenPoll performs Delete then polls until it's completed
-func (c TimeSeriesDatabaseConnectionsClient) DeleteThenPoll(ctx context.Context, id TimeSeriesDatabaseConnectionId) error {
-	result, err := c.Delete(ctx, id)
+func (c TimeSeriesDatabaseConnectionsClient) DeleteThenPoll(ctx context.Context, id TimeSeriesDatabaseConnectionId, options DeleteOperationOptions) error {
+	result, err := c.Delete(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing Delete: %+v", err)
 	}
