@@ -80,7 +80,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 				Optional: true,
 			},
 			"extension": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -258,11 +258,12 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}) 
 
 func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{} {
 
+        outputList := make([]interface{}, 0)
+        
 	if inputList == nil {
-		return nil
+		return outputList
 	}
 
-	outputList := make([]interface{}, 0)
 
 	for _, input := range *inputList {
 		output := map[string]interface{}{
