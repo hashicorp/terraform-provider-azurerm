@@ -11,6 +11,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -18,7 +19,6 @@ import (
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,7 +49,7 @@ func resourceMySQLServerKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: servers.ValidateServerID,
 			},
 
 			"key_vault_key_id": {
@@ -84,21 +84,21 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverID, err := parse.ServerID(d.Get("server_id").(string))
+	serverID, err := servers.ParseServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(serverID.Name, mySQLServerResourceName)
-	defer locks.UnlockByName(serverID.Name, mySQLServerResourceName)
+	locks.ByName(serverID.ServerName, mySQLServerResourceName)
+	defer locks.UnlockByName(serverID.ServerName, mySQLServerResourceName)
 
 	if d.IsNewResource() {
 		// This resource is a singleton, but its name can be anything.
 		// If you create a new key with different name with the old key, the service will not give you any warning but directly replace the old key with the new key.
 		// Therefore sometimes you cannot get the old key using the GET API since you may not know the name of the old key
-		resp, err := keysClient.List(ctx, serverID.ResourceGroup, serverID.Name)
+		resp, err := keysClient.List(ctx, serverID.ResourceGroupName, serverID.ServerName)
 		if err != nil {
-			return fmt.Errorf("listing existing MySQL Server Keys in Resource Group %q / Server %q: %+v", serverID.ResourceGroup, serverID.Name, err)
+			return fmt.Errorf("listing existing MySQL Server Keys in %s", serverID, err)
 		}
 		keys := resp.Values()
 		if len(keys) > 0 {
@@ -121,10 +121,10 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	keyVaultKeyURI := d.Get("key_vault_key_id").(string)
 	name, err := getMySQLServerKeyName(ctx, keyVaultsClient, resourcesClient, keyVaultKeyURI)
 	if err != nil {
-		return fmt.Errorf("cannot compose name for MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
+		return fmt.Errorf("cannot compose name for MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroupName, serverID.ServerName, err)
 	}
 
-	id := parse.NewKeyID(serverID.SubscriptionId, serverID.ResourceGroup, serverID.Name, *name)
+	id := parse.NewKeyID(serverID.SubscriptionId, serverID.ResourceGroupName, serverID.ServerName, *name)
 	param := mysql.ServerKey{
 		ServerKeyProperties: &mysql.ServerKeyProperties{
 			ServerKeyType: utils.String("AzureKeyVault"),
@@ -165,7 +165,7 @@ func resourceMySQLServerKeyRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+	serverId := servers.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 	d.Set("server_id", serverId.ID())
 	if props := resp.ServerKeyProperties; props != nil {
 		d.Set("key_vault_key_id", props.URI)
