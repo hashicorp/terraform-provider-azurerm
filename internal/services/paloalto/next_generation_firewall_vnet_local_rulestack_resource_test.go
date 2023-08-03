@@ -184,7 +184,6 @@ resource "azurerm_public_ip" "egress" {
   sku                 = "Standard"
 }
 
-
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
   name                = "acctest-ngfwvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name

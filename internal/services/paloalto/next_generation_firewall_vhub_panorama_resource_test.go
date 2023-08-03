@@ -22,7 +22,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_basic(t *testing.
 		t.Skipf("skipping as Palo Alto Panorama config not set in `ARM_PALO_ALTO_PANORAMA_CONFIG`")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vhub_panorama", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama", "test")
 	r := NextGenerationFirewallVHubPanoramaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -41,7 +41,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_complete(t *testi
 		t.Skipf("skipping as Palo Alto Panorama config not set in `ARM_PALO_ALTO_PANORAMA_CONFIG`")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vhub_panorama", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama", "test")
 	r := NextGenerationFirewallVHubPanoramaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -61,7 +61,7 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_update(t *testing
 		t.Skipf("skipping as Palo Alto Panorama config not set in `ARM_PALO_ALTO_PANORAMA_CONFIG`")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_vhub_panorama", "test")
+	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama", "test")
 	r := NextGenerationFirewallVHubPanoramaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -115,7 +115,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_next_generation_firewall_vhub_panorama" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama" "test" {
   name                   = "acctest-ngfwvh-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
@@ -146,7 +146,7 @@ resource "azurerm_public_ip" "egress" {
   sku                 = "Standard"
 }
 
-resource "azurerm_palo_alto_next_generation_firewall_vhub_panorama" "test" {
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama" "test" {
   name                   = "acctest-ngfwvh-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location

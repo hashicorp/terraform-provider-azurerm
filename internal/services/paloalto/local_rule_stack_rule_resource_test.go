@@ -107,6 +107,13 @@ func TestAccPaloAltoLocalRule_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -225,12 +232,6 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
-  name         = "testacc-palc-%[2]d"
-  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
-  self_signed  = true
-}
-
 resource "azurerm_palo_alto_local_rulestack_fqdn_list" "test" {
   name         = "testacc-pafqdn-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
@@ -294,13 +295,6 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
-  name         = "testacc-palc-%[2]d"
-  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
-  self_signed  = true
-}
-
-
 resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name         = "testacc-palr-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
@@ -314,8 +308,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
     custom_urls = ["web-based-email", "social-networking"]
   }
 
-  decryption_rule_type = "SSLOutboundInspection"
-  description          = "Acceptance Test Rule - dated %[2]d"
+  description = "Acceptance Test Rule - updated %[2]d"
 
   destination {
     countries = ["US", "GB"]
@@ -325,12 +318,12 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 
   inspection_certificate_id = azurerm_palo_alto_local_rulestack_certificate.test.id
 
-  negate_destination = true
-  negate_source      = true
+  negate_destination = false
+  negate_source      = false
 
   protocol = "TCP:8080"
 
-  enabled = false
+  enabled = true
 
   source {
     countries = ["US", "GB"]
@@ -349,6 +342,12 @@ func (r LocalRuleResource) template(data acceptance.TestData) string {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PAN-%[1]d"
   location = "%[2]s"
+}
+
+resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
+  name         = "testacc-palc-%[1]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+  self_signed  = true
 }
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "trust" {
@@ -384,6 +383,12 @@ resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"
+}
+
+resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
+  name         = "testacc-palc-%[1]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+  self_signed  = true
 }
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "trust" {

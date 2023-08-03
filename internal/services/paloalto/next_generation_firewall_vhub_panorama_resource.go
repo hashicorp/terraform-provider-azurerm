@@ -45,7 +45,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) IDValidationFunc() pluginsdk
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) ResourceType() string {
-	return "azurerm_palo_alto_next_generation_firewall_vhub_panorama"
+	return "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama"
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*pluginsdk.Schema {

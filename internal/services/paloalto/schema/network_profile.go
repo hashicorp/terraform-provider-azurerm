@@ -165,7 +165,6 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfile {
 	result := firewalls.NetworkProfile{
 		EnableEgressNat: firewalls.EgressNatDISABLED,
-		EgressNatIP:     &[]firewalls.IPAddress{},
 	}
 
 	if len(input) == 0 {
@@ -263,22 +262,30 @@ func FlattenNetworkProfileVnet(input firewalls.NetworkProfile) []NetworkProfileV
 	publicIPIDs := make([]string, 0)
 	publicIPs := make([]string, 0)
 	for _, v := range input.PublicIPs {
-		publicIPIDs = append(publicIPIDs, pointer.From(v.ResourceId))
-		publicIPs = append(publicIPs, pointer.From(v.ResourceId))
+		if id := pointer.From(v.ResourceId); id != "" {
+			publicIPIDs = append(publicIPIDs, id)
+		}
+		if ip := pointer.From(v.Address); ip != "" {
+			publicIPs = append(publicIPs, ip)
+		}
 	}
 	result.PublicIPIDs = publicIPIDs
 	result.PublicIPs = publicIPs
 
+	egressIds := make([]string, 0)
+	egressIPs := make([]string, 0)
 	if input.EgressNatIP != nil {
-		egressIds := make([]string, 0)
-		egressIPs := make([]string, 0)
-		for _, v := range pointer.From(input.EgressNatIP) {
-			egressIds = append(egressIds, pointer.From(v.ResourceId))
-			egressIPs = append(egressIPs, pointer.From(v.Address))
+		for _, v := range *input.EgressNatIP {
+			if id := pointer.From(v.ResourceId); id != "" {
+				egressIds = append(egressIds, id)
+			}
+			if ip := pointer.From(v.Address); ip != "" {
+				egressIPs = append(egressIPs, ip)
+			}
 		}
-		result.EgressNatIPIDs = egressIds
-		result.EgressNatIP = egressIPs
 	}
+	result.EgressNatIPIDs = egressIds
+	result.EgressNatIP = egressIPs
 
 	if v := input.VnetConfiguration; v != nil {
 		vNet := VnetConfiguration{}

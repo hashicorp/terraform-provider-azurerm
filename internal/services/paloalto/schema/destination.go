@@ -14,8 +14,8 @@ type Destination struct {
 	CIDRS       []string `tfschema:"cidrs"`
 	Countries   []string `tfschema:"countries"`
 	Feeds       []string `tfschema:"feeds"`
-	FQDNLists   []string `tfschema:"fqdn_list_ids"`
-	PrefixLists []string `tfschema:"prefix_list_ids"`
+	FQDNLists   []string `tfschema:"local_rulestack_fqdn_list_ids"`
+	PrefixLists []string `tfschema:"local_rulestack_prefix_list_ids"`
 }
 
 func DestinationSchema() *pluginsdk.Schema {
@@ -40,8 +40,8 @@ func DestinationSchema() *pluginsdk.Schema {
 						"destination.0.cidrs",
 						"destination.0.countries",
 						"destination.0.feeds",
-						"destination.0.fqdn_list_ids",
-						"destination.0.prefix_list_ids",
+						"destination.0.local_rulestack_fqdn_list_ids",
+						"destination.0.local_rulestack_prefix_list_ids",
 					},
 				},
 
@@ -56,8 +56,8 @@ func DestinationSchema() *pluginsdk.Schema {
 						"destination.0.cidrs",
 						"destination.0.countries",
 						"destination.0.feeds",
-						"destination.0.fqdn_list_ids",
-						"destination.0.prefix_list_ids",
+						"destination.0.local_rulestack_fqdn_list_ids",
+						"destination.0.local_rulestack_prefix_list_ids",
 					},
 				},
 
@@ -72,12 +72,12 @@ func DestinationSchema() *pluginsdk.Schema {
 						"destination.0.cidrs",
 						"destination.0.countries",
 						"destination.0.feeds",
-						"destination.0.fqdn_list_ids",
-						"destination.0.prefix_list_ids",
+						"destination.0.local_rulestack_fqdn_list_ids",
+						"destination.0.local_rulestack_prefix_list_ids",
 					},
 				},
 
-				"fqdn_list_ids": {
+				"local_rulestack_fqdn_list_ids": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
@@ -88,12 +88,12 @@ func DestinationSchema() *pluginsdk.Schema {
 						"destination.0.cidrs",
 						"destination.0.countries",
 						"destination.0.feeds",
-						"destination.0.fqdn_list_ids",
-						"destination.0.prefix_list_ids",
+						"destination.0.local_rulestack_fqdn_list_ids",
+						"destination.0.local_rulestack_prefix_list_ids",
 					},
 				},
 
-				"prefix_list_ids": {
+				"local_rulestack_prefix_list_ids": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
@@ -104,8 +104,8 @@ func DestinationSchema() *pluginsdk.Schema {
 						"destination.0.cidrs",
 						"destination.0.countries",
 						"destination.0.feeds",
-						"destination.0.fqdn_list_ids",
-						"destination.0.prefix_list_ids",
+						"destination.0.local_rulestack_fqdn_list_ids",
+						"destination.0.local_rulestack_prefix_list_ids",
 					},
 				},
 			},

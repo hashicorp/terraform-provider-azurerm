@@ -169,6 +169,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Read() sdk.ResourceFunc {
 				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 
 				if panoramaConfig := props.PanoramaConfig; panoramaConfig != nil {
+					state.PanoramaBase64Config = panoramaConfig.ConfigString
 					state.PanoramaConfig = []schema.Panorama{{
 						Name:            pointer.From(panoramaConfig.CgName),
 						DeviceGroupName: pointer.From(panoramaConfig.DgName),

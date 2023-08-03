@@ -13,7 +13,7 @@ type Source struct {
 	CIDRS       []string `tfschema:"cidrs"`
 	Countries   []string `tfschema:"countries"`
 	Feeds       []string `tfschema:"feeds"`
-	PrefixLists []string `tfschema:"prefix_list_ids"`
+	PrefixLists []string `tfschema:"local_rulestack_prefix_list_ids"`
 }
 
 func SourceSchema() *pluginsdk.Schema {
@@ -38,7 +38,7 @@ func SourceSchema() *pluginsdk.Schema {
 						"source.0.cidrs",
 						"source.0.countries",
 						"source.0.feeds",
-						"source.0.prefix_list_ids",
+						"source.0.local_rulestack_prefix_list_ids",
 					},
 				},
 
@@ -53,7 +53,7 @@ func SourceSchema() *pluginsdk.Schema {
 						"source.0.cidrs",
 						"source.0.countries",
 						"source.0.feeds",
-						"source.0.prefix_list_ids",
+						"source.0.local_rulestack_prefix_list_ids",
 					},
 				},
 
@@ -68,11 +68,11 @@ func SourceSchema() *pluginsdk.Schema {
 						"source.0.cidrs",
 						"source.0.countries",
 						"source.0.feeds",
-						"source.0.prefix_list_ids",
+						"source.0.local_rulestack_prefix_list_ids",
 					},
 				},
 
-				"prefix_list_ids": {
+				"local_rulestack_prefix_list_ids": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
@@ -83,7 +83,7 @@ func SourceSchema() *pluginsdk.Schema {
 						"source.0.cidrs",
 						"source.0.countries",
 						"source.0.feeds",
-						"source.0.prefix_list_ids",
+						"source.0.local_rulestack_prefix_list_ids",
 					},
 				},
 			},
