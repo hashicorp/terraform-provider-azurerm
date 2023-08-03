@@ -24,6 +24,7 @@ dependencies: updating Automation `dscnodeconfiguration` and `sourcecontrol` to 
 * `azurerm_eventhub_namespace_customer_managed_key` - support for the `infrastructure_encryption_enabled` property [GH-22718]
 * `azurerm_monitor_aad_diagnostic_setting` - updating to use `hashicorp/go-azure-sdk` [GH-22778]
 * `azurerm_web_application_firewall_policy` - updating to use API Version `2023-02-01` [GH-22455]
+* `azurerm_shared_image_gallery` - support for the `sharing` block [GH-22221]
 * `azurerm_virtual_network` - support for the `encryption` block [GH-22745]
   
 BUG FIXES
