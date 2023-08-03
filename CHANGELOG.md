@@ -23,6 +23,7 @@ dependencies: updating Automation `dscnodeconfiguration` and `sourcecontrol` to 
 * Data Source: `azurerm_images` - support for `disk_encryption_set_id` [GH-22690]
 * `azurerm_monitor_aad_diagnostic_setting` - updating to use `hashicorp/go-azure-sdk` [GH-22778]
 * `azurerm_web_application_firewall_policy` - updating to use API Version `2023-02-01` [GH-22455]
+* `azurerm_virtual_network` - support for the `encryption` block [GH-22745]
   
 BUG FIXES
 
