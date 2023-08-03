@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/configurations"
@@ -107,7 +108,9 @@ func (r MySQLConfigurationResource) checkReset(configurationName string) accepta
 
 		configurationId := configurations.NewConfigurationID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, configurationName)
 
-		resp, err := clients.MySQL.MySqlClient.Configurations.Get(ctx, configurationId)
+		ctx2, cancel := context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+		resp, err := clients.MySQL.MySqlClient.Configurations.Get(ctx2, configurationId)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("%s does not exist", configurationId)
@@ -136,7 +139,9 @@ func (r MySQLConfigurationResource) checkValue(value string) acceptance.ClientCh
 			return err
 		}
 
-		resp, err := clients.MySQL.MySqlClient.Configurations.Get(ctx, *id)
+		ctx2, cancel := context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+		resp, err := clients.MySQL.MySqlClient.Configurations.Get(ctx2, *id)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("%s does not exist", id)
