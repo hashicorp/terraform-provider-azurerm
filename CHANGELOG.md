@@ -11,6 +11,7 @@ FEATURES:
 ENHANCEMENTS
 
 * dependencies: updating to `v0.20230803.1095722` of `github.com/hashicorp/go-azure-sdk` [GH-22803]
+* dependencies - migrate mysql resources to `hashicorp/go-azure-sdk` [GH-22795]
 * `advisor`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
 * `apimanagement`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22759]
 * `analysisservices`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
