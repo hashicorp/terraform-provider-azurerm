@@ -129,47 +129,6 @@ func parseIdentityType(input string) (*IdentityType, error) {
 	return &out, nil
 }
 
-type RecordPropertyAndItemRemovals string
-
-const (
-	RecordPropertyAndItemRemovalsFalse RecordPropertyAndItemRemovals = "false"
-	RecordPropertyAndItemRemovalsTrue  RecordPropertyAndItemRemovals = "true"
-)
-
-func PossibleValuesForRecordPropertyAndItemRemovals() []string {
-	return []string{
-		string(RecordPropertyAndItemRemovalsFalse),
-		string(RecordPropertyAndItemRemovalsTrue),
-	}
-}
-
-func (s *RecordPropertyAndItemRemovals) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseRecordPropertyAndItemRemovals(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseRecordPropertyAndItemRemovals(input string) (*RecordPropertyAndItemRemovals, error) {
-	vals := map[string]RecordPropertyAndItemRemovals{
-		"false": RecordPropertyAndItemRemovalsFalse,
-		"true":  RecordPropertyAndItemRemovalsTrue,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := RecordPropertyAndItemRemovals(input)
-	return &out, nil
-}
-
 type TimeSeriesDatabaseConnectionState string
 
 const (

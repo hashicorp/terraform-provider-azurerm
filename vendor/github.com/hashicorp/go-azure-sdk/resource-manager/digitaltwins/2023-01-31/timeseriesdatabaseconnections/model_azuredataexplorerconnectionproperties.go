@@ -11,17 +11,17 @@ import (
 var _ TimeSeriesDatabaseConnectionProperties = AzureDataExplorerConnectionProperties{}
 
 type AzureDataExplorerConnectionProperties struct {
-	AdxDatabaseName                         string                         `json:"adxDatabaseName"`
-	AdxEndpointUri                          string                         `json:"adxEndpointUri"`
-	AdxRelationshipLifecycleEventsTableName *string                        `json:"adxRelationshipLifecycleEventsTableName,omitempty"`
-	AdxResourceId                           string                         `json:"adxResourceId"`
-	AdxTableName                            *string                        `json:"adxTableName,omitempty"`
-	AdxTwinLifecycleEventsTableName         *string                        `json:"adxTwinLifecycleEventsTableName,omitempty"`
-	EventHubConsumerGroup                   *string                        `json:"eventHubConsumerGroup,omitempty"`
-	EventHubEndpointUri                     string                         `json:"eventHubEndpointUri"`
-	EventHubEntityPath                      string                         `json:"eventHubEntityPath"`
-	EventHubNamespaceResourceId             string                         `json:"eventHubNamespaceResourceId"`
-	RecordPropertyAndItemRemovals           *RecordPropertyAndItemRemovals `json:"recordPropertyAndItemRemovals,omitempty"`
+	AdxDatabaseName                         string  `json:"adxDatabaseName"`
+	AdxEndpointUri                          string  `json:"adxEndpointUri"`
+	AdxRelationshipLifecycleEventsTableName *string `json:"adxRelationshipLifecycleEventsTableName,omitempty"`
+	AdxResourceId                           string  `json:"adxResourceId"`
+	AdxTableName                            *string `json:"adxTableName,omitempty"`
+	AdxTwinLifecycleEventsTableName         *string `json:"adxTwinLifecycleEventsTableName,omitempty"`
+	EventHubConsumerGroup                   *string `json:"eventHubConsumerGroup,omitempty"`
+	EventHubEndpointUri                     string  `json:"eventHubEndpointUri"`
+	EventHubEntityPath                      string  `json:"eventHubEntityPath"`
+	EventHubNamespaceResourceId             string  `json:"eventHubNamespaceResourceId"`
+	RecordPropertyAndItemRemovals           *bool   `json:"recordPropertyAndItemRemovals,omitempty"`
 
 	// Fields inherited from TimeSeriesDatabaseConnectionProperties
 	Identity          *ManagedIdentityReference          `json:"identity,omitempty"`
