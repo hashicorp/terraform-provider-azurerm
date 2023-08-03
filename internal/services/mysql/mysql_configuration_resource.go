@@ -138,8 +138,8 @@ func resourceMySQLConfigurationDelete(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	defaultValue := ""
-	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Value != nil {
-		defaultValue = *resp.Model.Properties.Value
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.DefaultValue != nil {
+		defaultValue = *resp.Model.Properties.DefaultValue
 	}
 
 	properties := configurations.Configuration{
