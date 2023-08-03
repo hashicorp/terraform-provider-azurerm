@@ -22,6 +22,8 @@ ENHANCEMENTS
 * `relay`: updating to use API Version `2021-11-01` [GH-22725]
 * Data Source: `azurerm_images` - support for `disk_encryption_set_id` [GH-22690]
 * `azurerm_eventhub_namespace_customer_managed_key` - support for the `infrastructure_encryption_enabled` property [GH-22718]
+* `azurerm_hpc_cache_blob_nfs_target` - support for setting `usage_model` to `READ_ONLY` and `READ_WRITE` [GH-22798]
+* `azurerm_hpc_cache_nfs_target` - support for setting `usage_model` to `READ_ONLY` and `READ_WRITE` [GH-22798]
 * `azurerm_monitor_aad_diagnostic_setting` - updating to use `hashicorp/go-azure-sdk` [GH-22778]
 * `azurerm_web_application_firewall_policy` - updating to use API Version `2023-02-01` [GH-22455]
 * `azurerm_web_application_firewall_policy` - support for `log_scrubbing` property [GH-22522]
