@@ -111,6 +111,10 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	d.SetId(id.ID())
+	if resp.ID != nil {
+		d.SetId(*resp.ID)
+	}
+
 	d.Set("name", id.SubnetName)
 	d.Set("virtual_network_name", id.VirtualNetworkName)
 	d.Set("resource_group_name", id.ResourceGroupName)
