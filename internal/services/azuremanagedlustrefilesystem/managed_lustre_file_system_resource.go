@@ -231,7 +231,7 @@ func (r ManagedLustreFileSystemResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			identity, err := expandManagedLustreFileSystemIdentity(model.Identity)
+			identity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
 			if err != nil {
 				return err
 			}
@@ -331,11 +331,11 @@ func (r ManagedLustreFileSystemResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
-				identity, err := flattenManagedLustreFileSystemIdentity(model.Identity)
+				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
 				if err != nil {
 					return err
 				}
-				state.Identity = identity
+				state.Identity = pointer.From(identity)
 
 				if properties := model.Properties; properties != nil {
 					state.SubnetId = properties.FilesystemSubnet
@@ -374,52 +374,6 @@ func (r ManagedLustreFileSystemResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func expandManagedLustreFileSystemIdentity(input []identity.ModelUserAssigned) (*amlfilesystems.AmlFilesystemIdentity, error) {
-	identityValue, err := identity.ExpandUserAssignedMapFromModel(input)
-	if err != nil {
-		return nil, fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	output := amlfilesystems.AmlFilesystemIdentity{
-		Type: pointer.To(amlfilesystems.AmlFilesystemIdentityType(string(identityValue.Type))),
-	}
-
-	if identityValue.Type == identity.TypeUserAssigned {
-		output.UserAssignedIdentities = pointer.To(make(map[string]amlfilesystems.UserAssignedIdentitiesProperties))
-		for k := range identityValue.IdentityIds {
-			(*output.UserAssignedIdentities)[k] = amlfilesystems.UserAssignedIdentitiesProperties{}
-		}
-	}
-
-	return &output, nil
-}
-
-func flattenManagedLustreFileSystemIdentity(input *amlfilesystems.AmlFilesystemIdentity) ([]identity.ModelUserAssigned, error) {
-	if input == nil {
-		return nil, nil
-	}
-
-	identityIds := make(map[string]identity.UserAssignedIdentityDetails, 0)
-	for k, v := range *input.UserAssignedIdentities {
-		identityIds[k] = identity.UserAssignedIdentityDetails{
-			ClientId:    v.ClientId,
-			PrincipalId: v.PrincipalId,
-		}
-	}
-
-	identityValue := identity.UserAssignedMap{
-		Type:        identity.Type(string(pointer.From(input.Type))),
-		IdentityIds: identityIds,
-	}
-
-	output, err := identity.FlattenUserAssignedMapToModel(&identityValue)
-	if err != nil {
-		return nil, fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	return *output, nil
 }
 
 func expandManagedLustreFileSystemMaintenanceWindowForCreate(input []MaintenanceWindow) amlfilesystems.AmlFilesystemPropertiesMaintenanceWindow {

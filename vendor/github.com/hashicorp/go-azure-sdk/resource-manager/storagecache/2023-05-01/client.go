@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/storagetargets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/usagemodels"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -25,38 +25,38 @@ type Client struct {
 	UsageModels    *usagemodels.UsageModelsClient
 }
 
-func NewClientWithBaseURI(api environments.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
-	amlFilesystemsClient, err := amlfilesystems.NewAmlFilesystemsClientWithBaseURI(api)
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	amlFilesystemsClient, err := amlfilesystems.NewAmlFilesystemsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building AmlFilesystems client: %+v", err)
 	}
 	configureFunc(amlFilesystemsClient.Client)
 
-	ascUsagesClient, err := ascusages.NewAscUsagesClientWithBaseURI(api)
+	ascUsagesClient, err := ascusages.NewAscUsagesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building AscUsages client: %+v", err)
 	}
 	configureFunc(ascUsagesClient.Client)
 
-	cachesClient, err := caches.NewCachesClientWithBaseURI(api)
+	cachesClient, err := caches.NewCachesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Caches client: %+v", err)
 	}
 	configureFunc(cachesClient.Client)
 
-	sKUsClient, err := skus.NewSKUsClientWithBaseURI(api)
+	sKUsClient, err := skus.NewSKUsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SKUs client: %+v", err)
 	}
 	configureFunc(sKUsClient.Client)
 
-	storageTargetsClient, err := storagetargets.NewStorageTargetsClientWithBaseURI(api)
+	storageTargetsClient, err := storagetargets.NewStorageTargetsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building StorageTargets client: %+v", err)
 	}
 	configureFunc(storageTargetsClient.Client)
 
-	usageModelsClient, err := usagemodels.NewUsageModelsClientWithBaseURI(api)
+	usageModelsClient, err := usagemodels.NewUsageModelsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building UsageModels client: %+v", err)
 	}

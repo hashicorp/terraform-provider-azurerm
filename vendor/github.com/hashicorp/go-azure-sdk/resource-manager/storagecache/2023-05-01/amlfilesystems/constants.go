@@ -59,47 +59,6 @@ func parseAmlFilesystemHealthStateType(input string) (*AmlFilesystemHealthStateT
 	return &out, nil
 }
 
-type AmlFilesystemIdentityType string
-
-const (
-	AmlFilesystemIdentityTypeNone         AmlFilesystemIdentityType = "None"
-	AmlFilesystemIdentityTypeUserAssigned AmlFilesystemIdentityType = "UserAssigned"
-)
-
-func PossibleValuesForAmlFilesystemIdentityType() []string {
-	return []string{
-		string(AmlFilesystemIdentityTypeNone),
-		string(AmlFilesystemIdentityTypeUserAssigned),
-	}
-}
-
-func (s *AmlFilesystemIdentityType) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseAmlFilesystemIdentityType(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseAmlFilesystemIdentityType(input string) (*AmlFilesystemIdentityType, error) {
-	vals := map[string]AmlFilesystemIdentityType{
-		"none":         AmlFilesystemIdentityTypeNone,
-		"userassigned": AmlFilesystemIdentityTypeUserAssigned,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := AmlFilesystemIdentityType(input)
-	return &out, nil
-}
-
 type AmlFilesystemProvisioningStateType string
 
 const (
