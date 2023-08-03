@@ -112,7 +112,9 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.SetId(id.ID())
 	if resp.ID != nil {
-		d.SetId(*resp.ID)
+		if id, err := commonids.ParseSubnetID(*resp.ID); err == nil {
+			d.SetId(id.ID())
+		}
 	}
 
 	d.Set("name", id.SubnetName)
