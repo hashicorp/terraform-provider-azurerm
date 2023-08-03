@@ -8,11 +8,11 @@ FEATURES:
 
 ENHANCEMENTS
 
-dependencies: updating Automation `dscnodeconfiguration` and `sourcecontrol` to use API Version `2022-08-08` [GH-22781]
-* dependencies: updating to `v0.20230802.1115742` of `github.com/hashicorp/go-azure-sdk` [GH-22788]
+* dependencies: updating to `v0.20230803.1095722` of `github.com/hashicorp/go-azure-sdk` [GH-22803]
 * `advisor`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
 * `apimanagement`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22759]
 * `analysisservices`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
+* `automation`: updating `dscnodeconfiguration` and `sourcecontrol` to use API Version `2022-08-08` [GH-22781]
 * `azurestackhci`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
 * `domainservices`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
 * `eventgrid`: refactoring to use `hashicorp/go-azure-sdk` [GH-22673]
