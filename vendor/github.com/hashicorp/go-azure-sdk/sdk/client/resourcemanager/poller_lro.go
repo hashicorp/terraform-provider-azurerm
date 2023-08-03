@@ -133,8 +133,13 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return
 		}
 
-		contentType := result.HttpResponse.Header.Get("Content-Type")
+		// Automation@2022-08-08 - Runbooks - returns a 200 OK with no Body
+		if result.HttpResponse.StatusCode == http.StatusOK && result.HttpResponse.ContentLength == 0 {
+			result.Status = pollers.PollingStatusSucceeded
+			return
+		}
 
+		contentType := result.HttpResponse.Header.Get("Content-Type")
 		var op operationResult
 		if strings.Contains(strings.ToLower(contentType), "application/json") {
 			if err = json.Unmarshal(respBody, &op); err != nil {
@@ -167,6 +172,16 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			"Running": pollers.PollingStatusInProgress,
 			// KubernetesConfiguration@2022-11-01 returns `Updating` rather than `InProgress` during update
 			"Updating": pollers.PollingStatusInProgress,
+			// StorageSync@2020-03-01 returns `validateInput`, `newPrivateDnsEntries`, `finishNewStorageSyncService` rather than `InProgress` during creation/update
+			// See: https://github.com/hashicorp/go-azure-sdk/issues/565
+			"validateInput":               pollers.PollingStatusInProgress,
+			"newPrivateDnsEntries":        pollers.PollingStatusInProgress,
+			"finishNewStorageSyncService": pollers.PollingStatusInProgress,
+			// StorageSync@2020-03-01 (CloudEndpoints) returns `newReplicaGroup` rather than `InProgress` during creation/update
+			// See: https://github.com/hashicorp/go-azure-sdk/issues/565
+			"newReplicaGroup": pollers.PollingStatusInProgress,
+			// AnalysisServices @ 2017-08-01 (Servers) returns `Provisioning` during Creation
+			"Provisioning": pollers.PollingStatusInProgress,
 		}
 		for k, v := range statuses {
 			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {

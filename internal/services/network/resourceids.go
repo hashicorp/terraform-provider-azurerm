@@ -94,3 +94,6 @@ package network
 
 // Virtual Machine Scale Set
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualMachineScaleSetPublicIPAddress -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleSet1/virtualMachines/virtualMachine1/networkInterfaces/networkInterface1/ipConfigurations/ipConfiguration1/publicIPAddresses/publicIpAddress1
+
+// Custom IP Prefix
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=CustomIpPrefix -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/customIPPrefixes/prefix1

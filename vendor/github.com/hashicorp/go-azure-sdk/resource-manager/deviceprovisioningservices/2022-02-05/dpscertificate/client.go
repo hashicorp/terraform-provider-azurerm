@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type DpsCertificateClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewDpsCertificateClientWithBaseURI(api environments.Api) (*DpsCertificateClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "dpscertificate", defaultApiVersion)
+func NewDpsCertificateClientWithBaseURI(sdkApi sdkEnv.Api) (*DpsCertificateClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dpscertificate", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DpsCertificateClient: %+v", err)
 	}

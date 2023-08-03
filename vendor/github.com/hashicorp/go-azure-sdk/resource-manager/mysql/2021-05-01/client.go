@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverstart"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverstop"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -37,74 +37,74 @@ type Client struct {
 	Servers                   *servers.ServersClient
 }
 
-func NewClientWithBaseURI(api environments.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
-	backupsClient, err := backups.NewBackupsClientWithBaseURI(api)
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	backupsClient, err := backups.NewBackupsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Backups client: %+v", err)
 	}
 	configureFunc(backupsClient.Client)
 
-	checkNameAvailabilityClient, err := checknameavailability.NewCheckNameAvailabilityClientWithBaseURI(api)
+	checkNameAvailabilityClient, err := checknameavailability.NewCheckNameAvailabilityClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building CheckNameAvailability client: %+v", err)
 	}
 	configureFunc(checkNameAvailabilityClient.Client)
 
-	configurationsClient, err := configurations.NewConfigurationsClientWithBaseURI(api)
+	configurationsClient, err := configurations.NewConfigurationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Configurations client: %+v", err)
 	}
 	configureFunc(configurationsClient.Client)
 
-	databasesClient, err := databases.NewDatabasesClientWithBaseURI(api)
+	databasesClient, err := databases.NewDatabasesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Databases client: %+v", err)
 	}
 	configureFunc(databasesClient.Client)
 
-	firewallRulesClient, err := firewallrules.NewFirewallRulesClientWithBaseURI(api)
+	firewallRulesClient, err := firewallrules.NewFirewallRulesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building FirewallRules client: %+v", err)
 	}
 	configureFunc(firewallRulesClient.Client)
 
-	getPrivateDnsZoneSuffixClient, err := getprivatednszonesuffix.NewGetPrivateDnsZoneSuffixClientWithBaseURI(api)
+	getPrivateDnsZoneSuffixClient, err := getprivatednszonesuffix.NewGetPrivateDnsZoneSuffixClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building GetPrivateDnsZoneSuffix client: %+v", err)
 	}
 	configureFunc(getPrivateDnsZoneSuffixClient.Client)
 
-	locationBasedCapabilitiesClient, err := locationbasedcapabilities.NewLocationBasedCapabilitiesClientWithBaseURI(api)
+	locationBasedCapabilitiesClient, err := locationbasedcapabilities.NewLocationBasedCapabilitiesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building LocationBasedCapabilities client: %+v", err)
 	}
 	configureFunc(locationBasedCapabilitiesClient.Client)
 
-	serverFailoverClient, err := serverfailover.NewServerFailoverClientWithBaseURI(api)
+	serverFailoverClient, err := serverfailover.NewServerFailoverClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ServerFailover client: %+v", err)
 	}
 	configureFunc(serverFailoverClient.Client)
 
-	serverRestartClient, err := serverrestart.NewServerRestartClientWithBaseURI(api)
+	serverRestartClient, err := serverrestart.NewServerRestartClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ServerRestart client: %+v", err)
 	}
 	configureFunc(serverRestartClient.Client)
 
-	serverStartClient, err := serverstart.NewServerStartClientWithBaseURI(api)
+	serverStartClient, err := serverstart.NewServerStartClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ServerStart client: %+v", err)
 	}
 	configureFunc(serverStartClient.Client)
 
-	serverStopClient, err := serverstop.NewServerStopClientWithBaseURI(api)
+	serverStopClient, err := serverstop.NewServerStopClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ServerStop client: %+v", err)
 	}
 	configureFunc(serverStopClient.Client)
 
-	serversClient, err := servers.NewServersClientWithBaseURI(api)
+	serversClient, err := servers.NewServersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Servers client: %+v", err)
 	}

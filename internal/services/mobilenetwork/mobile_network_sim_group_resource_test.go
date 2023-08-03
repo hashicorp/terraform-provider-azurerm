@@ -21,9 +21,6 @@ type MobileNetworkSimGroupResource struct{}
 
 func TestAccMobileNetworkSimGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_group", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkSimGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,9 +35,6 @@ func TestAccMobileNetworkSimGroup_basic(t *testing.T) {
 
 func TestAccMobileNetworkSimGroup_withEncryptionKeyUrl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_group", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkSimGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,9 +49,6 @@ func TestAccMobileNetworkSimGroup_withEncryptionKeyUrl(t *testing.T) {
 
 func TestAccMobileNetworkSimGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_group", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkSimGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -72,9 +63,6 @@ func TestAccMobileNetworkSimGroup_requiresImport(t *testing.T) {
 
 func TestAccMobileNetworkSimGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_group", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkSimGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,9 +77,6 @@ func TestAccMobileNetworkSimGroup_complete(t *testing.T) {
 
 func TestAccMobileNetworkSimGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_sim_group", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	r := MobileNetworkSimGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

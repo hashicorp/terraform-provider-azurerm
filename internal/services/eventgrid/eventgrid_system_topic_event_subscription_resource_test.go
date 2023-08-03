@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -425,17 +425,17 @@ func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesHybridRelay(
 }
 
 func (EventGridSystemTopicEventSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SystemTopicEventSubscriptionID(state.ID)
+	id, err := eventsubscriptions.ParseSystemTopicEventSubscriptionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.EventGrid.SystemTopicEventSubscriptionsClient.Get(ctx, id.ResourceGroup, id.SystemTopicName, id.EventSubscriptionName)
+	resp, err := clients.EventGrid.EventSubscriptions.SystemTopicEventSubscriptionsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.EventSubscriptionProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventGridSystemTopicEventSubscriptionResource) basic(data acceptance.TestData) string {

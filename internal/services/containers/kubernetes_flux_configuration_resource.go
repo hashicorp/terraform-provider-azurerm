@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -259,7 +258,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"local_auth_reference": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: azValidate.LocalAuthReference,
+						ValidateFunc: validate.LocalAuthReference,
 						ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
 					},
 
@@ -397,7 +396,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"local_auth_reference": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: azValidate.LocalAuthReference,
+						ValidateFunc: validate.LocalAuthReference,
 						ExactlyOneOf: []string{"bucket.0.access_key", "bucket.0.local_auth_reference"},
 					},
 
@@ -481,7 +480,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"local_auth_reference": {
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
-						ValidateFunc:  azValidate.LocalAuthReference,
+						ValidateFunc:  validate.LocalAuthReference,
 						ConflictsWith: []string{"git_repository.0.https_user", "git_repository.0.ssh_private_key_base64", "git_repository.0.ssh_known_hosts_base64"},
 					},
 

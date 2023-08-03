@@ -1,6 +1,10 @@
 package cluster
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForClusterNodeType() []string {
 		string(ClusterNodeTypeFirstParty),
 		string(ClusterNodeTypeThirdParty),
 	}
+}
+
+func (s *ClusterNodeType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterNodeType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseClusterNodeType(input string) (*ClusterNodeType, error) {
@@ -49,6 +66,19 @@ func PossibleValuesForDiagnosticLevel() []string {
 	}
 }
 
+func (s *DiagnosticLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDiagnosticLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDiagnosticLevel(input string) (*DiagnosticLevel, error) {
 	vals := map[string]DiagnosticLevel{
 		"basic":    DiagnosticLevelBasic,
@@ -76,6 +106,19 @@ func PossibleValuesForImdsAttestation() []string {
 		string(ImdsAttestationDisabled),
 		string(ImdsAttestationEnabled),
 	}
+}
+
+func (s *ImdsAttestation) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseImdsAttestation(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseImdsAttestation(input string) (*ImdsAttestation, error) {
@@ -136,6 +179,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"accepted":           ProvisioningStateAccepted,
@@ -179,6 +235,19 @@ func PossibleValuesForSoftwareAssuranceIntent() []string {
 	}
 }
 
+func (s *SoftwareAssuranceIntent) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSoftwareAssuranceIntent(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSoftwareAssuranceIntent(input string) (*SoftwareAssuranceIntent, error) {
 	vals := map[string]SoftwareAssuranceIntent{
 		"disable": SoftwareAssuranceIntentDisable,
@@ -205,6 +274,19 @@ func PossibleValuesForSoftwareAssuranceStatus() []string {
 		string(SoftwareAssuranceStatusDisabled),
 		string(SoftwareAssuranceStatusEnabled),
 	}
+}
+
+func (s *SoftwareAssuranceStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSoftwareAssuranceStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSoftwareAssuranceStatus(input string) (*SoftwareAssuranceStatus, error) {
@@ -243,6 +325,19 @@ func PossibleValuesForStatus() []string {
 	}
 }
 
+func (s *Status) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseStatus(input string) (*Status, error) {
 	vals := map[string]Status{
 		"connectedrecently":    StatusConnectedRecently,
@@ -273,6 +368,19 @@ func PossibleValuesForWindowsServerSubscription() []string {
 		string(WindowsServerSubscriptionDisabled),
 		string(WindowsServerSubscriptionEnabled),
 	}
+}
+
+func (s *WindowsServerSubscription) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWindowsServerSubscription(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWindowsServerSubscription(input string) (*WindowsServerSubscription, error) {

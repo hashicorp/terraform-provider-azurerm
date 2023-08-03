@@ -166,7 +166,7 @@ func (e *ApiEndpoint) withResourceIdentifier(identifier string) *ApiEndpoint {
 }
 
 func (e *ApiEndpoint) Available() bool {
-	return e != nil && e.endpoint != nil
+	return e != nil && (e.resourceIdentifier != nil || e.endpoint != nil)
 }
 
 func (e *ApiEndpoint) DomainSuffix() (*string, bool) {
