@@ -65,6 +65,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 			"application_rule_collection": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{

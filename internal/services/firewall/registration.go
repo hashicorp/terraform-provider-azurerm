@@ -39,11 +39,12 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_firewall_application_rule_collection":  resourceFirewallApplicationRuleCollection(),
-		"azurerm_firewall_policy":                       resourceFirewallPolicy(),
-		"azurerm_firewall_policy_rule_collection_group": resourceFirewallPolicyRuleCollectionGroup(),
-		"azurerm_firewall_nat_rule_collection":          resourceFirewallNatRuleCollection(),
-		"azurerm_firewall_network_rule_collection":      resourceFirewallNetworkRuleCollection(),
-		"azurerm_firewall":                              resourceFirewall(),
+		"azurerm_firewall_application_rule_collection":        resourceFirewallApplicationRuleCollection(),
+		"azurerm_firewall_policy":                             resourceFirewallPolicy(),
+		"azurerm_firewall_policy_rule_collection_group":       resourceFirewallPolicyRuleCollectionGroup(),
+		"azurerm_firewall_policy_application_rule_collection": resourceFirewallPolicyApplicationRuleCollection(),
+		"azurerm_firewall_nat_rule_collection":                resourceFirewallNatRuleCollection(),
+		"azurerm_firewall_network_rule_collection":            resourceFirewallNetworkRuleCollection(),
+		"azurerm_firewall":                                    resourceFirewall(),
 	}
 }
