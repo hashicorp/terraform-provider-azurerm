@@ -609,8 +609,16 @@ func resourceMySqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("infrastructure_encryption_enabled", pointer.From(props.InfrastructureEncryption) == servers.InfrastructureEncryptionEnabled)
 			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == servers.PublicNetworkAccessEnumEnabled)
 			d.Set("ssl_enforcement_enabled", pointer.From(props.SslEnforcement) == servers.SslEnforcementEnumEnabled)
-			d.Set("ssl_minimal_tls_version_enforced", props.MinimalTlsVersion)
-			d.Set("version", props.Version)
+			minimalTlsVersion := ""
+			if props.MinimalTlsVersion != nil {
+				minimalTlsVersion = string(*props.MinimalTlsVersion)
+			}
+			d.Set("ssl_minimal_tls_version_enforced", minimalTlsVersion)
+			version := ""
+			if props.Version != nil {
+				version = string(*props.Version)
+			}
+			d.Set("version", version)
 
 			if storage := props.StorageProfile; storage != nil {
 				d.Set("auto_grow_enabled", pointer.From(storage.StorageAutogrow) == servers.StorageAutogrowEnabled)

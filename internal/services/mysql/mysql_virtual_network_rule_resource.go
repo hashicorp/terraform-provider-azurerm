@@ -187,8 +187,8 @@ func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *
 
 		if model := resp.Model; model != nil {
 			if props := model.Properties; props != nil {
-				log.Printf("[DEBUG] Retrieving %s returned Status %s", id, props.State)
 				if props.State != nil {
+					log.Printf("[DEBUG] Retrieving %s returned Status %s", id, *props.State)
 					return resp, string(*props.State), nil
 				}
 			}

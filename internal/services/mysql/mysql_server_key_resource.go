@@ -98,7 +98,7 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		// Therefore sometimes you cannot get the old key using the GET API since you may not know the name of the old key
 		resp, err := keysClient.List(ctx, *serverID)
 		if err != nil {
-			return fmt.Errorf("listing existing MySQL Server Keys in %s", serverID, err)
+			return fmt.Errorf("listing existing MySQL Server Keys in %s: %s", serverID, err)
 		}
 		if resp.Model == nil {
 			return fmt.Errorf("model was nil for %s", serverID)
