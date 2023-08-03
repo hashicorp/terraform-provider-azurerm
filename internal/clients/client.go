@@ -14,6 +14,7 @@ import (
 	azurestackhci_v2023_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01"
 	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
+	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
 	redis_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01"
@@ -193,7 +194,7 @@ type Client struct {
 	Dns                   *dns_v2018_05_01.Client
 	DomainServices        *domainservices.Client
 	Elastic               *elastic.Client
-	EventGrid             *eventgrid.Client
+	EventGrid             *eventgrid_v2022_06_15.Client
 	Eventhub              *eventhub.Client
 	Firewall              *firewall.Client
 	FluidRelay            *fluidrelay_2022_05_26.Client
@@ -288,9 +289,15 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.AadB2c, err = aadb2c.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AadB2c: %+v", err)
 	}
-	client.Advisor = advisor.NewClient(o)
-	client.AnalysisServices = analysisServices.NewClient(o)
-	client.ApiManagement = apiManagement.NewClient(o)
+	if client.Advisor, err = advisor.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Advisor: %+v", err)
+	}
+	if client.AnalysisServices, err = analysisServices.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AnalysisServices: %+v", err)
+	}
+	if client.ApiManagement, err = apiManagement.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ApiManagement: %+v", err)
+	}
 	if client.AppConfiguration, err = appConfiguration.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AppConfiguration: %+v", err)
 	}
@@ -312,7 +319,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Automation, err = automation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Automation: %+v", err)
 	}
-	client.AzureStackHCI = azureStackHCI.NewClient(o)
+	if client.AzureStackHCI, err = azureStackHCI.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AzureStackHCI: %+v", err)
+	}
 	if client.Batch, err = batch.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Batch: %+v", err)
 	}
@@ -331,7 +340,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ConfidentialLedger, err = confidentialledger.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ConfidentialLedger: %+v", err)
 	}
-	client.Connections = connections.NewClient(o)
+	if client.Connections, err = connections.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Connections: %+v", err)
+	}
 	if client.Consumption, err = consumption.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Consumption: %+v", err)
 	}
@@ -381,11 +392,15 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Dns, err = dns.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Dns: %+v", err)
 	}
-	client.DomainServices = domainservices.NewClient(o)
+	if client.DomainServices, err = domainservices.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DomainServices: %+v", err)
+	}
 	if client.Elastic, err = elastic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Elastic: %+v", err)
 	}
-	client.EventGrid = eventgrid.NewClient(o)
+	if client.EventGrid, err = eventgrid.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for EventGrid: %+v", err)
+	}
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
@@ -409,7 +424,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.IoTCentral, err = iotcentral.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for IoTCentral: %+v", err)
 	}
-	client.IoTHub = iothub.NewClient(o)
+	if client.IoTHub, err = iothub.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for IoTHub: %+v", err)
+	}
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
@@ -446,13 +463,17 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.MixedReality, err = mixedreality.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Mixed Reality: %+v", err)
 	}
-	client.Monitor = monitor.NewClient(o)
+	if client.Monitor, err = monitor.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Monitor: %+v", err)
+	}
 	if client.MobileNetwork, err = mobilenetwork.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Mobile Network: %+v", err)
 	}
 	client.MSSQL = mssql.NewClient(o)
 	client.MSSQLManagedInstance = mssqlmanagedinstance.NewClient(o)
-	client.MySQL = mysql.NewClient(o)
+	if client.MySQL, err = mysql.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for MySQL: %+v", err)
+	}
 	if client.NetApp, err = netapp.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for NetApp: %+v", err)
 	}
@@ -471,7 +492,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.NotificationHubs, err = notificationhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for NotificationHubs: %+v", err)
 	}
-	client.Orbital = orbital.NewClient(o)
+	if client.Orbital, err = orbital.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Orbital: %+v", err)
+	}
 	if client.Policy, err = policy.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Policy: %+v", err)
 	}
@@ -479,12 +502,18 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Portal: %+v", err)
 	}
 	client.Postgres = postgres.NewClient(o)
-	client.PowerBI = powerBI.NewClient(o)
-	client.PrivateDns = privatedns.NewClient(o)
+	if client.PowerBI, err = powerBI.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for PowerBI: %+v", err)
+	}
+	if client.PrivateDns, err = privatedns.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for PrivateDns: %+v", err)
+	}
 	if client.PrivateDnsResolver, err = dnsresolver.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for PrivateDnsResolver: %+v", err)
 	}
-	client.Purview = purview.NewClient(o)
+	if client.Purview, err = purview.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Purview: %+v", err)
+	}
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)
@@ -492,7 +521,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.RedisEnterprise, err = redisenterprise.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RedisEnterprise: %+v", err)
 	}
-	client.Relay = relay.NewClient(o)
+	if client.Relay, err = relay.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Relay: %+v", err)
+	}
 	client.Resource = resource.NewClient(o)
 	if client.Search, err = search.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Search: %+v", err)

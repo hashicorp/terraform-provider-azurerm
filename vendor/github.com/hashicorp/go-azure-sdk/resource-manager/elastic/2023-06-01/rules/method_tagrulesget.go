@@ -20,7 +20,7 @@ type TagRulesGetOperationResponse struct {
 // TagRulesGet ...
 func (c RulesClient) TagRulesGet(ctx context.Context, id TagRuleId) (result TagRulesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

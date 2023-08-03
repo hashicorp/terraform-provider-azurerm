@@ -20,7 +20,7 @@ type FirewallRulesGetOperationResponse struct {
 // FirewallRulesGet ...
 func (c RedisClient) FirewallRulesGet(ctx context.Context, id FirewallRuleId) (result FirewallRulesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

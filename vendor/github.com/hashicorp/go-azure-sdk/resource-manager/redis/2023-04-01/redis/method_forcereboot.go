@@ -21,7 +21,7 @@ type ForceRebootOperationResponse struct {
 // ForceReboot ...
 func (c RedisClient) ForceReboot(ctx context.Context, id RediId, input RedisRebootParameters) (result ForceRebootOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type ValidateForRestoreOperationResponse struct {
 // ValidateForRestore ...
 func (c BackupInstancesClient) ValidateForRestore(ctx context.Context, id BackupInstanceId, input ValidateRestoreRequestObject) (result ValidateForRestoreOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -23,7 +23,7 @@ type SharedPrivateLinkResourcesDeleteOperationResponse struct {
 // SharedPrivateLinkResourcesDelete ...
 func (c SignalRClient) SharedPrivateLinkResourcesDelete(ctx context.Context, id SharedPrivateLinkResourceId) (result SharedPrivateLinkResourcesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type VolumesReplicationClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewVolumesReplicationClientWithBaseURI(api environments.Api) (*VolumesReplicationClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "volumesreplication", defaultApiVersion)
+func NewVolumesReplicationClientWithBaseURI(sdkApi sdkEnv.Api) (*VolumesReplicationClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "volumesreplication", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VolumesReplicationClient: %+v", err)
 	}

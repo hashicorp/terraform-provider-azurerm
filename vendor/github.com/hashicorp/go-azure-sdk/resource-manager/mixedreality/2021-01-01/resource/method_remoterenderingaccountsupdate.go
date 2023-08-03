@@ -20,7 +20,7 @@ type RemoteRenderingAccountsUpdateOperationResponse struct {
 // RemoteRenderingAccountsUpdate ...
 func (c ResourceClient) RemoteRenderingAccountsUpdate(ctx context.Context, id RemoteRenderingAccountId, input RemoteRenderingAccount) (result RemoteRenderingAccountsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -60,7 +60,7 @@ func (o ContentKeyPoliciesListOperationOptions) ToQuery() *client.QueryParams {
 // ContentKeyPoliciesList ...
 func (c ContentKeyPoliciesClient) ContentKeyPoliciesList(ctx context.Context, id MediaServiceId, options ContentKeyPoliciesListOperationOptions) (result ContentKeyPoliciesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

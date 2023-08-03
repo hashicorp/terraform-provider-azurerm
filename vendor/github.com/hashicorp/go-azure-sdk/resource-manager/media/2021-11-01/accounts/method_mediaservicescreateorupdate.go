@@ -23,7 +23,7 @@ type MediaservicesCreateOrUpdateOperationResponse struct {
 // MediaservicesCreateOrUpdate ...
 func (c AccountsClient) MediaservicesCreateOrUpdate(ctx context.Context, id MediaServiceId, input MediaService) (result MediaservicesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

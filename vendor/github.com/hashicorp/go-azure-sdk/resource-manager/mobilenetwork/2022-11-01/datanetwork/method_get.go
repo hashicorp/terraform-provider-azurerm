@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c DataNetworkClient) Get(ctx context.Context, id DataNetworkId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

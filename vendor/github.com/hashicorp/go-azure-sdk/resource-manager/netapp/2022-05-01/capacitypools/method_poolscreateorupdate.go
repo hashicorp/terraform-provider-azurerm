@@ -23,7 +23,7 @@ type PoolsCreateOrUpdateOperationResponse struct {
 // PoolsCreateOrUpdate ...
 func (c CapacityPoolsClient) PoolsCreateOrUpdate(ctx context.Context, id CapacityPoolId, input CapacityPool) (result PoolsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

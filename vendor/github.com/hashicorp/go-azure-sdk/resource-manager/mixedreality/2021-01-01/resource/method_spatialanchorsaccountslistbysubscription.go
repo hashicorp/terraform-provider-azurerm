@@ -26,7 +26,7 @@ type SpatialAnchorsAccountsListBySubscriptionCompleteResult struct {
 // SpatialAnchorsAccountsListBySubscription ...
 func (c ResourceClient) SpatialAnchorsAccountsListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result SpatialAnchorsAccountsListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

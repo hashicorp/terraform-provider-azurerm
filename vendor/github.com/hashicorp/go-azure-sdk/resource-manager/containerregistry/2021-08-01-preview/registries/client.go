@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type RegistriesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewRegistriesClientWithBaseURI(api environments.Api) (*RegistriesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "registries", defaultApiVersion)
+func NewRegistriesClientWithBaseURI(sdkApi sdkEnv.Api) (*RegistriesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "registries", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RegistriesClient: %+v", err)
 	}

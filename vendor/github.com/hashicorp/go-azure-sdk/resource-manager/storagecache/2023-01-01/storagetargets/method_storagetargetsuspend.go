@@ -23,7 +23,7 @@ type StorageTargetSuspendOperationResponse struct {
 // StorageTargetSuspend ...
 func (c StorageTargetsClient) StorageTargetSuspend(ctx context.Context, id StorageTargetId) (result StorageTargetSuspendOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

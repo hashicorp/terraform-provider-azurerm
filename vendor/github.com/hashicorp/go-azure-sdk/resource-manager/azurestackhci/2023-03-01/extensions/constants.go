@@ -1,6 +1,10 @@
 package extensions
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -51,6 +55,19 @@ func PossibleValuesForExtensionAggregateState() []string {
 	}
 }
 
+func (s *ExtensionAggregateState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseExtensionAggregateState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseExtensionAggregateState(input string) (*ExtensionAggregateState, error) {
 	vals := map[string]ExtensionAggregateState{
 		"accepted":                       ExtensionAggregateStateAccepted,
@@ -93,6 +110,19 @@ func PossibleValuesForExtensionManagedBy() []string {
 		string(ExtensionManagedByAzure),
 		string(ExtensionManagedByUser),
 	}
+}
+
+func (s *ExtensionManagedBy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseExtensionManagedBy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseExtensionManagedBy(input string) (*ExtensionManagedBy, error) {
@@ -151,6 +181,19 @@ func PossibleValuesForNodeExtensionState() []string {
 		string(NodeExtensionStateSucceeded),
 		string(NodeExtensionStateUpdating),
 	}
+}
+
+func (s *NodeExtensionState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNodeExtensionState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseNodeExtensionState(input string) (*NodeExtensionState, error) {
@@ -226,6 +269,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"accepted":           ProvisioningStateAccepted,
@@ -269,6 +325,19 @@ func PossibleValuesForStatusLevelTypes() []string {
 		string(StatusLevelTypesInfo),
 		string(StatusLevelTypesWarning),
 	}
+}
+
+func (s *StatusLevelTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStatusLevelTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStatusLevelTypes(input string) (*StatusLevelTypes, error) {

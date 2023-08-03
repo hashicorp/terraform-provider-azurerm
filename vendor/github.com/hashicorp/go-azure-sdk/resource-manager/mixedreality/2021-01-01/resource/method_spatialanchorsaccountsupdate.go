@@ -20,7 +20,7 @@ type SpatialAnchorsAccountsUpdateOperationResponse struct {
 // SpatialAnchorsAccountsUpdate ...
 func (c ResourceClient) SpatialAnchorsAccountsUpdate(ctx context.Context, id SpatialAnchorsAccountId, input SpatialAnchorsAccount) (result SpatialAnchorsAccountsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

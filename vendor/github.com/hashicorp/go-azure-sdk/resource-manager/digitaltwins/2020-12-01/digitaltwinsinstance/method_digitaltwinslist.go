@@ -26,7 +26,7 @@ type DigitalTwinsListCompleteResult struct {
 // DigitalTwinsList ...
 func (c DigitalTwinsInstanceClient) DigitalTwinsList(ctx context.Context, id commonids.SubscriptionId) (result DigitalTwinsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

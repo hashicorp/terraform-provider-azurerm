@@ -22,7 +22,7 @@ type StorageSyncServicesListBySubscriptionOperationResponse struct {
 // StorageSyncServicesListBySubscription ...
 func (c StorageSyncServicesResourceClient) StorageSyncServicesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result StorageSyncServicesListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

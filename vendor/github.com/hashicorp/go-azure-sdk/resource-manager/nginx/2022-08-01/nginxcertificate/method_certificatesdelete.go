@@ -23,7 +23,7 @@ type CertificatesDeleteOperationResponse struct {
 // CertificatesDelete ...
 func (c NginxCertificateClient) CertificatesDelete(ctx context.Context, id CertificateId) (result CertificatesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

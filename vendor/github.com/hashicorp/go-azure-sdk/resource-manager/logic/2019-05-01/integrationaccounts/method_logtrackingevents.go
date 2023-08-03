@@ -20,7 +20,7 @@ type LogTrackingEventsOperationResponse struct {
 // LogTrackingEvents ...
 func (c IntegrationAccountsClient) LogTrackingEvents(ctx context.Context, id IntegrationAccountId, input TrackingEventsDefinition) (result LogTrackingEventsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

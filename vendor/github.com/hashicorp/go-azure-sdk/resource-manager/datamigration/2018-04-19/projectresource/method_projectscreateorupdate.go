@@ -20,7 +20,7 @@ type ProjectsCreateOrUpdateOperationResponse struct {
 // ProjectsCreateOrUpdate ...
 func (c ProjectResourceClient) ProjectsCreateOrUpdate(ctx context.Context, id ProjectId, input Project) (result ProjectsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

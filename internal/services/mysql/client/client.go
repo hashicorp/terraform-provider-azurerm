@@ -4,12 +4,12 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql" // nolint: staticcheck
-	"github.com/Azure/go-autorest/autorest"
 	flexibleServers_v2021_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/azureadadministrators"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -29,13 +29,19 @@ type Client struct {
 	AzureADAdministratorsClient *azureadadministrators.AzureADAdministratorsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	flexibleServersMetaClient := flexibleServers_v2021_05_01.NewClientWithBaseURI(o.ResourceManagerEndpoint, func(c *autorest.Client) {
-		o.ConfigureClient(c, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	flexibleServersMetaClient, err := flexibleServers_v2021_05_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		o.Configure(c, o.Authorizers.ResourceManager)
 	})
+	if err != nil {
+		return nil, fmt.Errorf("building Flexible Servers client: %+v", err)
+	}
 
-	azureADAdministratorsClient := azureadadministrators.NewAzureADAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&azureADAdministratorsClient.Client, o.ResourceManagerAuthorizer)
+	azureADAdministratorsClient, err := azureadadministrators.NewAzureADAdministratorsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Azure AD Administrators client: %+v", err)
+	}
+	o.Configure(azureADAdministratorsClient.Client, o.Authorizers.ResourceManager)
 
 	ConfigurationsClient := mysql.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ConfigurationsClient.Client, o.ResourceManagerAuthorizer)
@@ -45,12 +51,6 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	FirewallRulesClient := mysql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
-
-	flexibleServerClient := servers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&flexibleServerClient.Client, o.ResourceManagerAuthorizer)
-
-	flexibleServerFailoverClient := serverfailover.NewServerFailoverClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&flexibleServerFailoverClient.Client, o.ResourceManagerAuthorizer)
 
 	ServersClient := mysql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
@@ -68,10 +68,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&serverAdministratorsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		FlexibleServers: &flexibleServersMetaClient,
+		FlexibleServers: flexibleServersMetaClient,
 
 		// TODO: switch to using the Meta Clients
-		AzureADAdministratorsClient:       &azureADAdministratorsClient,
+		AzureADAdministratorsClient:       azureADAdministratorsClient,
 		ConfigurationsClient:              &ConfigurationsClient,
 		DatabasesClient:                   &DatabasesClient,
 		FirewallRulesClient:               &FirewallRulesClient,
@@ -80,5 +80,5 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,
 		VirtualNetworkRulesClient:         &VirtualNetworkRulesClient,
 		ServerAdministratorsClient:        &serverAdministratorsClient,
-	}
+	}, nil
 }

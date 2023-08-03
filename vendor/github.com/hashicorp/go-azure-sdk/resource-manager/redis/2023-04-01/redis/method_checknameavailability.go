@@ -21,7 +21,7 @@ type CheckNameAvailabilityOperationResponse struct {
 // CheckNameAvailability ...
 func (c RedisClient) CheckNameAvailability(ctx context.Context, id commonids.SubscriptionId, input CheckNameAvailabilityParameters) (result CheckNameAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type CreateOrUpdateOperationResponse struct {
 // CreateOrUpdate ...
 func (c AuthorizationsClient) CreateOrUpdate(ctx context.Context, id AuthorizationId, input ExpressRouteAuthorization) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -19,7 +19,7 @@ type EdgeModulesDeleteOperationResponse struct {
 // EdgeModulesDelete ...
 func (c EdgeModulesClient) EdgeModulesDelete(ctx context.Context, id EdgeModuleId) (result EdgeModulesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

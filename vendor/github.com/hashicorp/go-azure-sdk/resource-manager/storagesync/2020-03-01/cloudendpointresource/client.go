@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type CloudEndpointResourceClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewCloudEndpointResourceClientWithBaseURI(api environments.Api) (*CloudEndpointResourceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "cloudendpointresource", defaultApiVersion)
+func NewCloudEndpointResourceClientWithBaseURI(sdkApi sdkEnv.Api) (*CloudEndpointResourceClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "cloudendpointresource", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CloudEndpointResourceClient: %+v", err)
 	}

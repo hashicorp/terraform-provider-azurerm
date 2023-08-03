@@ -23,7 +23,7 @@ type DeallocateOperationResponse struct {
 // Deallocate ...
 func (c DiskPoolsClient) Deallocate(ctx context.Context, id DiskPoolId) (result DeallocateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type DiskPoolsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewDiskPoolsClientWithBaseURI(api environments.Api) (*DiskPoolsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "diskpools", defaultApiVersion)
+func NewDiskPoolsClientWithBaseURI(sdkApi sdkEnv.Api) (*DiskPoolsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "diskpools", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DiskPoolsClient: %+v", err)
 	}

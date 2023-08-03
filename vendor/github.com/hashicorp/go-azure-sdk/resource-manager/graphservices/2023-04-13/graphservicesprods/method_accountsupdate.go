@@ -20,7 +20,7 @@ type AccountsUpdateOperationResponse struct {
 // AccountsUpdate ...
 func (c GraphservicesprodsClient) AccountsUpdate(ctx context.Context, id AccountId, input TagUpdate) (result AccountsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

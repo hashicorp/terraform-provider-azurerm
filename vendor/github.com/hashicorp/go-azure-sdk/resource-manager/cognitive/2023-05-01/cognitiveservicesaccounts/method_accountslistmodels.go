@@ -25,7 +25,7 @@ type AccountsListModelsCompleteResult struct {
 // AccountsListModels ...
 func (c CognitiveServicesAccountsClient) AccountsListModels(ctx context.Context, id AccountId) (result AccountsListModelsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

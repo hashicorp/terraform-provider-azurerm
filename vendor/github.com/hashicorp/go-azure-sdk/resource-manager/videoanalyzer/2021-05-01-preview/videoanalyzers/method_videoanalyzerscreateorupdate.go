@@ -20,7 +20,7 @@ type VideoAnalyzersCreateOrUpdateOperationResponse struct {
 // VideoAnalyzersCreateOrUpdate ...
 func (c VideoAnalyzersClient) VideoAnalyzersCreateOrUpdate(ctx context.Context, id VideoAnalyzerId, input VideoAnalyzer) (result VideoAnalyzersCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -23,7 +23,7 @@ type SimPoliciesCreateOrUpdateOperationResponse struct {
 // SimPoliciesCreateOrUpdate ...
 func (c SIMPolicyClient) SimPoliciesCreateOrUpdate(ctx context.Context, id SimPolicyId, input SimPolicy) (result SimPoliciesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

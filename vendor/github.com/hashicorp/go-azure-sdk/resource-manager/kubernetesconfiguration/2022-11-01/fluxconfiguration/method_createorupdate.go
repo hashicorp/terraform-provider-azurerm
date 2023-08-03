@@ -23,7 +23,7 @@ type CreateOrUpdateOperationResponse struct {
 // CreateOrUpdate ...
 func (c FluxConfigurationClient) CreateOrUpdate(ctx context.Context, id ScopedFluxConfigurationId, input FluxConfiguration) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

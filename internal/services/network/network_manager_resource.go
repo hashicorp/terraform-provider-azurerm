@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkmanagers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -162,7 +162,7 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Network.ManagersClient
+			client := metadata.Client.Network.NetworkManagers
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := networkmanagers.NewNetworkManagerID(subscriptionId, state.ResourceGroupName, state.Name)
@@ -201,7 +201,7 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 func (r ManagerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagersClient
+			client := metadata.Client.Network.NetworkManagers
 			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -256,7 +256,7 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("updating %s..", *id)
-			client := metadata.Client.Network.ManagersClient
+			client := metadata.Client.Network.NetworkManagers
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -301,7 +301,7 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 func (r ManagerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagersClient
+			client := metadata.Client.Network.NetworkManagers
 			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

@@ -6,7 +6,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
     val environment = environment
     val vcsRootId = vcsRootId
 
-    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String) : BuildType {
+    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int) : BuildType {
         return BuildType {
             // TC needs a consistent ID for dynamically generated packages
             id(uniqueID(providerName))
@@ -33,7 +33,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             }
 
             params {
-                TerraformAcceptanceTestParameters(parallelism, "TestAcc", "12")
+                TerraformAcceptanceTestParameters(parallelism, "TestAcc", timeout)
                 TerraformAcceptanceTestsFlag()
                 TerraformCoreBinaryTesting()
                 TerraformShouldPanicForSchemaErrors()

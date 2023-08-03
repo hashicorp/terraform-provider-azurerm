@@ -23,7 +23,7 @@ type AccountsUpdateOperationResponse struct {
 // AccountsUpdate ...
 func (c NetAppAccountsClient) AccountsUpdate(ctx context.Context, id NetAppAccountId, input NetAppAccountPatch) (result AccountsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

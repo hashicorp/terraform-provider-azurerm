@@ -23,7 +23,7 @@ type VolumesReInitializeReplicationOperationResponse struct {
 // VolumesReInitializeReplication ...
 func (c VolumesReplicationClient) VolumesReInitializeReplication(ctx context.Context, id VolumeId) (result VolumesReInitializeReplicationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

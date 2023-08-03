@@ -25,7 +25,7 @@ type ListByDataBoxEdgeDeviceCompleteResult struct {
 // ListByDataBoxEdgeDevice ...
 func (c OrdersClient) ListByDataBoxEdgeDevice(ctx context.Context, id DataBoxEdgeDeviceId) (result ListByDataBoxEdgeDeviceOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

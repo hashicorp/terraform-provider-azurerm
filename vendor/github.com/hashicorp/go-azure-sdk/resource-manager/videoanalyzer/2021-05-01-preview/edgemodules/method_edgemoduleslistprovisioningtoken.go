@@ -21,7 +21,7 @@ type EdgeModulesListProvisioningTokenOperationResponse struct {
 // EdgeModulesListProvisioningToken ...
 func (c EdgeModulesClient) EdgeModulesListProvisioningToken(ctx context.Context, id EdgeModuleId, input ListProvisioningTokenInput) (result EdgeModulesListProvisioningTokenOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

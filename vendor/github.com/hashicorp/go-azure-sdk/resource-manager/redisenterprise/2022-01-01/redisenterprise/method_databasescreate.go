@@ -23,7 +23,7 @@ type DatabasesCreateOperationResponse struct {
 // DatabasesCreate ...
 func (c RedisEnterpriseClient) DatabasesCreate(ctx context.Context, id DatabaseId, input Database) (result DatabasesCreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

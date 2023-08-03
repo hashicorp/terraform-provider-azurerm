@@ -23,7 +23,7 @@ type DigitalTwinsEndpointDeleteOperationResponse struct {
 // DigitalTwinsEndpointDelete ...
 func (c EndpointsClient) DigitalTwinsEndpointDelete(ctx context.Context, id EndpointId) (result DigitalTwinsEndpointDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,
