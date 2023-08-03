@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type WorkflowTriggersClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewWorkflowTriggersClientWithBaseURI(api environments.Api) (*WorkflowTriggersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "workflowtriggers", defaultApiVersion)
+func NewWorkflowTriggersClientWithBaseURI(sdkApi sdkEnv.Api) (*WorkflowTriggersClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "workflowtriggers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WorkflowTriggersClient: %+v", err)
 	}

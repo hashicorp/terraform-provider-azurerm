@@ -9,11 +9,11 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -215,16 +215,16 @@ func testAccMonitorAADDiagnosticSetting_updateToDisabled(t *testing.T) {
 }
 
 func (t MonitorAADDiagnosticSettingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MonitorAADDiagnosticSettingID(state.ID)
+	id, err := diagnosticsettings.ParseDiagnosticSettingID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.Monitor.AADDiagnosticSettingsClient.Get(ctx, id.Name)
+	resp, err := clients.Monitor.AADDiagnosticSettingsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (MonitorAADDiagnosticSettingResource) eventhub(data acceptance.TestData) string {

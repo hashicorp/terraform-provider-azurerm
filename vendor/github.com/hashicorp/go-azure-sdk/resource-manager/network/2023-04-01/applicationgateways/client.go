@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type ApplicationGatewaysClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewApplicationGatewaysClientWithBaseURI(api environments.Api) (*ApplicationGatewaysClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "applicationgateways", defaultApiVersion)
+func NewApplicationGatewaysClientWithBaseURI(sdkApi sdkEnv.Api) (*ApplicationGatewaysClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "applicationgateways", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ApplicationGatewaysClient: %+v", err)
 	}

@@ -6,11 +6,11 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"                                           // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"          // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	scheduledqueryrules2018 "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
@@ -31,7 +31,7 @@ import (
 
 type Client struct {
 	// AAD
-	AADDiagnosticSettingsClient *aad.DiagnosticSettingsClient
+	AADDiagnosticSettingsClient *diagnosticsettings.DiagnosticSettingsClient
 
 	// Autoscale Settings
 	AutoscaleSettingsClient *autoscalesettings.AutoScaleSettingsClient
@@ -62,8 +62,11 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	AADDiagnosticSettingsClient := aad.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&AADDiagnosticSettingsClient.Client, o.ResourceManagerAuthorizer)
+	aadDiagnosticSettingsClient, err := diagnosticsettings.NewDiagnosticSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AAD DiagnosticsSettings client: %+v", err)
+	}
+	o.Configure(aadDiagnosticSettingsClient.Client, o.Authorizers.ResourceManager)
 
 	AutoscaleSettingsClient := autoscalesettings.NewAutoScaleSettingsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&AutoscaleSettingsClient.Client, o.ResourceManagerAuthorizer)
@@ -135,7 +138,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AADDiagnosticSettingsClient:          &AADDiagnosticSettingsClient,
+		AADDiagnosticSettingsClient:          aadDiagnosticSettingsClient,
 		AutoscaleSettingsClient:              &AutoscaleSettingsClient,
 		ActionRulesClient:                    &ActionRulesClient,
 		SmartDetectorAlertRulesClient:        &SmartDetectorAlertRulesClient,

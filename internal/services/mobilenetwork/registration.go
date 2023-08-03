@@ -40,21 +40,23 @@ func (r Registration) DataSources() []sdk.DataSource {
 		PacketCoreControlPlaneDataSource{},
 		PacketCoreDataPlaneDataSource{},
 		AttachedDataNetworkDataSource{},
+		SimDataSource{},
 	}
 }
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		AttachedDataNetworkResource{},
 		DataNetworkResource{},
 		MobileNetworkResource{},
+		PacketCoreControlPlaneResource{},
+		PacketCoreDataPlaneResource{},
+		SiteResource{},
+		SliceResource{},
 		ServiceResource{},
 		SimGroupResource{},
 		SimPolicyResource{},
-		SiteResource{},
-		SliceResource{},
-		PacketCoreControlPlaneResource{},
-		PacketCoreDataPlaneResource{},
-		AttachedDataNetworkResource{},
+		SimResource{},
 	}
 }

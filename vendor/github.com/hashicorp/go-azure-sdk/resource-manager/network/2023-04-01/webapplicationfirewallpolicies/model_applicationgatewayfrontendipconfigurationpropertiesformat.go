@@ -4,7 +4,6 @@ package webapplicationfirewallpolicies
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ApplicationGatewayFrontendIPConfigurationPropertiesFormat struct {
-	HTTPListeners             *SubResource        `json:"httpListeners,omitempty"`
 	PrivateIPAddress          *string             `json:"privateIPAddress,omitempty"`
 	PrivateIPAllocationMethod *IPAllocationMethod `json:"privateIPAllocationMethod,omitempty"`
 	PrivateLinkConfiguration  *SubResource        `json:"privateLinkConfiguration,omitempty"`

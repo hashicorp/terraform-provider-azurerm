@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type SourceControlClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewSourceControlClientWithBaseURI(api environments.Api) (*SourceControlClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "sourcecontrol", defaultApiVersion)
+func NewSourceControlClientWithBaseURI(sdkApi sdkEnv.Api) (*SourceControlClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sourcecontrol", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SourceControlClient: %+v", err)
 	}

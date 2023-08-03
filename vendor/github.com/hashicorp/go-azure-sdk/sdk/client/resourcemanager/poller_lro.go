@@ -133,8 +133,13 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return
 		}
 
-		contentType := result.HttpResponse.Header.Get("Content-Type")
+		// Automation@2022-08-08 - Runbooks - returns a 200 OK with no Body
+		if result.HttpResponse.StatusCode == http.StatusOK && result.HttpResponse.ContentLength == 0 {
+			result.Status = pollers.PollingStatusSucceeded
+			return
+		}
 
+		contentType := result.HttpResponse.Header.Get("Content-Type")
 		var op operationResult
 		if strings.Contains(strings.ToLower(contentType), "application/json") {
 			if err = json.Unmarshal(respBody, &op); err != nil {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type SingleSignOnClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewSingleSignOnClientWithBaseURI(api environments.Api) (*SingleSignOnClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "singlesignon", defaultApiVersion)
+func NewSingleSignOnClientWithBaseURI(sdkApi sdkEnv.Api) (*SingleSignOnClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "singlesignon", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SingleSignOnClient: %+v", err)
 	}

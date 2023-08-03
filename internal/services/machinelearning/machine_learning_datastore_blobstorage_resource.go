@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/datastore"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -67,7 +67,7 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.WorkspaceID,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
 		},
 
 		"storage_container_id": {
@@ -125,7 +125,7 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.DatastoreClient
+			client := metadata.Client.MachineLearning.Datastore
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model MachineLearningDataStoreBlobStorageModel
@@ -213,7 +213,7 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.DatastoreClient
+			client := metadata.Client.MachineLearning.Datastore
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
 			if err != nil {
@@ -281,7 +281,7 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.DatastoreClient
+			client := metadata.Client.MachineLearning.Datastore
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
@@ -345,7 +345,7 @@ func (r MachineLearningDataStoreBlobStorage) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MachineLearning.DatastoreClient
+			client := metadata.Client.MachineLearning.Datastore
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
 			if err != nil {
