@@ -185,7 +185,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.MinimalTlsVersionEnumTLSEnforcementDisabled),
 					string(servers.MinimalTlsVersionEnumTLSOneZero),
-					string(servers.MinimalTlsVersionEnumTLSOneTwo),
+					string(servers.MinimalTlsVersionEnumTLSOneOne),
 					string(servers.MinimalTlsVersionEnumTLSOneTwo),
 				}, false),
 			},
