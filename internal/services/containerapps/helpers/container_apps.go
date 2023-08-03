@@ -2243,7 +2243,11 @@ func UnpackContainerDaprSecretsCollection(input *daprcomponents.DaprSecretsColle
 
 	result := make([]daprcomponents.Secret, 0)
 	for _, v := range input.Value {
-		result = append(result, daprcomponents.Secret(v))
+		result = append(result, daprcomponents.Secret{
+			// TODO: add support for Identity & KeyVaultUrl
+			Name:  v.Name,
+			Value: v.Value,
+		})
 	}
 
 	return &result
