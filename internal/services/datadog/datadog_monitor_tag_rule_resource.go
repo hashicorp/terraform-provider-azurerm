@@ -229,13 +229,14 @@ func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	// Tag Rules can't be removed on their own, they can only be nil'd out
-	payload := rules.MonitoringTagRules{
-		Properties: &rules.MonitoringTagRulesProperties{
-			LogRules:    expandLogRules(d.Get("log").([]interface{})),
-			MetricRules: expandMetricRules(d.Get("metric").([]interface{})),
-		},
+	resp, err := client.TagRulesGet(ctx, *id)
+	if err != nil {
+		return err
 	}
+
+	// Tag Rules can't be removed on their own, they can only be nil'd out
+	payload := pointer.From(resp.Model)
+
 	if _, err := client.TagRulesCreateOrUpdate(ctx, *id, payload); err != nil {
 		return fmt.Errorf("removing %s: %+v", *id, err)
 	}
