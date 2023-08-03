@@ -200,9 +200,11 @@ func (r ManagedLustreFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			pluginsdk.ForceNewIfChange("key_encryption_key", func(ctx context.Context, old, new, meta interface{}) bool {
-				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
-			})
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("key_encryption_key"); len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0 {
+				if err := metadata.ResourceDiff.ForceNew("key_encryption_key"); err != nil {
+					return err
+				}
+			}
 
 			return nil
 		},
