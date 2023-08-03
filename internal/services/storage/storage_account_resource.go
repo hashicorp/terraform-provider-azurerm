@@ -190,12 +190,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"storage_sid": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
 									"domain_guid": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -210,19 +204,25 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 									"domain_sid": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"forest_name": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"netbios_domain_name": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"storage_sid": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},

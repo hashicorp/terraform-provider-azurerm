@@ -894,6 +894,12 @@ func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		{
+			Config: r.azureFilesAuthenticationADComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 		{
 			Config: r.azureFilesAuthenticationADUpdate(data),
@@ -3185,6 +3191,39 @@ resource "azurerm_storage_account" "test" {
 }
 
 func (r StorageAccountResource) azureFilesAuthenticationAD(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  azure_files_authentication {
+    directory_type = "AD"
+    active_directory {
+      domain_name = "adtest.com"
+      domain_guid = "aebfc118-9fa9-4732-a21f-d98e41a77ae1"
+    }
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) azureFilesAuthenticationADComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
