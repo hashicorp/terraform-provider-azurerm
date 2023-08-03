@@ -3213,6 +3213,7 @@ resource "azurerm_storage_account" "test" {
     active_directory {
       domain_name = "adtest.com"
       domain_guid = "aebfc118-9fa9-4732-a21f-d98e41a77ae1"
+      domain_sid          = "S-1-5-21-2400535526-2334094090-2402026252-0012"
     }
   }
 
