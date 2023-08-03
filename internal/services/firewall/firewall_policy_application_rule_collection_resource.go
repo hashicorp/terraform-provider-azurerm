@@ -20,9 +20,9 @@ import (
 
 func resourceFirewallPolicyApplicationRuleCollection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceFirewallPolicyApplicationRuleCollectionCreateUpdate,
+		Create: resourceFirewallPolicyApplicationRuleCollectionCreate,
 		Read:   resourceFirewallPolicyApplicationRuleCollectionRead,
-		Update: resourceFirewallPolicyApplicationRuleCollectionCreateUpdate,
+		Update: resourceFirewallPolicyApplicationRuleCollectionUpdate,
 		Delete: resourceFirewallPolicyApplicationRuleCollectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -180,7 +180,7 @@ func resourceFirewallPolicyApplicationRuleCollection() *pluginsdk.Resource {
 	}
 }
 
-func resourceFirewallPolicyApplicationRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyApplicationRuleCollectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,7 +203,7 @@ func resourceFirewallPolicyApplicationRuleCollectionCreateUpdate(d *pluginsdk.Re
 		return *info.Name == name
 	})
 
-	if d.IsNewResource() && resp.ID != nil && *resp.ID != "" && idx != -1 {
+	if resp.ID != nil && *resp.ID != "" && idx != -1 {
 		return tf.ImportAsExistsError("azurerm_firewall_policy_application_rule_collection", *resp.ID)
 	}
 
@@ -243,23 +243,6 @@ func resourceFirewallPolicyApplicationRuleCollectionCreateUpdate(d *pluginsdk.Re
 		return fmt.Errorf("waiting Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q / Rule Collection Group: %q): %+v", name, ruleCollectionGroupId.ResourceGroup, ruleCollectionGroupId.FirewallPolicyName, ruleCollectionGroupId.RuleCollectionGroupName, err)
 	}
 
-	resp, err = client.Get(ctx, ruleCollectionGroupId.ResourceGroup, ruleCollectionGroupId.FirewallPolicyName, ruleCollectionGroupId.RuleCollectionGroupName)
-	if err != nil {
-		return fmt.Errorf("retrieving Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q: %+v", ruleCollectionGroupId.RuleCollectionGroupName, ruleCollectionGroupId.ResourceGroup, ruleCollectionGroupId.FirewallPolicyName, err)
-	}
-
-	idx = indexFunc(*resp.RuleCollections, func(ruleCollection network.BasicFirewallPolicyRuleCollection) bool {
-		info, _ := ruleCollection.AsFirewallPolicyFilterRuleCollection()
-		return *info.Name == name
-	})
-
-	if resp.ID == nil || *resp.ID == "" || idx == -1 {
-		return fmt.Errorf("empty or nil ID returned for Firewall Policy Rule Collection %q (Resource Group %q / Policy: %q / Rule Collection Group: %q) ID", name, ruleCollectionGroupId.ResourceGroup, ruleCollectionGroupId.FirewallPolicyName, ruleCollectionGroupId.RuleCollectionGroupName)
-	}
-	ruleCollectionGroupId, err = parse.FirewallPolicyRuleCollectionGroupID(*resp.ID)
-	if err != nil {
-		return err
-	}
 	d.SetId(parse.NewFirewallPolicyRuleCollectionID(ruleCollectionGroupId.SubscriptionId, ruleCollectionGroupId.ResourceGroup, ruleCollectionGroupId.FirewallPolicyName, ruleCollectionGroupId.RuleCollectionGroupName, name).ID())
 
 	return resourceFirewallPolicyApplicationRuleCollectionRead(d, meta)
@@ -299,9 +282,9 @@ func resourceFirewallPolicyApplicationRuleCollectionRead(d *pluginsdk.ResourceDa
 
 	ruleCollection, _ := (*resp.RuleCollections)[idx].AsFirewallPolicyFilterRuleCollection()
 
-	d.Set("name", *ruleCollection.Name)
+	d.Set("name", ruleCollection.Name)
 	d.Set("action", ruleCollection.Action.Type)
-	d.Set("priority", *ruleCollection.Priority)
+	d.Set("priority", ruleCollection.Priority)
 	d.Set("rule_collection_group_id", parse.NewFirewallPolicyRuleCollectionGroupID(id.SubscriptionId, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName).ID())
 
 	rules, err := flattenFirewallPolicyRuleApplication(ruleCollection.Rules)
@@ -314,6 +297,77 @@ func resourceFirewallPolicyApplicationRuleCollectionRead(d *pluginsdk.ResourceDa
 	}
 
 	return nil
+}
+
+func resourceFirewallPolicyApplicationRuleCollectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.FirewallPolicyRuleCollectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Firewall Policy Rule Collection Group %q was not found in Resource Group %q - removing from state!", id.RuleCollectionGroupName, id.ResourceGroup)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", id.RuleCollectionGroupName, id.ResourceGroup, id.FirewallPolicyName, err)
+	}
+
+	idx := indexFunc(*resp.RuleCollections, func(policy network.BasicFirewallPolicyRuleCollection) bool {
+		info, _ := policy.AsFirewallPolicyFilterRuleCollection()
+		return *info.Name == id.RuleCollectionName
+	})
+
+	if idx == -1 {
+		log.Printf("[DEBUG] Firewall Policy Rule Collection %q was not found in Firewall Policy Rule Collection Group %q - removing from state!", id.RuleCollectionName, id.RuleCollectionGroupName)
+		d.SetId("")
+		return nil
+	}
+
+	locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+
+	rules := expandFirewallPolicyRuleApplication(d.Get("rule").([]interface{}))
+	ruleCollection := &network.FirewallPolicyFilterRuleCollection{
+		Action: &network.FirewallPolicyFilterRuleCollectionAction{
+			Type: network.FirewallPolicyFilterRuleCollectionActionType(d.Get("action").(string)),
+		},
+		Name:               utils.String(d.Get("name").(string)),
+		Priority:           utils.Int32(int32(d.Get("priority").(int))),
+		RuleCollectionType: network.RuleCollectionTypeFirewallPolicyFilterRuleCollection,
+		Rules:              rules,
+	}
+
+	if idx == -1 {
+		ruleCollections := append(*resp.RuleCollections, ruleCollection)
+		resp.RuleCollections = &ruleCollections
+	} else {
+		(*resp.RuleCollections)[idx] = ruleCollection
+	}
+
+	param := network.FirewallPolicyRuleCollectionGroup{
+		FirewallPolicyRuleCollectionGroupProperties: &network.FirewallPolicyRuleCollectionGroupProperties{
+			Priority:        resp.Priority,
+			RuleCollections: resp.RuleCollections,
+		},
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName, param)
+	if err != nil {
+		return fmt.Errorf("creating Firewall Policy Rule Collection %q (Resource Group %q / Policy: %q / Rule Collection Group: %q): %+v", id.RuleCollectionName, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q / Rule Collection Group: %q): %+v", id.RuleCollectionName, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName, err)
+	}
+
+	return resourceFirewallPolicyApplicationRuleCollectionRead(d, meta)
 }
 
 func resourceFirewallPolicyApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
