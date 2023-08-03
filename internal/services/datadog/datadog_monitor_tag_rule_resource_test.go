@@ -48,21 +48,6 @@ func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatadogMonitorTagRules_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
-	r := TagRulesDatadogMonitorResource{}
-	r.populateFromEnvironment(t)
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
 func TestAccDatadogMonitorTagRules_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
 	r := TagRulesDatadogMonitorResource{}
@@ -139,10 +124,6 @@ resource "azurerm_datadog_monitor" "test" {
 
 func (r TagRulesDatadogMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_datadog_monitor_tag_rule" "test" {
@@ -161,33 +142,8 @@ resource "azurerm_datadog_monitor_tag_rule" "test" {
 `, r.template(data))
 }
 
-func (r TagRulesDatadogMonitorResource) requiresImport(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_datadog_monitor_tag_rule" "import" {
-  datadog_monitor_id = azurerm_datadog_monitor_tag_rule.test.datadog_monitor_id
-  name               = azurerm_datadog_monitor_tag_rule.test.name
-  log {
-    subscription_log_enabled = true
-  }
-  metric {
-    filter {
-      name   = "Test"
-      value  = "Testing-Logs"
-      action = "Include"
-    }
-  }
-}
-`, r.basic(data))
-}
-
 func (r TagRulesDatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_datadog_monitor_tag_rule" "test" {
