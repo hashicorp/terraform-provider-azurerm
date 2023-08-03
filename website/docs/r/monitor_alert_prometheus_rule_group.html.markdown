@@ -79,9 +79,6 @@ EOF
 
     action {
       action_group_id = azurerm_monitor_action_group.example.id
-      action_properties = {
-        actionName = "actionValue"
-      }
     }
 
     alert_resolution {
@@ -157,7 +154,7 @@ An `action` block supports the following:
 
 * `action_group_id` - (Required) Specifies the resource id of the monitor action group.
 
-* `action_properties` - (Optional) Specifies the properties of an action group object.
+* `action_properties` - (Optional) Specifies the properties of an action group object. Only available for IcM Connector action group.
 
 ---
 
