@@ -143,12 +143,12 @@ data "azurerm_client_config" "current" {
 }
 
 data "azurerm_resources" "test" {
-	type                = "Microsoft.Storage/storageAccounts"
-	resource_group_name = azurerm_storage_account.test.resource_group_name
+  type                = "Microsoft.Storage/storageAccounts"
+  resource_group_name = azurerm_storage_account.test.resource_group_name
 
-	subscription_ids    = [
-		data.azurerm_client_config.current.subscription_id
-	]
+  subscription_ids = [
+    data.azurerm_client_config.current.subscription_id
+  ]
 }
 `, r.template(data))
 }
