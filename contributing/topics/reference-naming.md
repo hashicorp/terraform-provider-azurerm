@@ -8,6 +8,8 @@ Here are some general guidelines you can turn to when naming properties:
 
 * The name should describe what the property is for succinctly, but as with many things a balance should be struck between too short or too long.
 
+* Abbreviations should not be used and the full words should be used instead e.g. `resource_group_name` instead of `rg_name` or `virtual_machine` instead of `vm`. 
+
 * For blocks avoid redundant words in the name that don't add informational value e.g.`firewall_properties` can be shortened to `firewall`, the same can apply to individual properties e.g. `email_address` to `email`.
 
 * As a general rule, booleans should be appended with `_enabled`, e.g. `public_network_access_enabled`.
