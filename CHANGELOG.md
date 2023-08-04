@@ -1,3 +1,10 @@
+## 3.69.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_kubernetes_cluster` - export the identity for Web App Routing under `web_app_routing_identity` [GH-22809]
+
+
 ## 3.68.0 (August 03, 2023)
 
 FEATURES:
