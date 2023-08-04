@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -41,7 +42,7 @@ type Client struct {
 	GalleriesClient                  *galleries.GalleriesClient
 	GalleryApplicationsClient        *galleryapplications.GalleryApplicationsClient
 	GalleryApplicationVersionsClient *galleryapplicationversions.GalleryApplicationVersionsClient
-	GalleryImagesClient              *compute.GalleryImagesClient
+	GalleryImagesClient              *galleryimages.GalleryImagesClient
 	GalleryImageVersionsClient       *compute.GalleryImageVersionsClient
 	GallerySharingUpdateClient       *gallerysharingupdate.GallerySharingUpdateClient
 	ImagesClient                     *images.ImagesClient
@@ -95,7 +96,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	galleryApplicationVersionsClient := galleryapplicationversions.NewGalleryApplicationVersionsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&galleryApplicationVersionsClient.Client, o.ResourceManagerAuthorizer)
 
-	galleryImagesClient := compute.NewGalleryImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	galleryImagesClient := galleryimages.NewGalleryImagesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&galleryImagesClient.Client, o.ResourceManagerAuthorizer)
 
 	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
