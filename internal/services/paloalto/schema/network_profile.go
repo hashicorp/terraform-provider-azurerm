@@ -55,8 +55,9 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 				},
 
 				"egress_nat_ip_address_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
+					Type:       pluginsdk.TypeList,
+					Optional:   true,
+					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: networkValidate.PublicIpAddressID,
@@ -87,84 +88,10 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 	}
 }
 
-func VHubNetworkProfileSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Required: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"virtual_hub_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: networkValidate.VirtualHubID,
-				},
-
-				"network_virtual_appliance_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: networkvirtualappliances.ValidateNetworkVirtualApplianceID,
-				},
-
-				"public_ip_address_ids": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					MinItems: 1,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: networkValidate.PublicIpAddressID,
-					},
-				},
-
-				"egress_nat_ip_address_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: networkValidate.PublicIpAddressID,
-					},
-				},
-
-				"trusted_subnet_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"untrusted_subnet_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"ip_of_trust_for_user_defined_routes": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"public_ip_addresses": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-
-				"egress_nat_ip_addresses": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-			},
-		},
-	}
-}
-
 func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfile {
 	result := firewalls.NetworkProfile{
 		EnableEgressNat: firewalls.EgressNatDISABLED,
+		NetworkType:     firewalls.NetworkTypeVNET,
 	}
 
 	if len(input) == 0 {
@@ -194,7 +121,6 @@ func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfi
 		result.EgressNatIP = pointer.To(egressNatIPs)
 	}
 
-	result.NetworkType = firewalls.NetworkTypeVNET
 	vnet := profile.VnetConfiguration[0]
 	result.VnetConfiguration = &firewalls.VnetConfiguration{
 		TrustSubnet: firewalls.IPAddressSpace{
@@ -206,51 +132,6 @@ func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfi
 		Vnet: firewalls.IPAddressSpace{
 			ResourceId: pointer.To(vnet.VNetID),
 		},
-	}
-
-	return result
-}
-
-func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfile {
-	result := firewalls.NetworkProfile{
-		EnableEgressNat: firewalls.EgressNatDISABLED,
-		EgressNatIP:     &[]firewalls.IPAddress{},
-	}
-	if len(input) == 0 {
-		return result
-	}
-
-	profile := input[0]
-
-	if len(profile.PublicIPIDs) > 0 {
-		ipIDs := make([]firewalls.IPAddress, 0)
-		for _, v := range profile.PublicIPIDs {
-			ipIDs = append(ipIDs, firewalls.IPAddress{
-				ResourceId: pointer.To(v),
-			})
-		}
-		result.PublicIPs = ipIDs
-	}
-
-	if len(profile.EgressNatIPIDs) > 0 {
-		result.EnableEgressNat = firewalls.EgressNatENABLED
-		egressNatIPs := make([]firewalls.IPAddress, 0)
-		for _, v := range profile.EgressNatIPIDs {
-			egressNatIPs = append(egressNatIPs, firewalls.IPAddress{
-				ResourceId: pointer.To(v),
-			})
-		}
-
-		result.EgressNatIP = pointer.To(egressNatIPs)
-	}
-
-	result.NetworkType = firewalls.NetworkTypeVWAN
-
-	result.VwanConfiguration = &firewalls.VwanConfiguration{
-		VHub: firewalls.IPAddressSpace{
-			ResourceId: pointer.To(profile.VHubID),
-		},
-		NetworkVirtualApplianceId: pointer.To(profile.ApplianceID),
 	}
 
 	return result
@@ -304,20 +185,157 @@ func FlattenNetworkProfileVnet(input firewalls.NetworkProfile) []NetworkProfileV
 	return []NetworkProfileVnet{result}
 }
 
+func VHubNetworkProfileSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Required: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"virtual_hub_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: networkValidate.VirtualHubID,
+				},
+
+				"network_virtual_appliance_id": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: networkvirtualappliances.ValidateNetworkVirtualApplianceID,
+				},
+
+				"public_ip_address_ids": {
+					Type:     pluginsdk.TypeList,
+					Required: true,
+					MinItems: 1,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: networkValidate.PublicIpAddressID,
+					},
+				},
+
+				"egress_nat_ip_address_ids": {
+					Type:       pluginsdk.TypeList,
+					Optional:   true,
+					ConfigMode: pluginsdk.SchemaConfigModeAttr,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: networkValidate.PublicIpAddressID,
+					},
+				},
+
+				"trusted_subnet_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"untrusted_subnet_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"ip_of_trust_for_user_defined_routes": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"public_ip_addresses": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"egress_nat_ip_addresses": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
+func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfile {
+	result := firewalls.NetworkProfile{
+		EnableEgressNat: firewalls.EgressNatDISABLED,
+		EgressNatIP:     &[]firewalls.IPAddress{},
+	}
+	if len(input) == 0 {
+		return result
+	}
+
+	profile := input[0]
+
+	if len(profile.PublicIPIDs) > 0 {
+		ipIDs := make([]firewalls.IPAddress, 0)
+		for _, v := range profile.PublicIPIDs {
+			ipIDs = append(ipIDs, firewalls.IPAddress{
+				ResourceId: pointer.To(v),
+			})
+		}
+		result.PublicIPs = ipIDs
+	}
+
+	if len(profile.EgressNatIPIDs) > 0 {
+		result.EnableEgressNat = firewalls.EgressNatENABLED
+		egressNatIPs := make([]firewalls.IPAddress, 0)
+		for _, v := range profile.EgressNatIPIDs {
+			egressNatIPs = append(egressNatIPs, firewalls.IPAddress{
+				ResourceId: pointer.To(v),
+			})
+		}
+
+		result.EgressNatIP = pointer.To(egressNatIPs)
+	}
+
+	result.NetworkType = firewalls.NetworkTypeVWAN
+
+	result.VwanConfiguration = &firewalls.VwanConfiguration{
+		VHub: firewalls.IPAddressSpace{
+			ResourceId: pointer.To(profile.VHubID),
+		},
+		NetworkVirtualApplianceId: pointer.To(profile.ApplianceID),
+	}
+
+	return result
+}
+
 func FlattenNetworkProfileVHub(input firewalls.NetworkProfile) (*NetworkProfileVHub, error) {
 	result := NetworkProfileVHub{}
 
+	publicIPIDs := make([]string, 0)
+	publicIPs := make([]string, 0)
 	for _, v := range input.PublicIPs {
-		result.PublicIPIDs = append(result.PublicIPIDs, pointer.From(v.ResourceId))
-		result.PublicIPs = append(result.PublicIPs, pointer.From(v.ResourceId))
-	}
-
-	if egressIPS := pointer.From(input.EgressNatIP); len(egressIPS) > 0 {
-		for _, v := range egressIPS {
-			result.EgressNatIPIDs = append(result.EgressNatIPIDs, pointer.From(v.ResourceId))
-			result.EgressNatIP = append(result.EgressNatIP, pointer.From(v.Address))
+		if id := pointer.From(v.ResourceId); id != "" {
+			publicIPIDs = append(publicIPIDs, id)
+		}
+		if ip := pointer.From(v.Address); ip != "" {
+			publicIPs = append(publicIPs, ip)
 		}
 	}
+	result.PublicIPIDs = publicIPIDs
+	result.PublicIPs = publicIPs
+
+	egressIds := make([]string, 0)
+	egressIPs := make([]string, 0)
+	if input.EgressNatIP != nil {
+		for _, v := range *input.EgressNatIP {
+			if id := pointer.From(v.ResourceId); id != "" {
+				egressIds = append(egressIds, id)
+			}
+			if ip := pointer.From(v.Address); ip != "" {
+				egressIPs = append(egressIPs, ip)
+			}
+		}
+	}
+	result.EgressNatIPIDs = egressIds
+	result.EgressNatIP = egressIPs
 
 	if v := input.VwanConfiguration; v != nil {
 

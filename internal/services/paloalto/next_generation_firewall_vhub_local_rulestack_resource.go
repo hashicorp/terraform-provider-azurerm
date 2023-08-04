@@ -150,7 +150,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 300 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.Client.Firewalls
 
