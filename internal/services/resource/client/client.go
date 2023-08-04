@@ -5,6 +5,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/resourcegraph/mgmt/2021-03-01/resourcegraph"             // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2015-12-01/features"                      // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
@@ -21,6 +22,7 @@ type Client struct {
 	LocksClient                 *managementlocks.ManagementLocksClient
 	ResourceProvidersClient     *providers.ProvidersClient
 	ResourcesClient             *resources.Client
+	ResourceGraphClient         *resourcegraph.BaseClient
 	TagsClient                  *resources.TagsClient
 	TemplateSpecsVersionsClient *templatespecs.VersionsClient
 
@@ -49,6 +51,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	resourcesClient := resources.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&resourcesClient.Client, o.ResourceManagerAuthorizer)
 
+	resourceGraphClient := resourcegraph.NewWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&resourceGraphClient.Client, o.ResourceManagerAuthorizer)
+
 	templatespecsVersionsClient := templatespecs.NewVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&templatespecsVersionsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -63,6 +68,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		LocksClient:                 &locksClient,
 		ResourceProvidersClient:     &resourceProvidersClient,
 		ResourcesClient:             &resourcesClient,
+		ResourceGraphClient:         &resourceGraphClient,
 		TagsClient:                  &tagsClient,
 		TemplateSpecsVersionsClient: &templatespecsVersionsClient,
 
