@@ -102,6 +102,12 @@ func resourceSpringCloudConfigurationService() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						"ca_certificate_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.SpringCloudCertificateID,
+						},
+
 						"host_key": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -259,6 +265,7 @@ func expandConfigurationServiceConfigurationServiceGitRepositoryArray(input []in
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, appplatform.ConfigurationServiceGitRepository{
+			CaCertResourceID:      utils.String(v["ca_certificate_id"].(string)),
 			Name:                  utils.String(v["name"].(string)),
 			Patterns:              utils.ExpandStringSlice(v["patterns"].(*pluginsdk.Set).List()),
 			URI:                   utils.String(v["uri"].(string)),
@@ -330,7 +337,16 @@ func flattenConfigurationServiceConfigurationServiceGitRepositoryArray(input *[]
 				username = value.(string)
 			}
 		}
+
+		var caCertificateId string
+		if item.CaCertResourceID != nil {
+			certificatedId, err := parse.SpringCloudCertificateIDInsensitively(*item.CaCertResourceID)
+			if err == nil {
+				caCertificateId = certificatedId.ID()
+			}
+		}
 		results = append(results, map[string]interface{}{
+			"ca_certificate_id":        caCertificateId,
 			"name":                     name,
 			"label":                    label,
 			"patterns":                 utils.FlattenStringSlice(item.Patterns),
