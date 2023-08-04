@@ -52,13 +52,21 @@ resource "azurerm_virtual_network_peering" "spoke_peers" {
 
 ~> **Note:** At least one of `name`, `resource_group_name` or `type` must be specified.
 
-* `name` - (Optional) The name of the Resource.
+* `name` - (Optional) The name of the Resource to search for.
 
 * `resource_group_name` - (Optional) The name of the Resource group where the Resources are located.
 
 * `type` - (Optional) The Resource Type of the Resources you want to list (e.g. `Microsoft.Network/virtualNetworks`). A full list of available Resource Types can be found [here](https://docs.microsoft.com/azure/azure-resource-manager/azure-services-resource-providers).
 
+* `location` - (Optional) Only return resources that deployed at a specific location
+
 * `required_tags` - (Optional) A mapping of tags which the resource has to have in order to be included in the result.
+
+* `subscription_ids` - (Optional) Azure subscription ids against which to execute the query
+
+* `management_group_ids`- (Optional) Azure management group names against which to execute the query
+
+~> **Note:** All specified (filter) attributes are joined together using an `and` operator.
 
 ## Attributes Reference
 
@@ -71,6 +79,8 @@ The `resource` block exports the following:
 * `name` - The name of this Resource.
 
 * `id` - The ID of this Resource.
+
+* `subscription_id` - The subscription to which the Resources is deployed.
 
 * `resource_group_name` - The name of the Resource Group in which this Resource exists.
 
