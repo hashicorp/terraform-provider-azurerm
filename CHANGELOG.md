@@ -18,6 +18,7 @@ BUG FIXES:
 
 * `azurerm_cdn_endpoint` - conditionally using `PUT` in place of `PATCH` when a field other than `tags` has changed [GH-22662]
 * `azurerm_custom_ip_prefix` - support for environments other than Azure Public [GH-22812]
+* `azurerm_kusto_cosmosdb_data_connection_resource` - ensure the `subscriptionId` and `ResourceGroupName` align with the CosmosDB container [GH-22663]
 
 ## 3.68.0 (August 03, 2023)
 
