@@ -233,6 +233,7 @@ func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	client := meta.(*clients.Client).Datadog.Rules
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+	
 	id, err := rules.ParseTagRuleID(d.Id())
 	if err != nil {
 		return err
