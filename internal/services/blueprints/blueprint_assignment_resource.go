@@ -61,7 +61,7 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"identity": commonschema.UserAssignedIdentityRequired(),
+			"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
 
 			"version_id": {
 				Type:         pluginsdk.TypeString,
