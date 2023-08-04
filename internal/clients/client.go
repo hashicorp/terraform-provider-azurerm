@@ -325,7 +325,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Batch, err = batch.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Batch: %+v", err)
 	}
-	client.Blueprints = blueprints.NewClient(o)
+	if client.Blueprints, err = blueprints.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for BluePrints: %+v", err)
+	}
 	client.Bot = bot.NewClient(o)
 	client.Cdn = cdn.NewClient(o)
 	if client.Cognitive, err = cognitiveServices.NewClient(o); err != nil {
