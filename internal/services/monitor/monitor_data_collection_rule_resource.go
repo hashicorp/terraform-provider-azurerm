@@ -2189,7 +2189,7 @@ func (r DataCollectionRuleResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if oldVal, _ := metadata.ResourceDiff.GetChange("kind"); oldVal.(string) != "" {
+			if oldValue, newValue := metadata.ResourceDiff.GetChange("kind"); oldValue.(string) != newValue.(string) && oldValue.(string) != "" {
 				if err := metadata.ResourceDiff.ForceNew("kind"); err != nil {
 					return err
 				}
