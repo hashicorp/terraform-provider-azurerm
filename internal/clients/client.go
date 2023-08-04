@@ -328,7 +328,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Blueprints, err = blueprints.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for BluePrints: %+v", err)
 	}
-	client.Bot = bot.NewClient(o)
+	if client.Bot, err = bot.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Bot: %+v", err)
+	}
 	client.Cdn = cdn.NewClient(o)
 	if client.Cognitive, err = cognitiveServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Cognitive: %+v", err)
@@ -417,12 +419,16 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.HPCCache, err = hpccache.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HPC Cache: %+v", err)
 	}
-	client.HSM = hsm.NewClient(o)
+	if client.HSM, err = hsm.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for HSM: %+v", err)
+	}
 	client.HDInsight = hdinsight.NewClient(o)
 	if client.HealthCare, err = healthcare.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HealthCare: %+v", err)
 	}
-	client.HybridCompute = hybridcompute.NewClient(o)
+	if client.HybridCompute, err = hybridcompute.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for HybridCompute: %+v", err)
+	}
 	if client.IoTCentral, err = iotcentral.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for IoTCentral: %+v", err)
 	}

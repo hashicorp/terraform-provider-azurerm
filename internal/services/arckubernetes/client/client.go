@@ -19,24 +19,26 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-
-	arcKubernetesClient := connectedclusters.NewConnectedClustersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&arcKubernetesClient.Client, o.ResourceManagerAuthorizer)
+	arcKubernetesClient, err := connectedclusters.NewConnectedClustersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ConnectedClusters client: %+v", err)
+	}
+	o.Configure(arcKubernetesClient.Client, o.Authorizers.ResourceManager)
 
 	extensionsClient, err := extensions.NewExtensionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Extensions Client: %+v", err)
+		return nil, fmt.Errorf("building Extensions client: %+v", err)
 	}
 	o.Configure(extensionsClient.Client, o.Authorizers.ResourceManager)
 
 	fluxConfigurationClient, err := fluxconfiguration.NewFluxConfigurationClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Flux Configuration Client: %+v", err)
+		return nil, fmt.Errorf("building FluxConfiguration client: %+v", err)
 	}
 	o.Configure(fluxConfigurationClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ArcKubernetesClient:     &arcKubernetesClient,
+		ArcKubernetesClient:     arcKubernetesClient,
 		ExtensionsClient:        extensionsClient,
 		FluxConfigurationClient: fluxConfigurationClient,
 	}, nil
