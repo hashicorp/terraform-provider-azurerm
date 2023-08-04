@@ -1092,6 +1092,22 @@ The `secret_identity` block exports the following:
 
 ---
 
+A `web_app_routing` block exports the following:
+
+* `web_app_routing_identity` -  A `web_app_routing_identity` block is exported. The exported attributes are defined below.
+
+---
+
+The `web_app_routing_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used for Web App Routing.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used for Web App Routing
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used for Web App Routing.
+
+---
+
 A `workload_autoscaler_profile` block exports the following:
 
 * `vertical_pod_autoscaler_controlled_values` - Which resources values should be controlled.

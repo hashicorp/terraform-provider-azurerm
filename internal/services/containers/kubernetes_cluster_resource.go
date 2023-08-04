@@ -474,6 +474,26 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								validation.StringIsEmpty,
 							),
 						},
+						"web_app_routing_identity": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"client_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"object_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"user_assigned_identity_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -4427,9 +4447,16 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 		dnsZoneId = *v
 	}
 
+	webAppRoutingIdentity := []interface{}{}
+
+	if v := input.WebAppRouting.Identity; v != nil {
+		webAppRoutingIdentity = flattenKubernetesClusterAddOnIdentityProfile(v)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"dns_zone_id": dnsZoneId,
+			"dns_zone_id":              dnsZoneId,
+			"web_app_routing_identity": webAppRoutingIdentity,
 		},
 	}
 }
