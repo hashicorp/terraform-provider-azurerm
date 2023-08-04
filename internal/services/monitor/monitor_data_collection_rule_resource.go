@@ -27,6 +27,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var _ sdk.ResourceWithUpdate = DataCollectionRuleResource{}
+var _ sdk.ResourceWithCustomizeDiff = DataCollectionRuleResource{}
+
 type DataCollectionRule struct {
 	DataCollectionEndpointId string                 `tfschema:"data_collection_endpoint_id"`
 	DataFlows                []DataFlow             `tfschema:"data_flow"`
@@ -2180,4 +2183,18 @@ func flattenDataCollectionRuleStreamDeclarations(input *map[string]datacollectio
 	}
 
 	return result
+}
+
+func (r DataCollectionRuleResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if oldVal, _ := metadata.ResourceDiff.GetChange("kind"); oldVal.(string) != "" {
+				if err := metadata.ResourceDiff.ForceNew("kind"); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	}
 }
