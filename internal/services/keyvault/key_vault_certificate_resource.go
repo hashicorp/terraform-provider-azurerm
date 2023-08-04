@@ -415,7 +415,7 @@ func createCertificate(d *pluginsdk.ResourceData, meta interface{}) (keyvault.Ce
 	defer cancel()
 
 	name := d.Get("name").(string)
-	keyVaultId, err := parse.VaultID(d.Get("key_vault_id").(string))
+	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
 		return keyvault.CertificateBundle{}, err
 	}
@@ -662,7 +662,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 			return nil, "", fmt.Errorf("missing status in certificate operation")
 		}
 
-		if *operation.Status == "inProgress" {
+		if strings.EqualFold(*operation.Status, "inProgress") {
 			return operation, "Provisioning", nil
 		}
 
