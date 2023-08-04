@@ -7,6 +7,10 @@ ENHANCEMENTS:
 * `azurerm_postgresql_database` - updating the validation for `collation` [GH-22689]
 * `azurerm_postgresql_flexible_server_database` - updating the validation for `collation` [GH-22689]
 
+BUG FIXES:
+
+* `azurerm_cdn_endpoint` - conditionally using `PUT` in place of `PATCH` when a field other than `tags` has changed [GH-22662]
+
 ## 3.68.0 (August 03, 2023)
 
 FEATURES:
