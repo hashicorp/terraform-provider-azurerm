@@ -70,7 +70,7 @@ func resourcePostgreSQLDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatabaseCollation,
+				ValidateFunc: validate.PostgresqlDatabaseCollation,
 			},
 		},
 	}

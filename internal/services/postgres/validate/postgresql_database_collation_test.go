@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestDatabaseCollation(t *testing.T) {
+func TestPostgresqlDatabaseCollation(t *testing.T) {
 	tests := []struct {
 		name  string
 		input string
@@ -42,7 +42,7 @@ func TestDatabaseCollation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := DatabaseCollation(tt.input, "collation")
+			_, err := PostgresqlDatabaseCollation(tt.input, "collation")
 			valid := err == nil
 			if valid != tt.valid {
 				t.Errorf("Expected valid status %t but got %t for input %s", tt.valid, valid, tt.input)
