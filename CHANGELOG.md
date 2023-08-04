@@ -2,8 +2,13 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20230804.1110546` of `github.com/hashicorp/go-azure-sdk` [GH-22815]
+* `arckubernetes` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
+* `bot` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
 * `blueprints`: updating to use `hashicorp/go-azure-sdk` [GH-21569]
 * `digitaltwins` - updating to API Version `2023-01-31` [GH-22782]
+* `hsm` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
+* `hybridcompute` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
 * `azurerm_digital_twins_instance` - support for User Assigned Identities [GH-22782]
 * `azurerm_kubernetes_cluster` - export the identity for Web App Routing under `web_app_routing_identity` [GH-22809]
 * `azurerm_postgresql_database` - updating the validation for `collation` [GH-22689]
