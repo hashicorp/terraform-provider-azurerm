@@ -19,6 +19,7 @@ import (
 // - GitHub OIDC authentication
 // - MSI authentication
 // - Azure CLI authentication
+// - Azure Developer CLI (azd) authentication
 //
 // Whether one of these is returned depends on whether it is enabled in the Credentials, and whether sufficient
 // configuration fields are set to enable that authentication method.
@@ -28,7 +29,8 @@ import (
 // For OIDC authentication, specify TenantID, ClientID and OIDCAssertionToken.
 // For GitHub OIDC authentication, specify TenantID, ClientID, GitHubOIDCTokenRequestURL and GitHubOIDCTokenRequestToken.
 // MSI authentication (if enabled) using the Azure Metadata Service is then attempted
-// Azure CLI authentication (if enabled) is attempted last
+// Azure CLI authentication (if enabled) is then attempted
+// Azure Developer CLI authentication (if enabled) is attempted last
 //
 // It's recommended to only enable the mechanisms you have configured and are known to work in the execution
 // environment. If any authentication mechanism fails due to misconfiguration or some other error, the function
@@ -133,6 +135,21 @@ func NewAuthorizerFromCredentials(ctx context.Context, c Credentials, api enviro
 		a, err := NewAzureCliAuthorizer(ctx, opts)
 		if err != nil {
 			return nil, fmt.Errorf("could not configure AzureCli Authorizer: %s", err)
+		}
+		if a != nil {
+			return a, nil
+		}
+	}
+
+	if c.EnableAuthenticatingUsingAzureDeveloperCLI {
+		opts := AzureDeveloperCliAuthorizerOptions{
+			Api:          api,
+			TenantId:     c.TenantID,
+			AuxTenantIds: c.AuxiliaryTenantIDs,
+		}
+		a, err := NewAzureDeveloperCliAuthorizer(ctx, opts)
+		if err != nil {
+			return nil, fmt.Errorf("could not configure AzureDeveloperCli Authorizer: %s", err)
 		}
 		if a != nil {
 			return a, nil

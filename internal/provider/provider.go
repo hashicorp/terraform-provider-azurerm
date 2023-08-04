@@ -313,6 +313,15 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "Allow Azure CLI to be used for Authentication.",
 			},
 
+			// Azure Developer CLI specific fields
+			"use_azd": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_AZD", true),
+				Description: "Allow Azure Developer CLI to be used for Authentication.",
+			},
+
 			// Managed Tracking GUID for User-agent
 			"partner_id": {
 				Type:         schema.TypeString,
@@ -417,6 +426,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 		var (
 			enableAzureCli        = d.Get("use_cli").(bool)
+			enableAzd             = d.Get("use_azd").(bool)
 			enableManagedIdentity = d.Get("use_msi").(bool)
 			enableOidc            = d.Get("use_oidc").(bool)
 		)
@@ -441,6 +451,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			EnableAuthenticatingUsingClientCertificate: true,
 			EnableAuthenticatingUsingClientSecret:      true,
 			EnableAuthenticatingUsingAzureCLI:          enableAzureCli,
+			EnableAuthenticatingUsingAzureDeveloperCLI: enableAzd,
 			EnableAuthenticatingUsingManagedIdentity:   enableManagedIdentity,
 			EnableAuthenticationUsingOIDC:              enableOidc,
 			EnableAuthenticationUsingGitHubOIDC:        enableOidc,

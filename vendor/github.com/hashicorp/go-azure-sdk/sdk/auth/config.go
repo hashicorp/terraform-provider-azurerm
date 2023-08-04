@@ -22,6 +22,9 @@ type Credentials struct {
 	// EnableAuthenticatingUsingAzureCLI specifies whether Azure CLI authentication should be checked.
 	EnableAuthenticatingUsingAzureCLI bool
 
+	// EnableAuthenticatingUsingAzureDeveloperCLI specifies whether Azure Developer CLI authentication should be checked.
+	EnableAuthenticatingUsingAzureDeveloperCLI bool
+
 	// EnableAuthenticatingUsingClientCertificate specifies whether Client Certificate authentication should be checked.
 	EnableAuthenticatingUsingClientCertificate bool
 	// ClientCertificateData specifies the contents of a Client Certificate PKCS#12 bundle.
