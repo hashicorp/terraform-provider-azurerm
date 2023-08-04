@@ -124,6 +124,7 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ingestion_source": {
