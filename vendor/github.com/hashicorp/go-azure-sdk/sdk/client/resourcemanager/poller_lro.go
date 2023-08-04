@@ -183,6 +183,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			"newReplicaGroup": pollers.PollingStatusInProgress,
 			// AnalysisServices @ 2017-08-01 (Servers) returns `Provisioning` during Creation
 			"Provisioning": pollers.PollingStatusInProgress,
+			// HealthBot @ 2022-08-08 (HealthBots CreateOrUpdate) returns `Working` during Creation
+			"Working": pollers.PollingStatusInProgress,
 		}
 		for k, v := range statuses {
 			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {
