@@ -89,7 +89,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6", useDevTestSubscription = true),
 
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
-        "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1", useDevTestSubscription = true),
+        "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
 
         // IoT Central is only available in certain locations
         "iotcentral" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false), useDevTestSubscription = true),
