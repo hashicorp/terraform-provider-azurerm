@@ -8,7 +8,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DigitalTwinsPatchDescription struct {
-	Identity   *identity.SystemAssigned     `json:"identity,omitempty"`
-	Properties *DigitalTwinsPatchProperties `json:"properties,omitempty"`
-	Tags       *map[string]string           `json:"tags,omitempty"`
+	Identity   *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
+	Properties *DigitalTwinsPatchProperties             `json:"properties,omitempty"`
+	Tags       *map[string]string                       `json:"tags,omitempty"`
 }

@@ -3,6 +3,8 @@ package endpoints
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -12,6 +14,7 @@ type DigitalTwinsEndpointResource struct {
 	Id         *string                                `json:"id,omitempty"`
 	Name       *string                                `json:"name,omitempty"`
 	Properties DigitalTwinsEndpointResourceProperties `json:"properties"`
+	SystemData *systemdata.SystemData                 `json:"systemData,omitempty"`
 	Type       *string                                `json:"type,omitempty"`
 }
 
@@ -26,6 +29,7 @@ func (s *DigitalTwinsEndpointResource) UnmarshalJSON(bytes []byte) error {
 
 	s.Id = decoded.Id
 	s.Name = decoded.Name
+	s.SystemData = decoded.SystemData
 	s.Type = decoded.Type
 
 	var temp map[string]json.RawMessage

@@ -63,6 +63,7 @@ const (
 	EndpointProvisioningStateRestoring    EndpointProvisioningState = "Restoring"
 	EndpointProvisioningStateSucceeded    EndpointProvisioningState = "Succeeded"
 	EndpointProvisioningStateSuspending   EndpointProvisioningState = "Suspending"
+	EndpointProvisioningStateUpdating     EndpointProvisioningState = "Updating"
 	EndpointProvisioningStateWarning      EndpointProvisioningState = "Warning"
 )
 
@@ -78,6 +79,7 @@ func PossibleValuesForEndpointProvisioningState() []string {
 		string(EndpointProvisioningStateRestoring),
 		string(EndpointProvisioningStateSucceeded),
 		string(EndpointProvisioningStateSuspending),
+		string(EndpointProvisioningStateUpdating),
 		string(EndpointProvisioningStateWarning),
 	}
 }
@@ -107,6 +109,7 @@ func parseEndpointProvisioningState(input string) (*EndpointProvisioningState, e
 		"restoring":    EndpointProvisioningStateRestoring,
 		"succeeded":    EndpointProvisioningStateSucceeded,
 		"suspending":   EndpointProvisioningStateSuspending,
+		"updating":     EndpointProvisioningStateUpdating,
 		"warning":      EndpointProvisioningStateWarning,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -159,5 +162,46 @@ func parseEndpointType(input string) (*EndpointType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := EndpointType(input)
+	return &out, nil
+}
+
+type IdentityType string
+
+const (
+	IdentityTypeSystemAssigned IdentityType = "SystemAssigned"
+	IdentityTypeUserAssigned   IdentityType = "UserAssigned"
+)
+
+func PossibleValuesForIdentityType() []string {
+	return []string{
+		string(IdentityTypeSystemAssigned),
+		string(IdentityTypeUserAssigned),
+	}
+}
+
+func (s *IdentityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIdentityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseIdentityType(input string) (*IdentityType, error) {
+	vals := map[string]IdentityType{
+		"systemassigned": IdentityTypeSystemAssigned,
+		"userassigned":   IdentityTypeUserAssigned,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := IdentityType(input)
 	return &out, nil
 }

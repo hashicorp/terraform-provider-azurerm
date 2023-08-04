@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2022-10-31/timeseriesdatabaseconnections` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/timeseriesdatabaseconnections` Documentation
 
-The `timeseriesdatabaseconnections` SDK allows for interaction with the Azure Resource Manager Service `digitaltwins` (API Version `2022-10-31`).
+The `timeseriesdatabaseconnections` SDK allows for interaction with the Azure Resource Manager Service `digitaltwins` (API Version `2023-01-31`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2022-10-31/timeseriesdatabaseconnections"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/timeseriesdatabaseconnections"
 ```
 
 
@@ -43,7 +43,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 ctx := context.TODO()
 id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue", "timeSeriesDatabaseConnectionValue")
 
-if err := client.DeleteThenPoll(ctx, id); err != nil {
+if err := client.DeleteThenPoll(ctx, id, timeseriesdatabaseconnections.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
 }
 ```
