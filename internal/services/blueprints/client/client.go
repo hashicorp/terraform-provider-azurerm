@@ -4,7 +4,6 @@
 package client
 
 import (
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/blueprint"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint"
@@ -15,8 +14,6 @@ type Client struct {
 	AssignmentsClient         *assignment.AssignmentClient
 	BlueprintsClient          *blueprint.BlueprintClient
 	PublishedBlueprintsClient *publishedblueprint.PublishedBlueprintClient
-
-	Environment azure.Environment
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
