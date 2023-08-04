@@ -1,48 +1,48 @@
-## 3.68.0 (Unreleased)
+## 3.68.0 (August 03, 2023)
 
 FEATURES:
 
-* **New Resource:** `azurerm_custom_ip_prefix` [GH-21322]
-* **New Resource:**: `azurerm_mobile_network_sim` [GH-22628]
-* **New Data Source:** `azurerm_mobile_network_sim` [GH-22628]
-* **New Resource:** `azurerm_automation_variable_object` [GH-22644]
-* **New Data Source:** `azurerm_automation_variable_object` [GH-22644]
+* **New Resource:** `azurerm_custom_ip_prefix` ([#21322](https://github.com/hashicorp/terraform-provider-azurerm/issues/21322))
+* **New Resource:**: `azurerm_mobile_network_sim` ([#22628](https://github.com/hashicorp/terraform-provider-azurerm/issues/22628))
+* **New Data Source:** `azurerm_mobile_network_sim` ([#22628](https://github.com/hashicorp/terraform-provider-azurerm/issues/22628))
+* **New Resource:** `azurerm_automation_variable_object` ([#22644](https://github.com/hashicorp/terraform-provider-azurerm/issues/22644))
+* **New Data Source:** `azurerm_automation_variable_object` ([#22644](https://github.com/hashicorp/terraform-provider-azurerm/issues/22644))
 
 ENHANCEMENTS
 
-* dependencies: updating to `v0.20230803.1095722` of `github.com/hashicorp/go-azure-sdk` [GH-22803]
-* dependencies: migrate mysql resources to `hashicorp/go-azure-sdk` [GH-22795]
-* `advisor`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
-* `apimanagement`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22759]
-* `analysisservices`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
-* `automation`: updating `dscnodeconfiguration` and `sourcecontrol` to use API Version `2022-08-08` [GH-22781]
-* `azurestackhci`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
-* `domainservices`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
-* `eventgrid`: refactoring to use `hashicorp/go-azure-sdk` [GH-22673]
-* `machinelearningservice`: updating to use API Version `2023-04-01` [GH-22729]
-* `monitor`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-22750]
-* `network`: updating to use API Version `2023-04-01` [GH-22727]
-* `relay`: updating to use API Version `2021-11-01` [GH-22725]
-* Data Source: `azurerm_images` - support for `disk_encryption_set_id` [GH-22690]
-* `azurerm_eventhub_namespace_customer_managed_key` - support for the `infrastructure_encryption_enabled` property [GH-22718]
-* `azurerm_hpc_cache_blob_nfs_target` - support for setting the `usage_model` property to `READ_ONLY` and `READ_WRITE` [GH-22798]
-* `azurerm_hpc_cache_nfs_target` - support for setting the `usage_model` property to `READ_ONLY` and `READ_WRITE` [GH-22798]
-* `azurerm_monitor_aad_diagnostic_setting` - updating to use `hashicorp/go-azure-sdk` [GH-22778]
-* `azurerm_web_application_firewall_policy` - updating to use API Version `2023-02-01` [GH-22455]
-* `azurerm_web_application_firewall_policy` - support for `log_scrubbing` property [GH-22522]
-* `azurerm_shared_image_gallery` - support for the `sharing` block [GH-22221]
-* `azurerm_virtual_network` - support for the `encryption` block [GH-22745]
+* dependencies: updating to `v0.20230803.1095722` of `github.com/hashicorp/go-azure-sdk` ([#22803](https://github.com/hashicorp/terraform-provider-azurerm/issues/22803))
+* dependencies: migrate mysql resources to `hashicorp/go-azure-sdk` ([#22795](https://github.com/hashicorp/terraform-provider-azurerm/issues/22795))
+* `advisor`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22750](https://github.com/hashicorp/terraform-provider-azurerm/issues/22750))
+* `apimanagement`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22759](https://github.com/hashicorp/terraform-provider-azurerm/issues/22759))
+* `analysisservices`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22750](https://github.com/hashicorp/terraform-provider-azurerm/issues/22750))
+* `automation`: updating `dscnodeconfiguration` and `sourcecontrol` to use API Version `2022-08-08` ([#22781](https://github.com/hashicorp/terraform-provider-azurerm/issues/22781))
+* `azurestackhci`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22750](https://github.com/hashicorp/terraform-provider-azurerm/issues/22750))
+* `domainservices`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22750](https://github.com/hashicorp/terraform-provider-azurerm/issues/22750))
+* `eventgrid`: refactoring to use `hashicorp/go-azure-sdk` ([#22673](https://github.com/hashicorp/terraform-provider-azurerm/issues/22673))
+* `machinelearningservice`: updating to use API Version `2023-04-01` ([#22729](https://github.com/hashicorp/terraform-provider-azurerm/issues/22729))
+* `monitor`: updating the base layer to use `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#22750](https://github.com/hashicorp/terraform-provider-azurerm/issues/22750))
+* `network`: updating to use API Version `2023-04-01` ([#22727](https://github.com/hashicorp/terraform-provider-azurerm/issues/22727))
+* `relay`: updating to use API Version `2021-11-01` ([#22725](https://github.com/hashicorp/terraform-provider-azurerm/issues/22725))
+* Data Source: `azurerm_images` - support for `disk_encryption_set_id` ([#22690](https://github.com/hashicorp/terraform-provider-azurerm/issues/22690))
+* `azurerm_eventhub_namespace_customer_managed_key` - support for the `infrastructure_encryption_enabled` property ([#22718](https://github.com/hashicorp/terraform-provider-azurerm/issues/22718))
+* `azurerm_hpc_cache_blob_nfs_target` - support for setting the `usage_model` property to `READ_ONLY` and `READ_WRITE` ([#22798](https://github.com/hashicorp/terraform-provider-azurerm/issues/22798))
+* `azurerm_hpc_cache_nfs_target` - support for setting the `usage_model` property to `READ_ONLY` and `READ_WRITE` ([#22798](https://github.com/hashicorp/terraform-provider-azurerm/issues/22798))
+* `azurerm_monitor_aad_diagnostic_setting` - updating to use `hashicorp/go-azure-sdk` ([#22778](https://github.com/hashicorp/terraform-provider-azurerm/issues/22778))
+* `azurerm_web_application_firewall_policy` - updating to use API Version `2023-02-01` ([#22455](https://github.com/hashicorp/terraform-provider-azurerm/issues/22455))
+* `azurerm_web_application_firewall_policy` - support for `log_scrubbing` property ([#22522](https://github.com/hashicorp/terraform-provider-azurerm/issues/22522))
+* `azurerm_shared_image_gallery` - support for the `sharing` block ([#22221](https://github.com/hashicorp/terraform-provider-azurerm/issues/22221))
+* `azurerm_virtual_network` - support for the `encryption` block ([#22745](https://github.com/hashicorp/terraform-provider-azurerm/issues/22745))
   
 BUG FIXES
 
-* provider: only obtaining an authentication token for Managed HSM in environments where Managed HSM is available [GH-22400]
-* `azurerm_api_management` - retrieving the `location` from the API rather than the config prior to deletion [GH-22752]
-* `azurerm_cognitive_deployment` - add locks to parent resource to prevent 409 error [GH-22711]
-* `azurerm_pim_eligible_role_assignment` - fixing a bug where the context deadline was checked incorrectly during deletion [GH-22756]
-* `azurerm_private_endpoint` - loading the subnet to lock from the API rather than the config during deletion [GH-22676]
-* `azurerm_netapp_volume` - updating the validation of `security_style` to match the casing defined in the Azure API Definitions [GH-22721]
-* `azurerm_netapp_volume_group_sap_hana` - update the validation of `security_style` to match the casing defined in the Azure API Definitions [GH-22615]
-* `azurerm_site_recovery_replication_recovery_plan` - fix update for `boot_recovery_group`,`failover_recovery_group` and `shutdown_recovery_group` [GH-22687]
+* provider: only obtaining an authentication token for Managed HSM in environments where Managed HSM is available ([#22400](https://github.com/hashicorp/terraform-provider-azurerm/issues/22400))
+* `azurerm_api_management` - retrieving the `location` from the API rather than the config prior to deletion ([#22752](https://github.com/hashicorp/terraform-provider-azurerm/issues/22752))
+* `azurerm_cognitive_deployment` - add locks to parent resource to prevent 409 error ([#22711](https://github.com/hashicorp/terraform-provider-azurerm/issues/22711))
+* `azurerm_pim_eligible_role_assignment` - fixing a bug where the context deadline was checked incorrectly during deletion ([#22756](https://github.com/hashicorp/terraform-provider-azurerm/issues/22756))
+* `azurerm_private_endpoint` - loading the subnet to lock from the API rather than the config during deletion ([#22676](https://github.com/hashicorp/terraform-provider-azurerm/issues/22676))
+* `azurerm_netapp_volume` - updating the validation of `security_style` to match the casing defined in the Azure API Definitions ([#22721](https://github.com/hashicorp/terraform-provider-azurerm/issues/22721))
+* `azurerm_netapp_volume_group_sap_hana` - update the validation of `security_style` to match the casing defined in the Azure API Definitions ([#22615](https://github.com/hashicorp/terraform-provider-azurerm/issues/22615))
+* `azurerm_site_recovery_replication_recovery_plan` - fix update for `boot_recovery_group`,`failover_recovery_group` and `shutdown_recovery_group` ([#22687](https://github.com/hashicorp/terraform-provider-azurerm/issues/22687))
 
 ## 3.67.0 (July 27, 2023)
 
