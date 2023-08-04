@@ -38,7 +38,7 @@ func NewAzureDeveloperCliAuthorizer(ctx context.Context, options AzureDeveloperC
 	return conf.TokenSource(ctx)
 }
 
-var _ Authorizer = &AzureCliAuthorizer{}
+var _ Authorizer = &AzureDeveloperCliAuthorizer{}
 
 // AzureDeveloperCliAuthorizer is an Authorizer which supports the Azure Developer CLI (azd).
 type AzureDeveloperCliAuthorizer struct {
@@ -76,7 +76,7 @@ func (a *AzureDeveloperCliAuthorizer) Token(_ context.Context, _ *http.Request) 
 	var expiry time.Time
 	if token.ExpiresOn != "" {
 		if expiry, err = time.ParseInLocation("2006-01-02T15:04:05Z", token.ExpiresOn, time.Local); err != nil {
-			return nil, fmt.Errorf("internal-error: parsing expiresOn value for az-cli token")
+			return nil, fmt.Errorf("internal-error: parsing expiresOn value for azd-cli auth token")
 		}
 	}
 
