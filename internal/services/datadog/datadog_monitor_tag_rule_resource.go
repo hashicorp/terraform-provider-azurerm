@@ -238,6 +238,7 @@ func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
+	// Tag Rules can't be removed on their own, they can only be nil'd out
 	payload := rules.MonitoringTagRules{
 		Properties: &rules.MonitoringTagRulesProperties{
 			LogRules: &rules.LogRules{
