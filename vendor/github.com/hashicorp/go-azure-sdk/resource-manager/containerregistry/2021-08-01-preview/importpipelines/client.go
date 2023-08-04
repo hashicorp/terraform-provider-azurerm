@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type ImportPipelinesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewImportPipelinesClientWithBaseURI(api environments.Api) (*ImportPipelinesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "importpipelines", defaultApiVersion)
+func NewImportPipelinesClientWithBaseURI(sdkApi sdkEnv.Api) (*ImportPipelinesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "importpipelines", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ImportPipelinesClient: %+v", err)
 	}

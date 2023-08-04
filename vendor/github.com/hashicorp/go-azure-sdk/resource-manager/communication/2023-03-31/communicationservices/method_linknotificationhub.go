@@ -21,7 +21,7 @@ type LinkNotificationHubOperationResponse struct {
 // LinkNotificationHub ...
 func (c CommunicationServicesClient) LinkNotificationHub(ctx context.Context, id CommunicationServiceId, input LinkNotificationHubParameters) (result LinkNotificationHubOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

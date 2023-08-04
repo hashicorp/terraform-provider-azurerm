@@ -101,6 +101,8 @@ The following arguments are supported:
 
 * `key_vault_key_ids` - (Required) The list of keys of Key Vault.
 
+* `infrastructure_encryption_enabled` - (Optional) Whether to enable Infrastructure Encryption (Double Encryption). Changing this forces a new resource to be created.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

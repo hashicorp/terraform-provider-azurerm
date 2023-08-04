@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containerapps_test
 
 import (
@@ -54,6 +57,21 @@ func TestAccContainerAppResource_withUserAssignedIdentity(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_withSystemAndUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSystemAndUserIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -135,6 +153,21 @@ func TestAccContainerAppResource_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "rev1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_completeVolumeEmptyDir(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeEmptyDir(data, "rev1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -368,6 +401,39 @@ resource "azurerm_container_app" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ContainerAppResource) withSystemAndUserIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r ContainerAppResource) basicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -465,6 +531,102 @@ resource "azurerm_container_app" "test" {
       name         = azurerm_container_app_environment_storage.test.name
       storage_type = "AzureFile"
       storage_name = azurerm_container_app_environment_storage.test.name
+    }
+
+    min_replicas = 2
+    max_replicas = 3
+
+    revision_suffix = "%[3]s"
+  }
+
+  ingress {
+    allow_insecure_connections = true
+    external_enabled           = true
+    target_port                = 5000
+    transport                  = "http"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+
+  registry {
+    server               = azurerm_container_registry.test.login_server
+    username             = azurerm_container_registry.test.admin_username
+    password_secret_name = "registry-password"
+  }
+
+  secret {
+    name  = "registry-password"
+    value = azurerm_container_registry.test.admin_password
+  }
+
+  dapr {
+    app_id       = "acctest-cont-%[2]d"
+    app_port     = 5000
+    app_protocol = "http"
+  }
+
+  tags = {
+    foo     = "Bar"
+    accTest = "1"
+  }
+}
+`, r.templatePlusExtras(data), data.RandomInteger, revisionSuffix)
+}
+
+func (r ContainerAppResource) completeEmptyDir(data acceptance.TestData, revisionSuffix string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      readiness_probe {
+        transport = "HTTP"
+        port      = 5000
+      }
+
+      liveness_probe {
+        transport = "HTTP"
+        port      = 5000
+        path      = "/health"
+
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
+        }
+
+        initial_delay           = 5
+        interval_seconds        = 20
+        timeout                 = 2
+        failure_count_threshold = 1
+      }
+
+      startup_probe {
+        transport = "TCP"
+        port      = 5000
+      }
+
+      volume_mounts {
+        name = azurerm_container_app_environment_storage.test.name
+        path = "/tmp/testdata"
+      }
+    }
+
+    volume {
+      name         = azurerm_container_app_environment_storage.test.name
+      storage_type = "EmptyDir"
     }
 
     min_replicas = 2

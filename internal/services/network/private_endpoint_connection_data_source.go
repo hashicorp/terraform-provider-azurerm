@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,14 +8,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
@@ -80,16 +84,16 @@ func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
 }
 
 func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PrivateEndpointClient
+	client := meta.(*clients.Client).Network.PrivateEndpoints
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	nicsClient := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	id := privateendpoints.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id, privateendpoints.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -97,28 +101,31 @@ func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta int
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.PrivateEndpointName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.PrivateEndpointProperties; props != nil {
-		networkInterfaceId := ""
-		privateIpAddress := ""
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-		if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
-			nic := (*nics)[0]
-			if nic.ID != nil && *nic.ID != "" {
-				networkInterfaceId = *nic.ID
-				privateIpAddress = getPrivateIpAddress(ctx, nicsClient, networkInterfaceId)
+		if props := model.Properties; props != nil {
+			networkInterfaceId := ""
+			privateIpAddress := ""
+
+			if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
+				nic := (*nics)[0]
+				if nic.Id != nil && *nic.Id != "" {
+					networkInterfaceId = *nic.Id
+					privateIpAddress = getPrivateIpAddress(ctx, nicsClient, networkInterfaceId)
+				}
 			}
-		}
 
-		if err := d.Set("network_interface", flattenNetworkInterface(networkInterfaceId)); err != nil {
-			return fmt.Errorf("setting `network_interface`: %+v", err)
-		}
+			if err := d.Set("network_interface", flattenNetworkInterface(networkInterfaceId)); err != nil {
+				return fmt.Errorf("setting `network_interface`: %+v", err)
+			}
 
-		if err := d.Set("private_service_connection", dataSourceFlattenPrivateEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
-			return fmt.Errorf("setting `private_service_connection`: %+v", err)
+			if err := d.Set("private_service_connection", dataSourceFlattenPrivateEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
+				return fmt.Errorf("setting `private_service_connection`: %+v", err)
+			}
 		}
 	}
 
@@ -167,7 +174,7 @@ func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, 
 	return privateIpAddress
 }
 
-func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
+func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]privateendpoints.PrivateLinkServiceConnection, manualServiceConnections *[]privateendpoints.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
 	results := make([]interface{}, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results
@@ -181,7 +188,7 @@ func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]net
 			if v := item.Name; v != nil {
 				result["name"] = *v
 			}
-			if props := item.PrivateLinkServiceConnectionProperties; props != nil {
+			if props := item.Properties; props != nil {
 				if v := props.PrivateLinkServiceConnectionState; v != nil {
 					if s := v.Status; s != nil {
 						result["status"] = *s
@@ -204,7 +211,7 @@ func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]net
 			if v := item.Name; v != nil {
 				result["name"] = *v
 			}
-			if props := item.PrivateLinkServiceConnectionProperties; props != nil {
+			if props := item.Properties; props != nil {
 				if v := props.PrivateLinkServiceConnectionState; v != nil {
 					if s := v.Status; s != nil {
 						result["status"] = *s

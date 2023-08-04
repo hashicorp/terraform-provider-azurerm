@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type FhirServicesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewFhirServicesClientWithBaseURI(api environments.Api) (*FhirServicesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "fhirservices", defaultApiVersion)
+func NewFhirServicesClientWithBaseURI(sdkApi sdkEnv.Api) (*FhirServicesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "fhirservices", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FhirServicesClient: %+v", err)
 	}

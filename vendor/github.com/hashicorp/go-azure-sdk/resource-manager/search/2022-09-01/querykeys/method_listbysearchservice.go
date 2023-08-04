@@ -52,7 +52,7 @@ func (o ListBySearchServiceOperationOptions) ToQuery() *client.QueryParams {
 // ListBySearchService ...
 func (c QueryKeysClient) ListBySearchService(ctx context.Context, id SearchServiceId, options ListBySearchServiceOperationOptions) (result ListBySearchServiceOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

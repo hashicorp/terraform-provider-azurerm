@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package firewall
 
 import (
@@ -9,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
@@ -299,7 +301,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
-												azValidate.PortOrPortRangeWithin(1, 65535),
+												validate.PortOrPortRangeWithin(1, 65535),
 												validation.StringInSlice([]string{`*`}, false),
 											),
 										},
@@ -394,7 +396,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										MaxItems: 1,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: azValidate.PortOrPortRangeWithin(1, 64000),
+											ValidateFunc: validate.PortOrPortRangeWithin(1, 64000),
 										},
 									},
 									"translated_address": {

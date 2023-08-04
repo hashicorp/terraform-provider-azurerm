@@ -49,7 +49,7 @@ func (o CheckNameAvailabilityOperationOptions) ToQuery() *client.QueryParams {
 // CheckNameAvailability ...
 func (c ServicesClient) CheckNameAvailability(ctx context.Context, id commonids.SubscriptionId, input CheckNameAvailabilityInput, options CheckNameAvailabilityOperationOptions) (result CheckNameAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

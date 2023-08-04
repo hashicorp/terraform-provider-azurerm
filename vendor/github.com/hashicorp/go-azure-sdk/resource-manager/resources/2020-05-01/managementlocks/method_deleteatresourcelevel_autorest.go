@@ -16,7 +16,7 @@ type DeleteAtResourceLevelOperationResponse struct {
 }
 
 // DeleteAtResourceLevel ...
-func (c ManagementLocksClient) DeleteAtResourceLevel(ctx context.Context, id ResourceLockId) (result DeleteAtResourceLevelOperationResponse, err error) {
+func (c ManagementLocksClient) DeleteAtResourceLevel(ctx context.Context, id ScopedLockId) (result DeleteAtResourceLevelOperationResponse, err error) {
 	req, err := c.preparerForDeleteAtResourceLevel(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementlocks.ManagementLocksClient", "DeleteAtResourceLevel", nil, "Failure preparing request")
@@ -39,7 +39,7 @@ func (c ManagementLocksClient) DeleteAtResourceLevel(ctx context.Context, id Res
 }
 
 // preparerForDeleteAtResourceLevel prepares the DeleteAtResourceLevel request.
-func (c ManagementLocksClient) preparerForDeleteAtResourceLevel(ctx context.Context, id ResourceLockId) (*http.Request, error) {
+func (c ManagementLocksClient) preparerForDeleteAtResourceLevel(ctx context.Context, id ScopedLockId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

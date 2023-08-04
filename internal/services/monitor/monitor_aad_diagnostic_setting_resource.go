@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -7,29 +10,31 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceMonitorAADDiagnosticSettingCreateUpdate,
+	resource := &pluginsdk.Resource{
+		Create: resourceMonitorAADDiagnosticSettingCreate,
 		Read:   resourceMonitorAADDiagnosticSettingRead,
-		Update: resourceMonitorAADDiagnosticSettingCreateUpdate,
+		Update: resourceMonitorAADDiagnosticSettingUpdate,
 		Delete: resourceMonitorAADDiagnosticSettingDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.MonitorAADDiagnosticSettingID(id)
+			_, err := diagnosticsettings.ParseDiagnosticSettingID(id)
 			return err
 		}),
 
@@ -82,20 +87,15 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id"},
 			},
 
-			"log": {
+			"enabled_log": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Optional: true,
+				Computed: !features.FourPointOhBeta(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-						},
-
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  true,
 						},
 
 						"retention_policy": {
@@ -124,46 +124,103 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 			},
 		},
 	}
-}
 
-func resourceMonitorAADDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Monitor.AADDiagnosticSettingsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure ARM AAD Diagnostic Setting.")
+	if !features.FourPointOhBeta() {
+		resource.Schema["enabled_log"].ExactlyOneOf = []string{"enabled_log", "log"}
+		resource.Schema["log"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeSet,
+			Optional:     true,
+			Computed:     true,
+			Deprecated:   "`log` has been superseded by `enabled_log` and will be removed in version 4.0 of the AzureRM Provider.",
+			ExactlyOneOf: []string{"enabled_log", "log"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"category": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
 
-	id := parse.NewMonitorAADDiagnosticSettingID(d.Get("name").(string))
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
+					"retention_policy": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_monitor_aad_diagnostic_setting", id.ID())
+								"days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(0),
+									Default:      0,
+								},
+							},
+						},
+					},
+				},
+			},
 		}
 	}
 
-	logs := expandMonitorAADDiagnosticsSettingsLogs(d.Get("log").(*pluginsdk.Set).List())
+	return resource
+}
+
+func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Monitor.AADDiagnosticSettingsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := diagnosticsettings.NewDiagnosticSettingID(d.Get("name").(string))
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_monitor_aad_diagnostic_setting", id.ID())
+	}
 
 	// If there is no `enabled` log entry, the PUT will succeed while the next GET will return a 404.
 	// Therefore, ensure users has at least one enabled log entry.
 	valid := false
-	for _, log := range logs {
-		if log.Enabled != nil && *log.Enabled {
-			valid = true
-			break
+	var logs []diagnosticsettings.LogSettings
+
+	if !features.FourPointOhBeta() {
+		if logsRaw, ok := d.GetOk("log"); ok && len(logsRaw.(*pluginsdk.Set).List()) > 0 {
+			logs = expandMonitorAADDiagnosticsSettingsLogs(d.Get("log").(*pluginsdk.Set).List())
+
+			for _, v := range logs {
+				if v.Enabled {
+					valid = true
+					break
+				}
+			}
 		}
 	}
-	if !valid {
-		return fmt.Errorf("At least one of the `log` of the %s should be enabled", id)
+
+	if enabledLogs, ok := d.GetOk("enabled_log"); ok && len(enabledLogs.(*pluginsdk.Set).List()) > 0 {
+		logs = expandMonitorAADDiagnosticsSettingsEnabledLogs(enabledLogs.(*pluginsdk.Set).List())
+		valid = true
 	}
 
-	properties := aad.DiagnosticSettingsResource{
-		DiagnosticSettings: &aad.DiagnosticSettings{
+	if !valid {
+		return fmt.Errorf("at least one of the `log` of the %s should be enabled", id)
+	}
+
+	payload := diagnosticsettings.DiagnosticSettingsResource{
+		Properties: &diagnosticsettings.DiagnosticSettings{
 			Logs: &logs,
 		},
 	}
@@ -171,25 +228,110 @@ func resourceMonitorAADDiagnosticSettingCreateUpdate(d *pluginsdk.ResourceData, 
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
-		properties.DiagnosticSettings.EventHubAuthorizationRuleID = utils.String(eventHubAuthorizationRuleId)
-		properties.DiagnosticSettings.EventHubName = utils.String(eventHubName)
+		payload.Properties.EventHubAuthorizationRuleId = pointer.To(eventHubAuthorizationRuleId)
+		payload.Properties.EventHubName = pointer.To(eventHubName)
 	}
 
 	workspaceId := d.Get("log_analytics_workspace_id").(string)
 	if workspaceId != "" {
-		properties.DiagnosticSettings.WorkspaceID = utils.String(workspaceId)
+		payload.Properties.WorkspaceId = pointer.To(workspaceId)
 	}
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
-		properties.DiagnosticSettings.StorageAccountID = utils.String(storageAccountId)
+		payload.Properties.StorageAccountId = pointer.To(storageAccountId)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, properties, id.Name); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceMonitorAADDiagnosticSettingRead(d, meta)
+}
+
+func resourceMonitorAADDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Monitor.AADDiagnosticSettingsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := diagnosticsettings.ParseDiagnosticSettingID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+
+	var logs []diagnosticsettings.LogSettings
+	logsChanged := false
+	valid := false
+
+	if !features.FourPointOhBeta() {
+		if d.HasChange("log") {
+			logsChanged = true
+			logs = expandMonitorAADDiagnosticsSettingsLogs(d.Get("log").(*pluginsdk.Set).List())
+			for _, v := range logs {
+				if v.Enabled {
+					valid = true
+					break
+				}
+			}
+		}
+	}
+
+	if d.HasChange("enabled_log") {
+		logsChanged = true
+		logs = append(logs, expandMonitorAADDiagnosticsSettingsEnabledLogs(d.Get("enabled_log").(*pluginsdk.Set).List())...)
+		valid = true
+	}
+
+	if !logsChanged && existing.Model.Properties != nil && existing.Model.Properties.Logs != nil {
+		logs = *existing.Model.Properties.Logs
+		for _, v := range logs {
+			if v.Enabled {
+				valid = true
+				break
+			}
+		}
+	}
+
+	if !valid {
+		return fmt.Errorf("at least one of the `log` of the %s should be enabled", id)
+	}
+
+	properties := diagnosticsettings.DiagnosticSettingsResource{
+		Properties: &diagnosticsettings.DiagnosticSettings{
+			Logs: &logs,
+		},
+	}
+
+	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
+	eventHubName := d.Get("eventhub_name").(string)
+	if eventHubAuthorizationRuleId != "" {
+		properties.Properties.EventHubAuthorizationRuleId = pointer.To(eventHubAuthorizationRuleId)
+		properties.Properties.EventHubName = pointer.To(eventHubName)
+	}
+
+	workspaceId := d.Get("log_analytics_workspace_id").(string)
+	if workspaceId != "" {
+		properties.Properties.WorkspaceId = pointer.To(workspaceId)
+	}
+
+	storageAccountId := d.Get("storage_account_id").(string)
+	if storageAccountId != "" {
+		properties.Properties.StorageAccountId = pointer.To(storageAccountId)
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, properties); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
 
 	return resourceMonitorAADDiagnosticSettingRead(d, meta)
 }
@@ -199,14 +341,14 @@ func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MonitorAADDiagnosticSettingID(d.Id())
+	id, err := diagnosticsettings.ParseDiagnosticSettingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[WARN] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -215,44 +357,55 @@ func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.DiagnosticSettingName)
 
-	d.Set("eventhub_name", resp.EventHubName)
-	eventhubAuthorizationRuleId := ""
-	if resp.EventHubAuthorizationRuleID != nil && *resp.EventHubAuthorizationRuleID != "" {
-		parsedId, err := authRuleParse.ParseAuthorizationRuleIDInsensitively(*resp.EventHubAuthorizationRuleID)
-		if err != nil {
-			return err
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("eventhub_name", props.EventHubName)
+
+			eventhubAuthorizationRuleId := ""
+			if props.EventHubAuthorizationRuleId != nil && *props.EventHubAuthorizationRuleId != "" {
+				parsedId, err := authRuleParse.ParseAuthorizationRuleIDInsensitively(*props.EventHubAuthorizationRuleId)
+				if err != nil {
+					return err
+				}
+
+				eventhubAuthorizationRuleId = parsedId.ID()
+			}
+			d.Set("eventhub_authorization_rule_id", eventhubAuthorizationRuleId)
+
+			workspaceId := ""
+			if props.WorkspaceId != nil && *props.WorkspaceId != "" {
+				parsedId, err := workspaces.ParseWorkspaceIDInsensitively(*props.WorkspaceId)
+				if err != nil {
+					return err
+				}
+
+				workspaceId = parsedId.ID()
+			}
+			d.Set("log_analytics_workspace_id", workspaceId)
+
+			storageAccountId := ""
+			if props.StorageAccountId != nil && *props.StorageAccountId != "" {
+				parsedId, err := storageaccounts.ParseStorageAccountIDInsensitively(*props.StorageAccountId)
+				if err != nil {
+					return err
+				}
+
+				storageAccountId = parsedId.ID()
+			}
+			d.Set("storage_account_id", storageAccountId)
+
+			if err := d.Set("enabled_log", flattenMonitorAADDiagnosticEnabledLogs(props.Logs)); err != nil {
+				return fmt.Errorf("setting `enabled_log`: %+v", err)
+			}
+
+			if !features.FourPointOhBeta() {
+				if err := d.Set("log", flattenMonitorAADDiagnosticLogs(props.Logs)); err != nil {
+					return fmt.Errorf("setting `log`: %+v", err)
+				}
+			}
 		}
-
-		eventhubAuthorizationRuleId = parsedId.ID()
-	}
-	d.Set("eventhub_authorization_rule_id", eventhubAuthorizationRuleId)
-
-	workspaceId := ""
-	if resp.WorkspaceID != nil && *resp.WorkspaceID != "" {
-		parsedId, err := workspaces.ParseWorkspaceIDInsensitively(*resp.WorkspaceID)
-		if err != nil {
-			return err
-		}
-
-		workspaceId = parsedId.ID()
-	}
-	d.Set("log_analytics_workspace_id", workspaceId)
-
-	storageAccountId := ""
-	if resp.StorageAccountID != nil && *resp.StorageAccountID != "" {
-		parsedId, err := storageaccounts.ParseStorageAccountIDInsensitively(*resp.StorageAccountID)
-		if err != nil {
-			return err
-		}
-
-		storageAccountId = parsedId.ID()
-	}
-	d.Set("storage_account_id", storageAccountId)
-
-	if err := d.Set("log", flattenMonitorAADDiagnosticLogs(resp.Logs)); err != nil {
-		return fmt.Errorf("setting `log`: %+v", err)
 	}
 
 	return nil
@@ -263,117 +416,180 @@ func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MonitorAADDiagnosticSettingID(d.Id())
+	id, err := diagnosticsettings.ParseDiagnosticSettingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.Name)
-	if err != nil {
-		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting %s: %+v", id, err)
-		}
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	// API appears to be eventually consistent (identified during tainting this resource)
-	log.Printf("[DEBUG] Waiting for %s to disappear", id)
-	timeout, _ := ctx.Deadline()
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   monitorAADDiagnosticSettingDeletedRefreshFunc(ctx, client, id.Name),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 5,
-		Timeout:                   time.Until(timeout),
+	waitForAADDiagnosticSettingToBeGone := waitForAADDiagnosticSettingToBeGonePoller{
+		client: client,
+		id:     *id,
 	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to become available: %s", id, err)
+	initialDelayDuration := 15 * time.Second
+	poller := pollers.NewPoller(waitForAADDiagnosticSettingToBeGone, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func monitorAADDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client *aad.DiagnosticSettingsClient, name string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return "NotFound", "NotFound", nil
-			}
-			return nil, "", fmt.Errorf("issuing read request in monitorAADDiagnosticSettingDeletedRefreshFunc: %s", err)
-		}
-
-		return res, "Exists", nil
-	}
-}
-
-func expandMonitorAADDiagnosticsSettingsLogs(input []interface{}) []aad.LogSettings {
-	results := make([]aad.LogSettings, 0)
+func expandMonitorAADDiagnosticsSettingsLogs(input []interface{}) []diagnosticsettings.LogSettings {
+	results := make([]diagnosticsettings.LogSettings, 0)
 
 	for _, raw := range input {
+		if raw == nil {
+			continue
+		}
 		v := raw.(map[string]interface{})
 
 		category := v["category"].(string)
 		enabled := v["enabled"].(bool)
 
 		policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
+		if len(v["retention_policy"].([]interface{})) == 0 || v["retention_policy"].([]interface{})[0] == nil {
+			continue
+		}
 		retentionDays := policyRaw["days"].(int)
 		retentionEnabled := policyRaw["enabled"].(bool)
 
-		output := aad.LogSettings{
-			Category: aad.Category(category),
-			Enabled:  utils.Bool(enabled),
-			RetentionPolicy: &aad.RetentionPolicy{
-				Days:    utils.Int32(int32(retentionDays)),
-				Enabled: utils.Bool(retentionEnabled),
+		results = append(results, diagnosticsettings.LogSettings{
+			Category: pointer.To(diagnosticsettings.Category(category)),
+			Enabled:  enabled,
+			RetentionPolicy: &diagnosticsettings.RetentionPolicy{
+				Days:    int64(retentionDays),
+				Enabled: retentionEnabled,
 			},
-		}
-
-		results = append(results, output)
+		})
 	}
 
 	return results
 }
 
-func flattenMonitorAADDiagnosticLogs(input *[]aad.LogSettings) []interface{} {
+func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagnosticsettings.LogSettings {
+	results := make([]diagnosticsettings.LogSettings, 0)
+
+	for _, raw := range input {
+		if raw == nil {
+			continue
+		}
+		v := raw.(map[string]interface{})
+
+		category := v["category"].(string)
+		if len(v["retention_policy"].([]interface{})) == 0 || v["retention_policy"].([]interface{})[0] == nil {
+			continue
+		}
+
+		policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
+		retentionDays := policyRaw["days"].(int)
+		retentionEnabled := policyRaw["enabled"].(bool)
+		results = append(results, diagnosticsettings.LogSettings{
+			Category: pointer.To(diagnosticsettings.Category(category)),
+			Enabled:  true,
+			RetentionPolicy: &diagnosticsettings.RetentionPolicy{
+				Days:    int64(retentionDays),
+				Enabled: retentionEnabled,
+			},
+		})
+	}
+
+	return results
+}
+
+func flattenMonitorAADDiagnosticLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, v := range *input {
-		category := string(v.Category)
-
-		enabled := false
-		if v.Enabled != nil {
-			enabled = *v.Enabled
-		}
-
 		policies := make([]interface{}, 0)
 		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-			days := 0
-			if inputPolicy.Days != nil {
-				days = int(*inputPolicy.Days)
-			}
-
-			enabled := false
-			if inputPolicy.Enabled != nil {
-				enabled = *inputPolicy.Enabled
-			}
-
 			policies = append(policies, map[string]interface{}{
-				"days":    days,
-				"enabled": enabled,
+				"days":    int(inputPolicy.Days),
+				"enabled": inputPolicy.Enabled,
 			})
 		}
 
+		category := ""
+		if v.Category != nil {
+			category = string(*v.Category)
+		}
 		results = append(results, map[string]interface{}{
 			"category":         category,
-			"enabled":          enabled,
+			"enabled":          v.Enabled,
 			"retention_policy": policies,
 		})
 	}
 
 	return results
+}
+
+func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		if !v.Enabled {
+			continue
+		}
+
+		policies := make([]interface{}, 0)
+		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
+			policies = append(policies, map[string]interface{}{
+				"days":    int(inputPolicy.Days),
+				"enabled": inputPolicy.Enabled,
+			})
+		}
+
+		category := ""
+		if v.Category != nil {
+			category = string(*v.Category)
+		}
+
+		results = append(results, map[string]interface{}{
+			"category":         category,
+			"retention_policy": policies,
+		})
+	}
+
+	return results
+}
+
+var _ pollers.PollerType = waitForAADDiagnosticSettingToBeGonePoller{}
+
+type waitForAADDiagnosticSettingToBeGonePoller struct {
+	client *diagnosticsettings.DiagnosticSettingsClient
+	id     diagnosticsettings.DiagnosticSettingId
+}
+
+func (p waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	resp, err := p.client.Get(ctx, p.id)
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("retrieving the deleted %s to check the deletion status: %+v", p.id, err)
+		}
+
+		return &pollers.PollResult{
+			HttpResponse: &client.Response{
+				Response: resp.HttpResponse,
+			},
+			PollInterval: 15 * time.Second,
+			Status:       pollers.PollingStatusSucceeded,
+		}, nil
+	}
+
+	return &pollers.PollResult{
+		HttpResponse: &client.Response{
+			Response: resp.HttpResponse,
+		},
+		PollInterval: 15 * time.Second,
+		Status:       pollers.PollingStatusInProgress,
+	}, nil
 }

@@ -4,6 +4,7 @@
 package resourcemanager
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -117,6 +118,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 		}
 		result.HttpResponse.Body.Close()
 
+		result.HttpResponse.Body = io.NopCloser(bytes.NewReader(respBody))
+
 		// update the poll interval if a Retry-After header is returned
 		if s, ok := result.HttpResponse.Header["Retry-After"]; ok {
 			if sleep, err := strconv.ParseInt(s[0], 10, 64); err == nil {
@@ -130,8 +133,13 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return
 		}
 
-		contentType := result.HttpResponse.Header.Get("Content-Type")
+		// Automation@2022-08-08 - Runbooks - returns a 200 OK with no Body
+		if result.HttpResponse.StatusCode == http.StatusOK && result.HttpResponse.ContentLength == 0 {
+			result.Status = pollers.PollingStatusSucceeded
+			return
+		}
 
+		contentType := result.HttpResponse.Header.Get("Content-Type")
 		var op operationResult
 		if strings.Contains(strings.ToLower(contentType), "application/json") {
 			if err = json.Unmarshal(respBody, &op); err != nil {
@@ -145,8 +153,6 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 		if op.Properties.ProvisioningState == "" && op.Status == "" {
 			return nil, fmt.Errorf("expected either `provisioningState` or `status` to be returned from the LRO API but both were empty")
 		}
-
-		// TODO: raising an error if this is Cancelled or Failed
 
 		statuses := map[status]pollers.PollingStatus{
 			statusCanceled:   pollers.PollingStatusCancelled,
@@ -166,15 +172,49 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			"Running": pollers.PollingStatusInProgress,
 			// KubernetesConfiguration@2022-11-01 returns `Updating` rather than `InProgress` during update
 			"Updating": pollers.PollingStatusInProgress,
+			// StorageSync@2020-03-01 returns `validateInput`, `newPrivateDnsEntries`, `finishNewStorageSyncService` rather than `InProgress` during creation/update
+			// See: https://github.com/hashicorp/go-azure-sdk/issues/565
+			"validateInput":               pollers.PollingStatusInProgress,
+			"newPrivateDnsEntries":        pollers.PollingStatusInProgress,
+			"finishNewStorageSyncService": pollers.PollingStatusInProgress,
+			// StorageSync@2020-03-01 (CloudEndpoints) returns `newReplicaGroup` rather than `InProgress` during creation/update
+			// See: https://github.com/hashicorp/go-azure-sdk/issues/565
+			"newReplicaGroup": pollers.PollingStatusInProgress,
+			// AnalysisServices @ 2017-08-01 (Servers) returns `Provisioning` during Creation
+			"Provisioning": pollers.PollingStatusInProgress,
 		}
 		for k, v := range statuses {
 			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {
 				result.Status = v
-				return
+				break
 			}
 			if strings.EqualFold(string(op.Status), string(k)) {
 				result.Status = v
-				return
+				break
+			}
+		}
+
+		if result.Status == pollers.PollingStatusFailed {
+			lroError, parseError := parseErrorFromApiResponse(*result.HttpResponse.Response)
+			if parseError != nil {
+				return nil, parseError
+			}
+
+			err = pollers.PollingFailedError{
+				HttpResponse: result.HttpResponse,
+				Message:      lroError.Error(),
+			}
+		}
+
+		if result.Status == pollers.PollingStatusCancelled {
+			lroError, parseError := parseErrorFromApiResponse(*result.HttpResponse.Response)
+			if parseError != nil {
+				return nil, parseError
+			}
+
+			err = pollers.PollingCancelledError{
+				HttpResponse: result.HttpResponse,
+				Message:      lroError.Error(),
 			}
 		}
 

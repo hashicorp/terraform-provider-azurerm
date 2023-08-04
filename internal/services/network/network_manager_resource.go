@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -5,20 +8,18 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkmanagers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ManagerModel struct {
@@ -50,7 +51,7 @@ func (r ManagerResource) ResourceType() string {
 }
 
 func (r ManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NetworkManagerID
+	return networkmanagers.ValidateNetworkManagerID
 }
 
 func (r ManagerResource) ModelObject() interface{} {
@@ -106,8 +107,8 @@ func (r ManagerResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.ConfigurationTypeConnectivity),
-					string(network.ConfigurationTypeSecurityAdmin),
+					string(networkmanagers.ConfigurationTypeConnectivity),
+					string(networkmanagers.ConfigurationTypeSecurityAdmin),
 				}, false),
 			},
 		},
@@ -161,32 +162,32 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Network.ManagersClient
+			client := metadata.Client.Network.NetworkManagers
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := parse.NewNetworkManagerID(subscriptionId, state.ResourceGroupName, state.Name)
+			id := networkmanagers.NewNetworkManagerID(subscriptionId, state.ResourceGroupName, state.Name)
 			metadata.Logger.Infof("creating %s", id)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			input := network.Manager{
+			input := networkmanagers.NetworkManager{
 				Location: utils.String(azure.NormalizeLocation(state.Location)),
 				Name:     utils.String(state.Name),
-				ManagerProperties: &network.ManagerProperties{
+				Properties: &networkmanagers.NetworkManagerProperties{
 					Description:                 utils.String(state.Description),
 					NetworkManagerScopes:        expandNetworkManagerScope(state.Scope),
 					NetworkManagerScopeAccesses: expandNetworkManagerScopeAccesses(state.ScopeAccesses),
 				},
-				Tags: tags.Expand(state.Tags),
+				Tags: utils.ExpandPtrMapStringString(state.Tags),
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, input, id.ResourceGroup, id.Name); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, input); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -200,41 +201,46 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 func (r ManagerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagersClient
-			id, err := parse.NetworkManagerID(metadata.ResourceData.Id())
+			client := metadata.Client.Network.NetworkManagers
+			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("retrieving %s", *id)
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					metadata.Logger.Infof("%s was not found - removing from state!", *id)
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
 
+			properties := resp.Model.Properties
 			var description string
 			var scope []ManagerScopeModel
 			var ScopeAccesses []string
-			if prop := resp.ManagerProperties; prop != nil {
-				if prop.Description != nil {
-					description = *resp.Description
-				}
-				scope = flattenNetworkManagerScope(resp.NetworkManagerScopes)
-				ScopeAccesses = flattenNetworkManagerScopeAccesses(resp.NetworkManagerScopeAccesses)
+			if properties.Description != nil {
+				description = *properties.Description
 			}
+			scope = flattenNetworkManagerScope(properties.NetworkManagerScopes)
+			ScopeAccesses = flattenNetworkManagerScopeAccesses(properties.NetworkManagerScopeAccesses)
 
 			return metadata.Encode(&ManagerModel{
 				Description:       description,
-				Location:          location.NormalizeNilable(resp.Location),
-				Name:              id.Name,
-				ResourceGroupName: id.ResourceGroup,
+				Location:          location.NormalizeNilable(resp.Model.Location),
+				Name:              id.NetworkManagerName,
+				ResourceGroupName: id.ResourceGroupName,
 				ScopeAccesses:     ScopeAccesses,
 				Scope:             scope,
-				Tags:              tags.Flatten(resp.Tags),
+				Tags:              utils.FlattenPtrMapStringString(resp.Model.Tags),
 			})
 		},
 		Timeout: 5 * time.Minute,
@@ -244,42 +250,46 @@ func (r ManagerResource) Read() sdk.ResourceFunc {
 func (r ManagerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.NetworkManagerID(metadata.ResourceData.Id())
+			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("updating %s..", *id)
-			client := metadata.Client.Network.ManagersClient
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			client := metadata.Client.Network.NetworkManagers
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if existing.ManagerProperties == nil {
-				return fmt.Errorf("unexpected null properties of %s", *id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
 			var state ManagerModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.ManagerProperties.Description = utils.String(state.Description)
+				existing.Model.Properties.Description = utils.String(state.Description)
 			}
 
 			if metadata.ResourceData.HasChange("scope") {
-				existing.ManagerProperties.NetworkManagerScopes = expandNetworkManagerScope(state.Scope)
+				existing.Model.Properties.NetworkManagerScopes = expandNetworkManagerScope(state.Scope)
 			}
 
 			if metadata.ResourceData.HasChange("scope_accesses") {
-				existing.ManagerProperties.NetworkManagerScopeAccesses = expandNetworkManagerScopeAccesses(state.ScopeAccesses)
+				existing.Model.Properties.NetworkManagerScopeAccesses = expandNetworkManagerScopeAccesses(state.ScopeAccesses)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Tags = tags.Expand(state.Tags)
+				existing.Model.Tags = utils.ExpandPtrMapStringString(state.Tags)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, existing, id.ResourceGroup, id.Name); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
@@ -291,21 +301,20 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 func (r ManagerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagersClient
-			id, err := parse.NetworkManagerID(metadata.ResourceData.Id())
+			client := metadata.Client.Network.NetworkManagers
+			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("deleting %s..", *id)
-			future, err := client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
+			err = client.DeleteThenPoll(ctx, *id, networkmanagers.DeleteOperationOptions{
+				Force: utils.Bool(true),
+			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-			}
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -316,23 +325,19 @@ func stringSlice(input []string) *[]string {
 	return &input
 }
 
-func expandNetworkManagerScope(input []ManagerScopeModel) *network.ManagerPropertiesNetworkManagerScopes {
-	if len(input) == 0 {
-		return nil
-	}
-
-	return &network.ManagerPropertiesNetworkManagerScopes{
+func expandNetworkManagerScope(input []ManagerScopeModel) networkmanagers.NetworkManagerPropertiesNetworkManagerScopes {
+	return networkmanagers.NetworkManagerPropertiesNetworkManagerScopes{
 		ManagementGroups: stringSlice(input[0].ManagementGroups),
 		Subscriptions:    stringSlice(input[0].Subscriptions),
 	}
 }
 
-func expandNetworkManagerScopeAccesses(input []string) *[]network.ConfigurationType {
-	result := make([]network.ConfigurationType, 0)
+func expandNetworkManagerScopeAccesses(input []string) []networkmanagers.ConfigurationType {
+	result := make([]networkmanagers.ConfigurationType, 0)
 	for _, v := range input {
-		result = append(result, network.ConfigurationType(v))
+		result = append(result, networkmanagers.ConfigurationType(v))
 	}
-	return &result
+	return result
 }
 
 func flattenStringSlicePtr(input *[]string) []string {
@@ -342,24 +347,16 @@ func flattenStringSlicePtr(input *[]string) []string {
 	return *input
 }
 
-func flattenNetworkManagerScope(input *network.ManagerPropertiesNetworkManagerScopes) []ManagerScopeModel {
-	if input == nil {
-		return make([]ManagerScopeModel, 0)
-	}
-
+func flattenNetworkManagerScope(input networkmanagers.NetworkManagerPropertiesNetworkManagerScopes) []ManagerScopeModel {
 	return []ManagerScopeModel{{
 		ManagementGroups: flattenStringSlicePtr(input.ManagementGroups),
 		Subscriptions:    flattenStringSlicePtr(input.Subscriptions),
 	}}
 }
 
-func flattenNetworkManagerScopeAccesses(input *[]network.ConfigurationType) []string {
+func flattenNetworkManagerScopeAccesses(input []networkmanagers.ConfigurationType) []string {
 	var result []string
-	if input == nil {
-		return result
-	}
-
-	for _, v := range *input {
+	for _, v := range input {
 		result = append(result, string(v))
 	}
 	return result

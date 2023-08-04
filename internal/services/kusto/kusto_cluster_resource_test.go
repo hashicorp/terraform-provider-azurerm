@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package kusto_test
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2022-02-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -254,6 +257,14 @@ func TestAccKustoCluster_languageExtensions(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.languageExtensionsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("language_extensions.#").HasValue("2"),
+				check.That(data.ResourceName).Key("language_extensions.1").HasValue("R"),
+			),
+		},
 		{
 			Config: r.languageExtensionsRemove(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -749,11 +760,37 @@ resource "azurerm_kusto_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Dev(No SLA)_Standard_D11_v2"
-    capacity = 1
+    name     = "Standard_E4d_v4"
+    capacity = 2
   }
 
   language_extensions = ["PYTHON", "R"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (KustoClusterResource) languageExtensionsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Standard_E4d_v4"
+    capacity = 2
+  }
+
+  language_extensions = ["PYTHON_3.10.8", "R"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -775,8 +812,8 @@ resource "azurerm_kusto_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Dev(No SLA)_Standard_D11_v2"
-    capacity = 1
+    name     = "Standard_E4d_v4"
+    capacity = 2
   }
 
   language_extensions = ["R"]

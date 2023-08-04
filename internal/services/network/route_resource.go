@@ -1,20 +1,23 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/routes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceRoute() *pluginsdk.Resource {
@@ -25,7 +28,7 @@ func resourceRoute() *pluginsdk.Resource {
 		Delete: resourceRouteDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.RouteID(id)
+			_, err := routes.ParseRouteID(id)
 			return err
 		}),
 
@@ -63,11 +66,11 @@ func resourceRoute() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.RouteNextHopTypeVirtualNetworkGateway),
-					string(network.RouteNextHopTypeVnetLocal),
-					string(network.RouteNextHopTypeInternet),
-					string(network.RouteNextHopTypeVirtualAppliance),
-					string(network.RouteNextHopTypeNone),
+					string(routes.RouteNextHopTypeVirtualNetworkGateway),
+					string(routes.RouteNextHopTypeVnetLocal),
+					string(routes.RouteNextHopTypeInternet),
+					string(routes.RouteNextHopTypeVirtualAppliance),
+					string(routes.RouteNextHopTypeNone),
 				}, false),
 			},
 
@@ -81,7 +84,7 @@ func resourceRoute() *pluginsdk.Resource {
 }
 
 func resourceRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RoutesClient
+	client := meta.(*clients.Client).Network.Routes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -89,16 +92,16 @@ func resourceRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	addressPrefix := d.Get("address_prefix").(string)
 	nextHopType := d.Get("next_hop_type").(string)
 
-	id := parse.NewRouteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("route_table_name").(string), d.Get("name").(string))
+	id := routes.NewRouteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("route_table_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.RouteTableName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_route", id.ID())
 		}
 	}
@@ -106,25 +109,20 @@ func resourceRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	locks.ByName(id.RouteTableName, routeTableResourceName)
 	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
 
-	route := network.Route{
-		Name: utils.String(id.Name),
-		RoutePropertiesFormat: &network.RoutePropertiesFormat{
+	route := routes.Route{
+		Name: utils.String(id.RouteName),
+		Properties: &routes.RoutePropertiesFormat{
 			AddressPrefix: &addressPrefix,
-			NextHopType:   network.RouteNextHopType(nextHopType),
+			NextHopType:   routes.RouteNextHopType(nextHopType),
 		},
 	}
 
 	if v, ok := d.GetOk("next_hop_in_ip_address"); ok {
-		route.RoutePropertiesFormat.NextHopIPAddress = utils.String(v.(string))
+		route.Properties.NextHopIPAddress = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.RouteTableName, id.Name, route)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, route); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -132,43 +130,45 @@ func resourceRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RoutesClient
+	client := meta.(*clients.Client).Network.Routes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.RouteID(d.Id())
+	id, err := routes.ParseRouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.RouteTableName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.RouteName)
 	d.Set("route_table_name", id.RouteTableName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.RoutePropertiesFormat; props != nil {
-		d.Set("address_prefix", props.AddressPrefix)
-		d.Set("next_hop_type", string(props.NextHopType))
-		d.Set("next_hop_in_ip_address", props.NextHopIPAddress)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("address_prefix", props.AddressPrefix)
+			d.Set("next_hop_type", string(props.NextHopType))
+			d.Set("next_hop_in_ip_address", props.NextHopIPAddress)
+		}
 	}
 
 	return nil
 }
 
 func resourceRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RoutesClient
+	client := meta.(*clients.Client).Network.Routes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.RouteID(d.Id())
+	id, err := routes.ParseRouteID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -176,13 +176,8 @@ func resourceRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.ByName(id.RouteTableName, routeTableResourceName)
 	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.RouteTableName, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

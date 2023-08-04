@@ -15,6 +15,15 @@ Manages a Load Test Service.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
 resource "azurerm_load_test" "example" {
   location            = azurerm_resource_group.example.location
   name                = "example"
@@ -55,7 +64,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `identity` block supports the following arguments:
 
-* `type` - (Required) Specifies the type of Managed Identity that should be assigned to this Load Test. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Identity that should be assigned to this Load Test. Possible values are `SystemAssigned`, `SystemAssigned, UserAssigned` and `UserAssigned`.
+* `identity_ids` - (Optional) A list of the User Assigned Identity IDs that should be assigned to this Load Test.
 
 
 In addition to the arguments defined above, the `identity` block exports the following attributes:

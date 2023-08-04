@@ -20,7 +20,7 @@ type OperationLocationOperationResponse struct {
 // OperationLocation ...
 func (c LiveEventsClient) OperationLocation(ctx context.Context, id OperationLocationId) (result OperationLocationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

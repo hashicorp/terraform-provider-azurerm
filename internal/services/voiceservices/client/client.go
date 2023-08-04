@@ -1,8 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-01-31/communicationsgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-01-31/testlines"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/communicationsgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/testlines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -11,16 +16,22 @@ type Client struct {
 	TestLinesClient              *testlines.TestLinesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 
-	communicationsGatewaysClient := communicationsgateways.NewCommunicationsGatewaysClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&communicationsGatewaysClient.Client, o.ResourceManagerAuthorizer)
+	communicationsGatewaysClient, err := communicationsgateways.NewCommunicationsGatewaysClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Communications Gateways Client: %+v", err)
+	}
+	o.Configure(communicationsGatewaysClient.Client, o.Authorizers.ResourceManager)
 
-	testLinesClient := testlines.NewTestLinesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&testLinesClient.Client, o.ResourceManagerAuthorizer)
+	testLinesClient, err := testlines.NewTestLinesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Test Lines Client: %+v", err)
+	}
+	o.Configure(testLinesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		CommunicationsGatewaysClient: &communicationsGatewaysClient,
-		TestLinesClient:              &testLinesClient,
-	}
+		CommunicationsGatewaysClient: communicationsGatewaysClient,
+		TestLinesClient:              testLinesClient,
+	}, nil
 }

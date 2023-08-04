@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor_test
 
 import (
@@ -101,6 +104,8 @@ func TestAccMonitorDataCollectionRule_requiresImport(t *testing.T) {
 
 func TestAccMonitorDataCollectionRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	data.Locations.Primary = "westeurope"
 	r := MonitorDataCollectionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -137,6 +142,8 @@ func TestAccMonitorDataCollectionRule_update(t *testing.T) {
 
 func TestAccMonitorDataCollectionRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	data.Locations.Primary = "westeurope"
 	r := MonitorDataCollectionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -633,7 +640,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
 
     windows_firewall_log {
-      streams = ["Microsoft-Event"]
+      streams = ["Microsoft-ASimNetworkSessionLogs-WindowsFirewall"]
       name    = "test-datasource-windowsfirewall"
     }
 

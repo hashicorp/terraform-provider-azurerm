@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package keyvault
 
 import (
@@ -10,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -180,7 +182,7 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseOptionallyVersionedNestedItemID(d.Id())
+	id, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -237,7 +239,7 @@ func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseOptionallyVersionedNestedItemID(d.Id())
+	id, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Id())
 	if err != nil {
 		return err
 	}

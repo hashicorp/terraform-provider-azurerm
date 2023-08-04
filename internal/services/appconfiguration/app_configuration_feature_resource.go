@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration
 
 import (
@@ -247,7 +250,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			// https://github.com/Azure/AppConfiguration/issues/763
 			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q to be provisioned", model.Key)
 			stateConf = &pluginsdk.StateChangeConf{
-				Pending:                   []string{"NotFound"},
+				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},
 				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
 				PollInterval:              10 * time.Second,
@@ -274,9 +277,8 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			configurationStoresClient := metadata.Client.AppConfiguration.ConfigurationStoresClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, configurationStoresClient, nestedItemId.ConfigurationStoreEndpoint, subscriptionId)
+			resourceClient := metadata.Client.Resource
+			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, resourceClient, nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return fmt.Errorf("while retrieving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
 			}

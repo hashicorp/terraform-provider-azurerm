@@ -26,7 +26,7 @@ type WebTestsListByResourceGroupCompleteResult struct {
 // WebTestsListByResourceGroup ...
 func (c WebTestsAPIsClient) WebTestsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result WebTestsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

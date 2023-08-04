@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -5,14 +8,15 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type PrivateEndpointApplicationSecurityGroupAssociationResource struct {
@@ -69,19 +73,18 @@ func TestAccPrivateEndpointApplicationSecurityGroupAssociationResource_deleted(t
 
 func (r PrivateEndpointApplicationSecurityGroupAssociationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	splitId := strings.Split(state.ID, "|")
-
 	exists := false
 
 	if len(splitId) != 2 {
 		return &exists, fmt.Errorf("expected ID to be in the format {PrivateEndpointId}|{ApplicationSecurityGroupId} but got %q", state.ID)
 	}
 
-	endpointId, err := parse.PrivateEndpointID(splitId[0])
+	endpointId, err := privateendpoints.ParsePrivateEndpointID(splitId[0])
 	if err != nil {
 		return &exists, err
 	}
 
-	securityGroupId, err := parse.ApplicationSecurityGroupID(splitId[1])
+	securityGroupId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(splitId[1])
 	if err != nil {
 		return &exists, err
 	}
@@ -90,21 +93,20 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) Exists(ctx c
 		return &exists, fmt.Errorf("parse error, both PrivateEndpointId and ApplicationSecurityGroupId should not be nil")
 	}
 
-	privateEndpointClient := client.Network.PrivateEndpointClient
-	existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, endpointId.ResourceGroup, endpointId.Name, "")
-	if err != nil && !utils.ResponseWasNotFound(existingPrivateEndpoint.Response) {
+	privateEndpointClient := client.Network.PrivateEndpoints
+	existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, *endpointId, privateendpoints.DefaultGetOperationOptions())
+	if err != nil && !response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
 		return &exists, fmt.Errorf("checking for the presence of existing PrivateEndpoint %q: %+v", endpointId, err)
 	}
 
-	if utils.ResponseWasNotFound(existingPrivateEndpoint.Response) {
+	if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
 		return &exists, fmt.Errorf("PrivateEndpoint %q does not exsits", endpointId)
 	}
 
 	input := existingPrivateEndpoint
-	ASGList := existingPrivateEndpoint.ApplicationSecurityGroups
-	if input.PrivateEndpointProperties != nil && input.PrivateEndpointProperties.ApplicationSecurityGroups != nil {
-		for _, value := range *ASGList {
-			if value.ID != nil && *value.ID == securityGroupId.ID() {
+	if input.Model != nil && input.Model.Properties != nil && input.Model.Properties.ApplicationSecurityGroups != nil {
+		for _, value := range *input.Model.Properties.ApplicationSecurityGroups {
+			if value.Id != nil && *value.Id == securityGroupId.ID() {
 				exists = true
 				break
 			}
@@ -239,57 +241,56 @@ resource "azurerm_private_endpoint_application_security_group_association" "impo
 }
 
 func (r PrivateEndpointApplicationSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	endpointId, err := parse.PrivateEndpointID(state.Attributes["private_endpoint_id"])
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
+
+	endpointId, err := privateendpoints.ParsePrivateEndpointID(state.Attributes["private_endpoint_id"])
 	if err != nil {
 		return err
 	}
 
-	securityGroupId, err := parse.ApplicationSecurityGroupID(state.Attributes["application_security_group_id"])
+	securityGroupId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(state.Attributes["application_security_group_id"])
 	if err != nil {
 		return err
 	}
 
-	privateEndpointClient := client.Network.PrivateEndpointClient
+	privateEndpointClient := client.Network.PrivateEndpoints
 
-	existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, endpointId.ResourceGroup, endpointId.Name, "")
-	if err != nil && !utils.ResponseWasNotFound(existingPrivateEndpoint.Response) {
+	existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, *endpointId, privateendpoints.DefaultGetOperationOptions())
+	if err != nil && !response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
 		return fmt.Errorf("checking for the presence of existing PrivateEndpoint %q: %+v", endpointId, err)
 	}
 
-	if utils.ResponseWasNotFound(existingPrivateEndpoint.Response) {
+	if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
 		return fmt.Errorf("PrivateEndpoint %q does not exsits", endpointId)
+	}
+
+	if existingPrivateEndpoint.Model == nil || existingPrivateEndpoint.Model.Properties == nil || existingPrivateEndpoint.Model.Properties.ApplicationSecurityGroups == nil {
+		return fmt.Errorf("model/properties/application security groups was missing for %s", endpointId)
 	}
 
 	// flag: application security group exists in private endpoint configuration
 	ASGInPE := false
 
 	input := existingPrivateEndpoint
-	if input.PrivateEndpointProperties != nil && input.PrivateEndpointProperties.ApplicationSecurityGroups != nil {
-		ASGList := *input.PrivateEndpointProperties.ApplicationSecurityGroups
-		newASGList := make([]network.ApplicationSecurityGroup, 0)
-		for idx, value := range ASGList {
-			if value.ID != nil && *value.ID == securityGroupId.ID() {
-				newASGList = append(newASGList, ASGList[:idx]...)
-				newASGList = append(newASGList, ASGList[idx+1:]...)
-				ASGInPE = true
-				break
-			}
-		}
-		if ASGInPE {
-			input.PrivateEndpointProperties.ApplicationSecurityGroups = &newASGList
-		} else {
-			return fmt.Errorf("deletion failed, ApplicationSecurityGroup %q does not linked with PrivateEndpoint %q", securityGroupId, endpointId)
+	ASGList := *input.Model.Properties.ApplicationSecurityGroups
+	newASGList := make([]privateendpoints.ApplicationSecurityGroup, 0)
+	for idx, value := range ASGList {
+		if value.Id != nil && *value.Id == securityGroupId.ID() {
+			newASGList = append(newASGList, ASGList[:idx]...)
+			newASGList = append(newASGList, ASGList[idx+1:]...)
+			ASGInPE = true
+			break
 		}
 	}
+	if ASGInPE {
+		input.Model.Properties.ApplicationSecurityGroups = &newASGList
+	} else {
+		return fmt.Errorf("deletion failed, ApplicationSecurityGroup %q does not linked with PrivateEndpoint %q", securityGroupId, endpointId)
+	}
 
-	future, err := privateEndpointClient.CreateOrUpdate(ctx, endpointId.ResourceGroup, endpointId.Name, input)
-
-	if err != nil {
+	if err = privateEndpointClient.CreateOrUpdateThenPoll(ctx, *endpointId, *input.Model); err != nil {
 		return fmt.Errorf("creating %s: %+v", endpointId, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, privateEndpointClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", endpointId, err)
 	}
 
 	return nil

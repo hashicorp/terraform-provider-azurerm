@@ -23,7 +23,7 @@ type DeploymentsDeleteOperationResponse struct {
 // DeploymentsDelete ...
 func (c NginxDeploymentClient) DeploymentsDelete(ctx context.Context, id NginxDeploymentId) (result DeploymentsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

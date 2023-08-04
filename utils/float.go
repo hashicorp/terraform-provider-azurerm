@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package utils
 
 // NormalizeNilableFloat normalizes a nilable float64 into a float64 value

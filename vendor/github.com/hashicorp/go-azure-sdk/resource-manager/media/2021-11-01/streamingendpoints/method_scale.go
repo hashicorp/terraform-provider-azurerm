@@ -23,7 +23,7 @@ type ScaleOperationResponse struct {
 // Scale ...
 func (c StreamingEndpointsClient) Scale(ctx context.Context, id StreamingEndpointId, input StreamingEntityScaleUnit) (result ScaleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

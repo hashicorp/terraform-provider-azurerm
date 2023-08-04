@@ -23,7 +23,7 @@ type CustomCertificatesCreateOrUpdateOperationResponse struct {
 // CustomCertificatesCreateOrUpdate ...
 func (c SignalRClient) CustomCertificatesCreateOrUpdate(ctx context.Context, id CustomCertificateId, input CustomCertificate) (result CustomCertificatesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -17,7 +17,7 @@ type DeleteParentOperationResponse struct {
 }
 
 // DeleteParent ...
-func (c ConfigurationAssignmentsClient) DeleteParent(ctx context.Context, id Providers2ConfigurationAssignmentId) (result DeleteParentOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) DeleteParent(ctx context.Context, id ScopedConfigurationAssignmentId) (result DeleteParentOperationResponse, err error) {
 	req, err := c.preparerForDeleteParent(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationassignments.ConfigurationAssignmentsClient", "DeleteParent", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c ConfigurationAssignmentsClient) DeleteParent(ctx context.Context, id Pro
 }
 
 // preparerForDeleteParent prepares the DeleteParent request.
-func (c ConfigurationAssignmentsClient) preparerForDeleteParent(ctx context.Context, id Providers2ConfigurationAssignmentId) (*http.Request, error) {
+func (c ConfigurationAssignmentsClient) preparerForDeleteParent(ctx context.Context, id ScopedConfigurationAssignmentId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

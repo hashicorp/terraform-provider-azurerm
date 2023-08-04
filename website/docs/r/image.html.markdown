@@ -123,7 +123,8 @@ The `os_disk` block supports the following:
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image. Changing this forces a new resource to be created.
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
-* `size_gb` - (Optional) Specifies the size of the image to be created. The target size can't be smaller than the source size.
+* `size_gb` - (Optional) Specifies the size of the image to be created. Changing this forces a new resource to be created.
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this image.
 
 ---
 

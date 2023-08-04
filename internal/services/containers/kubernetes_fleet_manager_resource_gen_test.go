@@ -97,7 +97,7 @@ func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.ContainerService.Fleets.Get(ctx, *id)
+	resp, err := clients.ContainerService.V20220902Preview.Fleets.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -108,14 +108,13 @@ func (r KubernetesFleetManagerTestResource) basic(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_kubernetes_fleet_manager" "test" {
-
-  hub_profile {
-    dns_prefix = "acctest"
-  }
-
   location            = azurerm_resource_group.test.location
-  name                = "acctest-${local.random_integer}"
+  name                = "acctestkfm-${var.random_string}"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, r.template(data))
@@ -126,14 +125,9 @@ func (r KubernetesFleetManagerTestResource) requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_kubernetes_fleet_manager" "import" {
-
-  hub_profile {
-    dns_prefix = "acctest"
-  }
-
-  location            = azurerm_resource_group.test.location
-  name                = "acctest-${local.random_integer}"
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_kubernetes_fleet_manager.test.location
+  name                = azurerm_kubernetes_fleet_manager.test.name
+  resource_group_name = azurerm_kubernetes_fleet_manager.test.resource_group_name
 }
 `, r.basic(data))
 }
@@ -142,19 +136,20 @@ func (r KubernetesFleetManagerTestResource) complete(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_kubernetes_fleet_manager" "test" {
   location            = azurerm_resource_group.test.location
-  name                = "acctest-${local.random_integer}"
+  name                = "acctestkfm-${var.random_string}"
   resource_group_name = azurerm_resource_group.test.name
-
-  hub_profile {
-    dns_prefix = "acctest"
-  }
-
   tags = {
-    env  = "Production"
-    test = "Acceptance"
+    environment = "terraform-acctests"
+    some_key    = "some-value"
+  }
+  hub_profile {
+    dns_prefix = "val-${var.random_string}"
   }
 }
 `, r.template(data))
@@ -162,19 +157,19 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
 
 func (r KubernetesFleetManagerTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+variable "primary_location" {
+  default = %q
 }
-
-locals {
-  random_integer   = %[1]d
-  primary_location = %[2]q
+variable "random_integer" {
+  default = %d
 }
-
+variable "random_string" {
+  default = %q
+}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-${local.random_integer}"
-  location = local.primary_location
+  name     = "acctestrg-${var.random_integer}"
+  location = var.primary_location
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

@@ -65,11 +65,13 @@ The following arguments are supported:
 ~> **NOTE:** After creation, the `source_vm_id` property can be removed without forcing a new resource to be created; however, setting it to a different ID will create a new resource.
 This allows the source vm to be deleted without having to remove the backup.
 
-* `backup_policy_id` - (Required) Specifies the id of the backup policy to use.
+* `backup_policy_id` - (Optional) Specifies the id of the backup policy to use. Required in creation or when `protection_stopped` is not specified.
 
 * `exclude_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers(LUN) to be excluded for VM Protection.
 
 * `include_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers(LUN) to be included for VM Protection.
+
+* `protection_state` - (Optional) Specifies Protection state of the backup. Possible values are `Invalid`, `IRPending`, `Protected`, `ProtectionStopped`, `ProtectionError` and `ProtectionPaused`.
 
 ## Attributes Reference
 

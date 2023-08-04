@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package appconfiguration_test
 
 import (
@@ -255,7 +258,7 @@ func TestAccAppConfiguration_softDeleteRecoveryDisabled(t *testing.T) {
 		{
 			// attempting to re-create without recovery the soft-deleted
 			Config:      r.softDeleteRecoveryDisabled(data),
-			ExpectError: regexp.MustCompile("An existing soft-deleted App Configuration exists with the Name"),
+			ExpectError: regexp.MustCompile("creating Configuration Store"),
 		},
 	})
 }

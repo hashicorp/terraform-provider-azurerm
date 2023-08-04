@@ -1,11 +1,19 @@
+/*
+ * Copyright (c) HashiCorp, Inc.
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 // specifies the default hour (UTC) at which tests should be triggered, if enabled
 var defaultStartHour = 0
 
 // specifies the default level of parallelism per-service-package
 var defaultParallelism = 20
 
+// specifies the default build timeout in hours
+var defaultTimeout = 12
+
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.1.5"
+var defaultTerraformCoreVersion = "1.5.1"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -29,7 +37,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "northeurope", "eastus2", false), useDevTestSubscription = true),
+        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "northeurope", "eastus2", true), useDevTestSubscription = true),
 
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
@@ -50,7 +58,7 @@ var serviceTestConfigurationOverrides = mapOf(
         // Cosmos is only available in certain locations
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), useDevTestSubscription = true),
 
-        //Confidential Ledger
+        // Confidential Ledger
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
@@ -71,11 +79,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // data factory uses NC class VMs which are not available in eastus2
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false), useDevTestSubscription = true),
 
-        // Data Lake has a low quota
-        "datalake" to testConfiguration(parallelism = 2, useDevTestSubscription = true),
-
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
-        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false), useDevTestSubscription = true),
+        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
         // Elastic can't provision many in parallel
         "elastic" to testConfiguration(parallelism = 1, useDevTestSubscription = true),
@@ -116,8 +121,20 @@ var serviceTestConfigurationOverrides = mapOf(
         // netapp has a max of 10 accounts and the max capacity of pool is 25 TiB per subscription so lets limit it to 1 to account for broken ones, run Monday, Wednesday, Friday
         "netapp" to testConfiguration(parallelism = 1, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false), useDevTestSubscription = true),
 
+        // network has increased timeout to accommodate the custom_ip_prefix resource
+        "network" to testConfiguration(timeout = 24),
+
+        // New Relic is only available in East US region
+        "newrelic" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus", "eastus", false)),
+
         // Orbital is only available in certain locations
         "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),
+
+        // Network Function is only available in certain locations
+        "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),
+
+        // Network Regional Tire Public IP is only available in
+        "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
 
         "policy" to testConfiguration(useAltSubscription = true),
 
@@ -157,19 +174,22 @@ var serviceTestConfigurationOverrides = mapOf(
         "voiceservices" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westcentralus", "westcentralus", "westcentralus", false), useDevTestSubscription = true),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), useDevTestSubscription = true),
+        "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true), useDevTestSubscription = true),
+
+        // MobileNetwork is only available in certain locations
+        "mobilenetwork" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westeurope", "centraluseuap", false), useDevTestSubscription = false),
 
         // Workloads has quota available in certain locations
         "workloads" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("eastus", "westeurope", "francecentral", false)),
 
-        // moved to alt subsription
+        // moved to alt subscription
         "appconfiguration" to testConfiguration(useDevTestSubscription = true),
         "dns" to testConfiguration(useDevTestSubscription = true),
         "eventgrid" to testConfiguration(useDevTestSubscription = true),
         "eventhub" to testConfiguration(useDevTestSubscription = true),
         "firewall" to testConfiguration(useDevTestSubscription = true),
         "keyvault" to testConfiguration(useDevTestSubscription = true),
-        "postgres" to testConfiguration(locationOverride = LocationConfiguration("northeurope", "centralus", "eastus", false), useDevTestSubscription = true),
+        "postgres" to testConfiguration(locationOverride = LocationConfiguration("northeurope", "centralus", "westeurope", false), useDevTestSubscription = true),
         "privatedns" to testConfiguration(useDevTestSubscription = true),
         "redis" to testConfiguration(useDevTestSubscription = true)
 )

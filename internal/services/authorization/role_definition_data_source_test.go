@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package authorization_test
 
 import (
@@ -70,13 +73,15 @@ func TestAccRoleDefinitionDataSource_builtIn_contributor(t *testing.T) {
 				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
 				check.That(data.ResourceName).Key("permissions.0.actions.#").HasValue("1"),
 				check.That(data.ResourceName).Key("permissions.0.actions.0").HasValue("*"),
-				check.That(data.ResourceName).Key("permissions.0.not_actions.#").HasValue("6"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.#").HasValue("8"),
 				check.That(data.ResourceName).Key("permissions.0.not_actions.0").HasValue("Microsoft.Authorization/*/Delete"),
 				check.That(data.ResourceName).Key("permissions.0.not_actions.1").HasValue("Microsoft.Authorization/*/Write"),
 				check.That(data.ResourceName).Key("permissions.0.not_actions.2").HasValue("Microsoft.Authorization/elevateAccess/Action"),
 				check.That(data.ResourceName).Key("permissions.0.not_actions.3").HasValue("Microsoft.Blueprint/blueprintAssignments/write"),
 				check.That(data.ResourceName).Key("permissions.0.not_actions.4").HasValue("Microsoft.Blueprint/blueprintAssignments/delete"),
 				check.That(data.ResourceName).Key("permissions.0.not_actions.5").HasValue("Microsoft.Compute/galleries/share/action"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.6").HasValue("Microsoft.Purview/consents/write"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.7").HasValue("Microsoft.Purview/consents/delete"),
 			),
 		},
 	})

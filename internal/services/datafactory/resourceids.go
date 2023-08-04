@@ -1,6 +1,8 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package datafactory
 
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DataFactory -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DataFactory/factories/facName1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DataFlow -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DataFactory/factories/facName1/dataflows/dataflow1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DataSet -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DataFactory/factories/facName1/datasets/dataSet1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=IntegrationRuntime -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DataFactory/factories/factory1/integrationruntimes/runtime1

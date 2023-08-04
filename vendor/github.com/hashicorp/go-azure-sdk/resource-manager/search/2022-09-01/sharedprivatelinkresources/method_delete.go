@@ -50,7 +50,7 @@ func (o DeleteOperationOptions) ToQuery() *client.QueryParams {
 // Delete ...
 func (c SharedPrivateLinkResourcesClient) Delete(ctx context.Context, id SharedPrivateLinkResourceId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

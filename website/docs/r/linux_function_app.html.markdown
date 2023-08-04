@@ -101,6 +101,8 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
+* `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
+
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
@@ -163,7 +165,7 @@ A `application_stack` block supports the following:
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16` and `18`.
 
-* `python_version` - (Optional) The version of Python to run. Possible values are `3.10`, `3.9`, `3.8` and `3.7`.
+* `python_version` - (Optional) The version of Python to run. Possible values are `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, and `7.2`.
 

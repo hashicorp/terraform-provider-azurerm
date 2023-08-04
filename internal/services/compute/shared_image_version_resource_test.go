@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -13,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2022-08-01/compute"
+	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 type SharedImageVersionResource struct{}
@@ -289,11 +292,11 @@ func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *cl
 
 // nolint: unparam
 func (SharedImageVersionResource) setup(data acceptance.TestData) string {
-	return ImageResource{}.setupUnmanagedDisks(data, "LRS")
+	return ImageResource{}.setupUnmanagedDisks(data)
 }
 
 func (SharedImageVersionResource) provision(data acceptance.TestData) string {
-	template := ImageResource{}.standaloneImageProvision(data, "LRS", "")
+	template := ImageResource{}.standaloneImageProvision(data, "")
 	return fmt.Sprintf(`
 %s
 

@@ -9,7 +9,7 @@ type DatadogHostOperationPredicate struct {
 
 func (p DatadogHostOperationPredicate) Matches(input DatadogHost) bool {
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 

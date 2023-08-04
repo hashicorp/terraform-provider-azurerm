@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 output "openshift_console_url" {
   value = "https://${azurerm_public_ip.openshift_primary_pip.fqdn}:8443/console"
 }

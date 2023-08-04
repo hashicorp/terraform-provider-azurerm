@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -56,13 +59,13 @@ func TestPublicIpPrefixID(t *testing.T) {
 		},
 
 		{
-			// missing PublicIPPrefixeName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Error: true,
 		},
 
 		{
-			// missing value for PublicIPPrefixeName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/publicIPPrefixes/",
 			Error: true,
 		},
@@ -71,9 +74,9 @@ func TestPublicIpPrefixID(t *testing.T) {
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/publicIPPrefixes/publicIpPrefix1",
 			Expected: &PublicIpPrefixId{
-				SubscriptionId:      "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:       "resGroup1",
-				PublicIPPrefixeName: "publicIpPrefix1",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				Name:           "publicIpPrefix1",
 			},
 		},
 
@@ -105,8 +108,8 @@ func TestPublicIpPrefixID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.PublicIPPrefixeName != v.Expected.PublicIPPrefixeName {
-			t.Fatalf("Expected %q but got %q for PublicIPPrefixeName", v.Expected.PublicIPPrefixeName, actual.PublicIPPrefixeName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

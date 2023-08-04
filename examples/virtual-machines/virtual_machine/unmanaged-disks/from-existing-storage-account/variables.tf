@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 variable "resource_group" {
   description = "Name of the resource group in which to deploy your new Virtual Machines"
 }

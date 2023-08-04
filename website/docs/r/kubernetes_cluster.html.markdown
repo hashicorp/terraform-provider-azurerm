@@ -101,6 +101,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `confidential_computing` - (Optional) A `confidential_computing` block as defined below. For more details please [the documentation](https://learn.microsoft.com/en-us/azure/confidential-computing/confidential-nodes-aks-overview)
 
+* `custom_ca_trust_certificates_base64` - (Optional) A list of up to 10 base64 encoded CAs that will be added to the trust store on nodes with the `custom_ca_trust_enabled` feature enabled.
+
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/azure/aks/azure-disk-customer-managed-keys). Changing this forces a new resource to be created.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
@@ -141,6 +143,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
+* `maintenance_window_auto_upgrade` - (Optional) A `maintenance_window_auto_upgrade` block as defined below.
+
+* `maintenance_window_node_os` - (Optional) A `maintenance_window_node_os` block as defined below.
+
 * `microsoft_defender` - (Optional) A `microsoft_defender` block as defined below.
 
 * `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
@@ -148,6 +154,12 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `network_profile` - (Optional) A `network_profile` block as defined below. Changing this forces a new resource to be created.
 
 -> **Note:** If `network_profile` is not defined, `kubenet` profile will be used by default.
+
+* `node_os_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster Nodes' OS Image. Possible values are `Unmanaged`, `SecurityPatch`, `NodeImage` and `None`.
+
+-> **Note:** `node_os_channel_upgrade` must be set to `NodeImage` if `automatic_channel_upgrade` has been set to `node-image`
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodeOsUpgradeChannelPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/auto-upgrade-node-image#register-the-nodeosupgradechannelpreview-feature-flag) for more information.
 
 * `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
@@ -221,7 +233,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
 
--> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `authorized_ip_ranges` in the `api_server_access_profile` block.
+-> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/0` must be added to `authorized_ip_ranges` in the `api_server_access_profile` block.
 
 * `role_based_access_control_enabled` - (Optional) Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
 
@@ -368,6 +380,8 @@ A `default_node_pool` block supports the following:
 
 * `custom_ca_trust_enabled` - (Optional) Specifies whether to trust a Custom CA.
 
+* `custom_ca_trust_certificates_base64` - (Optional) A list of up to 10 base64 encoded CAs that will be added to the trust store on nodes with the `custom_ca_trust_enabled` feature enabled.
+
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CustomCATrustPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/custom-certificate-authority) for more information.
 
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler) be enabled for this Node Pool?
@@ -414,7 +428,7 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`.  `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values include: `Ubuntu`, `CBLMariner`, `Mariner`, `Windows2019`, `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. `temporary_name_for_rotation` must be specified when attempting a change.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values include: `AzureLinux`, `Ubuntu`, `Windows2019`, `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. `temporary_name_for_rotation` must be specified when attempting a change.
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
 
@@ -432,7 +446,7 @@ A `default_node_pool` block supports the following:
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) until this is fixed in the AKS API.
 
-* `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Default Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. Changing this forces a new resource to be created.
+* `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Default Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. `temporary_name_for_rotation` must be specified when attempting a change.
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
@@ -566,6 +580,51 @@ A `maintenance_window` block supports the following:
 
 ---
 
+A `maintenance_window_auto_upgrade` block supports the following:
+
+* `frequency` - (Required) Frequency of maintenance. Possible options are `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
+
+* `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
+
+* `duration` - (Required) The duration of the window for maintenance to run in hours.
+
+* `day_of_week` - (Optional) The day of the week for the maintenance run. Options are `Monday`, `Tuesday`, `Wednesday`, `Thurday`, `Friday`, `Saturday` and `Sunday`. Required in combination with weekly frequency.
+
+* `week_index` - (Optional) The week in the month used for the maintenance run. Options are `First`, `Second`, `Third`, `Fourth`, and `Last`.
+ Required in combination with relative monthly frequency.
+
+* `start_time` - (Optional) The time for maintenance to begin, based on the timezone determined by `utc_offset`. Format is `HH:mm`.
+
+* `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
+
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect. 
+
+* `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
+
+---
+
+A `maintenance_window_node_os` block supports the following:
+
+* `frequency` - (Required) Frequency of maintenance. Possible options are `Daily`, `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
+
+* `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
+
+* `duration` - (Required) The duration of the window for maintenance to run in hours.
+
+* `day_of_week` - (Optional) The day of the week for the maintenance run. Options are `Monday`, `Tuesday`, `Wednesday`, `Thurday`, `Friday`, `Saturday` and `Sunday`. Required in combination with weekly frequency.
+
+* `week_index` - (Optional) The week in the month used for the maintenance run. Options are `First`, `Second`, `Third`, `Fourth`, and `Last`.
+
+* `start_time` - (Optional) The time for maintenance to begin, based on the timezone determined by `utc_offset`. Format is `HH:mm`.
+
+* `utc_offset` - (Optional) Used to determine the timezone for cluster maintenance.
+
+* `start_date` - (Optional) The date on which the maintenance window begins to take effect. 
+
+* `not_allowed` - (Optional) One or more `not_allowed` block as defined below.
+
+---
+
 An `allowed` block exports the following:
 
 * `day` - (Required) A day in a week. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
@@ -592,7 +651,7 @@ A `network_profile` block supports the following:
 
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure`, `kubenet` and `none`. Changing this forces a new resource to be created.
 
--> **Note:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `default_node_pool` block must be set and `pod_cidr` must not be set.
+-> **Note:** When `network_plugin` is set to `azure` - the `pod_cidr` field must not be set.
 
 * `network_mode` - (Optional) Network mode to be used with Azure CNI. Possible values are `bridge` and `transparent`. Changing this forces a new resource to be created.
 
@@ -614,13 +673,13 @@ A `network_profile` block supports the following:
 
 ~> **Note:** When `ebpf_data_plane` is set to `cilium`, the `network_plugin` field can only be set to `azure`.
 
-~> **Note:** When `ebpf_data_plane` is set to `cilium`, one of either `network_plugin_mode = "Overlay"` or `pod_subnet_id` must be specified.
+~> **Note:** When `ebpf_data_plane` is set to `cilium`, one of either `network_plugin_mode = "overlay"` or `pod_subnet_id` must be specified.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CiliumDataplanePreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/azure-cni-powered-by-cilium) for more information.
 
-* `network_plugin_mode` - (Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is `Overlay`. Changing this forces a new resource to be created.
+* `network_plugin_mode` - (Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is `overlay`. Changing this forces a new resource to be created.
 
-~> **Note:** When `network_plugin_mode` is set to `Overlay`, the `network_plugin` field can only be set to `azure`.
+~> **Note:** When `network_plugin_mode` is set to `overlay`, the `network_plugin` field can only be set to `azure`.
 
 * `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`. Changing this forces a new resource to be created.
 
@@ -707,6 +766,14 @@ An `ingress_application_gateway` block supports the following:
 A `service_mesh_profile` block supports the following:
 
 * `mode` - (Required) The mode of the service mesh. Possible value is `Istio`.
+
+* `internal_ingress_gateway_enabled` - (Optional) Is Istio Internal Ingress Gateway enabled?
+
+* `external_ingress_gateway_enabled` - (Optional) Is Istio External Ingress Gateway enabled?
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AzureServiceMeshPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-addon#register-the-azureservicemeshpreview-feature-flag) for more information.
+
+-> **NOTE:** Currently only one Internal Ingress Gateway and one External Ingress Gateway are allowed per cluster
 
 ---
 

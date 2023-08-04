@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -757,9 +760,6 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 				RadiusServerScore:   utils.Int64(int64(v["score"].(int))),
 			})
 		}
-	} else {
-		address = val["address"].(string)
-		secret = val["secret"].(string)
 	}
 
 	return &vpnServerConfigurationRadius{
@@ -819,14 +819,6 @@ func flattenVpnServerConfigurationRadius(input *network.VpnServerConfigurationPr
 	schema := map[string]interface{}{
 		"client_root_certificate": clientRootCertificates,
 		"server_root_certificate": serverRootCertificates,
-	}
-
-	if input.RadiusServerAddress != nil && *input.RadiusServerAddress != "" {
-		schema["address"] = *input.RadiusServerAddress
-	}
-
-	if input.RadiusServerSecret != nil && *input.RadiusServerSecret != "" {
-		schema["secret"] = *input.RadiusServerSecret
 	}
 
 	if input.RadiusServers != nil && len(*input.RadiusServers) > 0 {

@@ -1,8 +1,10 @@
-import jetbrains.buildServer.configs.kotlin.v2019_2.*
+import jetbrains.buildServer.configs.kotlin.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.BuildType
 
-class pullRequest(displayName: String, environment: String) {
+class pullRequest(displayName: String, environment: String, vcsRootId : String) {
     val displayName = displayName
     val environment = environment
+    val vcsRootId = vcsRootId
 
     fun buildConfiguration(providerName : String) : BuildType {
         return BuildType {
@@ -12,7 +14,7 @@ class pullRequest(displayName: String, environment: String) {
             name = displayName
 
             vcs {
-                root(providerRepository)
+                root(rootId = AbsoluteId(vcsRootId))
                 cleanCheckout = true
             }
 
@@ -33,7 +35,7 @@ class pullRequest(displayName: String, environment: String) {
             }
 
             params {
-                TerraformAcceptanceTestParameters(defaultParallelism, "TestAcc", "12")
+                TerraformAcceptanceTestParameters(defaultParallelism, "TestAcc", defaultTimeout)
                 TerraformAcceptanceTestsFlag()
                 TerraformShouldPanicForSchemaErrors()
                 TerraformCoreBinaryTesting()

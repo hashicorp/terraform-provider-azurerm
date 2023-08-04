@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package monitor
 
 import (
@@ -247,6 +250,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Optional: true,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"current": {
@@ -305,6 +309,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Optional: true,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"events": {

@@ -21,7 +21,7 @@ type RetrieveRegistrationTokenOperationResponse struct {
 // RetrieveRegistrationToken ...
 func (c HostPoolClient) RetrieveRegistrationToken(ctx context.Context, id HostPoolId) (result RetrieveRegistrationTokenOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

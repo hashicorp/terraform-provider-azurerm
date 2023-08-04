@@ -1,6 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountagreements"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountassemblies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountbatchconfigurations"
@@ -31,55 +36,91 @@ type Client struct {
 	TriggersClient                             *workflowtriggers.WorkflowTriggersClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	integrationAccountClient := integrationaccounts.NewIntegrationAccountsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&integrationAccountClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	integrationAccountClient, err := integrationaccounts.NewIntegrationAccountsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(integrationAccountClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building IntegrationAccountClient client: %+v", err)
+	}
 
-	integrationAccountAgreementClient := integrationaccountagreements.NewIntegrationAccountAgreementsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&integrationAccountAgreementClient.Client, o.ResourceManagerAuthorizer)
+	integrationAccountAgreementClient, err := integrationaccountagreements.NewIntegrationAccountAgreementsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(integrationAccountAgreementClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building IntegrationAccountAgreementClient client: %+v", err)
+	}
 
-	integrationAccountAssemblyClient := integrationaccountassemblies.NewIntegrationAccountAssembliesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&integrationAccountAssemblyClient.Client, o.ResourceManagerAuthorizer)
+	integrationAccountAssemblyClient, err := integrationaccountassemblies.NewIntegrationAccountAssembliesClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(integrationAccountAssemblyClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building IntegrationAccountAssemblyClient client: %+v", err)
+	}
 
-	integrationAccountBatchConfigurationClient := integrationaccountbatchconfigurations.NewIntegrationAccountBatchConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&integrationAccountBatchConfigurationClient.Client, o.ResourceManagerAuthorizer)
+	integrationAccountBatchConfigurationClient, err := integrationaccountbatchconfigurations.NewIntegrationAccountBatchConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(integrationAccountBatchConfigurationClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building IntegrationAccountBatchConfigurationClient client: %+v", err)
+	}
 
-	integrationAccountCertificateClient := integrationaccountcertificates.NewIntegrationAccountCertificatesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&integrationAccountCertificateClient.Client, o.ResourceManagerAuthorizer)
+	integrationAccountCertificateClient, err := integrationaccountcertificates.NewIntegrationAccountCertificatesClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(integrationAccountCertificateClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building IntegrationAccountCertificateClient client: %+v", err)
+	}
 
-	integrationAccountMapClient := integrationaccountmaps.NewIntegrationAccountMapsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&integrationAccountMapClient.Client, o.ResourceManagerAuthorizer)
+	integrationAccountMapClient, err := integrationaccountmaps.NewIntegrationAccountMapsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(integrationAccountMapClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building IntegrationAccountMapClient client: %+v", err)
+	}
 
-	integrationAccountPartnerClient := integrationaccountpartners.NewIntegrationAccountPartnersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&integrationAccountPartnerClient.Client, o.ResourceManagerAuthorizer)
+	integrationAccountPartnerClient, err := integrationaccountpartners.NewIntegrationAccountPartnersClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(integrationAccountPartnerClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building IntegrationAccountPartnerClient client: %+v", err)
+	}
 
-	integrationAccountSchemaClient := integrationaccountschemas.NewIntegrationAccountSchemasClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&integrationAccountSchemaClient.Client, o.ResourceManagerAuthorizer)
+	integrationAccountSchemaClient, err := integrationaccountschemas.NewIntegrationAccountSchemasClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(integrationAccountSchemaClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building IntegrationAccountSchemaClient client: %+v", err)
+	}
 
-	integrationAccountSessionClient := integrationaccountsessions.NewIntegrationAccountSessionsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&integrationAccountSessionClient.Client, o.ResourceManagerAuthorizer)
+	integrationAccountSessionClient, err := integrationaccountsessions.NewIntegrationAccountSessionsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(integrationAccountSessionClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building IntegrationAccountSessionClient client: %+v", err)
+	}
 
-	integrationServiceEnvironmentClient := integrationserviceenvironments.NewIntegrationServiceEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&integrationServiceEnvironmentClient.Client, o.ResourceManagerAuthorizer)
+	integrationServiceEnvironmentClient, err := integrationserviceenvironments.NewIntegrationServiceEnvironmentsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(integrationServiceEnvironmentClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building IntegrationServiceEnvironmentClient client: %+v", err)
+	}
 
-	workflowClient := workflows.NewWorkflowsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&workflowClient.Client, o.ResourceManagerAuthorizer)
+	workflowClient, err := workflows.NewWorkflowsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(workflowClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building WorkflowClient client: %+v", err)
+	}
 
-	triggersClient := workflowtriggers.NewWorkflowTriggersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&triggersClient.Client, o.ResourceManagerAuthorizer)
+	triggersClient, err := workflowtriggers.NewWorkflowTriggersClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(triggersClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building TriggersClient client: %+v", err)
+	}
 
 	return &Client{
-		IntegrationAccountClient:                   &integrationAccountClient,
-		IntegrationAccountAgreementClient:          &integrationAccountAgreementClient,
-		IntegrationAccountAssemblyClient:           &integrationAccountAssemblyClient,
-		IntegrationAccountBatchConfigurationClient: &integrationAccountBatchConfigurationClient,
-		IntegrationAccountCertificateClient:        &integrationAccountCertificateClient,
-		IntegrationAccountMapClient:                &integrationAccountMapClient,
-		IntegrationAccountPartnerClient:            &integrationAccountPartnerClient,
-		IntegrationAccountSchemaClient:             &integrationAccountSchemaClient,
-		IntegrationAccountSessionClient:            &integrationAccountSessionClient,
-		IntegrationServiceEnvironmentClient:        &integrationServiceEnvironmentClient,
-		WorkflowClient:                             &workflowClient,
-		TriggersClient:                             &triggersClient,
-	}
+		IntegrationAccountClient:                   integrationAccountClient,
+		IntegrationAccountAgreementClient:          integrationAccountAgreementClient,
+		IntegrationAccountAssemblyClient:           integrationAccountAssemblyClient,
+		IntegrationAccountBatchConfigurationClient: integrationAccountBatchConfigurationClient,
+		IntegrationAccountCertificateClient:        integrationAccountCertificateClient,
+		IntegrationAccountMapClient:                integrationAccountMapClient,
+		IntegrationAccountPartnerClient:            integrationAccountPartnerClient,
+		IntegrationAccountSchemaClient:             integrationAccountSchemaClient,
+		IntegrationAccountSessionClient:            integrationAccountSessionClient,
+		IntegrationServiceEnvironmentClient:        integrationServiceEnvironmentClient,
+		WorkflowClient:                             workflowClient,
+		TriggersClient:                             triggersClient,
+	}, nil
 }
