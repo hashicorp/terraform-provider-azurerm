@@ -30,13 +30,13 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	o.Configure(assignmentsClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(blueprintsClient.Client, o.Authorizers.ResourceManager)
 
 	publishedBlueprintsClient, err := publishedblueprint.NewPublishedBlueprintClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, err
 	}
-	o.Configure(assignmentsClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(publishedBlueprintsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		AssignmentsClient:         assignmentsClient,
