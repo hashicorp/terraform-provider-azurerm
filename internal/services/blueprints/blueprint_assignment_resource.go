@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -151,20 +152,20 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("failure checking for existing Blueprint Assignment %s", id.String())
+				return fmt.Errorf("checking for an existing %s: %+v", id, err)
 			}
 		}
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_blueprint_assignment", id.String())
+			return tf.ImportAsExistsError("azurerm_blueprint_assignment", id.ID())
 		}
 	}
 
-	a := assignment.Assignment{
+	payload := assignment.Assignment{
 		Properties: assignment.AssignmentProperties{
 			BlueprintId: pointer.To(blueprintId), // This is mislabeled - The ID is that of the Published Version, not just the Blueprint
 			Scope:       pointer.To(id.ResourceScope),
 		},
-		Location: azure.NormalizeLocation(d.Get("location")),
+		Location: location.Normalize(d.Get("location").(string)),
 	}
 
 	if lockModeRaw, ok := d.GetOk("lock_mode"); ok {
@@ -182,31 +183,35 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 				assignmentLockSettings.ExcludedActions = utils.ExpandStringSlice(excludedActionsRaw)
 			}
 		}
-		a.Properties.Locks = assignmentLockSettings
+		payload.Properties.Locks = assignmentLockSettings
 	}
 
 	i, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	a.Identity = *i
+	payload.Identity = *i
 
 	if paramValuesRaw := d.Get("parameter_values"); paramValuesRaw != "" {
-		a.Properties.Parameters = expandArmBlueprintAssignmentParameters(paramValuesRaw.(string))
+		payload.Properties.Parameters = expandArmBlueprintAssignmentParameters(paramValuesRaw.(string))
 	} else {
-		a.Properties.Parameters = expandArmBlueprintAssignmentParameters("{}")
+		payload.Properties.Parameters = expandArmBlueprintAssignmentParameters("{}")
 	}
 
 	if resourceGroupsRaw := d.Get("resource_groups"); resourceGroupsRaw != "" {
-		a.Properties.ResourceGroups = expandArmBlueprintAssignmentResourceGroups(resourceGroupsRaw.(string))
+		payload.Properties.ResourceGroups = expandArmBlueprintAssignmentResourceGroups(resourceGroupsRaw.(string))
 	} else {
-		a.Properties.ResourceGroups = expandArmBlueprintAssignmentResourceGroups("{}")
+		payload.Properties.ResourceGroups = expandArmBlueprintAssignmentResourceGroups("{}")
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id, a); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return err
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
 			string(assignment.AssignmentProvisioningStateWaiting),
@@ -217,9 +222,8 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 		Target:  []string{string(assignment.AssignmentProvisioningStateSucceeded)},
 		Refresh: blueprintAssignmentCreateStateRefreshFunc(ctx, client, id),
-		Timeout: d.Timeout(pluginsdk.TimeoutCreate),
+		Timeout: time.Until(deadline),
 	}
-
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("failed waiting for Blueprint Assignment %s: %+v", id.String(), err)
 	}
@@ -315,6 +319,10 @@ func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("failed to delete Blueprint Assignment %q from scope %q: %+v", id.BlueprintAssignmentName, id.ResourceScope, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
 			string(assignment.AssignmentProvisioningStateWaiting),
@@ -325,9 +333,8 @@ func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta interface
 		},
 		Target:  []string{"NotFound"},
 		Refresh: blueprintAssignmentDeleteStateRefreshFunc(ctx, client, *id),
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout: time.Until(deadline),
 	}
-
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Blueprint Assignment %q: %+v", id.String(), err)
 	}
