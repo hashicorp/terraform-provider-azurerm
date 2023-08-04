@@ -364,12 +364,13 @@ resource "azurerm_spring_cloud_certificate" "test" {
 resource "azurerm_spring_cloud_configuration_service" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  generation              = "Gen2"
   repository {
-    name                     = "fake"
-    label                    = "master"
-    patterns                 = ["app/dev"]
-    uri                      = "https://github.com/Azure-Samples/piggymetrics"
-    ca_certificate_id        = azurerm_spring_cloud_certificate.test.id
+    name              = "fake"
+    label             = "master"
+    patterns          = ["app/dev"]
+    uri               = "https://github.com/Azure-Samples/piggymetrics"
+    ca_certificate_id = azurerm_spring_cloud_certificate.test.id
   }
 }
 `, template, data.RandomIntOfLength(10))

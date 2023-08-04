@@ -264,8 +264,7 @@ func expandConfigurationServiceConfigurationServiceGitRepositoryArray(input []in
 	results := make([]appplatform.ConfigurationServiceGitRepository, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		results = append(results, appplatform.ConfigurationServiceGitRepository{
-			CaCertResourceID:      utils.String(v["ca_certificate_id"].(string)),
+		repo := appplatform.ConfigurationServiceGitRepository{
 			Name:                  utils.String(v["name"].(string)),
 			Patterns:              utils.ExpandStringSlice(v["patterns"].(*pluginsdk.Set).List()),
 			URI:                   utils.String(v["uri"].(string)),
@@ -277,7 +276,11 @@ func expandConfigurationServiceConfigurationServiceGitRepositoryArray(input []in
 			HostKeyAlgorithm:      utils.String(v["host_key_algorithm"].(string)),
 			PrivateKey:            utils.String(v["private_key"].(string)),
 			StrictHostKeyChecking: utils.Bool(v["strict_host_key_checking"].(bool)),
-		})
+		}
+		if caCertificatedId := v["ca_certificate_id"].(string); caCertificatedId != "" {
+			repo.CaCertResourceID = utils.String(caCertificatedId)
+		}
+		results = append(results, repo)
 	}
 	return &results
 }
