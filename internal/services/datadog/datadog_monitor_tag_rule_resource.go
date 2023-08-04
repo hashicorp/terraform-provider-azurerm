@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -144,6 +145,15 @@ func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	id := rules.NewTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
+	existing, err := client.TagRulesGet(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for an existing %s: %+v", id, err)
+		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) && !isDefaultSettings(existing.Model) {
+		return tf.ImportAsExistsError("azurerm_datadog_monitor_tag_rule", id.ID())
+	}
 
 	payload := rules.MonitoringTagRules{
 		Properties: &rules.MonitoringTagRulesProperties{
@@ -223,24 +233,27 @@ func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	client := meta.(*clients.Client).Datadog.Rules
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
 	id, err := rules.ParseTagRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.TagRulesGet(ctx, *id)
-	if err != nil {
-		return err
+	payload := rules.MonitoringTagRules{
+		Properties: &rules.MonitoringTagRulesProperties{
+			LogRules: &rules.LogRules{
+				SendAadLogs:          utils.Bool(false),
+				SendSubscriptionLogs: utils.Bool(false),
+				SendResourceLogs:     utils.Bool(false),
+				FilteringTags:        &[]rules.FilteringTag{},
+			},
+			MetricRules: &rules.MetricRules{
+				FilteringTags: &[]rules.FilteringTag{},
+			},
+		},
 	}
-
-	// Tag Rules can't be removed on their own, they can only be nil'd out
-	payload := pointer.From(resp.Model)
-
 	if _, err := client.TagRulesCreateOrUpdate(ctx, *id, payload); err != nil {
 		return fmt.Errorf("removing %s: %+v", *id, err)
 	}
-
 	return nil
 }
 
@@ -353,4 +366,25 @@ func flattenFilteringTags(input *[]rules.FilteringTag) []interface{} {
 		}
 	}
 	return results
+}
+
+func isDefaultSettings(input *rules.MonitoringTagRules) bool {
+	if input == nil {
+		return false
+	}
+
+	if name := input.Name; name != nil && *input.Name == "default" {
+		if props := input.Properties; props != nil {
+			logRules := props.LogRules
+			metricRules := props.MetricRules
+
+			if logRules != nil && metricRules != nil {
+				if (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) && (logRules.SendSubscriptionLogs != nil && !*logRules.SendSubscriptionLogs) && (logRules.SendResourceLogs != nil && !*logRules.SendResourceLogs) && (logRules.FilteringTags != nil && len(*logRules.FilteringTags) == 0) && (metricRules.FilteringTags != nil && len(*metricRules.FilteringTags) == 0) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
 }
