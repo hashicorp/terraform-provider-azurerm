@@ -21,7 +21,7 @@ type SAPDiskConfigurationsOperationResponse struct {
 // SAPDiskConfigurations ...
 func (c SAPDiskConfigurationsClient) SAPDiskConfigurations(ctx context.Context, id LocationId, input SAPDiskConfigurationsRequest) (result SAPDiskConfigurationsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

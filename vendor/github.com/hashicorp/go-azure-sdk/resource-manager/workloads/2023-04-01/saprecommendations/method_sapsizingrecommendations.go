@@ -22,7 +22,7 @@ type SAPSizingRecommendationsOperationResponse struct {
 // SAPSizingRecommendations ...
 func (c SAPRecommendationsClient) SAPSizingRecommendations(ctx context.Context, id LocationId, input SAPSizingRecommendationRequest) (result SAPSizingRecommendationsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -21,7 +21,7 @@ type SAPAvailabilityZoneDetailsOperationResponse struct {
 // SAPAvailabilityZoneDetails ...
 func (c SAPAvailabilityZoneDetailsClient) SAPAvailabilityZoneDetails(ctx context.Context, id LocationId, input SAPAvailabilityZoneDetailsRequest) (result SAPAvailabilityZoneDetailsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -23,7 +23,7 @@ type StartInstanceOperationResponse struct {
 // StartInstance ...
 func (c SAPApplicationServerInstancesClient) StartInstance(ctx context.Context, id ApplicationInstanceId) (result StartInstanceOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

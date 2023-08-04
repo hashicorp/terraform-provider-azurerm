@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type SAPVirtualInstancesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewSAPVirtualInstancesClientWithBaseURI(api environments.Api) (*SAPVirtualInstancesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "sapvirtualinstances", defaultApiVersion)
+func NewSAPVirtualInstancesClientWithBaseURI(sdkApi sdkEnv.Api) (*SAPVirtualInstancesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sapvirtualinstances", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SAPVirtualInstancesClient: %+v", err)
 	}

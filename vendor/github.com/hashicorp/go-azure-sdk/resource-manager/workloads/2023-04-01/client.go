@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapsupportedsku"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -35,68 +35,68 @@ type Client struct {
 	SapLandscapeMonitor           *saplandscapemonitor.SapLandscapeMonitorClient
 }
 
-func NewClientWithBaseURI(api environments.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
-	monitorsClient, err := monitors.NewMonitorsClientWithBaseURI(api)
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	monitorsClient, err := monitors.NewMonitorsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Monitors client: %+v", err)
 	}
 	configureFunc(monitorsClient.Client)
 
-	providerInstancesClient, err := providerinstances.NewProviderInstancesClientWithBaseURI(api)
+	providerInstancesClient, err := providerinstances.NewProviderInstancesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ProviderInstances client: %+v", err)
 	}
 	configureFunc(providerInstancesClient.Client)
 
-	sAPApplicationServerInstancesClient, err := sapapplicationserverinstances.NewSAPApplicationServerInstancesClientWithBaseURI(api)
+	sAPApplicationServerInstancesClient, err := sapapplicationserverinstances.NewSAPApplicationServerInstancesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SAPApplicationServerInstances client: %+v", err)
 	}
 	configureFunc(sAPApplicationServerInstancesClient.Client)
 
-	sAPAvailabilityZoneDetailsClient, err := sapavailabilityzonedetails.NewSAPAvailabilityZoneDetailsClientWithBaseURI(api)
+	sAPAvailabilityZoneDetailsClient, err := sapavailabilityzonedetails.NewSAPAvailabilityZoneDetailsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SAPAvailabilityZoneDetails client: %+v", err)
 	}
 	configureFunc(sAPAvailabilityZoneDetailsClient.Client)
 
-	sAPCentralInstancesClient, err := sapcentralinstances.NewSAPCentralInstancesClientWithBaseURI(api)
+	sAPCentralInstancesClient, err := sapcentralinstances.NewSAPCentralInstancesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SAPCentralInstances client: %+v", err)
 	}
 	configureFunc(sAPCentralInstancesClient.Client)
 
-	sAPDatabaseInstancesClient, err := sapdatabaseinstances.NewSAPDatabaseInstancesClientWithBaseURI(api)
+	sAPDatabaseInstancesClient, err := sapdatabaseinstances.NewSAPDatabaseInstancesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SAPDatabaseInstances client: %+v", err)
 	}
 	configureFunc(sAPDatabaseInstancesClient.Client)
 
-	sAPDiskConfigurationsClient, err := sapdiskconfigurations.NewSAPDiskConfigurationsClientWithBaseURI(api)
+	sAPDiskConfigurationsClient, err := sapdiskconfigurations.NewSAPDiskConfigurationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SAPDiskConfigurations client: %+v", err)
 	}
 	configureFunc(sAPDiskConfigurationsClient.Client)
 
-	sAPRecommendationsClient, err := saprecommendations.NewSAPRecommendationsClientWithBaseURI(api)
+	sAPRecommendationsClient, err := saprecommendations.NewSAPRecommendationsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SAPRecommendations client: %+v", err)
 	}
 	configureFunc(sAPRecommendationsClient.Client)
 
-	sAPSupportedSkuClient, err := sapsupportedsku.NewSAPSupportedSkuClientWithBaseURI(api)
+	sAPSupportedSkuClient, err := sapsupportedsku.NewSAPSupportedSkuClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SAPSupportedSku client: %+v", err)
 	}
 	configureFunc(sAPSupportedSkuClient.Client)
 
-	sAPVirtualInstancesClient, err := sapvirtualinstances.NewSAPVirtualInstancesClientWithBaseURI(api)
+	sAPVirtualInstancesClient, err := sapvirtualinstances.NewSAPVirtualInstancesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SAPVirtualInstances client: %+v", err)
 	}
 	configureFunc(sAPVirtualInstancesClient.Client)
 
-	sapLandscapeMonitorClient, err := saplandscapemonitor.NewSapLandscapeMonitorClientWithBaseURI(api)
+	sapLandscapeMonitorClient, err := saplandscapemonitor.NewSapLandscapeMonitorClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building SapLandscapeMonitor client: %+v", err)
 	}

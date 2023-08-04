@@ -23,7 +23,7 @@ type StopInstanceOperationResponse struct {
 // StopInstance ...
 func (c SAPDatabaseInstancesClient) StopInstance(ctx context.Context, id DatabaseInstanceId, input StopRequest) (result StopInstanceOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,
