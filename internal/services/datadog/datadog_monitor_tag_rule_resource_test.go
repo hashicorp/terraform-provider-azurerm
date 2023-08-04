@@ -160,6 +160,7 @@ resource "azurerm_datadog_monitor_tag_rule" "test" {
 func (r TagRulesDatadogMonitorResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_datadog_monitor_tag_rule" "import" {
   datadog_monitor_id = azurerm_datadog_monitor_tag_rule.test.datadog_monitor_id
   name               = azurerm_datadog_monitor_tag_rule.test.name
