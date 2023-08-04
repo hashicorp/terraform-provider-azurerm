@@ -180,13 +180,9 @@ func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if err != nil {
 		return err
 	}
-	resources, err := flattenResult(data)
-	if err != nil {
-		return err
-	}
 	d.SetId("resource-" + uuid.New().String())
-	if err := d.Set("resources", resources); err != nil {
-		return fmt.Errorf("failed to set resources property: %+v", err)
+	if err := d.Set("resources", flattenResult(data)); err != nil {
+		return fmt.Errorf("failed to set resources property: %w", err)
 	}
 
 	return nil
