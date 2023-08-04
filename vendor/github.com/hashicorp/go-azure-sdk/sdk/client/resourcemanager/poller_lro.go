@@ -174,14 +174,17 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			"Updating": pollers.PollingStatusInProgress,
 			// StorageSync@2020-03-01 returns `validateInput`, `newPrivateDnsEntries`, `finishNewStorageSyncService` rather than `InProgress` during creation/update
 			// See: https://github.com/hashicorp/go-azure-sdk/issues/565
-			"validateInput":               pollers.PollingStatusInProgress,
-			"newPrivateDnsEntries":        pollers.PollingStatusInProgress,
-			"finishNewStorageSyncService": pollers.PollingStatusInProgress,
+			"validateInput":                    pollers.PollingStatusInProgress,
+			"newPrivateDnsEntries":             pollers.PollingStatusInProgress,
+			"newManagedIdentityCredentialStep": pollers.PollingStatusInProgress,
+			"finishNewStorageSyncService":      pollers.PollingStatusInProgress,
 			// StorageSync@2020-03-01 (CloudEndpoints) returns `newReplicaGroup` rather than `InProgress` during creation/update
 			// See: https://github.com/hashicorp/go-azure-sdk/issues/565
 			"newReplicaGroup": pollers.PollingStatusInProgress,
 			// AnalysisServices @ 2017-08-01 (Servers) returns `Provisioning` during Creation
 			"Provisioning": pollers.PollingStatusInProgress,
+			// HealthBot @ 2022-08-08 (HealthBots CreateOrUpdate) returns `Working` during Creation
+			"Working": pollers.PollingStatusInProgress,
 		}
 		for k, v := range statuses {
 			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {

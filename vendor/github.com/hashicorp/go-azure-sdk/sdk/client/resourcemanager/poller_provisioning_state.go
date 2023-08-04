@@ -29,17 +29,17 @@ type provisioningStatePoller struct {
 	resourcePath         string
 }
 
-func provisioningStatePollerFromResponse(response *client.Response, client *Client, pollingInterval time.Duration) (*provisioningStatePoller, error) {
+func provisioningStatePollerFromResponse(response *client.Response, lroIsSelfReference bool, client *Client, pollingInterval time.Duration) (*provisioningStatePoller, error) {
 	// if we've gotten to this point then we're polling against a Resource Manager resource/operation of some kind
 	// we next need to determine if the current URI is a Resource Manager resource, or if we should be polling on the
 	// resource (e.g. `/my/resource`) rather than an operation on the resource (e.g. `/my/resource/start`)
 	if response.Request == nil {
 		return nil, fmt.Errorf("request was nil")
 	}
-	originalUri := response.Request.URL.RequestURI()
 	if response.Request.URL == nil {
 		return nil, fmt.Errorf("request url was nil")
 	}
+	originalUri := response.Request.URL.RequestURI()
 
 	// all Resource Manager operations require the `api-version` querystring
 	apiVersion := response.Request.URL.Query().Get("api-version")
@@ -47,9 +47,14 @@ func provisioningStatePollerFromResponse(response *client.Response, client *Clie
 		return nil, fmt.Errorf("unable to determine `api-version` from %q", originalUri)
 	}
 
-	resourcePath, err := resourceManagerResourcePathFromUri(originalUri)
-	if err != nil {
-		return nil, fmt.Errorf("determining Resource Manager Resource Path from %q: %+v", originalUri, err)
+	resourcePath := originalUri
+	if !lroIsSelfReference {
+		// if it's a self-reference (such as API Management's API/API Schema)
+		path, err := resourceManagerResourcePathFromUri(originalUri)
+		if err != nil {
+			return nil, fmt.Errorf("determining Resource Manager Resource Path from %q: %+v", originalUri, err)
+		}
+		resourcePath = *path
 	}
 
 	return &provisioningStatePoller{
@@ -57,7 +62,7 @@ func provisioningStatePollerFromResponse(response *client.Response, client *Clie
 		client:               client,
 		initialRetryDuration: pollingInterval,
 		originalUri:          originalUri,
-		resourcePath:         *resourcePath,
+		resourcePath:         resourcePath,
 	}, nil
 }
 
