@@ -6,6 +6,7 @@ package resource_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -22,7 +23,8 @@ func TestAccDataSourceResources_ByName(t *testing.T) {
 			Config: r.template(data),
 		},
 		{
-			Config: r.ByName(data),
+			PreConfig: func() { time.Sleep(1 * time.Minute) },
+			Config:    r.ByName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
 			),
@@ -39,7 +41,8 @@ func TestAccDataSourceResources_ByResourceGroup(t *testing.T) {
 			Config: r.template(data),
 		},
 		{
-			Config: r.ByResourceGroup(data),
+			PreConfig: func() { time.Sleep(1 * time.Minute) },
+			Config:    r.ByResourceGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
 			),
@@ -56,7 +59,26 @@ func TestAccDataSourceResources_ByResourceType(t *testing.T) {
 			Config: r.template(data),
 		},
 		{
-			Config: r.ByResourceType(data),
+			PreConfig: func() { time.Sleep(1 * time.Minute) },
+			Config:    r.ByResourceType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceResources_FilteredByResourceTypeAndSubscriptionIDs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
+	r := ResourcesDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.template(data),
+		},
+		{
+			PreConfig: func() { time.Sleep(1 * time.Minute) },
+			Config:    r.ByResourceTypeAndSubscriptionIDs(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
 			),
@@ -73,7 +95,8 @@ func TestAccDataSourceResources_FilteredByTags(t *testing.T) {
 			Config: r.template(data),
 		},
 		{
-			Config: r.FilteredByTags(data),
+			PreConfig: func() { time.Sleep(1 * time.Minute) },
+			Config:    r.FilteredByTags(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("resources.#").HasValue("1"),
 			),
@@ -108,6 +131,24 @@ func (r ResourcesDataSource) ByResourceType(data acceptance.TestData) string {
 data "azurerm_resources" "test" {
   resource_group_name = azurerm_storage_account.test.resource_group_name
   type                = "Microsoft.Storage/storageAccounts"
+}
+`, r.template(data))
+}
+
+func (r ResourcesDataSource) ByResourceTypeAndSubscriptionIDs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {
+}
+
+data "azurerm_resources" "test" {
+	type                = "Microsoft.Storage/storageAccounts"
+	resource_group_name = azurerm_storage_account.test.resource_group_name
+
+	subscription_ids    = [
+		data.azurerm_client_config.current.subscription_id
+	]
 }
 `, r.template(data))
 }
