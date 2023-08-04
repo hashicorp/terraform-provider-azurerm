@@ -214,7 +214,7 @@ func doResourceQuery(ctx context.Context, client *resourcegraph.BaseClient, quer
 	return
 }
 
-func flattenResult(data []map[string]interface{}) (result []map[string]interface{}, err error) {
+func flattenResult(data []map[string]interface{}) (result []map[string]interface{}) {
 	result = make([]map[string]interface{}, len(data))
 	for i, v := range data {
 		result[i] = map[string]interface{}{
