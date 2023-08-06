@@ -6,6 +6,7 @@ package securitycenter
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
@@ -118,17 +119,23 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		},
 	}
 
+	extensionsStatusFromBackend := []pricings_v2023_01_01.Extension{}
+
+	apiResponse, err := client.Get(ctx, id)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !response.WasNotFound(apiResponse.HttpResponse) {
+				return fmt.Errorf("checking for presence of apiResponse %s: %+v", id, err)
 			}
 		}
 
-		if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree {
+		if apiResponse.Model != nil && apiResponse.Model.Properties != nil && apiResponse.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree {
 			return fmt.Errorf("the pricing tier of this subscription is not Free \r %+v", tf.ImportAsExistsError("azurerm_security_center_subscription_pricing", id.ID()))
 		}
+	}
+
+	if apiResponse.Model != nil && apiResponse.Model.Properties != nil && apiResponse.Model.Properties.Extensions != nil {
+		extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
 	}
 
 	if vSub, okSub := d.GetOk("subplan"); okSub {
@@ -138,7 +145,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	// can not set extensions for free tier
 	if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
 		if d.HasChange("extension") {
-			var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").(*pluginsdk.Set).List())
+			var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").(*pluginsdk.Set).List(), &extensionsStatusFromBackend)
 			pricing.Properties.Extensions = extensions
 		}
 	}
@@ -177,11 +184,9 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 		if properties := resp.Model.Properties; properties != nil {
 			d.Set("tier", properties.PricingTier)
 			d.Set("subplan", properties.SubPlan)
-			if properties.Extensions != nil {
-				err = d.Set("extension", flattenExtensions(properties.Extensions))
-				if err != nil {
-					return fmt.Errorf("setting `extension`: %+v", err)
-				}
+			err = d.Set("extension", flattenExtensions(properties.Extensions))
+			if err != nil {
+				return fmt.Errorf("setting `extension`: %+v", err)
 			}
 		}
 	}
@@ -213,20 +218,45 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}) *[]pricings_v2023_01_01.Extension {
+func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, extensionsStatusFromBackend *[]pricings_v2023_01_01.Extension) *[]pricings_v2023_01_01.Extension {
 	if len(inputList) == 0 {
 		return nil
 	}
+	var extensionStatuses = map[string]bool{}
+	var extensionProperties = map[string]*interface{}{}
 
 	var outputList []pricings_v2023_01_01.Extension
 	for _, v := range inputList {
 		input := v.(map[string]interface{})
-		output := pricings_v2023_01_01.Extension{
-			Name:      input["name"].(string),
-			IsEnabled: "True",
-		}
+		extensionStatuses[input["name"].(string)] = true
+
 		if vAdditional, ok := input["additional_extension_properties"]; ok {
-			output.AdditionalExtensionProperties = &vAdditional
+			extensionProperties[input["name"].(string)] = &vAdditional
+		}
+	}
+
+	if extensionsStatusFromBackend != nil {
+		for _, backendExtension := range *extensionsStatusFromBackend {
+			_, ok := extensionStatuses[backendExtension.Name]
+			// set any extension that does not appear in the template to be false
+			if !ok {
+				extensionStatuses[backendExtension.Name] = false
+			}
+		}
+	}
+
+	for extensionName, toBeEnabled := range extensionStatuses {
+
+		isEnabled := pricings_v2023_01_01.IsEnabledFalse
+		if toBeEnabled {
+			isEnabled = pricings_v2023_01_01.IsEnabledTrue
+		}
+		output := pricings_v2023_01_01.Extension{
+			Name:      extensionName,
+			IsEnabled: isEnabled,
+		}
+		if vAdditional, ok := extensionProperties[extensionName]; ok {
+			output.AdditionalExtensionProperties = vAdditional
 		}
 		outputList = append(outputList, output)
 	}
@@ -244,7 +274,7 @@ func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{
 
 	for _, input := range *inputList {
 		// only keep enabled extensions
-		if input.IsEnabled == "False" {
+		if !strings.EqualFold(string(input.IsEnabled), "true") {
 			continue
 		}
 
