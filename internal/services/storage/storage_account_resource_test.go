@@ -3287,7 +3287,7 @@ resource "azurerm_storage_account" "test" {
     directory_type = "AADKERB"
     active_directory {
       domain_name         = "adtest2.com"
-      domain_sid          = "S-1-5-21-2400535526-2334094090-2402026252-1112"
+      domain_guid         = "13a20c9a-d491-47e6-8a39-299e7a32ea27"
     }
   }
 
