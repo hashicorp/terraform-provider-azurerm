@@ -2483,7 +2483,7 @@ func expandArmStorageAccountAzureFilesAuthentication(input []interface{}) (*stor
 			return nil, fmt.Errorf("`active_directory.0.netbios_domain_name` is required when `directory_type` is `AD`")
 		}
 	case string(storageaccounts.DirectoryServiceOptionsAADKERB):
-		if _, ok := v["azure_active_directory_kerb"]; ok {
+		if _, ok := v["active_directory"]; ok {
 			ad = expandArmStorageAccountActiveDirectoryProperties(v["active_directory"].([]interface{}))
 		}
 	}

@@ -3285,10 +3285,6 @@ resource "azurerm_storage_account" "test" {
 
   azure_files_authentication {
     directory_type = "AADKERB"
-    active_directory {
-      domain_name         = "adtest2.com"
-      domain_guid         = "13a20c9a-d491-47e6-8a39-299e7a32ea27"
-    }
   }
 
   tags = {
@@ -3318,6 +3314,10 @@ resource "azurerm_storage_account" "test" {
 
   azure_files_authentication {
     directory_type = "AADKERB"
+    active_directory {
+      domain_name         = "adtest2.com"
+      domain_guid         = "13a20c9a-d491-47e6-8a39-299e7a32ea27"
+    }
   }
 
   tags = {
