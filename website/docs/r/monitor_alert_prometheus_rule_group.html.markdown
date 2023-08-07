@@ -154,7 +154,9 @@ An `action` block supports the following:
 
 * `action_group_id` - (Required) Specifies the resource id of the monitor action group.
 
-* `action_properties` - (Optional) Specifies the properties of an action group object. Only available for IcM Connector action group.
+* `action_properties` - (Optional) Specifies the properties of an action group object.
+ 
+-> **Note:** `action_properties` can only be configured for IcM Connector Action Groups for now. Other public features will be supported in the future.
 
 ---
 
