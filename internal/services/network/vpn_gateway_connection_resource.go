@@ -143,7 +143,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Required: true,
 							// The vpn site link associated with one link connection can not be updated
 							ForceNew:     true,
-							ValidateFunc: validate.VpnSiteLinkID,
+							ValidateFunc: virtualwans.ValidateVpnSiteLinkID,
 						},
 
 						"egress_nat_rule_ids": {
