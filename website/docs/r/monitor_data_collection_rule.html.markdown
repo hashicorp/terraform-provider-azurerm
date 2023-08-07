@@ -235,7 +235,7 @@ The following arguments are supported:
 
 * `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`,and `AgentDirectToStore`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
 
-~> **NOTE** Once `kind` has been set, change it forces a new Data Collection Rule to be created.
+~> **NOTE** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
 
 * `stream_declaration` - (Optional) A `stream_declaration` block as defined below.
 
