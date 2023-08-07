@@ -12,6 +12,15 @@ import (
 type OperationExtendedInfo interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawOperationExtendedInfoImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalOperationExtendedInfoImplementation(input []byte) (OperationExtendedInfo, error) {
 	if input == nil {
 		return nil, nil
@@ -35,10 +44,6 @@ func unmarshalOperationExtendedInfoImplementation(input []byte) (OperationExtend
 		return out, nil
 	}
 
-	type RawOperationExtendedInfoImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawOperationExtendedInfoImpl{
 		Type:   value,
 		Values: temp,
