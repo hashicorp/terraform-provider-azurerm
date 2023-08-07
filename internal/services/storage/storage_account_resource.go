@@ -190,12 +190,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"storage_sid": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
 									"domain_guid": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -208,21 +202,27 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
+									"storage_sid": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
 									"domain_sid": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"forest_name": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"netbios_domain_name": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
@@ -2462,13 +2462,34 @@ func expandArmStorageAccountAzureFilesAuthentication(input []interface{}) (*stor
 	v := input[0].(map[string]interface{})
 
 	directoryOption := storage.DirectoryServiceOptions(v["directory_type"].(string))
-	if _, ok := v["active_directory"]; directoryOption == storage.DirectoryServiceOptionsAD && !ok {
-		return nil, fmt.Errorf("`active_directory` is required when `directory_type` is `AD`")
-	}
 
+	var ad *storage.ActiveDirectoryProperties
+	switch string(directoryOption) {
+	case string(storage.DirectoryServiceOptionsAD):
+		if _, ok := v["active_directory"]; !ok {
+			return nil, fmt.Errorf("`active_directory` is required when `directory_type` is `AD`")
+		}
+		ad = expandArmStorageAccountActiveDirectoryProperties(v["active_directory"].([]interface{}))
+		if ad.AzureStorageSid == nil {
+			return nil, fmt.Errorf("`active_directory.0.storage_sid` is required when `directory_type` is `AD`")
+		}
+		if ad.DomainSid == nil {
+			return nil, fmt.Errorf("`active_directory.0.domain_sid` is required when `directory_type` is `AD`")
+		}
+		if ad.ForestName == nil {
+			return nil, fmt.Errorf("`active_directory.0.forest_name` is required when `directory_type` is `AD`")
+		}
+		if ad.NetBiosDomainName == nil {
+			return nil, fmt.Errorf("`active_directory.0.netbios_domain_name` is required when `directory_type` is `AD`")
+		}
+	case string(storageaccounts.DirectoryServiceOptionsAADKERB):
+		if _, ok := v["azure_active_directory_kerb"]; ok {
+			ad = expandArmStorageAccountActiveDirectoryProperties(v["active_directory"].([]interface{}))
+		}
+	}
 	return &storage.AzureFilesIdentityBasedAuthentication{
 		DirectoryServiceOptions:   directoryOption,
-		ActiveDirectoryProperties: expandArmStorageAccountActiveDirectoryProperties(v["active_directory"].([]interface{})),
+		ActiveDirectoryProperties: ad,
 	}, nil
 }
 
@@ -2476,15 +2497,25 @@ func expandArmStorageAccountActiveDirectoryProperties(input []interface{}) *stor
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
-	return &storage.ActiveDirectoryProperties{
-		AzureStorageSid:   utils.String(v["storage_sid"].(string)),
-		DomainGUID:        utils.String(v["domain_guid"].(string)),
-		DomainName:        utils.String(v["domain_name"].(string)),
-		DomainSid:         utils.String(v["domain_sid"].(string)),
-		ForestName:        utils.String(v["forest_name"].(string)),
-		NetBiosDomainName: utils.String(v["netbios_domain_name"].(string)),
+	m := input[0].(map[string]interface{})
+
+	output := &storage.ActiveDirectoryProperties{
+		DomainGUID: utils.String(m["domain_guid"].(string)),
+		DomainName: utils.String(m["domain_name"].(string)),
 	}
+	if v := m["storage_sid"]; v != "" {
+		output.AzureStorageSid = utils.String(v.(string))
+	}
+	if v := m["domain_sid"]; v != "" {
+		output.DomainSid = utils.String(v.(string))
+	}
+	if v := m["forest_name"]; v != "" {
+		output.ForestName = utils.String(v.(string))
+	}
+	if v := m["netbios_domain_name"]; v != "" {
+		output.NetBiosDomainName = utils.String(v.(string))
+	}
+	return output
 }
 
 func expandArmStorageAccountRouting(input []interface{}) *storage.RoutingPreference {
