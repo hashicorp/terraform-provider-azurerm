@@ -18,6 +18,40 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_storage_account" "example" {
+  name                     = "examplestorage"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  allow_nested_items_to_be_public = true
+
+  tags = {
+    environment = "Dev"
+  }
+}
+
+resource "azurerm_storage_container" "example" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.example.name
+  container_access_type = "blob"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-network"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 resource "azurerm_network_interface" "example" {
   name                = "test-nic"
   location            = azurerm_resource_group.example.location
@@ -25,25 +59,44 @@ resource "azurerm_network_interface" "example" {
 
   ip_configuration {
     name                          = "testconfiguration1"
-    private_ip_address_allocation = "Static"
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.example.id
   }
 }
 
 resource "azurerm_virtual_machine" "example" {
-  name                  = "acctestvm"
+  name                  = "examplevm"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = [azurerm_network_interface.example.id]
   vm_size               = "Standard_D1_v2"
 
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
+    version   = "latest"
+  }
+
   storage_os_disk {
     name          = "myosdisk1"
     create_option = "FromImage"
+    vhd_uri       = "${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}/myosdisk1.vhd"
+  }
+
+  os_profile {
+    computer_name  = "hostname"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
   }
 }
 
 resource "azurerm_image" "example" {
-  name                = "acctest"
+  name                = "exampleimage"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
@@ -64,6 +117,20 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_virtual_network" "example" {
+  name                = "example-network"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 resource "azurerm_network_interface" "example" {
   name                = "test-nic"
   location            = azurerm_resource_group.example.location
@@ -71,25 +138,45 @@ resource "azurerm_network_interface" "example" {
 
   ip_configuration {
     name                          = "testconfiguration1"
-    private_ip_address_allocation = "Static"
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.example.id
   }
 }
 
 resource "azurerm_virtual_machine" "example" {
-  name                  = "acctestvm"
+  name                  = "examplevm"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = [azurerm_network_interface.example.id]
   vm_size               = "Standard_D1_v2"
 
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
+    version   = "latest"
+  }
+
   storage_os_disk {
     name          = "myosdisk1"
     create_option = "FromImage"
   }
+
+  os_profile {
+    computer_name  = "hostname"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
 }
 
+# azurerm_virtual_machine.example has to be generalized in order to create the below image
+
 resource "azurerm_image" "example" {
-  name                      = "acctest"
+  name                      = "exampleimage"
   location                  = azurerm_resource_group.example.location
   resource_group_name       = azurerm_resource_group.example.name
   source_virtual_machine_id = azurerm_virtual_machine.example.id
