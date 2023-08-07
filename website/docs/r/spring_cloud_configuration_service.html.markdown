@@ -73,7 +73,7 @@ A `repository` block supports the following:
 
 * `uri` - (Required) Specifies the URI of the repository.
 
-* `ca_certificate_id` - (Optional) Specifies the ID of the CA Spring Cloud Certificate for https URL of Git repository.
+* `ca_certificate_id` - (Optional) Specifies the ID of the Certificate Authority used when retrieving the Git Repository via HTTPS.
 
 * `host_key` - (Optional) Specifies the SSH public key of git repository.
 
