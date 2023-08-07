@@ -12,6 +12,15 @@ import (
 type ResourceCertificateDetails interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawResourceCertificateDetailsImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalResourceCertificateDetailsImplementation(input []byte) (ResourceCertificateDetails, error) {
 	if input == nil {
 		return nil, nil
@@ -43,10 +52,6 @@ func unmarshalResourceCertificateDetailsImplementation(input []byte) (ResourceCe
 		return out, nil
 	}
 
-	type RawResourceCertificateDetailsImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawResourceCertificateDetailsImpl{
 		Type:   value,
 		Values: temp,

@@ -12,6 +12,15 @@ import (
 type DatastoreCredentials interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawDatastoreCredentialsImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalDatastoreCredentialsImplementation(input []byte) (DatastoreCredentials, error) {
 	if input == nil {
 		return nil, nil
@@ -67,10 +76,6 @@ func unmarshalDatastoreCredentialsImplementation(input []byte) (DatastoreCredent
 		return out, nil
 	}
 
-	type RawDatastoreCredentialsImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawDatastoreCredentialsImpl{
 		Type:   value,
 		Values: temp,
