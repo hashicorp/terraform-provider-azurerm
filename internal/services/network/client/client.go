@@ -34,7 +34,6 @@ type Client struct {
 	LocalNetworkGatewaysClient             *network.LocalNetworkGatewaysClient
 	NatRuleClient                          *network.NatRulesClient
 	PointToSiteVpnGatewaysClient           *network.P2sVpnGatewaysClient
-	ProfileClient                          *network.ProfilesClient
 	PacketCapturesClient                   *network.PacketCapturesClient
 	PublicIPsClient                        *network.PublicIPAddressesClient
 	PublicIPPrefixesClient                 *network.PublicIPPrefixesClient
@@ -126,9 +125,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	vpnServerConfigurationsClient := network.NewVpnServerConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vpnServerConfigurationsClient.Client, o.ResourceManagerAuthorizer)
-
-	ProfileClient := network.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ProfileClient.Client, o.ResourceManagerAuthorizer)
 
 	VnetClient := network.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetClient.Client, o.ResourceManagerAuthorizer)
@@ -243,7 +239,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		LocalNetworkGatewaysClient:             &LocalNetworkGatewaysClient,
 		NatRuleClient:                          &NatRuleClient,
 		PointToSiteVpnGatewaysClient:           &pointToSiteVpnGatewaysClient,
-		ProfileClient:                          &ProfileClient,
 		PacketCapturesClient:                   &PacketCapturesClient,
 		PublicIPsClient:                        &PublicIPsClient,
 		PublicIPPrefixesClient:                 &PublicIPPrefixesClient,
