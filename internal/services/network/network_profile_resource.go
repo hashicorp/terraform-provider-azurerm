@@ -233,7 +233,7 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	locks.ByName(id.NetworkProfileName, azureNetworkProfileResourceName)
-	defer locks.UnlockByName(id.ResourceGroupName, azureNetworkProfileResourceName)
+	defer locks.UnlockByName(id.NetworkProfileName, azureNetworkProfileResourceName)
 
 	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
