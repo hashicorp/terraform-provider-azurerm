@@ -16,7 +16,6 @@ type Client struct {
 	*network_2023_04_01.Client
 
 	ApplicationGatewaysClient              *network.ApplicationGatewaysClient
-	ConfigurationPolicyGroupClient         *network.ConfigurationPolicyGroupsClient
 	CustomIPPrefixesClient                 *network.CustomIPPrefixesClient
 	DDOSProtectionPlansClient              *network.DdosProtectionPlansClient
 	ExpressRouteAuthsClient                *network.ExpressRouteCircuitAuthorizationsClient
@@ -68,9 +67,6 @@ type Client struct {
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	ApplicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ApplicationGatewaysClient.Client, o.ResourceManagerAuthorizer)
-
-	configurationPolicyGroupClient := network.NewConfigurationPolicyGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&configurationPolicyGroupClient.Client, o.ResourceManagerAuthorizer)
 
 	customIpPrefixesClient := network.NewCustomIPPrefixesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&customIpPrefixesClient.Client, o.ResourceManagerAuthorizer)
@@ -221,7 +217,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		Client: client,
 
 		ApplicationGatewaysClient:              &ApplicationGatewaysClient,
-		ConfigurationPolicyGroupClient:         &configurationPolicyGroupClient,
 		CustomIPPrefixesClient:                 &customIpPrefixesClient,
 		DDOSProtectionPlansClient:              &DDOSProtectionPlansClient,
 		ExpressRouteAuthsClient:                &ExpressRouteAuthsClient,
