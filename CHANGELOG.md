@@ -3,7 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.58.0` of `github.com/hashicorp/go-azure-helpers` [GH-22813]
-* dependencies: updating to `v0.20230804.1110546` of `github.com/hashicorp/go-azure-sdk` [GH-22815]
+* dependencies: updating to `v0.20230807.1063129` of `github.com/hashicorp/go-azure-sdk` [GH-22837]
 * `arckubernetes` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
 * `bot` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
 * `blueprints`: updating to use `hashicorp/go-azure-sdk` [GH-21569]
