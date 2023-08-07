@@ -4,19 +4,28 @@
 package client
 
 import (
+	"fmt"
+
+	network_2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type Client struct {
-	AzureFirewallsClient          *network.AzureFirewallsClient
+	*network_2023_04_01.Client
+
 	FirewallPolicyClient          *network.FirewallPoliciesClient
 	FirewallPolicyRuleGroupClient *network.FirewallPolicyRuleCollectionGroupsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	firewallsClient := network.NewAzureFirewallsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&firewallsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	client, err := network_2023_04_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		o.Configure(c, o.Authorizers.ResourceManager)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("building clients for Network: %+v", err)
+	}
 
 	policyClient := network.NewFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&policyClient.Client, o.ResourceManagerAuthorizer)
@@ -25,8 +34,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&policyRuleGroupClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AzureFirewallsClient:          &firewallsClient,
+		Client:                        client,
 		FirewallPolicyClient:          &policyClient,
 		FirewallPolicyRuleGroupClient: &policyRuleGroupClient,
-	}
+	}, nil
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -92,7 +93,7 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	defer cancel()
 
 	for _, fw := range d.Get("firewall_ids").([]interface{}) {
-		id, _ := firewallParse.FirewallID(fw.(string))
+		id, _ := azurefirewalls.ParseAzureFirewallID(fw.(string))
 		locks.ByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 		defer locks.UnlockByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 	}
@@ -195,7 +196,7 @@ func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	defer cancel()
 
 	for _, fw := range d.Get("firewall_ids").([]interface{}) {
-		id, _ := firewallParse.FirewallID(fw.(string))
+		id, _ := azurefirewalls.ParseAzureFirewallID(fw.(string))
 		locks.ByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 		defer locks.UnlockByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 	}
@@ -286,7 +287,7 @@ func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	for _, fw := range *read.Firewalls {
-		id, _ := firewallParse.FirewallID(*fw.ID)
+		id, _ := azurefirewalls.ParseAzureFirewallID(*fw.ID)
 		locks.ByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 		defer locks.UnlockByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 	}
