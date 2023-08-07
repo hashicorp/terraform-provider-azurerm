@@ -205,24 +205,28 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									"storage_sid": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										Computed:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"domain_sid": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										Computed:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"forest_name": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										Computed:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"netbios_domain_name": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
+										Computed:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
