@@ -132,6 +132,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
       facility_names = ["*"]
       log_levels     = ["*"]
       name           = "example-datasource-syslog"
+      streams        = ["Microsoft-Syslog"]
     }
 
     iis_log {
