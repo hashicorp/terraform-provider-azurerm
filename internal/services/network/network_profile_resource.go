@@ -129,7 +129,9 @@ func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(d)
+	containerNetworkInterfacesRaw := d.Get("container_network_interface").([]interface{})
+	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(containerNetworkInterfacesRaw)
+	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(containerNetworkInterfaceConfigurations)
 	if err != nil {
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
@@ -147,7 +149,7 @@ func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Location: &location,
 		Tags:     tags.Expand(t),
 		Properties: &networkprofiles.NetworkProfilePropertiesFormat{
-			ContainerNetworkInterfaceConfigurations: expandNetworkProfileContainerNetworkInterface(d),
+			ContainerNetworkInterfaceConfigurations: containerNetworkInterfaceConfigurations,
 		},
 	}
 
@@ -217,7 +219,15 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(d)
+	existing, err := client.Get(ctx, *id, networkprofiles.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+	}
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving existing %s: `model.Properties` was nil", *id)
+	}
+
+	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(existing.Model.Properties.ContainerNetworkInterfaceConfigurations)
 	if err != nil {
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
 	}
@@ -238,11 +248,10 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return err
 }
 
-func expandNetworkProfileContainerNetworkInterface(d *pluginsdk.ResourceData) *[]networkprofiles.ContainerNetworkInterfaceConfiguration {
-	cniConfigs := d.Get("container_network_interface").([]interface{})
+func expandNetworkProfileContainerNetworkInterface(input []interface{}) *[]networkprofiles.ContainerNetworkInterfaceConfiguration {
 	retCNIConfigs := make([]networkprofiles.ContainerNetworkInterfaceConfiguration, 0)
 
-	for _, cniConfig := range cniConfigs {
+	for _, cniConfig := range input {
 		nciData := cniConfig.(map[string]interface{})
 		nciName := nciData["name"].(string)
 		ipConfigs := nciData["ip_configuration"].([]interface{})
@@ -251,13 +260,13 @@ func expandNetworkProfileContainerNetworkInterface(d *pluginsdk.ResourceData) *[
 		for _, ipConfig := range ipConfigs {
 			ipData := ipConfig.(map[string]interface{})
 			ipName := ipData["name"].(string)
-			subNetID := ipData["subnet_id"].(string)
+			subnetId := ipData["subnet_id"].(string)
 
 			retIPConfig := networkprofiles.IPConfigurationProfile{
 				Name: &ipName,
 				Properties: &networkprofiles.IPConfigurationProfilePropertiesFormat{
 					Subnet: &networkprofiles.Subnet{
-						Id: &subNetID,
+						Id: &subnetId,
 					},
 				},
 			}
@@ -278,30 +287,33 @@ func expandNetworkProfileContainerNetworkInterface(d *pluginsdk.ResourceData) *[
 	return &retCNIConfigs
 }
 
-func expandNetworkProfileVirtualNetworkSubnetNames(d *pluginsdk.ResourceData) (*[]string, *[]string, error) {
-	cniConfigs := d.Get("container_network_interface").([]interface{})
+func expandNetworkProfileVirtualNetworkSubnetNames(input *[]networkprofiles.ContainerNetworkInterfaceConfiguration) (*[]string, *[]string, error) {
 	subnetNames := make([]string, 0)
 	vnetNames := make([]string, 0)
 
-	for _, cniConfig := range cniConfigs {
-		nciData := cniConfig.(map[string]interface{})
-		ipConfigs := nciData["ip_configuration"].([]interface{})
-
-		for _, ipConfig := range ipConfigs {
-			ipData := ipConfig.(map[string]interface{})
-			subnetID := ipData["subnet_id"].(string)
-
-			subnetResourceID, err := commonids.ParseSubnetID(subnetID)
-			if err != nil {
-				return nil, nil, err
+	if input != nil {
+		for _, item := range *input {
+			if item.Properties == nil || item.Properties.IPConfigurations == nil {
+				continue
 			}
 
-			if !utils.SliceContainsValue(subnetNames, subnetResourceID.SubnetName) {
-				subnetNames = append(subnetNames, subnetResourceID.SubnetName)
-			}
+			for _, config := range *item.Properties.IPConfigurations {
+				if config.Properties == nil || config.Properties.Subnet == nil || config.Properties.Subnet.Id == nil {
+					continue
+				}
 
-			if !utils.SliceContainsValue(vnetNames, subnetResourceID.VirtualNetworkName) {
-				vnetNames = append(vnetNames, subnetResourceID.VirtualNetworkName)
+				subnetId, err := commonids.ParseSubnetIDInsensitively(*config.Properties.Subnet.Id)
+				if err != nil {
+					return nil, nil, err
+				}
+
+				if !utils.SliceContainsValue(subnetNames, subnetId.SubnetName) {
+					subnetNames = append(subnetNames, subnetId.SubnetName)
+				}
+
+				if !utils.SliceContainsValue(vnetNames, subnetId.VirtualNetworkName) {
+					vnetNames = append(vnetNames, subnetId.VirtualNetworkName)
+				}
 			}
 		}
 	}
