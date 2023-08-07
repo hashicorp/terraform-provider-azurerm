@@ -666,7 +666,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 			return operation, "Provisioning", nil
 		}
 
-		if *operation.Status == "completed" {
+		if strings.EqualFold(*operation.Status, "completed") {
 			return operation, "Ready", nil
 		}
 
