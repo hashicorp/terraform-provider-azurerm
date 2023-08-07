@@ -399,8 +399,10 @@ func flattenManagedApplicationParameters(input *interface{}, localParameters map
 					// Secure values are not returned, thus settings it with local value
 					v = ""
 					if oldValueStruct, oldValueStructOK := localParameters[k]; oldValueStructOK {
-						if oldValue, oldValueOK := oldValueStruct.(map[string]interface{})["value"]; oldValueOK {
-							v = oldValue
+						if _, oldValueStructTypeOK := oldValueStruct.(map[string]interface{}); oldValueStructTypeOK {
+							if oldValue, oldValueOK := oldValueStruct.(map[string]interface{})["value"]; oldValueOK {
+								v = oldValue
+							}
 						}
 					}
 				}
@@ -464,8 +466,10 @@ func flattenManagedApplicationParameterValuesValueToString(input *interface{}, l
 				if _, ok := value["value"]; !ok {
 					value["value"] = ""
 					if localParam, localParamOK := localParameters[k]; localParamOK {
-						if localParamValue, localParamValueOK := localParam.(map[string]interface{})["value"]; localParamValueOK {
-							value["value"] = localParamValue
+						if _, oldValueStructTypeOK := localParam.(map[string]interface{}); oldValueStructTypeOK {
+							if localParamValue, localParamValueOK := localParam.(map[string]interface{})["value"]; localParamValueOK {
+								value["value"] = localParamValue
+							}
 						}
 					}
 				}
