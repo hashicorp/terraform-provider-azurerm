@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -52,7 +50,7 @@ func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VpnServerConfigurationID,
+				ValidateFunc: virtualwans.ValidateVpnServerConfigurationID,
 			},
 
 			"policy": {
@@ -108,12 +106,12 @@ func resourceVPNServerConfigurationPolicyGroupCreateUpdate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vpnServerConfigurationId, err := parse.VpnServerConfigurationID(d.Get("vpn_server_configuration_id").(string))
+	vpnServerConfigurationId, err := virtualwans.ParseVpnServerConfigurationID(d.Get("vpn_server_configuration_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := virtualwans.NewConfigurationPolicyGroupID(subscriptionId, vpnServerConfigurationId.ResourceGroup, vpnServerConfigurationId.Name, d.Get("name").(string))
+	id := virtualwans.NewConfigurationPolicyGroupID(subscriptionId, vpnServerConfigurationId.ResourceGroupName, vpnServerConfigurationId.VpnServerConfigurationName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.ConfigurationPolicyGroupsGet(ctx, id)
@@ -165,7 +163,7 @@ func resourceVPNServerConfigurationPolicyGroupRead(d *pluginsdk.ResourceData, me
 
 	d.Set("name", id.ConfigurationPolicyGroupName)
 
-	vpnServerConfigurationId := parse.NewVpnServerConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VpnServerConfigurationName)
+	vpnServerConfigurationId := virtualwans.NewVpnServerConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VpnServerConfigurationName)
 	d.Set("vpn_server_configuration_id", vpnServerConfigurationId.ID())
 
 	if model := resp.Model; model != nil {
