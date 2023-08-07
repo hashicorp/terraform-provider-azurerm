@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description for the Virtual Desktop Workspace.
   
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Key Vault. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this Virtual Desktop Workspace. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

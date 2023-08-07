@@ -5,6 +5,7 @@ package desktopvirtualization
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"log"
 	"time"
 
@@ -119,14 +120,16 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	publicNetworkAccess := workspace.PublicNetworkAccessEnabled
+
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = workspace.PublicNetworkAccessDisabled
 	}
 
-	if d.Get("public_network_access_enabled").(bool) {
-		parameters.Properties.PublicNetworkAccess = utils.String("Enabled")
-	} else {
-		parameters.Properties.PublicNetworkAccess = utils.String("Disabled")
+	payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+
+	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -157,7 +160,6 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, me
 
 	d.Set("name", id.WorkspaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
@@ -165,6 +167,11 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, me
 		if props := model.Properties; props != nil {
 			d.Set("description", props.Description)
 			d.Set("friendly_name", props.FriendlyName)
+			publicNetworkAccess := true
+			if v := props.PublicNetworkAccess; v != nil && *v != workspace.PublicNetworkAccessEnabled {
+				publicNetworkAccess = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
