@@ -117,6 +117,7 @@ func TestAccWorkloadsSAPVirtualInstance_transportMount(t *testing.T) {
 	})
 }
 
+// The dependent central server VM requires many complicated manual configurations. So it has to test based on the resource provided by service team.
 func TestAccWorkloadsSAPVirtualInstance_discoveryConfiguration(t *testing.T) {
 	if os.Getenv("ARM_TEST_SAP_VIRTUAL_INSTANCE_NAME") == "" || os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID") == "" {
 		t.Skip("Skipping as `ARM_TEST_SAP_VIRTUAL_INSTANCE_NAME` and `ARM_TEST_CENTRAL_SERVER_VM_ID` are not specified")
@@ -1090,11 +1091,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
 func (r WorkloadsSAPVirtualInstanceResource) discoveryConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 data "azurerm_subscription" "current" {}
