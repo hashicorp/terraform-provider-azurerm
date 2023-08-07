@@ -51,11 +51,17 @@ resource "azurerm_managed_application" "example" {
   managed_resource_group_name = "infrastructureGroup"
   application_definition_id   = azurerm_managed_application_definition.example.id
 
-  parameters = {
-    location                 = azurerm_resource_group.example.location
-    storageAccountNamePrefix = "storeNamePrefix"
-    storageAccountType       = "Standard_LRS"
-  }
+  parameter_values = jsonencode({
+    location = {
+      value = azurerm_resource_group.example.location
+    },
+    storageAccountNamePrefix = {
+      value = "storeNamePrefix"
+    },
+    storageAccountType = {
+      value = "Standard_LRS"
+    }
+  })
 }
 ```
 
@@ -77,7 +83,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A mapping of name and value pairs to pass to the managed application as parameters.
 
-~> **NOTE:** `parameters` only supports values with `string` or `secureString` type. If the template has other parameter types, please use `parameter_values` instead.
+~> **NOTE:** `parameters` only supports values with `string` or `secureString` type and will be deprecated in 4.0, please use `parameter_values` instead which supports more parameter types.
 
 * `parameter_values` - (Optional) The parameter values to pass to the Managed Application. This field is a JSON object that allows you to assign parameters to this Managed Application.
 

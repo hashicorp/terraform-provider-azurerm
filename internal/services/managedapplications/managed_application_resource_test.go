@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -56,6 +57,10 @@ func TestAccManagedApplication_requiresImport(t *testing.T) {
 }
 
 func TestAccManagedApplication_switchBetweenParametersAndParameterValues(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("skipping bacause `parameters` is deprecated in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
 
@@ -68,7 +73,7 @@ func TestAccManagedApplication_switchBetweenParametersAndParameterValues(t *test
 		},
 		data.ImportStep(),
 		{
-			Config: r.parameterValues(data),
+			Config: r.parameters(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -85,19 +90,23 @@ func TestAccManagedApplication_switchBetweenParametersAndParameterValues(t *test
 }
 
 func TestAccManagedApplication_parameters(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("skipping as `parameters` is deprecated in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.parameters(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithParametersUpdated(data),
+			Config: r.parametersUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -112,14 +121,14 @@ func TestAccManagedApplication_parameterValues(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.parameterValues(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.parameterValuesUpdated(data),
+			Config: r.basicWithParameterValuesUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -144,6 +153,10 @@ func TestAccManagedApplication_allSupportedParameterValuesTypes(t *testing.T) {
 }
 
 func TestAccManagedApplication_parametersSecureString(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("skipping bacause `parameters` is deprecated in 4.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
 
@@ -233,7 +246,7 @@ func (ManagedApplicationResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagedApplicationResource) basic(data acceptance.TestData) string {
+func (r ManagedApplicationResource) parameters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -253,7 +266,7 @@ resource "azurerm_managed_application" "test" {
 `, r.templateStringParameter(data), data.RandomInteger)
 }
 
-func (r ManagedApplicationResource) basicWithParametersUpdated(data acceptance.TestData) string {
+func (r ManagedApplicationResource) parametersUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -318,24 +331,46 @@ resource "azurerm_managed_application" "test" {
     version   = "15.37.1"
   }
 
-  parameters = {
-    zone                        = "0"
-    location                    = azurerm_resource_group.test.location
-    merakiAuthToken             = "f451adfb-d00b-4612-8799-b29294217d4a"
-    subnetAddressPrefix         = "10.0.0.0/24"
-    subnetName                  = "acctestSubnet"
-    virtualMachineSize          = "Standard_DS12_v2"
-    virtualNetworkAddressPrefix = "10.0.0.0/16"
-    virtualNetworkName          = "acctestVnet"
-    virtualNetworkNewOrExisting = "new"
-    virtualNetworkResourceGroup = "acctestVnetRg"
-    vmName                      = "acctestVM"
-  }
+  parameter_values = jsonencode({
+    zone = {
+      value = "0"
+    },
+    location = {
+      value = azurerm_resource_group.test.location
+    },
+    merakiAuthToken = {
+      value = "f451adfb-d00b-4612-8799-b29294217d4a"
+    },
+    subnetAddressPrefix = {
+      value = "10.0.0.0/24"
+    },
+    subnetName = {
+      value = "acctestSubnet"
+    },
+    virtualMachineSize = {
+      value = "Standard_DS12_v2"
+    },
+    virtualNetworkAddressPrefix = {
+      value = "10.0.0.0/16"
+    },
+    virtualNetworkName = {
+      value = "acctestVnet"
+    },
+    virtualNetworkNewOrExisting = {
+      value = "new"
+    },
+    virtualNetworkResourceGroup = {
+      value = "acctestVnetRg"
+    },
+    vmName = {
+      value = "acctestVM"
+    }
+  })
 }
 `, data.Locations.Primary, data.RandomInteger, publisher, offer, plan)
 }
 
-func (r ManagedApplicationResource) parameterValues(data acceptance.TestData) string {
+func (r ManagedApplicationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -359,7 +394,7 @@ resource "azurerm_managed_application" "test" {
 `, r.templateStringParameter(data), data.RandomInteger)
 }
 
-func (r ManagedApplicationResource) parameterValuesUpdated(data acceptance.TestData) string {
+func (r ManagedApplicationResource) basicWithParameterValuesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -493,10 +528,14 @@ resource "azurerm_managed_application" "test" {
   managed_resource_group_name = "infraGroup%[2]d"
   application_definition_id   = azurerm_managed_application_definition.test.id
 
-  parameters = {
-    stringParameter       = "value_1"
-    secureStringParameter = ""
-  }
+  parameter_values = jsonencode({
+    stringParameter = {
+      value = "value_1_from_parameter_values"
+    },
+    secureStringParameter = {
+      value = ""
+    }
+  })
 
   tags = {
     ENV = "Test"
@@ -517,10 +556,14 @@ resource "azurerm_managed_application" "test" {
   managed_resource_group_name = "infraGroup%[2]d"
   application_definition_id   = azurerm_managed_application_definition.test.id
 
-  parameters = {
-    stringParameter       = "value_1"
-    secureStringParameter = ""
-  }
+  parameter_values = jsonencode({
+    stringParameter = {
+      value = "value_1_from_parameter_values"
+    },
+    secureStringParameter = {
+      value = ""
+    }
+  })
 
   tags = {
     ENV = "Test2"

@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -46,107 +47,121 @@ func resourceManagedApplication() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ApplicationName,
-			},
+		Schema: resourceManagedApplicationSchema(),
+	}
+}
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ApplicationName,
+		},
 
-			"location": commonschema.Location(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-			"kind": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"MarketPlace",
-					"ServiceCatalog",
-				}, false),
-			},
+		"location": commonschema.Location(),
 
-			"managed_resource_group_name": commonschema.ResourceGroupName(),
+		"kind": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"MarketPlace",
+				"ServiceCatalog",
+			}, false),
+		},
 
-			"application_definition_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: applicationdefinitions.ValidateApplicationDefinitionID,
-			},
+		"managed_resource_group_name": commonschema.ResourceGroupName(),
 
-			"parameters": {
-				Type:          pluginsdk.TypeMap,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"parameter_values"},
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
+		"application_definition_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: applicationdefinitions.ValidateApplicationDefinitionID,
+		},
 
-			"parameter_values": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-				ConflictsWith:    []string{"parameters"},
-			},
+		"parameter_values": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			ConflictsWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{"parameters"}
+				}
+				return []string{}
+			}(),
+		},
 
-			"plan": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"product": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"publisher": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"version": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"promotion_code": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+		"plan": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"product": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"publisher": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"version": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"promotion_code": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
+		},
 
-			"tags": commonschema.Tags(),
+		"tags": commonschema.Tags(),
 
-			"outputs": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
+		"outputs": {
+			Type:     pluginsdk.TypeMap,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		schema["parameters"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeMap,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"parameter_values"},
+			Deprecated:    "This property has been deprecated in favour of `parameter_values`",
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		}
+	}
+
+	return schema
 }
 
 func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -192,7 +207,10 @@ func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	params, err := expandManagedApplicationParameters(d)
 	if err != nil {
-		return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
+		if !features.FourPointOhBeta() {
+			return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
+		}
+		return fmt.Errorf("expanding `parameter_values`: %+v", err)
 	}
 	parameters.Properties.Parameters = pointer.To(interface{}(params))
 
@@ -248,7 +266,10 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 
 		expendedParams, err := expandManagedApplicationParameters(d)
 		if err != nil {
-			return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
+			if !features.FourPointOhBeta() {
+				return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
+			}
+			return fmt.Errorf("expanding `parameter_values`: %+v", err)
 		}
 
 		parameterValues, err := flattenManagedApplicationParameterValuesValueToString(p.Parameters, *expendedParams)
@@ -257,12 +278,14 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		d.Set("parameter_values", parameterValues)
 
-		parameters, err := flattenManagedApplicationParameters(p.Parameters, *expendedParams)
-		if err != nil {
-			return err
-		}
-		if err = d.Set("parameters", parameters); err != nil {
-			return err
+		if !features.FourPointOhBeta() {
+			parameters, err := flattenManagedApplicationParameters(p.Parameters, *expendedParams)
+			if err != nil {
+				return err
+			}
+			if err = d.Set("parameters", parameters); err != nil {
+				return err
+			}
 		}
 
 		outputs, err := flattenManagedApplicationOutputs(p.Outputs)
@@ -322,15 +345,17 @@ func expandManagedApplicationParameters(d *pluginsdk.ResourceData) (*map[string]
 		}
 	}
 
-	// `parameters` will be available in state as well after first apply when `parameter_values` is used, so getting its value only during creation or when it is changed
-	if d.IsNewResource() || d.HasChange("parameters") {
-		if v, ok := d.GetOk("parameters"); ok {
-			params := v.(map[string]interface{})
+	if !features.FourPointOhBeta() {
+		// `parameters` will be available in state as well after first apply when `parameter_values` is used, so getting its value only during creation or when it is changed
+		if d.IsNewResource() || d.HasChange("parameters") {
+			if v, ok := d.GetOk("parameters"); ok {
+				params := v.(map[string]interface{})
 
-			for key, val := range params {
-				newParamValue := make(map[string]interface{}, 1)
-				newParamValue["value"] = val
-				newParams[key] = newParamValue
+				for key, val := range params {
+					newParamValue := make(map[string]interface{}, 1)
+					newParamValue["value"] = val
+					newParams[key] = newParamValue
+				}
 			}
 		}
 	}
