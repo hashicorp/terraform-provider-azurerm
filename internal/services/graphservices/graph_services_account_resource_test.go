@@ -1,4 +1,4 @@
-package graph_test
+package graphservices_test
 
 import (
 	"context"
@@ -18,6 +18,10 @@ func TestAccGraphAccount(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// the account need a pre-existing AD application, here we use the service principal.
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		// remove in 4.0
+		"legacyAccount": {
+			"basic": testAccGraphAccount_legacy,
+		},
 		"account": {
 			"basic":          testAccGraphAccount_basic,
 			"update":         testAccGraphAccount_update,
@@ -29,8 +33,23 @@ func TestAccGraphAccount(t *testing.T) {
 
 type AccountTestResource struct{}
 
-func testAccGraphAccount_basic(t *testing.T) {
+func testAccGraphAccount_legacy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	r := AccountTestResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.legacy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccGraphAccount_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
 	r := AccountTestResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -45,7 +64,7 @@ func testAccGraphAccount_basic(t *testing.T) {
 }
 
 func testAccGraphAccount_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
 
 	r := AccountTestResource{}
 
@@ -61,7 +80,7 @@ func testAccGraphAccount_requiresImport(t *testing.T) {
 }
 
 func testAccGraphAccount_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
 	r := AccountTestResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -76,7 +95,7 @@ func testAccGraphAccount_complete(t *testing.T) {
 }
 
 func testAccGraphAccount_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_graph_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
 	r := AccountTestResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -116,7 +135,8 @@ func (r AccountTestResource) Exists(ctx context.Context, clients *clients.Client
 
 	return utils.Bool(resp.Model != nil), nil
 }
-func (r AccountTestResource) basic(data acceptance.TestData) string {
+
+func (r AccountTestResource) legacy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -128,14 +148,26 @@ resource "azurerm_graph_account" "test" {
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"))
 }
 
+func (r AccountTestResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_graph_services_account" "test" {
+  name                = "acctesta-%[2]d"
+  application_id      = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"))
+}
+
 func (r AccountTestResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_graph_account" "import" {
-  application_id      = azurerm_graph_account.test.application_id
-  name                = azurerm_graph_account.test.name
-  resource_group_name = azurerm_graph_account.test.resource_group_name
+resource "azurerm_graph_services_account" "import" {
+  application_id      = azurerm_graph_services_account.test.application_id
+  name                = azurerm_graph_services_account.test.name
+  resource_group_name = azurerm_graph_services_account.test.resource_group_name
 }
 `, r.basic(data))
 }
@@ -144,7 +176,7 @@ func (r AccountTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_graph_account" "test" {
+resource "azurerm_graph_services_account" "test" {
   name                = "acctesta-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   application_id      = "%[3]s"

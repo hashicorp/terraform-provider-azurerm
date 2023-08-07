@@ -1,4 +1,4 @@
-package graph
+package graphservices
 
 import (
 	"context"
@@ -16,10 +16,27 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+var _ sdk.Resource = ServicesAccountResource{}
+var _ sdk.ResourceWithUpdate = ServicesAccountResource{}
+
+type ServicesAccountResource struct {
+	AccountResource
+}
+
+func (r ServicesAccountResource) ResourceType() string {
+	return "azurerm_graph_services_account"
+}
+
 var _ sdk.Resource = AccountResource{}
 var _ sdk.ResourceWithUpdate = AccountResource{}
+var _ sdk.ResourceWithDeprecationReplacedBy = AccountResource{}
 
+// AccountResource remove this in 4.0
 type AccountResource struct{}
+
+func (r AccountResource) DeprecatedInFavourOfResource() string {
+	return "azurerm_graph_services_account"
+}
 
 func (r AccountResource) ModelObject() interface{} {
 	return &AccountResourceSchema{}
@@ -90,7 +107,7 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				return metadata.ResourceRequiresImport("azurerm_graph_services_account", id)
 			}
 
 			payload := graphservicesprods.AccountResource{
@@ -193,13 +210,13 @@ func (r AccountResource) Update() sdk.ResourceFunc {
 			if existing.Model == nil {
 				return fmt.Errorf("retrieving existing %s: model was nil", *id)
 			}
-			payload := *existing.Model
 
+			payload := graphservicesprods.TagUpdate{}
 			if metadata.ResourceData.HasChange("tags") {
 				payload.Tags = tags.Expand(config.Tags)
 			}
 
-			if err := client.AccountsCreateAndUpdateThenPoll(ctx, *id, payload); err != nil {
+			if _, err := client.AccountsUpdate(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
