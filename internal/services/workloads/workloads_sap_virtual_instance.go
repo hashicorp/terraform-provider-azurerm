@@ -336,7 +336,10 @@ func expandVirtualMachineFullResourceNames(input []VirtualMachineFullResourceNam
 	virtualMachineFullResourceNames := &input[0]
 
 	result := sapvirtualinstances.SingleServerFullResourceNames{
-		VirtualMachine: &sapvirtualinstances.VirtualMachineResourceNames{},
+		VirtualMachine: &sapvirtualinstances.VirtualMachineResourceNames{
+			DataDiskNames:     expandDataDiskNames(virtualMachineFullResourceNames.DataDiskNames),
+			NetworkInterfaces: expandNetworkInterfaceNames(virtualMachineFullResourceNames.NetworkInterfaceNames),
+		},
 	}
 
 	if v := virtualMachineFullResourceNames.HostName; v != "" {
@@ -349,14 +352,6 @@ func expandVirtualMachineFullResourceNames(input []VirtualMachineFullResourceNam
 
 	if v := virtualMachineFullResourceNames.VMName; v != "" {
 		result.VirtualMachine.VirtualMachineName = utils.String(v)
-	}
-
-	if v := virtualMachineFullResourceNames.NetworkInterfaceNames; v != nil {
-		result.VirtualMachine.NetworkInterfaces = expandNetworkInterfaceNames(v)
-	}
-
-	if v := virtualMachineFullResourceNames.DataDiskNames; v != nil {
-		result.VirtualMachine.DataDiskNames = expandDataDiskNames(v)
 	}
 
 	return result, nil
@@ -418,19 +413,22 @@ func expandDiskVolumeConfigurations(input []DiskVolumeConfiguration) *sapvirtual
 	}
 }
 
-func flattenDiskVolumeConfigurations(input *map[string]sapvirtualinstances.DiskVolumeConfiguration) []DiskVolumeConfiguration {
-	if input == nil {
+func flattenDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguration) []DiskVolumeConfiguration {
+	if input == nil || input.DiskVolumeConfigurations == nil {
 		return nil
 	}
 
 	result := make([]DiskVolumeConfiguration, 0)
 
-	for k, v := range *input {
+	for k, v := range *input.DiskVolumeConfigurations {
 		diskVolumeConfiguration := DiskVolumeConfiguration{
 			Count:      *v.Count,
 			SizeGb:     *v.SizeGB,
-			SkuName:    string(*v.Sku.Name),
 			VolumeName: k,
+		}
+
+		if sku := v.Sku; sku != nil && sku.Name != nil {
+			diskVolumeConfiguration.SkuName = string(*sku.Name)
 		}
 
 		result = append(result, diskVolumeConfiguration)
@@ -443,6 +441,9 @@ func flattenVirtualMachineFullResourceNames(input sapvirtualinstances.SingleServ
 	result := VirtualMachineFullResourceNames{}
 
 	if vm := input.VirtualMachine; vm != nil {
+		result.NetworkInterfaceNames = flattenNetworkInterfaceResourceNames(vm.NetworkInterfaces)
+		result.DataDiskNames = flattenDataDiskNames(vm.DataDiskNames)
+
 		if v := vm.HostName; v != nil {
 			result.HostName = *v
 		}
@@ -453,14 +454,6 @@ func flattenVirtualMachineFullResourceNames(input sapvirtualinstances.SingleServ
 
 		if v := vm.VirtualMachineName; v != nil {
 			result.VMName = *v
-		}
-
-		if v := vm.NetworkInterfaces; v != nil {
-			result.NetworkInterfaceNames = flattenNetworkInterfaceResourceNames(v)
-		}
-
-		if v := vm.DataDiskNames; v != nil {
-			result.DataDiskNames = flattenDataDiskNames(v)
 		}
 	}
 
@@ -565,12 +558,9 @@ func expandApplicationServer(input []ApplicationServerConfiguration) sapvirtuali
 	applicationServer := &input[0]
 
 	result := sapvirtualinstances.ApplicationServerConfiguration{
-		InstanceCount: applicationServer.InstanceCount,
-		SubnetId:      applicationServer.SubnetId,
-	}
-
-	if v := applicationServer.VirtualMachineConfiguration; v != nil {
-		result.VirtualMachineConfiguration = expandVirtualMachineConfiguration(v)
+		InstanceCount:               applicationServer.InstanceCount,
+		SubnetId:                    applicationServer.SubnetId,
+		VirtualMachineConfiguration: expandVirtualMachineConfiguration(applicationServer.VirtualMachineConfiguration),
 	}
 
 	return result
@@ -584,12 +574,9 @@ func expandCentralServer(input []CentralServerConfiguration) sapvirtualinstances
 	centralServer := &input[0]
 
 	result := sapvirtualinstances.CentralServerConfiguration{
-		InstanceCount: centralServer.InstanceCount,
-		SubnetId:      centralServer.SubnetId,
-	}
-
-	if v := centralServer.VirtualMachineConfiguration; v != nil {
-		result.VirtualMachineConfiguration = expandVirtualMachineConfiguration(v)
+		InstanceCount:               centralServer.InstanceCount,
+		SubnetId:                    centralServer.SubnetId,
+		VirtualMachineConfiguration: expandVirtualMachineConfiguration(centralServer.VirtualMachineConfiguration),
 	}
 
 	return result
@@ -603,6 +590,7 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) sapvirtualinstanc
 	databaseServer := &input[0]
 
 	result := sapvirtualinstances.DatabaseConfiguration{
+		DiskConfiguration:           expandDiskVolumeConfigurations(databaseServer.DiskVolumeConfigurations),
 		InstanceCount:               databaseServer.InstanceCount,
 		SubnetId:                    databaseServer.SubnetId,
 		VirtualMachineConfiguration: expandVirtualMachineConfiguration(databaseServer.VirtualMachineConfiguration),
@@ -611,10 +599,6 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) sapvirtualinstanc
 	if v := databaseServer.DatabaseType; v != "" {
 		dbType := sapvirtualinstances.SAPDatabaseType(v)
 		result.DatabaseType = &dbType
-	}
-
-	if v := databaseServer.DiskVolumeConfigurations; v != nil {
-		result.DiskConfiguration = expandDiskVolumeConfigurations(v)
 	}
 
 	return result
@@ -668,7 +652,7 @@ func expandTransportMount(input []TransportMount) sapvirtualinstances.MountFileS
 	transportMount := &input[0]
 
 	result := sapvirtualinstances.MountFileShareConfiguration{
-		Id:                transportMount.ShareFileId,
+		Id:                transportMount.FileShareId,
 		PrivateEndpointId: transportMount.PrivateEndpointId,
 	}
 
@@ -718,7 +702,10 @@ func expandVirtualMachinesFullResourceNames(input []VirtualMachineFullResourceNa
 	result := make([]sapvirtualinstances.VirtualMachineResourceNames, 0)
 
 	for _, item := range input {
-		vmResourceNames := sapvirtualinstances.VirtualMachineResourceNames{}
+		vmResourceNames := sapvirtualinstances.VirtualMachineResourceNames{
+			DataDiskNames:     expandDataDiskNames(item.DataDiskNames),
+			NetworkInterfaces: expandNetworkInterfaceNames(item.NetworkInterfaceNames),
+		}
 
 		if v := item.HostName; v != "" {
 			vmResourceNames.HostName = utils.String(v)
@@ -730,14 +717,6 @@ func expandVirtualMachinesFullResourceNames(input []VirtualMachineFullResourceNa
 
 		if v := item.VMName; v != "" {
 			vmResourceNames.VirtualMachineName = utils.String(v)
-		}
-
-		if v := item.NetworkInterfaceNames; v != nil {
-			vmResourceNames.NetworkInterfaces = expandNetworkInterfaceNames(v)
-		}
-
-		if v := item.DataDiskNames; v != nil {
-			vmResourceNames.DataDiskNames = expandDataDiskNames(v)
 		}
 
 		result = append(result, vmResourceNames)
@@ -858,6 +837,7 @@ func flattenCentralServer(input sapvirtualinstances.CentralServerConfiguration, 
 
 func flattenDatabaseServer(input sapvirtualinstances.DatabaseConfiguration, d *pluginsdk.ResourceData, basePath string) []DatabaseServerConfiguration {
 	result := DatabaseServerConfiguration{
+		DiskVolumeConfigurations:    flattenDiskVolumeConfigurations(input.DiskConfiguration),
 		InstanceCount:               input.InstanceCount,
 		SubnetId:                    input.SubnetId,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, fmt.Sprintf("%s.0.database_server_configuration", basePath)),
@@ -867,32 +847,17 @@ func flattenDatabaseServer(input sapvirtualinstances.DatabaseConfiguration, d *p
 		result.DatabaseType = string(*v)
 	}
 
-	if v := input.DiskConfiguration; v != nil && v.DiskVolumeConfigurations != nil {
-		result.DiskVolumeConfigurations = flattenDiskVolumeConfigurations(v.DiskVolumeConfigurations)
-	}
-
 	return []DatabaseServerConfiguration{
 		result,
 	}
 }
 
 func flattenFullResourceNames(input sapvirtualinstances.ThreeTierFullResourceNames) []FullResourceNames {
-	result := FullResourceNames{}
-
-	if v := input.ApplicationServer; v != nil {
-		result.ApplicationServer = flattenApplicationServerFullResourceNames(v)
-	}
-
-	if v := input.CentralServer; v != nil {
-		result.CentralServer = flattenCentralServerFullResourceNames(v)
-	}
-
-	if v := input.DatabaseServer; v != nil {
-		result.DatabaseServer = flattenDatabaseServerFullResourceNames(v)
-	}
-
-	if v := input.SharedStorage; v != nil {
-		result.SharedStorage = flattenSharedStorage(v)
+	result := FullResourceNames{
+		ApplicationServer: flattenApplicationServerFullResourceNames(input.ApplicationServer),
+		CentralServer:     flattenCentralServerFullResourceNames(input.CentralServer),
+		DatabaseServer:    flattenDatabaseServerFullResourceNames(input.DatabaseServer),
+		SharedStorage:     flattenSharedStorage(input.SharedStorage),
 	}
 
 	return []FullResourceNames{
@@ -905,14 +870,12 @@ func flattenApplicationServerFullResourceNames(input *sapvirtualinstances.Applic
 		return nil
 	}
 
-	result := ApplicationServerFullResourceNames{}
+	result := ApplicationServerFullResourceNames{
+		VirtualMachines: flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
+	}
 
 	if v := input.AvailabilitySetName; v != nil {
 		result.AvailabilitySetName = *v
-	}
-
-	if v := input.VirtualMachines; v != nil {
-		result.VirtualMachines = flattenVirtualMachinesFullResourceNames(v)
 	}
 
 	return []ApplicationServerFullResourceNames{
@@ -928,7 +891,10 @@ func flattenVirtualMachinesFullResourceNames(input *[]sapvirtualinstances.Virtua
 	result := make([]VirtualMachineFullResourceNames, 0)
 
 	for _, item := range *input {
-		virtualMachineFullResourceNames := VirtualMachineFullResourceNames{}
+		virtualMachineFullResourceNames := VirtualMachineFullResourceNames{
+			DataDiskNames:         flattenDataDiskNames(item.DataDiskNames),
+			NetworkInterfaceNames: flattenNetworkInterfaceResourceNames(item.NetworkInterfaces),
+		}
 
 		if v := item.HostName; v != nil {
 			virtualMachineFullResourceNames.HostName = *v
@@ -942,14 +908,6 @@ func flattenVirtualMachinesFullResourceNames(input *[]sapvirtualinstances.Virtua
 			virtualMachineFullResourceNames.VMName = *v
 		}
 
-		if v := item.NetworkInterfaces; v != nil {
-			virtualMachineFullResourceNames.NetworkInterfaceNames = flattenNetworkInterfaceResourceNames(v)
-		}
-
-		if v := item.DataDiskNames; v != nil {
-			virtualMachineFullResourceNames.DataDiskNames = flattenDataDiskNames(v)
-		}
-
 		result = append(result, virtualMachineFullResourceNames)
 	}
 
@@ -961,18 +919,13 @@ func flattenCentralServerFullResourceNames(input *sapvirtualinstances.CentralSer
 		return nil
 	}
 
-	result := CentralServerFullResourceNames{}
+	result := CentralServerFullResourceNames{
+		LoadBalancer:    flattenLoadBalancerFullResourceNames(input.LoadBalancer),
+		VirtualMachines: flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
+	}
 
 	if v := input.AvailabilitySetName; v != nil {
 		result.AvailabilitySetName = *v
-	}
-
-	if v := input.LoadBalancer; v != nil {
-		result.LoadBalancer = flattenLoadBalancerFullResourceNames(v)
-	}
-
-	if v := input.VirtualMachines; v != nil {
-		result.VirtualMachines = flattenVirtualMachinesFullResourceNames(v)
 	}
 
 	return []CentralServerFullResourceNames{
@@ -1013,18 +966,13 @@ func flattenDatabaseServerFullResourceNames(input *sapvirtualinstances.DatabaseS
 		return nil
 	}
 
-	result := DatabaseServerFullResourceNames{}
+	result := DatabaseServerFullResourceNames{
+		LoadBalancer:    flattenLoadBalancerFullResourceNames(input.LoadBalancer),
+		VirtualMachines: flattenVirtualMachinesFullResourceNames(input.VirtualMachines),
+	}
 
 	if v := input.AvailabilitySetName; v != nil {
 		result.AvailabilitySetName = *v
-	}
-
-	if v := input.LoadBalancer; v != nil {
-		result.LoadBalancer = flattenLoadBalancerFullResourceNames(v)
-	}
-
-	if v := input.VirtualMachines; v != nil {
-		result.VirtualMachines = flattenVirtualMachinesFullResourceNames(v)
 	}
 
 	return []DatabaseServerFullResourceNames{

@@ -123,7 +123,7 @@ type TransportCreateAndMount struct {
 }
 
 type TransportMount struct {
-	ShareFileId       string `tfschema:"share_file_id"`
+	FileShareId       string `tfschema:"file_share_id"`
 	PrivateEndpointId string `tfschema:"private_endpoint_id"`
 }
 
@@ -374,8 +374,6 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
-											"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
-
 											"instance_count": {
 												Type:     pluginsdk.TypeInt,
 												Required: true,
@@ -388,6 +386,8 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 												ForceNew:     true,
 												ValidateFunc: networkValidate.SubnetID,
 											},
+
+											"virtual_machine_configuration": SchemaForSAPVirtualInstanceVirtualMachineConfiguration(),
 										},
 									},
 								},
@@ -566,11 +566,13 @@ func (r WorkloadsSAPVirtualInstanceResource) Arguments() map[string]*pluginsdk.S
 									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
-											"share_file_id": {
+											// The last segment of the resource ID of the Storage File Share should be `shares` not `fileshares`
+											// https://github.com/Azure/azure-rest-api-specs/issues/24568
+											"file_share_id": {
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
-												ValidateFunc: storageValidate.StorageShareResourceManagerID,
+												ValidateFunc: validation.StringIsNotEmpty,
 											},
 
 											"private_endpoint_id": {
@@ -651,7 +653,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			identity, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			identity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -769,43 +771,39 @@ func (r WorkloadsSAPVirtualInstanceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
+			state := WorkloadsSAPVirtualInstanceModel{}
+			if model := resp.Model; model != nil {
+				state.Name = id.SapVirtualInstanceName
+				state.ResourceGroupName = id.ResourceGroupName
+				state.Location = location.Normalize(model.Location)
 
-			state := WorkloadsSAPVirtualInstanceModel{
-				Name:              id.SapVirtualInstanceName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-			}
+				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				state.Identity = *identity
 
-			identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-			state.Identity = *identity
+				props := &model.Properties
+				state.Environment = string(props.Environment)
+				state.SapProduct = string(props.SapProduct)
 
-			properties := &model.Properties
-			state.Environment = string(properties.Environment)
-			state.SapProduct = string(properties.SapProduct)
+				if config := props.Configuration; config != nil {
+					if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
+						state.DeploymentWithOSConfiguration = flattenDeploymentWithOSConfiguration(v, metadata.ResourceData)
+					}
 
-			if properties.Configuration != nil {
-				if v, ok := properties.Configuration.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-					state.DeploymentWithOSConfiguration = flattenDeploymentWithOSConfiguration(&v, metadata.ResourceData)
+					if v, ok := config.(sapvirtualinstances.DiscoveryConfiguration); ok {
+						state.DiscoveryConfiguration = flattenDiscoveryConfiguration(v)
+					}
 				}
 
-				if v, ok := properties.Configuration.(sapvirtualinstances.DiscoveryConfiguration); ok {
-					state.DiscoveryConfiguration = flattenDiscoveryConfiguration(&v)
+				if v := props.ManagedResourceGroupConfiguration; v != nil && v.Name != nil {
+					state.ManagedResourceGroupName = *v.Name
 				}
-			}
 
-			if v := properties.ManagedResourceGroupConfiguration; v != nil && v.Name != nil {
-				state.ManagedResourceGroupName = *v.Name
-			}
-
-			if model.Tags != nil {
-				state.Tags = *model.Tags
+				if model.Tags != nil {
+					state.Tags = *model.Tags
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -833,7 +831,7 @@ func (r WorkloadsSAPVirtualInstanceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandDiscoveryConfiguration(input []DiscoveryConfiguration) *sapvirtualinstances.DiscoveryConfiguration {
+func expandDiscoveryConfiguration(input []DiscoveryConfiguration) sapvirtualinstances.DiscoveryConfiguration {
 	configuration := &input[0]
 
 	result := sapvirtualinstances.DiscoveryConfiguration{
@@ -844,14 +842,10 @@ func expandDiscoveryConfiguration(input []DiscoveryConfiguration) *sapvirtualins
 		result.ManagedRgStorageAccountName = utils.String(v)
 	}
 
-	return &result
+	return result
 }
 
-func flattenDiscoveryConfiguration(input *sapvirtualinstances.DiscoveryConfiguration) []DiscoveryConfiguration {
-	if input == nil {
-		return nil
-	}
-
+func flattenDiscoveryConfiguration(input sapvirtualinstances.DiscoveryConfiguration) []DiscoveryConfiguration {
 	result := DiscoveryConfiguration{
 		CentralServerVmId: *input.CentralServerVMId,
 	}
@@ -865,7 +859,7 @@ func flattenDiscoveryConfiguration(input *sapvirtualinstances.DiscoveryConfigura
 	}
 }
 
-func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) (*sapvirtualinstances.DeploymentWithOSConfiguration, error) {
+func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) (sapvirtualinstances.DeploymentWithOSConfiguration, error) {
 	configuration := &input[0]
 
 	result := sapvirtualinstances.DeploymentWithOSConfiguration{
@@ -876,7 +870,7 @@ func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) 
 	if len(configuration.SingleServerConfiguration) != 0 {
 		singleServerConfiguration, err := expandSingleServerConfiguration(configuration.SingleServerConfiguration)
 		if err != nil {
-			return nil, err
+			return sapvirtualinstances.DeploymentWithOSConfiguration{}, err
 		}
 		result.InfrastructureConfiguration = singleServerConfiguration
 	}
@@ -885,14 +879,21 @@ func expandDeploymentWithOSConfiguration(input []DeploymentWithOSConfiguration) 
 		result.InfrastructureConfiguration = expandThreeTierConfiguration(configuration.ThreeTierConfiguration)
 	}
 
-	return &result, nil
+	return result, nil
 }
 
-func expandSingleServerConfiguration(input []SingleServerConfiguration) (*sapvirtualinstances.SingleServerConfiguration, error) {
+func expandSingleServerConfiguration(input []SingleServerConfiguration) (sapvirtualinstances.SingleServerConfiguration, error) {
 	singleServerConfiguration := &input[0]
 
+	virtualMachineFullResourceNames, err := expandVirtualMachineFullResourceNames(singleServerConfiguration.VirtualMachineFullResourceNames)
+	if err != nil {
+		return sapvirtualinstances.SingleServerConfiguration{}, err
+	}
+
 	result := sapvirtualinstances.SingleServerConfiguration{
-		AppResourceGroup: singleServerConfiguration.AppResourceGroupName,
+		AppResourceGroup:    singleServerConfiguration.AppResourceGroupName,
+		CustomResourceNames: virtualMachineFullResourceNames,
+		DbDiskConfiguration: expandDiskVolumeConfigurations(singleServerConfiguration.DiskVolumeConfigurations),
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
 			IsSecondaryIPEnabled: utils.Bool(singleServerConfiguration.IsSecondaryIpEnabled),
 		},
@@ -905,27 +906,18 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) (*sapvir
 		result.DatabaseType = &dbType
 	}
 
-	if v := singleServerConfiguration.DiskVolumeConfigurations; v != nil {
-		result.DbDiskConfiguration = expandDiskVolumeConfigurations(v)
-	}
-
-	virtualMachineFullResourceNames, err := expandVirtualMachineFullResourceNames(singleServerConfiguration.VirtualMachineFullResourceNames)
-	if err != nil {
-		return nil, err
-	}
-	result.CustomResourceNames = virtualMachineFullResourceNames
-
-	return &result, nil
+	return result, nil
 }
 
-func expandThreeTierConfiguration(input []ThreeTierConfiguration) *sapvirtualinstances.ThreeTierConfiguration {
+func expandThreeTierConfiguration(input []ThreeTierConfiguration) sapvirtualinstances.ThreeTierConfiguration {
 	threeTierConfiguration := &input[0]
 
 	result := sapvirtualinstances.ThreeTierConfiguration{
-		ApplicationServer: expandApplicationServer(threeTierConfiguration.ApplicationServerConfiguration),
-		AppResourceGroup:  threeTierConfiguration.AppResourceGroupName,
-		CentralServer:     expandCentralServer(threeTierConfiguration.CentralServerConfiguration),
-		DatabaseServer:    expandDatabaseServer(threeTierConfiguration.DatabaseServerConfiguration),
+		ApplicationServer:   expandApplicationServer(threeTierConfiguration.ApplicationServerConfiguration),
+		AppResourceGroup:    threeTierConfiguration.AppResourceGroupName,
+		CentralServer:       expandCentralServer(threeTierConfiguration.CentralServerConfiguration),
+		CustomResourceNames: expandFullResourceNames(threeTierConfiguration.FullResourceNames),
+		DatabaseServer:      expandDatabaseServer(threeTierConfiguration.DatabaseServerConfiguration),
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
 			IsSecondaryIPEnabled: utils.Bool(threeTierConfiguration.IsSecondaryIpEnabled),
 		},
@@ -938,11 +930,7 @@ func expandThreeTierConfiguration(input []ThreeTierConfiguration) *sapvirtualins
 		}
 	}
 
-	if v := threeTierConfiguration.FullResourceNames; v != nil {
-		result.CustomResourceNames = expandFullResourceNames(v)
-	}
-
-	return &result
+	return result
 }
 
 func expandOsSapConfiguration(input []OsSapConfiguration) *sapvirtualinstances.OsSapConfiguration {
@@ -953,11 +941,8 @@ func expandOsSapConfiguration(input []OsSapConfiguration) *sapvirtualinstances.O
 	osSapConfiguration := &input[0]
 
 	result := sapvirtualinstances.OsSapConfiguration{
-		SapFqdn: utils.String(osSapConfiguration.SapFqdn),
-	}
-
-	if v := osSapConfiguration.DeployerVmPackages; v != nil {
-		result.DeployerVMPackages = expandDeployerVmPackages(v)
+		DeployerVMPackages: expandDeployerVmPackages(osSapConfiguration.DeployerVmPackages),
+		SapFqdn:            utils.String(osSapConfiguration.SapFqdn),
 	}
 
 	return &result
@@ -978,11 +963,7 @@ func expandDeployerVmPackages(input []DeployerVmPackages) *sapvirtualinstances.D
 	return &result
 }
 
-func flattenDeploymentWithOSConfiguration(input *sapvirtualinstances.DeploymentWithOSConfiguration, d *pluginsdk.ResourceData) []DeploymentWithOSConfiguration {
-	if input == nil {
-		return nil
-	}
-
+func flattenDeploymentWithOSConfiguration(input sapvirtualinstances.DeploymentWithOSConfiguration, d *pluginsdk.ResourceData) []DeploymentWithOSConfiguration {
 	result := DeploymentWithOSConfiguration{
 		AppLocation:        *input.AppLocation,
 		OsSapConfiguration: flattenOsSapConfiguration(input.OsSapConfiguration),
@@ -1006,6 +987,7 @@ func flattenDeploymentWithOSConfiguration(input *sapvirtualinstances.DeploymentW
 func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConfiguration, d *pluginsdk.ResourceData, basePath string) []SingleServerConfiguration {
 	result := SingleServerConfiguration{
 		AppResourceGroupName:        input.AppResourceGroup,
+		DiskVolumeConfigurations:    flattenDiskVolumeConfigurations(input.DbDiskConfiguration),
 		SubnetId:                    input.SubnetId,
 		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d, fmt.Sprintf("%s.0.single_server_configuration", basePath)),
 	}
@@ -1016,10 +998,6 @@ func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConf
 
 	if networkConfiguration := input.NetworkConfiguration; networkConfiguration != nil && networkConfiguration.IsSecondaryIPEnabled != nil {
 		result.IsSecondaryIpEnabled = *networkConfiguration.IsSecondaryIPEnabled
-	}
-
-	if v := input.DbDiskConfiguration; v != nil && v.DiskVolumeConfigurations != nil {
-		result.DiskVolumeConfigurations = flattenDiskVolumeConfigurations(v.DiskVolumeConfigurations)
 	}
 
 	if customResourceNames := input.CustomResourceNames; customResourceNames != nil {
@@ -1051,8 +1029,8 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 		result.HighAvailabilityType = string(v.HighAvailabilityType)
 	}
 
-	if networkConfiguration := input.NetworkConfiguration; networkConfiguration != nil && networkConfiguration.IsSecondaryIPEnabled != nil {
-		result.IsSecondaryIpEnabled = *networkConfiguration.IsSecondaryIPEnabled
+	if v := input.NetworkConfiguration; v != nil && v.IsSecondaryIPEnabled != nil {
+		result.IsSecondaryIpEnabled = *v.IsSecondaryIPEnabled
 	}
 
 	if storageConfiguration := input.StorageConfiguration; storageConfiguration != nil {
@@ -1075,7 +1053,7 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 
 			if mountFileShareConfiguration, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
 				transportMount := TransportMount{
-					ShareFileId:       mountFileShareConfiguration.Id,
+					FileShareId:       mountFileShareConfiguration.Id,
 					PrivateEndpointId: mountFileShareConfiguration.PrivateEndpointId,
 				}
 
@@ -1097,11 +1075,8 @@ func flattenOsSapConfiguration(input *sapvirtualinstances.OsSapConfiguration) []
 	}
 
 	result := OsSapConfiguration{
-		SapFqdn: *input.SapFqdn,
-	}
-
-	if v := input.DeployerVMPackages; v != nil {
-		result.DeployerVmPackages = flattenDeployerVMPackages(v)
+		DeployerVmPackages: flattenDeployerVMPackages(input.DeployerVMPackages),
+		SapFqdn:            *input.SapFqdn,
 	}
 
 	return []OsSapConfiguration{
@@ -1132,12 +1107,18 @@ func sapVirtualInstanceStateRefreshFunc(ctx context.Context, client *sapvirtuali
 		}
 
 		if model := res.Model; model != nil {
-			if model.Properties.ProvisioningState != nil {
-				if *model.Properties.ProvisioningState == sapvirtualinstances.SapVirtualInstanceProvisioningStateFailed {
-					return res, string(*model.Properties.ProvisioningState), fmt.Errorf("the provisioning state is in a failed state due to %s", *model.Properties.Errors.Properties.Message)
+			if provisioningState := model.Properties.ProvisioningState; provisioningState != nil {
+				if *provisioningState == sapvirtualinstances.SapVirtualInstanceProvisioningStateFailed {
+					errorMessage := "the provisioning state is in a failed state"
+
+					if model.Properties.Errors != nil && model.Properties.Errors.Properties != nil && model.Properties.Errors.Properties.Message != nil {
+						errorMessage = fmt.Sprintf("%s due to %s", errorMessage, *model.Properties.Errors.Properties.Message)
+					}
+
+					return res, string(*provisioningState), fmt.Errorf(errorMessage)
 				}
 
-				return res, string(*model.Properties.ProvisioningState), nil
+				return res, string(*provisioningState), nil
 			}
 		}
 		return nil, "", fmt.Errorf("unable to read state")

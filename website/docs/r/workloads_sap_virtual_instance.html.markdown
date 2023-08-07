@@ -337,7 +337,7 @@ A `transport_create_and_mount` block supports the following:
 
 A `transport_mount` block supports the following:
 
-* `share_file_id` - (Required) The resource ID of the Share File resource. Changing this forces a new resource to be created.
+* `file_share_id` - (Required) The resource ID of the Storage File Share. Changing this forces a new resource to be created.
 
 * `private_endpoint_id` - (Required) The resource ID of the Private Endpoint. Changing this forces a new resource to be created.
 
@@ -349,17 +349,17 @@ An `application_server_configuration` block supports the following:
 
 * `subnet_id` - (Required) The resource ID of the Subnet for the Application Server. Changing this forces a new resource to be created.
 
-* `virtual_machine_configuration` - (Optional) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
+* `virtual_machine_configuration` - (Required) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
 A `central_server_configuration` block supports the following:
 
-* `instance_count` - (Optional) The number of instances for the Central Server. Changing this forces a new resource to be created.
+* `instance_count` - (Required) The number of instances for the Central Server. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Optional) The resource ID of the Subnet for the Central Server. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The resource ID of the Subnet for the Central Server. Changing this forces a new resource to be created.
 
-* `virtual_machine_configuration` - (Optional) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
+* `virtual_machine_configuration` - (Required) A `virtual_machine_configuration` block as defined below. Changing this forces a new resource to be created.
 
 ---
 

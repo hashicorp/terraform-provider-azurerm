@@ -1062,7 +1062,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
       }
 
       transport_mount {
-        share_file_id       = azurerm_storage_share.test.resource_manager_id
+        file_share_id       = replace(azurerm_storage_share.test.resource_manager_id, "/fileshares/", "/shares/")
         private_endpoint_id = azurerm_private_endpoint.test.id
       }
     }
@@ -1089,7 +1089,32 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
 
 func (r WorkloadsSAPVirtualInstanceResource) discoveryConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-sapvis-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Azure Center for SAP solutions service role"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
 
 resource "azurerm_workloads_sap_virtual_instance" "test" {
   name                        = "%s"
@@ -1116,7 +1141,7 @@ resource "azurerm_workloads_sap_virtual_instance" "test" {
     azurerm_role_assignment.test
   ]
 }
-`, r.template(data), os.Getenv("ARM_TEST_SAP_VIRTUAL_INSTANCE_NAME"), data.RandomInteger, os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID"), data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, os.Getenv("ARM_TEST_SAP_VIRTUAL_INSTANCE_NAME"), data.RandomInteger, os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID"), data.RandomString)
 }
 
 func RandomInt() int {
