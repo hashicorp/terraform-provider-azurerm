@@ -55,9 +55,9 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 				},
 
 				"egress_nat_ip_address_ids": {
-					Type:       pluginsdk.TypeList,
-					Optional:   true,
-					ConfigMode: pluginsdk.SchemaConfigModeAttr,
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: networkValidate.PublicIpAddressID,
@@ -217,9 +217,9 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 				},
 
 				"egress_nat_ip_address_ids": {
-					Type:       pluginsdk.TypeList,
-					Optional:   true,
-					ConfigMode: pluginsdk.SchemaConfigModeAttr,
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: networkValidate.PublicIpAddressID,
