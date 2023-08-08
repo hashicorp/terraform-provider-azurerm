@@ -475,6 +475,12 @@ func (WindowsVirtualMachineResource) generalizeVirtualMachine(ctx context.Contex
 		return err
 	}
 
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+	}
+
 	command := []string{
 		"$cmd = \"$Env:SystemRoot\\system32\\sysprep\\sysprep.exe\"",
 		"$args = \"/generalize /oobe /mode:vm /quit\"",
@@ -504,8 +510,11 @@ func (r WindowsVirtualMachineResource) cancelExistingAgreement(publisher string,
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.Compute.MarketplaceAgreementsClient
 		subscriptionId := clients.Account.SubscriptionId
-		ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
-		defer cancel()
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+			defer cancel()
+		}
 
 		idGet := agreements.NewOfferPlanID(subscriptionId, publisher, offer, sku)
 		idCancel := agreements.NewPlanID(subscriptionId, publisher, offer, sku)
