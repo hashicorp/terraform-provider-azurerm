@@ -9,13 +9,10 @@ import (
 	network_2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type Client struct {
 	*network_2023_04_01.Client
-
-	FirewallPolicyRuleGroupClient *network.FirewallPolicyRuleCollectionGroupsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -26,11 +23,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building clients for Network: %+v", err)
 	}
 
-	policyRuleGroupClient := network.NewFirewallPolicyRuleCollectionGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&policyRuleGroupClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
-		Client:                        client,
-		FirewallPolicyRuleGroupClient: &policyRuleGroupClient,
+		Client: client,
 	}, nil
 }
