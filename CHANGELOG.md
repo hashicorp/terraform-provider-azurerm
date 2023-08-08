@@ -25,6 +25,7 @@ ENHANCEMENTS:
 * `azurerm_vpn_server_configuration` - refactoring to use `hashicorp/go-azure-sdk` [GH-22850]
 * `azurerm_vpn_server_configuration_policy_group` - refactoring to use `hashicorp/go-azure-sdk` [GH-22850]
 * `azurerm_vpn_site` - refactoring to use `hashicorp/go-azure-sdk` [GH-22850]
+* `azurerm_key_vault` - support `NestedItemTypeStorageKey` for the `nested_item` property [GH-22707]
 
 BUG FIXES:
 
