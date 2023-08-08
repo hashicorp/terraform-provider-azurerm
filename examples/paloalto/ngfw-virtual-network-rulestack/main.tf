@@ -93,10 +93,10 @@ resource "azurerm_palo_alto_local_rulestack" "example" {
 }
 
 resource "azurerm_palo_alto_local_rulestack_rule" "example" {
-  name          = "${var.prefix}-rulestack-rule"
-  rulestack_id  = azurerm_palo_alto_local_rulestack.example.id
-  priority      = 9999
-  action        = "DenySilent"
+  name         = "${var.prefix}-rulestack-rule"
+  rulestack_id = azurerm_palo_alto_local_rulestack.example.id
+  priority     = 9999
+  action       = "DenySilent"
 
   applications = ["any"]
 
