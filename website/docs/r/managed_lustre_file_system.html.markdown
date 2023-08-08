@@ -62,9 +62,9 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU name for the Azure Managed Lustre File System. Possible values are `AMLFS-Durable-Premium-40`, `AMLFS-Durable-Premium-125`, `AMLFS-Durable-Premium-250` and `AMLFS-Durable-Premium-500`. Changing this forces a new resource to be created.
 
-* `storage_capacity_in_tb` - (Required) The size of the Azure Managed Lustre File System in TiB. Possible values are between 8 and 128. It could be divided by 8. Changing this forces a new resource to be created.
+* `storage_capacity_in_tb` - (Required) The size of the Azure Managed Lustre File System in TiB. Possible values are between 8 and 128 and must be divisible by 8. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The resource ID of the Subnet that is used for managing the Azure Managed Lustre file system and for client-facing operations. This subnet should have at least a /24 subnet mask within the VNET's address space. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The resource ID of the Subnet that is used for managing the Azure Managed Lustre file system and for client-facing operations. This subnet should have at least a /24 subnet mask within the Virtual Network's address space. Changing this forces a new resource to be created.
 
 * `zones` - (Required) A list of availability zones for the Azure Managed Lustre File System. Changing this forces a new resource to be created.
 
@@ -72,9 +72,9 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below. Changing this forces a new resource to be created.
 
-* `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
+* `encryption_key` - (Optional) An `encryption_key` block as defined below.
 
--> **NOTE:** Removing `key_encryption_key` forces a new resource to be created.
+-> **NOTE:** Removing `encryption_key` forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Managed Lustre File System.
 
@@ -90,13 +90,13 @@ A `maintenance_window` block supports the following:
 
 A `hsm_setting` block supports the following:
 
-* `container_id` - (Required) The resource ID of storage container that is used for hydrating the namespace and archiving from the namespace. Changing this forces a new resource to be created.
+* `container_id` - (Required) The resource ID of the storage container that is used for hydrating the namespace and archiving from the namespace. Changing this forces a new resource to be created.
 
-* `logging_container_id` - (Required) The resource ID of storage container that is used for logging events and errors. Changing this forces a new resource to be created.
+* `logging_container_id` - (Required) The resource ID of the storage container that is used for logging events and errors. Changing this forces a new resource to be created.
 
 * `import_prefix` - (Optional) The import prefix for the Azure Managed Lustre File System. Only blobs in the non-logging container that start with this path/prefix get hydrated into the cluster namespace. Changing this forces a new resource to be created.
 
--> **NOTE:** It has to add roles `Contributor` and `Storage Blob Data Contributor` to the Service Principal `HPC Cache Resource Provider` for the Storage Account. See [official docs]( https://learn.microsoft.com/en-us/azure/azure-managed-lustre/amlfs-prerequisites#access-roles-for-blob-integration) for more information.
+-> **NOTE:** The roles `Contributor` and `Storage Blob Data Contributor` must be added to the Service Principal `HPC Cache Resource Provider` for the Storage Account. See [official docs]( https://learn.microsoft.com/en-us/azure/azure-managed-lustre/amlfs-prerequisites#access-roles-for-blob-integration) for more information.
 
 ---
 
@@ -108,9 +108,9 @@ An `identity` block supports the following:
 
 ---
 
-A `key_encryption_key` block supports the following:
+An `encryption_key` block supports the following:
 
-* `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.
+* `key_url` - (Required) The URL to the Key Vault Key used as the Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.
 
 * `source_vault_id` - (Required) The ID of the source Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.
 

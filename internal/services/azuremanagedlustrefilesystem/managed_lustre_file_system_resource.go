@@ -26,7 +26,7 @@ type ManagedLustreFileSystemModel struct {
 	Location            string                       `tfschema:"location"`
 	HsmSetting          []HsmSetting                 `tfschema:"hsm_setting"`
 	Identity            []identity.ModelUserAssigned `tfschema:"identity"`
-	KeyEncryptionKey    []KeyEncryptionKey           `tfschema:"key_encryption_key"`
+	EncryptionKey       []EncryptionKey              `tfschema:"encryption_key"`
 	MaintenanceWindow   []MaintenanceWindow          `tfschema:"maintenance_window"`
 	SkuName             string                       `tfschema:"sku_name"`
 	StorageCapacityInTb int64                        `tfschema:"storage_capacity_in_tb"`
@@ -41,7 +41,7 @@ type HsmSetting struct {
 	ImportPrefix       string `tfschema:"import_prefix"`
 }
 
-type KeyEncryptionKey struct {
+type EncryptionKey struct {
 	KeyUrl        string `tfschema:"key_url"`
 	SourceVaultId string `tfschema:"source_vault_id"`
 }
@@ -167,7 +167,7 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 
 		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
 
-		"key_encryption_key": {
+		"encryption_key": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -200,8 +200,8 @@ func (r ManagedLustreFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if oldVal, newVal := metadata.ResourceDiff.GetChange("key_encryption_key"); len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0 {
-				if err := metadata.ResourceDiff.ForceNew("key_encryption_key"); err != nil {
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("encryption_key"); len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0 {
+				if err := metadata.ResourceDiff.ForceNew("encryption_key"); err != nil {
 					return err
 				}
 			}
@@ -243,7 +243,7 @@ func (r ManagedLustreFileSystemResource) Create() sdk.ResourceFunc {
 				Identity: identity,
 				Properties: &amlfilesystems.AmlFilesystemProperties{
 					Hsm:                expandManagedLustreFileSystemHsmSetting(model.HsmSetting),
-					EncryptionSettings: expandManagedLustreFileSystemKeyEncryptionKey(model.KeyEncryptionKey),
+					EncryptionSettings: expandManagedLustreFileSystemEncryptionKey(model.EncryptionKey),
 					MaintenanceWindow:  expandManagedLustreFileSystemMaintenanceWindowForCreate(model.MaintenanceWindow),
 					FilesystemSubnet:   model.SubnetId,
 					StorageCapacityTiB: float64(model.StorageCapacityInTb),
@@ -289,8 +289,8 @@ func (r ManagedLustreFileSystemResource) Update() sdk.ResourceFunc {
 				properties.Properties.MaintenanceWindow = expandManagedLustreFileSystemMaintenanceWindowForUpdate(model.MaintenanceWindow)
 			}
 
-			if metadata.ResourceData.HasChange("key_encryption_key") {
-				properties.Properties.EncryptionSettings = expandManagedLustreFileSystemKeyEncryptionKey(model.KeyEncryptionKey)
+			if metadata.ResourceData.HasChange("encryption_key") {
+				properties.Properties.EncryptionSettings = expandManagedLustreFileSystemEncryptionKey(model.EncryptionKey)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -345,7 +345,7 @@ func (r ManagedLustreFileSystemResource) Read() sdk.ResourceFunc {
 					state.MaintenanceWindow = flattenManagedLustreFileSystemMaintenanceWindow(properties.MaintenanceWindow)
 					state.HsmSetting = flattenManagedLustreFileSystemHsmSetting(properties.Hsm)
 					state.Zones = pointer.From(model.Zones)
-					state.KeyEncryptionKey = flattenManagedLustreFileSystemKeyEncryptionKey(properties.EncryptionSettings)
+					state.EncryptionKey = flattenManagedLustreFileSystemEncryptionKey(properties.EncryptionSettings)
 
 					if v := model.Sku; v != nil {
 						state.SkuName = pointer.From(v.Name)
@@ -411,17 +411,17 @@ func flattenManagedLustreFileSystemMaintenanceWindow(input amlfilesystems.AmlFil
 	return append(result, maintenanceWindow)
 }
 
-func expandManagedLustreFileSystemKeyEncryptionKey(input []KeyEncryptionKey) *amlfilesystems.AmlFilesystemEncryptionSettings {
+func expandManagedLustreFileSystemEncryptionKey(input []EncryptionKey) *amlfilesystems.AmlFilesystemEncryptionSettings {
 	if len(input) == 0 {
 		return nil
 	}
 
-	keyEncryptionKey := &input[0]
+	encryptionKey := &input[0]
 
 	result := &amlfilesystems.KeyVaultKeyReference{
-		KeyUrl: keyEncryptionKey.KeyUrl,
+		KeyUrl: encryptionKey.KeyUrl,
 		SourceVault: amlfilesystems.KeyVaultKeyReferenceSourceVault{
-			Id: pointer.To(keyEncryptionKey.SourceVaultId),
+			Id: pointer.To(encryptionKey.SourceVaultId),
 		},
 	}
 
@@ -430,19 +430,18 @@ func expandManagedLustreFileSystemKeyEncryptionKey(input []KeyEncryptionKey) *am
 	}
 }
 
-func flattenManagedLustreFileSystemKeyEncryptionKey(input *amlfilesystems.AmlFilesystemEncryptionSettings) []KeyEncryptionKey {
+func flattenManagedLustreFileSystemEncryptionKey(input *amlfilesystems.AmlFilesystemEncryptionSettings) []EncryptionKey {
+	result := make([]EncryptionKey, 0)
 	if input == nil || input.KeyEncryptionKey == nil {
 		return nil
 	}
 
-	keyEncryptionKey := input.KeyEncryptionKey
-
-	result := KeyEncryptionKey{
-		KeyUrl:        keyEncryptionKey.KeyUrl,
-		SourceVaultId: pointer.From(keyEncryptionKey.SourceVault.Id),
+	encryptionKey := EncryptionKey{
+		KeyUrl:        input.KeyEncryptionKey.KeyUrl,
+		SourceVaultId: pointer.From(input.KeyEncryptionKey.SourceVault.Id),
 	}
 
-	return []KeyEncryptionKey{result}
+	return append(result, encryptionKey)
 }
 
 func expandManagedLustreFileSystemHsmSetting(input []HsmSetting) *amlfilesystems.AmlFilesystemPropertiesHsm {
@@ -467,11 +466,11 @@ func expandManagedLustreFileSystemHsmSetting(input []HsmSetting) *amlfilesystems
 }
 
 func flattenManagedLustreFileSystemHsmSetting(input *amlfilesystems.AmlFilesystemPropertiesHsm) []HsmSetting {
+	result := make([]HsmSetting, 0)
 	if input == nil || input.Settings == nil {
-		return nil
+		return result
 	}
 
-	var result []HsmSetting
 	hsmSetting := HsmSetting{}
 
 	if v := input.Settings; v != nil {

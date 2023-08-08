@@ -289,7 +289,7 @@ resource "azurerm_managed_lustre_file_system" "test" {
     ]
   }
 
-  key_encryption_key {
+  encryption_key {
     key_url         = azurerm_key_vault_key.test.id
     source_vault_id = azurerm_key_vault.test.id
   }
@@ -373,7 +373,7 @@ resource "azurerm_managed_lustre_file_system" "test" {
     ]
   }
 
-  key_encryption_key {
+  encryption_key {
     key_url         = azurerm_key_vault_key.test2.id
     source_vault_id = azurerm_key_vault.test2.id
   }
