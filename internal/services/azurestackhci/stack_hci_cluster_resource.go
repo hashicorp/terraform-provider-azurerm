@@ -5,8 +5,6 @@ package azurestackhci
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
-	"github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage"
 	"log"
 	"time"
 
@@ -24,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage"
 )
 
 func resourceArmStackHCICluster() *pluginsdk.Resource {
@@ -134,7 +133,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("checking for existing %s: %+v", automanageConfigId, err)
 		}
 
-		hciAssignmentID := parse.NewAutomanageConfigurationHCIAssignmentID(subscriptionId, id.ResourceGroupName, id.ClusterName, "default")
+		hciAssignmentID := autoParse.NewAutomanageConfigurationHCIAssignmentID(subscriptionId, id.ResourceGroupName, id.ClusterName, "default")
 
 		autoResp, err := hciAssignmentClient.Get(ctx, hciAssignmentID.ResourceGroup, hciAssignmentID.ClusterName, hciAssignmentID.ConfigurationProfileAssignmentName)
 		if err != nil && !utils.ResponseWasNotFound(autoResp.Response) {
@@ -242,7 +241,7 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 				return fmt.Errorf("checking for existing %s: %+v", automanageConfigId, err)
 			}
 
-			hciAssignmentID := parse.NewAutomanageConfigurationHCIAssignmentID(subscriptionId, id.ResourceGroupName, id.ClusterName, "default")
+			hciAssignmentID := autoParse.NewAutomanageConfigurationHCIAssignmentID(subscriptionId, id.ResourceGroupName, id.ClusterName, "default")
 			autoResp, err := hciAssignmentClient.Get(ctx, hciAssignmentID.ResourceGroup, hciAssignmentID.ClusterName, hciAssignmentID.ConfigurationProfileAssignmentName)
 
 			if err != nil && !utils.ResponseWasNotFound(autoResp.Response) {
