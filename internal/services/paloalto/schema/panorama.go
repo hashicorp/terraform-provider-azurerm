@@ -51,8 +51,9 @@ func PanoramaSchema() *pluginsdk.Schema {
 				},
 
 				"virtual_machine_ssh_key": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
 				},
 			},
 		},

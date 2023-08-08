@@ -354,14 +354,14 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "trust" {
   name         = "testacc-palcT-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
-  certificate_signer_id = "https://example.com/acctest-trust-cert"
+  keyvault_certificate_id = "https://example.com/acctest-trust-cert"
 }
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "untrust" {
   name         = "testacc-palcU-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
-  certificate_signer_id = "https://example.com/acctest-untrust-cert"
+  keyvault_certificate_id = "https://example.com/acctest-untrust-cert"
 }
 
 resource "azurerm_palo_alto_local_rulestack" "test" {
@@ -395,14 +395,14 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "trust" {
   name         = "testacc-palcT-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
-  certificate_signer_id = "https://example.com/acctest-trust-cert"
+  keyvault_certificate_id = "https://example.com/acctest-trust-cert"
 }
 
 resource "azurerm_palo_alto_local_rulestack_certificate" "untrust" {
   name         = "testacc-palcU-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
 
-  certificate_signer_id = "https://example.com/acctest-untrust-cert"
+  keyvault_certificate_id = "https://example.com/acctest-untrust-cert"
 }
 
 resource "azurerm_palo_alto_local_rulestack_outbound_trust_certificate_association" "test" {

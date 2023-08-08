@@ -167,11 +167,11 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "
   destination_nat {
     name     = "testDNAT-1"
     protocol = "TCP"
-    front_end_config {
+    frontend_config {
       public_ip_address_id = azurerm_public_ip.test.id
       port                 = 8081
     }
-    back_end_config {
+    backend_config {
       public_ip_address = "10.0.1.101"
       port              = 18081
     }
@@ -180,11 +180,11 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "
   destination_nat {
     name     = "testDNAT-2"
     protocol = "UDP"
-    front_end_config {
+    frontend_config {
       public_ip_address_id = azurerm_public_ip.test.id
       port                 = 8082
     }
-    back_end_config {
+    backend_config {
       public_ip_address = "10.0.1.102"
       port              = 18082
     }

@@ -48,7 +48,7 @@ The following arguments are supported:
 
 ---
 
-A `back_end_config` block supports the following:
+A `backend_config` block supports the following:
 
 * `port` - (Required) The port number to send traffic to.
 
@@ -62,9 +62,9 @@ A `destination_nat` block supports the following:
 
 * `protocol` - (Required) The protocol used for this Destination NAT. Possible values include `TCP` and `UDP`.
 
-* `back_end_config` - (Optional) A `back_end_config` block as defined above.
+* `backend_config` - (Optional) A `backend_config` block as defined above.
 
-* `front_end_config` - (Optional) A `front_end_config` block as defined below.
+* `frontend_config` - (Optional) A `frontend_config` block as defined below.
 
 ---
 
@@ -76,7 +76,7 @@ A `dns_settings` block supports the following:
 
 ---
 
-A `front_end_config` block supports the following:
+A `frontend_config` block supports the following:
 
 * `port` - (Required) The port on which traffic will be receiveed.
 

@@ -91,7 +91,7 @@ The following arguments are supported:
 
 ---
 
-A `back_end_config` block supports the following:
+A `backend_config` block supports the following:
 
 * `port` - (Required) The port number to send traffic to.
 
@@ -105,9 +105,9 @@ A `destination_nat` block supports the following:
 
 * `protocol` - (Required) The protocol used for this Destination NAT. Possible values include `TCP` and `UDP`.
 
-* `back_end_config` - (Optional) A `back_end_config` block as defined above.
+* `backend_config` - (Optional) A `backend_config` block as defined above.
 
-* `front_end_config` - (Optional) A `front_end_config` block as defined below.
+* `frontend_config` - (Optional) A `frontend_config` block as defined below.
 
 ---
 
@@ -119,7 +119,7 @@ A `dns_settings` block supports the following:
 
 ---
 
-A `front_end_config` block supports the following:
+A `frontend_config` block supports the following:
 
 * `port` - (Required) The port on which traffic will be receiveed.
 
@@ -149,21 +149,21 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `panorama_config` block exports the following:
+A `panorama` block exports the following:
 
-* `device_group_name` - TODO.
+* `device_group_name` - The Device Group Name to which this Firewall Resource is registered.
 
-* `host_name` - TODO.
+* `host_name` - The Host Name of this Firewall Resource.
 
-* `name` - The name of this TODO.
+* `name` - The name of this Firewall Resource.
 
-* `panorama_server_1` - TODO.
+* `panorama_server_1` - The name of the First Panorama server.
 
-* `panorama_server_2` - TODO.
+* `panorama_server_2` - The name of the Second Panorama server.
 
-* `template_name` - TODO.
+* `template_name` - The name of the Panorama Template applied to this Firewall Resource.
 
-* `virtual_machine_ssh_key` - TODO.
+* `virtual_machine_ssh_key` - The SSH Key to connect to the Firewall Resource.
 
 ## Timeouts
 

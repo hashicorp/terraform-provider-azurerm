@@ -3,6 +3,7 @@ package paloalto
 import (
 	"context"
 	"fmt"
+	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type LocalRuleStackCertificate struct{}
@@ -25,7 +25,7 @@ type LocalRuleStackCertificateModel struct {
 	Name                string `tfschema:"name"`
 	RuleStackID         string `tfschema:"rulestack_id"`
 	AuditComment        string `tfschema:"audit_comment"`
-	CertificateSignerID string `tfschema:"certificate_signer_id"`
+	CertificateSignerID string `tfschema:"keyvault_certificate_id"`
 	Description         string `tfschema:"description"`
 	SelfSigned          bool   `tfschema:"self_signed"`
 }
@@ -63,12 +63,12 @@ func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 			Optional: true,
 		},
 
-		"certificate_signer_id": {
+		"keyvault_certificate_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.IsURLWithHTTPS, // TODO - Need to investigate valid values for this - What resource Type is it actually?
-			ExactlyOneOf: []string{"self_signed", "certificate_signer_id"},
+			ValidateFunc: keyvaultValidate.VersionlessNestedItemId,
+			ExactlyOneOf: []string{"self_signed", "keyvault_certificate_id"},
 		},
 
 		"self_signed": {
@@ -76,7 +76,7 @@ func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			Default:      false,
-			ExactlyOneOf: []string{"certificate_signer_id", "self_signed"},
+			ExactlyOneOf: []string{"keyvault_certificate_id", "self_signed"},
 		},
 	}
 }
@@ -255,7 +255,7 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 				cert.Properties.AuditComment = pointer.To(model.AuditComment)
 			}
 
-			if metadata.ResourceData.HasChanges("certificate_signer_id", "self_signed") {
+			if metadata.ResourceData.HasChanges("keyvault_certificate_id", "self_signed") {
 				cert.Properties.CertificateSelfSigned = boolAsBooleanEnumCert(model.SelfSigned)
 				cert.Properties.CertificateSignerResourceId = pointer.To(model.CertificateSignerID)
 			}

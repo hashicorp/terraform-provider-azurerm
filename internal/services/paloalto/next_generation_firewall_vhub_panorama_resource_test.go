@@ -158,11 +158,11 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama" "test
   destination_nat {
     name     = "testDNAT-1"
     protocol = "TCP"
-    front_end_config {
+    frontend_config {
       public_ip_address_id = azurerm_public_ip.test.id
       port                 = 8081
     }
-    back_end_config {
+    backend_config {
       public_ip_address = "10.0.1.101"
       port              = 18081
     }
@@ -171,11 +171,11 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama" "test
   destination_nat {
     name     = "testDNAT-2"
     protocol = "UDP"
-    front_end_config {
+    frontend_config {
       public_ip_address_id = azurerm_public_ip.test.id
       port                 = 8082
     }
-    back_end_config {
+    backend_config {
       public_ip_address = "10.0.1.102"
       port              = 18082
     }
@@ -200,7 +200,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_public_ip" "egress" {
-  name                = "acctestpublicip-%[2]d"
+  name                = "acctestpublicip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -229,6 +229,5 @@ resource "azurerm_palo_alto_virtual_network_appliance" "test" {
   name           = "testAcc-panva-%[1]d"
   virtual_hub_id = azurerm_virtual_hub.test.id
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }

@@ -14,8 +14,8 @@ import (
 type DestinationNAT struct {
 	Name                  string                          `tfschema:"name"`
 	Protocol              string                          `tfschema:"protocol"`
-	FrontendConfiguration []FrontendEndpointConfiguration `tfschema:"front_end_config"`
-	BackendConfiguration  []BackendEndpointConfiguration  `tfschema:"back_end_config"`
+	FrontendConfiguration []FrontendEndpointConfiguration `tfschema:"frontend_config"`
+	BackendConfiguration  []BackendEndpointConfiguration  `tfschema:"backend_config"`
 }
 
 type FrontendEndpointConfiguration struct {
@@ -47,9 +47,9 @@ func DestinationNATSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice(firewalls.PossibleValuesForProtocolType(), false),
 				},
 
-				"back_end_config": BackendEndpointSchema(),
+				"backend_config": BackendEndpointSchema(),
 
-				"front_end_config": FrontendEndpointSchema(),
+				"frontend_config": FrontendEndpointSchema(),
 			},
 		},
 	}
