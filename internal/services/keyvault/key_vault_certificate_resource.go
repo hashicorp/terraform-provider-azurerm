@@ -437,20 +437,16 @@ func createCertificate(d *pluginsdk.ResourceData, meta interface{}) (keyvault.Ce
 		Tags:              tags.Expand(t),
 	}
 
-	operation, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters)
+	_, err = client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters)
 	if err != nil {
 		return keyvault.CertificateBundle{}, err
-	}
-
-	if operation.RequestID == nil {
-		return keyvault.CertificateBundle{}, fmt.Errorf("request_id missing in certificate create operation")
 	}
 
 	log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, *keyVaultBaseUrl)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Provisioning"},
 		Target:     []string{"Ready"},
-		Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, *keyVaultBaseUrl, name, *operation.RequestID),
+		Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, *keyVaultBaseUrl, name),
 		MinTimeout: 15 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
@@ -639,25 +635,12 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 	return resourceKeyVaultCertificateRead(d, meta)
 }
 
-func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvault.BaseClient, keyVaultBaseUrl string, name string, requestID string) pluginsdk.StateRefreshFunc {
+func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvault.BaseClient, keyVaultBaseUrl string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		operation, err := client.GetCertificateOperation(ctx, keyVaultBaseUrl, name)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to read CertificateOperation in keyVaultCertificateCreationRefreshFunc for Certificate %q in Vault %q: %s", name, keyVaultBaseUrl, err)
 		}
-		if operation.RequestID == nil {
-			return nil, "", fmt.Errorf("missing request_id in certificate operation")
-		}
-
-		// If another process starts a new certificate creation right after our
-		// operation was completed we might not observe the completed state. Also as
-		// soon someone started a new create operation there is no way to determine
-		// what happened to the previous operation. Because of that we return an error
-		// if there is a new operation (not the same request ID) running.
-		if *operation.RequestID != requestID {
-			return nil, "", fmt.Errorf("could not observe outcome of certificate creation because another process started a new creation")
-		}
-
 		if operation.Status == nil {
 			return nil, "", fmt.Errorf("missing status in certificate operation")
 		}
