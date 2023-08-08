@@ -167,15 +167,15 @@ provider "azurerm" {
 }
 
 resource "azurerm_security_center_subscription_pricing" "test" {
-  tier= "Standard"
+  tier          = "Standard"
   resource_type = "CloudPosture"
   extension {
-    name    = "SensitiveDataDiscovery"
+    name = "SensitiveDataDiscovery"
   }
   extension {
-    name    = "AgentlessVmScanning"
+    name = "AgentlessVmScanning"
     additional_extension_properties = {
-ExclusionTags = "[]"
+      ExclusionTags = "[]"
     }
 
   }
