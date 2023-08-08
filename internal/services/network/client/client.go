@@ -33,7 +33,6 @@ type Client struct {
 	LocalNetworkGatewaysClient             *network.LocalNetworkGatewaysClient
 	NatRuleClient                          *network.NatRulesClient
 	PointToSiteVpnGatewaysClient           *network.P2sVpnGatewaysClient
-	PacketCapturesClient                   *network.PacketCapturesClient
 	PublicIPsClient                        *network.PublicIPAddressesClient
 	PublicIPPrefixesClient                 *network.PublicIPPrefixesClient
 	PrivateDnsZoneGroupClient              *network.PrivateDNSZoneGroupsClient
@@ -118,9 +117,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	VnetClient := network.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetClient.Client, o.ResourceManagerAuthorizer)
-
-	PacketCapturesClient := network.NewPacketCapturesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&PacketCapturesClient.Client, o.ResourceManagerAuthorizer)
 
 	VnetPeeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetPeeringsClient.Client, o.ResourceManagerAuthorizer)
@@ -222,7 +218,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		LocalNetworkGatewaysClient:             &LocalNetworkGatewaysClient,
 		NatRuleClient:                          &NatRuleClient,
 		PointToSiteVpnGatewaysClient:           &pointToSiteVpnGatewaysClient,
-		PacketCapturesClient:                   &PacketCapturesClient,
 		PublicIPsClient:                        &PublicIPsClient,
 		PublicIPPrefixesClient:                 &PublicIPPrefixesClient,
 		RouteMapsClient:                        &RouteMapsClient,
