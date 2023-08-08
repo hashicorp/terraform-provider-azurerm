@@ -701,7 +701,7 @@ func flattenFirewallPrivateIpRange(input *map[string]string) []interface{} {
 }
 
 func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, input []interface{}) (vhub *azurefirewalls.SubResource, ipAddresses *azurefirewalls.HubIPAddresses, ok bool) {
-	if len(input) == 0 || existing == nil {
+	if len(input) == 0 {
 		return nil, nil, false
 	}
 
@@ -716,20 +716,22 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 	//     Scale down: "Addresses" should indicate the addresses to be retained (in this case we retain the first new "Count" ones)
 	newCount := b["public_ip_count"].(int)
 	var addresses *[]azurefirewalls.AzureFirewallPublicIPAddress
-	if prop := existing.Properties; prop != nil {
-		if ipaddress := prop.HubIPAddresses; ipaddress != nil {
-			if pips := ipaddress.PublicIPs; pips != nil {
-				if count := pips.Count; count != nil {
-					oldCount := int(*count)
-					addresses = pips.Addresses
+	if existing != nil {
+		if prop := existing.Properties; prop != nil {
+			if ipaddress := prop.HubIPAddresses; ipaddress != nil {
+				if pips := ipaddress.PublicIPs; pips != nil {
+					if count := pips.Count; count != nil {
+						oldCount := int(*count)
+						addresses = pips.Addresses
 
-					// In case of scale down, keep the first new "Count" addresses.
-					if oldCount > newCount {
-						keptAddresses := make([]azurefirewalls.AzureFirewallPublicIPAddress, newCount)
-						for i := 0; i < newCount; i++ {
-							keptAddresses[i] = (*addresses)[i]
+						// In case of scale down, keep the first new "Count" addresses.
+						if oldCount > newCount {
+							keptAddresses := make([]azurefirewalls.AzureFirewallPublicIPAddress, newCount)
+							for i := 0; i < newCount; i++ {
+								keptAddresses[i] = (*addresses)[i]
+							}
+							addresses = &keptAddresses
 						}
-						addresses = &keptAddresses
 					}
 				}
 			}
