@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/api"
@@ -633,8 +634,11 @@ func (ApiManagementResource) testCheckHasNoProductsOrApis(resourceName string) p
 			return err
 		}
 
+		timeout, cancel := context.WithTimeout(ctx, 10*time.Minute)
+		defer cancel()
+
 		apiServiceId := api.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
-		listResp, err := client.ApiManagement.ApiClient.ListByService(ctx, apiServiceId, api.ListByServiceOperationOptions{})
+		listResp, err := client.ApiManagement.ApiClient.ListByService(timeout, apiServiceId, api.ListByServiceOperationOptions{})
 		if err != nil {
 			return fmt.Errorf("listing APIs after creation of %s: %+v", *id, err)
 		}
@@ -646,7 +650,7 @@ func (ApiManagementResource) testCheckHasNoProductsOrApis(resourceName string) p
 		}
 
 		produceServiceId := product.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
-		proListResp, err := client.ApiManagement.ProductsClient.ListByService(ctx, produceServiceId, product.ListByServiceOperationOptions{})
+		proListResp, err := client.ApiManagement.ProductsClient.ListByService(timeout, produceServiceId, product.ListByServiceOperationOptions{})
 		if err != nil {
 			return fmt.Errorf("listing products after creation of %s: %+v", *id, err)
 		}
