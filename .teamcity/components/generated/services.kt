@@ -15,6 +15,7 @@ var services = mapOf(
         "authorization" to "Authorization",
         "automanage" to "Automanage",
         "automation" to "Automation",
+        "azuremanagedlustrefilesystem" to "Azure Managed Lustre File System",
         "azurestackhci" to "Azure Stack HCI",
         "batch" to "Batch",
         "billing" to "Billing",

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azuremanagedlustrefilesystem"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing"
@@ -140,6 +141,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		authorization.Registration{},
 		automanage.Registration{},
 		automation.Registration{},
+		azuremanagedlustrefilesystem.Registration{},
 		batch.Registration{},
 		bot.Registration{},
 		cognitive.Registration{},

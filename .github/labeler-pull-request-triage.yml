@@ -44,6 +44,9 @@ service/automation:
 service/azure-stack-hci:
   - internal/services/azurestackhci/**/*
 
+service/azuremanagedlustrefilesystem:
+  - internal/services/azuremanagedlustrefilesystem/**/*
+
 service/batch:
   - internal/services/batch/**/*
 
