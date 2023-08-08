@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/firewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -53,7 +54,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FirewallPolicyID,
+				ValidateFunc: firewallpolicies.ValidateFirewallPolicyID,
 			},
 
 			"priority": {
@@ -430,16 +431,16 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 	defer cancel()
 
 	name := d.Get("name").(string)
-	policyId, err := parse.FirewallPolicyID(d.Get("firewall_policy_id").(string))
+	policyId, err := firewallpolicies.ParseFirewallPolicyID(d.Get("firewall_policy_id").(string))
 	if err != nil {
 		return err
 	}
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, policyId.ResourceGroup, policyId.Name, name)
+		resp, err := client.Get(ctx, policyId.ResourceGroupName, policyId.FirewallPolicyName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Firewall Policy Rule Collection Group %q (Resource Group %q / Policy %q): %+v", name, policyId.ResourceGroup, policyId.Name, err)
+				return fmt.Errorf("checking for existing Firewall Policy Rule Collection Group %q (Resource Group %q / Policy %q): %+v", name, policyId.ResourceGroupName, policyId.FirewallPolicyName, err)
 			}
 		}
 
@@ -448,8 +449,8 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 		}
 	}
 
-	locks.ByName(policyId.Name, AzureFirewallPolicyResourceName)
-	defer locks.UnlockByName(policyId.Name, AzureFirewallPolicyResourceName)
+	locks.ByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	defer locks.UnlockByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
 
 	param := network.FirewallPolicyRuleCollectionGroup{
 		FirewallPolicyRuleCollectionGroupProperties: &network.FirewallPolicyRuleCollectionGroupProperties{
@@ -468,20 +469,20 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 
 	param.FirewallPolicyRuleCollectionGroupProperties.RuleCollections = &rulesCollections
 
-	future, err := client.CreateOrUpdate(ctx, policyId.ResourceGroup, policyId.Name, name, param)
+	future, err := client.CreateOrUpdate(ctx, policyId.ResourceGroupName, policyId.FirewallPolicyName, name, param)
 	if err != nil {
-		return fmt.Errorf("creating Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", name, policyId.ResourceGroup, policyId.Name, err)
+		return fmt.Errorf("creating Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", name, policyId.ResourceGroupName, policyId.FirewallPolicyName, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", name, policyId.ResourceGroup, policyId.Name, err)
+		return fmt.Errorf("waiting Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", name, policyId.ResourceGroupName, policyId.FirewallPolicyName, err)
 	}
 
-	resp, err := client.Get(ctx, policyId.ResourceGroup, policyId.Name, name)
+	resp, err := client.Get(ctx, policyId.ResourceGroupName, policyId.FirewallPolicyName, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", name, policyId.ResourceGroup, policyId.Name, err)
+		return fmt.Errorf("retrieving Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", name, policyId.ResourceGroupName, policyId.FirewallPolicyName, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q) ID", name, policyId.ResourceGroup, policyId.Name)
+		return fmt.Errorf("empty or nil ID returned for Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q) ID", name, policyId.ResourceGroupName, policyId.FirewallPolicyName)
 	}
 	id, err := parse.FirewallPolicyRuleCollectionGroupID(*resp.ID)
 	if err != nil {
@@ -516,7 +517,7 @@ func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, me
 
 	d.Set("name", resp.Name)
 	d.Set("priority", resp.Priority)
-	d.Set("firewall_policy_id", parse.NewFirewallPolicyID(subscriptionId, id.ResourceGroup, id.FirewallPolicyName).ID())
+	d.Set("firewall_policy_id", firewallpolicies.NewFirewallPolicyID(subscriptionId, id.ResourceGroup, id.FirewallPolicyName).ID())
 
 	applicationRuleCollections, networkRuleCollections, natRuleCollections, err := flattenFirewallPolicyRuleCollection(resp.RuleCollections)
 	if err != nil {

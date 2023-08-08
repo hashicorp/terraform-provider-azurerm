@@ -15,7 +15,6 @@ import (
 type Client struct {
 	*network_2023_04_01.Client
 
-	FirewallPolicyClient          *network.FirewallPoliciesClient
 	FirewallPolicyRuleGroupClient *network.FirewallPolicyRuleCollectionGroupsClient
 }
 
@@ -27,15 +26,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building clients for Network: %+v", err)
 	}
 
-	policyClient := network.NewFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&policyClient.Client, o.ResourceManagerAuthorizer)
-
 	policyRuleGroupClient := network.NewFirewallPolicyRuleCollectionGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&policyRuleGroupClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		Client:                        client,
-		FirewallPolicyClient:          &policyClient,
 		FirewallPolicyRuleGroupClient: &policyRuleGroupClient,
 	}, nil
 }

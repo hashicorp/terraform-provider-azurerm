@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/firewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -88,7 +88,7 @@ func resourceFirewall() *pluginsdk.Resource {
 			"firewall_policy_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.FirewallPolicyID,
+				ValidateFunc: firewallpolicies.ValidateFirewallPolicyID,
 			},
 
 			"ip_configuration": {
@@ -342,9 +342,9 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if policyId, ok := d.GetOk("firewall_policy_id"); ok {
-		id, _ := parse.FirewallPolicyID(policyId.(string))
-		locks.ByName(id.Name, AzureFirewallPolicyResourceName)
-		defer locks.UnlockByName(id.Name, AzureFirewallPolicyResourceName)
+		id, _ := firewallpolicies.ParseFirewallPolicyID(policyId.(string))
+		locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+		defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 	}
 
 	locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
@@ -522,9 +522,9 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if read.Model.Properties != nil && read.Model.Properties.FirewallPolicy != nil && read.Model.Properties.FirewallPolicy.Id != nil {
-			id, _ := parse.FirewallPolicyID(*read.Model.Properties.FirewallPolicy.Id)
-			locks.ByName(id.Name, AzureFirewallPolicyResourceName)
-			defer locks.UnlockByName(id.Name, AzureFirewallPolicyResourceName)
+			id, _ := firewallpolicies.ParseFirewallPolicyID(*read.Model.Properties.FirewallPolicy.Id)
+			locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+			defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 		}
 
 		locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
