@@ -52,7 +52,7 @@ resource "azurerm_mssql_virtual_machine" "example" {
   sql_license_type             = "PAYG"
   sql_virtual_machine_group_id = azurerm_mssql_virtual_machine_group.example.id
 
-  wsfc_domain_credentials {
+  wsfc_domain_credential {
     cluster_bootstrap_account_password = "P@ssw0rd1234!"
     cluster_operator_account_password  = "P@ssw0rd1234!"
     sql_service_account_password       = "P@ssw0rd1234!"
@@ -104,9 +104,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for the Microsoft SQL Virtual Machine Availability Group Listener. Changing this forces a new resource to be created.
 
-* `sql_virtual_machine_group_id` - (Required) ID of the SQL Virtual Machine Group to create the listener. Changing this forces a new resource to be created.
+* `sql_virtual_machine_group_id` - (Required) The ID of the SQL Virtual Machine Group to create the listener. Changing this forces a new resource to be created.
 
-* `availability_group_name` - (Optional) Name of the Availability Group. Changing this forces a new resource to be created.
+* `availability_group_name` - (Optional) The name of the Availability Group. Changing this forces a new resource to be created.
 
 * `load_balancer_configuration` - (Optional) A `load_balancer_configuration` block as defined below. Changing this forces a new resource to be created.
 
@@ -114,7 +114,7 @@ The following arguments are supported:
 
 * `multi_subnet_ip_configuration` - (Optional) One or more `multi_subnet_ip_configuration` blocks as defined below. Changing this forces a new resource to be created.
 
-* `port` - (Optional) Port of the listener. Changing this forces a new resource to be created.
+* `port` - (Optional) The port of the listener. Changing this forces a new resource to be created.
 
 * `replica` - (Optional) One or more `replica` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -126,9 +126,9 @@ A `load_balancer_configuration` block supports the following:
 
 * `private_ip_address` - (Required) A `private_ip_address` block as defined below. Changing this forces a new resource to be created.
 
-* `probe_port` - (Required) Probe port of the listener. Changing this forces a new resource to be created.
+* `probe_port` - (Required) The probe port of the listener. Changing this forces a new resource to be created.
 
-* `sql_virtual_machine_ids` - (Required) Specifies a list of IDs of the SQL Virtual Machine. Changing this forces a new resource to be created.
+* `sql_virtual_machine_ids` - (Required) Specifies a list of SQL Virtual Machine IDs. Changing this forces a new resource to be created.
 
 ~> **NOTE:** `sql_virtual_machine_ids` should match with the SQL Virtual Machines specified in `replica`.
 
@@ -138,7 +138,7 @@ A `multi_subnet_ip_configuration` block supports the following:
 
 * `private_ip_address` - (Required) A `private_ip_address` block as defined below. Changing this forces a new resource to be created.
 
-* `sql_virtual_machine_id` - (Required) ID of the Sql Virtual Machine. Changing this forces a new resource to be created.
+* `sql_virtual_machine_id` - (Required) The ID of the Sql Virtual Machine. Changing this forces a new resource to be created.
 
 ~> **NOTE:** `sql_virtual_machine_id` should match with the SQL Virtual Machines specified in `replica`.
 
@@ -154,13 +154,13 @@ A `private_ip_address` block supports the following:
 
 A `replica` block supports the following:
 
-* `commit` - (Required) Replica commit mode in availability group. Possible values are `Synchronous_Commit` and `Asynchronous_Commit`. Changing this forces a new resource to be created.
+* `commit` - (Required) T replica commit mode for the availability group. Possible values are `Synchronous_Commit` and `Asynchronous_Commit`. Changing this forces a new resource to be created.
 
-* `failover` - (Required) Replica failover mode in availability group. Possible values are `Manual` and `Automatic`. Changing this forces a new resource to be created.
+* `failover_mode` - (Required) The replica failover mode for the availability group. Possible values are `Manual` and `Automatic`. Changing this forces a new resource to be created.
 
-* `readable_secondary` - (Required) Replica readable secondary mode in availability group. Possible values are `No`, `Read_Only` and `All`. Changing this forces a new resource to be created.
+* `readable_secondary` - (Required) The replica readable secondary mode for the availability group. Possible values are `No`, `Read_Only` and `All`. Changing this forces a new resource to be created.
 
-* `role` - (Required) Replica Role in availability group. Possible values are `Primary` and `Secondary`. Changing this forces a new resource to be created.
+* `role` - (Required) The replica role for the availability group. Possible values are `Primary` and `Secondary`. Changing this forces a new resource to be created.
 
 * `sql_virtual_machine_id` - (Required) The ID of the SQL Virtual Machine. Changing this forces a new resource to be created.
 

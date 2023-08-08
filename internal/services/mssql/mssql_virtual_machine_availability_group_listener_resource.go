@@ -1,8 +1,10 @@
 package mssql
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,9 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	lbParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
+	lbValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
+	sqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -28,10 +32,35 @@ type MsSqlVirtualMachineAvailabilityGroupListenerModel struct {
 	SqlVirtualMachineGroupId string `tfschema:"sql_virtual_machine_group_id"`
 	AvailabilityGroupName    string `tfschema:"availability_group_name"`
 
-	Port                       int                                                                             `tfschema:"port"`
-	LoadBalancerConfiguration  []helper.LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener  `tfschema:"load_balancer_configuration"`
-	MultiSubnetIpConfiguration []helper.MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener `tfschema:"multi_subnet_ip_configuration"`
-	Replica                    []helper.ReplicaMsSqlVirtualMachineAvailabilityGroupListener                    `tfschema:"replica"`
+	Port                       int                                                                      `tfschema:"port"`
+	LoadBalancerConfiguration  []LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener  `tfschema:"load_balancer_configuration"`
+	MultiSubnetIpConfiguration []MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener `tfschema:"multi_subnet_ip_configuration"`
+	Replica                    []ReplicaMsSqlVirtualMachineAvailabilityGroupListener                    `tfschema:"replica"`
+}
+
+type LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener struct {
+	PrivateIpAddress     []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener `tfschema:"private_ip_address"`
+	LoadBalancerId       string                                                         `tfschema:"load_balancer_id"`
+	ProbePort            int                                                            `tfschema:"probe_port"`
+	SqlVirtualMachineIds []string                                                       `tfschema:"sql_virtual_machine_ids"`
+}
+
+type MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener struct {
+	PrivateIpAddress    []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener `tfschema:"private_ip_address"`
+	SqlVirtualMachineId string                                                         `tfschema:"sql_virtual_machine_id"`
+}
+
+type PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener struct {
+	IpAddress string `tfschema:"ip_address"`
+	SubnetId  string `tfschema:"subnet_id"`
+}
+
+type ReplicaMsSqlVirtualMachineAvailabilityGroupListener struct {
+	SqlVirtualMachineId string `tfschema:"sql_virtual_machine_id"`
+	Role                string `tfschema:"role"`
+	Commit              string `tfschema:"commit"`
+	FailoverMode        string `tfschema:"failover_mode"`
+	ReadableSecondary   string `tfschema:"readable_secondary"`
 }
 
 var _ sdk.Resource = MsSqlVirtualMachineAvailabilityGroupListenerResource{}
@@ -77,11 +106,150 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 			ValidateFunc: validate.PortNumber,
 		},
 
-		"load_balancer_configuration": helper.LoadBalancerConfigurationSchemaMsSqlVirtualMachineAvailabilityGroupListener(),
+		"load_balancer_configuration": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			ExactlyOneOf: []string{"load_balancer_configuration", "multi_subnet_ip_configuration"},
+			ForceNew:     true,
+			MaxItems:     1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"private_ip_address": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						ForceNew: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"ip_address": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.IsIPAddress,
+								},
 
-		"multi_subnet_ip_configuration": helper.MultiSubnetIpConfigurationSchemaMsSqlVirtualMachineAvailabilityGroupListener(),
+								"subnet_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: networkValidate.SubnetID,
+								},
+							},
+						},
+					},
 
-		"replica": helper.ReplicaSchemaMsSqlVirtualMachineAvailabilityGroupListener(),
+					"load_balancer_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: lbValidate.LoadBalancerID,
+					},
+
+					"probe_port": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.PortNumber,
+					},
+
+					"sql_virtual_machine_ids": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: sqlvirtualmachines.ValidateSqlVirtualMachineID,
+						},
+					},
+				},
+			},
+		},
+
+		"multi_subnet_ip_configuration": {
+			Type:         pluginsdk.TypeSet,
+			Optional:     true,
+			ExactlyOneOf: []string{"load_balancer_configuration", "multi_subnet_ip_configuration"},
+			ForceNew:     true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"private_ip_address": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						ForceNew: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"ip_address": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.IsIPAddress,
+								},
+
+								"subnet_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: networkValidate.SubnetID,
+								},
+							},
+						},
+					},
+
+					"sql_virtual_machine_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: sqlvirtualmachines.ValidateSqlVirtualMachineID,
+					},
+				},
+			},
+		},
+
+		"replica": {
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"sql_virtual_machine_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: sqlValidate.SqlVirtualMachineID,
+					},
+
+					"role": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice([]string{string(availabilitygrouplisteners.RolePrimary), string(availabilitygrouplisteners.RoleSecondary)}, false),
+					},
+
+					"commit": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice([]string{string(availabilitygrouplisteners.CommitSynchronousCommit), string(availabilitygrouplisteners.CommitAsynchronousCommit)}, false),
+					},
+
+					"failover_mode": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice([]string{string(availabilitygrouplisteners.FailoverManual), string(availabilitygrouplisteners.FailoverAutomatic)}, false),
+					},
+
+					"readable_secondary": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice([]string{string(availabilitygrouplisteners.ReadableSecondaryNo), string(availabilitygrouplisteners.ReadableSecondaryReadOnly), string(availabilitygrouplisteners.ReadableSecondaryAll)}, false),
+					},
+				},
+			},
+			Set: ReplicaSchemaMsSqlVirtualMachineAvailabilityGroupListenerHash,
+		},
 	}
 }
 
@@ -240,7 +408,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Delete() sdk.Resou
 	}
 }
 
-func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfigurations(lbConfigs []helper.LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener) (*[]availabilitygrouplisteners.LoadBalancerConfiguration, error) {
+func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfigurations(lbConfigs []LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener) (*[]availabilitygrouplisteners.LoadBalancerConfiguration, error) {
 	results := make([]availabilitygrouplisteners.LoadBalancerConfiguration, 0)
 
 	for _, lb := range lbConfigs {
@@ -281,7 +449,7 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 	return &results, nil
 }
 
-func expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguration(multiSubnetIpConfiguration []helper.MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener) (*[]availabilitygrouplisteners.MultiSubnetIPConfiguration, error) {
+func expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguration(multiSubnetIpConfiguration []MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener) (*[]availabilitygrouplisteners.MultiSubnetIPConfiguration, error) {
 	results := make([]availabilitygrouplisteners.MultiSubnetIPConfiguration, 0)
 
 	for _, item := range multiSubnetIpConfiguration {
@@ -302,7 +470,7 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguratio
 	return &results, nil
 }
 
-func expandMsSqlVirtualMachinePrivateIpAddress(input []helper.PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener) (*availabilitygrouplisteners.PrivateIPAddress, error) {
+func expandMsSqlVirtualMachinePrivateIpAddress(input []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener) (*availabilitygrouplisteners.PrivateIPAddress, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -327,15 +495,15 @@ func expandMsSqlVirtualMachinePrivateIpAddress(input []helper.PrivateIpAddressMs
 	}, nil
 }
 
-func flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfigurations(input *[]availabilitygrouplisteners.LoadBalancerConfiguration, subscriptionId string) ([]helper.LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener, error) {
-	results := make([]helper.LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener, 0)
+func flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfigurations(input *[]availabilitygrouplisteners.LoadBalancerConfiguration, subscriptionId string) ([]LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener, error) {
+	results := make([]LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener, 0)
 	if input == nil || len(*input) == 0 {
 		return results, nil
 	}
 
 	for _, lbConfig := range *input {
 
-		var privateIpAddress []helper.PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener
+		var privateIpAddress []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener
 		if lbConfig.PrivateIPAddress != nil {
 			flattenedPrivateIp, err := flattenPrivateIpAddress(*lbConfig.PrivateIPAddress)
 			if err != nil {
@@ -359,7 +527,8 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguratio
 			var parsedIds []string
 			for _, sqlVmId := range sqlVirtualMachineIds {
 				parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineIDInsensitively(sqlVmId)
-				// get correct casing for subscription in id
+
+				// get correct casing for subscription in id due to https://github.com/Azure/azure-rest-api-specs/issues/25211
 				newId := sqlvirtualmachines.NewSqlVirtualMachineID(subscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineName)
 				if err != nil {
 					return nil, err
@@ -369,7 +538,7 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguratio
 			sqlVirtualMachineIds = parsedIds
 		}
 
-		v := helper.LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener{
+		v := LoadBalancerConfigurationMsSqlVirtualMachineAvailabilityGroupListener{
 			PrivateIpAddress:     privateIpAddress,
 			LoadBalancerId:       loadBalancerId,
 			ProbePort:            int(pointer.From(lbConfig.ProbePort)),
@@ -381,14 +550,14 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguratio
 	return results, nil
 }
 
-func flattenMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguration(input *[]availabilitygrouplisteners.MultiSubnetIPConfiguration, subscriptionId string) ([]helper.MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener, error) {
-	results := make([]helper.MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener, 0)
+func flattenMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguration(input *[]availabilitygrouplisteners.MultiSubnetIPConfiguration, subscriptionId string) ([]MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener, error) {
+	results := make([]MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener, 0)
 	if input == nil || len(*input) == 0 {
 		return results, nil
 	}
 
 	for _, config := range *input {
-		var privateIpAddress []helper.PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener
+		var privateIpAddress []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener
 		flattenedPrivateIp, err := flattenPrivateIpAddress(config.PrivateIPAddress)
 		if err != nil {
 			return nil, err
@@ -396,12 +565,14 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfigurati
 		privateIpAddress = flattenedPrivateIp
 
 		parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineIDInsensitively(config.SqlVirtualMachineInstance)
+
+		// get correct casing for subscription in id due to https://github.com/Azure/azure-rest-api-specs/issues/25211
 		newId := sqlvirtualmachines.NewSqlVirtualMachineID(subscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineName)
 		if err != nil {
 			return nil, err
 		}
 
-		v := helper.MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener{
+		v := MultiSubnetIpConfigurationMsSqlVirtualMachineAvailabilityGroupListener{
 			PrivateIpAddress:    privateIpAddress,
 			SqlVirtualMachineId: newId.ID(),
 		}
@@ -411,19 +582,15 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfigurati
 	return results, nil
 }
 
-func flattenPrivateIpAddress(input availabilitygrouplisteners.PrivateIPAddress) ([]helper.PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener, error) {
+func flattenPrivateIpAddress(input availabilitygrouplisteners.PrivateIPAddress) ([]PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener, error) {
 
-	privateIpAddress := helper.PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener{}
-
-	ipAddress := ""
-	if input.IPAddress != nil {
-		ipAddress = *input.IPAddress
+	privateIpAddress := PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener{
+		IpAddress: pointer.From(input.IPAddress),
 	}
-	privateIpAddress.IpAddress = ipAddress
 
 	subnetId := ""
 	if input.SubnetResourceId != nil {
-		id, err := networkParse.SubnetID(*input.SubnetResourceId)
+		id, err := networkParse.SubnetIDInsensitively(*input.SubnetResourceId)
 		if err != nil {
 			return nil, err
 		}
@@ -432,17 +599,17 @@ func flattenPrivateIpAddress(input availabilitygrouplisteners.PrivateIPAddress) 
 
 	privateIpAddress.SubnetId = subnetId
 
-	return []helper.PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener{privateIpAddress}, nil
+	return []PrivateIpAddressMsSqlVirtualMachineAvailabilityGroupListener{privateIpAddress}, nil
 }
 
-func expandMsSqlVirtualMachineAvailabilityGroupListenerReplicas(replicas []helper.ReplicaMsSqlVirtualMachineAvailabilityGroupListener) (*[]availabilitygrouplisteners.AgReplica, error) {
+func expandMsSqlVirtualMachineAvailabilityGroupListenerReplicas(replicas []ReplicaMsSqlVirtualMachineAvailabilityGroupListener) (*[]availabilitygrouplisteners.AgReplica, error) {
 	results := make([]availabilitygrouplisteners.AgReplica, 0)
 
 	for _, rep := range replicas {
 		replica := availabilitygrouplisteners.AgReplica{
 			Role:              pointer.To(availabilitygrouplisteners.Role(rep.Role)),
 			Commit:            pointer.To(availabilitygrouplisteners.Commit(rep.Commit)),
-			Failover:          pointer.To(availabilitygrouplisteners.Failover(rep.Failover)),
+			Failover:          pointer.To(availabilitygrouplisteners.Failover(rep.FailoverMode)),
 			ReadableSecondary: pointer.To(availabilitygrouplisteners.ReadableSecondary(rep.ReadableSecondary)),
 		}
 
@@ -461,8 +628,8 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerReplicas(replicas []helpe
 	return &results, nil
 }
 
-func flattenMsSqlVirtualMachineAvailabilityGroupListenerReplicas(input *[]availabilitygrouplisteners.AgReplica, subscriptionId string) ([]helper.ReplicaMsSqlVirtualMachineAvailabilityGroupListener, error) {
-	results := make([]helper.ReplicaMsSqlVirtualMachineAvailabilityGroupListener, 0)
+func flattenMsSqlVirtualMachineAvailabilityGroupListenerReplicas(input *[]availabilitygrouplisteners.AgReplica, subscriptionId string) ([]ReplicaMsSqlVirtualMachineAvailabilityGroupListener, error) {
+	results := make([]ReplicaMsSqlVirtualMachineAvailabilityGroupListener, 0)
 	if input == nil || len(*input) == 0 {
 		return results, nil
 	}
@@ -476,6 +643,7 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerReplicas(input *[]availa
 				return nil, err
 			}
 
+			// get correct casing for subscription in id due to https://github.com/Azure/azure-rest-api-specs/issues/25211
 			newId := sqlvirtualmachines.NewSqlVirtualMachineID(subscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineName)
 			if err != nil {
 				return nil, err
@@ -484,27 +652,29 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerReplicas(input *[]availa
 			sqlVirtualMachineInstanceId = newId.ID()
 		}
 
-		v := helper.ReplicaMsSqlVirtualMachineAvailabilityGroupListener{
+		v := ReplicaMsSqlVirtualMachineAvailabilityGroupListener{
 			SqlVirtualMachineId: sqlVirtualMachineInstanceId,
-		}
-
-		if replica.Role != nil {
-			v.Role = string(pointer.From(replica.Role))
-		}
-
-		if replica.Commit != nil {
-			v.Commit = string(pointer.From(replica.Commit))
-		}
-
-		if replica.Failover != nil {
-			v.Failover = string(pointer.From(replica.Failover))
-		}
-
-		if replica.ReadableSecondary != nil {
-			v.ReadableSecondary = string(pointer.From(replica.ReadableSecondary))
+			Role:                string(pointer.From(replica.Role)),
+			Commit:              string(pointer.From(replica.Commit)),
+			FailoverMode:        string(pointer.From(replica.Failover)),
+			ReadableSecondary:   string(pointer.From(replica.ReadableSecondary)),
 		}
 
 		results = append(results, v)
 	}
 	return results, nil
+}
+
+func ReplicaSchemaMsSqlVirtualMachineAvailabilityGroupListenerHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["sql_virtual_machine_id"].(string))))
+		buf.WriteString(fmt.Sprintf("%s-", m["role"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["commit"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["failover_mode"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["readable_secondary"].(string)))
+	}
+
+	return pluginsdk.HashString(buf.String())
 }

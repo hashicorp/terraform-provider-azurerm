@@ -129,7 +129,7 @@ resource "azurerm_mssql_virtual_machine_availability_group_listener" "test" {
     sql_virtual_machine_id = azurerm_mssql_virtual_machine.test[0].id
     role                   = "Secondary"
     commit                 = "Asynchronous_Commit"
-    failover               = "Manual"
+    failover_mode          = "Manual"
     readable_secondary     = "No"
   }
 
@@ -137,7 +137,7 @@ resource "azurerm_mssql_virtual_machine_availability_group_listener" "test" {
     sql_virtual_machine_id = azurerm_mssql_virtual_machine.test[1].id
     role                   = "Primary"
     commit                 = "Synchronous_Commit"
-    failover               = "Automatic"
+    failover_mode          = "Automatic"
     readable_secondary     = "All"
   }
 }
@@ -176,7 +176,7 @@ resource "azurerm_mssql_virtual_machine_availability_group_listener" "test" {
     sql_virtual_machine_id = azurerm_mssql_virtual_machine.test[0].id
     role                   = "Primary"
     commit                 = "Synchronous_Commit"
-    failover               = "Automatic"
+    failover_mode          = "Automatic"
     readable_secondary     = "All"
   }
 
@@ -184,7 +184,7 @@ resource "azurerm_mssql_virtual_machine_availability_group_listener" "test" {
     sql_virtual_machine_id = azurerm_mssql_virtual_machine.test[1].id
     role                   = "Secondary"
     commit                 = "Asynchronous_Commit"
-    failover               = "Manual"
+    failover_mode          = "Manual"
     readable_secondary     = "Read_Only"
   }
 }
@@ -196,7 +196,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) template(data acce
 %[1]s
 
 resource "azurerm_subnet" "domain_clients" {
-  count = %[5]t ? 1 : 2
+  count = %[4]t ? 1 : 2
 
   name                 = "domain-clients-${count.index}"
   resource_group_name  = azurerm_resource_group.test.name
@@ -205,9 +205,9 @@ resource "azurerm_subnet" "domain_clients" {
 }
 
 resource "azurerm_network_interface" "client_single_subnet" {
-  count = %[5]t ? 2 : 0
+  count = %[4]t ? 2 : 0
 
-  name                = "acctestnic-client-${count.index}-%[3]d"
+  name                = "acctestnic-client-${count.index}-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -219,9 +219,9 @@ resource "azurerm_network_interface" "client_single_subnet" {
 }
 
 resource "azurerm_network_interface" "client_multi_subnet" {
-  count = %[5]t ? 0 : 2
+  count = %[4]t ? 0 : 2
 
-  name                = "acctestnic-client-${count.index}-%[3]d"
+  name                = "acctestnic-client-${count.index}-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -239,7 +239,7 @@ resource "azurerm_network_interface" "client_multi_subnet" {
 }
 
 resource "azurerm_availability_set" "test" {
-  name                = "acctestavset-%[3]d"
+  name                = "acctestavset-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -247,7 +247,7 @@ resource "azurerm_availability_set" "test" {
 resource "azurerm_windows_virtual_machine" "client" {
   count = 2
 
-  name                = "acctest-${count.index}-%[4]s"
+  name                = "acctest-${count.index}-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   size                = "Standard_F2"
@@ -257,7 +257,7 @@ resource "azurerm_windows_virtual_machine" "client" {
   availability_set_id = azurerm_availability_set.test.id
 
   network_interface_ids = [
-    %[5]t ? azurerm_network_interface.client_single_subnet[count.index].id : azurerm_network_interface.client_multi_subnet[count.index].id,
+    %[4]t ? azurerm_network_interface.client_single_subnet[count.index].id : azurerm_network_interface.client_multi_subnet[count.index].id,
   ]
 
   os_disk {
@@ -271,7 +271,6 @@ resource "azurerm_windows_virtual_machine" "client" {
     sku       = "SQLDEV"
     version   = "latest"
   }
-
 }
 
 resource "azurerm_virtual_machine_extension" "join_domain" {
@@ -303,7 +302,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type             = "PAYG"
   sql_virtual_machine_group_id = azurerm_mssql_virtual_machine_group.test.id
 
-  wsfc_domain_credentials {
+  wsfc_domain_credential {
     cluster_bootstrap_account_password = local.admin_password
     cluster_operator_account_password  = local.admin_password
     sql_service_account_password       = local.admin_password
@@ -315,7 +314,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[4]s"
+  name                     = "acctestsa%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -323,7 +322,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_mssql_virtual_machine_group" "test" {
-  name                = "acctestgr-%[4]s"
+  name                = "acctestgr-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sql_image_offer     = "SQL2019-WS2019"
@@ -337,10 +336,10 @@ resource "azurerm_mssql_virtual_machine_group" "test" {
     sql_service_account_name       = "${local.admin_username}@${local.active_directory_domain_name}"
     storage_account_url            = azurerm_storage_account.test.primary_blob_endpoint
     storage_account_primary_key    = azurerm_storage_account.test.primary_access_key
-    cluster_subnet_type            = %[5]t ? "SingleSubnet" : "MultiSubnet"
+    cluster_subnet_type            = %[4]t ? "SingleSubnet" : "MultiSubnet"
   }
 }
-`, r.setDomainUser(data), data.Locations.Primary, data.RandomInteger, data.RandomString, isSingleSubnet)
+`, r.setDomainUser(data), data.RandomInteger, data.RandomString, isSingleSubnet)
 }
 
 func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) configureDomain(data acceptance.TestData) string {

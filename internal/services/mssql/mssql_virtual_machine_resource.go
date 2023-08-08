@@ -433,13 +433,12 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"sql_virtual_machine_group_id": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     sqlvirtualmachinegroups.ValidateSqlVirtualMachineGroupID,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: sqlvirtualmachinegroups.ValidateSqlVirtualMachineGroupID,
 			},
 
-			"wsfc_domain_credentials": {
+			"wsfc_domain_credential": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -556,7 +555,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 			AutoPatchingSettings:             expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
 			AssessmentSettings:               expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{})),
 			KeyVaultCredentialSettings:       expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
-			WsfcDomainCredentials:            expandSqlVirtualMachineWsfcDomainCredentials(d.Get("wsfc_domain_credentials").([]interface{})),
+			WsfcDomainCredentials:            expandSqlVirtualMachineWsfcDomainCredentials(d.Get("wsfc_domain_credential").([]interface{})),
 			SqlVirtualMachineGroupResourceId: pointer.To(sqlVmGroupId),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachines.ServerConfigurationsManagementSettings{
 				AdditionalFeaturesServerConfigurations: &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{
@@ -700,15 +699,17 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `storage_configuration`: %+v", err)
 			}
 
-			sqlVirtualMachineGroupIdStr := ""
+			sqlVirtualMachineGroupId := ""
 			if props.SqlVirtualMachineGroupResourceId != nil {
-				sqlVirtualMachineGroupId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(*props.SqlVirtualMachineGroupResourceId)
+				parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(*props.SqlVirtualMachineGroupResourceId)
 				if err != nil {
 					return err
 				}
-				sqlVirtualMachineGroupIdStr = sqlVirtualMachineGroupId.ID()
+
+				// get correct casing for subscription in id due to https://github.com/Azure/azure-rest-api-specs/issues/25211
+				sqlVirtualMachineGroupId = sqlvirtualmachines.NewSqlVirtualMachineGroupID(id.SubscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineGroupName).ID()
 			}
-			d.Set("sql_virtual_machine_group_id", sqlVirtualMachineGroupIdStr)
+			d.Set("sql_virtual_machine_group_id", sqlVirtualMachineGroupId)
 
 			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 				return err

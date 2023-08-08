@@ -205,7 +205,7 @@ resource "azurerm_mssql_virtual_machine_group" "test" {
 
   wsfc_domain_profile {
     fqdn                           = "testdomain.com"
-    ou_path                        = "OU=test,DC=testdomain,DC=com"
+    organizational_unit_path       = "OU=test,DC=testdomain,DC=com"
     cluster_bootstrap_account_name = "bootstrapacc%[3]s"
     cluster_operator_account_name  = "opacc%[3]s"
     sql_service_account_name       = "sqlsrvacc%[3]s"

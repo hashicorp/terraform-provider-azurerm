@@ -8,17 +8,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlVirtualMachineGroupResource struct{}
@@ -28,10 +26,21 @@ type MsSqlVirtualMachineGroupModel struct {
 	ResourceGroup string `tfschema:"resource_group_name"`
 	Location      string `tfschema:"location"`
 
-	SqlImageOffer     string                     `tfschema:"sql_image_offer"`
-	SqlImageSku       string                     `tfschema:"sql_image_sku"`
-	WsfcDomainProfile []helper.WsfcDomainProfile `tfschema:"wsfc_domain_profile"`
-	Tags              map[string]string          `tfschema:"tags"`
+	SqlImageOffer     string              `tfschema:"sql_image_offer"`
+	SqlImageSku       string              `tfschema:"sql_image_sku"`
+	WsfcDomainProfile []WsfcDomainProfile `tfschema:"wsfc_domain_profile"`
+	Tags              map[string]string   `tfschema:"tags"`
+}
+
+type WsfcDomainProfile struct {
+	Fqdn                        string `tfschema:"fqdn"`
+	OrganizationalUnitPath      string `tfschema:"organizational_unit_path"`
+	ClusterBootstrapAccountName string `tfschema:"cluster_bootstrap_account_name"`
+	ClusterOperatorAccountName  string `tfschema:"cluster_operator_account_name"`
+	SqlServiceAccountName       string `tfschema:"sql_service_account_name"`
+	StorageAccountUrl           string `tfschema:"storage_account_url"`
+	StorageAccountPrimaryKey    string `tfschema:"storage_account_primary_key"`
+	ClusterSubnetType           string `tfschema:"cluster_subnet_type"`
 }
 
 var _ sdk.Resource = MsSqlVirtualMachineGroupResource{}
@@ -78,7 +87,73 @@ func (r MsSqlVirtualMachineGroupResource) Arguments() map[string]*pluginsdk.Sche
 			}, false),
 		},
 
-		"wsfc_domain_profile": helper.WsfcDomainProfileSchemaMsSqlVirtualMachineAvailabilityGroup(),
+		"wsfc_domain_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"cluster_subnet_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(sqlvirtualmachinegroups.ClusterSubnetTypeMultiSubnet),
+							string(sqlvirtualmachinegroups.ClusterSubnetTypeSingleSubnet),
+						}, false),
+					},
+
+					"fqdn": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"organizational_unit_path": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"cluster_bootstrap_account_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"cluster_operator_account_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"sql_service_account_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"storage_account_url": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"storage_account_primary_key": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
 
 		"tags": tags.Schema(),
 	}
@@ -105,7 +180,7 @@ func (r MsSqlVirtualMachineGroupResource) Create() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -114,13 +189,13 @@ func (r MsSqlVirtualMachineGroupResource) Create() sdk.ResourceFunc {
 
 			parameters := sqlvirtualmachinegroups.SqlVirtualMachineGroup{
 				Properties: &sqlvirtualmachinegroups.SqlVirtualMachineGroupProperties{
-					SqlImageOffer:     utils.String(model.SqlImageOffer),
+					SqlImageOffer:     pointer.To(model.SqlImageOffer),
 					SqlImageSku:       pointer.To(sqlvirtualmachinegroups.SqlVMGroupImageSku(model.SqlImageSku)),
 					WsfcDomainProfile: expandMsSqlVirtualMachineGroupWsfcDomainProfile(model.WsfcDomainProfile),
 				},
 
-				Location: azure.NormalizeLocation(model.Location),
-				Tags:     &model.Tags,
+				Location: location.Normalize(model.Location),
+				Tags:     pointer.To(model.Tags),
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -161,17 +236,8 @@ func (r MsSqlVirtualMachineGroupResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 
-					sqlImageOffer := ""
-					if props.SqlImageOffer != nil {
-						sqlImageOffer = *props.SqlImageOffer
-					}
-					state.SqlImageOffer = sqlImageOffer
-
-					sqlImageSku := ""
-					if props.SqlImageSku != nil {
-						sqlImageSku = string(*props.SqlImageSku)
-					}
-					state.SqlImageSku = sqlImageSku
+					state.SqlImageOffer = pointer.From(props.SqlImageOffer)
+					state.SqlImageSku = string(pointer.From(props.SqlImageSku))
 
 					var oldModel MsSqlVirtualMachineGroupModel
 					if err = metadata.Decode(&oldModel); err != nil {
@@ -184,10 +250,10 @@ func (r MsSqlVirtualMachineGroupResource) Read() sdk.ResourceFunc {
 					state.WsfcDomainProfile = flattenMsSqlVirtualMachineGroupWsfcDomainProfile(props.WsfcDomainProfile, storageAccountPrimaryKey)
 
 				}
-				state.Location = azure.NormalizeLocation(model.Location)
+				state.Location = location.Normalize(model.Location)
 
 				if model.Tags != nil {
-					state.Tags = *model.Tags
+					state.Tags = pointer.From(model.Tags)
 				}
 			}
 			return metadata.Encode(&state)
@@ -216,12 +282,12 @@ func (r MsSqlVirtualMachineGroupResource) Update() sdk.ResourceFunc {
 
 			parameters := sqlvirtualmachinegroups.SqlVirtualMachineGroup{
 				Properties: &sqlvirtualmachinegroups.SqlVirtualMachineGroupProperties{
-					SqlImageOffer:     utils.String(model.SqlImageOffer),
+					SqlImageOffer:     pointer.To(model.SqlImageOffer),
 					SqlImageSku:       pointer.To(sqlvirtualmachinegroups.SqlVMGroupImageSku(model.SqlImageSku)),
 					WsfcDomainProfile: expandMsSqlVirtualMachineGroupWsfcDomainProfile(model.WsfcDomainProfile),
 				},
 
-				Location: azure.NormalizeLocation(model.Location),
+				Location: location.Normalize(model.Location),
 				Tags:     &model.Tags,
 			}
 
@@ -253,7 +319,7 @@ func (r MsSqlVirtualMachineGroupResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandMsSqlVirtualMachineGroupWsfcDomainProfile(wsfcDomainProfile []helper.WsfcDomainProfile) *sqlvirtualmachinegroups.WsfcDomainProfile {
+func expandMsSqlVirtualMachineGroupWsfcDomainProfile(wsfcDomainProfile []WsfcDomainProfile) *sqlvirtualmachinegroups.WsfcDomainProfile {
 	if wsfcDomainProfile == nil {
 		return nil
 	}
@@ -261,7 +327,7 @@ func expandMsSqlVirtualMachineGroupWsfcDomainProfile(wsfcDomainProfile []helper.
 	result := sqlvirtualmachinegroups.WsfcDomainProfile{
 		ClusterSubnetType:        pointer.To(sqlvirtualmachinegroups.ClusterSubnetType(wsfcDomainProfile[0].ClusterSubnetType)),
 		DomainFqdn:               pointer.To(wsfcDomainProfile[0].Fqdn),
-		OuPath:                   pointer.To(wsfcDomainProfile[0].OuPath),
+		OuPath:                   pointer.To(wsfcDomainProfile[0].OrganizationalUnitPath),
 		ClusterBootstrapAccount:  pointer.To(wsfcDomainProfile[0].ClusterBootstrapAccountName),
 		ClusterOperatorAccount:   pointer.To(wsfcDomainProfile[0].ClusterOperatorAccountName),
 		SqlServiceAccount:        pointer.To(wsfcDomainProfile[0].SqlServiceAccountName),
@@ -272,15 +338,15 @@ func expandMsSqlVirtualMachineGroupWsfcDomainProfile(wsfcDomainProfile []helper.
 	return &result
 }
 
-func flattenMsSqlVirtualMachineGroupWsfcDomainProfile(domainProfile *sqlvirtualmachinegroups.WsfcDomainProfile, storageAccountPrimaryKey string) []helper.WsfcDomainProfile {
+func flattenMsSqlVirtualMachineGroupWsfcDomainProfile(domainProfile *sqlvirtualmachinegroups.WsfcDomainProfile, storageAccountPrimaryKey string) []WsfcDomainProfile {
 	if domainProfile == nil {
-		return []helper.WsfcDomainProfile{}
+		return []WsfcDomainProfile{}
 	}
 
-	return []helper.WsfcDomainProfile{
+	return []WsfcDomainProfile{
 		{
 			Fqdn:                        pointer.From(domainProfile.DomainFqdn),
-			OuPath:                      pointer.From(domainProfile.OuPath),
+			OrganizationalUnitPath:      pointer.From(domainProfile.OuPath),
 			ClusterBootstrapAccountName: pointer.From(domainProfile.ClusterBootstrapAccount),
 			ClusterOperatorAccountName:  pointer.From(domainProfile.ClusterOperatorAccount),
 			SqlServiceAccountName:       pointer.From(domainProfile.SqlServiceAccount),

@@ -55,19 +55,19 @@ The following arguments are supported:
 
 A `wsfc_domain_profile` block supports the following:
 
-* `cluster_subnet_type` - (Required) Subnet type of the SQL Virtual Machine cluster. Possible values are `MultiSubnet` and `SingleSubnet`. Changing this forces a new resource to be created.
+* `cluster_subnet_type` - (Required) The subnet type of the SQL Virtual Machine cluster. Possible values are `MultiSubnet` and `SingleSubnet`. Changing this forces a new resource to be created.
 
-* `fqdn` - (Required) Fully qualified name of the domain. Changing this forces a new resource to be created.
+* `fqdn` - (Required) The fully qualified name of the domain. Changing this forces a new resource to be created.
 
-* `cluster_bootstrap_account_name` - (Optional) Account name used for creating cluster. Changing this forces a new resource to be created.
+* `cluster_bootstrap_account_name` - (Optional) The account name used for creating cluster. Changing this forces a new resource to be created.
 
-* `cluster_operator_account_name` - (Optional) Account name used for operating cluster. Changing this forces a new resource to be created.
+* `cluster_operator_account_name` - (Optional) The account name used for operating cluster. Changing this forces a new resource to be created.
 
-* `ou_path` - (Optional) Organizational Unit path in which the nodes and cluster will be present. Changing this forces a new resource to be created.
+* `organizational_unit_path` - (Optional) The organizational Unit path in which the nodes and cluster will be present. Changing this forces a new resource to be created.
 
-* `sql_service_account_name` - (Optional) Account name under which SQL service will run on all participating SQL virtual machines in the cluster. Changing this forces a new resource to be created.
+* `sql_service_account_name` - (Optional) The account name under which SQL service will run on all participating SQL virtual machines in the cluster. Changing this forces a new resource to be created.
 
-* `storage_account_primary_key` - (Optional) Primary key of the Storage Account.
+* `storage_account_primary_key` - (Optional) The primary key of the Storage Account.
 
 * `storage_account_url` - (Optional) The SAS URL to the Storage Container of the witness storage account. Changing this forces a new resource to be created.
 
