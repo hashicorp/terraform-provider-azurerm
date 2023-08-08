@@ -109,10 +109,10 @@ func checkValueIs(value string) acceptance.ClientCheckFunc {
 			return err
 		}
 
-		ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		timeout, cancel := context.WithTimeout(ctx, 5*time.Minute)
 		defer cancel()
 
-		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx2, *id)
+		resp, err := clients.MariaDB.ConfigurationsClient.Get(timeout, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %v", *id, err)
 		}
@@ -142,10 +142,10 @@ func checkValueIsReset(configurationName string) acceptance.ClientCheckFunc {
 
 		id := configurations.NewConfigurationID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, configurationName)
 
-		ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		timeout, cancel := context.WithTimeout(ctx, 5*time.Minute)
 		defer cancel()
 
-		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx2, id)
+		resp, err := clients.MariaDB.ConfigurationsClient.Get(timeout, id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %v", id, err)
 		}

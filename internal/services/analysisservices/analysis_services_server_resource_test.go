@@ -522,10 +522,10 @@ func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *cl
 		return err
 	}
 
-	ctx2, cancel := context.WithTimeout(ctx, 15*time.Minute)
+	timeout, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 
-	if err := client.SuspendThenPoll(ctx2, *id); err != nil {
+	if err := client.SuspendThenPoll(timeout, *id); err != nil {
 		return fmt.Errorf("suspending %s: %+v", *id, err)
 	}
 
@@ -541,10 +541,10 @@ func (t AnalysisServicesServerResource) checkState(expectedState servers.State) 
 			return err
 		}
 
-		ctx2, cancel := context.WithTimeout(ctx, 15*time.Minute)
+		timeout, cancel := context.WithTimeout(ctx, 15*time.Minute)
 		defer cancel()
 
-		resp, err := client.GetDetails(ctx2, *id)
+		resp, err := client.GetDetails(timeout, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s to check the state: %+v", *id, err)
 		}
