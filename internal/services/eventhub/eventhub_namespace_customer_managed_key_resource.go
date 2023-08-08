@@ -85,7 +85,6 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 				Default:  false,
 				ForceNew: true,
 			},
-
 			"user_assigned_identity": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -135,7 +134,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	userAssignedIdentity := d.Get("user_assigned_identity").(string)
-	if userAssignedIdentity != "" && keyVaultProps != nil {
+	if userAssignedIdentity != "" {
 		for i := 0; i < len(*keyVaultProps); i++ {
 			(*keyVaultProps)[i].Identity = &namespaces.UserAssignedIdentityProperties{
 				UserAssignedIdentity: utils.String(userAssignedIdentity),
