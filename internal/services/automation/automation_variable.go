@@ -4,6 +4,7 @@
 package automation
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"regexp"
@@ -49,6 +50,9 @@ func ParseAzureAutomationVariableValue(resource string, input *string) (interfac
 		actualResource = "azurerm_automation_variable_int"
 	} else if value, err = strconv.ParseBool(*input); err == nil {
 		actualResource = "azurerm_automation_variable_bool"
+	} else if err := json.Unmarshal([]byte(*input), &value); err == nil {
+		value = *input
+		actualResource = "azurerm_automation_variable_object"
 	}
 
 	if actualResource != resource {
@@ -165,6 +169,9 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		value = strconv.FormatBool(d.Get("value").(bool))
 	case "int":
 		value = strconv.Itoa(d.Get("value").(int))
+	case "object":
+		// We don't quote the object so it gets saved as a JSON object
+		value = d.Get("value").(string)
 	case "string":
 		value = strconv.Quote(d.Get("value").(string))
 	}

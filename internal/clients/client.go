@@ -14,6 +14,7 @@ import (
 	azurestackhci_v2023_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01"
 	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
+	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	nginx2 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01"
 	redis_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01"
@@ -68,7 +69,7 @@ import (
 	firewall "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/client"
 	fluidrelay "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
 	frontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/client"
-	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graph/client"
+	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices/client"
 	hdinsight "github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
 	hpccache "github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/client"
@@ -193,7 +194,7 @@ type Client struct {
 	Dns                   *dns_v2018_05_01.Client
 	DomainServices        *domainservices.Client
 	Elastic               *elastic.Client
-	EventGrid             *eventgrid.Client
+	EventGrid             *eventgrid_v2022_06_15.Client
 	Eventhub              *eventhub.Client
 	Firewall              *firewall.Client
 	FluidRelay            *fluidrelay_2022_05_26.Client
@@ -294,7 +295,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.AnalysisServices, err = analysisServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AnalysisServices: %+v", err)
 	}
-	client.ApiManagement = apiManagement.NewClient(o)
+	if client.ApiManagement, err = apiManagement.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ApiManagement: %+v", err)
+	}
 	if client.AppConfiguration, err = appConfiguration.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AppConfiguration: %+v", err)
 	}
@@ -322,8 +325,12 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Batch, err = batch.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Batch: %+v", err)
 	}
-	client.Blueprints = blueprints.NewClient(o)
-	client.Bot = bot.NewClient(o)
+	if client.Blueprints, err = blueprints.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for BluePrints: %+v", err)
+	}
+	if client.Bot, err = bot.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Bot: %+v", err)
+	}
 	client.Cdn = cdn.NewClient(o)
 	if client.Cognitive, err = cognitiveServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Cognitive: %+v", err)
@@ -395,7 +402,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Elastic, err = elastic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Elastic: %+v", err)
 	}
-	client.EventGrid = eventgrid.NewClient(o)
+	if client.EventGrid, err = eventgrid.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for EventGrid: %+v", err)
+	}
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
@@ -410,12 +419,16 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.HPCCache, err = hpccache.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HPC Cache: %+v", err)
 	}
-	client.HSM = hsm.NewClient(o)
+	if client.HSM, err = hsm.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for HSM: %+v", err)
+	}
 	client.HDInsight = hdinsight.NewClient(o)
 	if client.HealthCare, err = healthcare.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HealthCare: %+v", err)
 	}
-	client.HybridCompute = hybridcompute.NewClient(o)
+	if client.HybridCompute, err = hybridcompute.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for HybridCompute: %+v", err)
+	}
 	if client.IoTCentral, err = iotcentral.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for IoTCentral: %+v", err)
 	}

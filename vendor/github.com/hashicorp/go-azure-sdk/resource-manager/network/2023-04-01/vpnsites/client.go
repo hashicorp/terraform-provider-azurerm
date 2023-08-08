@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type VpnSitesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewVpnSitesClientWithBaseURI(api environments.Api) (*VpnSitesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "vpnsites", defaultApiVersion)
+func NewVpnSitesClientWithBaseURI(sdkApi sdkEnv.Api) (*VpnSitesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "vpnsites", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VpnSitesClient: %+v", err)
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type VirtualApplianceSitesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewVirtualApplianceSitesClientWithBaseURI(api environments.Api) (*VirtualApplianceSitesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "virtualappliancesites", defaultApiVersion)
+func NewVirtualApplianceSitesClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualApplianceSitesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualappliancesites", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualApplianceSitesClient: %+v", err)
 	}

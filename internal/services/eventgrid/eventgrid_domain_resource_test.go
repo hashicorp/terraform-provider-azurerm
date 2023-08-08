@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -185,17 +185,17 @@ func TestAccEventGridDomain_basicWithUserAssignedManagedIdentity(t *testing.T) {
 }
 
 func (EventGridDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DomainID(state.ID)
+	id, err := domains.ParseDomainID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.EventGrid.DomainsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.EventGrid.Domains.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving EventGrid Domain %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.DomainProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (EventGridDomainResource) basic(data acceptance.TestData) string {

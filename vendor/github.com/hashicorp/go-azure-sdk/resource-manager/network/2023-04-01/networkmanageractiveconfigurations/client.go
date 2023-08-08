@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type NetworkManagerActiveConfigurationsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewNetworkManagerActiveConfigurationsClientWithBaseURI(api environments.Api) (*NetworkManagerActiveConfigurationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "networkmanageractiveconfigurations", defaultApiVersion)
+func NewNetworkManagerActiveConfigurationsClientWithBaseURI(sdkApi sdkEnv.Api) (*NetworkManagerActiveConfigurationsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "networkmanageractiveconfigurations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NetworkManagerActiveConfigurationsClient: %+v", err)
 	}

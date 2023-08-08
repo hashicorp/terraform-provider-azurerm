@@ -136,14 +136,11 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"security_style": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Unix", // Using hardcoded values instead of SDK enum since no matter what case is passed,
-					"Ntfs", // ANF changes casing to Pascal case in the backend. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForSecurityStyle(), false),
 			},
 
 			"storage_quota_in_gb": {

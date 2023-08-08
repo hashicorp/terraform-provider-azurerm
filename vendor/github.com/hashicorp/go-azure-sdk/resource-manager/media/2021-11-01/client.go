@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/streamingendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/streamingpoliciesandstreaminglocators"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -31,56 +31,56 @@ type Client struct {
 	StreamingPoliciesAndStreamingLocators *streamingpoliciesandstreaminglocators.StreamingPoliciesAndStreamingLocatorsClient
 }
 
-func NewClientWithBaseURI(api environments.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
-	accountFiltersClient, err := accountfilters.NewAccountFiltersClientWithBaseURI(api)
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	accountFiltersClient, err := accountfilters.NewAccountFiltersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building AccountFilters client: %+v", err)
 	}
 	configureFunc(accountFiltersClient.Client)
 
-	accountsClient, err := accounts.NewAccountsClientWithBaseURI(api)
+	accountsClient, err := accounts.NewAccountsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Accounts client: %+v", err)
 	}
 	configureFunc(accountsClient.Client)
 
-	assetsAndAssetFiltersClient, err := assetsandassetfilters.NewAssetsAndAssetFiltersClientWithBaseURI(api)
+	assetsAndAssetFiltersClient, err := assetsandassetfilters.NewAssetsAndAssetFiltersClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building AssetsAndAssetFilters client: %+v", err)
 	}
 	configureFunc(assetsAndAssetFiltersClient.Client)
 
-	contentKeyPoliciesClient, err := contentkeypolicies.NewContentKeyPoliciesClientWithBaseURI(api)
+	contentKeyPoliciesClient, err := contentkeypolicies.NewContentKeyPoliciesClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building ContentKeyPolicies client: %+v", err)
 	}
 	configureFunc(contentKeyPoliciesClient.Client)
 
-	encodingsClient, err := encodings.NewEncodingsClientWithBaseURI(api)
+	encodingsClient, err := encodings.NewEncodingsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Encodings client: %+v", err)
 	}
 	configureFunc(encodingsClient.Client)
 
-	liveEventsClient, err := liveevents.NewLiveEventsClientWithBaseURI(api)
+	liveEventsClient, err := liveevents.NewLiveEventsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building LiveEvents client: %+v", err)
 	}
 	configureFunc(liveEventsClient.Client)
 
-	liveOutputsClient, err := liveoutputs.NewLiveOutputsClientWithBaseURI(api)
+	liveOutputsClient, err := liveoutputs.NewLiveOutputsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building LiveOutputs client: %+v", err)
 	}
 	configureFunc(liveOutputsClient.Client)
 
-	streamingEndpointsClient, err := streamingendpoints.NewStreamingEndpointsClientWithBaseURI(api)
+	streamingEndpointsClient, err := streamingendpoints.NewStreamingEndpointsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building StreamingEndpoints client: %+v", err)
 	}
 	configureFunc(streamingEndpointsClient.Client)
 
-	streamingPoliciesAndStreamingLocatorsClient, err := streamingpoliciesandstreaminglocators.NewStreamingPoliciesAndStreamingLocatorsClientWithBaseURI(api)
+	streamingPoliciesAndStreamingLocatorsClient, err := streamingpoliciesandstreaminglocators.NewStreamingPoliciesAndStreamingLocatorsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building StreamingPoliciesAndStreamingLocators client: %+v", err)
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type CredentialClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewCredentialClientWithBaseURI(api environments.Api) (*CredentialClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "credential", defaultApiVersion)
+func NewCredentialClientWithBaseURI(sdkApi sdkEnv.Api) (*CredentialClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "credential", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CredentialClient: %+v", err)
 	}

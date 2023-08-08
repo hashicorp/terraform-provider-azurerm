@@ -370,6 +370,57 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(8, 2000),
 							Default:      128,
 						},
+						"log_scrubbing": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+
+									"rule": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"enabled": {
+													Type:     pluginsdk.TypeBool,
+													Optional: true,
+													Default:  true,
+												},
+
+												"match_variable": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice(
+														webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+														false),
+												},
+
+												"selector_match_operator": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													Default:  "Equals",
+													ValidateFunc: validation.StringInSlice(
+														webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchOperator(),
+														false),
+												},
+
+												"selector": {
+													Type:        pluginsdk.TypeString,
+													Optional:    true,
+													Description: "When matchVariable is a collection, operator used to specify which elements in the collection this rule applies to.",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -582,8 +633,51 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 		RequestBodyCheck:       pointer.To(requestBodyCheck),
 		MaxRequestBodySizeInKb: pointer.To(int64(maxRequestBodySizeInKb)),
 		FileUploadLimitInMb:    pointer.To(int64(fileUploadLimitInMb)),
+		LogScrubbing:           expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
 	}
 	return &result
+}
+
+func expandWebApplicationFirewallPolicyLogScrubbing(input []interface{}) *webapplicationfirewallpolicies.PolicySettingsLogScrubbing {
+	if len(input) == 0 {
+		return nil
+	}
+
+	var res webapplicationfirewallpolicies.PolicySettingsLogScrubbing
+	v := input[0].(map[string]interface{})
+	state := webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateDisabled
+	if value, ok := v["enabled"].(bool); ok && value {
+		state = webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateEnabled
+	}
+	res.State = &state
+
+	res.ScrubbingRules = expanedWebApplicationPolicyScrubbingRules(v["rule"].([]interface{}))
+
+	return &res
+}
+
+func expanedWebApplicationPolicyScrubbingRules(input []interface{}) *[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules {
+	if len(input) == 0 {
+		return nil
+	}
+	var res []webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules
+	for _, rule := range input {
+		v := rule.(map[string]interface{})
+		var item webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules
+		state := webapplicationfirewallpolicies.ScrubbingRuleEntryStateDisabled
+		if value, ok := v["enabled"].(bool); ok && value {
+			state = webapplicationfirewallpolicies.ScrubbingRuleEntryStateEnabled
+		}
+		item.State = &state
+		item.MatchVariable = webapplicationfirewallpolicies.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
+		item.SelectorMatchOperator = webapplicationfirewallpolicies.ScrubbingRuleEntryMatchOperator(v["selector_match_operator"].(string))
+		if val, ok := v["selector"]; ok {
+			item.Selector = pointer.To(val.(string))
+		}
+
+		res = append(res, item)
+	}
+	return &res
 }
 
 func expandWebApplicationFirewallPolicyManagedRulesDefinition(input []interface{}, d *pluginsdk.ResourceData) (*webapplicationfirewallpolicies.ManagedRulesDefinition, error) {
@@ -872,10 +966,38 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result["enabled"] = pointer.From(input.State) == webapplicationfirewallpolicies.WebApplicationFirewallEnabledStateEnabled
 	result["mode"] = string(pointer.From(input.Mode))
 	result["request_body_check"] = input.RequestBodyCheck
-	result["max_request_body_size_in_kb"] = int(*input.MaxRequestBodySizeInKb)
-	result["file_upload_limit_in_mb"] = int(*input.FileUploadLimitInMb)
+	result["max_request_body_size_in_kb"] = int(pointer.From(input.MaxRequestBodySizeInKb))
+	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
+	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)
 
 	return []interface{}{result}
+}
+
+func flattenWebApplicationFirewallPolicyLogScrubbing(input *webapplicationfirewallpolicies.PolicySettingsLogScrubbing) interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+	result := make(map[string]interface{})
+	result["enabled"] = pointer.From(input.State) == webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateEnabled
+	result["rule"] = flattenWebApplicationFirewallPolicyLogScrubbingRules(input.ScrubbingRules)
+	return []interface{}{result}
+}
+
+func flattenWebApplicationFirewallPolicyLogScrubbingRules(rules *[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules) interface{} {
+	result := make([]interface{}, 0)
+	if rules == nil || len(*rules) == 0 {
+		return result
+	}
+	for _, rule := range *rules {
+		item := map[string]interface{}{}
+		item["enabled"] = pointer.From(rule.State) == webapplicationfirewallpolicies.ScrubbingRuleEntryStateEnabled
+		item["match_variable"] = rule.MatchVariable
+		item["selector_match_operator"] = rule.SelectorMatchOperator
+		item["selector"] = pointer.From(rule.Selector)
+		result = append(result, item)
+	}
+	return &result
+
 }
 
 func flattenWebApplicationFirewallPolicyManagedRulesDefinition(input webapplicationfirewallpolicies.ManagedRulesDefinition) []interface{} {

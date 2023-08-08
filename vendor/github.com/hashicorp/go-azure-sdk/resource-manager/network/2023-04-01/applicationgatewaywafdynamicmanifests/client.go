@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type ApplicationGatewayWafDynamicManifestsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewApplicationGatewayWafDynamicManifestsClientWithBaseURI(api environments.Api) (*ApplicationGatewayWafDynamicManifestsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "applicationgatewaywafdynamicmanifests", defaultApiVersion)
+func NewApplicationGatewayWafDynamicManifestsClientWithBaseURI(sdkApi sdkEnv.Api) (*ApplicationGatewayWafDynamicManifestsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "applicationgatewaywafdynamicmanifests", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ApplicationGatewayWafDynamicManifestsClient: %+v", err)
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type BastionHostsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewBastionHostsClientWithBaseURI(api environments.Api) (*BastionHostsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "bastionhosts", defaultApiVersion)
+func NewBastionHostsClientWithBaseURI(sdkApi sdkEnv.Api) (*BastionHostsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "bastionhosts", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BastionHostsClient: %+v", err)
 	}
