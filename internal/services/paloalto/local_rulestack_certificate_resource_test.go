@@ -336,6 +336,5 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
