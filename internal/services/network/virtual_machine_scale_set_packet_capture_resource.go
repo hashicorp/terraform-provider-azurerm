@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
@@ -51,7 +52,7 @@ func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.NetworkWatcherID,
+				ValidateFunc: networkwatchers.ValidateNetworkWatcherID,
 			},
 
 			"virtual_machine_scale_set_id": {
@@ -191,12 +192,12 @@ func resourceVirtualMachineScaleSetPacketCaptureCreate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	watcherId, err := parse.NetworkWatcherID(d.Get("network_watcher_id").(string))
+	watcherId, err := networkwatchers.ParseNetworkWatcherID(d.Get("network_watcher_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewPacketCaptureID(subscriptionId, watcherId.ResourceGroup, watcherId.Name, d.Get("name").(string))
+	id := parse.NewPacketCaptureID(subscriptionId, watcherId.ResourceGroupName, watcherId.NetworkWatcherName, d.Get("name").(string))
 
 	targetResourceId := d.Get("virtual_machine_scale_set_id").(string)
 	bytesToCapturePerPacket := d.Get("maximum_bytes_per_packet").(int)
@@ -272,7 +273,7 @@ func resourceVirtualMachineScaleSetPacketCaptureRead(d *pluginsdk.ResourceData, 
 
 	d.Set("name", id.Name)
 
-	networkWatcherId := parse.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroup, id.NetworkWatcherName)
+	networkWatcherId := networkwatchers.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroup, id.NetworkWatcherName)
 	d.Set("network_watcher_id", networkWatcherId.ID())
 
 	if props := resp.PacketCaptureResultProperties; props != nil {
