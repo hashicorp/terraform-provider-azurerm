@@ -158,10 +158,6 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
     cidrs = ["any"]
   }
 }
-
-
-
-
 `, r.template(data), data.RandomInteger)
 }
 
@@ -350,6 +346,138 @@ resource "azurerm_palo_alto_local_rulestack_certificate" "test" {
   self_signed  = true
 }
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkeyvault%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Import",
+      "Purge",
+      "Recover",
+      "Update",
+      "List",
+    ]
+
+    key_permissions = [
+      "Create",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "Set",
+    ]
+
+    storage_permissions = [
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "trust" {
+  name         = "acctesttrust%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyEncipherment",
+        "keyCertSign",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+
+resource "azurerm_key_vault_certificate" "untrust" {
+  name         = "acctestuntrust%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyEncipherment",
+        "keyCertSign",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+
 resource "azurerm_palo_alto_local_rulestack_certificate" "trust" {
   name         = "testacc-palcT-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
@@ -369,7 +497,7 @@ resource "azurerm_palo_alto_local_rulestack" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r LocalRuleResource) templateWithCertsEnabled(data acceptance.TestData) string {
