@@ -979,7 +979,7 @@ func patchPossibleValuesFn() {
 }
 
 func init() {
-	patchPossibleValuesFn()
+	//patchPossibleValuesFn()
 }
 
 func getSchemaPossibleValues(item *schema.Schema) []string {
