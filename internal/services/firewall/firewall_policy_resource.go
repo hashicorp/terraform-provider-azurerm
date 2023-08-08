@@ -74,10 +74,6 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
 	props := firewallpolicies.FirewallPolicy{
 		Properties: &firewallpolicies.FirewallPolicyPropertiesFormat{
 			ThreatIntelMode:      pointer.To(firewallpolicies.AzureFirewallThreatIntelMode(d.Get("threat_intelligence_mode").(string))),
@@ -88,10 +84,19 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			Insights:             expandFirewallPolicyInsights(d.Get("insights").([]interface{})),
 			ExplicitProxy:        expandFirewallPolicyExplicitProxy(d.Get("explicit_proxy").([]interface{})),
 		},
-		Identity: expandedIdentity,
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	// api will error if TypeNone is passed in
+	if expandedIdentity.Type != identity.TypeNone {
+		props.Identity = expandedIdentity
+	}
+
 	if id, ok := d.GetOk("base_policy_id"); ok {
 		props.Properties.BasePolicy = &firewallpolicies.SubResource{Id: utils.String(id.(string))}
 	}
