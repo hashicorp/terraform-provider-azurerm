@@ -5,6 +5,8 @@ package azurestackhci
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
+	"github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage"
 	"log"
 	"time"
 
@@ -15,6 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-03-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	autoParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
+	autoVal "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -68,6 +72,12 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
+			"automanage_configuration_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: autoVal.AutomanageConfigurationID,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -110,6 +120,40 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	if v, ok := d.GetOk("automanage_configuration_id"); ok {
+		hciAssignmentClient := meta.(*clients.Client).Automanage.HCIAssignmentClient
+		autoConfigClient := meta.(*clients.Client).Automanage.ConfigurationClient
+
+		automanageConfigId, err := autoParse.AutomanageConfigurationID(v.(string))
+		if err != nil {
+			return err
+		}
+
+		_, err = autoConfigClient.Get(ctx, automanageConfigId.ConfigurationProfileName, automanageConfigId.ResourceGroup)
+		if err != nil {
+			return fmt.Errorf("checking for existing %s: %+v", automanageConfigId, err)
+		}
+
+		hciAssignmentID := parse.NewAutomanageConfigurationHCIAssignmentID(subscriptionId, id.ResourceGroupName, id.ClusterName, "default")
+
+		autoResp, err := hciAssignmentClient.Get(ctx, hciAssignmentID.ResourceGroup, hciAssignmentID.ClusterName, hciAssignmentID.ConfigurationProfileAssignmentName)
+		if err != nil && !utils.ResponseWasNotFound(autoResp.Response) {
+			return fmt.Errorf("checking for existing %s: %+v", hciAssignmentID, err)
+		}
+
+		if utils.ResponseWasNotFound(autoResp.Response) {
+			properties := automanage.ConfigurationProfileAssignment{
+				Properties: &automanage.ConfigurationProfileAssignmentProperties{
+					ConfigurationProfile: utils.String(automanageConfigId.ID()),
+				},
+			}
+
+			if _, err := hciAssignmentClient.CreateOrUpdate(ctx, properties, hciAssignmentID.ResourceGroup, hciAssignmentID.ClusterName, hciAssignmentID.ConfigurationProfileAssignmentName); err != nil {
+				return fmt.Errorf("creating %s: %+v", hciAssignmentID, err)
+			}
+		}
+	}
+
 	d.SetId(id.ID())
 
 	return resourceArmStackHCIClusterRead(d, meta)
@@ -145,6 +189,13 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 		if props := model.Properties; props != nil {
 			d.Set("client_id", props.AadClientId)
 			d.Set("tenant_id", props.AadTenantId)
+			if v, ok := d.GetOk("automanage_configuration_id"); ok {
+				automanageConfigId, err := autoParse.AutomanageConfigurationID(v.(string))
+				if err != nil {
+					return err
+				}
+				d.Set("automanage_configuration_id", automanageConfigId.ID())
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -157,6 +208,7 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 
 func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.Clusters
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -173,6 +225,42 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if _, err := client.Update(ctx, *id, cluster); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	if d.HasChange("automanage_configuration_id") {
+
+		if v, ok := d.GetOk("automanage_configuration_id"); ok {
+			hciAssignmentClient := meta.(*clients.Client).Automanage.HCIAssignmentClient
+			autoConfigClient := meta.(*clients.Client).Automanage.ConfigurationClient
+			automanageConfigId, err := autoParse.AutomanageConfigurationID(v.(string))
+			if err != nil {
+				return err
+			}
+
+			_, err = autoConfigClient.Get(ctx, automanageConfigId.ConfigurationProfileName, automanageConfigId.ResourceGroup)
+			if err != nil {
+				return fmt.Errorf("checking for existing %s: %+v", automanageConfigId, err)
+			}
+
+			hciAssignmentID := parse.NewAutomanageConfigurationHCIAssignmentID(subscriptionId, id.ResourceGroupName, id.ClusterName, "default")
+			autoResp, err := hciAssignmentClient.Get(ctx, hciAssignmentID.ResourceGroup, hciAssignmentID.ClusterName, hciAssignmentID.ConfigurationProfileAssignmentName)
+
+			if err != nil && !utils.ResponseWasNotFound(autoResp.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", hciAssignmentID, err)
+			}
+
+			if utils.ResponseWasNotFound(autoResp.Response) {
+				properties := automanage.ConfigurationProfileAssignment{
+					Properties: &automanage.ConfigurationProfileAssignmentProperties{
+						ConfigurationProfile: utils.String(automanageConfigId.ID()),
+					},
+				}
+
+				if _, err := hciAssignmentClient.CreateOrUpdate(ctx, properties, hciAssignmentID.ResourceGroup, hciAssignmentID.ClusterName, hciAssignmentID.ConfigurationProfileAssignmentName); err != nil {
+					return fmt.Errorf("creating %s: %+v", hciAssignmentID, err)
+				}
+			}
+		}
 	}
 
 	return resourceArmStackHCIClusterRead(d, meta)
