@@ -433,7 +433,7 @@ func expandManagedLustreFileSystemEncryptionKey(input []EncryptionKey) *amlfiles
 func flattenManagedLustreFileSystemEncryptionKey(input *amlfilesystems.AmlFilesystemEncryptionSettings) []EncryptionKey {
 	result := make([]EncryptionKey, 0)
 	if input == nil || input.KeyEncryptionKey == nil {
-		return nil
+		return result
 	}
 
 	encryptionKey := EncryptionKey{
