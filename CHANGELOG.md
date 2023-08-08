@@ -17,10 +17,14 @@ ENHANCEMENTS:
 * `azurerm_digital_twins_instance` - support for User Assigned Identities [GH-22782]
 * `azurerm_kubernetes_cluster` - export the identity for Web App Routing under `web_app_routing_identity` [GH-22809]
 * `azurerm_log_analytics_workspace` - support changing value of `sku` from `CapacityReservation` and `PerGB2018` [GH-22597]
+* `azurerm_network_profile` - refactoring to use `hashicorp/go-azure-sdk` [GH-22850]
 * `azurerm_postgresql_database` - updating the validation for `collation` [GH-22689]
 * `azurerm_postgresql_flexible_server_database` - updating the validation for `collation` [GH-22689]
 * `azurerm_security_center_subscription_pricing` - add support for the `resource_type` `Api` [GH-22844]
 * `azurerm_spring_cloud_configuration_service` - add support for the `ca_certificate_id` property [GH-22814]
+* `azurerm_vpn_server_configuration` - refactoring to use `hashicorp/go-azure-sdk` [GH-22850]
+* `azurerm_vpn_server_configuration_policy_group` - refactoring to use `hashicorp/go-azure-sdk` [GH-22850]
+* `azurerm_vpn_site` - refactoring to use `hashicorp/go-azure-sdk` [GH-22850]
 
 BUG FIXES:
 
