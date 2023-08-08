@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -757,7 +758,13 @@ func flattenFirewallPolicyRuleCollection(input *[]firewallpolicyrulecollectiongr
 
 			var action string
 			if rule.Action != nil {
-				action = string(pointer.From(rule.Action.Type))
+				// todo 4.0 change this from DNAT to Dnat
+				// doing this because we hardcode Dnat for https://github.com/Azure/azure-rest-api-specs/issues/9986
+				if strings.EqualFold(string(pointer.From(rule.Action.Type)), "Dnat") {
+					action = "Dnat"
+				} else {
+					action = string(pointer.From(rule.Action.Type))
+				}
 			}
 
 			rules, err := flattenFirewallPolicyRuleNat(rule.Rules)
