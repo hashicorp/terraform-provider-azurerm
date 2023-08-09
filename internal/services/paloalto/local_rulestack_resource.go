@@ -64,10 +64,8 @@ func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
 		"vulnerability_profile": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
-				RuleStackSecurityServicesNone,
 				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
@@ -75,10 +73,8 @@ func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
 		"anti_spyware_profile": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
-				RuleStackSecurityServicesNone,
 				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
@@ -86,10 +82,8 @@ func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
 		"anti_virus_profile": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
-				RuleStackSecurityServicesNone,
 				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
@@ -97,10 +91,8 @@ func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
 		"url_filtering_profile": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
-				RuleStackSecurityServicesNone,
 				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
@@ -108,10 +100,8 @@ func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
 		"file_blocking_profile": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
-				RuleStackSecurityServicesNone,
 				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
@@ -119,10 +109,8 @@ func (r LocalRuleStack) Arguments() map[string]*pluginsdk.Schema {
 		"dns_subscription": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  RuleStackSecurityServicesNone,
 			ValidateFunc: validation.StringInSlice([]string{
 				RuleStackSecurityServicesCustom,
-				RuleStackSecurityServicesNone,
 				RuleStackSecurityServicesBestPractice,
 			}, false),
 		},
@@ -168,20 +156,41 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			secServices := localrulestacks.SecurityServices{
+				AntiSpywareProfile:   pointer.To(RuleStackSecurityServicesNone),
+				AntiVirusProfile:     pointer.To(RuleStackSecurityServicesNone),
+				DnsSubscription:      pointer.To(RuleStackSecurityServicesNone),
+				FileBlockingProfile:  pointer.To(RuleStackSecurityServicesNone),
+				UrlFilteringProfile:  pointer.To(RuleStackSecurityServicesNone),
+				VulnerabilityProfile: pointer.To(RuleStackSecurityServicesNone),
+			}
+
+			if model.AntiSpywareProfile != "" {
+				secServices.AntiSpywareProfile = pointer.To(model.AntiSpywareProfile)
+			}
+			if model.AntiVirusProfile != "" {
+				secServices.AntiVirusProfile = pointer.To(model.AntiVirusProfile)
+			}
+			if model.DNSSubscription != "" {
+				secServices.DnsSubscription = pointer.To(model.DNSSubscription)
+			}
+			if model.FileBlockingProfile != "" {
+				secServices.FileBlockingProfile = pointer.To(model.FileBlockingProfile)
+			}
+			if model.URLFilteringProfile != "" {
+				secServices.UrlFilteringProfile = pointer.To(model.URLFilteringProfile)
+			}
+			if model.VulnerabilityProfile != "" {
+				secServices.VulnerabilityProfile = pointer.To(model.VulnerabilityProfile)
+			}
+
 			localRuleStack := localrulestacks.LocalRulestackResource{
 				Location: model.Location,
 				Properties: localrulestacks.RulestackProperties{
-					DefaultMode: pointer.To(localrulestacks.DefaultModeNONE),
-					Description: pointer.To(model.Description),
-					Scope:       pointer.To(localrulestacks.ScopeTypeLOCAL),
-					SecurityServices: &localrulestacks.SecurityServices{
-						AntiSpywareProfile:   pointer.To(model.AntiSpywareProfile),
-						AntiVirusProfile:     pointer.To(model.AntiVirusProfile),
-						DnsSubscription:      pointer.To(model.DNSSubscription),
-						FileBlockingProfile:  pointer.To(model.FileBlockingProfile),
-						UrlFilteringProfile:  pointer.To(model.URLFilteringProfile),
-						VulnerabilityProfile: pointer.To(model.VulnerabilityProfile),
-					},
+					DefaultMode:      pointer.To(localrulestacks.DefaultModeNONE),
+					Description:      pointer.To(model.Description),
+					Scope:            pointer.To(localrulestacks.ScopeTypeLOCAL),
+					SecurityServices: pointer.To(secServices),
 				},
 			}
 
@@ -226,12 +235,24 @@ func (r LocalRuleStack) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(existing.Model.Location)
 
 				if secServices := props.SecurityServices; secServices != nil {
-					state.VulnerabilityProfile = pointer.From(secServices.VulnerabilityProfile)
-					state.AntiSpywareProfile = pointer.From(secServices.AntiSpywareProfile)
-					state.AntiVirusProfile = pointer.From(secServices.AntiVirusProfile)
-					state.FileBlockingProfile = pointer.From(secServices.FileBlockingProfile)
-					state.URLFilteringProfile = pointer.From(secServices.UrlFilteringProfile)
-					state.DNSSubscription = pointer.From(secServices.DnsSubscription)
+					if v := pointer.From(secServices.VulnerabilityProfile); v != RuleStackSecurityServicesNone {
+						state.VulnerabilityProfile = v
+					}
+					if v := pointer.From(secServices.AntiSpywareProfile); v != RuleStackSecurityServicesNone {
+						state.AntiSpywareProfile = v
+					}
+					if v := pointer.From(secServices.AntiVirusProfile); v != RuleStackSecurityServicesNone {
+						state.AntiVirusProfile = v
+					}
+					if v := pointer.From(secServices.FileBlockingProfile); v != RuleStackSecurityServicesNone {
+						state.FileBlockingProfile = v
+					}
+					if v := pointer.From(secServices.UrlFilteringProfile); v != RuleStackSecurityServicesNone {
+						state.URLFilteringProfile = v
+					}
+					if v := pointer.From(secServices.DnsSubscription); v != RuleStackSecurityServicesNone {
+						state.DNSSubscription = v
+					}
 				}
 			}
 
@@ -297,27 +318,51 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 			secServices := pointer.From(update.SecurityServices)
 
 			if metadata.ResourceData.HasChange("dns_subscription") {
-				secServices.DnsSubscription = pointer.To(model.DNSSubscription)
+				if model.DNSSubscription != "" {
+					secServices.DnsSubscription = pointer.To(model.DNSSubscription)
+				} else {
+					secServices.DnsSubscription = pointer.To(RuleStackSecurityServicesNone)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("vulnerability_profile") {
-				secServices.VulnerabilityProfile = pointer.To(model.VulnerabilityProfile)
+				if model.VulnerabilityProfile != "" {
+					secServices.VulnerabilityProfile = pointer.To(model.VulnerabilityProfile)
+				} else {
+					secServices.VulnerabilityProfile = pointer.To(RuleStackSecurityServicesNone)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("anti_spyware_profile") {
-				secServices.AntiSpywareProfile = pointer.To(model.AntiSpywareProfile)
+				if model.AntiSpywareProfile != "" {
+					secServices.AntiSpywareProfile = pointer.To(model.AntiSpywareProfile)
+				} else {
+					secServices.AntiSpywareProfile = pointer.To(RuleStackSecurityServicesNone)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("anti_virus_profile") {
-				secServices.AntiVirusProfile = pointer.To(model.AntiVirusProfile)
+				if model.AntiVirusProfile != "" {
+					secServices.AntiVirusProfile = pointer.To(model.AntiVirusProfile)
+				} else {
+					secServices.AntiVirusProfile = pointer.To(RuleStackSecurityServicesNone)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("url_filtering_profile") {
-				secServices.UrlFilteringProfile = pointer.To(model.URLFilteringProfile)
+				if model.URLFilteringProfile != "" {
+					secServices.UrlFilteringProfile = pointer.To(model.URLFilteringProfile)
+				} else {
+					secServices.UrlFilteringProfile = pointer.To(RuleStackSecurityServicesNone)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("file_blocking_profile") {
-				secServices.FileBlockingProfile = pointer.To(model.FileBlockingProfile)
+				if model.FileBlockingProfile != "" {
+					secServices.FileBlockingProfile = pointer.To(model.FileBlockingProfile)
+				} else {
+					secServices.FileBlockingProfile = pointer.To(RuleStackSecurityServicesNone)
+				}
 			}
 
 			update.SecurityServices = pointer.To(secServices)
