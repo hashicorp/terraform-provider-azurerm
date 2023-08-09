@@ -661,7 +661,7 @@ func TestAccContainerGroup_withInitContainer(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("ip_address_type"),
+		data.ImportStep("ip_address_type", "init_container.0.secure_environment_variables", "container.0.secure_environment_variables"),
 	})
 }
 
@@ -2239,6 +2239,9 @@ resource "azurerm_container_group" "test" {
     name     = "init"
     image    = "busybox"
     commands = ["echo", "hello from init"]
+    secure_environment_variables = {
+      PASSWORD = "something_very_secure_for_init"
+    }
   }
 
   container {
@@ -2248,6 +2251,9 @@ resource "azurerm_container_group" "test" {
     memory = "1.5"
 
     commands = ["echo", "hello from ubuntu"]
+    secure_environment_variables = {
+      PASSWORD = "something_very_secure"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

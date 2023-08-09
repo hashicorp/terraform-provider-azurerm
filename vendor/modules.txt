@@ -109,7 +109,7 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.57.0
+# github.com/hashicorp/go-azure-helpers v0.58.0
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/eventhub
@@ -129,7 +129,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20230803.1095722
+# github.com/hashicorp/go-azure-sdk v0.20230807.1085124
 ## explicit; go 1.19
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -190,6 +190,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/application
 github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount
 github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/certificate
 github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool
+github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment
+github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/blueprint
+github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices
@@ -325,9 +328,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/policie
 github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/schedules
 github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines
 github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualnetworks
-github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/digitaltwinsinstance
-github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2020-12-01/endpoints
-github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2022-10-31/timeseriesdatabaseconnections
+github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/digitaltwinsinstance
+github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/endpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/timeseriesdatabaseconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/dns
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets
@@ -774,6 +777,13 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/tableservi
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/tableserviceproperties
 github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/caches
 github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-01-01/storagetargets
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/amlfilesystems
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/ascusages
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/caches
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/skus
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/storagetargets
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/usagemodels
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/agents
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions

@@ -40,13 +40,13 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 		contentType = response.Request.Header.Get("Content-Type")
 	}
 
-	statusCodesToCheckProvisioningState := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated
+	statusCodesToCheckProvisioningState := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated || (response.StatusCode == http.StatusAccepted && lroIsSelfReference)
 	contentTypeMatchesForProvisioningStateCheck := strings.Contains(strings.ToLower(contentType), "application/json")
 	methodIsApplicable := strings.EqualFold(response.Request.Method, "PATCH") ||
 		strings.EqualFold(response.Request.Method, "POST") ||
 		strings.EqualFold(response.Request.Method, "PUT")
 	if statusCodesToCheckProvisioningState && contentTypeMatchesForProvisioningStateCheck && methodIsApplicable {
-		provisioningState, provisioningStateErr := provisioningStatePollerFromResponse(response, client, DefaultPollingInterval)
+		provisioningState, provisioningStateErr := provisioningStatePollerFromResponse(response, lroIsSelfReference, client, DefaultPollingInterval)
 		if provisioningStateErr != nil {
 			err = provisioningStateErr
 			return pollers.Poller{}, fmt.Errorf("building provisioningState poller: %+v", provisioningStateErr)

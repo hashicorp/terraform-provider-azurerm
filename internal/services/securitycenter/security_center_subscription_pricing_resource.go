@@ -59,6 +59,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 				Optional: true,
 				Default:  "VirtualMachines",
 				ValidateFunc: validation.StringInSlice([]string{
+					"Api",
 					"AppServices",
 					"ContainerRegistry",
 					"KeyVaults",

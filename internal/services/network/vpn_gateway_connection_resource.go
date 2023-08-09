@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -59,7 +60,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VpnSiteID,
+				ValidateFunc: virtualwans.ValidateVpnSiteID,
 			},
 
 			"internet_security_enabled": {
@@ -142,7 +143,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Required: true,
 							// The vpn site link associated with one link connection can not be updated
 							ForceNew:     true,
-							ValidateFunc: validate.VpnSiteLinkID,
+							ValidateFunc: virtualwans.ValidateVpnSiteLinkID,
 						},
 
 						"egress_nat_rule_ids": {
@@ -485,7 +486,7 @@ func resourceVpnGatewayConnectionResourceRead(d *pluginsdk.ResourceData, meta in
 		vpnSiteId := ""
 		if site := prop.RemoteVpnSite; site != nil {
 			if id := site.ID; id != nil {
-				theVpnSiteId, err := parse.VpnSiteID(*id)
+				theVpnSiteId, err := virtualwans.ParseVpnSiteIDInsensitively(*id)
 				if err != nil {
 					return err
 				}

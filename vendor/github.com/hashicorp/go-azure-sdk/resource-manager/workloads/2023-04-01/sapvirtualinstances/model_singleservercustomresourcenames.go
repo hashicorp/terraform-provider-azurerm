@@ -12,6 +12,15 @@ import (
 type SingleServerCustomResourceNames interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawSingleServerCustomResourceNamesImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalSingleServerCustomResourceNamesImplementation(input []byte) (SingleServerCustomResourceNames, error) {
 	if input == nil {
 		return nil, nil
@@ -35,10 +44,6 @@ func unmarshalSingleServerCustomResourceNamesImplementation(input []byte) (Singl
 		return out, nil
 	}
 
-	type RawSingleServerCustomResourceNamesImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawSingleServerCustomResourceNamesImpl{
 		Type:   value,
 		Values: temp,

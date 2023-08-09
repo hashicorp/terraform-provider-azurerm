@@ -113,6 +113,15 @@ func TestAccVirtualNetwork_basicUpdated(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet.#").HasValue("1"),
+				check.That(data.ResourceName).Key("subnet.0.id").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 

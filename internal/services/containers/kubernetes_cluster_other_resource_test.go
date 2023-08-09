@@ -849,6 +849,7 @@ func TestAccKubernetesCluster_webAppRouting(t *testing.T) {
 			Config: r.webAppRouting(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),

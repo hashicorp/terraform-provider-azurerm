@@ -12,6 +12,15 @@ import (
 type ProviderSpecificProperties interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawProviderSpecificPropertiesImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalProviderSpecificPropertiesImplementation(input []byte) (ProviderSpecificProperties, error) {
 	if input == nil {
 		return nil, nil
@@ -75,10 +84,6 @@ func unmarshalProviderSpecificPropertiesImplementation(input []byte) (ProviderSp
 		return out, nil
 	}
 
-	type RawProviderSpecificPropertiesImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawProviderSpecificPropertiesImpl{
 		Type:   value,
 		Values: temp,

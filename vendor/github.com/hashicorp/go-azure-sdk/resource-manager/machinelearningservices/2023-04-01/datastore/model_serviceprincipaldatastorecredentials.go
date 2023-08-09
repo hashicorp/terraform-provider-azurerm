@@ -11,11 +11,11 @@ import (
 var _ DatastoreCredentials = ServicePrincipalDatastoreCredentials{}
 
 type ServicePrincipalDatastoreCredentials struct {
-	AuthorityUrl *string          `json:"authorityUrl,omitempty"`
-	ClientId     string           `json:"clientId"`
-	ResourceUrl  *string          `json:"resourceUrl,omitempty"`
-	Secrets      DatastoreSecrets `json:"secrets"`
-	TenantId     string           `json:"tenantId"`
+	AuthorityUrl *string                          `json:"authorityUrl,omitempty"`
+	ClientId     string                           `json:"clientId"`
+	ResourceUrl  *string                          `json:"resourceUrl,omitempty"`
+	Secrets      ServicePrincipalDatastoreSecrets `json:"secrets"`
+	TenantId     string                           `json:"tenantId"`
 
 	// Fields inherited from DatastoreCredentials
 }
@@ -42,33 +42,4 @@ func (s ServicePrincipalDatastoreCredentials) MarshalJSON() ([]byte, error) {
 	}
 
 	return encoded, nil
-}
-
-var _ json.Unmarshaler = &ServicePrincipalDatastoreCredentials{}
-
-func (s *ServicePrincipalDatastoreCredentials) UnmarshalJSON(bytes []byte) error {
-	type alias ServicePrincipalDatastoreCredentials
-	var decoded alias
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into ServicePrincipalDatastoreCredentials: %+v", err)
-	}
-
-	s.AuthorityUrl = decoded.AuthorityUrl
-	s.ClientId = decoded.ClientId
-	s.ResourceUrl = decoded.ResourceUrl
-	s.TenantId = decoded.TenantId
-
-	var temp map[string]json.RawMessage
-	if err := json.Unmarshal(bytes, &temp); err != nil {
-		return fmt.Errorf("unmarshaling ServicePrincipalDatastoreCredentials into map[string]json.RawMessage: %+v", err)
-	}
-
-	if v, ok := temp["secrets"]; ok {
-		impl, err := unmarshalDatastoreSecretsImplementation(v)
-		if err != nil {
-			return fmt.Errorf("unmarshaling field 'Secrets' for 'ServicePrincipalDatastoreCredentials': %+v", err)
-		}
-		s.Secrets = impl
-	}
-	return nil
 }

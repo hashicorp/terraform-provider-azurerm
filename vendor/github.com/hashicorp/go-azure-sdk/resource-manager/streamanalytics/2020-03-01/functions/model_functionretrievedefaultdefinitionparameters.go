@@ -12,6 +12,15 @@ import (
 type FunctionRetrieveDefaultDefinitionParameters interface {
 }
 
+// RawModeOfTransitImpl is returned when the Discriminated Value
+// doesn't match any of the defined types
+// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
+// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+type RawFunctionRetrieveDefaultDefinitionParametersImpl struct {
+	Type   string
+	Values map[string]interface{}
+}
+
 func unmarshalFunctionRetrieveDefaultDefinitionParametersImplementation(input []byte) (FunctionRetrieveDefaultDefinitionParameters, error) {
 	if input == nil {
 		return nil, nil
@@ -43,10 +52,6 @@ func unmarshalFunctionRetrieveDefaultDefinitionParametersImplementation(input []
 		return out, nil
 	}
 
-	type RawFunctionRetrieveDefaultDefinitionParametersImpl struct {
-		Type   string                 `json:"-"`
-		Values map[string]interface{} `json:"-"`
-	}
 	out := RawFunctionRetrieveDefaultDefinitionParametersImpl{
 		Type:   value,
 		Values: temp,
