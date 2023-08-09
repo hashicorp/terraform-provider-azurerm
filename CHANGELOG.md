@@ -7,10 +7,11 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.58.0` of `github.com/hashicorp/go-azure-helpers` [GH-22813]
-* dependencies: updating to `v0.20230807.1085124` of `github.com/hashicorp/go-azure-sdk` [GH-22845]
+* dependencies: updating to `v0.20230808.1103829` of `github.com/hashicorp/go-azure-sdk` [GH-22860]
 * `arckubernetes` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
 * `bot` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
 * `blueprints`: updating to use `hashicorp/go-azure-sdk` [GH-21569]
+* `compute` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22860]
 * `digitaltwins` - updating to API Version `2023-01-31` [GH-22782]
 * `hsm` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
 * `hybridcompute` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
