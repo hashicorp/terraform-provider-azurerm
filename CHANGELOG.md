@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource**: `azurerm_graph_services_account` [GH-22665]
+* **New Resource**: `azurerm_managed_lustre_file_system` [GH-22680]
 
 ENHANCEMENTS:
 
@@ -15,9 +16,13 @@ ENHANCEMENTS:
 * `digitaltwins` - updating to API Version `2023-01-31` [GH-22782]
 * `hsm` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
 * `hybridcompute` - updating to use the `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` as a base layer [GH-22815]
+* `azurerm_container_app_environment` - `log_analytics_workspace_id` is now an Optional property [GH-22733]
 * `azurerm_digital_twins_instance` - support for User Assigned Identities [GH-22782]
+* `azurerm_function_app_function` - hyphen and underscore are now allows characters for function names [GH-22519]
 * `azurerm_kubernetes_cluster` - export the identity for Web App Routing under `web_app_routing_identity` [GH-22809]
+* `azurerm_kubernetes_cluster` - add support for the `snapshot_id` property in the `default_node_pool` block [GH-22708]
 * `azurerm_log_analytics_workspace` - support changing value of `sku` from `CapacityReservation` and `PerGB2018` [GH-22597]
+* `azurerm_mssql_server` - `SystemAssigned, UserAssigned` identity is now supported [GH-22828]
 * `azurerm_network_profile` - refactoring to use `hashicorp/go-azure-sdk` [GH-22850]
 * `azurerm_postgresql_database` - updating the validation for `collation` [GH-22689]
 * `azurerm_postgresql_flexible_server_database` - updating the validation for `collation` [GH-22689]
@@ -30,12 +35,14 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_virutal_machine` - correctly retrieve and set value for `power_state` [GH-22851]
 * `azurerm_cdn_endpoint` - conditionally using `PUT` in place of `PATCH` when a field other than `tags` has changed [GH-22662]
 * `azure_container_group` - set `init_container.secure_environment_variables` into state correctly [GH-22832]
 * `azurerm_custom_ip_prefix` - support for environments other than Azure Public [GH-22812]
 * `azurerm_databricks_workspace` - update parse function for `machine_learning_workspace_id` field validation [GH-22865]
 * `azurerm_kusto_cosmosdb_data_connection_resource` - ensure the `subscriptionId` and `ResourceGroupName` align with the CosmosDB container [GH-22663]
 * `azurerm_monitor_data_collection_rule` - recreate resource when attempting to remove `kind` [GH-22811]
+* `azurerm_static_site_custom_domain` - prevent overwriting `validation_token` with an empty value by setting it into state when creating the resource [GH-22848]
 
 ## 3.68.0 (August 03, 2023)
 
