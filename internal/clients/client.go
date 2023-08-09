@@ -522,7 +522,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Portal, err = portal.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Portal: %+v", err)
 	}
-	client.Postgres = postgres.NewClient(o)
+	if client.Postgres, err = postgres.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Postgres: %+v", err)
+	}
 	if client.PowerBI, err = powerBI.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for PowerBI: %+v", err)
 	}
