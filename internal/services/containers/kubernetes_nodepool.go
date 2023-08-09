@@ -1404,7 +1404,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	snapshotId := ""
 	if agentPool.CreationData != nil && agentPool.CreationData.SourceResourceId != nil {
-		snapshotId = *agentPool.CreationData.SourceResourceId
+		id, err := snapshots.ParseSnapshotIDInsensitively(*agentPool.CreationData.SourceResourceId)
+		if err != nil {
+			return nil, err
+		}
+		snapshotId = id.ID()
 	}
 
 	vmSize := ""
