@@ -537,7 +537,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Purview, err = purview.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Purview: %+v", err)
 	}
-	client.RecoveryServices = recoveryServices.NewClient(o)
+	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
+	}
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)
 	}
